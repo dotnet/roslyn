@@ -4,7 +4,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    ''' <summary> This is an implementation of a special symbol comparer, which is supposed to be used  for 
+    ''' <summary>
+    ''' This is an implementation of a special symbol comparer, which is supposed to be used  for 
     ''' sorting original definition symbols (explicitly or explicitly declared in source  within the same 
     ''' container) in lexical order of their declarations. It will not work on  anything that uses non-source locations. 
     ''' </summary>        
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New()
         End Sub
 
-        Public Function Compare(x As Symbol, y As Symbol) As Integer Implements IComparer(Of Microsoft.CodeAnalysis.VisualBasic.Symbol).Compare
+        Public Function Compare(x As Symbol, y As Symbol) As Integer Implements IComparer(Of Symbol).Compare
             Dim comparison As Integer
 
             If x Is y Then

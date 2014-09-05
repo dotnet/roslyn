@@ -815,7 +815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 Dim newModifiedIdentifier = SyntaxFactory.ModifiedIdentifier(modifiedIdentifier.Identifier) ' LeadingTrivia is copied here
-                replacementNode = SyntaxFactory.VariableDeclarator(SyntaxFactory.SingletonSeparatedList(Of ModifiedIdentifierSyntax)(newModifiedIdentifier.WithTrailingTrivia(variableDeclarator.AsClause.GetTrailingTrivia())),
+                replacementNode = SyntaxFactory.VariableDeclarator(SyntaxFactory.SingletonSeparatedList(newModifiedIdentifier.WithTrailingTrivia(variableDeclarator.AsClause.GetTrailingTrivia())),
                                                                    asClause:=Nothing,
                                                                    initializer:=variableDeclarator.Initializer) 'TrailingTrivia is copied here
                 issueSpan = variableDeclarator.Span
@@ -1112,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' See if we can simplify a member access expression of the form E.M or E.M() to M or M()
-            Dim speculationAnalyzer = New SpeculationAnalyzer(memberAccess, reducedNode, DirectCast(semanticModel, SemanticModel), cancellationToken)
+            Dim speculationAnalyzer = New SpeculationAnalyzer(memberAccess, reducedNode, semanticModel, cancellationToken)
             If Not speculationAnalyzer.SymbolsForOriginalAndReplacedNodesAreCompatible() OrElse
                 speculationAnalyzer.ReplacementChangesSemantics() Then
                 Return False
@@ -1151,7 +1151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' nothing we can do here.
             Dim symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, name)
             If SimplificationHelpers.IsValidSymbolInfo(symbol) Then
-                If symbol.Kind = SymbolKind.Method AndAlso DirectCast(symbol, IMethodSymbol).IsConstructor() Then
+                If symbol.Kind = SymbolKind.Method AndAlso symbol.IsConstructor() Then
                     symbol = symbol.ContainingType
                 End If
 
@@ -1406,8 +1406,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' must be parented by an namespace declaration and the node itself must be equal to the declaration's Name
         ''' property.
         ''' </summary>
-        ''' <param name="node"></param>
-        ''' <returns></returns>
         Private Function IsPartOfNamespaceDeclarationName(node As SyntaxNode) As Boolean
 
             Dim nextNode As SyntaxNode = node
@@ -1711,7 +1709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         ''' <summary>
-        ''' Returns the predefined keyword kind for a given specialtype.
+        ''' Returns the predefined keyword kind for a given special type.
         ''' </summary>
         ''' <param name="type">The specialtype of this type.</param>
         ''' <returns>The keyword kind for a given special type, or SyntaxKind.None if the type name is not a predefined type.</returns>
@@ -1786,8 +1784,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If attribute.Target Is Nothing Then
                 Dim identifierValue = SyntaxFacts.MakeHalfWidthIdentifier(identifier.Identifier.ValueText)
 
-                If CaseInsensitiveComparison.Compare(identifierValue, "Assembly") = 0 OrElse
-                   CaseInsensitiveComparison.Compare(identifierValue, "Module") = 0 Then
+                If CaseInsensitiveComparison.Equals(identifierValue, "Assembly") OrElse
+                   CaseInsensitiveComparison.Equals(identifierValue, "Module") Then
                     Return True
                 End If
             End If

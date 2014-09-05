@@ -1,15 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -506,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     baseType = CreateNullableOf(baseType,
                                                 modifiedIdentifier,
                                                 If(asClauseSyntaxOpt IsNot Nothing,
-                                                   DirectCast(asClauseSyntaxOpt.Type, VisualBasicSyntaxNode),
+                                                   asClauseSyntaxOpt.Type,
                                                    DirectCast(modifiedIdentifier, VisualBasicSyntaxNode)),
                                                 diagBag)
                 End If
@@ -875,7 +871,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim name = param.Name
                 For Each tp In typeParams
-                    If CaseInsensitiveComparison.Compare(tp.Name, name) = 0 Then
+                    If CaseInsensitiveComparison.Equals(tp.Name, name) Then
                         ' "'{0}' is already declared as a type parameter of this method."
                         ReportDiagnostic(diagBag, paramSyntax.Identifier, ERRID.ERR_NameSameAsMethodTypeParam1, name)
                         Exit For
@@ -966,7 +962,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function CheckReservedParameterName(reservedName As String, syntax As ParameterSyntax, errorId As ERRID, diagnostics As DiagnosticBag) As Boolean
             Dim identifier = syntax.Identifier
             Dim name = identifier.Identifier.ValueText
-            If IdentifierComparison.Compare(reservedName, name) = 0 Then
+            If IdentifierComparison.Equals(reservedName, name) Then
                 Dim location = identifier.GetLocation()
                 diagnostics.Add(errorId, location)
                 Return False
@@ -983,7 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  diagnostics As DiagnosticBag)
             Dim name = parameter.Name
             For i = 0 To nParams - 1
-                If IdentifierComparison.Compare(params(i).Name, name) = 0 Then
+                If IdentifierComparison.Equals(params(i).Name, name) Then
                     ' "Parameter already declared with name '{0}'."
                     ReportDiagnostic(diagnostics, syntax.Identifier, ERRID.ERR_DuplicateParamName1, name)
                     Return

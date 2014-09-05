@@ -4,9 +4,11 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports CallingConvention = Microsoft.Cci.CallingConvention ' to resolve ambiguity with System.Runtime.InteropServices.CallingConvention
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -277,20 +279,20 @@ lReportErrorOnTwoTokens:
             Return New SourceDeclareMethodSymbol(container, name, flags, binder, syntax, importData)
         End Function
 
-        Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As Cci.PInvokeAttributes
-            Dim result As Cci.PInvokeAttributes
+        Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As PInvokeAttributes
+            Dim result As PInvokeAttributes
             Select Case syntax.CharsetKeyword.VisualBasicKind
                 Case SyntaxKind.None, SyntaxKind.AnsiKeyword
-                    result = Cci.PInvokeAttributes.CharSetAnsi Or Cci.PInvokeAttributes.NoMangle
+                    result = PInvokeAttributes.CharSetAnsi Or PInvokeAttributes.NoMangle
 
                 Case SyntaxKind.UnicodeKeyword
-                    result = Cci.PInvokeAttributes.CharSetUnicode Or Cci.PInvokeAttributes.NoMangle
+                    result = PInvokeAttributes.CharSetUnicode Or PInvokeAttributes.NoMangle
 
                 Case SyntaxKind.AutoKeyword
-                    result = Cci.PInvokeAttributes.CharSetAuto
+                    result = PInvokeAttributes.CharSetAuto
             End Select
 
-            Return result Or Cci.PInvokeAttributes.CallConvWinapi Or Cci.PInvokeAttributes.SupportsLastError
+            Return result Or PInvokeAttributes.CallConvWinapi Or PInvokeAttributes.SupportsLastError
         End Function
 
         Friend Shared Function CreateOperator(
@@ -729,10 +731,10 @@ lReportErrorOnTwoTokens:
         End Property
 
 
-        Friend NotOverridable Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
+        Friend NotOverridable Overrides ReadOnly Property CallingConvention As CallingConvention
             Get
-                Return If(IsShared, Microsoft.Cci.CallingConvention.Default, Microsoft.Cci.CallingConvention.HasThis) Or
-                       If(IsGenericMethod, Microsoft.Cci.CallingConvention.Generic, Microsoft.Cci.CallingConvention.Default)
+                Return If(IsShared, CallingConvention.Default, CallingConvention.HasThis) Or
+                       If(IsGenericMethod, CallingConvention.Generic, CallingConvention.Default)
             End Get
         End Property
 
@@ -843,8 +845,8 @@ lReportErrorOnTwoTokens:
                     Dim location As location = Me.NonMergedLocation
                     ImmutableInterlocked.InterlockedCompareExchange(Me.m_lazyLocations,
                                                         If(location Is Nothing,
-                                                           ImmutableArray(Of location).Empty,
-                                                           ImmutableArray.Create(Of location)(location)),
+                                                           ImmutableArray(Of Location).Empty,
+                                                           ImmutableArray.Create(location)),
                                                         Nothing)
                 End If
                 Return m_lazyLocations
@@ -1167,11 +1169,11 @@ lReportErrorOnTwoTokens:
 
             If methodSyntax IsNot Nothing AndAlso methodSyntax.ImplementsClause IsNot Nothing AndAlso containingSourceType IsNot Nothing Then
                 Dim binder As binder = BinderBuilder.CreateBinderForType(containingSourceType.ContainingSourceModule, syntaxTree, containingSourceType)
-                Dim implementingSyntax = FindImplementingSyntax(Of MethodSymbol)(methodSyntax.ImplementsClause,
-                                                                                 Me,
-                                                                                 implementedMethod,
-                                                                                 containingSourceType,
-                                                                                 binder)
+                Dim implementingSyntax = FindImplementingSyntax(methodSyntax.ImplementsClause,
+                                                                Me,
+                                                                implementedMethod,
+                                                                containingSourceType,
+                                                                binder)
                 Return implementingSyntax.GetLocation()
             End If
 
@@ -1201,7 +1203,7 @@ lReportErrorOnTwoTokens:
                 Return DirectCast(boundStatement, BoundBlock)
             End If
 
-            Return New BoundBlock(methodBlock, methodBlock.Statements, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundStatement)(boundStatement))
+            Return New BoundBlock(methodBlock, methodBlock.Statements, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(boundStatement))
         End Function
 #End Region
 
@@ -1595,11 +1597,11 @@ lReportErrorOnTwoTokens:
                 ' This might be different from ContainingType.DefaultMarshallingCharSet. If the charset is not specified on module
                 ' ContainingType.DefaultMarshallingCharSet would be Ansi (the class is emitted with "Ansi" charset metadata flag) 
                 ' while the charset in P/Invoke metadata should be "None".
-                Dim charSet As CharSet = If(Me.EffectiveDefaultMarshallingCharSet, Cci.Constants.CharSet_None)
+                Dim charSet As CharSet = If(Me.EffectiveDefaultMarshallingCharSet, Microsoft.Cci.Constants.CharSet_None)
 
                 Dim importName As String = Nothing
                 Dim preserveSig As Boolean = True
-                Dim callingConvention As CallingConvention = CallingConvention.Winapi
+                Dim callingConvention As System.Runtime.InteropServices.CallingConvention = System.Runtime.InteropServices.CallingConvention.Winapi
                 Dim setLastError As Boolean = False
                 Dim exactSpelling As Boolean = False
                 Dim bestFitMapping As Boolean? = Nothing
@@ -1628,7 +1630,7 @@ lReportErrorOnTwoTokens:
                             preserveSig = namedArg.Value.DecodeValue(Of Boolean)(SpecialType.System_Boolean)
 
                         Case "CallingConvention"
-                            callingConvention = namedArg.Value.DecodeValue(Of CallingConvention)(SpecialType.System_Enum)
+                            callingConvention = namedArg.Value.DecodeValue(Of System.Runtime.InteropServices.CallingConvention)(SpecialType.System_Enum)
 
                         Case "BestFitMapping"
                             bestFitMapping = namedArg.Value.DecodeValue(Of Boolean)(SpecialType.System_Boolean)
@@ -1862,7 +1864,7 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function GetSecurityInformation() As IEnumerable(Of Cci.SecurityAttribute)
+        Friend NotOverridable Overrides Function GetSecurityInformation() As IEnumerable(Of SecurityAttribute)
             Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.GetAttributesBag()
             Dim wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, MethodWellKnownAttributeData)
             If wellKnownAttributeData IsNot Nothing Then
@@ -1872,7 +1874,7 @@ lReportErrorOnTwoTokens:
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of Microsoft.Cci.SecurityAttribute)()
+            Return SpecializedCollections.EmptyEnumerable(Of SecurityAttribute)()
         End Function
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean

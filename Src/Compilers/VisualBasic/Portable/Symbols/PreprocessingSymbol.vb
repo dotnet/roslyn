@@ -6,7 +6,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' Represents a preprocessing conditional compilation symbol.
     ''' </summary>
-    ''' <remarks></remarks>
     Friend NotInheritable Class PreprocessingSymbol
         Inherits Symbol
         Implements IPreprocessingSymbol
@@ -100,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim other As PreprocessingSymbol = TryCast(obj, PreprocessingSymbol)
 
             Return other IsNot Nothing AndAlso
-                IdentifierComparison.Compare(Me.Name, other.Name) = 0
+                IdentifierComparison.Equals(Me.Name, other.Name)
         End Function
 
         Public Overrides Function GetHashCode() As Integer

@@ -1,17 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
     ''' <summary>
     ''' Represents enum constant field in source.
     ''' </summary>
@@ -42,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        name:=syntax.Identifier.ValueText,
                        memberFlags:=SourceMemberFlags.Const Or SourceMemberFlags.Shared Or SourceMemberFlags.AccessibilityPublic)
 
-            If IdentifierComparison.Compare(Me.Name, WellKnownMemberNames.EnumBackingFieldName) = 0 Then
+            If IdentifierComparison.Equals(Me.Name, WellKnownMemberNames.EnumBackingFieldName) Then
                 diagnostics.Add(ERRID.ERR_ClashWithReservedEnumMember1, syntax.Identifier.GetLocation(), Me.Name)
             End If
         End Sub

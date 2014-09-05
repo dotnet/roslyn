@@ -1,15 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -22,7 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Holds information about a SourceType in a compact form.
         ''' </summary>
-        ''' <remarks></remarks>
         <Flags>
         Friend Enum SourceTypeFlags As UShort
             [Private] = CUShort(Accessibility.Private)
@@ -224,14 +218,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim kind = declaration.SyntaxReferences.First.SyntaxTree.GetEmbeddedKind()
 
-            If kind <> VisualBasic.Symbols.EmbeddedSymbolKind.None Then
+            If kind <> EmbeddedSymbolKind.None Then
                 Return New EmbeddedSymbolManager.EmbeddedNamedTypeSymbol(declaration, containingSymbol, containingModule, kind)
             End If
 
             Select Case declaration.Kind
-                Case VisualBasic.Symbols.DeclarationKind.ImplicitClass,
-                    VisualBasic.Symbols.DeclarationKind.Script,
-                    VisualBasic.Symbols.DeclarationKind.Submission
+                Case DeclarationKind.ImplicitClass,
+                    DeclarationKind.Script,
+                    DeclarationKind.Submission
                     Return New ImplicitNamedTypeSymbol(declaration, containingSymbol, containingModule)
 
                 Case Else
@@ -365,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' NOTE: we don't check for use-site errors on the following two types, because 
                 '       for EmitMetadataOnly scenario this is not important, and for regular 
                 '       emit, those errors will be reported by AsyncRewriter
-                Dim valueTypeSymbol As NamedTypeSymbol = compilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_ValueType)
+                Dim valueTypeSymbol As NamedTypeSymbol = compilation.GetSpecialType(SpecialType.System_ValueType)
                 Dim iAsyncStateMachine As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine)
 
                 ' NOTE: get the attribute type constructor to ensure use-site errors are reported
@@ -1332,7 +1326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return CType(CUShort(m_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TypeKind)
+                Return CType((m_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TypeKind)
             End Get
         End Property
 
@@ -1439,7 +1433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim firstLocation = Me.DeclaringCompilation.FirstSourceLocation(Locations)
                 Debug.Assert(firstLocation.IsInSource)
 
-                Return containingSourceNamespace.GetDeclarationSpelling(DirectCast(firstLocation.SourceTree, VisualBasicSyntaxTree), firstLocation.SourceSpan.Start)
+                Return containingSourceNamespace.GetDeclarationSpelling(firstLocation.SourceTree, firstLocation.SourceSpan.Start)
             End If
 
             Return Nothing
@@ -1957,7 +1951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim implParameter As ParameterSymbol = implMethodParams(index)
 
                     '  Check type parameter name
-                    If CaseInsensitiveComparison.Compare(declParameter.Name, implParameter.Name) <> 0 Then
+                    If Not CaseInsensitiveComparison.Equals(declParameter.Name, implParameter.Name) Then
 
                         Debug.Assert(implParameter.Locations.Length = 1)
                         diagnostics.Add(ERRID.ERR_PartialMethodParamNamesMustMatch3,
@@ -1978,7 +1972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim implParameter As TypeParameterSymbol = implTypeParams(index)
 
                     '  Check parameter name
-                    If CaseInsensitiveComparison.Compare(declParameter.Name, implParameter.Name) <> 0 Then
+                    If Not CaseInsensitiveComparison.Equals(declParameter.Name, implParameter.Name) Then
 
                         Debug.Assert(implParameter.Locations.Length = 1)
                         diagnostics.Add(ERRID.ERR_PartialMethodTypeParamNameMismatch3,
@@ -2694,7 +2688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim initializer = New FieldOrPropertyInitializer(propertySymbol, initializerOptRef)
 
                 If propertySymbol.IsShared Then
-                    SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer)
+                    AddInitializer(staticInitializers, initializer)
                 Else
                     ' auto implemented properties inside of structures can only have an initialization value
                     ' if they are shared.
@@ -2704,7 +2698,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
                     End If
 
-                    SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer)
+                    AddInitializer(instanceInitializers, initializer)
                 End If
             End If
         End Sub

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -6,6 +6,7 @@ Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
@@ -263,6 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
 #Region "Constructors and Factories"
+
         ''' <summary>
         ''' Create a new compilation from scratch.
         ''' </summary>
@@ -301,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             CheckSubmissionOptions(options)
 
-            Dim vbTree = DirectCast(syntaxTree, SyntaxTree)
+            Dim vbTree = syntaxTree
             Dim vbPrevious = DirectCast(previousSubmission, VisualBasicCompilation)
 
             Return Create(
@@ -660,7 +662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         ''' <returns>
         ''' Returns a static type of the expression of the last expression or call statement if there is any,
-        ''' a symbol for <see cref="System.Void"/> otherwise.
+        ''' a symbol for <see cref="Void"/> otherwise.
         ''' </returns>
         ''' <remarks>
         ''' Note that the return type is System.Void for both compilations "System.Console.WriteLine()" and "?System.Console.WriteLine()",
@@ -755,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException("syntaxTree")
             End If
 
-            Dim vbtree = TryCast(syntaxTree, SyntaxTree)
+            Dim vbtree = syntaxTree
             Return vbtree IsNot Nothing AndAlso m_rootNamespaces.ContainsKey(vbtree)
         End Function
 
@@ -937,8 +939,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw New ArgumentException(VBResources.TreeMustHaveARootNodeWithCompilationUnit, "newTree")
                 End If
 
-                Dim vbOldTree = DirectCast(oldTree, SyntaxTree)
-                Dim vbNewTree = DirectCast(newTree, SyntaxTree)
+                Dim vbOldTree = oldTree
+                Dim vbNewTree = newTree
 
                 If vbOldTree.IsEmbeddedOrMyTemplateTree() Then
                     Throw New ArgumentException(VBResources.CannotRemoveCompilerSpecialTree)
@@ -976,7 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function CreateEmbeddedTrees(compReference As Lazy(Of VisualBasicCompilation)) As ImmutableArray(Of EmbeddedTreeAndDeclaration)
-            Return ImmutableArray.Create(Of EmbeddedTreeAndDeclaration)(
+            Return ImmutableArray.Create(
                 New EmbeddedTreeAndDeclaration(
                     Function()
                         Dim compilation = compReference.Value
@@ -987,7 +989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.Options.EmbedVbCoreRuntime Or compilation.IncludeInternalXmlHelper,
-                                  ForTree(VisualBasic.Symbols.EmbeddedSymbolManager.EmbeddedSyntax, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.EmbeddedSyntax, compilation.Options, compilation.IsSubmission),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1000,7 +1002,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.Options.EmbedVbCoreRuntime,
-                                  ForTree(VisualBasic.Symbols.EmbeddedSymbolManager.VbCoreSyntaxTree, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.VbCoreSyntaxTree, compilation.Options, compilation.IsSubmission),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1013,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.IncludeInternalXmlHelper(),
-                                  ForTree(VisualBasic.Symbols.EmbeddedSymbolManager.InternalXmlHelperSyntax, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.InternalXmlHelperSyntax, compilation.Options, compilation.IsSubmission),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1690,7 +1692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Resolves a symbol that represents script container (Script class). 
-        ''' Uses the full name of the container class stored in <see cref="P:CompilationOptions.ScriptClassName"/>  to find the symbol.
+        ''' Uses the full name of the container class stored in <see cref="CompilationOptions.ScriptClassName"/>  to find the symbol.
         ''' </summary> 
         ''' <returns>
         ''' The Script class symbol or null if it is not defined.
@@ -1707,9 +1709,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get symbol for predefined type from Cor Library referenced by this compilation.
         ''' </summary>
-        ''' <param name="typeId"></param>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
         Friend Shadows Function GetSpecialType(typeId As SpecialType) As NamedTypeSymbol
             Dim result = Assembly.GetSpecialType(typeId)
             Debug.Assert(result.SpecialType = typeId)
@@ -1760,7 +1759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' SemanticModel.
         '''</summary> 
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), DirectCast(syntaxTree, SyntaxTree))
+            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree)
         End Function
 
 #End Region
@@ -2011,7 +2010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of IDiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.VisualBasicKind
-            Return New AnalyzerDriver(Of VisualBasic.SyntaxKind)(analyzers, getKind, options, cancellationToken)
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, options, cancellationToken)
         End Function
 
 #End Region
@@ -2329,9 +2328,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnosticBag.Add(ERRID.WRN_MultipleDeclFileExtChecksum, New SourceLocation(checkSumDirective), path)
 
                 Else
-                    Dim newDocument = New Cci.DebugSourceDocument(
+                    Dim newDocument = New DebugSourceDocument(
                         normalizedPath,
-                        Cci.DebugSourceDocument.CorSymLanguageTypeBasic,
+                        DebugSourceDocument.CorSymLanguageTypeBasic,
                         MakeCheckSumBytes(checkSumDirective.Checksum.ValueText),
                         Guid.Parse(checkSumDirective.Guid.ValueText))
 
@@ -2372,9 +2371,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function MakeDebugSourceDocumentForTree(normalizedPath As String, tree As SyntaxTree) As Cci.DebugSourceDocument
+        Private Shared Function MakeDebugSourceDocumentForTree(normalizedPath As String, tree As SyntaxTree) As DebugSourceDocument
             Dim checkSumSha1 As Func(Of ImmutableArray(Of Byte)) = Function() tree.GetSha1Checksum()
-            Return New Cci.DebugSourceDocument(normalizedPath, Microsoft.Cci.DebugSourceDocument.CorSymLanguageTypeBasic, checkSumSha1)
+            Return New DebugSourceDocument(normalizedPath, DebugSourceDocument.CorSymLanguageTypeBasic, checkSumSha1)
         End Function
 
         Private Sub SetupWin32Resources(moduleBeingBuilt As PEModuleBuilder, win32Resources As Stream, diagnostics As DiagnosticBag)
@@ -2442,7 +2441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return Me.GetSemanticModel(DirectCast(syntaxTree, SyntaxTree))
+            Return Me.GetSemanticModel(syntaxTree)
         End Function
 
         Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)
@@ -2482,7 +2481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonReplaceSyntaxTree(oldTree As SyntaxTree, newTree As SyntaxTree) As Compilation
-            Return Me.ReplaceSyntaxTree(DirectCast(oldTree, SyntaxTree), DirectCast(newTree, SyntaxTree))
+            Return Me.ReplaceSyntaxTree(oldTree, newTree)
         End Function
 
         Protected Overrides Function CommonWithOptions(options As CompilationOptions) As Compilation
@@ -2494,7 +2493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
-            Return Me.ContainsSyntaxTree(DirectCast(syntaxTree, SyntaxTree))
+            Return Me.ContainsSyntaxTree(syntaxTree)
         End Function
 
         Protected Overrides Function CommonGetAssemblyOrModuleSymbol(reference As MetadataReference) As ISymbol

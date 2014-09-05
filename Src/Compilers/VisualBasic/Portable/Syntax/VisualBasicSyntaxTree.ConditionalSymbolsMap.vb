@@ -12,7 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Map containing information about all conditional symbol definitions in the source file corresponding to a parsed syntax tree.
         ''' </summary>
-        ''' <remarks></remarks>
         Private Class ConditionalSymbolsMap
 
             ''' <summary>
@@ -146,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Get symbol name at preprocessor definition, i.e. #Const directive.
                 ' NOTE: symbolName and conditionalSymbolName might have different case, we want the definition name.
-                Dim symbolName = m_conditionalsMap.Keys.First(Function(key) IdentifierComparison.Compare(key, conditionalSymbolName) = 0)
+                Dim symbolName = m_conditionalsMap.Keys.First(Function(key) IdentifierComparison.Equals(key, conditionalSymbolName))
                 Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(name:=symbolName), constantValueOpt:=constValue.ValueAsObject, isDefined:=True)
             End Function
 

@@ -2276,7 +2276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     DirectCast(right, GenericNameSyntax).Identifier)
 
                 If Not identifier.IsBracketed AndAlso
-                        CaseInsensitiveComparison.Compare(identifier.ValueText, SyntaxFacts.GetText(SyntaxKind.NewKeyword)) = 0 Then
+                        CaseInsensitiveComparison.Equals(identifier.ValueText, SyntaxFacts.GetText(SyntaxKind.NewKeyword)) Then
 
                     If leftTypeSymbol.IsArrayType() Then
                         ' No instance constructors found. Can't call constructor on an array type.
@@ -2435,7 +2435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim effectiveOptions = If(left.Kind <> BoundKind.MyBaseReference, options,
                                               options Or LookupOptions.UseBaseReferenceAccessibility)
                     If eventContext Then
-                        effectiveOptions = CType(effectiveOptions Or LookupOptions.EventsOnly, LookupOptions)
+                        effectiveOptions = effectiveOptions Or LookupOptions.EventsOnly
                     End If
 
                     LookupMember(lookupResult, type, rightName, rightArity, effectiveOptions, useSiteDiagnostics) ' overload resolution filters methods by arity.
@@ -2524,7 +2524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    referenceLocation IsNot Nothing AndAlso referenceLocation.IsInSource AndAlso
                    declarationLocation.SourceTree Is referenceLocation.SourceTree Then
 
-                    localType = Symbols.LocalSymbol.UseBeforeDeclarationResultType
+                    localType = LocalSymbol.UseBeforeDeclarationResultType
 
                     If diagnostics IsNot Nothing Then
                         ReportDiagnostic(diagnostics, node, ERRID.ERR_UseOfLocalBeforeDeclaration1, localSymbol)
@@ -3357,7 +3357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeCharacterString As String = Nothing
             Dim specialType As SpecialType = GetSpecialTypeForTypeCharacter(typeChar, typeCharacterString)
 
-            If specialType <> Microsoft.CodeAnalysis.SpecialType.None Then
+            If specialType <> SpecialType.None Then
                 If type.IsArrayType() Then
                     type = DirectCast(type, ArrayTypeSymbol).ElementType
                 End If
@@ -4151,10 +4151,10 @@ lElseClause:
                 Return BadExpression(node, operand, ErrorTypeSymbol.UnknownResultType)
             ElseIf operand.Type.IsObjectType() Then
                 ' Late-bound pattern.
-                If OptionStrict = VisualBasic.OptionStrict.On Then
+                If OptionStrict = OptionStrict.On Then
                     ReportDiagnostic(diagnostics, node, ERRID.ERR_StrictDisallowsLateBinding)
                     Return BadExpression(node, operand, ErrorTypeSymbol.UnknownResultType)
-                ElseIf OptionStrict = VisualBasic.OptionStrict.Custom Then
+                ElseIf OptionStrict = OptionStrict.Custom Then
                     ReportDiagnostic(diagnostics, node, ERRID.WRN_LateBindingResolution)
                 End If
             End If

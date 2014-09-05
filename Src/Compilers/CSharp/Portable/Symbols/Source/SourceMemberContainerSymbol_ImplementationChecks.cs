@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         DiagnosticInfo useSiteDiagnostic = overriddenMember.GetUseSiteDiagnostic();
                         if (useSiteDiagnostic != null)
                         {
-                            suppressAccessors = Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, overridingMember.Locations[0]);
+                            suppressAccessors = ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, overridingMember.Locations[0]);
                         }
                     }
                 }

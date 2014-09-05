@@ -1,15 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -29,9 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Attribute arguments are comma-separated lists.
                     Dim separatorComma = {","c}
                     Dim separatorDot = {"."c}
-                    Dim baseTypeNames() As String = If(attributeData.GetConstructorArgument(Of String)(0, Microsoft.CodeAnalysis.SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
-                    Dim createMethods() As String = If(attributeData.GetConstructorArgument(Of String)(1, Microsoft.CodeAnalysis.SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
-                    Dim disposeMethods() As String = If(attributeData.GetConstructorArgument(Of String)(2, Microsoft.CodeAnalysis.SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
+                    Dim baseTypeNames() As String = If(attributeData.GetConstructorArgument(Of String)(0, SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
+                    Dim createMethods() As String = If(attributeData.GetConstructorArgument(Of String)(1, SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
+                    Dim disposeMethods() As String = If(attributeData.GetConstructorArgument(Of String)(2, SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
 
                     ' DefaltInstanceAliases are respected only for attrubutes applied in MyTemplate.
                     Dim defaultInstances() As String
@@ -143,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             If (quickChecker.CheckAttribute(attr) And QuickAttributes.MyGroupCollection) <> 0 Then
                                 ' This attribute syntax might be an application of MyGroupCollectionAttribute.
                                 ' Let's bind it.
-                                Dim attributeType As NamedTypeSymbol = VisualBasic.Binder.BindAttributeType(binder, attr, Me, throwAwayDiagnostics)
+                                Dim attributeType As NamedTypeSymbol = Binder.BindAttributeType(binder, attr, Me, throwAwayDiagnostics)
                                 If Not attributeType.IsErrorType() Then
                                     If VisualBasicAttributeData.IsTargetEarlyAttribute(attributeType, attr, AttributeDescription.MyGroupCollectionAttribute) Then
                                         ' Calling GetAttribute can still get us into cycle if MyGroupCollectionAttribute is applied to itself.

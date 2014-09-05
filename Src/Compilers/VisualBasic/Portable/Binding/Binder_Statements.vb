@@ -2,13 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -1206,8 +1201,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="equalsValueOpt">The optional initializing expression</param>
         ''' <param name="valueExpression">The bound initializing expression</param>
         ''' <param name="asClauseType">The bound as clause type</param>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
         Friend Function ComputeVariableType(symbol As LocalSymbol,
                                     modifiedIdentifierOpt As ModifiedIdentifierSyntax,
                                     asClauseOpt As AsClauseSyntax,
@@ -1221,18 +1214,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeDiagnostic As Func(Of DiagnosticInfo) = Nothing
 
             If symbol.IsStatic Then
-                If OptionStrict = VisualBasic.OptionStrict.On Then
+                If OptionStrict = OptionStrict.On Then
                     typeDiagnostic = ErrorFactory.GetErrorInfo_ERR_StrictDisallowImplicitObject
 
-                ElseIf OptionStrict = VisualBasic.OptionStrict.Custom Then
+                ElseIf OptionStrict = OptionStrict.Custom Then
                     typeDiagnostic = ErrorFactory.GetErrorInfo_WRN_ObjectAssumedVar1_WRN_StaticLocalNoInference
                 End If
 
             ElseIf Not (OptionInfer AndAlso equalsValueOpt IsNot Nothing) Then
-                If OptionStrict = VisualBasic.OptionStrict.On Then
+                If OptionStrict = OptionStrict.On Then
                     typeDiagnostic = ErrorFactory.GetErrorInfo_ERR_StrictDisallowImplicitObject
 
-                ElseIf OptionStrict = VisualBasic.OptionStrict.Custom Then
+                ElseIf OptionStrict = OptionStrict.Custom Then
                     typeDiagnostic = ErrorFactory.GetErrorInfo_WRN_ObjectAssumedVar1_WRN_MissingAsClauseinVarDecl
                 End If
             End If
@@ -1349,7 +1342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If valueType IsNot Nothing AndAlso valueType.GetEnumUnderlyingTypeOrSelf.IsIntrinsicType Then
                     type = valueExpression.Type
                 End If
-            ElseIf Not symbol.IsStatic AndAlso OptionStrict <> VisualBasic.OptionStrict.On AndAlso
+            ElseIf Not symbol.IsStatic AndAlso OptionStrict <> OptionStrict.On AndAlso
                    Not hasExplicitType AndAlso type.IsObjectType() AndAlso
                    modifiedIdentifierOpt IsNot Nothing AndAlso
                    modifiedIdentifierOpt.Nullable.Node IsNot Nothing AndAlso
@@ -1695,7 +1688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Set the type of the symbol, so we don't have to re-compute it later.
             local.SetType(type)
 
-            If localForFunctionValue IsNot Nothing AndAlso CaseInsensitiveComparison.Compare(local.Name, localForFunctionValue.Name) = 0 Then
+            If localForFunctionValue IsNot Nothing AndAlso CaseInsensitiveComparison.Equals(local.Name, localForFunctionValue.Name) Then
                 ' Does name conflict with the function name?
                 ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_LocalSameAsFunc)
 
@@ -2744,7 +2737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim condition As BoundExpression = BindBooleanExpression(node.WhileStatement.Condition, diagnostics)
 
             ' Get the binder for the body of the loop. This defines the break and continue labels.
-            Dim loopBodyBinder = GetBinder(DirectCast(node, VisualBasicSyntaxNode))
+            Dim loopBodyBinder = GetBinder(node)
 
             ' Bind the body of the loop.
             Dim loopBody As BoundBlock = loopBodyBinder.BindBlock(node, node.Statements, diagnostics)
@@ -2760,7 +2753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' that is visible through the entire For block. It also needs to support Continue/Exit
             ' Interestingly, control variable is in scope when Limit and Step or the collection are bound,
             ' but initialized after Limit and Step or collection are evaluated...
-            Dim loopBinder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
+            Dim loopBinder = Me.GetBinder(node)
             Debug.Assert(loopBinder IsNot Nothing)
 
             Dim declaredOrInferredLocalOpt As LocalSymbol = Nothing
@@ -2790,7 +2783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' that is visible through the entire For block. It also needs to support Continue/Exit
             ' Interestingly, control variable is in scope when Limit and Step or the collection are bound,
             ' but initialized after Limit and Step or collection are evaluated...
-            Dim loopBinder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
+            Dim loopBinder = Me.GetBinder(node)
             Debug.Assert(loopBinder IsNot Nothing)
 
             Dim declaredOrInferredLocalOpt As LocalSymbol = Nothing
@@ -3458,7 +3451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function VerifyForControlVariableDeclaration(variableDeclarator As VariableDeclaratorSyntax, diagnostics As DiagnosticBag) As Boolean
             ' Check variable declaration syntax if present
             Debug.Assert(variableDeclarator.Names.Count = 1, "should be exactly one control variable")
-            Dim identifier = DirectCast(variableDeclarator.Names(0), ModifiedIdentifierSyntax)
+            Dim identifier = variableDeclarator.Names(0)
 
             ' nullable type inference is not supported
             If variableDeclarator.AsClause Is Nothing AndAlso
@@ -3714,7 +3707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ienumerableUseSiteDiagnostics.Clear()
 
                     Dim ienumerable = GetSpecialType(SpecialType.System_Collections_IEnumerable, collectionSyntax, ienumerableUseSiteDiagnostics)
-                    If ((collection.IsNothingLiteral OrElse collectionType.IsObjectType) AndAlso Me.OptionStrict <> VisualBasic.OptionStrict.On) OrElse
+                    If ((collection.IsNothingLiteral OrElse collectionType.IsObjectType) AndAlso Me.OptionStrict <> OptionStrict.On) OrElse
                        (Not collection.IsNothingLiteral AndAlso Not collectionType.IsArrayType AndAlso IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteDiagnostics, matchingInterfaces)) Then
 
                         Debug.Assert(collection.IsNothingLiteral OrElse collectionType.IsObjectType OrElse (matchingInterfaces.First = ienumerable AndAlso matchingInterfaces.Count = 1))
@@ -3730,7 +3723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ienumerableUseSiteDiagnostics.Free()
 
                     Else
-                        Debug.Assert(collectionType IsNot Nothing OrElse collection.IsNothingLiteral AndAlso Me.OptionStrict = VisualBasic.OptionStrict.On)
+                        Debug.Assert(collectionType IsNot Nothing OrElse collection.IsNothingLiteral AndAlso Me.OptionStrict = OptionStrict.On)
 
                         diagnostics.Add(collectionSyntax, useSiteDiagnostics)
 
@@ -3802,7 +3795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim methodOrPropertyGroup As BoundMethodOrPropertyGroup
                         methodOrPropertyGroup = New BoundMethodGroup(collectionSyntax,
                                                                      Nothing,
-                                                                     ImmutableArray.Create(Of MethodSymbol)(DirectCast(member, MethodSymbol)),
+                                                                     ImmutableArray.Create(DirectCast(member, MethodSymbol)),
                                                                      LookupResultKind.Good,
                                                                      collectionPlaceholder,
                                                                      QualificationKind.QualifiedViaValue)
@@ -3823,7 +3816,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If member IsNot Nothing AndAlso member.GetUseSiteErrorInfo Is Nothing Then
                             methodOrPropertyGroup = New BoundMethodGroup(collectionSyntax,
                                                                          Nothing,
-                                                                         ImmutableArray.Create(Of MethodSymbol)(DirectCast(member, MethodSymbol)),
+                                                                         ImmutableArray.Create(DirectCast(member, MethodSymbol)),
                                                                          LookupResultKind.Good,
                                                                          boundEnumeratorPlaceholder,
                                                                          QualificationKind.QualifiedViaValue)
@@ -3854,7 +3847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If member IsNot Nothing AndAlso member.GetUseSiteErrorInfo Is Nothing Then
                             methodOrPropertyGroup = New BoundPropertyGroup(collectionSyntax,
-                                                                           ImmutableArray.Create(Of PropertySymbol)(DirectCast(member, PropertySymbol)),
+                                                                           ImmutableArray.Create(DirectCast(member, PropertySymbol)),
                                                                            LookupResultKind.Good,
                                                                            boundEnumeratorPlaceholder,
                                                                            QualificationKind.QualifiedViaValue)
@@ -3890,7 +3883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' do not actually generate dispose calls in IL
                         ' Dev10 does the same thing (StatementSemantics.cpp, Line 5678++)
                         ' this is true even for multidimensional arrays that are handled through the design pattern.
-                        Debug.Assert(collectionType IsNot Nothing OrElse OptionStrict <> VisualBasic.OptionStrict.On AndAlso collection.Kind = BoundKind.Conversion AndAlso DirectCast(collection, BoundConversion).Operand.IsNothingLiteral)
+                        Debug.Assert(collectionType IsNot Nothing OrElse OptionStrict <> OptionStrict.On AndAlso collection.Kind = BoundKind.Conversion AndAlso DirectCast(collection, BoundConversion).Operand.IsNothingLiteral)
                         If collectionType Is Nothing OrElse Not collectionType.IsArrayType Then
                             needToDispose = True
                         End If
@@ -4302,7 +4295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''      end using
         '''</summary>
         Public Function BindUsingBlock(node As UsingBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim usingBinder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
+            Dim usingBinder = Me.GetBinder(node)
             Debug.Assert(usingBinder IsNot Nothing)
 
             Dim resourceList As ImmutableArray(Of BoundLocalDeclarationBase) = Nothing
@@ -4459,7 +4452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isValidDispose = Conversions.IsWideningConversion(conversionKind)
 
                 If isValidDispose OrElse
-                   (resourceType.IsObjectType() AndAlso OptionStrict <> VisualBasic.OptionStrict.On) Then
+                   (resourceType.IsObjectType() AndAlso OptionStrict <> OptionStrict.On) Then
                     Dim resourcePlaceholder = New BoundRValuePlaceholder(syntaxNode, resourceType)
                     Dim disposeConversion As BoundExpression = Nothing
                     Dim disposeCondition As BoundExpression = Nothing
@@ -4606,7 +4599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, node.TryPart.Begin, ERRID.ERR_TryWithoutCatchOrFinally)
             End If
 
-            Dim tryBinder As Binder = GetBinder(DirectCast(node, VisualBasicSyntaxNode))
+            Dim tryBinder As Binder = GetBinder(node)
             Return New BoundTryStatement(node, tryBlock, catchBlocks, finallyBlockOpt, tryBinder.GetExitLabel(SyntaxKind.ExitTryStatement))
         End Function
 
@@ -4847,7 +4840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If we are not in a lambda binding then we have a real return statement.
 
             Debug.Assert(originalSyntax IsNot Nothing)
-            Debug.Assert(expressionSyntax Is originalSyntax OrElse DirectCast(originalSyntax, ReturnStatementSyntax).Expression Is expressionSyntax)
+            Debug.Assert(expressionSyntax Is originalSyntax OrElse originalSyntax.Expression Is expressionSyntax)
 
             Dim isAsync As Boolean
             Dim isIterator As Boolean

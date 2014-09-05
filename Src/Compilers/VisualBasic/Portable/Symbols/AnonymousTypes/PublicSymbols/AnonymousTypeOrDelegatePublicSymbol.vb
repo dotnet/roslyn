@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
                 ' TODO - Perf
-                Return ImmutableArray.CreateRange(Of Symbol)(From member In GetMembers() Where CaseInsensitiveComparison.Compare(member.Name, name) = 0)
+                Return ImmutableArray.CreateRange(Of Symbol)(From member In GetMembers() Where CaseInsensitiveComparison.Equals(member.Name, name))
             End Function
 
             Public Overrides ReadOnly Property MemberNames As IEnumerable(Of String)
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' WARNING: this functionality assumes that 'type' has the 
                     '          same method indexes as the original type
                     Dim mappedMethod As MethodSymbol = DirectCast(type.GetMembers()(index), MethodSymbol)
-                    Debug.Assert(IdentifierComparison.Compare(method.Name, mappedMethod.Name) = 0)
+                    Debug.Assert(IdentifierComparison.Equals(method.Name, mappedMethod.Name))
                     Debug.Assert(method.OverriddenMethod Is mappedMethod.OverriddenMethod)
                     Return mappedMethod
 

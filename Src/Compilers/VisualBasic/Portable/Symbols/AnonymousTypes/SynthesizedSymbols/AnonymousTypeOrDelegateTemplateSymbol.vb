@@ -3,7 +3,9 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -71,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End Sub
 
-            Friend MustOverride Function GetAnonymousTypeKey() As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
+            Friend MustOverride Function GetAnonymousTypeKey() As AnonymousTypeKey
 
             Public Overrides ReadOnly Property Name As String
                 Get
@@ -191,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Function GetSecurityInformation() As IEnumerable(Of Microsoft.Cci.SecurityAttribute)
+            Friend Overrides Function GetSecurityInformation() As IEnumerable(Of SecurityAttribute)
                 Throw ExceptionUtilities.Unreachable
             End Function
 
@@ -211,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
                 ' TODO - Perf
-                Return ImmutableArray.CreateRange(Of Symbol)(From member In GetMembers() Where CaseInsensitiveComparison.Compare(member.Name, name) = 0)
+                Return ImmutableArray.CreateRange(From member In GetMembers() Where CaseInsensitiveComparison.Equals(member.Name, name))
             End Function
 
             Public Overrides ReadOnly Property MemberNames As IEnumerable(Of String)

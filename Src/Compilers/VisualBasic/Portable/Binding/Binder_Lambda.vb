@@ -3,11 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -500,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     block = New BoundBlock(lambdaSyntax, Nothing, ImmutableArray(Of LocalSymbol).Empty,
-                                           ImmutableArray.Create(Of BoundStatement)(boundStatement), boundStatement.HasErrors).MakeCompilerGenerated()
+                                           ImmutableArray.Create(boundStatement), boundStatement.HasErrors).MakeCompilerGenerated()
 
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression
@@ -660,9 +657,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Public Sub ReportLambdaParameterInferredToBeObject(unboundParam As UnboundLambdaParameterSymbol, diagnostics As DiagnosticBag)
-            If OptionStrict = VisualBasic.OptionStrict.On Then
+            If OptionStrict = OptionStrict.On Then
                 ReportDiagnostic(diagnostics, unboundParam.IdentifierSyntax, ERRID.ERR_StrictDisallowImplicitObjectLambda)
-            ElseIf OptionStrict = VisualBasic.OptionStrict.Custom Then
+            ElseIf OptionStrict = OptionStrict.Custom Then
                 ReportDiagnostic(diagnostics, unboundParam.IdentifierSyntax, ERRID.WRN_ObjectAssumedVar1, ErrorFactory.ErrorInfo(ERRID.WRN_MissingAsClauseinVarDecl))
             End If
         End Sub
@@ -949,7 +946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, LambdaHeaderErrorNode(source), ERRID.ERR_RestrictedType1, restrictedType)
 
                     ElseIf numCandidates <> 1 Then
-                        If OptionStrict = VisualBasic.OptionStrict.On Then
+                        If OptionStrict = OptionStrict.On Then
                             If numCandidates = 0 Then
                                 ' "Cannot infer a return type, and Option Strict On does not allow 'Object' to be assumed. Specifying the return type might correct this error."
                                 ReportDiagnostic(diagnostics, LambdaHeaderErrorNode(source), ERRID.ERR_LambdaNoTypeObjectDisallowed)
@@ -959,7 +956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ReportDiagnostic(diagnostics, LambdaHeaderErrorNode(source), ERRID.ERR_LambdaTooManyTypesObjectDisallowed)
                                 Debug.Assert(lambdaReturnType.IsObjectType())
                             End If
-                        ElseIf OptionStrict = VisualBasic.OptionStrict.Custom Then
+                        ElseIf OptionStrict = OptionStrict.Custom Then
                             If numCandidates = 0 Then
                                 ' "Cannot infer a return type; 'Object' assumed."
                                 ReportDiagnostic(diagnostics, LambdaHeaderErrorNode(source), ERRID.WRN_ObjectAssumed1, ErrorFactory.ErrorInfo(ERRID.WRN_LambdaNoTypeObjectAssumed))

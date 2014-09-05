@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -51,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If(propertySymbol.IsAutoProperty, StringConstants.AutoPropertyValueParameterName, StringConstants.ValueParameterName))
 
             If propertySymbol.ParameterCount = 0 Then
-                Return ImmutableArray.Create(Of ParameterSymbol)(valueParameter)
+                Return ImmutableArray.Create(valueParameter)
             End If
 
             Dim parameters = ArrayBuilder(Of ParameterSymbol).GetInstance(propertySymbol.ParameterCount + 1)
@@ -411,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' duplicates if the setter parameter is named 'Value' since we'll report property
                 ' cannot contain parameter named 'Value' if there is a duplicate in that case.
                 Dim param = parameters(nPropertyParameters)
-                If IdentifierComparison.Compare(param.Name, StringConstants.ValueParameterName) <> 0 Then
+                If Not IdentifierComparison.Equals(param.Name, StringConstants.ValueParameterName) Then
                     Dim paramSyntax = parameterListSyntax(0)
                     binder.CheckParameterNameNotDuplicate(parameters, nPropertyParameters, paramSyntax, param, diagnostics)
                 End If

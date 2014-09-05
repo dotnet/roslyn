@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -569,7 +568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End If
                 If node.IsStructuredTrivia Then
-                    node = DirectCast(DirectCast(node, StructuredTriviaSyntax).ParentTrivia.Token.Parent, VisualBasicSyntaxNode)
+                    node = DirectCast(node, StructuredTriviaSyntax).ParentTrivia.Token.Parent
                 Else
                     node = node.Parent
                 End If
@@ -687,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.CrefOperatorReference,
                      SyntaxKind.CrefReference,
                      SyntaxKind.XmlString
-                    ' fall through
+                ' fall through
 
                 Case Else
                     Return False
@@ -906,7 +905,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddSymbolsFromDiagnosticInfo(symbolsBuilder, DirectCast(s, ErrorTypeSymbol).ErrorInfo)
                     Return symbolsBuilder.ToImmutable()
                 Else
-                    Return ImmutableArray.Create(Of Symbol)(s)
+                    Return ImmutableArray.Create(s)
                 End If
             Else
                 ' 2 or more symbols. Use a hash set to remove duplicates.
@@ -928,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                Return ImmutableArray.CreateRange(Of Symbol)(symbolSet)
+                Return ImmutableArray.CreateRange(symbolSet)
             End If
         End Function
 
@@ -1994,8 +1993,8 @@ _Default:
             Dim type As NamedTypeSymbol = TryCast(container, NamedTypeSymbol)
 
             If type IsNot Nothing AndAlso
-                (options And (Global.Microsoft.CodeAnalysis.VisualBasic.LookupOptions.LabelsOnly Or Global.Microsoft.CodeAnalysis.VisualBasic.LookupOptions.NamespacesOrTypesOnly Or Global.Microsoft.CodeAnalysis.VisualBasic.LookupOptions.MustNotBeInstance)) = 0 Then
-                If (options And Global.Microsoft.CodeAnalysis.VisualBasic.LookupOptions.IgnoreAccessibility) <> 0 Then
+                (options And (LookupOptions.LabelsOnly Or LookupOptions.NamespacesOrTypesOnly Or LookupOptions.MustNotBeInstance)) = 0 Then
+                If (options And LookupOptions.IgnoreAccessibility) <> 0 Then
                     constructors = type.InstanceConstructors
                 Else
                     constructors = binder.GetAccessibleConstructors(type, useSiteDiagnostics:=Nothing)
@@ -2923,7 +2922,7 @@ _Default:
                     Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node)
 
                     If symbolInfo.Symbol IsNot Nothing Then
-                        Debug.Assert(CaseInsensitiveComparison.Compare(symbolInfo.Symbol.Name, node.Identifier.ValueText) = 0)
+                        Debug.Assert(CaseInsensitiveComparison.Equals(symbolInfo.Symbol.Name, node.Identifier.ValueText))
                         Return symbolInfo
                     End If
 

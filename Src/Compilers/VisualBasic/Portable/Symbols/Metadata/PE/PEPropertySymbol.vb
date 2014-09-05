@@ -1,17 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Globalization
 Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
+Imports Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -138,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
                 If Me.m_lazyDeclaredAccessibility = UnsetAccessibility Then
-                    Interlocked.CompareExchange(Me.m_lazyDeclaredAccessibility, DirectCast(GetDeclaredAccessibility(Me), Integer), UnsetAccessibility)
+                    Interlocked.CompareExchange(Me.m_lazyDeclaredAccessibility, GetDeclaredAccessibility(Me), UnsetAccessibility)
                 End If
 
                 Return DirectCast(Me.m_lazyDeclaredAccessibility, Accessibility)
@@ -191,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Get
                 Dim defaultPropertyName = m_containingType.DefaultPropertyName
                 Return (Not String.IsNullOrEmpty(defaultPropertyName)) AndAlso
-                    (IdentifierComparison.Compare(defaultPropertyName, m_name) = 0)
+                    IdentifierComparison.Equals(defaultPropertyName, m_name)
             End Get
         End Property
 
@@ -254,9 +248,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
+        Friend Overrides ReadOnly Property CallingConvention As CallingConvention
             Get
-                Return CType(m_callingConvention, Microsoft.Cci.CallingConvention)
+                Return CType(m_callingConvention, CallingConvention)
             End Get
         End Property
 
@@ -444,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     ' Do not set a parameter name unless accessors match. This prevents
                     ' binding o.P(x:=1, y:=2) where the arguments x  and y have different
                     ' parameter indices in get_P and set_P.
-                    If IdentifierComparison.Compare(name, setParameter.Name) <> 0 Then
+                    If Not IdentifierComparison.Equals(name, setParameter.Name) Then
                         name = Nothing
                     End If
 

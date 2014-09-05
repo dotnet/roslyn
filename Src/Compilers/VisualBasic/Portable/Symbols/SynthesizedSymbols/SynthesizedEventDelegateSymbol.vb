@@ -3,10 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -80,14 +78,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 members = ImmutableArray.Create(Of Symbol)(ctor, beginInvoke, endInvoke, invoke)
             End If
 
-            sourceModule.AtomicStoreArrayAndDiagnostics(Of Symbol)(m_lazyMembers, members, diagBag, CompilationStage.Declare)
+            sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyMembers, members, diagBag, CompilationStage.Declare)
             diagBag.Free()
 
             Return m_lazyMembers
         End Function
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-            Return (From m In GetMembers() Where IdentifierComparison.Compare(m.Name, name) = 0).AsImmutable
+            Return (From m In GetMembers() Where IdentifierComparison.Equals(m.Name, name)).AsImmutable
         End Function
 
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
