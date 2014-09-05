@@ -150,18 +150,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeNewT(CSharpSyntaxNode syntax, TypeParameterSymbol typeParameter)
         {
-            // How "new T()" is rewritten depends on whether T is known to be a value
-            // type, a reference type, or neither (see OperatorRewriter::VisitNEWTYVAR).
+            // "new T()" is rewritten as: "Activator.CreateInstance<T>()".
 
-            if (typeParameter.IsValueType)
-            {
-                // "new T()" rewritten as: "default(T)".
-                return new BoundDefaultOperator(syntax, type: typeParameter);
-            }
-
-            // For types not known to be value types, "new T()" requires
-            // Activator.CreateInstance<T>().
-
+            // NOTE: DIFFERENCE FROM DEV12
+            // Dev12 tried to statically optimize this and would emit default(T) if T happens to be struct
+            // However semantics of "new" in C# requires that parameterless constructor be called
+            // if struct defines one.
+            // Since we cannot know if T has a parameterless constructor statically, 
+            // we must call Activator.CreateInstance unconditionally.
             MethodSymbol method;
 
             if (!this.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Activator__CreateInstance_T, out method))
@@ -186,31 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable,
                 type: typeParameter);
 
-            if (typeParameter.IsReferenceType)
-            {
-                // "new T()" is rewritten as: "Activator.CreateInstance<T>()".
-                return createInstanceCall;
-            }
-            else
-            {
-                // "new T()" is rewritten as: "(null == (object)default(T)) ? Activator.CreateInstance<T>() : default(T)".
-                var defaultT = new BoundDefaultOperator(syntax, type: typeParameter);
-                return new BoundConditionalOperator(
-                    syntax,
-                    MakeNullCheck(
-                        syntax: syntax,
-                        rewrittenExpr: MakeConversion(
-                            syntax: syntax,
-                            rewrittenOperand: defaultT,
-                            conversionKind: ConversionKind.Boxing,
-                            rewrittenType: this.compilation.GetSpecialType(SpecialType.System_Object),
-                            @checked: false),
-                        operatorKind: BinaryOperatorKind.Equal),
-                    createInstanceCall,
-                    defaultT,
-                    constantValueOpt: null,
-                    type: typeParameter);
-            }
+           return createInstanceCall;
         }
 
         public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)

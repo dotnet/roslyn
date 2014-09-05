@@ -190,32 +190,22 @@ struct S : I
             var compVerifier = CompileAndVerify(source, emitOptions: EmitOptions.CCI, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Foo<T>", @"
 {
-  // Code size       63 (0x3f)
+  // Code size       36 (0x24)
   .maxstack  2
   .locals init (T V_0, //b
-  T V_1,
-  T V_2)
-  IL_0000:  ldloca.s   V_2
-  IL_0002:  initobj    ""T""
-  IL_0008:  ldloc.2
-  IL_0009:  box        ""T""
-  IL_000e:  brfalse.s  IL_001b
-  IL_0010:  ldloca.s   V_2
-  IL_0012:  initobj    ""T""
-  IL_0018:  ldloc.2
-  IL_0019:  br.s       IL_0020
-  IL_001b:  call       ""T System.Activator.CreateInstance<T>()""
-  IL_0020:  stloc.1
-  IL_0021:  ldloca.s   V_1
-  IL_0023:  ldc.i4.1
-  IL_0024:  constrained. ""T""
-  IL_002a:  callvirt   ""void I.X.set""
-  IL_002f:  ldloc.1
-  IL_0030:  stloc.0
-  IL_0031:  ldloca.s   V_0
-  IL_0033:  constrained. ""T""
-  IL_0039:  callvirt   ""byte I.X.get""
-  IL_003e:  ret
+                T V_1)
+  IL_0000:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.1
+  IL_0009:  constrained. ""T""
+  IL_000f:  callvirt   ""void I.X.set""
+  IL_0014:  ldloc.1
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""byte I.X.get""
+  IL_0023:  ret
 }");
         }
 
@@ -253,38 +243,28 @@ struct S : I
             var compVerifier = CompileAndVerify(source, emitOptions: EmitOptions.CCI, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Foo<T>", @"
 {
-  // Code size       78 (0x4e)
+  // Code size       51 (0x33)
   .maxstack  6
   .locals init (T V_0, //b
-  T V_1,
-  T V_2)
-  IL_0000:  ldloca.s   V_2
-  IL_0002:  initobj    ""T""
-  IL_0008:  ldloc.2
-  IL_0009:  box        ""T""
-  IL_000e:  brfalse.s  IL_001b
-  IL_0010:  ldloca.s   V_2
-  IL_0012:  initobj    ""T""
-  IL_0018:  ldloc.2
-  IL_0019:  br.s       IL_0020
-  IL_001b:  call       ""T System.Activator.CreateInstance<T>()""
-  IL_0020:  stloc.1
-  IL_0021:  ldloca.s   V_1
-  IL_0023:  ldc.i4.s   11
-  IL_0025:  ldc.i4.0
-  IL_0026:  ldc.i4.0
-  IL_0027:  ldc.i4.0
-  IL_0028:  ldc.i4.1
-  IL_0029:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_002e:  newobj     ""decimal?..ctor(decimal)""
-  IL_0033:  constrained. ""T""
-  IL_0039:  callvirt   ""void I.X.set""
-  IL_003e:  ldloc.1
-  IL_003f:  stloc.0
-  IL_0040:  ldloca.s   V_0
-  IL_0042:  constrained. ""T""
-  IL_0048:  callvirt   ""decimal? I.X.get""
-  IL_004d:  ret
+                T V_1)
+  IL_0000:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.s   11
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0013:  newobj     ""decimal?..ctor(decimal)""
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""void I.X.set""
+  IL_0023:  ldloc.1
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""decimal? I.X.get""
+  IL_0032:  ret
 }");
         }
 

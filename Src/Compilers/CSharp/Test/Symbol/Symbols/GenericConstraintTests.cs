@@ -1285,21 +1285,12 @@ S
 C
 S");
             compilation.VerifyIL("C.F1<T>()",
-@"{
-  // Code size       32 (0x20)
+@"
+{
+  // Code size        6 (0x6)
   .maxstack  1
-  .locals init (T V_0)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""T""
-  IL_0008:  ldloc.0
-  IL_0009:  box        ""T""
-  IL_000e:  brfalse.s  IL_001a
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  initobj    ""T""
-  IL_0018:  ldloc.0
-  IL_0019:  ret
-  IL_001a:  call       ""T System.Activator.CreateInstance<T>()""
-  IL_001f:  ret
+  IL_0000:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0005:  ret
 }");
             compilation.VerifyIL("C.F2<T>()",
 @"{
@@ -1309,14 +1300,12 @@ S");
   IL_0005:  ret
 }");
             compilation.VerifyIL("C.F3<T>()",
-@"{
-  // Code size       10 (0xa)
+@"
+{
+  // Code size        6 (0x6)
   .maxstack  1
-  .locals init (T V_0)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""T""
-  IL_0008:  ldloc.0
-  IL_0009:  ret
+  IL_0000:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0005:  ret
 }");
         }
 
@@ -1348,24 +1337,21 @@ class C
 }";
             var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.M<T, U, V>()",
-@"{
-  // Code size       41 (0x29)
+@"
+{
+  // Code size       31 (0x1f)
   .maxstack  1
-  .locals init (U V_0)
   IL_0000:  newobj     ""A..ctor()""
   IL_0005:  pop
   IL_0006:  newobj     ""B..ctor()""
   IL_000b:  pop
-  IL_000c:  ldloca.s   V_0
-  IL_000e:  initobj    ""U""
-  IL_0014:  ldloc.0
-  IL_0015:  box        ""U""
-  IL_001a:  brtrue.s   IL_0022
-  IL_001c:  call       ""U System.Activator.CreateInstance<U>()""
-  IL_0021:  pop
-  IL_0022:  call       ""V System.Activator.CreateInstance<V>()""
-  IL_0027:  pop
-  IL_0028:  ret
+  IL_000c:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0011:  pop
+  IL_0012:  call       ""U System.Activator.CreateInstance<U>()""
+  IL_0017:  pop
+  IL_0018:  call       ""V System.Activator.CreateInstance<V>()""
+  IL_001d:  pop
+  IL_001e:  ret
 }");
         }
 
