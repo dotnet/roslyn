@@ -311,7 +311,7 @@ class Test
             var @struct = c2.GlobalNamespace.GetMember<RetargetingNamedTypeSymbol>("S");
             var method = (RetargetingMethodSymbol)@struct.GetMembers().Single();
 
-            Assert.True(method.IsParameterlessValueTypeConstructor(requireSynthesized: true));
+            Assert.True(method.IsDefaultValueTypeConstructor());
 
             //TODO (tomat)
             CompileAndVerify(c2, emitOptions: EmitOptions.RefEmitBug).VerifyIL("C.M", @"

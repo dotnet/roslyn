@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                     // Don't emit the default value type constructor - the runtime handles that
-                    else if (method.IsParameterlessValueTypeConstructor(requireSynthesized: true))
+                    else if (method.IsDefaultValueTypeConstructor())
                     {
                         continue;
                     }

@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     return null;
                 }
-                else if (sourceMethod.IsParameterlessValueTypeConstructor(requireSynthesized: true))
+                else if (sourceMethod.IsDefaultValueTypeConstructor())
                 {
                     // No body for default struct constructor.
                     return null;

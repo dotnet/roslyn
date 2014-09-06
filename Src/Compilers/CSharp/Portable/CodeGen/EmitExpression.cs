@@ -1167,7 +1167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             LocalDefinition tempOpt = null;
 
             // Calls to the default struct constructor are emitted as initobj, rather than call.
-            // NOTE: constructor invocations are usually represented as BoundObjectCreationExpressions,
+            // NOTE: constructor invocations are represented as BoundObjectCreationExpressions,
             // rather than BoundCalls.  This is why we can be confident that if we see a call to a
             // constructor, it has this very specific form.
             if (method.IsParameterlessValueTypeConstructor())
@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitObjectCreationExpression(BoundObjectCreationExpression expression, bool used)
         {
             MethodSymbol constructor = expression.Constructor;
-            if (constructor.IsParameterlessValueTypeConstructor(requireSynthesized: true))
+            if (constructor.IsDefaultValueTypeConstructor())
             {
                 EmitInitObj(expression.Type, used, expression.Syntax);
             }

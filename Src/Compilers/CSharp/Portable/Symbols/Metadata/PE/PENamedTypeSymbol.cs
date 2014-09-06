@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var method = (MethodSymbol)members[index];
 
                     // Don't emit the default value type constructor - the runtime handles that
-                    if (!method.IsParameterlessValueTypeConstructor(requireSynthesized: true))
+                    if (!method.IsDefaultValueTypeConstructor())
                     {
                         yield return method;
                     }

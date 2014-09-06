@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             DiagnosticBag diagnostics)
         {
             Debug.Assert(method.IsDefinition);
-            Debug.Assert(!method.IsParameterlessValueTypeConstructor(requireSynthesized: true));
+            Debug.Assert(!method.IsDefaultValueTypeConstructor());
 
             EmbeddedMethod embedded = new EmbeddedMethod(type, method);
             EmbeddedMethod cached = EmbeddedMethodsMap.GetOrAdd(method, embedded);

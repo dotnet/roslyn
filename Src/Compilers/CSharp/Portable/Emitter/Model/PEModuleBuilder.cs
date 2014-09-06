@@ -63,7 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                    metadataOnly,
                    new ModuleCompilationState())
         {
-            metadataName = outputName ?? sourceModule.MetadataName;
+            var specifiedName = sourceModule.MetadataName;
+
+            metadataName = specifiedName != Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName ?
+                            specifiedName :
+                            outputName ?? specifiedName;
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, this);
 
@@ -228,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         // NOTE: Dev11 does not add synthesized static constructors to this map,
                                         //       but adds synthesized instance constructors, Roslyn adds both
                                         var method = (MethodSymbol)member;
-                                        if (!method.IsParameterlessValueTypeConstructor(requireSynthesized: true))
+                                        if (!method.IsDefaultValueTypeConstructor())
                                         {
                                             AddSymbolLocation(result, member);
                                         }
