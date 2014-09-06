@@ -448,7 +448,7 @@ Public Class ParseNodeField
     ' Gets the field type. Could return a SimpleType, Enumeration 
     Public ReadOnly Property FieldType() As Object
         Get
-            Select Case FieldTypeId.ToLower()
+            Select Case FieldTypeId.ToLowerInvariant()
                 Case "boolean"
                     Return SimpleType.Bool
                 Case "text"

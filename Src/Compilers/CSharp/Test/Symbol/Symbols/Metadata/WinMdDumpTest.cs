@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
             }
 
 
-            foreach (var member in container.GetMembers().OrderBy(m => m.Name))
+            foreach (var member in container.GetMembers().OrderBy(m => m.Name, System.StringComparer.InvariantCulture))
             {
                 switch (member.Kind)
                 {

@@ -749,7 +749,7 @@ namespace BoundTreeGenerator
 
             if (f.Null != null)
             {
-                switch (f.Null.ToUpper())
+                switch (f.Null.ToUpperInvariant())
                 {
                     case "ALLOW":
                         return NullHandling.Allow;
@@ -1568,7 +1568,7 @@ namespace BoundTreeGenerator
         {
             if (char.IsUpper(name[0]))
             {
-                name = char.ToLower(name[0]) + name.Substring(1);
+                name = char.ToLowerInvariant(name[0]) + name.Substring(1);
             }
             return FixKeyword(name);
         }
@@ -1700,7 +1700,7 @@ namespace BoundTreeGenerator
 
         public static bool IsVBKeyword(this string name)
         {
-            switch (name.ToLower())
+            switch (name.ToLowerInvariant())
             {
                 case "addhandler":
                 case "addressof":

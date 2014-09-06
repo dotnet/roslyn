@@ -526,7 +526,7 @@ Public MustInherit Class WriteUtils
         If s Is Nothing OrElse s.Length = 0 Then
             Return s
         Else
-            Return Char.ToLower(s(0)) + s.Substring(1)
+            Return Char.ToLowerInvariant(s(0)) + s.Substring(1)
         End If
     End Function
 
@@ -535,7 +535,7 @@ Public MustInherit Class WriteUtils
         If s Is Nothing OrElse s.Length = 0 Then
             Return s
         Else
-            Return Char.ToUpper(s(0)) + s.Substring(1)
+            Return Char.ToUpperInvariant(s(0)) + s.Substring(1)
         End If
     End Function
 
@@ -860,7 +860,7 @@ Public MustInherit Class WriteUtils
 
     ' If the string is a keyword, escape it. Otherwise just return it.
     Protected Function Ident(id As String) As String
-        If VBKeywords.Contains(id.ToUpper()) Then
+        If VBKeywords.Contains(id.ToUpperInvariant()) Then
             Return "[" + id + "]"
         Else
             Return id

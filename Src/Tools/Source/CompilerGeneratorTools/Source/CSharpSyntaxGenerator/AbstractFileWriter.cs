@@ -218,7 +218,7 @@ namespace CSharpSyntaxGenerator
         {
             if (char.IsUpper(name[0]))
             {
-                name = char.ToLower(name[0]) + name.Substring(1);
+                name = char.ToLowerInvariant(name[0]) + name.Substring(1);
             }
             return FixKeyword(name);
         }
