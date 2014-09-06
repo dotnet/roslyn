@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return oldLogger;
             }
 
+            if (oldLogger == null)
+            {
+                return newLogger;
+            }
+
             var aggregateLogger = oldLogger as AggregateLogger;
             if (aggregateLogger == null)
             {
