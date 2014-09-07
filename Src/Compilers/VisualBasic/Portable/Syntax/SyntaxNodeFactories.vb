@@ -8,7 +8,6 @@
 Imports System.Threading
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -173,29 +172,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 p.GetNextToken()
                 Dim node = p.ParseExpression()
                 Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ExpressionSyntax)
-            End Using
-        End Function
-
-        ''' <summary>
-        ''' Parse a debugger expression (e.g. possibly including pseudo-variables).
-        ''' </summary>
-        ''' <param name="text">The input string</param>
-        Friend Shared Function ParseDebuggerExpression(text As SourceText, Optional consumeFullText As Boolean = True) As ExpressionSyntax
-            Using scanner As New InternalSyntax.Scanner(text, VisualBasicParseOptions.Default, isScanningForExpressionCompiler:=True) ' NOTE: Default options should be enough
-                Using p = New InternalSyntax.Parser(scanner)
-                    p.GetNextToken()
-                    Dim node = p.ParseExpression()
-                    If consumeFullText Then node = p.ConsumeUnexpectedTokens(node)
-                    Dim statement = InternalSyntax.SyntaxFactory.PrintStatement(New InternalSyntax.PunctuationSyntax(SyntaxKind.QuestionToken, "?", Nothing, Nothing), node)
-                    Dim compilationUnit = InternalSyntax.SyntaxFactory.CompilationUnit(
-                        options:=Nothing,
-                        [imports]:=Nothing,
-                        attributes:=Nothing,
-                        members:=InternalSyntax.SyntaxList.List(statement),
-                        endOfFileToken:=InternalSyntax.SyntaxFactory.EndOfFileToken)
-                    Dim syntaxTree = VisualBasicSyntaxTree.Create(DirectCast(compilationUnit.CreateRed(Nothing, 0), CompilationUnitSyntax))
-                    Return DirectCast(DirectCast(syntaxTree.GetRoot(), CompilationUnitSyntax).Members.Single(), PrintStatementSyntax).Expression
-                End Using
             End Using
         End Function
 

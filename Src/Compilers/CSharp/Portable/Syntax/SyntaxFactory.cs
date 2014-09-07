@@ -1203,19 +1203,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static ExpressionSyntax ParseDebuggerExpression(SourceText text, bool consumeFullText = true)
-        {
-            using (var lexer = new InternalSyntax.Lexer(text, CSharpParseOptions.Default))
-            using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax))
-            {
-                var node = parser.ParseExpression();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                var parent = InternalSyntax.SyntaxFactory.ExpressionStatement(node, InternalSyntax.SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                var syntaxTree = CSharpSyntaxTree.Create((ExpressionStatementSyntax)parent.CreateRed(), text);
-                return ((ExpressionStatementSyntax)syntaxTree.GetRoot()).Expression;
-            }
-        }
-
         /// <summary>
         /// Parse a StatementSyntaxNode using grammar rule for statements.
         /// </summary>
