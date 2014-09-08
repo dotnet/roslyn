@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly ImmutableArray<ITypeParameterSymbol> typeParameters;
         private readonly ImmutableArray<IParameterSymbol> parameters;
         private readonly ImmutableArray<IMethodSymbol> explicitInterfaceImplementations;
+        private readonly MethodKind methodKind;
 
         public CodeGenerationMethodSymbol(
             INamedTypeSymbol containingType,
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             IList<ITypeParameterSymbol> typeParameters,
             IList<IParameterSymbol> parameters,
-            IList<AttributeData> returnTypeAttributes)
+            IList<AttributeData> returnTypeAttributes,
+            MethodKind methodKind = MethodKind.Ordinary)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             this.returnType = returnType;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 : ImmutableArray.Create(explicitInterfaceSymbolOpt);
 
             this.OriginalDefinition = this;
+            this.methodKind = methodKind;
         }
 
         public override ITypeSymbol ReturnType
@@ -135,6 +138,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 return null;
+            }
+        }
+
+        public override MethodKind MethodKind
+        {
+            get
+            {
+                return this.methodKind;
             }
         }
 

@@ -30,9 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options)
         {
             var declaration = GenerateConversionDeclarationWorker(method, destination, options);
-
-            return AddAnnotationsTo(method,
-                ConditionallyAddDocumentationCommentTo(declaration, method, options));
+            return AddCleanupAnnotationsTo(AddAnnotationsTo(method,
+                ConditionallyAddDocumentationCommentTo(declaration, method, options)));
         }
 
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
