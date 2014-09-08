@@ -481,6 +481,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function CanStartConsequenceExpression(kind As SyntaxKind, qualified As Boolean) As Boolean
+
+            If _scanner.Options.LanguageVersion <> LanguageVersion.Experimental Then
+                Return False
+            End If
+
             Return kind = SyntaxKind.DotToken OrElse kind = SyntaxKind.ExclamationToken OrElse (qualified AndAlso kind = SyntaxKind.OpenParenToken)
         End Function
 

@@ -99,7 +99,7 @@ Friend Module CompilationUtils
 
     Public Function CreateCompilationWithMscorlibAndVBRuntime(sources As XElement,
                                                               options As VisualBasicCompilationOptions) As VisualBasicCompilation
-        Return CreateCompilationWithMscorlibAndVBRuntime(sources, Nothing, options)
+        Return CreateCompilationWithMscorlibAndVBRuntime(sources, Nothing, options, parseOptions:=If(options Is Nothing, Nothing, options.ParseOptions))
     End Function
 
     Public ReadOnly XmlReferences As MetadataReference() = {SystemRef, SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}
