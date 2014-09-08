@@ -95,10 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             F.CurrentMethod = moveNextMethod;
 
-            int initialState;
-            GeneratedLabelSymbol initialLabel;
-            AddState(out initialState, out initialLabel);
-
             var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
@@ -114,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // switch (state) ...
                         F.HiddenSequencePoint(),
                         Dispatch(),
-                        F.Label(initialLabel),
                         // [body]
                         rewrittenBody
                     ),

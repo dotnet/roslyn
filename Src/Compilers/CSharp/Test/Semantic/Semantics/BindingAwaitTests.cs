@@ -1893,12 +1893,12 @@ class C
             var actualIL = verifier.VisualizeIL("C.<F>d__1<T1, T2, T3, T4, T5, T6>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
             var calls = actualIL.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries).Where(s => s.Contains("OnCompleted")).ToArray();
             Assert.Equal(calls.Length, 6);
-            Assert.Equal(calls[0], "    IL_005a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T1, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T1, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"");
-            Assert.Equal(calls[1], "    IL_00c5:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T2, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T2, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"");
-            Assert.Equal(calls[2], "    IL_0130:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T3, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T3, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"");
-            Assert.Equal(calls[3], "    IL_019e:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T4, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T4, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"");
-            Assert.Equal(calls[4], "    IL_020e:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T5, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T5, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"");
-            Assert.Equal(calls[5], "    IL_027e:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T6, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T6, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"");
+            Assert.Equal("    IL_0056:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T1, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T1, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"", calls[0]);
+            Assert.Equal("    IL_00c1:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T2, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T2, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"", calls[1]);
+            Assert.Equal("    IL_012c:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T3, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T3, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"", calls[2]);
+            Assert.Equal("    IL_019a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T4, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T4, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"", calls[3]);
+            Assert.Equal("    IL_020a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T5, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T5, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"", calls[4]);
+            Assert.Equal("    IL_027a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T6, C.<F>d__1<T1, T2, T3, T4, T5, T6>>(ref T6, ref C.<F>d__1<T1, T2, T3, T4, T5, T6>)\"", calls[5]);
         }
 
         [Fact]
