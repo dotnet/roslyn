@@ -390,12 +390,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsInitializerForObjectOrAnonymousObjectCreationExpression(this SyntaxNode node)
         {
             var initializer = node as InitializerExpressionSyntax;
+            AnonymousObjectMemberDeclaratorSyntax anonymousObjectInitializer = null;
             if (initializer == null)
             {
-                return false;
+                anonymousObjectInitializer = node as AnonymousObjectMemberDeclaratorSyntax;
+                if (anonymousObjectInitializer == null)
+                {
+                    return false;
+                }
             }
 
-            var parent = initializer.Parent;
+            var parent = initializer != null ? initializer.Parent : anonymousObjectInitializer.Parent;
             if (parent is AnonymousObjectCreationExpressionSyntax)
             {
                 return true;
@@ -421,12 +426,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsInitializerForArrayOrCollectionCreationExpression(this SyntaxNode node)
         {
             var initializer = node as InitializerExpressionSyntax;
+            AnonymousObjectMemberDeclaratorSyntax anonymousObjectInitializer = null;
             if (initializer == null)
             {
-                return false;
+                anonymousObjectInitializer = node as AnonymousObjectMemberDeclaratorSyntax;
+                if (anonymousObjectInitializer == null)
+                {
+                    return false;
+                }
             }
 
-            var parent = initializer.Parent;
+            var parent = initializer != null ? initializer.Parent : anonymousObjectInitializer.Parent;
             if (parent is ArrayCreationExpressionSyntax ||
                 parent is ImplicitArrayCreationExpressionSyntax ||
                 parent is EqualsValueClauseSyntax ||
