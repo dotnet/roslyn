@@ -6,7 +6,6 @@
     <DeployVSVersion>12.0</DeployVSVersion>
     <DeployVSHive>Roslyn</DeployVSHive>
     <DeployToPackageFolders>true</DeployToPackageFolders>
-    <DelaySignBuild Condition="'$(DelaySignBuild)' == ''">true</DelaySignBuild>
     <NonShipping Condition="'$(NonShipping)' == ''">false</NonShipping>
     <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
     <BuildVersion>$(MajorRoslynVersion).0.0</BuildVersion>
@@ -29,7 +28,7 @@
       <Choose>
         <!-- Shipping binaries in an "official" build are delay-signed with the MS key; later, the signing
              system will finish the strong-name signing. -->
-        <When Condition="'$(NonShipping)' != 'true' AND ('$(RealSignBuild)' == 'true' OR '$(DelaySignBuild)' == 'true' OR '$(SignType)' == 'real')">
+        <When Condition="'$(NonShipping)' != 'true'">
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
             <DelaySign>true</DelaySign>
