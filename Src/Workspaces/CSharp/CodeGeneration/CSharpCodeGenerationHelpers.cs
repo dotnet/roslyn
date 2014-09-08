@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return token;
         }
-        
+
         public static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.FirstOrDefault();
@@ -176,7 +176,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 availableIndices.Insert(index, true);
             }
 
+            if (index != 0 && declarationList[index - 1].ContainsDiagnostics && AreBracesMissing(declarationList[index - 1]))
+            {
+                return declarationList.Insert(index, declaration.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+            }
+
             return declarationList.Insert(index, declaration);
+        }
+
+        private static bool AreBracesMissing<TDeclaration>(TDeclaration declaration) where TDeclaration : SyntaxNode
+        {
+            return declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
         }
 
         public static int GetInsertionIndex<TDeclaration>(
