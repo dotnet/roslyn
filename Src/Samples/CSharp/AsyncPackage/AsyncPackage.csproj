@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4090503-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4090503-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
     <Import Project="$(SolutionDir)..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
@@ -168,6 +168,7 @@
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild" Condition="Exists('$(ProjectDir)\Diagnostic.nuspec')">
     <Warning Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="Producing a NuGet package as part of the build requires you to first enable NuGet Package Restore.  For more information, see ReadMe.txt in the project folder." />
+    <Error Condition="!Exists('..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4090503-beta\build\Microsoft.Net.ToolsetCompilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4090503-beta\build\Microsoft.Net.ToolsetCompilers.props'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>if exist Diagnostic.nuspec if exist "$(SolutionDir)\.nuget\NuGet.exe" "$(SolutionDir)\.nuget\NuGet.exe" pack Diagnostic.nuspec -OutputDirectory .</PostBuildEvent>
@@ -184,7 +185,7 @@
   -->
   <ImportGroup Label="Targets">
     <Import Project="$(SolutionDir)..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('$(SolutionDir)..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
+    <Import Project="$(SolutionDir)..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('$(SolutionDir)\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
