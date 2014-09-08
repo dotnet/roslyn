@@ -250,12 +250,12 @@
     <Content Include="Semantics\OverloadResolutionTestSource.vb" />
     <Content Include="Semantics\PrintResultTestSource.vb" />
     <EmbeddedResource Include="Binding\T_1247520.cs" />
-    <EmbeddedResource Include="Binding\T_1556342.cs" />
     <EmbeddedResource Include="Binding\T_68086.vb" />
     <EmbeddedResource Include="Resource.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.vb</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Semantics\LongTypeName.vb.txt" />
     <EmbeddedResource Include="Semantics\LongTypeNameNative.vb.txt" />

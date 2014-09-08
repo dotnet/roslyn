@@ -84,15 +84,6 @@ expectedOutput:="123")
             Assert.Equal(source, result)
         End Sub
 
-        <WorkItem(784211, "DevDiv")>
-        <WorkItem(707924, "DevDiv")>
-        <Fact(Skip:="784211")>
-        Public Sub Bug707924b()
-            Dim source = My.Resources.Resource.T_1556342
-            Dim result = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(source).ToString()
-            Assert.Equal(source, result)
-        End Sub
-
         ' Test access to a local variable and assignment of them..
         <Fact>
         Public Sub LocalVariable1()

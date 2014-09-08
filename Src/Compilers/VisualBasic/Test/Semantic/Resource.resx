@@ -1,6 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -197,9 +195,6 @@
   </data>
   <data name="T_1247520" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>binding\t_1247520.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="T_1556342" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>binding\t_1556342.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
   <data name="T_68086" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>binding\t_68086.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
