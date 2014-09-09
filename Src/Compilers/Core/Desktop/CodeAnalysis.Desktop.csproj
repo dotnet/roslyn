@@ -42,6 +42,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdditionalFileStream.cs" />
+    <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="CodeAnalysisDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -334,12 +334,35 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
         {
             var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+
+            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
+            {
+                var analyzerReference = o as AnalyzerFileReference;
+                switch (e.ErrorCode)
+                {
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
+                        diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_UnableToLoadAnalyzer, analyzerReference.FullPath, e.Exception.Message));
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
+                        diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerCannotBeCreated, e.TypeName, analyzerReference.FullPath, e.Exception.Message));
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
+                        diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_NoAnalyzerInAssembly, analyzerReference.FullPath));
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
+                    default:
+                        return;
+                }
+            };
+
             foreach (var reference in AnalyzerReferences)
             {
                 var resolvedReference = ResolveAnalyzerReference(reference);
                 if (resolvedReference != null)
                 {
-                    resolvedReference.AddAnalyzers(builder, diagnostics, messageProvider, language);
+                    resolvedReference.AnalyzerLoadFailed += errorHandler;
+                    resolvedReference.AddAnalyzers(builder, language);
+                    resolvedReference.AnalyzerLoadFailed -= errorHandler;
                 }
                 else
                 {

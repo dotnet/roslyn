@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Security;
 using Roslyn.Utilities;
 
@@ -28,13 +29,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private string displayName;
         private ImmutableArray<IDiagnosticAnalyzer>? lazyAnalyzers;
         private Assembly assembly;
-        
+
+        private Dictionary<string, HashSet<string>> analyzerTypeNameMap;
+
+        public event EventHandler<AnalyzerLoadFailureEventArgs> AnalyzerLoadFailed;
+
         /// <summary>
         /// Fired when an <see cref="Assembly"/> referred to by an <see cref="AnalyzerFileReference"/>
         /// (or a dependent <see cref="Assembly"/>) is loaded.
         /// </summary>
         public static event EventHandler<AnalyzerAssemblyLoadEventArgs> AssemblyLoad;
-
+        
         /// <summary>
         /// Maps from one assembly back to the assembly that requested it, if known.
         /// </summary>
@@ -137,81 +142,164 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="IDiagnosticAnalyzer"/> defined in this assembly reference.
         /// </summary>
-        internal void AddAnalyzers(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, string languageOpt = null)
+        internal void AddAnalyzers(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, string languageOpt = null)
         {
             // We handle loading of analyzer assemblies ourselves. This allows us to avoid locking the assembly
             // file on disk.
-            Type[] types = null;
-            Exception ex = null;
+            List<Type> types = new List<Type>();
+            Assembly analyzerAssembly = null;
+            HashSet<string> analyzerTypeNames = new HashSet<string>();
 
             try
             {
-                Assembly analyzerAssembly = GetAssembly();
-                types = analyzerAssembly.GetTypes();
-            }
-            catch (FileLoadException e)
-            { ex = e; }
-            catch (BadImageFormatException e)
-            { ex = e; }
-            catch (SecurityException e)
-            { ex = e; }
-            catch (ArgumentException e)
-            { ex = e; }
-            catch (PathTooLongException e)
-            { ex = e; }
-            catch (ReflectionTypeLoadException e)
-            { ex = e; }
-
-            if (ex != null)
-            {
-                var typeLoadEx = ex as ReflectionTypeLoadException;
-                if (diagnosticsOpt != null && messageProviderOpt != null)
+                if (analyzerTypeNameMap == null)
                 {
-                    var message = typeLoadEx == null ?
-                        messageProviderOpt.WRN_UnableToLoadAnalyzer :
-                        messageProviderOpt.INF_UnableToLoadSomeTypesInAnalyzer;
-                    diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, message, fullPath, ex.Message));
+                    analyzerTypeNameMap = GetAnalyzerTypeNameMap();
+
+                    // If there are language agnostic analyzers, then instantiate them but only do it once.
+                    if (analyzerTypeNameMap.ContainsKey(string.Empty))
+                    {
+                        analyzerTypeNames.AddAll(analyzerTypeNameMap[string.Empty]);
+                    }
                 }
 
-                if (typeLoadEx != null)
+                // If the user didn't ask for a specific language then return all analyzers.
+                if (languageOpt == null)
                 {
-                    types = typeLoadEx.Types.Where(t => t != null).ToArray();
+                    // The type names of language agnostic analyzer have already been added. Add all other language analyzers.
+                    analyzerTypeNames.AddAll(analyzerTypeNameMap.SelectMany(kvp => kvp.Key != string.Empty ? kvp.Value : SpecializedCollections.EmptyEnumerable<string>()));
                 }
                 else
                 {
+                    // Add the analyzers for the specific language.
+                    if (analyzerTypeNameMap.ContainsKey(languageOpt))
+                    {
+                        analyzerTypeNames.AddAll(analyzerTypeNameMap[languageOpt]);
+                    }
+                }
+
+                // If there are no analyzers, don't load the assembly at all.
+                if (analyzerTypeNames.IsEmpty())
+                {
+                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
                     return;
                 }
+
+                analyzerAssembly = GetAssembly();
+            }
+            catch (Exception e) if (e is FileLoadException || e is FileNotFoundException || e is BadImageFormatException ||
+                                    e is SecurityException || e is ArgumentException || e is PathTooLongException)
+            {
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
+                return;
             }
 
+            // Now given the type names, get the actual System.Type and try to create an instance of the type through reflection.
             bool hasAnalyzers = false;
-            foreach (var type in types)
+            foreach (var typeName in analyzerTypeNames)
             {
                 try
                 {
+                    var type = analyzerAssembly.GetType(typeName, throwOnError: true);
                     if (type.GetTypeInfo().ImplementedInterfaces.Contains(typeof(IDiagnosticAnalyzer)))
                     {
-                        var attribute = type.GetCustomAttribute<DiagnosticAnalyzerAttribute>();
-                        if (attribute != null &&
-                            (languageOpt == null || attribute.IsSupported(languageOpt)))
-                        {
-                            hasAnalyzers = true;
-                            builder.Add((IDiagnosticAnalyzer)Activator.CreateInstance(type));
-                        }
+                        hasAnalyzers = true;
+                        builder.Add((IDiagnosticAnalyzer)Activator.CreateInstance(type));
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) if (e is TypeLoadException || e is BadImageFormatException || e is FileNotFoundException || e is FileLoadException ||
+                                        e is ArgumentException || e is NotSupportedException || e is TargetInvocationException || e is MemberAccessException)
                 {
-                    if (diagnosticsOpt != null && messageProviderOpt != null)
+                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e, typeName));
+                }
+            }
+
+            // If there were types with the attribute but weren't an analyzer.
+            if (!hasAnalyzers)
+            {
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
+            }
+        }
+
+        /// <summary>
+        /// Opens the analyzer dll with the metadata reader and builds a map of language -> analyzer type names.
+        /// </summary>
+        internal Dictionary<string, HashSet<string>> GetAnalyzerTypeNameMap()
+        {
+            var typeNameMap = new Dictionary<string, HashSet<string>>();
+            var diagnosticNamespaceName = string.Format("{0}.{1}.{2}", nameof(Microsoft), nameof(CodeAnalysis), nameof(Diagnostics));
+
+            using (var assembly = MetadataFileFactory.CreateAssembly(this.fullPath))
+            {
+                foreach (var module in assembly.Modules)
+                {
+                    foreach (var typeDefHandle in module.MetadataReader.TypeDefinitions)
                     {
-                        diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_AnalyzerCannotBeCreated, type.FullName, fullPath, e.Message));
+                        var typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle);
+                        var customAttrs = typeDef.GetCustomAttributes();
+
+                        foreach (var customAttrHandle in customAttrs)
+                        {
+                            var peModule = module.Module;
+                            Handle ctor;
+                            if (peModule.IsTargetAttribute(customAttrHandle, diagnosticNamespaceName, nameof(DiagnosticAnalyzerAttribute), out ctor))
+                            {
+                                string typeName = GetFullyQualifiedTypeName(typeDef, peModule);
+
+                                // The DiagnosticAnalyzerAttribute has two constructors:
+                                // 1. Paramterless - means that the analyzer is applicable to any language. 
+                                // 2. Single string parameter specifying the language.
+                                // Parse the argument blob to extract these two cases.
+                                BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
+
+                                // Single string parameter
+                                if (argsReader.Length > 4)
+                                {
+                                    // check prolog
+                                    if (argsReader.ReadByte() == 1 && argsReader.ReadByte() == 0)
+                                    {
+                                        string languageName;
+                                        if (PEModule.CrackStringInAttributeValue(out languageName, ref argsReader))
+                                        {
+                                            if (!typeNameMap.ContainsKey(languageName))
+                                            {
+                                                typeNameMap.Add(languageName, new HashSet<string>());
+                                            }
+                                            typeNameMap[languageName].Add(typeName);
+                                        }
+                                    }
+                                }
+                                // otherwise the attribute is applicable to all languages.
+                                else
+                                {
+                                    if (!typeNameMap.ContainsKey(string.Empty))
+                                    {
+                                        typeNameMap.Add(string.Empty, new HashSet<string>());
+                                    }
+                                    typeNameMap[string.Empty].Add(typeName);
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            if (!hasAnalyzers && ex == null && diagnosticsOpt != null && messageProviderOpt != null)
+            return typeNameMap;
+        }
+
+        private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
+        {
+            var declaringType = typeDef.GetDeclaringType();
+
+            // Non nested type - simply get the full name
+            if (declaringType.IsNil)
             {
-                // If there are no analyzers in this assembly, let the user know.
-                diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_NoAnalyzerInAssembly, fullPath));
+                return peModule.GetFullNameOrThrow(typeDef.Namespace, typeDef.Name);
+            }
+            else
+            {
+                var declaringTypeDef = peModule.MetadataReader.GetTypeDefinition(declaringType);
+                return string.Concat(GetFullyQualifiedTypeName(declaringTypeDef, peModule), "+", peModule.MetadataReader.GetString(typeDef.Name));
             }
         }
 

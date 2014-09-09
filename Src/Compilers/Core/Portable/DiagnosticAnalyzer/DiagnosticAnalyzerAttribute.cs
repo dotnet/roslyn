@@ -8,24 +8,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Place this attribute onto a type to cause it to be considered a diagnostic analyzer.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class DiagnosticAnalyzerAttribute : Attribute
     {
         /// <summary>
-        /// Analyzer attribute to be used for diagnostic analyzer.
-        /// If the analyzer is langauge agnostic, then <paramref name="supportedLanguages"/> can be empty.
-        /// Otherwise, if the analyzer is language specific, then specify the set of supported languages from <see cref="LanguageNames"/>.
+        /// Analyzer attribute to be used for a diagnostic analyzer.
+        /// If the analyzer is langauge agnostic, then no parameters need to be specified.
+        /// Otherwise, if the analyzer is language specific, then specify a supported languages from <see cref="LanguageNames"/>.
         /// </summary>
-        public DiagnosticAnalyzerAttribute(params string[] supportedLanguages)
+        public DiagnosticAnalyzerAttribute()
         {
-            this.SupportedLanguages = supportedLanguages.AsImmutableOrEmpty();
+            this.SupportedLanguage = null;
         }
 
-        public ImmutableArray<string> SupportedLanguages { get; private set; }
-
-        internal bool IsSupported(string language)
+        /// <summary>
+        /// Analyzer attribute to be used for a diagnostic analyzer.
+        /// If the analyzer is langauge agnostic, then <paramref name="supportedLanguage"/> can be empty.
+        /// Otherwise, if the analyzer is language specific, then specify a supported languages from <see cref="LanguageNames"/>.
+        /// </summary>
+        public DiagnosticAnalyzerAttribute(string supportedLanguage)
         {
-            return this.SupportedLanguages.IsEmpty || this.SupportedLanguages.Contains(language);
+            this.SupportedLanguage = supportedLanguage;
         }
+
+        public string SupportedLanguage { get; private set; }
     }
 }
