@@ -120,12 +120,14 @@ namespace Microsoft.CodeAnalysis
             // Save a reference to the cached analyzers so that they don't get collected 
             // if the metadata object gets collected.
             public readonly WeakReference Analyzers;
+            public readonly string Language;
 
-            public CachedAnalyzers(ImmutableArray<IDiagnosticAnalyzer> analyzers)
+            public CachedAnalyzers(ImmutableArray<IDiagnosticAnalyzer> analyzers, string language)
             {
                 Debug.Assert(analyzers != null);
 
                 this.Analyzers = new WeakReference(analyzers);
+                this.Language = language;
             }
         }
 
@@ -714,7 +716,7 @@ namespace Microsoft.CodeAnalysis
                 CachedAnalyzers cachedAnalyzers;
                 if (analyzersFromFiles.TryGetValue(key, out cachedAnalyzers))
                 {
-                    if (cachedAnalyzers.Analyzers.IsAlive)
+                    if (cachedAnalyzers.Analyzers.IsAlive && cachedAnalyzers.Language == langauge)
                     {
                         return (ImmutableArray<IDiagnosticAnalyzer>)cachedAnalyzers.Analyzers.Target;
                     }
@@ -735,7 +737,7 @@ namespace Microsoft.CodeAnalysis
                 // refresh the timestamp (the file may have changed just before we memory-mapped it):
                 key = FileKey.Create(fullPath);
 
-                analyzersFromFiles[key] = new CachedAnalyzers(analyzers);
+                analyzersFromFiles[key] = new CachedAnalyzers(analyzers, langauge);
                 Debug.Assert(!analyzerAssemblyKeys.Contains(key));
                 analyzerAssemblyKeys.Add(key);
                 EnableCompactTimer();
