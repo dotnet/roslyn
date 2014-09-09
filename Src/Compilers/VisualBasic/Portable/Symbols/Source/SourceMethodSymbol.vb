@@ -583,7 +583,7 @@ lReportErrorOnTwoTokens:
 
         Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
             Get
-                Return Not Me.SyntaxTree.IsMyTemplate
+                Return True
             End Get
         End Property
 

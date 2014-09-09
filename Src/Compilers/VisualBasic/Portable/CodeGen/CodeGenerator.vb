@@ -313,9 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Function EmitSequencePoint(tree As SyntaxTree, span As TextSpan) As TextSpan
             Debug.Assert(tree IsNot Nothing)
             Debug.Assert(_emitPdbSequencePoints)
-            If Not tree.IsMyTemplate Then
-                _builder.DefineSequencePoint(tree, span)
-            End If
+            _builder.DefineSequencePoint(tree, span)
             Return span
         End Function
     End Class
