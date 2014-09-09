@@ -8,24 +8,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public enum OutputMatchKind
-    {
-        MatchAll,
-        DoesNotMatch
-    }
-
     public class HostedRuntimeEnvironment : IDisposable
     {
         private static readonly Dictionary<string, Guid> allModuleNames = new Dictionary<string, Guid>();
@@ -269,35 +261,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public int Execute(string moduleName, string expectedOutput, OutputMatchKind outputMatchKind = OutputMatchKind.MatchAll)
+        public int Execute(string moduleName, string expectedOutput)
         {
             string actualOutput;
             int exitCode = Execute(moduleName, expectedOutput.Length, out actualOutput);
-            if (expectedOutput != null)
+
+            if (expectedOutput.Trim() != actualOutput.Trim())
             {
-                switch (outputMatchKind)
-                {
-                    case OutputMatchKind.MatchAll:
-                        if (expectedOutput.Trim() != actualOutput.Trim())
-                        {
-                            string dumpDir;
-                            assemblyManager.DumpAssemblyData(out dumpDir);
-                            throw new ExecutionException(expectedOutput, actualOutput, dumpDir);
-                        }
-                        break;
-
-                    case OutputMatchKind.DoesNotMatch:
-                        if (actualOutput.Contains(expectedOutput))
-                        {
-                            string dumpDir;
-                            assemblyManager.DumpAssemblyData(out dumpDir);
-                            throw new ExecutionException(null, actualOutput, dumpDir);
-                        }
-                        break;
-
-                    default:
-                        throw new NotSupportedException("Unsupported OutputMatchKind: " + outputMatchKind.ToString());
-                }
+                string dumpDir;
+                assemblyManager.DumpAssemblyData(out dumpDir);
+                throw new ExecutionException(expectedOutput, actualOutput, dumpDir);
             }
 
             return exitCode;

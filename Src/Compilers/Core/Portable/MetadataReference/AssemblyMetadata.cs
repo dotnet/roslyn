@@ -219,7 +219,8 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 1; i < Modules.Length; i++)
             {
-                if (!Modules[i].Module.IsLinkedModule)
+                var module = Modules[i].Module;
+                if (!module.IsLinkedModule && !MetadataHelpers.IsRuntimeWinMd(module.Name))
                 {
                     return false;
                 }

@@ -85,12 +85,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, bool peVerify, SignatureDescription[] expectedSignatures)
             {
-                bool doExecute = expectedOutput != null;
-
                 using (var testEnvironment = new HostedRuntimeEnvironment(dependencies))
                 {
                     string mainModuleName = Emit(testEnvironment, manifestResources);
-
                     allModuleData = testEnvironment.GetAllModuleData();
 
                     if (peVerify)
@@ -103,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
                     }
 
-                    if (doExecute)
+                    if (expectedOutput != null)
                     {
                         testEnvironment.Execute(mainModuleName, expectedOutput);
                     }

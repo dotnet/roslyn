@@ -862,5 +862,22 @@ namespace Microsoft.CodeAnalysis
                    fullyQualified.StartsWith(namespaceName, StringComparison.Ordinal) &&
                    fullyQualified.EndsWith(typeName, StringComparison.Ordinal);
         }
+
+        /// <summary>
+        /// Returns true if the metadata name is a compile-time .winmd assembly name.
+        /// </summary>
+        internal static bool IsCompileTimeWinMd(string metadataName)
+        {
+            return string.Equals(metadataName, "windows.winmd", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Returns true if the metadata name is a runtime .winmd assembly name.
+        /// </summary>
+        internal static bool IsRuntimeWinMd(string metadataName)
+        {
+            return !IsCompileTimeWinMd(metadataName) &&
+                metadataName.EndsWith(".winmd", StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

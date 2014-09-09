@@ -371,20 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)bindingResult[i].AssemblySymbol == null)
                     {
                         // symbols hasn't been found in the cache, create a new one
-
-                        var compilationData = allAssemblies[i] as AssemblyDataForCompilation;
-                        if (compilationData != null)
-                        {
-                            bindingResult[i].AssemblySymbol = new Symbols.Retargeting.RetargetingAssemblySymbol(
-                                                        compilationData.Compilation.SourceAssembly, compilationData.IsLinked);
-                        }
-                        else
-                        {
-                            var fileData = (AssemblyDataForFile)allAssemblies[i];
-
-                            bindingResult[i].AssemblySymbol = new PEAssemblySymbol(fileData.Assembly, fileData.DocumentationProvider, fileData.IsLinked, fileData.EffectiveImportOptions);
-                        }
-
+                        var compilationData = (AssemblyDataForMetadataOrCompilation)allAssemblies[i];
+                        bindingResult[i].AssemblySymbol = compilationData.CreateAssemblySymbol();
                         newSymbols.Add(i);
                     }
 
@@ -822,6 +810,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.EmbedInteropTypes = embedInteropTypes;
                 }
 
+                internal abstract AssemblySymbol CreateAssemblySymbol();
+
                 public override AssemblyIdentity Identity
                 {
                     get
@@ -942,6 +932,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 private bool internalsVisibleComputed = false;
                 private bool internalsPotentiallyVisibleToCompilation = false;
+
+                internal override AssemblySymbol CreateAssemblySymbol()
+                {
+                    return new PEAssemblySymbol(this.assembly, this.documentationProvider, this.IsLinked, this.EffectiveImportOptions);
+                }
 
                 internal bool InternalsMayBeVisibleToCompilation
                 {
@@ -1087,6 +1082,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     referencedAssemblies = refs.ToImmutableAndFree();
+                }
+
+                internal override AssemblySymbol CreateAssemblySymbol()
+                {
+                    return new Symbols.Retargeting.RetargetingAssemblySymbol(this.compilation.SourceAssembly, this.IsLinked);
                 }
 
                 protected override void AddAvailableSymbols(List<AssemblySymbol> assemblies)
