@@ -80,7 +80,7 @@ Delta: Gamma: Beta: Test B
         {
             AnalyzerFileReference reference = new AnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var analyzerTypeNameMap = reference.GetAnalyzerTypeNameMap();
-            Assert.Equal(3, analyzerTypeNameMap.Keys.Count());
+            Assert.Equal(3, analyzerTypeNameMap.Keys.Count);
             Assert.Equal(6, analyzerTypeNameMap[string.Empty].Count);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzer", analyzerTypeNameMap[string.Empty]);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSAll", analyzerTypeNameMap[string.Empty]);
@@ -90,9 +90,11 @@ Delta: Gamma: Beta: Test B
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.OpenGenericAnalyzer`1", analyzerTypeNameMap[string.Empty]);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAnAnalyzer", analyzerTypeNameMap[string.Empty]);
 
-            Assert.Equal(2, analyzerTypeNameMap[LanguageNames.CSharp].Count);
+            Assert.Equal(4, analyzerTypeNameMap[LanguageNames.CSharp].Count);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzerCS", analyzerTypeNameMap[LanguageNames.CSharp]);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", analyzerTypeNameMap[LanguageNames.CSharp]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSAll", analyzerTypeNameMap[string.Empty]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerAllCS", analyzerTypeNameMap[string.Empty]);
 
             Assert.Equal(2, analyzerTypeNameMap[LanguageNames.VisualBasic].Count);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzerVB", analyzerTypeNameMap[LanguageNames.VisualBasic]);
@@ -121,7 +123,9 @@ Delta: Gamma: Beta: Test B
         public void TestGetAnalyzersPerLanguage()
         {
             AnalyzerFileReference reference = new AnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
-            var analyzers = reference.GetAnalyzers(LanguageNames.CSharp);
+            var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            reference.AddAnalyzers(builder, LanguageNames.CSharp);
+            var analyzers = builder.ToImmutable();
             Assert.Equal(6, analyzers.Length);
             var analyzerNames = analyzers.Select(a => a.GetType().Name);
             Assert.Contains("TestAnalyzer", analyzerNames);
@@ -131,15 +135,13 @@ Delta: Gamma: Beta: Test B
             Assert.Contains("TestAnalyzerAllCS", analyzerNames);
             Assert.Contains("NestedAnalyzer", analyzerNames);
 
-            analyzers = reference.GetAnalyzers(LanguageNames.VisualBasic);
+            builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            reference.AddAnalyzers(builder, LanguageNames.VisualBasic);
+            analyzers = builder.ToImmutable();
             analyzerNames = analyzers.Select(a => a.GetType().Name);
-            Assert.Equal(6, analyzers.Length);
+            Assert.Equal(2, analyzers.Length);
             Assert.Contains("TestAnalyzerVB", analyzerNames);
             Assert.Contains("TestAnalyzerCSVB", analyzerNames);
-            Assert.Contains("TestAnalyzer", analyzerNames);
-            Assert.Contains("TestAnalyzerCSAll", analyzerNames);
-            Assert.Contains("TestAnalyzerAllCS", analyzerNames);
-            Assert.Contains("NestedAnalyzer", analyzerNames);
         }
 
         [Fact]

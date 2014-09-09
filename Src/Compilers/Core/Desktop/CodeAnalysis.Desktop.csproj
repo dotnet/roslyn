@@ -7,7 +7,7 @@
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
+    <OutDir>..\..\..\..\\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{DFA21CA1-7F96-47EE-940C-069858E81727}</ProjectGuid>
     <OutputType>Library</OutputType>

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </remarks>
     public abstract class AnalyzerReference
     {
-        protected AnalyzerReference()
+        internal AnalyzerReference()
         {
         }
 
@@ -38,18 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             get { return false; }
         }
 
-        /// <summary>
-        /// Gets all the diagnostic analyzers defined in this assembly reference, irrespective of the language supported by the analyzer.
-        /// Use this method only if you need all the analyzers defined in the assembly, without a language context.
-        /// In most instances, either the analyzer reference is associated with a project or is being queried for analyzers in a particular language context.
-        /// If so, use <see cref="GetAnalyzers(string)"/> method.
-        /// </summary>
-        /// <returns></returns>
-        public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForAllLanguages();
-
-        /// <summary>
-        /// Gets all the diagnostic analyzers defined in this assembly reference for the given <paramref name="language"/>.
-        /// </summary>
-        public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers(string language);
+        public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers();
+        public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForLanguage(string language);
     }
 }
