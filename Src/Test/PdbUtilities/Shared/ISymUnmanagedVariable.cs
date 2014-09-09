@@ -12,7 +12,7 @@ namespace Roslyn.Utilities.Pdb
     internal interface ISymUnmanagedVariable
     {
         void GetName(int cchName, out int pcchName, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] name);
-        void GetAttributes(out int pRetVal);
+        void GetAttributes(out uint pRetVal);
         void GetSignature(int cSig, out int pcSig, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] byte[] sig);
 
         // the following methods are useless (not implemented, or returning a constant):

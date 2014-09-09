@@ -31,7 +31,7 @@ namespace Roslyn.Utilities.Pdb
         /// <summary>
         /// Returns local names indexed by slot.
         /// </summary>
-        internal static ImmutableArray<string> GetLocalNames(this ISymUnmanagedReader symReader, int methodToken, int ilOffset, bool isScopeEndInclusive)
+        internal static ImmutableArray<string> GetLocalNames(this ISymUnmanagedReader symReader, int methodToken, int ilOffset, bool isScopeEndInclusive, uint? attributesToIgnore)
         {
             if (symReader == null)
             {
@@ -39,15 +39,15 @@ namespace Roslyn.Utilities.Pdb
             }
             
             var symMethod = symReader.GetBaselineMethod(methodToken);
-            return symMethod.GetLocalVariableSlots(ilOffset, isScopeEndInclusive);
+            return symMethod.GetLocalVariableSlots(ilOffset, isScopeEndInclusive, attributesToIgnore);
         }
 
         internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method)
         {
-            return GetLocalVariableSlots(method, offset: -1, isScopeEndInclusive: false);
+            return GetLocalVariableSlots(method, offset: -1, isScopeEndInclusive: false, attributesToIgnoreOpt: null);
         }
 
-        internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method, int offset, bool isScopeEndInclusive)
+        internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method, int offset, bool isScopeEndInclusive, uint? attributesToIgnoreOpt)
         {
             char[] nameBuffer = null;
             string[] result = null;
@@ -57,8 +57,21 @@ namespace Roslyn.Utilities.Pdb
 
             ISymUnmanagedVariable[] localsBuffer = null;
 
+            bool haveAttributesToIgnore = attributesToIgnoreOpt.HasValue;
+            uint attributesToIgnore = attributesToIgnoreOpt.GetValueOrDefault();
+
             ForEachLocalVariableRecursive(rootScope, offset, isScopeEndInclusive, ref localsBuffer, local =>
             {
+                if (haveAttributesToIgnore)
+                {
+                    uint attributes;
+                    local.GetAttributes(out attributes);
+                    if (attributes == attributesToIgnore)
+                    {
+                        return;
+                    }
+                }
+
                 int nameLength;
                 local.GetName(0, out nameLength, null);
 
@@ -77,7 +90,7 @@ namespace Roslyn.Utilities.Pdb
 
                     EnsureBufferSize(ref result, slot + 1);
 
-                    // nameLength is NUL-terminated
+                    // nameBuffer is NUL-terminated
                     Debug.Assert(nameBuffer[nameLength - 1] == '\0');
                     result[slot] = new string(nameBuffer, 0, nameLength - 1);
                 }
