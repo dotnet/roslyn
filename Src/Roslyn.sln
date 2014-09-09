@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.21803.0
+VisualStudioVersion = 14.0.22004.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -152,6 +152,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{EFD3B57F-B
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VisualBasicErrorFactsGenerator", "Tools\Source\CompilerGeneratorTools\Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj", "{909B656F-6095-4AC2-A5AB-C3F032315C45}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeClientTests", "Compilers\Core\NativeClientTests\NativeClientTests.vcxproj", "{690CACA9-9F32-47DA-B61D-55231257CBA3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeClient", "Compilers\Core\NativeClient\NativeClient.vcxproj", "{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -290,22 +294,20 @@ Global
 		{B501A547-C911-4A05-AC6E-274A50DFF30E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{B501A547-C911-4A05-AC6E-274A50DFF30E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{B501A547-C911-4A05-AC6E-274A50DFF30E}.Release|x86.ActiveCfg = Release|Any CPU
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|ARM.ActiveCfg = Debug|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Win32.ActiveCfg = Debug|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Win32.Build.0 = Debug|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|x86.ActiveCfg = Debug|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|x86.Build.0 = Debug|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Any CPU.ActiveCfg = Release|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|ARM.ActiveCfg = Release|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Mixed Platforms.Build.0 = Release|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Win32.ActiveCfg = Release|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Win32.Build.0 = Release|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|x86.ActiveCfg = Release|x86
-		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|x86.Build.0 = Release|x86
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|ARM.ActiveCfg = Release|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|Win32.ActiveCfg = Release|Any CPU
+		{50D26304-0961-4A51-ABF6-6CAD1A56D203}.Release|x86.ActiveCfg = Release|Any CPU
 		{4462B57A-7245-4146-B504-D46FDE762948}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4462B57A-7245-4146-B504-D46FDE762948}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4462B57A-7245-4146-B504-D46FDE762948}.Debug|ARM.ActiveCfg = Debug|ARM
@@ -992,6 +994,38 @@ Global
 		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Win32.ActiveCfg = Release|Any CPU
 		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|x86.ActiveCfg = Release|Any CPU
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|ARM.ActiveCfg = Debug|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|Win32.Build.0 = Debug|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|x86.ActiveCfg = Debug|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|x86.Build.0 = Debug|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|Any CPU.ActiveCfg = Release|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|ARM.ActiveCfg = Release|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|Win32.ActiveCfg = Release|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|Win32.Build.0 = Release|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|x86.ActiveCfg = Release|Win32
+		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|x86.Build.0 = Release|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Debug|ARM.ActiveCfg = Debug|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Debug|Win32.Build.0 = Debug|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Debug|x86.ActiveCfg = Debug|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Debug|x86.Build.0 = Debug|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Release|Any CPU.ActiveCfg = Release|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Release|ARM.ActiveCfg = Release|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Release|Win32.ActiveCfg = Release|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Release|Win32.Build.0 = Release|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Release|x86.ActiveCfg = Release|Win32
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1062,9 +1096,11 @@ Global
 		{079AF8EF-1058-48B6-943F-AB02D39E0641} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{EFD3B57F-B24B-4725-889A-8837C39C0BBF} = {24E8CBFA-38D2-486F-B772-C10AB2DC7F01}
 		{909B656F-6095-4AC2-A5AB-C3F032315C45} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{690CACA9-9F32-47DA-B61D-55231257CBA3} = {14B2BA6C-0448-463B-ACBB-E09F63C0C9CD}
+		{D8BEFB58-C728-4C48-AD22-77EDBE334A8E} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 55
+		SccNumberOfProjects = 57
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://vstfdevdiv:8080/devdiv2
 		SccProjectUniqueName0 = Compilers\\Core\\Portable\\CodeAnalysis.csproj
@@ -1397,5 +1433,17 @@ Global
 		SccAuxPath54 = http://vstfdevdiv:8080/devdiv2
 		SccLocalPath54 = Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator
 		SccProvider54 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName55 = Compilers\\Core\\NativeClientTests\\NativeClientTests.vcxproj
+		SccProjectTopLevelParentUniqueName55 = Roslyn.sln
+		SccProjectName55 = Compilers/Core/NativeClientTests
+		SccAuxPath55 = http://vstfdevdiv:8080/devdiv2
+		SccLocalPath55 = Compilers\\Core\\NativeClientTests
+		SccProvider55 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName56 = Compilers\\Core\\NativeClient\\NativeClient.vcxproj
+		SccProjectTopLevelParentUniqueName56 = Roslyn.sln
+		SccProjectName56 = Compilers/Core/NativeClient
+		SccAuxPath56 = http://vstfdevdiv:8080/devdiv2
+		SccLocalPath56 = Compilers\\Core\\NativeClient
+		SccProvider56 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 	EndGlobalSection
 EndGlobal

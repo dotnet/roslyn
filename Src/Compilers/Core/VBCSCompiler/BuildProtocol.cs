@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
-using System.IO.Pipes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// <summary>
     /// Represents a request from the client. A request is as follows.
     /// 
-    ///  Field Name         Type            Size (bytes)
-    /// --------------------------------------------------
-    ///  Length             Integer         4
-    ///  ID                 UInteger        4
-    ///  Argument Count     UInteger        4
-    ///  Arguments          Argument[]      Variable
+    ///  Field Name         Type                Size (bytes)
+    /// ----------------------------------------------------
+    ///  Length             Integer             4
+    ///  Language           RequestLanguage     4
+    ///  Argument Count     UInteger            4
+    ///  Arguments          Argument[]          Variable
     /// 
     /// See <see cref="Argument"/> for the format of an
     /// Argument.
@@ -47,12 +47,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// </summary>
     internal class BuildRequest
     {
-        public readonly uint Id;
+        public readonly uint ProtocolVersion;
+        public readonly BuildProtocolConstants.RequestLanguage Language;
         public readonly ImmutableArray<Argument> Arguments;
 
-        public BuildRequest(uint requestId, ImmutableArray<Argument> arguments)
+        public BuildRequest(uint protocolVersion,
+                            BuildProtocolConstants.RequestLanguage language,
+                            ImmutableArray<Argument> arguments)
         {
-            this.Id = requestId;
+            this.ProtocolVersion = protocolVersion;
+            this.Language = language;
 
             if (arguments.Length > ushort.MaxValue)
             {
@@ -69,12 +73,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// The total request size must be less than 1MB.
         /// </summary>
         /// <returns>null if the Request was too large, the Request otherwise.</returns>
-        public static async Task<BuildRequest> ReadAsync(PipeStream inStream, CancellationToken cancellationToken)
+        public static async Task<BuildRequest> ReadAsync(Stream inStream, CancellationToken cancellationToken)
         {
             // Read the length of the request
             var lengthBuffer = new byte[4];
             CompilerServerLogger.Log("Reading length of request");
-            await BuildProtocolConstants.ReadAllAsync(inStream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
+            await BuildProtocolConstants.ReadAllAsync(inStream,
+                                                      lengthBuffer,
+                                                      4,
+                                                      cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToInt32(lengthBuffer, 0);
 
             // Back out if the request is > 1MB
@@ -88,7 +95,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // Read the full request
             var responseBuffer = new byte[length];
-            await BuildProtocolConstants.ReadAllAsync(inStream, responseBuffer, length, cancellationToken).ConfigureAwait(false);
+            await BuildProtocolConstants.ReadAllAsync(inStream,
+                                                      responseBuffer,
+                                                      length,
+                                                      cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -96,7 +106,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Parse the request into the Request data structure.
             using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
             {
-                uint requestId = reader.ReadUInt32();
+                var protocolVersion = reader.ReadUInt32();
+                var language = (BuildProtocolConstants.RequestLanguage)reader.ReadUInt32();
                 uint argumentCount = reader.ReadUInt32();
 
                 var argumentsBuilder = ImmutableArray.CreateBuilder<Argument>((int)argumentCount);
@@ -107,20 +118,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     argumentsBuilder.Add(BuildRequest.Argument.ReadFromBinaryReader(reader));
                 }
 
-                return new BuildRequest(requestId, argumentsBuilder.ToImmutable());
+                return new BuildRequest(protocolVersion,
+                                        language,
+                                        argumentsBuilder.ToImmutableArray());
             }
         }
 
         /// <summary>
         /// Write a Request to the stream.
         /// </summary>
-        public async Task WriteAsync(PipeStream outStream, CancellationToken cancellationToken)
+        public async Task WriteAsync(Stream outStream, CancellationToken cancellationToken)
         {
             using (var writer = new BinaryWriter(new MemoryStream(), Encoding.Unicode))
             {
                 // Format the request.
                 CompilerServerLogger.Log("Formatting request");
-                writer.Write(this.Id);
+                writer.Write(this.ProtocolVersion);
+                writer.Write((uint)this.Language);
                 writer.Write(this.Arguments.Length);
                 foreach (Argument arg in this.Arguments)
                 {
@@ -172,11 +186,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public struct Argument
         {
-            public readonly uint ArgumentId;
+            public readonly BuildProtocolConstants.ArgumentId ArgumentId;
             public readonly uint ArgumentIndex;
             public readonly string Value;
 
-            public Argument(uint argumentId, uint argumentIndex, string value)
+            public Argument(BuildProtocolConstants.ArgumentId argumentId,
+                            uint argumentIndex,
+                            string value)
             {
                 this.ArgumentId = argumentId;
                 this.ArgumentIndex = argumentIndex;
@@ -185,15 +201,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             public static Argument ReadFromBinaryReader(BinaryReader reader)
             {
-                uint argId = reader.ReadUInt32();
-                uint argIndex = reader.ReadUInt32();
+                var argId = (BuildProtocolConstants.ArgumentId)reader.ReadUInt32();
+                var argIndex = reader.ReadUInt32();
                 string value = BuildProtocolConstants.ReadLengthPrefixedString(reader);
                 return new Argument(argId, argIndex, value);
             }
 
             public void WriteToBinaryWriter(BinaryWriter writer)
             {
-                writer.Write(this.ArgumentId);
+                writer.Write((uint)this.ArgumentId);
                 writer.Write(this.ArgumentIndex);
                 BuildProtocolConstants.WriteLengthPrefixedString(writer, this.Value);
             }
@@ -201,73 +217,38 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     }
 
     /// <summary>
-    /// Represents a Response from the server. A response is as follows.
-    /// 
-    ///  Field Name         Type            Size (bytes)
-    /// --------------------------------------------------
-    ///  Length             UInteger        4
-    ///  ReturnCode         Integer         4
-    ///  Output             String          Variable
-    ///  ErrorOutput        String          Variable
-    /// 
-    /// Strings are encoded via a length prefix as a signed
-    /// 32-bit integer, followed by an array of characters.
-    /// 
+    /// Base class for all possible responses to a request.
+	/// The ResponseType enum should list all possible response types
+	/// and ReadResponse creates the appropriate response subclass based
+	/// on the response type sent by the client.
+	/// The format of a response is:
+    ///
+    /// Field Name       Field Type          Size (bytes)
+    /// -------------------------------------------------
+	/// responseLength   int (positive)      4  
+	/// responseType     enum ResponseType   4
+	/// responseBody     Response subclass   variable
     /// </summary>
-    internal class BuildResponse
+    internal abstract class BuildResponse
     {
-        public readonly int ReturnCode;
-        public readonly string Output;
-        public readonly string ErrorOutput;
-
-        public BuildResponse(int returnCode, string output, string errorOutput)
+        public enum ResponseType
         {
-            this.ReturnCode = returnCode;
-            this.Output = output;
-            this.ErrorOutput = errorOutput;
+            MismatchedVersion,
+            Completed
         }
 
-        /// <summary>
-        /// May throw exceptions if there are pipe problems.
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public static async Task<BuildResponse> ReadAsync(PipeStream stream, CancellationToken cancellationToken)
-        {
-            CompilerServerLogger.Log("Reading response length");
-            // Read the response length
-            var lengthBuffer = new byte[4];
-            await BuildProtocolConstants.ReadAllAsync(stream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
-            var length = BitConverter.ToUInt32(lengthBuffer, 0);
+        public abstract ResponseType Type { get; }
 
-            // Read the response
-            CompilerServerLogger.Log("Reading response of length {0}", length);
-            var responseBuffer = new byte[length];
-            await BuildProtocolConstants.ReadAllAsync(stream,
-                                                      responseBuffer,
-                                                      responseBuffer.Length,
-                                                      cancellationToken).ConfigureAwait(false);
-
-            using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
-            {
-                int returnCode = reader.ReadInt32();
-                string output = BuildProtocolConstants.ReadLengthPrefixedString(reader);
-                string errorOutput = BuildProtocolConstants.ReadLengthPrefixedString(reader);
-
-                return new BuildResponse(returnCode, output, errorOutput);
-            }
-        }
-
-        public async Task WriteAsync(PipeStream outStream, CancellationToken cancellationToken)
+        public async Task WriteAsync(Stream outStream,
+                               CancellationToken cancellationToken)
         {
             using (var writer = new BinaryWriter(new MemoryStream(), Encoding.Unicode))
             {
                 // Format the response
                 CompilerServerLogger.Log("Formatting Response");
-                writer.Write(this.ReturnCode);
-                BuildProtocolConstants.WriteLengthPrefixedString(writer, this.Output);
-                BuildProtocolConstants.WriteLengthPrefixedString(writer, this.ErrorOutput);
+                writer.Write((int)this.Type);
+
+                this.AddResponseBody(writer);
                 writer.Flush();
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -297,6 +278,108 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                                            cancellationToken).ConfigureAwait(false);
             }
         }
+
+        protected abstract void AddResponseBody(BinaryWriter writer);
+
+
+        /// <summary>
+        /// May throw exceptions if there are pipe problems.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<BuildResponse> ReadAsync(Stream stream, CancellationToken cancellationToken)
+        {
+            CompilerServerLogger.Log("Reading response length");
+            // Read the response length
+            var lengthBuffer = new byte[4];
+            await BuildProtocolConstants.ReadAllAsync(stream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
+            var length = BitConverter.ToUInt32(lengthBuffer, 0);
+
+            // Read the response
+            CompilerServerLogger.Log("Reading response of length {0}", length);
+            var responseBuffer = new byte[length];
+            await BuildProtocolConstants.ReadAllAsync(stream,
+                                                      responseBuffer,
+                                                      responseBuffer.Length,
+                                                      cancellationToken).ConfigureAwait(false);
+
+            using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
+            {
+                var responseType = (ResponseType)reader.ReadInt32();
+
+                switch (responseType)
+                {
+                    case ResponseType.Completed:
+                        return CompletedBuildResponse.Create(reader);
+                    case ResponseType.MismatchedVersion:
+                        return MismatchedVersionBuildResponse.Create(reader);
+                    default:
+                        throw new InvalidOperationException("Received invalid response type from server.");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents a Response from the server. A response is as follows.
+    /// 
+    ///  Field Name         Type            Size (bytes)
+    /// --------------------------------------------------
+    ///  Length             UInteger        4
+    ///  ReturnCode         Integer         4
+    ///  Output             String          Variable
+    ///  ErrorOutput        String          Variable
+    /// 
+    /// Strings are encoded via a character count prefix as a 
+    /// 32-bit integer, followed by an array of characters.
+    /// 
+    /// </summary>
+    internal class CompletedBuildResponse : BuildResponse
+    {
+        public readonly int ReturnCode;
+        public readonly string Output;
+        public readonly string ErrorOutput;
+
+        public CompletedBuildResponse(int returnCode, string output, string errorOutput)
+        {
+            this.ReturnCode = returnCode;
+            this.Output = output;
+            this.ErrorOutput = errorOutput;
+        }
+
+        public override ResponseType Type { get { return ResponseType.Completed; } }
+
+        public static CompletedBuildResponse Create(BinaryReader reader)
+        {
+            var returnCode = reader.ReadInt32();
+            var output = BuildProtocolConstants.ReadLengthPrefixedString(reader);
+            var errorOutput = BuildProtocolConstants.ReadLengthPrefixedString(reader);
+
+            return new CompletedBuildResponse(returnCode, output, errorOutput);
+        }
+
+        protected override void AddResponseBody(BinaryWriter writer)
+        {
+            writer.Write(this.ReturnCode);
+            BuildProtocolConstants.WriteLengthPrefixedString(writer, this.Output);
+            BuildProtocolConstants.WriteLengthPrefixedString(writer, this.ErrorOutput);
+        }
+    }
+
+    internal class MismatchedVersionBuildResponse : BuildResponse
+    {
+        public override ResponseType Type { get { return ResponseType.MismatchedVersion;  } }
+
+        public static MismatchedVersionBuildResponse Create(BinaryReader reader)
+        {
+            return new MismatchedVersionBuildResponse();
+        }
+
+        /// <summary>
+        /// MismatchedVersion has no body.
+        /// </summary>
+        protected override void AddResponseBody(BinaryWriter writer) {}
     }
 
     /// <summary>
@@ -304,6 +387,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// </summary>
     internal static class BuildProtocolConstants
     {
+        /// <summary>
+        /// The version number for this protocol.
+        /// </summary>
+        public const uint ProtocolVersion = 1;
+
         /// <summary>
         /// The name of the executable.
         /// </summary>
@@ -316,26 +404,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         // The id numbers below are just random. It's useful to use id numbers
         // that won't occur accidentally for debugging.
-
-        // csc -- compile C#
-        public const int RequestId_CSharpCompile = 0x44532521;
-
-        // vbc -- compiler VB
-        public const int RequestId_VisualBasicCompile = 0x44532522;
-
-        // analyzer -- analyze managed code
-        public const int RequestId_Analyze = 0x44532523;
+        public enum RequestLanguage
+        {
+            RequestId_CSharpCompile = 0x44532521,
+            RequestId_VisualBasicCompile = 0x44532522,
+        }
 
         // Arugments for CSharp and VB Compiler
-
-        // The current directory of the client
-        public const int ArgumentId_CurrentDirectory = 0x51147221;
-
-        // A comment line argument. The argument index indicates which one (0 .. N)
-        public const int ArgumentId_CommandLineArgument = 0x51147222;
-
-        // The "LIB" environment variable of the client
-        public const int ArgumentId_LibEnvVariable = 0x51147223;
+        public enum ArgumentId
+        {
+            // The current directory of the client
+            ArgumentId_CurrentDirectory = 0x51147221,
+            // A comment line argument. The argument index indicates which one (0 .. N)
+            ArgumentId_CommandLineArgument = 0x51147222,
+            // The "LIB" environment variable of the client
+            ArgumentId_LibEnvVariable = 0x51147223,
+        }
 
         /// <summary>
         /// Read a string from the Reader where the string is encoded
@@ -363,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// This task does not complete until we are completely done reading.
         /// </summary>
         internal static async Task ReadAllAsync(
-            PipeStream stream,
+            Stream stream,
             byte[] buffer,
             int count,
             CancellationToken cancellationToken)
