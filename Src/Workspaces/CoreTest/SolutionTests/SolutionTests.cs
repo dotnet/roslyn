@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var actualAnalyzerReferences = newSolution.Projects.Single().AnalyzerReferences;
             Assert.Equal(1, actualAnalyzerReferences.Count);
             Assert.Equal(analyzerReference, actualAnalyzerReferences[0]);
-            var actualAnalyzers = actualAnalyzerReferences[0].GetAnalyzers().ToImmutableArray();
+            var actualAnalyzers = actualAnalyzerReferences[0].GetAnalyzersForAllLanguages().ToImmutableArray();
             Assert.Equal(1, actualAnalyzers.Length);
             Assert.Equal(analyzer, actualAnalyzers[0]);
             

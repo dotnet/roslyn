@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             get { return true; }
         }
 
-        public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers()
+        public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             return ImmutableArray<IDiagnosticAnalyzer>.Empty;
         }
 
-        public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForLanguage(string language)
+        public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers(string language)
         {
             return ImmutableArray<IDiagnosticAnalyzer>.Empty;
         }
