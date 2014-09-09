@@ -142,6 +142,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         return true;
                     }
 
+                    // If it's a synthesized operator on a pointer, use the pointer's PointedAtType.
+                    if (symbol.IsKind(SymbolKind.Method) &&
+                        ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
+                        symbol.ContainingSymbol.IsKind(SymbolKind.PointerType))
+                    {
+                        return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol.ContainingSymbol).PointedAtType, within, null, out failedThroughTypeCheck);
+                    }
+
                     return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, out failedThroughTypeCheck);
 
                 default:
