@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 List<string> usings = new List<string>();
                 var generalDiagnosticOption = ReportDiagnostic.Default;
                 var diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
+                var noWarns = new Dictionary<string, ReportDiagnostic>();
+                var warnAsErrors = new Dictionary<string, ReportDiagnostic>();
                 int warningLevel = 4;
                 bool highEntropyVA = false;
                 bool printFullPaths = false;
@@ -301,6 +303,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 continue;
 
+                            case "modulename":
+                                var unquotedModuleName = RemoveAllQuotes(value);
+                                if (string.IsNullOrEmpty(unquotedModuleName))
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "modulename");
+                                    continue;
+                                }
+                                else
+                                {
+                                    moduleName = unquotedModuleName;
+                                }
+
+                                continue;
+
                             case "platform":
                                 if (string.IsNullOrEmpty(value))
                                 {
@@ -436,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
                                     }
-                                    else if (!string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) && 
+                                    else if (!string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) &&
                                              !string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
                                     {
                                         AddDiagnostic(diagnostics, ErrorCode.ERR_BadDebugType, value);
@@ -500,6 +516,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value == null)
                                 {
                                     generalDiagnosticOption = ReportDiagnostic.Error;
+
+                                    // Clear scpecific warnaserror options (since last /warnaserror flag on the command line always wins).
+                                    warnAsErrors.Clear();
+
                                     continue;
                                 }
 
@@ -509,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Error, ParseWarnings(value));
+                                    AddWarnings(warnAsErrors, ReportDiagnostic.Error, ParseWarnings(value));
                                 }
                                 continue;
 
@@ -517,6 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value == null)
                                 {
                                     generalDiagnosticOption = ReportDiagnostic.Default;
+
+                                    // Clear scpecific warnaserror options (since last /warnaserror flag on the command line always wins).
+                                    warnAsErrors.Clear();
+
                                     continue;
                                 }
 
@@ -526,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Default, ParseWarnings(value));
+                                    AddWarnings(warnAsErrors, ReportDiagnostic.Default, ParseWarnings(value));
                                 }
                                 continue;
 
@@ -567,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Suppress, ParseWarnings(value));
+                                    AddWarnings(noWarns, ReportDiagnostic.Suppress, ParseWarnings(value));
                                 }
                                 continue;
 
@@ -903,6 +927,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     AddDiagnostic(diagnostics, ErrorCode.ERR_BadSwitch, arg);
+                }
+
+                foreach (var o in warnAsErrors)
+                {
+                    diagnosticOptions[o.Key] = o.Value;
+                }
+
+                // Specific nowarn options always override specific warnaserror options.
+                foreach (var o in noWarns)
+                {
+                    diagnosticOptions[o.Key] = o.Value;
                 }
 
                 if (!IsInteractive && !sourceFilesSpecified && (outputKind.IsNetModule() || !resourcesOrModulesSpecified))

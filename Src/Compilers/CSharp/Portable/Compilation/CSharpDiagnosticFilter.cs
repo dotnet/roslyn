@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Read options (e.g., /nowarn or /warnaserror)
             ReportDiagnostic report = ReportDiagnostic.Default;
-            if (!specificDiagnosticOptions.TryGetValue(id, out report))
+            var isSpecified = specificDiagnosticOptions.TryGetValue(id, out report);
+            if (!isSpecified)
             {
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
             }
@@ -133,7 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
                         if (severity == DiagnosticSeverity.Warning)
                         {
-                            return ReportDiagnostic.Error;
+                            // In the case where /warnaserror+ is followed by /warnaserror-:<n> on the command line,
+                            // do not promote the warning specified in <n> to an error.
+                            if ((!isSpecified) && (report == ReportDiagnostic.Default))
+                            {
+                                return ReportDiagnostic.Error;
+                            }
                         }
                         break;
                     case ReportDiagnostic.Suppress:
