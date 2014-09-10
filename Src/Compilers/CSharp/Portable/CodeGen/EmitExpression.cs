@@ -1170,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // NOTE: constructor invocations are represented as BoundObjectCreationExpressions,
             // rather than BoundCalls.  This is why we can be confident that if we see a call to a
             // constructor, it has this very specific form.
-            if (method.IsParameterlessValueTypeConstructor())
+            if (method.IsDefaultValueTypeConstructor())
             {
                 Debug.Assert(method.IsImplicitlyDeclared);
                 Debug.Assert(method.ContainingType == receiver.Type);

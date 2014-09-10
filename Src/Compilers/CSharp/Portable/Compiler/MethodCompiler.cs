@@ -787,6 +787,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                // no need to emit the default ctor, we are not emitting those
+                if (methodSymbol.IsDefaultValueTypeConstructor())
+                {
+                    return;
+                }
+
                 // initializers that have been analyzed but not yet lowered.
                 BoundStatementList analyzedInitializers = null;
 
@@ -853,16 +859,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.Rewrite(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        if (body == null || !isPrimaryCtor)
+                        if (body != null && 
+                            (isPrimaryCtor || 
+                             (container.IsStructType() && !methodSymbol.IsImplicitConstructor )))
                         {
-                            // These analyses check for diagnostics in lambdas.
-                            // Control flow analysis and implicit return insertion are unnecessary.
-                            DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
-                            DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
-                        }
-                        else 
-                        {
-                            Debug.Assert(isPrimaryCtor);
 
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
                             // We will not be repeating this analysis for other constructors.
@@ -873,6 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
+                                Debug.Assert(isPrimaryCtor);
+
                                 // This gets tricky, we need to make sure that the initializers declaring initializationScopeLocals 
                                 // and the body are in the same block with Locals == initializationScopeLocals. At the same time,
                                 // we cannot just inject the body at the end of existing initialization block because it can be 
@@ -913,8 +915,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             includeInitializersInBody = false;
                             analyzedInitializers = null;
                         }
+                        else
+                        {
+                            // These analyses check for diagnostics in lambdas.
+                            // Control flow analysis and implicit return insertion are unnecessary.
+                            DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
+                        }
                     }
                 }
+
 
 #if DEBUG
                 // If the method is a synthesized static or instance constructor, then debugImports will be null and we will use the value
@@ -1073,6 +1083,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+                    // generated struct constructors should either chain to primary
+                    // or ensure that all fields are assigned (even those that do not have initializers)
+                    var container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
+                    if (container != null &&
+                        container.IsStructType() &&
+                        methodSymbol.IsImplicitInstanceConstructor &&
+                        !isPrimaryCtor)
+                    {
+                        var chain = ChainImplicitStructConstructor(methodSymbol, container);
+                        chain = LowerBodyOrInitializer(
+                                methodSymbol,
+                                chain,
+                                previousSubmissionFields,
+                                compilationState,
+                                diagsForCurrentMethod,
+                                out stateMachineTypeOpt,
+                                out variableSlotAllocatorOpt);
+
+                        boundStatements = boundStatements.Insert(0, chain);
+                    }
+
                     CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
                     var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
@@ -1098,6 +1129,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilationState.CurrentDebugImports = oldDebugImports;
             }
         }
+
+        /// <summary>
+        /// Synthesised parameterlesss constructors in structs chain to the "default" constructor
+        /// </summary>
+        private BoundStatement ChainImplicitStructConstructor(MethodSymbol methodSymbol, SourceMemberContainerTypeSymbol containingType)
+        {
+            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+            Debug.Assert(containingType.PrimaryCtor == null);
+
+            // TODO: can we skip this if we have as many initializers as instance fields?
+            //       there could be an observable difference if initializer crashes 
+            //       and constructor is invoked in-place and the partially initialized 
+            //       instance escapes. (impossible in C#, I beleive)
+            //
+            // add "this = default(T)" at the beginning of implicit struct ctor
+            return new BoundExpressionStatement(syntax,
+                    new BoundAssignmentOperator(
+                    syntax,
+                    new BoundThisReference(syntax, containingType),
+                    new BoundDefaultOperator(syntax, containingType),
+                    RefKind.None,
+                    containingType));
+        }
+
 
         // internal for testing
         internal static BoundStatement LowerBodyOrInitializer(

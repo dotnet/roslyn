@@ -3546,6 +3546,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enums cannot contain explicit parameterless constructors.
+        /// </summary>
+        internal static string ERR_EnumsCantContainDefaultConstructor {
+            get {
+                return ResourceManager.GetString("ERR_EnumsCantContainDefaultConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type or namespace definition, or end-of-file expected.
         /// </summary>
         internal static string ERR_EOFExpected {
@@ -6624,6 +6633,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameterless instance constructors in structs must be public.
+        /// </summary>
+        internal static string ERR_ParameterlessStructCtorsMustBePublic {
+            get {
+                return ResourceManager.GetString("ERR_ParameterlessStructCtorsMustBePublic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter not valid for the specified unmanaged type..
         /// </summary>
         internal static string ERR_ParameterNotValidForType {
@@ -8951,6 +8969,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureStaticClasses {
             get {
                 return ResourceManager.GetString("IDS_FeatureStaticClasses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to struct instance member initializers and parameterless constructors.
+        /// </summary>
+        internal static string IDS_FeatureStructParameterlessConstructors {
+            get {
+                return ResourceManager.GetString("IDS_FeatureStructParameterlessConstructors", resourceCulture);
             }
         }
         

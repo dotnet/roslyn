@@ -985,7 +985,7 @@ struct S
 
         s = new S();
         Console.Write(s.P);
-        Console.Write(s.Q == null);
+        Console.Write(s.Q);
         Console.Write(s.R);
         Console.Write(S.T);
     }
@@ -1024,7 +1024,7 @@ struct S
             CompileAndVerify(
                 comp,
                 sourceSymbolValidator: validator,
-                expectedOutput: "1test300T0True0T");
+                expectedOutput: "1test300T0test300T");
         }
 
 

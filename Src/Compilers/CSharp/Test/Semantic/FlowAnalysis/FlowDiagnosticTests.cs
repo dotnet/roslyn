@@ -922,18 +922,19 @@ public struct A
 }
 ";
             CreateCompilationWithMscorlib(program).VerifyDiagnostics(
-// (4,7): error CS8036: Structs without explicit constructors cannot contain members with initializers.
-//     A a = new A(); // CS8036
-Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "a").WithArguments("A.a").WithLocation(4, 7),
-// (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
-//     A a = new A(); // CS8036
-Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
-// (7,11): warning CS0219: The variable 'a' is assigned but its value is never used
-//         A a = new A();
-Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(7, 11),
-// (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
-//     A a = new A(); // CS8036
-Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7));
+    // (4,7): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    //     A a = new A(); // CS8036
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "a").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(4, 7),
+    // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
+    //     A a = new A(); // CS8036
+    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
+    // (7,11): warning CS0219: The variable 'a' is assigned but its value is never used
+    //         A a = new A();
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(7, 11),
+    // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+    //     A a = new A(); // CS8036
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7)
+    );
         }
 
         [WorkItem(542356, "DevDiv")]

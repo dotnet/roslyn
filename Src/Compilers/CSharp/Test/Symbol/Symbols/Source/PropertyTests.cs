@@ -41,21 +41,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         [Fact]
         public void StructWithSameNameFieldAndProperty()
         {
-            var text = @"struct S
+            var text = @"
+struct S
 {
     int a = 2;
     int a { get { return 1; } set {} }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (3,9): error CS8040: Structs without explicit constructors cannot contain members with initializers.
+    // (4,9): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
     //     int a = 2;
-    Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "a").WithArguments("S.a"),
-    // (4,9): error CS0102: The type 'S' already contains a definition for 'a'
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "a").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(4, 9),
+    // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
     //     int a { get { return 1; } set {} }
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a"),
-    // (3,9): warning CS0414: The field 'S.a' is assigned but its value is never used
+    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
+    // (4,9): warning CS0414: The field 'S.a' is assigned but its value is never used
     //     int a = 2;
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a"));
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a").WithLocation(4, 9)
+    );
         }
 
         [Fact]
@@ -88,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         [Fact]
         public void AutoWithInitializerInStruct1()
         {
-            var text = @"struct S
+            var text = @"
+struct S
 {
     public int P { get; set; } = 1;
     internal static long Q { get; } = 10;
@@ -97,12 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
-// (3,16): error CS8036: Structs without explicit constructors cannot contain members with initializers.
-//     public int P { get; set; } = 1;
-Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "P").WithArguments("S.P").WithLocation(3, 16),
-// (5,20): error CS8036: Structs without explicit constructors cannot contain members with initializers.
-//     public decimal R { get; } = 300;
-Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").WithArguments("S.R").WithLocation(5, 20));
+                );
         }
 
         [Fact]

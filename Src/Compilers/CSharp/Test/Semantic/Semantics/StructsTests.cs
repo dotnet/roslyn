@@ -26,15 +26,16 @@ public struct A
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-// (4,7): error CS8036: Structs without explicit constructors cannot contain members with initializers.
-//     A a = new A();   // CS8036
-Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "a").WithArguments("A.a").WithLocation(4, 7),
-// (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
-//     A a = new A();   // CS8036
-Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
-// (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
-//     A a = new A();   // CS8036
-Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7));
+    // (4,7): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    //     A a = new A();   // CS8036
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "a").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(4, 7),
+    // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
+    //     A a = new A();   // CS8036
+    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
+    // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+    //     A a = new A();   // CS8036
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7)
+    );
         }
 
         // Test constructor forwarding works for structs
@@ -533,6 +534,35 @@ public struct X
                 // (4,15): error CS0523: Struct member 'X.recursiveFld' of type 'X?' causes a cycle in the struct layout
                 //     public X? recursiveFld;
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "recursiveFld").WithArguments("X.recursiveFld", "X?")
+                );
+        }
+
+        [Fact]
+        public void StructParameterlssCtorNotPublic()
+        {
+            string source = @"
+public struct X
+{
+    private X()
+    {
+    }
+}
+
+public struct X1
+{
+    X1()
+    {
+    }
+}
+
+";
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+    // (4,13): error CS8075: Parameterless struct constructors must be public
+    //     private X()
+    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "X").WithLocation(4, 13),
+    // (11,5): error CS8075: Parameterless struct constructors must be public
+    //     X1()
+    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "X1").WithLocation(11, 5)
                 );
         }
     }

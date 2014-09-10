@@ -93,11 +93,7 @@ struct Test(
             comp.VerifyDiagnostics(
     // (2,13): error CS1026: ) expected
     // struct Test(
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
-    // (2,12): error CS0568: Structs cannot contain explicit parameterless constructors
-    // struct Test(
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, @"(
-")
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 13)
                 );
         }
 
@@ -530,12 +526,9 @@ struct Struct1(int x)
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (4,12): error CS0568: Structs cannot contain explicit parameterless constructors
+    // (4,12): error CS8037: Since this type has a primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list]).
     //     public Struct1()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "Struct1"),
-    // (4,12): error CS8029: Since this type has primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list]).
-    //     public Struct1()
-    Diagnostic(ErrorCode.ERR_InstanceCtorMustHaveThisInitializer, "Struct1")
+    Diagnostic(ErrorCode.ERR_InstanceCtorMustHaveThisInitializer, "Struct1").WithLocation(4, 12)
                 );
         }
 
@@ -551,18 +544,12 @@ struct Struct1()
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (2,15): error CS0568: Structs cannot contain explicit parameterless constructors
-    // struct Struct1()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()"),
-    // (4,12): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     public Struct1()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "Struct1"),
     // (4,12): error CS0111: Type 'Struct1' already defines a member called '.ctor' with the same parameter types
     //     public Struct1()
-    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Struct1").WithArguments(".ctor", "Struct1"),
-    // (4,12): error CS8029: Since this type has primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list]).
+    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Struct1").WithArguments(".ctor", "Struct1").WithLocation(4, 12),
+    // (4,12): error CS8037: Since this type has a primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list]).
     //     public Struct1()
-    Diagnostic(ErrorCode.ERR_InstanceCtorMustHaveThisInitializer, "Struct1")
+    Diagnostic(ErrorCode.ERR_InstanceCtorMustHaveThisInitializer, "Struct1").WithLocation(4, 12)
                 );
         }
 

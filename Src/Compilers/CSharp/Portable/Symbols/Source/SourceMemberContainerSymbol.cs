@@ -2118,10 +2118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Struct:
                     CheckForStructBadInitializers(builder, diagnostics);
-                    goto case TypeKind.Enum;
+                    CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, isEnum: false, diagnostics: diagnostics);
+                    AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
+                    break;
 
                 case TypeKind.Enum:
-                    CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, diagnostics);
+                    CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, isEnum: true, diagnostics: diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2595,7 +2597,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckForStructDefaultConstructors(ArrayBuilder<Symbol> members, DiagnosticBag diagnostics)
+        private static void CheckForStructDefaultConstructors(
+            ArrayBuilder<Symbol> members, 
+            bool isEnum, 
+            DiagnosticBag diagnostics)
         {
             foreach (var s in members)
             {
@@ -2604,7 +2609,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (m.MethodKind == MethodKind.Constructor && m.ParameterCount == 0)
                     {
-                        diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, m.Locations[0]);
+                        if (isEnum)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_EnumsCantContainDefaultConstructor, m.Locations[0]);
+                        }
+                        else if (m.DeclaredAccessibility != Accessibility.Public)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, m.Locations[0]);
+                        }
+                        else
+                        {
+                            Binder.CheckFeatureAvailability(m.Locations[0], MessageID.IDS_FeatureStructParameterlessConstructors, diagnostics);
+                        }
                     }
                 }
             }
@@ -2616,19 +2632,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (builder.InstanceInitializers.Count > 0)
             {
                 var members = builder.NonTypeNonIndexerMembers;
-                foreach (var s in members)
-                {
-                    if (s.Kind == SymbolKind.Method)
-                    {
-                        var method = s as MethodSymbol;
-                        if (method.MethodKind == MethodKind.Constructor
-                            && !method.IsParameterlessValueTypeConstructor())
-                        {
-                            return;
-                        }
-
-                    }
-                }
 
                 foreach (var s in members)
                 {
@@ -2636,18 +2639,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (p != null && !p.IsStatic && p.IsAutoProperty
                         && p.BackingField.HasInitializer)
                     {
-                        diagnostics.Add(
-                            ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor,
-                            p.Location, p);
+                        Binder.CheckFeatureAvailability(p.Locations[0], MessageID.IDS_FeatureStructParameterlessConstructors, diagnostics);
                     }
                     else
                     {
                         var f = s as SourceMemberFieldSymbol;
                         if (f != null && !f.IsStatic && f.HasInitializer)
                         {
-                            diagnostics.Add(
-                                ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor,
-                                f.Locations[0], f);
+                            Binder.CheckFeatureAvailability(f.Locations[0], MessageID.IDS_FeatureStructParameterlessConstructors, diagnostics);
                         }
                     }
                 }

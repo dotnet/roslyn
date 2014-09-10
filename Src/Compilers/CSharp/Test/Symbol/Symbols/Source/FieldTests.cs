@@ -23,7 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) {}
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (3,16): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    //     public int I = 9;
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "I").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(3, 16)
+);
         }
 
         [Fact]
@@ -37,7 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
 
             var comp = CreateCompilationWithMscorlib(text);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+    // (3,16): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    //     public int I = 9;
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "I").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(3, 16)
+);
         }
 
         [Fact]

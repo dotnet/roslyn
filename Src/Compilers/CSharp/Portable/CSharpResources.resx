@@ -1440,6 +1440,12 @@
   <data name="ERR_StructsCantContainDefaultConstructor" xml:space="preserve">
     <value>Structs cannot contain explicit parameterless constructors</value>
   </data>
+  <data name="ERR_EnumsCantContainDefaultConstructor" xml:space="preserve">
+    <value>Enums cannot contain explicit parameterless constructors</value>
+  </data>
+  <data name="ERR_ParameterlessStructCtorsMustBePublic" xml:space="preserve">
+    <value>Parameterless instance constructors in structs must be public</value>
+  </data>
   <data name="ERR_CantOverrideBogusMethod" xml:space="preserve">
     <value>'{0}': cannot override '{1}' because it is not supported by the language</value>
   </data>
@@ -4002,5 +4008,8 @@
   </data>
   <data name="IDS_FeatureDictionaryInitializer" xml:space="preserve">
     <value>dictionary initializer</value>
+  </data>
+  <data name="IDS_FeatureStructParameterlessConstructors" xml:space="preserve">
+    <value>struct instance member initializers and parameterless constructors</value>
   </data>
 </root>

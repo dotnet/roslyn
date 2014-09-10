@@ -382,6 +382,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(assignment.Left.Kind == BoundKind.FieldAccess);
 
+            var lhsField = ((BoundFieldAccess)assignment.Left).FieldSymbol;
+            if (!lhsField.IsStatic && lhsField.ContainingType.IsStructType())
+            {
+                return false;
+            }
+
             BoundExpression rhs = assignment.Right;
             return rhs.IsDefaultValue();
         }

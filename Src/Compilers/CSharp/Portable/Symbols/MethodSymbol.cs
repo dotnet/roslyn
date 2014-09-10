@@ -528,6 +528,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns if the method is implicit instance constructor
+        /// </summary>
+        internal bool IsImplicitInstanceConstructor
+        {
+            get
+            {
+                return MethodKind == MethodKind.Constructor && IsImplicitlyDeclared;
+            }
+        }
+
+        /// <summary>
         /// Returns true if this symbol represents a constructor of an interactive submission class.
         /// </summary>
         internal bool IsSubmissionConstructor

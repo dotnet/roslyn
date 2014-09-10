@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_VersionExperimental = MessageBase + 12694,
         IDS_FeatureNameof = MessageBase + 12695,
         IDS_FeatureDictionaryInitializer = MessageBase + 12696,
+        IDS_FeatureStructParameterlessConstructors = MessageBase + 12697,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -146,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Experimental features.
                 case MessageID.IDS_FeatureDeclarationExpression:
                 case MessageID.IDS_FeaturePrimaryConstructor:
+                case MessageID.IDS_FeatureStructParameterlessConstructors:
                     return LanguageVersion.Experimental;
 
                 // C# 6 features.
