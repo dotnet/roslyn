@@ -287,8 +287,11 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerOptions = new AnalyzerOptions(Arguments.AdditionalStreams, Arguments.AdditionalOptions);
 
-            AnalyzerDriver analyzerDriver;
-            compilation = AnalyzerDriver.AttachAnalyzerDriverToCompilation(compilation, analyzers, out analyzerDriver, analyzerOptions, cancellationToken);
+            AnalyzerDriver analyzerDriver = null;
+            if (!analyzers.IsDefaultOrEmpty)
+            {
+                compilation = AnalyzerDriver.AttachAnalyzerDriverToCompilation(compilation, analyzers, out analyzerDriver, analyzerOptions, cancellationToken);
+            }
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             if (PrintErrors(compilation.GetParseDiagnostics(), consoleOutput))
@@ -401,13 +404,16 @@ namespace Microsoft.CodeAnalysis
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                if (PrintErrors(analyzerDiagnostics, consoleOutput))
+                if (analyzerDriver != null)
                 {
-                    return Failed;
-                }
+                    var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
+                    if (PrintErrors(analyzerDiagnostics, consoleOutput))
+                    {
+                        return Failed;
+                    }
 
-                cancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
 
                 if (!TryDeleteFile(finalOutputPath, consoleOutput) || !TryMoveFile(tempExeFilename, finalOutputPath, consoleOutput))
                 {
