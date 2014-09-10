@@ -579,7 +579,6 @@
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="VBCSCompiler" />
-    <InternalsVisibleToTest Include="MdReaderPerf" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
@@ -600,9 +599,6 @@
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.FxCop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.FxCop.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />

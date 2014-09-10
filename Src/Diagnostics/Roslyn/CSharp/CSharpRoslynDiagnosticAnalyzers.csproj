@@ -50,9 +50,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.CSharp" />
-  </ItemGroup>
+  <ItemGroup></ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

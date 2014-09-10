@@ -45,11 +45,7 @@
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.CSharp" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic.BasicCodeAnalysis" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.VisualBasic" />
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
