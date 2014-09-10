@@ -161,13 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var accessorDeclNode = node as AccessorDeclarationSyntax;
-            if (accessorDeclNode != null)
-            {
-                RemoveSuppressOperation(list, accessorDeclNode.GetFirstToken(includeZeroWidth: true), accessorDeclNode.GetLastToken(includeZeroWidth: true));
-                return;
-            }
-
             var switchSection = node as SwitchSectionSyntax;
             if (switchSection != null)
             {

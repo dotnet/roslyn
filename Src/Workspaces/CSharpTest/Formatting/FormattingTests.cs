@@ -1224,10 +1224,8 @@ class foo{int x = 0;}", false, changingOptions);
     { get { int age = 0; return age; } }
     public int Age2
     {
-        get
-        { int age2 = 0; return age2; }
-        set
-        { int age2 = value; }
+        get { int age2 = 0; return age2; }
+        set { int age2 = value; }
     }
     void bar()
     {
