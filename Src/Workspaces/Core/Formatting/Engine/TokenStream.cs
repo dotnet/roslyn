@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // normal cases
             Contract.Requires(token1.Token.Span.End <= token2.Token.SpanStart);
             Contract.Requires(token1.IndexInStream < 0 || token2.IndexInStream < 0 || (token1.IndexInStream + 1 == token2.IndexInStream));
-            Contract.Requires((token1.IndexInStream >= 0 && token2.IndexInStream >= 0) || token1.Token.Equals(token2.Token.GetPreviousToken(includeZeroWidth: true)));
+            Contract.Requires((token1.IndexInStream >= 0 && token2.IndexInStream >= 0) || token1.Token.Equals(token2.Token.GetPreviousToken(includeZeroWidth: true)) || token2.Token.LeadingTrivia.Span.Contains(token1.Token.Span));
 
             // one of token is out side of cached token stream
             if (token1.IndexInStream < 0 || token2.IndexInStream < 0)
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             Contract.Requires(token1.Token.Span.End <= token2.Token.SpanStart);
             Contract.Requires(token1.IndexInStream < 0 || token2.IndexInStream < 0 || (token1.IndexInStream + 1 == token2.IndexInStream));
-            Contract.Requires((token1.IndexInStream >= 0 && token2.IndexInStream >= 0) || token1.Token.Equals(token2.Token.GetPreviousToken(includeZeroWidth: true)));
+            Contract.Requires((token1.IndexInStream >= 0 && token2.IndexInStream >= 0) || token1.Token.Equals(token2.Token.GetPreviousToken(includeZeroWidth: true)) || token2.Token.LeadingTrivia.Span.Contains(token1.Token.Span));
 
             if (token1.IndexInStream < 0 || token2.IndexInStream < 0)
             {

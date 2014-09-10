@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return;
             }
 
-            Contract.ThrowIfFalse(token1.FullSpan.Start <= token2.FullSpan.Start);
+            var token1PartOftoken2LeadingTrivia = token1.FullSpan.Start > token2.FullSpan.Start;
 
             if (token1.FullSpan.End == token2.FullSpan.Start)
             {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 builder.Append(token.ToFullString());
             }
 
-            AppendLeadingTriviaText(token2, builder);
+            AppendPartialLeadingTriviaText(token2, builder, token1.TrailingTrivia.FullSpan.End);
         }
 
         private static void AppendTextBetweenTwoAdjacentTokens(SyntaxToken token1, SyntaxToken token2, StringBuilder builder)
@@ -242,6 +242,28 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             foreach (var trivia in token.LeadingTrivia)
             {
+                builder.Append(trivia.ToFullString());
+            }
+        }
+
+        /// <summary>
+        /// If the token1 is expected to be part of the leading trivia of the token2 then the trivia
+        /// before the token1FullSpanEnd, which the fullspan end of the token1 should be ignored
+        /// </summary>
+        private static void AppendPartialLeadingTriviaText(SyntaxToken token, StringBuilder builder, int token1FullSpanEnd)
+        {
+            if (!token.HasLeadingTrivia)
+            {
+                return;
+            }
+
+            foreach (var trivia in token.LeadingTrivia)
+            {
+                if (trivia.FullSpan.End <= token1FullSpanEnd)
+                {
+                    continue;
+                }
+
                 builder.Append(trivia.ToFullString());
             }
         }
