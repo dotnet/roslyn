@@ -2629,6 +2629,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertGoodDecimalLiteral("7922816251426433759354395033549999E-5M", "ffffffffffffffffffffffff00000000");
         }
 
+        [Fact]
+        public void TestMaxKeywordLength()
+        {
+            int max = SyntaxFacts
+                .GetKeywordKinds()
+                .Concat(SyntaxFacts.GetContextualKeywordKinds())
+                .Select(SyntaxFacts.GetText)
+                .Max(x => x.Length);
+            Assert.Equal(LexerCache.MaxKeywordLength, max);
+        }
+
         [WorkItem(545781, "DevDiv")]
         [Fact]
         public void DecimalLiteralsOtherCulture()

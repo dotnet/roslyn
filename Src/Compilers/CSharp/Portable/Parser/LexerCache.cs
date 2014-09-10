@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly TextKeyedCache<SyntaxTrivia> triviaMap;
         private readonly TextKeyedCache<SyntaxToken> tokenMap;
         private readonly CachingIdentityFactory<string, SyntaxKind> keywordKindMap;
+        internal const int MaxKeywordLength = 10;
 
         internal LexerCache()
         {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal bool TryGetKeywordKind(string key, out SyntaxKind kind)
         {
-            if (key.Length > 10)
+            if (key.Length > MaxKeywordLength)
             {
                 kind = SyntaxKind.None;
                 return false;
