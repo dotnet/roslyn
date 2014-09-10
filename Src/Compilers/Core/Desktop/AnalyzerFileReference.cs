@@ -8,9 +8,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Security;
-using Roslyn.Utilities;
-using System.Collections.Concurrent;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private string lazyDisplayName;
         private ImmutableArray<IDiagnosticAnalyzer> lazyAllAnalyzers;
         private ImmutableArray<IDiagnosticAnalyzer> lazyLanguageAgnosticAnalyzers;
-        private ConcurrentDictionary<string, ImmutableArray<IDiagnosticAnalyzer>> lazyAnalyzersPerLanguage;
+        private ImmutableDictionary<string, ImmutableArray<IDiagnosticAnalyzer>> lazyAnalyzersPerLanguage;
         private Assembly lazyAssembly;
 
         private ImmutableDictionary<string, HashSet<string>> lazyAnalyzerTypeNameMap;
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             this.lazyAllAnalyzers = default(ImmutableArray<IDiagnosticAnalyzer>);
             this.lazyLanguageAgnosticAnalyzers = default(ImmutableArray<IDiagnosticAnalyzer>);
-            this.lazyAnalyzersPerLanguage = null;
+            this.lazyAnalyzersPerLanguage = ImmutableDictionary<string, ImmutableArray<IDiagnosticAnalyzer>>.Empty;
             this.getAssembly = getAssembly;
         }
 
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (lazyAllAnalyzers.IsDefault)
             {
                 var allAnalyzers = MetadataCache.GetOrCreateAnalyzersFromFile(this);
-                ImmutableInterlocked.InterlockedCompareExchange(ref this.lazyAllAnalyzers, allAnalyzers, default(ImmutableArray<IDiagnosticAnalyzer>));
+                ImmutableInterlocked.InterlockedInitialize(ref this.lazyAllAnalyzers, allAnalyzers);
             }
 
             return lazyAllAnalyzers;
@@ -101,23 +100,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException("language");
             }
 
-            ImmutableArray<IDiagnosticAnalyzer> analyzers;
-            if (this.lazyAnalyzersPerLanguage == null)
-            {
-                Interlocked.CompareExchange(ref this.lazyAnalyzersPerLanguage, new ConcurrentDictionary<string, ImmutableArray<IDiagnosticAnalyzer>>(), null);
-            }
-            else if (this.lazyAnalyzersPerLanguage.TryGetValue(language, out analyzers))
-            {
-                return analyzers;
-            }
+            return ImmutableInterlocked.GetOrAdd(ref this.lazyAnalyzersPerLanguage, language, CreateLanguageSpecificAnalyzers, this);
+        }
 
-            analyzers = MetadataCache.GetOrCreateAnalyzersFromFile(this, language);
-            if (!this.lazyAnalyzersPerLanguage.TryAdd(language, analyzers))
-            {
-                return this.lazyAnalyzersPerLanguage[language];
-            }
-
-            return analyzers;
+        private static ImmutableArray<IDiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string language, AnalyzerFileReference @this)
+        {
+            return MetadataCache.GetOrCreateAnalyzersFromFile(@this, language);
         }
 
         public override string FullPath
@@ -173,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     analyzers = GetAnalyzersForTypeNames(analyzerAssembly, analyzerTypeNames).ToImmutableArrayOrEmpty();
                 }
 
-                ImmutableInterlocked.InterlockedCompareExchange(ref this.lazyLanguageAgnosticAnalyzers, analyzers, default(ImmutableArray<IDiagnosticAnalyzer>));
+                ImmutableInterlocked.InterlockedInitialize(ref this.lazyLanguageAgnosticAnalyzers, analyzers);
             }
 
             return this.lazyLanguageAgnosticAnalyzers;
@@ -299,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private static ImmutableDictionary<string, HashSet<string>> GetAnalyzerTypeNameMap(string fullPath)
         {
-            var typeNameMap = new Dictionary<string, HashSet<string>>();
+            var typeNameMap = ImmutableDictionary.CreateBuilder<string, HashSet<string>>();
             var diagnosticNamespaceName = string.Format("{0}.{1}.{2}", nameof(Microsoft), nameof(CodeAnalysis), nameof(Diagnostics));
             var supportedLanguageNames = new HashSet<string>();
 
@@ -367,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return typeNameMap.ToImmutableDictionary();
+            return typeNameMap.ToImmutable();
         }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)

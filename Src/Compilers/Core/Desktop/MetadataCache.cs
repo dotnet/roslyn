@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             public readonly WeakReference Analyzers;
             public readonly string Language;
 
-            public CachedAnalyzers(ImmutableArray<IDiagnosticAnalyzer> analyzers, string language)
+            public CachedAnalyzers(object analyzers, string language)
             {
                 Debug.Assert(analyzers != null);
 
