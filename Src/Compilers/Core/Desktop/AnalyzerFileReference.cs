@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 
     /// If you need to manage the lifetime of the anayzer reference (and the file stream) explicitly use <see cref="AnalyzerImageReference"/>.
     /// </remarks>
-    public sealed partial class AnalyzerFileReference : AnalyzerReference
+    public sealed partial class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
         private readonly string fullPath;
         private readonly Func<string, Assembly> getAssembly;
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<IDiagnosticAnalyzer> lazyLanguageAgnosticAnalyzers;
         private ImmutableDictionary<string, ImmutableArray<IDiagnosticAnalyzer>> lazyAnalyzersPerLanguage;
         private Assembly lazyAssembly;
-
-        private ImmutableDictionary<string, HashSet<string>> lazyAnalyzerTypeNameMap;
+        private static string diagnosticNamespaceName = string.Format("{0}.{1}.{2}", nameof(Microsoft), nameof(CodeAnalysis), nameof(Diagnostics));
+        private ImmutableDictionary<string, ImmutableHashSet<string>> lazyAnalyzerTypeNameMap;
 
         public event EventHandler<AnalyzerLoadFailureEventArgs> AnalyzerLoadFailed;
 
@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return ImmutableInterlocked.GetOrAdd(ref this.lazyAnalyzersPerLanguage, language, CreateLanguageSpecificAnalyzers, this);
-        }
+            }
 
         private static ImmutableArray<IDiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string language, AnalyzerFileReference @this)
-        {
+            {
             return MetadataCache.GetOrCreateAnalyzersFromFile(@this, language);
         }
 
@@ -146,11 +146,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private ImmutableArray<IDiagnosticAnalyzer> GetLanguageAgnosticAnalyzers(ImmutableDictionary<string, HashSet<string>> analyzerTypeNameMap, Assembly analyzerAssembly)
+        private ImmutableArray<IDiagnosticAnalyzer> GetLanguageAgnosticAnalyzers(ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, Assembly analyzerAssembly)
         {
             if (this.lazyLanguageAgnosticAnalyzers.IsDefault)
             {
-                HashSet<string> analyzerTypeNames;
+                ImmutableHashSet<string> analyzerTypeNames;
                 ImmutableArray<IDiagnosticAnalyzer> analyzers;
                 if (!analyzerTypeNameMap.TryGetValue(string.Empty, out analyzerTypeNames))
                 {
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal void AddAnalyzers(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, string languageOpt = null)
         {
-            ImmutableDictionary<string, HashSet<string>> analyzerTypeNameMap;
+            ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
             Assembly analyzerAssembly = null;
             
             try
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static IEnumerable<string> GetLanguageSpecificAnalyzerTypeNames(ImmutableDictionary<string, HashSet<string>> analyzerTypeNameMap, string languageOpt)
+        private static IEnumerable<string> GetLanguageSpecificAnalyzerTypeNames(ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string languageOpt)
         {
             HashSet<string> languageSpecificAnalyzerTypeNames = new HashSet<string>();
             if (languageOpt == null)
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal ImmutableDictionary<string, HashSet<string>> GetAnalyzerTypeNameMap()
+        internal ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap()
         {
             if (this.lazyAnalyzerTypeNameMap == null)
             {
@@ -285,26 +285,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Opens the analyzer dll with the metadata reader and builds a map of language -> analyzer type names.
         /// </summary>
-        private static ImmutableDictionary<string, HashSet<string>> GetAnalyzerTypeNameMap(string fullPath)
+        private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath)
         {
-            var typeNameMap = ImmutableDictionary.CreateBuilder<string, HashSet<string>>();
-            var diagnosticNamespaceName = string.Format("{0}.{1}.{2}", nameof(Microsoft), nameof(CodeAnalysis), nameof(Diagnostics));
-            var supportedLanguageNames = new HashSet<string>();
-
             using (var assembly = MetadataFileFactory.CreateAssembly(fullPath))
             {
-                foreach (var module in assembly.Modules)
+                var typeNameMap = from module in assembly.Modules
+                                  from typeDefHandle in module.MetadataReader.TypeDefinitions
+                                  let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
+                                  let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
+                                  from supportedLanguage in GetSupportedLanguages(typeDef, module.Module)
+                                  group typeName by supportedLanguage;
+
+                return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());
+            }
+        }
+
+        private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule)
                 {
-                    foreach (var typeDefHandle in module.MetadataReader.TypeDefinitions)
+            var supportedLanguages =  from customAttrHandle in typeDef.GetCustomAttributes()
+                                      where IsDiagnosticAnalyzerAttribute(peModule, customAttrHandle)
+                                      let supportedLangauge = GetSupportedLanguage(peModule, customAttrHandle)
+                                      where supportedLangauge != null
+                                      select supportedLangauge;
+
+            // If the analyzer claims it is language agnostic but also claims it supports some specific language, ignore the specific languages.
+            if (supportedLanguages.Contains(string.Empty))
                     {
-                        var typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle);
-                        var customAttrs = typeDef.GetCustomAttributes();
+                return SpecializedCollections.SingletonEnumerable(string.Empty);
+            }
+            else
+            {
+                return supportedLanguages;
+            }
+        }
                         
-                        foreach (var customAttrHandle in customAttrs)
-                        {
-                            var peModule = module.Module;
-                            Handle ctor;
-                            if (peModule.IsTargetAttribute(customAttrHandle, diagnosticNamespaceName, nameof(DiagnosticAnalyzerAttribute), out ctor))
+        private static string GetSupportedLanguage(PEModule peModule, CustomAttributeHandle customAttrHandle)
                             {
                                 // The DiagnosticAnalyzerAttribute has two constructors:
                                 // 1. Paramterless - means that the analyzer is applicable to any language. 
@@ -321,41 +336,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                         string languageName;
                                         if (PEModule.CrackStringInAttributeValue(out languageName, ref argsReader))
                                         {
-                                            supportedLanguageNames.Add(languageName);
+                        return languageName;
                                         }
                                     }
                                 }
                                 // otherwise the attribute is applicable to all languages.
                                 else
                                 {
-                                    supportedLanguageNames.Clear();
-                                    supportedLanguageNames.Add(string.Empty);
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (supportedLanguageNames.Any())
-                        {
-                            string typeName = GetFullyQualifiedTypeName(typeDef, module.Module);
-
-                            foreach (var languageName in supportedLanguageNames)
-                            {
-                                if (!typeNameMap.ContainsKey(languageName))
-                                {
-                                    typeNameMap.Add(languageName, new HashSet<string>());
-                                }
-
-                                typeNameMap[languageName].Add(typeName);
+                return string.Empty;
                             }
 
-                            supportedLanguageNames.Clear();
-                        }
-                    }
-                }
+            return null;
             }
 
-            return typeNameMap.ToImmutable();
+        private static bool IsDiagnosticAnalyzerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            Handle ctor;
+            return peModule.IsTargetAttribute(customAttrHandle, diagnosticNamespaceName, nameof(DiagnosticAnalyzerAttribute), out ctor);
         }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
@@ -370,14 +367,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             else
             {
                 var declaringTypeDef = peModule.MetadataReader.GetTypeDefinition(declaringType);
-                return string.Concat(GetFullyQualifiedTypeName(declaringTypeDef, peModule), "+", peModule.MetadataReader.GetString(typeDef.Name));
+                return GetFullyQualifiedTypeName(declaringTypeDef, peModule) +  "+" + peModule.MetadataReader.GetString(typeDef.Name);
             }
         }
 
         public override bool Equals(object obj)
         {
-            AnalyzerFileReference other = obj as AnalyzerFileReference;
+            return Equals(obj as AnalyzerFileReference);
+        }
 
+        public bool Equals(AnalyzerReference other)
+        {
             if (other != null)
             {
                 return other.Display == this.Display &&
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                        other.IsUnresolved == this.IsUnresolved;
             }
 
-            return base.Equals(obj);
+            return base.Equals(other);
         }
 
         public override int GetHashCode()
