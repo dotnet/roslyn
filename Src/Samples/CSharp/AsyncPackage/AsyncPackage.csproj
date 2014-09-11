@@ -171,7 +171,7 @@
     <Error Condition="!Exists('..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4090503-beta\build\Microsoft.Net.ToolsetCompilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4090503-beta\build\Microsoft.Net.ToolsetCompilers.props'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>if exist Diagnostic.nuspec if exist "$(SolutionDir)\.nuget\NuGet.exe" "$(SolutionDir)\.nuget\NuGet.exe" pack Diagnostic.nuspec -OutputDirectory .</PostBuildEvent>
+    <PostBuildEvent>if exist Diagnostic.nuspec if exist "$(SolutionDir)\.nuget\NuGet.exe" "$(SolutionDir)\.nuget\NuGet.exe" pack Diagnostic.nuspec -NoPackageAnalysis -OutputDirectory .</PostBuildEvent>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
