@@ -821,7 +821,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Constant(node);
             }
 
-            if ((object)node.Constructor == null || node.Arguments.Length == 0)
+            if ((object)node.Constructor == null || 
+                (node.Arguments.Length == 0 && !node.Type.IsStructType()) || 
+                node.Constructor.IsDefaultValueTypeConstructor())
             {
                 return ExprFactory("New", Bound.Typeof(node.Type));
             }

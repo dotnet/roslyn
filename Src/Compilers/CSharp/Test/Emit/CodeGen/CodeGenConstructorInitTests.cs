@@ -810,5 +810,30 @@ class C
             CompileAndVerifyExperimental(source, expectedOutput: "0");
         }
 
+
+        [Fact]
+        public void InstanceInitializerStructInExprTree()
+        {
+            var source = @"
+
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    struct S1
+    {
+        public int x = 42;
+    }
+
+    static void Main()
+    {
+        Expression<Func<S1>> testExpr = () => new S1();
+        System.Console.Write(testExpr.Compile()().x);
+    }
+}
+";
+            CompileAndVerifyExperimental(source, additionalRefs: new[] { ExpressionAssemblyRef }, expectedOutput: "42");
+        }
     }
 }
