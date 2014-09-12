@@ -1295,7 +1295,7 @@ End Namespace
 
             Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
             AssertTheseDeclarationDiagnostics(comp, <errors><![CDATA[
-BC31091: Import of type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable(Of )' from assembly or module 'test.winmdobj' failed.
+BC31091: Import of type 'EventRegistrationTokenTable(Of )' from assembly or module 'test.winmdobj' failed.
     Event E As System.Action    
           ~
 ]]></errors>)

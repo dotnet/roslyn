@@ -14588,7 +14588,7 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30311: Value of type 'System.NotImplementedException' cannot be converted to 'Integer'.
+BC30311: Value of type 'NotImplementedException' cannot be converted to 'Integer'.
         Error New NotImplementedException()
               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)

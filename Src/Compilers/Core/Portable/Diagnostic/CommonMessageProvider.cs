@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis
         public abstract string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture);
 
         /// <summary>
+        /// convert given symbol to string representation based on given error code
+        /// </summary>
+        public abstract string ConvertSymbolToString(int errorCode, ISymbol symbol);
+
+        /// <summary>
         /// Given an error code (like 1234) return the identifier (CS1234 or BC1234).
         /// </summary>
         public string GetIdForErrorCode(int errorCode)

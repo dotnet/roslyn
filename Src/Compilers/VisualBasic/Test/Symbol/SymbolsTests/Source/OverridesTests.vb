@@ -251,10 +251,10 @@ Namespace X
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected>
 BC30610: Class 'D' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-    X.C: Protected MustOverride Overrides Function zing() As String
-    X.B: Protected MustOverride Function baz() As String
-    X.A: Public MustOverride Sub foo(x As Integer)
-    X.A: Public MustOverride ReadOnly Property bang As Integer.
+    C: Protected MustOverride Overrides Function zing() As String
+    B: Protected MustOverride Function baz() As String
+    A: Public MustOverride Sub foo(x As Integer)
+    A: Public MustOverride ReadOnly Property bang As Integer.
     Class D
           ~
 </expected>)
@@ -595,7 +595,7 @@ End Namespace
 BC31404: 'Public f As Integer' cannot shadow a method declared 'MustOverride'.
         Public Shadows f As Integer
                        ~
-BC31404: 'N.D.h' cannot shadow a method declared 'MustOverride'.
+BC31404: 'D.h' cannot shadow a method declared 'MustOverride'.
         Public Shadows Enum h
                             ~
 BC31404: 'Public Overloads Function j(a As String) As String' cannot shadow a method declared 'MustOverride'.
@@ -1740,7 +1740,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(comp,
     <expected>
-BC32077: 'Public Overrides Sub f(Of U)(x As U)' cannot override 'Public Overridable Sub f(Of T As System.ICloneable)(x As T)' because they differ by type parameter constraints.
+BC32077: 'Public Overrides Sub f(Of U)(x As U)' cannot override 'Public Overridable Sub f(Of T As ICloneable)(x As T)' because they differ by type parameter constraints.
         Public Overrides Sub f(Of U)(x As U)
                              ~
     </expected>)

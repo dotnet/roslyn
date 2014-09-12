@@ -981,7 +981,7 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
 BC36532: Nested function does not have the same signature as delegate 'Delegate Function D2(p As Byte) As String'.
             Dim y As New D2(Function(byref p as byte) "Hello from lambda 2.")
                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36670: Nested sub does not have a signature that is compatible with delegate 'System.Func(Of Byte)'.
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Func(Of Byte)'.
             Dim z as Func(Of byte) = Sub(a as byte) Console.WriteLine("Hello from lambda.")
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1158,7 +1158,7 @@ End Module
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c,
 <errors>
-BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Sub Test111()' and delegate 'Delegate Sub System.Action(Of Long)(obj As Long)'.
+BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Sub Test111()' and delegate 'Delegate Sub Action(Of Long)(obj As Long)'.
         ttt1 = AddressOf Test111
                          ~~~~~~~
 </errors>)
@@ -1201,10 +1201,10 @@ BC36532: Nested function does not have the same signature as delegate 'Delegate 
 BC36538: References to 'ByRef' parameters cannot be converted to an expression tree.
             Dim y As Expression(Of D2) = Function(byref p as byte) "Hello from lambda 2."
                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36670: Nested sub does not have a signature that is compatible with delegate 'System.Func(Of Byte)'.
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Func(Of Byte)'.
             Dim z as Expression(Of Func(Of byte)) = Sub(a as byte) Console.WriteLine("Hello from lambda.")
                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36625: Lambda expression cannot be converted to 'System.Linq.Expressions.Expression(Of Byte)' because 'System.Linq.Expressions.Expression(Of Byte)' is not a delegate type.
+BC36625: Lambda expression cannot be converted to 'Expression(Of Byte)' because 'Expression(Of Byte)' is not a delegate type.
             Dim w as Expression(Of Byte) = Sub(a as byte) Console.WriteLine("Hello from lambda.")
                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1307,8 +1307,8 @@ End Module
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
-    'Public Sub Foo(x As System.Func(Of Object, Boolean))': Method 'Public Function Boo(a As Object, b As Object) As Boolean' does not have a signature compatible with delegate 'Delegate Function System.Func(Of Object, Boolean)(arg As Object) As Boolean'.
-    'Public Sub Foo(x As System.Func(Of Object, Object, Boolean))': Reference to a non-shared member requires an object reference.
+    'Public Sub Foo(x As Func(Of Object, Boolean))': Method 'Public Function Boo(a As Object, b As Object) As Boolean' does not have a signature compatible with delegate 'Delegate Function Func(Of Object, Boolean)(arg As Object) As Boolean'.
+    'Public Sub Foo(x As Func(Of Object, Object, Boolean))': Reference to a non-shared member requires an object reference.
         Foo(AddressOf C1.Boo)
         ~~~
                                            </expected>)

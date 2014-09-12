@@ -2331,7 +2331,7 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c,
 <error>
-BC30456: 'CopyArray' is not a member of 'Microsoft.VisualBasic.CompilerServices.Utils'.
+BC30456: 'CopyArray' is not a member of 'Utils'.
         SourceLibrary.U.CopyArray(Nothing, Nothing)
         ~~~~~~~~~~~~~~~~~~~~~~~~~
 </error>)
@@ -2830,7 +2830,7 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
   options:=compilationOptions)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
-            <errors>BC30456: 'InStr' is not a member of 'Microsoft.VisualBasic'.
+            <errors>BC30456: 'InStr' is not a member of 'VisualBasic'.
                                 Dim x1 = Microsoft.VisualBasic.InStr("abcd", 1) 
                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -299,7 +299,7 @@ BC40000: 'Public Property Property1 As Integer' is obsolete: 'Do not use this pr
 BC40000: 'Public Property Property2 As Integer' is obsolete: 'Do not use this property'.
         Dim p2 = t.Property2
                  ~~~~~~~~~~~
-BC40000: 'Public Event event1 As System.Action' is obsolete: 'Do not use this event'.
+BC40000: 'Public Event event1 As Action' is obsolete: 'Do not use this event'.
         AddHandler t.event1, Sub() Return
                    ~~~~~~~~
 BC40000: 'Public Sub ObsoleteExtensionMethod1()' is obsolete: 'Do not call this extension method'.
@@ -332,7 +332,7 @@ BC40000: 'Public field1 As Integer' is obsolete: 'Do not use this field'.
 BC40000: 'Public Property Property1 As Integer' is obsolete: 'Do not use this property'.
         Dim gp1 = gt.Property1
                   ~~~~~~~~~~~~
-BC40000: 'Public Event event1 As System.Action(Of Integer)' is obsolete: 'Do not use this event'.
+BC40000: 'Public Event event1 As Action(Of Integer)' is obsolete: 'Do not use this event'.
         AddHandler gt.event1, Sub(i) Return
                    ~~~~~~~~~
 BC31142: 'System.ObsoleteAttribute' cannot be applied to the 'AddHandler', 'RemoveHandler', or 'RaiseEvent' definitions. If required, apply the attribute directly to the event.

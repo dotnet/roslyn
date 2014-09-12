@@ -1665,7 +1665,7 @@ End Class
 
         CreateCompilationWithMscorlibAndVBRuntime(source).AssertTheseDiagnostics(
 <errors>
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
         Catch
         ~~~~~
 </errors>)
@@ -1835,7 +1835,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
 
         AssertTheseDiagnostics(appCompilation,
 <expected>
-BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source.
+BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source.
 </expected>)
 
         CompileAndVerify(appCompilation, symbolValidator:=Sub(m As ModuleSymbol)
@@ -1884,8 +1884,8 @@ BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 
 
         AssertTheseDiagnostics(appCompilation,
 <expected>
-BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source.
-BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 'M2.netmodule' will be ignored in favor of the instance appearing in source.
+BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source.
+BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' will be ignored in favor of the instance appearing in source.
 </expected>)
 
         CompileAndVerify(appCompilation, symbolValidator:=Sub(m As ModuleSymbol)
@@ -1934,7 +1934,7 @@ BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 
 
         AssertTheseDiagnostics(appCompilation,
 <expected>
-BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 'M2.netmodule' will be ignored in favor of the instance appearing in source.
+BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' will be ignored in favor of the instance appearing in source.
 </expected>)
 
         CompileAndVerify(appCompilation, symbolValidator:=Sub(m As ModuleSymbol)

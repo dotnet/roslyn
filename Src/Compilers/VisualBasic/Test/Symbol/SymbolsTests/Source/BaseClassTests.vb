@@ -268,7 +268,7 @@ end namespace
 </compilation>)
 
             Dim expectedErrors = <errors>
-BC31447: Class 'n1.Program.A(Of T)' cannot reference itself in Inherits clause.
+BC31447: Class 'Program.A(Of T)' cannot reference itself in Inherits clause.
             Inherits A(of Integer)  
                      ~~~~~~~~~~~~~
                                  </errors>

@@ -1749,7 +1749,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'T?' to 'System.IComparable(Of Integer)'.
+BC42016: Implicit conversion from 'T?' to 'IComparable(Of Integer)'.
         Dim y As IComparable(Of Integer) = x
                                            ~
 </expected>)

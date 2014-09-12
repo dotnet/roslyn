@@ -4255,7 +4255,7 @@ End Module
                     <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-PATH(9) : error BC36640: Instance of restricted type 'System.ArgIterator' cannot be used in a lambda expression.
+PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be used in a lambda expression.
 
         Dim d As delegateType = AddressOf a.Foo
                                           ~    
@@ -6791,50 +6791,50 @@ End Module"
             file.WriteAllText(source)
 
             Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             ' TEST: Verify that compiler error BC30311 can't be suppressed via /nowarn.
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             ' TEST: Verify that compiler error BC30311 can't be suppressed via /nowarn:.
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             ' TEST: Verify that nothing bad happens when using /warnaserror[+/-] when compiler error BC30311 is present.
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             ' TEST: Verify that nothing bad happens if someone passes BC30311 to /warnaserror[+/-]:.
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub

@@ -3987,7 +3987,7 @@ BC30002: Type 'System.Int32' is not defined.
 BC30002: Type 'System.Object' is not defined.
                 for each x in xs
                          ~
-BC31091: Import of type 'System.Array' from assembly or module 'ArraysAndUseSiteErrors.dll' failed.
+BC31091: Import of type 'Array' from assembly or module 'ArraysAndUseSiteErrors.dll' failed.
                 for each x in xs
                               ~~
 BC42104: Variable 'xs' is used before it has been assigned a value. A null reference exception could result at runtime.

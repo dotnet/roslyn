@@ -1304,7 +1304,7 @@ BC42016: Conversion from 'Module1.I1(Of Module1.B4())' to 'Module1.I1(Of Module1
 BC42016: Conversion from 'Module1.I1(Of Module1.B4)()' to 'Module1.I1(Of Module1.I123(Of Module1.B2))()' may be ambiguous.
         Dim y6 As I1(Of I123(Of B2))() = y5
                                          ~~
-BC42016: Conversion from 'Module1.B4()' to 'System.Collections.Generic.IEnumerable(Of Module1.I123(Of Module1.B2))' may be ambiguous.
+BC42016: Conversion from 'Module1.B4()' to 'IEnumerable(Of Module1.I123(Of Module1.B2))' may be ambiguous.
         Dim y81 As System.Collections.Generic.IEnumerable(Of I123(Of B2)) = y71
                                                                             ~~~
 BC42016: Conversion from 'Module1.S1' to 'Module1.I123(Of Module1.B2)' may be ambiguous.
@@ -1502,16 +1502,16 @@ BC42016: Implicit conversion from 'Module1.I124(Of S())' to 'Module1.I124(Of Mod
 BC42016: Conversion from 'T()' to 'Module1.I124(Of Module1.B1())()' may be ambiguous.
         Dim a3 As I124(Of B1())() = a1
                                     ~~
-BC42016: Implicit conversion from 'System.Collections.Generic.IEnumerable(Of S As Class)' to 'Module1.B2()'.
+BC42016: Implicit conversion from 'IEnumerable(Of S As Class)' to 'Module1.B2()'.
         Dim b2 As B2() = y
                          ~
-BC42016: Implicit conversion from 'Module1.B2()' to 'System.Collections.Generic.IEnumerable(Of S As Class)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'Out' generic parameter 'T' in 'Interface IEnumerable(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.B2()' to 'IEnumerable(Of S As Class)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'Out' generic parameter 'T' in 'Interface IEnumerable(Of Out T)'.
         y = b2
             ~~
 BC42016: Conversion from 'T' to 'Module1.I123(Of Module1.B2())' may be ambiguous.
         Dim p1 As I123(Of B2()) = x
                                   ~
-BC42016: Implicit conversion from 'Module1.I123(Of System.Collections.Generic.IEnumerable(Of S))' to 'Module1.I123(Of Module1.B2())'; this conversion may fail because 'Module1.B2()' is not derived from 'System.Collections.Generic.IEnumerable(Of S As Class)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of IEnumerable(Of S))' to 'Module1.I123(Of Module1.B2())'; this conversion may fail because 'Module1.B2()' is not derived from 'IEnumerable(Of S As Class)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I123(Of Module1.B2())()' may be ambiguous.
@@ -1707,7 +1707,7 @@ End Module
 BC42016: Conversion from 'Module1.B5' to 'Module1.I123(Of Integer())' may be ambiguous.
         Dim d1 As I123(Of Integer()) = c
                                        ~
-BC42016: Conversion from 'Module1.B5' to 'Module1.I123(Of System.TypeCode())' may be ambiguous.
+BC42016: Conversion from 'Module1.B5' to 'Module1.I123(Of TypeCode())' may be ambiguous.
         Dim d2 As I123(Of TypeCode()) = c
                                         ~
 </expected>)
@@ -2083,16 +2083,16 @@ End Module
 BC42016: Implicit conversion from 'Module1.D(Of Module1.B1)' to 'Module1.D(Of Module1.B2)'; this conversion may fail because 'Module1.B2' is not derived from 'Module1.B1', as required for the 'In' generic parameter 'T' in 'Delegate Sub Module1.D(Of In T)()'.
         Dim y As D(Of B2) = x
                             ~
-BC36755: 'Module1.D(Of Module1.B1, Integer)' cannot be converted to 'Module1.D(Of Module1.B2, System.IComparable)' because 'System.IComparable' is not derived from 'Integer', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
+BC36755: 'Module1.D(Of Module1.B1, Integer)' cannot be converted to 'Module1.D(Of Module1.B2, IComparable)' because 'IComparable' is not derived from 'Integer', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
         Dim y1 As D(Of B2, System.IComparable) = x1
                                                  ~~
-BC36755: 'Module1.D(Of Module1.B2, System.IComparable)' cannot be converted to 'Module1.D(Of Module1.B1, Integer)' because 'Integer' is not derived from 'System.IComparable', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
+BC36755: 'Module1.D(Of Module1.B2, IComparable)' cannot be converted to 'Module1.D(Of Module1.B1, Integer)' because 'Integer' is not derived from 'IComparable', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
         x1 = y1
              ~~
-BC36755: 'Module1.D(Of Integer, Module1.B1)' cannot be converted to 'Module1.D(Of System.IComparable, Module1.B2)' because 'Module1.B2' is not derived from 'Module1.B1', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
+BC36755: 'Module1.D(Of Integer, Module1.B1)' cannot be converted to 'Module1.D(Of IComparable, Module1.B2)' because 'Module1.B2' is not derived from 'Module1.B1', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
         Dim y2 As D(Of System.IComparable, B2) = x2
                                                  ~~
-BC36755: 'Module1.D(Of System.IComparable, Module1.B2)' cannot be converted to 'Module1.D(Of Integer, Module1.B1)' because 'Module1.B1' is not derived from 'Module1.B2', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
+BC36755: 'Module1.D(Of IComparable, Module1.B2)' cannot be converted to 'Module1.D(Of Integer, Module1.B1)' because 'Module1.B1' is not derived from 'Module1.B2', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
         x2 = y2
              ~~
 </expected>)
@@ -2518,58 +2518,58 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36756: 'Module1.B3' cannot be converted to 'System.Collections.Generic.List(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B3' cannot be converted to 'List(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim a As List(Of B1) = New B3()
                                ~~~~~~~~
-BC30311: Value of type 'Module1.B4' cannot be converted to 'System.Collections.Generic.List(Of Module1.B2)'.
+BC30311: Value of type 'Module1.B4' cannot be converted to 'List(Of Module1.B2)'.
         Dim b As List(Of B2) = New B4()
                                ~~~~~~~~
-BC36756: 'Module1.B5' cannot be converted to 'System.Collections.ObjectModel.Collection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B5' cannot be converted to 'Collection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim c As System.Collections.ObjectModel.Collection(Of B1) = New B5()
                                                                     ~~~~~~~~
-BC30311: Value of type 'Module1.B6' cannot be converted to 'System.Collections.ObjectModel.Collection(Of Module1.B2)'.
+BC30311: Value of type 'Module1.B6' cannot be converted to 'Collection(Of Module1.B2)'.
         Dim d As System.Collections.ObjectModel.Collection(Of B2) = New B6()
                                                                     ~~~~~~~~
-BC36756: 'Module1.B7' cannot be converted to 'System.Collections.ObjectModel.ReadOnlyCollection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B7' cannot be converted to 'ReadOnlyCollection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim e As System.Collections.ObjectModel.ReadOnlyCollection(Of B1) = New B7()
                                                                             ~~~~~~~~
-BC30311: Value of type 'Module1.B8' cannot be converted to 'System.Collections.ObjectModel.ReadOnlyCollection(Of Module1.B2)'.
+BC30311: Value of type 'Module1.B8' cannot be converted to 'ReadOnlyCollection(Of Module1.B2)'.
         Dim f As System.Collections.ObjectModel.ReadOnlyCollection(Of B2) = New B8()
                                                                             ~~~~~~~~
-BC42016: 'Module1.B9(Of Module1.B2)' cannot be converted to 'System.Collections.Generic.IList(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC42016: 'Module1.B9(Of Module1.B2)' cannot be converted to 'IList(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim g As IList(Of B1) = New B9(Of B2)()
                                 ~~~~~~~~~~~~~~~
-BC42016: Implicit conversion from 'Module1.B9(Of Module1.B1)' to 'System.Collections.Generic.IList(Of Module1.B2)'.
+BC42016: Implicit conversion from 'Module1.B9(Of Module1.B1)' to 'IList(Of Module1.B2)'.
         Dim h As IList(Of B2) = New B9(Of B1)()
                                 ~~~~~~~~~~~~~~~
-BC42016: Implicit conversion from 'Module1.B10(Of Module1.B2)' to 'System.Collections.Generic.IList(Of Module1.B1)'.
+BC42016: Implicit conversion from 'Module1.B10(Of Module1.B2)' to 'IList(Of Module1.B1)'.
         g = New B10(Of B2)()
             ~~~~~~~~~~~~~~~~
-BC42016: Implicit conversion from 'Module1.B10(Of Module1.B1)' to 'System.Collections.Generic.IList(Of Module1.B2)'.
+BC42016: Implicit conversion from 'Module1.B10(Of Module1.B1)' to 'IList(Of Module1.B2)'.
         h = New B10(Of B1)()
             ~~~~~~~~~~~~~~~~
-BC42016: 'Module1.B9(Of Module1.B2)' cannot be converted to 'System.Collections.Generic.ICollection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC42016: 'Module1.B9(Of Module1.B2)' cannot be converted to 'ICollection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim i As ICollection(Of B1) = New B9(Of B2)()
                                       ~~~~~~~~~~~~~~~
-BC42016: Implicit conversion from 'Module1.B9(Of Module1.B1)' to 'System.Collections.Generic.ICollection(Of Module1.B2)'.
+BC42016: Implicit conversion from 'Module1.B9(Of Module1.B1)' to 'ICollection(Of Module1.B2)'.
         Dim j As ICollection(Of B2) = New B9(Of B1)()
                                       ~~~~~~~~~~~~~~~
-BC42016: 'Module1.B10(Of Module1.B2)' cannot be converted to 'System.Collections.Generic.ICollection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC42016: 'Module1.B10(Of Module1.B2)' cannot be converted to 'ICollection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         i = New B10(Of B2)()
             ~~~~~~~~~~~~~~~~
-BC42016: Implicit conversion from 'Module1.B10(Of Module1.B1)' to 'System.Collections.Generic.ICollection(Of Module1.B2)'.
+BC42016: Implicit conversion from 'Module1.B10(Of Module1.B1)' to 'ICollection(Of Module1.B2)'.
         j = New B10(Of B1)()
             ~~~~~~~~~~~~~~~~
-BC42016: Implicit conversion from 'Module1.B11(Of Module1.B2, Module1.B3)' to 'System.Collections.Generic.ICollection(Of Module1.B1)'.
+BC42016: Implicit conversion from 'Module1.B11(Of Module1.B2, Module1.B3)' to 'ICollection(Of Module1.B1)'.
         i = New B11(Of B2, B3)()
             ~~~~~~~~~~~~~~~~~~~~
-BC42016: Implicit conversion from 'Module1.B11(Of Module1.B1, Module1.B3)' to 'System.Collections.Generic.ICollection(Of Module1.B2)'.
+BC42016: Implicit conversion from 'Module1.B11(Of Module1.B1, Module1.B3)' to 'ICollection(Of Module1.B2)'.
         j = New B11(Of B1, B3)()
             ~~~~~~~~~~~~~~~~~~~~
-BC42016: 'Module1.B11(Of Module1.B2, Module1.B2)' cannot be converted to 'System.Collections.Generic.ICollection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC42016: 'Module1.B11(Of Module1.B2, Module1.B2)' cannot be converted to 'ICollection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         i = New B11(Of B2, B2)()
             ~~~~~~~~~~~~~~~~~~~~
-BC42016: Implicit conversion from 'Module1.B11(Of Module1.B3, Module1.B3)' to 'System.Collections.Generic.ICollection(Of Module1.B2)'.
+BC42016: Implicit conversion from 'Module1.B11(Of Module1.B3, Module1.B3)' to 'ICollection(Of Module1.B2)'.
         j = New B11(Of B3, B3)()
             ~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -2578,58 +2578,58 @@ BC42016: Implicit conversion from 'Module1.B11(Of Module1.B3, Module1.B3)' to 'S
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36756: 'Module1.B3' cannot be converted to 'System.Collections.Generic.List(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B3' cannot be converted to 'List(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim a As List(Of B1) = New B3()
                                ~~~~~~~~
-BC30311: Value of type 'Module1.B4' cannot be converted to 'System.Collections.Generic.List(Of Module1.B2)'.
+BC30311: Value of type 'Module1.B4' cannot be converted to 'List(Of Module1.B2)'.
         Dim b As List(Of B2) = New B4()
                                ~~~~~~~~
-BC36756: 'Module1.B5' cannot be converted to 'System.Collections.ObjectModel.Collection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B5' cannot be converted to 'Collection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim c As System.Collections.ObjectModel.Collection(Of B1) = New B5()
                                                                     ~~~~~~~~
-BC30311: Value of type 'Module1.B6' cannot be converted to 'System.Collections.ObjectModel.Collection(Of Module1.B2)'.
+BC30311: Value of type 'Module1.B6' cannot be converted to 'Collection(Of Module1.B2)'.
         Dim d As System.Collections.ObjectModel.Collection(Of B2) = New B6()
                                                                     ~~~~~~~~
-BC36756: 'Module1.B7' cannot be converted to 'System.Collections.ObjectModel.ReadOnlyCollection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B7' cannot be converted to 'ReadOnlyCollection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim e As System.Collections.ObjectModel.ReadOnlyCollection(Of B1) = New B7()
                                                                             ~~~~~~~~
-BC30311: Value of type 'Module1.B8' cannot be converted to 'System.Collections.ObjectModel.ReadOnlyCollection(Of Module1.B2)'.
+BC30311: Value of type 'Module1.B8' cannot be converted to 'ReadOnlyCollection(Of Module1.B2)'.
         Dim f As System.Collections.ObjectModel.ReadOnlyCollection(Of B2) = New B8()
                                                                             ~~~~~~~~
-BC36756: 'Module1.B9(Of Module1.B2)' cannot be converted to 'System.Collections.Generic.IList(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B9(Of Module1.B2)' cannot be converted to 'IList(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim g As IList(Of B1) = New B9(Of B2)()
                                 ~~~~~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Module1.B9(Of Module1.B1)' to 'System.Collections.Generic.IList(Of Module1.B2)'.
+BC30512: Option Strict On disallows implicit conversions from 'Module1.B9(Of Module1.B1)' to 'IList(Of Module1.B2)'.
         Dim h As IList(Of B2) = New B9(Of B1)()
                                 ~~~~~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Module1.B10(Of Module1.B2)' to 'System.Collections.Generic.IList(Of Module1.B1)'.
+BC30512: Option Strict On disallows implicit conversions from 'Module1.B10(Of Module1.B2)' to 'IList(Of Module1.B1)'.
         g = New B10(Of B2)()
             ~~~~~~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Module1.B10(Of Module1.B1)' to 'System.Collections.Generic.IList(Of Module1.B2)'.
+BC30512: Option Strict On disallows implicit conversions from 'Module1.B10(Of Module1.B1)' to 'IList(Of Module1.B2)'.
         h = New B10(Of B1)()
             ~~~~~~~~~~~~~~~~
-BC36756: 'Module1.B9(Of Module1.B2)' cannot be converted to 'System.Collections.Generic.ICollection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B9(Of Module1.B2)' cannot be converted to 'ICollection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         Dim i As ICollection(Of B1) = New B9(Of B2)()
                                       ~~~~~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Module1.B9(Of Module1.B1)' to 'System.Collections.Generic.ICollection(Of Module1.B2)'.
+BC30512: Option Strict On disallows implicit conversions from 'Module1.B9(Of Module1.B1)' to 'ICollection(Of Module1.B2)'.
         Dim j As ICollection(Of B2) = New B9(Of B1)()
                                       ~~~~~~~~~~~~~~~
-BC36756: 'Module1.B10(Of Module1.B2)' cannot be converted to 'System.Collections.Generic.ICollection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B10(Of Module1.B2)' cannot be converted to 'ICollection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         i = New B10(Of B2)()
             ~~~~~~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Module1.B10(Of Module1.B1)' to 'System.Collections.Generic.ICollection(Of Module1.B2)'.
+BC30512: Option Strict On disallows implicit conversions from 'Module1.B10(Of Module1.B1)' to 'ICollection(Of Module1.B2)'.
         j = New B10(Of B1)()
             ~~~~~~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Module1.B11(Of Module1.B2, Module1.B3)' to 'System.Collections.Generic.ICollection(Of Module1.B1)'.
+BC30512: Option Strict On disallows implicit conversions from 'Module1.B11(Of Module1.B2, Module1.B3)' to 'ICollection(Of Module1.B1)'.
         i = New B11(Of B2, B3)()
             ~~~~~~~~~~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Module1.B11(Of Module1.B1, Module1.B3)' to 'System.Collections.Generic.ICollection(Of Module1.B2)'.
+BC30512: Option Strict On disallows implicit conversions from 'Module1.B11(Of Module1.B1, Module1.B3)' to 'ICollection(Of Module1.B2)'.
         j = New B11(Of B1, B3)()
             ~~~~~~~~~~~~~~~~~~~~
-BC36756: 'Module1.B11(Of Module1.B2, Module1.B2)' cannot be converted to 'System.Collections.Generic.ICollection(Of Module1.B1)'. Consider using 'System.Collections.Generic.IEnumerable(Of Module1.B1)' instead.
+BC36756: 'Module1.B11(Of Module1.B2, Module1.B2)' cannot be converted to 'ICollection(Of Module1.B1)'. Consider using 'IEnumerable(Of Module1.B1)' instead.
         i = New B11(Of B2, B2)()
             ~~~~~~~~~~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Module1.B11(Of Module1.B3, Module1.B3)' to 'System.Collections.Generic.ICollection(Of Module1.B2)'.
+BC30512: Option Strict On disallows implicit conversions from 'Module1.B11(Of Module1.B3, Module1.B3)' to 'ICollection(Of Module1.B2)'.
         j = New B11(Of B3, B3)()
             ~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -2796,7 +2796,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30311: Value of type 'Module1.D' cannot be converted to 'System.Func(Of Module1.A)'.
+BC30311: Value of type 'Module1.D' cannot be converted to 'Func(Of Module1.A)'.
         Dim _func As Func(Of A) = New D()
                                   ~~~~~~~
 </expected>)

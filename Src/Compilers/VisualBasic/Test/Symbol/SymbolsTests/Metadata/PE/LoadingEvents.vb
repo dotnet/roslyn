@@ -61,7 +61,7 @@ End Module
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c1,
 <errors>
-BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the definition for event 'Public Event ee As System.Drawing.Imaging.PlayRecordCallback'. Add one to your project.
+BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the definition for event 'Public Event ee As PlayRecordCallback'. Add one to your project.
         AddHandler d.ee, Nothing
                    ~~~~
 </errors>)

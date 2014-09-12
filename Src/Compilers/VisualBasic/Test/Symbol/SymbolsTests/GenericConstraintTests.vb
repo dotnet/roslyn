@@ -3081,10 +3081,10 @@ End Class
         </file>
     </compilation>)
             compilation.AssertTheseDiagnostics(<expected>
-BC32078: 'Private Sub C1_M(Of U As Structure)()' cannot implement 'I(Of System.ValueType).Sub M(Of U As {Structure, System.ValueType})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub C1_M(Of U As Structure)()' cannot implement 'I(Of ValueType).Sub M(Of U As {Structure, ValueType})()' because they differ by type parameter constraints.
     Private Sub C1_M(Of U As {Structure})() Implements I(Of ValueType).M
                                                        ~~~~~~~~~~~~~~~~~
-BC32078: 'Private Sub C2_M(Of U As System.ValueType)()' cannot implement 'I(Of System.ValueType).Sub M(Of U As {Structure, System.ValueType})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub C2_M(Of U As ValueType)()' cannot implement 'I(Of ValueType).Sub M(Of U As {Structure, ValueType})()' because they differ by type parameter constraints.
     Private Sub C2_M(Of U As {ValueType})() Implements I(Of ValueType).M
                                                        ~~~~~~~~~~~~~~~~~
 </expected>)
@@ -3905,7 +3905,7 @@ BC32078: 'Public Sub M2(Of U As Structure)()' cannot implement 'IB.Sub M2(Of U A
 BC32077: 'Public Overrides Sub M2(Of U As Structure)()' cannot override 'Public MustOverride Overrides Sub M2(Of U As {Structure, Object})()' because they differ by type parameter constraints.
     Public Overrides Sub M2(Of U As Structure)() ' Dev10 error
                          ~~
-BC32077: 'Public Overrides Sub M2(Of U As {Structure, System.ValueType})()' cannot override 'Public MustOverride Overrides Sub M2(Of U As Structure)()' because they differ by type parameter constraints.
+BC32077: 'Public Overrides Sub M2(Of U As {Structure, ValueType})()' cannot override 'Public MustOverride Overrides Sub M2(Of U As Structure)()' because they differ by type parameter constraints.
     Public Overrides Sub M2(Of U As {Structure, System.ValueType})() ' Dev10 error
                          ~~
      ]]></errors>)
@@ -4096,16 +4096,16 @@ End Class
 BC32061: 'Object' cannot be used as a type constraint.
     Sub M0(Of T As Object)()
                    ~~~~~~
-BC32061: 'System.ValueType' cannot be used as a type constraint.
+BC32061: 'ValueType' cannot be used as a type constraint.
     Sub M1(Of T As System.ValueType)()
                    ~~~~~~~~~~~~~~~~
-BC32061: 'System.Array' cannot be used as a type constraint.
+BC32061: 'Array' cannot be used as a type constraint.
     Sub M2(Of T As System.Array)()
                    ~~~~~~~~~~~~
-BC32061: 'System.Enum' cannot be used as a type constraint.
+BC32061: '[Enum]' cannot be used as a type constraint.
     Sub M3(Of T As System.Enum)()
                    ~~~~~~~~~~~
-BC32061: 'System.Delegate' cannot be used as a type constraint.
+BC32061: '[Delegate]' cannot be used as a type constraint.
     Sub M4(Of T As System.Delegate)()
                    ~~~~~~~~~~~~~~~
 BC32060: Type constraint cannot be a 'NotInheritable' class.
@@ -4126,16 +4126,16 @@ BC32048: Type constraint 'Object()' must be either a class, interface or type pa
 BC30002: Type 'Unknown' is not defined.
     Sub M10(Of T As Unknown)()
                     ~~~~~~~
-BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'System.ValueType'.
+BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'ValueType'.
         M1(Of Object)()
         ~~~~~~~~~~~~~
-BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'System.Array'.
+BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'Array'.
         M2(Of Object)()
         ~~~~~~~~~~~~~
-BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'System.Enum'.
+BC32044: Type argument 'Object' does not inherit from or implement the constraint type '[Enum]'.
         M3(Of Object)()
         ~~~~~~~~~~~~~
-BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'System.Delegate'.
+BC32044: Type argument 'Object' does not inherit from or implement the constraint type '[Delegate]'.
         M4(Of Object)()
         ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'A'.
@@ -4873,7 +4873,7 @@ End Class
 BC30002: Type 'System.Void' is not defined.
 Structure S
 ~~~~~~~~~~~~
-BC31091: Import of type 'System.ValueType' from assembly or module '525144ec-61b9-49ff-b073-37982adba3e4.dll' failed.
+BC31091: Import of type 'ValueType' from assembly or module '525144ec-61b9-49ff-b073-37982adba3e4.dll' failed.
 Structure S
           ~
 BC30002: Type 'System.Void' is not defined.

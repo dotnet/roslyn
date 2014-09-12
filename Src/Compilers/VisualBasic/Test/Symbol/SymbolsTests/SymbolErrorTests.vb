@@ -86,10 +86,10 @@ BC30002: Type 'myStruct' is not defined.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30015: Inheriting from 'System.Enum' is not valid.
+BC30015: Inheriting from '[Enum]' is not valid.
                 Inherits System.Enum
                          ~~~~~~~~~~~
-BC30015: Inheriting from 'System.MulticastDelegate' is not valid.
+BC30015: Inheriting from 'MulticastDelegate' is not valid.
                 Inherits System.MulticastDelegate
                          ~~~~~~~~~~~~~~~~~~~~~~~~
      ]]></errors>
@@ -525,7 +525,7 @@ BC30149: Class 'C2' must implement 'Function two() As String' for interface 'Ide
                 ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30149: Class 'HasProps' must implement 'Property Scen1 As System.Collections.Generic.IEnumerable(Of Integer)' for interface 'PropInterface'.
+BC30149: Class 'HasProps' must implement 'Property Scen1 As IEnumerable(Of Integer)' for interface 'PropInterface'.
             Implements PropInterface
                        ~~~~~~~~~~~~~
      ]]></errors>
@@ -4868,10 +4868,10 @@ BC30461: Classes cannot be declared 'Narrowing'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30467: 'Intfc1' for the Imports 'ns1.Intfc1' does not refer to a Namespace, Class, Structure, Enum or Module.
+BC30467: 'Intfc1' for the Imports 'Intfc1' does not refer to a Namespace, Class, Structure, Enum or Module.
         Imports ns1.Intfc1
                 ~~~~~~~~~~
-BC30467: 'Intfc2' for the Imports 'ns1.Intfc2(Of String)' does not refer to a Namespace, Class, Structure, Enum or Module.
+BC30467: 'Intfc2' for the Imports 'Intfc2(Of String)' does not refer to a Namespace, Class, Structure, Enum or Module.
         Imports ns1.Intfc2(Of String)
                 ~~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>
@@ -5647,22 +5647,22 @@ BC30260: 'WE2' is already declared as 'Public Overloads Property WE2(x As Intege
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30508: 'F' cannot expose type 'N.A.I' in namespace 'N' through class 'A'.
+BC30508: 'F' cannot expose type 'A.I' in namespace 'N' through class 'A'.
                 Public F As I
                             ~
-BC30508: 'M' cannot expose type 'N.A.C' in namespace 'N' through class 'A'.
+BC30508: 'M' cannot expose type 'A.C' in namespace 'N' through class 'A'.
                 Friend Function M() As C
                                        ~
-BC30508: 'G' cannot expose type 'N.A.C' in namespace 'N' through class 'B'.
+BC30508: 'G' cannot expose type 'A.C' in namespace 'N' through class 'B'.
                 Public G As C
                             ~
-BC30508: 'H' cannot expose type 'N.A.S' in namespace 'N' through class 'B'.
+BC30508: 'H' cannot expose type 'A.S' in namespace 'N' through class 'B'.
                 Friend ReadOnly H As S
                                      ~
-BC30508: 'x' cannot expose type 'N.A.C' in namespace 'N' through class 'B'.
+BC30508: 'x' cannot expose type 'A.C' in namespace 'N' through class 'B'.
                 Public Function N(x As C) As S
                                        ~
-BC30508: 'N' cannot expose type 'N.A.S' in namespace 'N' through class 'B'.
+BC30508: 'N' cannot expose type 'A.S' in namespace 'N' through class 'B'.
                 Public Function N(x As C) As S
                                              ~
                  ]]></errors>
@@ -5708,10 +5708,10 @@ BC30508: 'N' cannot expose type 'N.A.S' in namespace 'N' through class 'B'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30508: 'fiveB' cannot expose type 'NS30508.c2.ProtectedClass' in namespace 'NS30508' through class 'c2'.
+BC30508: 'fiveB' cannot expose type 'c2.ProtectedClass' in namespace 'NS30508' through class 'c2'.
                 Function fiveB(Of t As ProtectedClass)() As String
                                        ~~~~~~~~~~~~~~
-BC30508: 'fiveC' cannot expose type 'NS30508.c2.Privateclass' in namespace 'NS30508' through class 'c2'.
+BC30508: 'fiveC' cannot expose type 'c2.Privateclass' in namespace 'NS30508' through class 'c2'.
                 Function fiveC(Of t As Privateclass)() As String
                                        ~~~~~~~~~~~~
                  ]]></errors>
@@ -5749,16 +5749,16 @@ BC30508: 'fiveC' cannot expose type 'NS30508.c2.Privateclass' in namespace 'NS30
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30508: 'P' cannot expose type 'N.A.I' in namespace 'N' through class 'A'.
+BC30508: 'P' cannot expose type 'A.I' in namespace 'N' through class 'A'.
                 Property P As I
                               ~
-BC30508: 'Q' cannot expose type 'N.A.C' in namespace 'N' through class 'B'.
+BC30508: 'Q' cannot expose type 'A.C' in namespace 'N' through class 'B'.
                 Property Q As C
                               ~
-BC30508: 'x' cannot expose type 'N.A.E' in namespace 'N' through class 'B'.
+BC30508: 'x' cannot expose type 'A.E' in namespace 'N' through class 'B'.
                 Friend ReadOnly Property R(x As E) As S
                                                 ~
-BC30508: 'R' cannot expose type 'N.A.S' in namespace 'N' through class 'B'.
+BC30508: 'R' cannot expose type 'A.S' in namespace 'N' through class 'B'.
                 Friend ReadOnly Property R(x As E) As S
                                                       ~
                  ]]></errors>
@@ -5800,16 +5800,16 @@ BC30508: 'R' cannot expose type 'N.A.S' in namespace 'N' through class 'B'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30508: 'F' cannot expose type 'N.A.B' in namespace 'N' through class 'C'.
+BC30508: 'F' cannot expose type 'A.B' in namespace 'N' through class 'C'.
                     Function F() As B
                                     ~
-BC30508: 'o' cannot expose type 'N.A.B' in namespace 'N' through class 'D'.
+BC30508: 'o' cannot expose type 'A.B' in namespace 'N' through class 'D'.
                         Sub M(o As B)
                                    ~
-BC30508: 'F' cannot expose type 'N.A.B' in namespace 'N' through class 'E'.
+BC30508: 'F' cannot expose type 'A.B' in namespace 'N' through class 'E'.
                 Function F() As B
                                 ~
-BC30508: 'o' cannot expose type 'N.A.B' in namespace '<Default>' through class 'F'.
+BC30508: 'o' cannot expose type 'A.B' in namespace '<Default>' through class 'F'.
             Sub M(o As B)
                        ~
                  ]]></errors>
@@ -7821,7 +7821,7 @@ End Namespace
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30798: 'Action' for the Imports alias to 'System.Action' does not refer to a Namespace, Class, Structure, Interface, Enum or Module.
+BC30798: 'Action' for the Imports alias to 'Action' does not refer to a Namespace, Class, Structure, Interface, Enum or Module.
 Imports aa = System.Action           'BC30798
         ~~~~~~~~~~~~~~~~~~
 BC40056: Namespace or type specified in the Imports 'ns1.Intfc2.intfc2foo' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
@@ -8159,19 +8159,19 @@ BC30909: 'F' cannot expose type 'FriendClass' outside the project through interf
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30909: 'F' cannot expose type 'N.A.B' outside the project through interface 'C'.
+BC30909: 'F' cannot expose type 'A.B' outside the project through interface 'C'.
                     Function F() As B
                                     ~
-BC30909: 'o' cannot expose type 'N.A.B' outside the project through interface 'D'.
+BC30909: 'o' cannot expose type 'A.B' outside the project through interface 'D'.
                         Sub M(o As B)
                                    ~
-BC30909: 'F' cannot expose type 'N.A.B' outside the project through interface 'E'.
+BC30909: 'F' cannot expose type 'A.B' outside the project through interface 'E'.
                 Function F() As B
                                 ~
-BC30909: 'o' cannot expose type 'N.A.B' outside the project through interface 'F'.
+BC30909: 'o' cannot expose type 'A.B' outside the project through interface 'F'.
                 Sub M(o As A.B)
                            ~~~
-BC30909: 'F' cannot expose type 'N.A.B' outside the project through interface 'G'.
+BC30909: 'F' cannot expose type 'A.B' outside the project through interface 'G'.
             Function F() As N.A.B
                             ~~~~~
 ]]></errors>
@@ -9377,7 +9377,7 @@ BC31049: Initializers on structure members are valid only for 'Shared' members a
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31051: Namespace or type 'ns1.genclass(Of String)' has already been imported.
+BC31051: Namespace or type 'genclass(Of String)' has already been imported.
         Imports ns1.genclass(Of String)
                 ~~~~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>
@@ -11258,7 +11258,7 @@ BC31129: 'RaiseEvent' is already declared.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31130: 'AddHandler' definition missing for event 'Public Event Click As System.EventHandler'.
+BC31130: 'AddHandler' definition missing for event 'Public Event Click As EventHandler'.
                 Public Custom Event Click As EventHandler
                                     ~~~~~
                  ]]></errors>
@@ -11282,7 +11282,7 @@ BC31130: 'AddHandler' definition missing for event 'Public Event Click As System
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31131: 'RemoveHandler' definition missing for event 'Public Event Click As System.EventHandler'.
+BC31131: 'RemoveHandler' definition missing for event 'Public Event Click As EventHandler'.
                 Public Custom Event Click As EventHandler
                                     ~~~~~
                  ]]></errors>
@@ -11306,7 +11306,7 @@ BC31131: 'RemoveHandler' definition missing for event 'Public Event Click As Sys
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31132: 'RaiseEvent' definition missing for event 'Public Event Click As System.EventHandler'.
+BC31132: 'RaiseEvent' definition missing for event 'Public Event Click As EventHandler'.
                 Public Custom Event Click As EventHandler
                                     ~~~~~
                  ]]></errors>
@@ -11414,7 +11414,7 @@ BC31136: 'AddHandler' and 'RemoveHandler' method parameters must have the same d
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31137: 'RaiseEvent' method must have the same signature as the containing event's delegate type 'System.EventHandler'.
+BC31137: 'RaiseEvent' method must have the same signature as the containing event's delegate type 'EventHandler'.
                     RaiseEvent(ByRef sender As Object, ByVal e As EventArgs)
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>
@@ -12265,7 +12265,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31423: Event 'Public Event E As System.Action' cannot implement event 'Event E()' on interface 'IA' because their delegate types 'System.Action' and 'IA.EEventHandler' do not match.
+BC31423: Event 'Public Event E As Action' cannot implement event 'Event E()' on interface 'IA' because their delegate types 'Action' and 'IA.EEventHandler' do not match.
                 Public Event E As Action Implements IA.E
                                                     ~~~~
                  ]]></errors>
@@ -13758,19 +13758,19 @@ End Class
 BC32061: 'Object' cannot be used as a type constraint.
 Interface I(Of T As Object, U As System.ValueType)
                     ~~~~~~
-BC32061: 'System.ValueType' cannot be used as a type constraint.
+BC32061: 'ValueType' cannot be used as a type constraint.
 Interface I(Of T As Object, U As System.ValueType)
                                  ~~~~~~~~~~~~~~~~
-BC32061: 'System.Enum' cannot be used as a type constraint.
+BC32061: '[Enum]' cannot be used as a type constraint.
 Structure S(Of T As System.Enum, U As System.Array)
                     ~~~~~~~~~~~
-BC32061: 'System.Array' cannot be used as a type constraint.
+BC32061: 'Array' cannot be used as a type constraint.
 Structure S(Of T As System.Enum, U As System.Array)
                                       ~~~~~~~~~~~~
-BC32061: 'System.Delegate' cannot be used as a type constraint.
+BC32061: '[Delegate]' cannot be used as a type constraint.
 Delegate Sub D(Of T As System.Delegate, U As System.MulticastDelegate)()
                        ~~~~~~~~~~~~~~~
-BC32061: 'System.MulticastDelegate' cannot be used as a type constraint.
+BC32061: 'MulticastDelegate' cannot be used as a type constraint.
 Delegate Sub D(Of T As System.Delegate, U As System.MulticastDelegate)()
                                              ~~~~~~~~~~~~~~~~~~~~~~~~
 BC32061: 'Object' cannot be used as a type constraint.
@@ -14222,7 +14222,7 @@ BC32071: Constraint type 'A' already specified for this type parameter.
 BC32071: Constraint type 'I' already specified for this type parameter.
     Friend MustOverride Overrides Sub DM(Of V As {A, I, A, I})()
                                                            ~
-BC32077: 'Friend MustOverride Overrides Sub EM(Of U As Structure)()' cannot override 'Friend MustOverride Sub EM(Of V As {Structure, Object, System.ValueType})()' because they differ by type parameter constraints.
+BC32077: 'Friend MustOverride Overrides Sub EM(Of U As Structure)()' cannot override 'Friend MustOverride Sub EM(Of V As {Structure, Object, ValueType})()' because they differ by type parameter constraints.
     Friend MustOverride Overrides Sub EM(Of U As Structure)()
                                       ~~
      ]]></errors>
@@ -14333,7 +14333,7 @@ BC32071: Constraint type 'A' already specified for this type parameter.
 BC32071: Constraint type 'I' already specified for this type parameter.
     Private Sub DM(Of V As {A, I, A, I})() Implements ID(Of A, I).DM
                                      ~
-BC32078: 'Private Sub EM(Of U As Structure)()' cannot implement 'IE(Of Object, System.ValueType).Sub EM(Of V As {Structure, Object, System.ValueType})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub EM(Of U As Structure)()' cannot implement 'IE(Of Object, ValueType).Sub EM(Of V As {Structure, Object, ValueType})()' because they differ by type parameter constraints.
     Private Sub EM(Of U As Structure)() Implements IE(Of Object, ValueType).EM
                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
      ]]></errors>
@@ -14706,7 +14706,7 @@ BC32084: Type parameter 'UA' must have either a 'New' constraint or a 'Structure
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC32086: Generic type 'ns1.c1(Of t)' cannot be imported more than once.
+BC32086: Generic type 'c1(Of t)' cannot be imported more than once.
             Imports ns1.c1(Of Integer)
                     ~~~~~~~~~~~~~~~~~~
      ]]></errors>
@@ -15075,7 +15075,7 @@ End Namespace
     ]]></file>
 </compilation>, options)
             Dim expectedErrors = <errors><![CDATA[
-BC32105: Error in project-level import 'C=N.A(Of N.B).B(Of Object)' at 'C=N.A(Of N.B).B(Of Object)' : Type argument 'N.B' does not satisfy the 'Structure' constraint for type parameter 'T'.
+BC32105: Error in project-level import 'C=N.A(Of N.B).B(Of Object)' at 'C=N.A(Of N.B).B(Of Object)' : Type argument 'B' does not satisfy the 'Structure' constraint for type parameter 'T'.
 BC32105: Error in project-level import 'C=N.A(Of N.B).B(Of Object)' at 'C=N.A(Of N.B).B(Of Object)' : Type argument 'Object' does not satisfy the 'Structure' constraint for type parameter 'U'.
 BC32105: Error in project-level import 'N.A(Of Object).B(Of String)' at 'N.A(Of Object).B(Of String)' : Type argument 'Object' does not satisfy the 'Structure' constraint for type parameter 'T'.
 BC32105: Error in project-level import 'N.A(Of Object).B(Of String)' at 'N.A(Of Object).B(Of String)' : Type argument 'String' does not satisfy the 'Structure' constraint for type parameter 'U'.
@@ -20526,7 +20526,7 @@ End Namespace
 BC32045: 'N1' has no type parameters and so cannot have type arguments.
 Imports N1(Of String)
         ~~~~~~~~~~~~~
-BC31051: Namespace or type 'N1.M1' has already been imported.
+BC31051: Namespace or type 'M1' has already been imported.
 Imports N1.M1
         ~~~~~
 BC30572: Alias 'A' is already declared.
@@ -20535,7 +20535,7 @@ Imports A = N1.N2.C
 BC30002: Type 'C' is not defined.
 Imports N1.Gen(Of C)
                   ~
-BC32043: Too many type arguments to 'N1.Gen(Of T)'.
+BC32043: Too many type arguments to 'Gen(Of T)'.
 Imports N1.Gen(Of Integer, String)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30468: Type declaration characters are not valid in this context.
@@ -20614,7 +20614,7 @@ BC30002: Error in project-level import 'N1.Gen(Of C)' at 'C' : Type 'C' is not d
 BC30468: Error in project-level import 'System$.Collections%' at 'Collections%' : Type declaration characters are not valid in this context.
 BC30468: Error in project-level import 'System$.Collections%' at 'System$' : Type declaration characters are not valid in this context.
 BC30572: Error in project-level import 'A = N1.N2.C' at 'A' : Alias 'A' is already declared.
-BC32043: Error in project-level import 'N1.Gen(Of Integer, String)' at 'N1.Gen(Of Integer, String)' : Too many type arguments to 'N1.Gen(Of T)'.
+BC32043: Error in project-level import 'N1.Gen(Of Integer, String)' at 'N1.Gen(Of Integer, String)' : Too many type arguments to 'Gen(Of T)'.
 BC32045: Error in project-level import 'N1(Of String)' at 'N1(Of String)' : 'N1' has no type parameters and so cannot have type arguments.
 BC40057: Namespace or type specified in the project-level Imports 'System.Cheesecake.Frosting' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
                                  ]]></errors>
@@ -21485,7 +21485,7 @@ BC30121: 'Inherits' can appear only once within a 'Class' statement and can only
 BC32055: Class 'C3' cannot inherit from a type parameter.
     Inherits T
              ~
-BC30928: Base class 'System.Collections.Generic.List(Of Integer)' specified for class 'C4' cannot be different from the base class 'System.Collections.ArrayList' of one of its other partial types.
+BC30928: Base class 'List(Of Integer)' specified for class 'C4' cannot be different from the base class 'ArrayList' of one of its other partial types.
     Inherits System.Collections.Generic.List(Of Integer)
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30258: Classes can inherit only from other classes.
@@ -21497,7 +21497,7 @@ BC30258: Classes can inherit only from other classes.
 BC30299: 'C7' cannot inherit from class 'NI' because 'NI' is declared 'NotInheritable'.
     Inherits NI
              ~~
-BC30015: Inheriting from 'System.Delegate' is not valid.
+BC30015: Inheriting from '[Delegate]' is not valid.
     Inherits System.Delegate
              ~~~~~~~~~~~~~~~
 BC30230: 'Inherits' not valid in Modules.

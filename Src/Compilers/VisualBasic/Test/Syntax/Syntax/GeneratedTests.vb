@@ -60,6 +60,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Overrides Function LoadMessage(code As Integer, language As Globalization.CultureInfo) As String
             Return String.Empty
         End Function
+
+        Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
+            Return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol)
+        End Function
     End Class
 
     Friend Class RedIdentityRewriter

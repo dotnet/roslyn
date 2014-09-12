@@ -45,8 +45,8 @@ End Class
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': Branching out of a 'Finally' is not valid.
-    Extension method 'Public Function Where(predicate As System.Func(Of Integer, Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': Branching out of a 'Finally' is not valid.
+    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
+    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
         lists.Where(Function(ByVal item)
               ~~~~~
             </expected>)

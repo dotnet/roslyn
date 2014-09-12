@@ -1204,7 +1204,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC31051: Namespace or type 'A.B' has already been imported.
+BC31051: Namespace or type 'B' has already been imported.
 Imports A.B
         ~~~
 </expected>)
@@ -2727,7 +2727,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected><![CDATA[
-BC30109: 'NS1.NS6.NS7.Module1.T1' is a class type and cannot be used as an expression.
+BC30109: 'Module1.T1' is a class type and cannot be used as an expression.
         NS6. 'BIND4:"NS6"
         ~~~~~~~~~~~~~~~~~~
                                                     ]]></expected>)

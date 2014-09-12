@@ -343,7 +343,7 @@ BC31087: Array modifiers cannot be specified on both a variable and its type.
 BC42353: Function '<anonymous method>' doesn't return a value on all code paths. Are you missing a 'Return' statement?
                                                         End Function ' 2
                                                         ~~~~~~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer(), Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer(), Integer)'.
     Dim y5 As System.Func(Of Integer(), Integer) = Function(x())
                                                    ~~~~~~~~~~~~~~
 BC36643: Array modifiers cannot be specified on lambda expression parameter name. They must be specified on its type.
@@ -799,13 +799,13 @@ System.Func`1[System.Byte]
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
-    'Public Sub M1(x As System.Func(Of Short))': Option Strict On disallows implicit conversions from 'System.ValueType' to 'Short'.
-    'Public Sub M1(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'System.ValueType' to 'Byte'.
+    'Public Sub M1(x As Func(Of Short))': Option Strict On disallows implicit conversions from 'ValueType' to 'Short'.
+    'Public Sub M1(x As Func(Of Byte))': Option Strict On disallows implicit conversions from 'ValueType' to 'Byte'.
         M1(Function() Value()) '2
         ~~
 BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
-    'Public Sub M1(x As System.Func(Of Short))': Option Strict On disallows implicit conversions from 'System.ValueType' to 'Short'.
-    'Public Sub M1(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'System.ValueType' to 'Byte'.
+    'Public Sub M1(x As Func(Of Short))': Option Strict On disallows implicit conversions from 'ValueType' to 'Short'.
+    'Public Sub M1(x As Func(Of Byte))': Option Strict On disallows implicit conversions from 'ValueType' to 'Byte'.
         M1(Function() '4
         ~~
 </expected>)
@@ -961,13 +961,13 @@ System.Func`1[System.Byte]
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
-    'Public Sub M1(x As System.Func(Of Short))': Option Strict On disallows implicit conversions from 'Integer' to 'Short'.
-    'Public Sub M1(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
+    'Public Sub M1(x As Func(Of Short))': Option Strict On disallows implicit conversions from 'Integer' to 'Short'.
+    'Public Sub M1(x As Func(Of Byte))': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
         M1(Function() a)
         ~~
 BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
-    'Public Sub M1(x As System.Func(Of Short))': Option Strict On disallows implicit conversions from 'Integer' to 'Short'.
-    'Public Sub M1(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
+    'Public Sub M1(x As Func(Of Short))': Option Strict On disallows implicit conversions from 'Integer' to 'Short'.
+    'Public Sub M1(x As Func(Of Byte))': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
         M1(Function()
         ~~
 </expected>)
@@ -1450,7 +1450,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer)'.
         Dim x5 As Func(Of Integer) = Function() As Guid
                                      ~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1477,7 +1477,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36670: Nested sub does not have a signature that is compatible with delegate 'System.Func(Of Integer)'.
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Func(Of Integer)'.
         Dim x6 As Func(Of Integer) = Sub(y As Guid)
                                      ~~~~~~~~~~~~~~~
 </expected>)
@@ -1509,16 +1509,16 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36625: Lambda expression cannot be converted to 'System.Guid' because 'System.Guid' is not a delegate type.
+BC36625: Lambda expression cannot be converted to 'Guid' because 'Guid' is not a delegate type.
         Dim x4 As System.Guid = Sub(x0 As Integer) x0 += 1
                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36625: Lambda expression cannot be converted to 'System.Guid' because 'System.Guid' is not a delegate type.
+BC36625: Lambda expression cannot be converted to 'Guid' because 'Guid' is not a delegate type.
         x41 = CType(Sub(x0 As Integer) x0 += 1, Guid)
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36625: Lambda expression cannot be converted to 'System.Guid' because 'System.Guid' is not a delegate type.
+BC36625: Lambda expression cannot be converted to 'Guid' because 'Guid' is not a delegate type.
         x41 = DirectCast(Sub(x0 As Integer) x0 += 1, Guid)
                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36625: Lambda expression cannot be converted to 'System.Guid' because 'System.Guid' is not a delegate type.
+BC36625: Lambda expression cannot be converted to 'Guid' because 'Guid' is not a delegate type.
         x41 = TryCast(Sub(x0 As Integer) x0 += 1, Guid)
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36625: Lambda expression cannot be converted to 'String' because 'String' is not a delegate type.

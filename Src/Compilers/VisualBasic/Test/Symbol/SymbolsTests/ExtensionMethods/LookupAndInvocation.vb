@@ -2701,12 +2701,12 @@ BC36584: Parameter 'y' of extension method 'Public Sub F2(x As Integer, y As Int
 BC36585: 'z' is not a parameter of extension method 'Public Sub F2(x As Integer, y As Integer)' defined in 'Module1'.
         System.Console.WriteLine(4.F2(1, y:=0, z:=1))
                                                ~
-BC30950: No accessible method 'F4' has a signature compatible with delegate 'Delegate Sub System.Action(Of Long)(obj As Long)':
+BC30950: No accessible method 'F4' has a signature compatible with delegate 'Delegate Sub Action(Of Long)(obj As Long)':
     Extension method 'Public Sub F4(x As Byte)' defined in 'Module1': Argument matching parameter 'x' narrows from 'Long' to 'Byte'.
     Extension method 'Public Sub F4(x As Integer)' defined in 'Module1': Argument matching parameter 'x' narrows from 'Long' to 'Integer'.
         Dim d1 As System.Action(Of Long) = AddressOf 5.F4
                                                      ~~~~
-BC30950: No accessible method 'F5' has a signature compatible with delegate 'Delegate Sub System.Action(Of Long, Long)(arg1 As Long, arg2 As Long)':
+BC30950: No accessible method 'F5' has a signature compatible with delegate 'Delegate Sub Action(Of Long, Long)(arg1 As Long, arg2 As Long)':
     Extension method 'Public Sub F5(x As Byte, y As Integer)' defined in 'Module1': Method does not have a signature compatible with the delegate.
     Extension method 'Public Sub F5(x As Integer, y As Short)' defined in 'Module1': Method does not have a signature compatible with the delegate.
         Dim d2 As System.Action(Of Long, Long) = AddressOf 6.F5

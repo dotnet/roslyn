@@ -102,9 +102,9 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'extensions.C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'Extensions.C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'Extensions.D': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
         x.Foo
           ~~~
 BC30562: 'Foo' is ambiguous between declarations in Modules 'extensions.C, Extensions.C, Extensions.D'.
@@ -207,8 +207,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'Extensions.C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'Extensions.D': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
         x.Foo
           ~~~
 BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Extensions.D'.
@@ -399,9 +399,9 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'Extensions.c': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'Extensions.C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'Extensions.D': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'c': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
         x.Foo
           ~~~
 BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.C, Extensions.D'.
@@ -504,8 +504,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'Extensions.C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'Extensions.D': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
         x.Foo
           ~~~
 BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Extensions.D'.
@@ -7207,10 +7207,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'Extensions.c'.
+BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'c'.
         x.Foo()
           ~~~
-BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'Extensions.c'.
+BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'c'.
         Foo(x)
         ~~~
 </expected>)

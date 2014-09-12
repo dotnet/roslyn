@@ -7921,8 +7921,8 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
     public class clz : stx { }
 }
 ",
-                "'cly' error CS0509: 'NS.cly': cannot derive from sealed type 'NS.clx'",
-                "'clz' error CS0509: 'NS.clz': cannot derive from sealed type 'NS.stx'");
+                "'cly' error CS0509: 'cly': cannot derive from sealed type 'clx'",
+                "'clz' error CS0509: 'clz': cannot derive from sealed type 'stx'");
         }
 
         [Fact]
@@ -7937,9 +7937,9 @@ namespace N2
     class E : int { }
 }
 ",
-                "'C' error CS0509: 'N2.C': cannot derive from sealed type 'N1.E'",
-                "'D' error CS0509: 'N2.D': cannot derive from sealed type 'int'",
-                "'E' error CS0509: 'N2.E': cannot derive from sealed type 'int'");
+                "'C' error CS0509: 'C': cannot derive from sealed type 'E'",
+                "'D' error CS0509: 'D': cannot derive from sealed type 'int'",
+                "'E' error CS0509: 'E': cannot derive from sealed type 'int'");
         }
 
         [Fact]
@@ -7957,11 +7957,11 @@ namespace N2
     }
 }
 ",
-                "'M1' error CS0513: 'NS.clx.M1()' is abstract but it is contained in non-abstract class 'NS.clx'",
-                "'M2' error CS0513: 'NS.clx.M2()' is abstract but it is contained in non-abstract class 'NS.clx'",
-                "'M3' error CS0513: 'NS.clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'NS.clx'",
-                "'get' error CS0513: 'NS.clx.P.get' is abstract but it is contained in non-abstract class 'NS.clx'",
-                "'set' error CS0513: 'NS.clx.P.set' is abstract but it is contained in non-abstract class 'NS.clx'");
+                "'M1' error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract class 'clx'",
+                "'M2' error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract class 'clx'",
+                "'M3' error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'clx'",
+                "'get' error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract class 'clx'",
+                "'set' error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract class 'clx'");
         }
 
         [Fact]
@@ -10887,11 +10887,11 @@ namespace N
     static class G : Array { }
 }
 ",
-                "'C' error CS0644: 'N.C' cannot derive from special class 'System.Enum'",
-                "'D' error CS0644: 'N.D' cannot derive from special class 'System.ValueType'",
-                "'E' error CS0644: 'N.E' cannot derive from special class 'System.Delegate'",
-                "'F' error CS0644: 'N.F' cannot derive from special class 'System.MulticastDelegate'",
-                "'G' error CS0644: 'N.G' cannot derive from special class 'System.Array'");
+                "'C' error CS0644: 'C' cannot derive from special class 'Enum'",
+                "'D' error CS0644: 'D' cannot derive from special class 'ValueType'",
+                "'E' error CS0644: 'E' cannot derive from special class 'Delegate'",
+                "'F' error CS0644: 'F' cannot derive from special class 'MulticastDelegate'",
+                "'G' error CS0644: 'G' cannot derive from special class 'Array'");
         }
 
         [Fact]
@@ -12308,8 +12308,8 @@ static class C
     }
 }
 ",
-                "'Base' error CS0713: Static class 'NS.Derived' cannot derive from type 'NS.Base'. Static classes must derive from object.",
-                "'Base1<string, V>' error CS0713: Static class 'NS.D<V>' cannot derive from type 'NS.Base1<string, V>'. Static classes must derive from object.");
+                "'Base' error CS0713: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.",
+                "'Base1<string, V>' error CS0713: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.");
         }
 
         [Fact]

@@ -1771,10 +1771,10 @@ BC31082: 'Foo' is not a local variable or parameter, and so cannot be used as a 
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
                     Catch ex1 as Exception
                     ~~~~~~~~~~~~~~~~~~~~~~
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
                     Catch
                     ~~~~~
 </expected>)
@@ -1804,10 +1804,10 @@ BC42031: 'Catch' block never reached; 'System.Exception' handled above in the sa
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
                     Catch ex
                     ~~~~~~~~
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
                     Catch ex1 as Exception
                     ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1845,13 +1845,13 @@ BC42031: 'Catch' block never reached; 'System.Exception' handled above in the sa
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
                     Catch ex1 as Exception When true
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
                     Catch When true
                     ~~~~~~~~~~~~~~~
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
                     Catch ex1 as Exception
                     ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1892,7 +1892,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42029: 'Catch' block never reached, because 'System.ArgumentException' inherits from 'System.SystemException'.
+BC42029: 'Catch' block never reached, because 'ArgumentException' inherits from 'SystemException'.
         Catch ex1 As ArgumentException When True
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1943,25 +1943,25 @@ End Module
 BC30734: 'ex' is already declared as a parameter of this method.
         Catch ex As Exception
               ~~
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
         Catch ex1 As Exception
         ~~~~~~~~~~~~~~~~~~~~~~
 BC30616: Variable 'ex1' hides a variable in an enclosing block.
         Catch ex1 As Exception
               ~~~
-BC42029: 'Catch' block never reached, because 'System.ArgumentException' inherits from 'System.Exception'.
+BC42029: 'Catch' block never reached, because 'ArgumentException' inherits from 'Exception'.
         Catch Foo As ArgumentException When True
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30290: Local variable cannot have the same name as the function containing it.
         Catch Foo As ArgumentException When True
               ~~~
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
         Catch ex2 As exception
         ~~~~~~~~~~~~~~~~~~~~~~
-BC42029: 'Catch' block never reached, because 'System.ApplicationException' inherits from 'System.Exception'.
+BC42029: 'Catch' block never reached, because 'ApplicationException' inherits from 'Exception'.
         Catch ex3 As ApplicationException
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC42031: 'Catch' block never reached; 'System.Exception' handled above in the same Try statement.
+BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
         Catch field As Exception
         ~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -2000,7 +2000,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-    BC42029: 'Catch' block never reached, because 'T' inherits from 'System.NullReferenceException'.
+    BC42029: 'Catch' block never reached, because 'T' inherits from 'NullReferenceException'.
         Catch ex As T
         ~~~~~~~~~~~~~
 </expected>)
@@ -3117,10 +3117,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30676: 'GetType' is not an event of 'System.AppDomain'.
+BC30676: 'GetType' is not an event of 'AppDomain'.
         AddHandler (v.GetType), del
                       ~~~~~~~
-BC30456: 'GetTyp' is not a member of 'System.AppDomain'.
+BC30456: 'GetTyp' is not a member of 'AppDomain'.
         AddHandler v.GetTyp, del
                    ~~~~~~~~
 </expected>)
@@ -3154,13 +3154,13 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36670: Nested sub does not have a signature that is compatible with delegate 'System.EventHandler'.
+BC36670: Nested sub does not have a signature that is compatible with delegate 'EventHandler'.
         AddHandler (v.DomainUnload), Sub(sender As Object, sender1 As Object, sender2 As Object) Console.Write("unload")
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31143: Method 'Public Sub H(i As Integer)' does not have a signature compatible with delegate 'Delegate Sub System.EventHandler(sender As Object, e As System.EventArgs)'.
+BC31143: Method 'Public Sub H(i As Integer)' does not have a signature compatible with delegate 'Delegate Sub EventHandler(sender As Object, e As EventArgs)'.
         AddHandler v.DomainUnload, AddressOf H
                                              ~
-BC30311: Value of type 'System.Action(Of Object, System.EventArgs)' cannot be converted to 'System.EventHandler'.
+BC30311: Value of type 'Action(Of Object, EventArgs)' cannot be converted to 'EventHandler'.
         AddHandler v.DomainUnload, del
                                    ~~~
 </expected>)
@@ -3900,7 +3900,7 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30390: 'E1.Protected RemoveHandler Event Test(obj As System.Action)' is not accessible in this context because it is 'Protected'.
+BC30390: 'E1.Protected RemoveHandler Event Test(obj As Action)' is not accessible in this context because it is 'Protected'.
         RemoveHandler e.Test, d
                       ~~~~~~
 </expected>)
@@ -3998,7 +3998,7 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30390: 'E1.Protected AddHandler Event Test(obj As System.Action)' is not accessible in this context because it is 'Protected'.
+BC30390: 'E1.Protected AddHandler Event Test(obj As Action)' is not accessible in this context because it is 'Protected'.
         AddHandler e.Test, d
                    ~~~~~~
 </expected>)
@@ -4143,10 +4143,10 @@ BC30657: 'Public AddHandler Event Test(obj As E1)' has a return type that is not
 BC30657: 'Public AddHandler Event Test(obj As E1)' has a return type that is not supported or parameter types that are not supported.
         AddHandler e.Test, e
                    ~~~~~~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         AddHandler e.Test, e
                            ~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         RemoveHandler e.Test, e
                               ~
 </expected>)
@@ -4243,10 +4243,10 @@ BC30657: 'Public AddHandler Event Test()' has a return type that is not supporte
 BC30657: 'Public AddHandler Event Test()' has a return type that is not supported or parameter types that are not supported.
         AddHandler e.Test, e
                    ~~~~~~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         AddHandler e.Test, e
                            ~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         RemoveHandler e.Test, e
                               ~
 </expected>)
@@ -4337,16 +4337,16 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
-BC30657: 'Public AddHandler Event Test(obj1 As System.Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
+BC30657: 'Public AddHandler Event Test(obj1 As Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
         AddHandler e.Test, d
                    ~~~~~~
-BC30657: 'Public AddHandler Event Test(obj1 As System.Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
+BC30657: 'Public AddHandler Event Test(obj1 As Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
         AddHandler e.Test, e
                    ~~~~~~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         AddHandler e.Test, e
                            ~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         RemoveHandler e.Test, e
                               ~
 </expected>)
@@ -4437,13 +4437,13 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         AddHandler e.Test, e
                            ~
 BC30657: 'Public RemoveHandler Event Test(obj As E1)' has a return type that is not supported or parameter types that are not supported.
         RemoveHandler e.Test, e
                       ~~~~~~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         RemoveHandler e.Test, e
                               ~
 BC30657: 'Public RemoveHandler Event Test(obj As E1)' has a return type that is not supported or parameter types that are not supported.
@@ -4537,13 +4537,13 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         AddHandler e.Test, e
                            ~
 BC30657: 'Public RemoveHandler Event Test()' has a return type that is not supported or parameter types that are not supported.
         RemoveHandler e.Test, e
                       ~~~~~~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         RemoveHandler e.Test, e
                               ~
 BC30657: 'Public RemoveHandler Event Test()' has a return type that is not supported or parameter types that are not supported.
@@ -4637,16 +4637,16 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         AddHandler e.Test, e
                            ~
-BC30657: 'Public RemoveHandler Event Test(obj1 As System.Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
+BC30657: 'Public RemoveHandler Event Test(obj1 As Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
         RemoveHandler e.Test, e
                       ~~~~~~
-BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+BC30311: Value of type 'E1' cannot be converted to 'Action'.
         RemoveHandler e.Test, e
                               ~
-BC30657: 'Public RemoveHandler Event Test(obj1 As System.Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
+BC30657: 'Public RemoveHandler Event Test(obj1 As Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
         RemoveHandler e.Test, d
                       ~~~~~~
 </expected>)

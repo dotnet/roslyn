@@ -625,10 +625,10 @@ End Namespace
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC31035: Interface 'MyNS.I1' is not implemented by this class.
+BC31035: Interface 'I1' is not implemented by this class.
         Public Sub Foo(ByVal x As String) Implements I1.Bar
                                                      ~~
-BC31035: Interface 'MyNS.I1' is not implemented by this class.
+BC31035: Interface 'I1' is not implemented by this class.
         Public Property Quuz As Integer Implements I1.Zap
                                                    ~~
             </expected>)
@@ -667,10 +667,10 @@ End Namespace
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC31035: Interface 'MyNS.I1' is not implemented by this class.
+BC31035: Interface 'I1' is not implemented by this class.
         Public Sub Quux(ByVal x As String) Implements I1.Bar
                                                       ~~
-BC31035: Interface 'MyNS.I1' is not implemented by this class.
+BC31035: Interface 'I1' is not implemented by this class.
         Public Property Dingo As Integer Implements I1.Zap
                                                     ~~ 
           </expected>)
@@ -1247,13 +1247,13 @@ End Module
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC30149: Class 'Class1' must implement 'ReadOnly Property Zing(i As System.Collections.Generic.IEnumerable(Of T)) As String' for interface 'I1(Of String, IEnumerable(Of T))'.
+BC30149: Class 'Class1' must implement 'ReadOnly Property Zing(i As IEnumerable(Of T)) As String' for interface 'I1(Of String, IEnumerable(Of T))'.
         Implements I2(Of T), I3
                    ~~~~~~~~
 BC30149: Class 'Class1' must implement 'Sub Bar(i As Long)' for interface 'I2(Of T)'.
         Implements I2(Of T), I3
                    ~~~~~~~~
-BC30149: Class 'Class1' must implement 'Sub Foo(i As String, j As System.Collections.Generic.IEnumerable(Of T))' for interface 'I1(Of String, IEnumerable(Of T))'.
+BC30149: Class 'Class1' must implement 'Sub Foo(i As String, j As IEnumerable(Of T))' for interface 'I1(Of String, IEnumerable(Of T))'.
         Implements I2(Of T), I3
                    ~~~~~~~~
 BC30149: Class 'Class1' must implement 'Sub Zap()' for interface 'I3'.

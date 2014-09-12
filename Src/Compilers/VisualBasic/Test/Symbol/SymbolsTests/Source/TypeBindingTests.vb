@@ -977,7 +977,7 @@ BC30468: Type declaration characters are not valid in this context.
 BC30002: Type 'Q.Banana' is not defined.
         Dim c As Q.Banana(Of Integer)
                  ~~~~~~~~~~~~~~~~~~~~
-BC32042: Too few type arguments to 'N.M.P(Of T, U)'.
+BC32042: Too few type arguments to 'P(Of T, U)'.
         dim d As M.P(Of Q$)
                  ~~~~~~~~~~
 BC30468: Type declaration characters are not valid in this context.
@@ -1120,7 +1120,7 @@ Imports HT=System.Collections.HashTable
 BC32045: 'HT' has no type parameters and so cannot have type arguments.
     public c as HT(Of String)      
                 ~~~~~~~~~~~~~
-BC32045: 'System.Collections.Generic.List(Of Object)' has no type parameters and so cannot have type arguments.
+BC32045: 'List(Of Object)' has no type parameters and so cannot have type arguments.
     public d as ArrayList(Of String)      
                 ~~~~~~~~~~~~~~~~~~~~
                                  </errors>
@@ -1155,7 +1155,7 @@ BC31403: Error in project-level import 'HT=System.Collections.HashTable' at 'HT=
 BC32045: 'HT' has no type parameters and so cannot have type arguments.
     public c as HT(Of String)      
                 ~~~~~~~~~~~~~
-BC32045: 'System.Collections.Generic.List(Of Object)' has no type parameters and so cannot have type arguments.
+BC32045: 'List(Of Object)' has no type parameters and so cannot have type arguments.
     public d as ArrayList(Of String)      
                 ~~~~~~~~~~~~~~~~~~~~
                                  </errors>

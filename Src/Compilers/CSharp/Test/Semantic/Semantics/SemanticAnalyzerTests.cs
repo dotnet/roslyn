@@ -104,7 +104,7 @@ class C
 }
 ",
 "'N' error CS0118: 'N' is a namespace but is used like a variable",
-"'N.D' error CS0119: 'N.D' is a type, which is not valid in the given context");
+"'N.D' error CS0119: 'D' is a type, which is not valid in the given context");
 
         }
 
@@ -569,7 +569,7 @@ class C
 "'N' error CS0118: 'N' is a namespace but is used like a variable",
 "'C' error CS0118: 'C' is a type but is used like a variable",
 "'static_readonly.z' error CS1650: Fields of static readonly field 'C.static_readonly' cannot be assigned to (except in a static constructor or a variable initializer)",
-"'GetS(null, null)' error CS1612: Cannot modify the return value of 'C.GetS(N.Q<string, double>?[][*,*][*,*,*], int?)' because it is not a variable",
+"'GetS(null, null)' error CS1612: Cannot modify the return value of 'C.GetS(Q<string, double>?[][*,*][*,*,*], int?)' because it is not a variable",
 "'instance_readonly' error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)",
 "'M()' error CS0029: Cannot implicitly convert type 'void' to 'int'",
 "'null' error CS0037: Cannot convert null to 'int' because it is a non-nullable value type",

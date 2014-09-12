@@ -146,10 +146,10 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30311: Value of type 'Sub <generated method>(x As System.Collections.Generic.IEnumerable(Of Integer))' cannot be converted to 'System.Action(Of System.Collections.Generic.IEnumerable(Of Integer))'.
+BC30311: Value of type 'Sub <generated method>(x As IEnumerable(Of Integer))' cannot be converted to 'Action(Of IEnumerable(Of Integer))'.
         x1 = DirectCast(d1, Action(Of System.Collections.Generic.IEnumerable(Of Integer))) 'BIND1:"d1"
                         ~~
-BC30311: Value of type 'Sub <generated method>(x As System.Collections.Generic.IEnumerable(Of Integer))' cannot be converted to 'System.Action(Of System.Collections.Generic.IEnumerable(Of Integer))'.
+BC30311: Value of type 'Sub <generated method>(x As IEnumerable(Of Integer))' cannot be converted to 'Action(Of IEnumerable(Of Integer))'.
         x1 = TryCast(d1, Action(Of System.Collections.Generic.IEnumerable(Of Integer))) 'BIND2:"d1"
                      ~~
 ]]></expected>)
@@ -507,7 +507,7 @@ End Module
 BC42016: Implicit conversion from 'Object' to 'Integer'.
         Dim x1 As System.Action(Of Object) = d1 'BIND1:"d1"
                                              ~~
-BC42016: Implicit conversion from 'Sub <generated method>(x As Integer)' to 'System.Action(Of Object)'.
+BC42016: Implicit conversion from 'Sub <generated method>(x As Integer)' to 'Action(Of Object)'.
         Dim x1 As System.Action(Of Object) = d1 'BIND1:"d1"
                                              ~~
 ]]></expected>)
@@ -533,7 +533,7 @@ BC42016: Implicit conversion from 'Sub <generated method>(x As Integer)' to 'Sys
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30512: Option Strict On disallows implicit conversions from 'Sub <generated method>(x As Integer)' to 'System.Action(Of Object)'.
+BC30512: Option Strict On disallows implicit conversions from 'Sub <generated method>(x As Integer)' to 'Action(Of Object)'.
         Dim x1 As System.Action(Of Object) = d1 'BIND1:"d1"
                                              ~~
 ]]></expected>)
@@ -1016,7 +1016,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30311: Value of type 'Sub <generated method>(x As System.Guid)' cannot be converted to 'System.Action(Of Integer)'.
+BC30311: Value of type 'Sub <generated method>(x As Guid)' cannot be converted to 'Action(Of Integer)'.
         Dim x1 As Action(Of Integer) = d1 'BIND1:"d1"
                                        ~~
 ]]></expected>)
@@ -1167,7 +1167,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30311: Value of type 'Sub <generated method>()' cannot be converted to 'System.Func(Of Integer)'.
+BC30311: Value of type 'Sub <generated method>()' cannot be converted to 'Func(Of Integer)'.
         Dim x1 As Func(Of Integer) = d1 'BIND1:"d1"
                                      ~~
 ]]></expected>)
@@ -1292,7 +1292,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC42016: Implicit conversion from 'Function <generated method>() As Object' to 'System.Func(Of Integer)'.
+BC42016: Implicit conversion from 'Function <generated method>() As Object' to 'Func(Of Integer)'.
         Dim x2 As Func(Of Integer) = d1 'BIND1:"d1"
                                      ~~
 BC42016: Implicit conversion from 'Object' to 'Integer'.
@@ -1321,7 +1321,7 @@ BC42016: Implicit conversion from 'Object' to 'Integer'.
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30512: Option Strict On disallows implicit conversions from 'Function <generated method>() As Object' to 'System.Func(Of Integer)'.
+BC30512: Option Strict On disallows implicit conversions from 'Function <generated method>() As Object' to 'Func(Of Integer)'.
         Dim x2 As Func(Of Integer) = d1 'BIND1:"d1"
                                      ~~
 ]]></expected>)
@@ -1552,7 +1552,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30311: Value of type 'Function <generated method>() As Integer' cannot be converted to 'System.Func(Of System.Guid)'.
+BC30311: Value of type 'Function <generated method>() As Integer' cannot be converted to 'Func(Of Guid)'.
         Dim x1 As Func(Of Guid) = d1 'BIND1:"d1"
                                   ~~
 ]]></expected>)
@@ -1697,7 +1697,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30512: Option Strict On disallows implicit conversions from 'Function <generated method>() As Integer' to 'System.Func(Of Integer, Integer)'.
+BC30512: Option Strict On disallows implicit conversions from 'Function <generated method>() As Integer' to 'Func(Of Integer, Integer)'.
         Dim x2 As Func(Of Integer, Integer) = d1 'BIND1:"d1"
                                               ~~
 ]]></expected>)
@@ -1745,7 +1745,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30311: Value of type 'Function <generated method>(y As Integer) As Integer' cannot be converted to 'System.Func(Of Integer)'.
+BC30311: Value of type 'Function <generated method>(y As Integer) As Integer' cannot be converted to 'Func(Of Integer)'.
         Dim x2 As Func(Of Integer) = d1 'BIND1:"d1"
                                      ~~
 ]]></expected>)
@@ -1793,7 +1793,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30311: Value of type 'Function <generated method>(ByRef y As Integer) As Integer' cannot be converted to 'System.Func(Of Integer, Integer)'.
+BC30311: Value of type 'Function <generated method>(ByRef y As Integer) As Integer' cannot be converted to 'Func(Of Integer, Integer)'.
         Dim x1 As Func(Of Integer, Integer) = d1 'BIND1:"d1"
                                               ~~
 ]]></expected>)
@@ -2022,8 +2022,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Object, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Integer, Integer)))': Not most specific.
 10:     Test1(d1)
         ~~~~~
 </expected>)
@@ -2100,8 +2100,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30519: Overload resolution failed because no accessible 'Test2' can be called without a narrowing conversion:
-    'Public Sub Test2(x As System.Func(Of Object, Integer))': Argument matching parameter 'x' narrows from 'Function <generated method>(x As String) As Integer' to 'System.Func(Of Object, Integer)'.
-    'Public Sub Test2(x As System.Func(Of Integer, Integer))': Argument matching parameter 'x' narrows from 'Function <generated method>(x As String) As Integer' to 'System.Func(Of Integer, Integer)'.
+    'Public Sub Test2(x As Func(Of Object, Integer))': Argument matching parameter 'x' narrows from 'Function <generated method>(x As String) As Integer' to 'Func(Of Object, Integer)'.
+    'Public Sub Test2(x As Func(Of Integer, Integer))': Argument matching parameter 'x' narrows from 'Function <generated method>(x As String) As Integer' to 'Func(Of Integer, Integer)'.
         Test2(d1)
         ~~~~~
 ]]></expected>)
@@ -2110,8 +2110,8 @@ BC30519: Overload resolution failed because no accessible 'Test2' can be called 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30518: Overload resolution failed because no accessible 'Test2' can be called with these arguments:
-    'Public Sub Test2(x As System.Func(Of Object, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>(x As String) As Integer' to 'System.Func(Of Object, Integer)'.
-    'Public Sub Test2(x As System.Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>(x As String) As Integer' to 'System.Func(Of Integer, Integer)'.
+    'Public Sub Test2(x As Func(Of Object, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>(x As String) As Integer' to 'Func(Of Object, Integer)'.
+    'Public Sub Test2(x As Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>(x As String) As Integer' to 'Func(Of Integer, Integer)'.
         Test2(d1)
         ~~~~~
 ]]></expected>)
@@ -2158,7 +2158,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC42016: Implicit conversion from 'Function <generated method>() As String' to 'System.Func(Of Integer)'.
+BC42016: Implicit conversion from 'Function <generated method>() As String' to 'Func(Of Integer)'.
         Test5(d1)
               ~~
 BC42016: Implicit conversion from 'String' to 'Integer'.
@@ -2331,13 +2331,13 @@ System.Func`2[System.Int32,System.Int32]
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30518: Overload resolution failed because no accessible 'Test14' can be called with these arguments:
-    'Public Sub Test14(x As System.Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>() As Integer' to 'System.Func(Of Integer, Integer)'.
-    'Public Sub Test14(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'Function <generated method>() As Integer' to 'System.Func(Of Byte)'.
+    'Public Sub Test14(x As Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>() As Integer' to 'Func(Of Integer, Integer)'.
+    'Public Sub Test14(x As Func(Of Byte))': Option Strict On disallows implicit conversions from 'Function <generated method>() As Integer' to 'Func(Of Byte)'.
         Test14(d1)
         ~~~~~~
 BC30518: Overload resolution failed because no accessible 'Test14' can be called with these arguments:
-    'Public Sub Test14(x As System.Func(Of Integer, Integer))': Option Strict On does not allow narrowing in implicit type conversions between method 'Public Overridable Function Invoke() As Integer' and delegate 'Delegate Function System.Func(Of Integer, Integer)(arg As Integer) As Integer'.
-    'Public Sub Test14(x As System.Func(Of Byte))': Option Strict On does not allow narrowing in implicit type conversions between method 'Public Overridable Function Invoke() As Integer' and delegate 'Delegate Function System.Func(Of Byte)() As Byte'.
+    'Public Sub Test14(x As Func(Of Integer, Integer))': Option Strict On does not allow narrowing in implicit type conversions between method 'Public Overridable Function Invoke() As Integer' and delegate 'Delegate Function Func(Of Integer, Integer)(arg As Integer) As Integer'.
+    'Public Sub Test14(x As Func(Of Byte))': Option Strict On does not allow narrowing in implicit type conversions between method 'Public Overridable Function Invoke() As Integer' and delegate 'Delegate Function Func(Of Byte)() As Byte'.
         Test14(AddressOf d1.Invoke)
         ~~~~~~
 ]]></expected>)
@@ -2440,23 +2440,23 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Action(Of SByte)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Action(Of Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Action(Of SByte)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Action(Of Integer)))': Not most specific.
         Test1(Function() AddressOf d.Invoke)
         ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Action(Of SByte)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Action(Of Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Action(Of SByte)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Action(Of Integer)))': Not most specific.
         Test1(Function()
         ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Action(Of SByte)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Action(Of Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Action(Of SByte)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Action(Of Integer)))': Not most specific.
         Test1(Function() Sub(x As Short)
         ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Action(Of SByte)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Action(Of Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Action(Of SByte)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Action(Of Integer)))': Not most specific.
         Test1(Function() '2
         ~~~~~
 </expected>)

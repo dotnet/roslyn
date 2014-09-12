@@ -942,10 +942,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC32050: Type parameter 'T' for 'Public Sub M1(Of T)(x As System.Action(Of Integer))' cannot be inferred.
+BC32050: Type parameter 'T' for 'Public Sub M1(Of T)(x As Action(Of Integer))' cannot be inferred.
         M1(AddressOf M2)
         ~~
-BC36645: Data type(s) of the type parameter(s) in method 'Public Sub M3(Of T)(x As System.Func(Of T))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36645: Data type(s) of the type parameter(s) in method 'Public Sub M3(Of T)(x As Func(Of T))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         M3(AddressOf M4)
         ~~
 </expected>)
@@ -1290,16 +1290,16 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test3(Of T, S)(x As System.Func(Of T, S))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test3(Of T, S)(x As Func(Of T, S))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Test3(d1)
         ~~~~~
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test2(Of T)(x As Module1.Dt2(Of T))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Test2(d2)
         ~~~~~
-BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test1(Of T)(x As System.Func(Of T))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test1(Of T)(x As Func(Of T))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Test1(d3)
         ~~~~~
-BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test4(Of T, S)(x As System.Func(Of T, S), y As T)' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test4(Of T, S)(x As Func(Of T, S), y As T)' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Test4(d2, 1UI)
         ~~~~~
 </expected>)
@@ -1692,10 +1692,10 @@ BC42021: Cannot infer a return type because more than one type is possible; 'Obj
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible '[Select]' can be called with these arguments:
-    Extension method 'Public Function [Select](Of TResult)(selector As System.Func(Of SnapshotSpan, TResult)) As System.Collections.Generic.IEnumerable(Of TResult)' defined in 'System.Linq.Enumerable': Cannot infer a return type because more than one type is possible. Consider adding an 'As' clause to specify the return type.
-    Extension method 'Public Function [Select](Of TResult)(selector As System.Func(Of SnapshotSpan, TResult)) As System.Collections.Generic.IEnumerable(Of TResult)' defined in 'System.Linq.Enumerable': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    Extension method 'Public Function [Select](Of TResult)(selector As System.Func(Of SnapshotSpan, Integer, TResult)) As System.Collections.Generic.IEnumerable(Of TResult)' defined in 'System.Linq.Enumerable': Cannot infer a return type because more than one type is possible. Consider adding an 'As' clause to specify the return type.
-    Extension method 'Public Function [Select](Of TResult)(selector As System.Func(Of SnapshotSpan, Integer, TResult)) As System.Collections.Generic.IEnumerable(Of TResult)' defined in 'System.Linq.Enumerable': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    Extension method 'Public Function [Select](Of TResult)(selector As Func(Of SnapshotSpan, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable': Cannot infer a return type because more than one type is possible. Consider adding an 'As' clause to specify the return type.
+    Extension method 'Public Function [Select](Of TResult)(selector As Func(Of SnapshotSpan, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    Extension method 'Public Function [Select](Of TResult)(selector As Func(Of SnapshotSpan, Integer, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable': Cannot infer a return type because more than one type is possible. Consider adding an 'As' clause to specify the return type.
+    Extension method 'Public Function [Select](Of TResult)(selector As Func(Of SnapshotSpan, Integer, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Dim replacementSpans = sourceSpans.Select(Function(ss)
                                            ~~~~~~
 </expected>)

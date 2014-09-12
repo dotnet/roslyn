@@ -6117,16 +6117,16 @@ End Namespace
                 Dim emitResult = compilation.Emit(stream)
                 Assert.False(emitResult.Success)
                 CompilationUtils.AssertTheseDiagnostics(emitResult.Diagnostics, <expected>
-BC30456: 'Lambda' is not a member of 'System.Linq.Expressions.Expression'.
+BC30456: 'Lambda' is not a member of 'Expression'.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'Parameter' is not a member of 'System.Linq.Expressions.Expression'.
+BC30456: 'Parameter' is not a member of 'Expression'.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'Parameter' is not a member of 'System.Linq.Expressions.Expression'.
+BC30456: 'Parameter' is not a member of 'Expression'.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'AddChecked' is not a member of 'System.Linq.Expressions.Expression'.
+BC30456: 'AddChecked' is not a member of 'Expression'.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                                            ~~~~~
                                                                            </expected>)

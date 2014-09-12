@@ -2894,9 +2894,9 @@ End Class
                 Diagnostic(ERRID.ERR_RestrictedConversion1, "ai").WithArguments("System.ArgIterator"),
                 Diagnostic(ERRID.ERR_RestrictedConversion1, "ra").WithArguments("System.RuntimeArgumentHandle"),
                 Diagnostic(ERRID.WRN_InterfaceConversion2, "_collection").WithArguments("_Collection", "Microsoft.VisualBasic.Collection"),
-                Diagnostic(ERRID.WRN_ImplicitConversionSubst1, "_collection").WithArguments("warning BC42350: Implicit conversion from '_Collection' to 'Microsoft.VisualBasic.Collection'."),
+                Diagnostic(ERRID.WRN_ImplicitConversionSubst1, "_collection").WithArguments("warning BC42350: Implicit conversion from '_Collection' to 'Collection'."),
                 Diagnostic(ERRID.WRN_InterfaceConversion2, "collection").WithArguments("Microsoft.VisualBasic.Collection", "_Collection"),
-                Diagnostic(ERRID.WRN_ImplicitConversionSubst1, "collection").WithArguments("warning BC42350: Implicit conversion from 'Microsoft.VisualBasic.Collection' to '_Collection'."),
+                Diagnostic(ERRID.WRN_ImplicitConversionSubst1, "collection").WithArguments("warning BC42350: Implicit conversion from 'Collection' to '_Collection'."),
                 Diagnostic(ERRID.WRN_InterfaceConversion2, "_collection").WithArguments("_Collection", "Microsoft.VisualBasic.Collection"),
                 Diagnostic(ERRID.WRN_InterfaceConversion2, "collection").WithArguments("Microsoft.VisualBasic.Collection", "_Collection"),
                 Diagnostic(ERRID.ERR_ExpressionOverflow1, "Int64.MaxValue").WithArguments("Integer"),
@@ -4276,8 +4276,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30519: Overload resolution failed because no accessible 'Test' can be called without a narrowing conversion:
-    'Public Sub Test(x As System.DayOfWeek?)': Argument matching parameter 'x' narrows from 'Integer' to 'System.DayOfWeek?'.
-    'Public Sub Test(x As System.TypeCode?)': Argument matching parameter 'x' narrows from 'Integer' to 'System.TypeCode?'.
+    'Public Sub Test(x As DayOfWeek?)': Argument matching parameter 'x' narrows from 'Integer' to 'DayOfWeek?'.
+    'Public Sub Test(x As TypeCode?)': Argument matching parameter 'x' narrows from 'Integer' to 'TypeCode?'.
         Test(0)
         ~~~~
 </expected>)

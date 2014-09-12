@@ -237,25 +237,44 @@ namespace Microsoft.CodeAnalysis
                 return message;
             }
 
-            object[] argumentsToUse = arguments;
+            return String.Format(culture, message, GetArgumentsToUse(culture));
+        }
 
-            for (int i = 0; i < argumentsToUse.Length; i++)
+        private object[] GetArgumentsToUse(CultureInfo culture)
+        {
+            object[] argumentsToUse = null;
+            for (int i = 0; i < arguments.Length; i++)
             {
-                DiagnosticInfo embedded = argumentsToUse[i] as DiagnosticInfo;
-
+                var embedded = arguments[i] as DiagnosticInfo;
                 if (embedded != null)
                 {
-                    if (ReferenceEquals(argumentsToUse, arguments))
-                    {
-                        argumentsToUse = new object[argumentsToUse.Length];
-                        Array.Copy(arguments, argumentsToUse, argumentsToUse.Length);
-                    }
-
+                    argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
                     argumentsToUse[i] = embedded.GetMessage(culture);
+                    continue;
+                }
+
+                var symbol = arguments[i] as ISymbol;
+                if (symbol != null)
+                {
+                    argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
+                    argumentsToUse[i] = this.messageProvider.ConvertSymbolToString(errorCode, symbol);
                 }
             }
 
-            return String.Format(culture, message, argumentsToUse);
+            return argumentsToUse ?? arguments;
+        }
+
+        private object[] InitializeArgumentListIfNeeded(object[] argumentsToUse)
+        {
+            if (argumentsToUse != null)
+            {
+                return argumentsToUse;
+            }
+
+            var newArguments = new object[arguments.Length];
+            Array.Copy(arguments, newArguments, newArguments.Length);
+
+            return newArguments;
         }
 
         internal object[] Arguments

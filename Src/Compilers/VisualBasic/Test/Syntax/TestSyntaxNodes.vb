@@ -1008,6 +1008,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Public Overrides Function GetWarningLevel(code As Integer) As Integer
                 Return 0
             End Function
+
+            Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
+                Return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol)
+            End Function
         End Class
 
         ' A test rewriting visitor

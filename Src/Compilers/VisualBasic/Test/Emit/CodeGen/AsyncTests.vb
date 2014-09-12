@@ -8112,13 +8112,13 @@ End Class
 
             Using stream As New MemoryStream()
                 AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors><![CDATA[
-BC31091: Import of type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
-BC31091: Import of type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
-BC31091: Import of type 'System.Runtime.CompilerServices.IAsyncStateMachine' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'Async.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.

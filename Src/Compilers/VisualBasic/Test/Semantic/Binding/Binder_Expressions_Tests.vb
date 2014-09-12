@@ -551,7 +551,7 @@ End Module
             ' Note that we produce different (but I think better) error messages than Dev10.
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC32042: Too few type arguments to 'N.Foo(Of T)'.
+BC32042: Too few type arguments to 'Foo(Of T)'.
         y = N.Foo.x
             ~~~~~
 BC32042: Too few type arguments to 'C.Foo(Of T)'.
@@ -2622,16 +2622,16 @@ End Namespace
 BC31428: Arrays of type 'System.Void' are not allowed in this expression.
             x = GetType(Void()) ' error
                         ~~~~~~
-BC30371: Module 'Bar.Test' cannot be used as a type.
+BC30371: Module 'Test' cannot be used as a type.
             x = GetType(Test?) ' error
                         ~~~~
-BC33101: Type 'Bar.Test' must be a value type or a type argument constrained to 'Structure' in order to be used with 'Nullable' or nullable modifier '?'.
+BC33101: Type 'Test' must be a value type or a type argument constrained to 'Structure' in order to be used with 'Nullable' or nullable modifier '?'.
             x = GetType(Test?) ' error
                         ~~~~
 BC31422: 'System.Void' can only be used in a GetType expression.
             x = GetType(Void?) ' error
                         ~~~~
-BC30371: Module 'Bar.Test' cannot be used as a type.
+BC30371: Module 'Test' cannot be used as a type.
             x = GetType(List(Of Test)) ' error
                                 ~~~~
 BC31422: 'System.Void' can only be used in a GetType expression.

@@ -461,7 +461,7 @@ End Module
 ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC30456: 'Value' is not a member of 'System.Collections.Generic.IEnumerable(Of Object)'.
+BC30456: 'Value' is not a member of 'IEnumerable(Of Object)'.
         o = _5.Value
             ~~~~~~~~
 ]]></errors>)

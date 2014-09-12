@@ -797,55 +797,55 @@ End Namespace
 
             Dim expectedErrors =
 <expected>
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
             Dim x As I1(Of I2) = y
                                  ~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
         Implements I5
                    ~~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
             Dim x As I1(Of I2) = y3
                                  ~~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
             Dim x As I1(Of I2) = y4
                                  ~~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
             Dim x As I1(Of I2) = y5
                                  ~~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
     Public Class C9
                  ~~
-BC32044: Type argument 'ErrorTest.I6(Of ErrorTest.I2)' does not inherit from or implement the constraint type 'ErrorTest.I6(Of ErrorTest.I3)'.
+BC32044: Type argument 'I6(Of I2)' does not inherit from or implement the constraint type 'I6(Of I3)'.
     Public Class C9
                  ~~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
     Public Class C11
                  ~~~
-BC32044: Type argument 'ErrorTest.C4' does not inherit from or implement the constraint type 'ErrorTest.I1(Of ErrorTest.I2)'.
+BC32044: Type argument 'C4' does not inherit from or implement the constraint type 'I1(Of I2)'.
     Public Class C11
                  ~~~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
     Public Class C12
                  ~~~
-BC32044: Type argument 'ErrorTest.I5' does not inherit from or implement the constraint type 'ErrorTest.I1(Of ErrorTest.I2)'.
+BC32044: Type argument 'I5' does not inherit from or implement the constraint type 'I1(Of I2)'.
     Public Class C12
                  ~~~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
         Sub Test(x As C8(Of I6(Of I2)))
                  ~
-BC32044: Type argument 'ErrorTest.I6(Of ErrorTest.I2)' does not inherit from or implement the constraint type 'ErrorTest.I6(Of ErrorTest.I3)'.
+BC32044: Type argument 'I6(Of I2)' does not inherit from or implement the constraint type 'I6(Of I3)'.
         Sub Test(x As C8(Of I6(Of I2)))
                  ~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
         Sub Test(x As C10(Of C4))
                  ~
-BC32044: Type argument 'ErrorTest.C4' does not inherit from or implement the constraint type 'ErrorTest.I1(Of ErrorTest.I2)'.
+BC32044: Type argument 'C4' does not inherit from or implement the constraint type 'I1(Of I2)'.
         Sub Test(x As C10(Of C4))
                  ~
-BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I3'. Add one to your project.
+BC30652: Reference required to assembly 'MissingTypeInTypeArgumentsOfImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I3'. Add one to your project.
         Sub Test(x As C10(Of I5))
                  ~
-BC32044: Type argument 'ErrorTest.I5' does not inherit from or implement the constraint type 'ErrorTest.I1(Of ErrorTest.I2)'.
+BC32044: Type argument 'I5' does not inherit from or implement the constraint type 'I1(Of I2)'.
         Sub Test(x As C10(Of I5))
                  ~
 </expected>
@@ -1009,73 +1009,73 @@ End Namespace
 
             Dim expectedErrors =
 <expected>
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
             Dim x As I1 = y
                           ~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
         Implements I5
                    ~~
-BC31035: Interface 'ErrorTest.I1' is not implemented by this class.
+BC31035: Interface 'I1' is not implemented by this class.
         Private Sub M1() Implements I1.M1
                                     ~~
-BC30456: 'M1' is not a member of 'ErrorTest.I5'.
+BC30456: 'M1' is not a member of 'I5'.
             x.M1()
             ~~~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
             x.M1()
             ~~~~
 BC30390: 'C4.Private Sub M1()' is not accessible in this context because it is 'Private'.
             y.M1()
             ~~~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
             Dim x As I1 = y3
                           ~~
 BC30390: 'C4.Private Sub M1()' is not accessible in this context because it is 'Private'.
             y3.M1()
             ~~~~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
             Dim x As I1 = y4
                           ~~
 BC30456: 'M1' is not a member of 'T'.
             y4.M1()
             ~~~~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
             y4.M1()
             ~~~~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
         Implements I5 'C8
                    ~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
         Private Sub M1() Implements I5.M1
                                     ~~
 BC30401: 'M1' cannot implement 'M1' because there is no matching sub on interface 'I5'.
         Private Sub M1() Implements I5.M1
                                     ~~~~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
     Public Class C10 
                  ~~~
-BC32044: Type argument 'ErrorTest.C4' does not inherit from or implement the constraint type 'ErrorTest.I1'.
+BC32044: Type argument 'C4' does not inherit from or implement the constraint type 'I1'.
     Public Class C10 
                  ~~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
     Public Class C11 
                  ~~~
-BC32044: Type argument 'ErrorTest.I5' does not inherit from or implement the constraint type 'ErrorTest.I1'.
+BC32044: Type argument 'I5' does not inherit from or implement the constraint type 'I1'.
     Public Class C11 
                  ~~~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
         Sub Test(x As C9(Of C4))
                  ~
-BC32044: Type argument 'ErrorTest.C4' does not inherit from or implement the constraint type 'ErrorTest.I1'.
+BC32044: Type argument 'C4' does not inherit from or implement the constraint type 'I1'.
         Sub Test(x As C9(Of C4))
                  ~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.I2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'I2'. Add one to your project.
         Sub Test(x As C9(Of I5))
                  ~
-BC32044: Type argument 'ErrorTest.I5' does not inherit from or implement the constraint type 'ErrorTest.I1'.
+BC32044: Type argument 'I5' does not inherit from or implement the constraint type 'I1'.
         Sub Test(x As C9(Of I5))
                  ~
-BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.C12'. Add one to your project.
+BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C12'. Add one to your project.
             Dim x As I1 = c13
                           ~~~
 </expected>
@@ -1199,37 +1199,37 @@ End Namespace
 
             Dim expectedErrors =
 <expected>
-BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.C2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C2'. Add one to your project.
             Dim x As C1 = y
                           ~
-BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.C2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C2'. Add one to your project.
         Inherits C4
                  ~~
-BC30456: 'M1' is not a member of 'ErrorTest.C4'.
+BC30456: 'M1' is not a member of 'C4'.
             y.M1()
             ~~~~
-BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.C2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C2'. Add one to your project.
             y.M1()
             ~~~~
-BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.C2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C2'. Add one to your project.
             Dim x As C1 = y3
                           ~~
 BC30456: 'M1' is not a member of 'T'.
             y3.M1()
             ~~~~~
-BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.C2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C2'. Add one to your project.
             y3.M1()
             ~~~~~
-BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.C2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C2'. Add one to your project.
     Public Class C7
                  ~~
-BC32044: Type argument 'ErrorTest.C4' does not inherit from or implement the constraint type 'ErrorTest.C1'.
+BC32044: Type argument 'C4' does not inherit from or implement the constraint type 'C1'.
     Public Class C7
                  ~~
-BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ErrorTest.C2'. Add one to your project.
+BC30652: Reference required to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C2'. Add one to your project.
         Sub Test(x As C6(Of C4))
                  ~
-BC32044: Type argument 'ErrorTest.C4' does not inherit from or implement the constraint type 'ErrorTest.C1'.
+BC32044: Type argument 'C4' does not inherit from or implement the constraint type 'C1'.
         Sub Test(x As C6(Of C4))
                  ~
 </expected>

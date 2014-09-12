@@ -432,25 +432,25 @@ End Class
 </compilation>
 
             CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=-1)>
                                               ~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=3)>
                                               ~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=5)>
                                               ~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=6)>
                                               ~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=256)>
                                               ~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=512)>
                                               ~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=Int32.MaxValue)>
                                               ~~~~~~~~~~~~~~~~~~~~
 ]]>)
@@ -472,7 +472,7 @@ End Class
 </compilation>
 
             CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=-1)>
                                      ~~~~~~~~
 ]]>)
@@ -510,19 +510,19 @@ End Class
 </compilation>
 
             CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(DirectCast((-1), LayoutKind), CharSet:=CharSet.Ansi)>
               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(DirectCast(4, LayoutKind), CharSet:=CharSet.Ansi)>
               ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, CharSet:=DirectCast((-1), CharSet))>
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, CharSet:=DirectCast(5, CharSet))>
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.StructLayoutAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, CharSet:=DirectCast(Int32.MaxValue, CharSet))>
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>)
@@ -678,13 +678,13 @@ End Enum
 </compilation>
 
             CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.FieldOffsetAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
     <FieldOffset(-1)>
                  ~~
-BC30127: Attribute 'System.Runtime.InteropServices.FieldOffsetAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
     <FieldOffset(-1)>
                  ~~
-BC30127: Attribute 'System.Runtime.InteropServices.FieldOffsetAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
     <FieldOffset(-1)>
                  ~~
 ]]>)

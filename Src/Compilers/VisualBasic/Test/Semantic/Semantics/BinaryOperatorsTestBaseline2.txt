@@ -37,7 +37,7 @@ BC30452: Operator '+' is not defined for types 'Date' and 'Single'.
 BC30452: Operator '+' is not defined for types 'Date' and 'Double'.
         result = Da + [Do]
                  ~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '+' is not defined for types 'Date' and 'TypeCode'.
         result = Da + Tc
                  ~~~~~~~
 BC30452: Operator '+' is not defined for types 'Date' and 'Char'.
@@ -82,7 +82,7 @@ BC30452: Operator '+' is not defined for types 'Char' and 'Single'.
 BC30452: Operator '+' is not defined for types 'Char' and 'Double'.
         result = Ch + [Do]
                  ~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '+' is not defined for types 'Char' and 'TypeCode'.
         result = Ch + Tc
                  ~~~~~~~
 BC30452: Operator '+' is not defined for types 'Char' and 'Date'.
@@ -166,10 +166,10 @@ BC30452: Operator '+' is not defined for types 'Double' and 'Date'.
 BC30452: Operator '+' is not defined for types 'Double' and 'Char'.
         result = [Do] + Ch
                  ~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '+' is not defined for types 'TypeCode' and 'Date'.
         result = Tc + Da
                  ~~~~~~~
-BC30452: Operator '+' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '+' is not defined for types 'TypeCode' and 'Char'.
         result = Tc + Ch
                  ~~~~~~~
 BC30452: Operator '-' is not defined for types 'Date' and 'Boolean'.
@@ -217,7 +217,7 @@ BC30452: Operator '-' is not defined for types 'Date' and 'String'.
 BC30452: Operator '-' is not defined for types 'Date' and 'Object'.
         result = Da - Ob
                  ~~~~~~~
-BC30452: Operator '-' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '-' is not defined for types 'Date' and 'TypeCode'.
         result = Da - Tc
                  ~~~~~~~
 BC30452: Operator '-' is not defined for types 'Date' and 'Char'.
@@ -271,7 +271,7 @@ BC30452: Operator '-' is not defined for types 'Char' and 'String'.
 BC30452: Operator '-' is not defined for types 'Char' and 'Object'.
         result = Ch - Ob
                  ~~~~~~~
-BC30452: Operator '-' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '-' is not defined for types 'Char' and 'TypeCode'.
         result = Ch - Tc
                  ~~~~~~~
 BC30452: Operator '-' is not defined for types 'Char' and 'Date'.
@@ -376,10 +376,10 @@ BC30452: Operator '-' is not defined for types 'Object' and 'Date'.
 BC30452: Operator '-' is not defined for types 'Object' and 'Char'.
         result = Ob - Ch
                  ~~~~~~~
-BC30452: Operator '-' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '-' is not defined for types 'TypeCode' and 'Date'.
         result = Tc - Da
                  ~~~~~~~
-BC30452: Operator '-' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '-' is not defined for types 'TypeCode' and 'Char'.
         result = Tc - Ch
                  ~~~~~~~
 BC30452: Operator '*' is not defined for types 'Date' and 'Boolean'.
@@ -427,7 +427,7 @@ BC30452: Operator '*' is not defined for types 'Date' and 'String'.
 BC30452: Operator '*' is not defined for types 'Date' and 'Object'.
         result = Da * Ob
                  ~~~~~~~
-BC30452: Operator '*' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '*' is not defined for types 'Date' and 'TypeCode'.
         result = Da * Tc
                  ~~~~~~~
 BC30452: Operator '*' is not defined for types 'Date' and 'Date'.
@@ -484,7 +484,7 @@ BC30452: Operator '*' is not defined for types 'Char' and 'String'.
 BC30452: Operator '*' is not defined for types 'Char' and 'Object'.
         result = Ch * Ob
                  ~~~~~~~
-BC30452: Operator '*' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '*' is not defined for types 'Char' and 'TypeCode'.
         result = Ch * Tc
                  ~~~~~~~
 BC30452: Operator '*' is not defined for types 'Char' and 'Date'.
@@ -592,10 +592,10 @@ BC30452: Operator '*' is not defined for types 'Object' and 'Date'.
 BC30452: Operator '*' is not defined for types 'Object' and 'Char'.
         result = Ob * Ch
                  ~~~~~~~
-BC30452: Operator '*' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '*' is not defined for types 'TypeCode' and 'Date'.
         result = Tc * Da
                  ~~~~~~~
-BC30452: Operator '*' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '*' is not defined for types 'TypeCode' and 'Char'.
         result = Tc * Ch
                  ~~~~~~~
 BC30452: Operator '/' is not defined for types 'Date' and 'Boolean'.
@@ -643,7 +643,7 @@ BC30452: Operator '/' is not defined for types 'Date' and 'String'.
 BC30452: Operator '/' is not defined for types 'Date' and 'Object'.
         result = Da / Ob
                  ~~~~~~~
-BC30452: Operator '/' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '/' is not defined for types 'Date' and 'TypeCode'.
         result = Da / Tc
                  ~~~~~~~
 BC30452: Operator '/' is not defined for types 'Date' and 'Date'.
@@ -700,7 +700,7 @@ BC30452: Operator '/' is not defined for types 'Char' and 'String'.
 BC30452: Operator '/' is not defined for types 'Char' and 'Object'.
         result = Ch / Ob
                  ~~~~~~~
-BC30452: Operator '/' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '/' is not defined for types 'Char' and 'TypeCode'.
         result = Ch / Tc
                  ~~~~~~~
 BC30452: Operator '/' is not defined for types 'Char' and 'Date'.
@@ -808,10 +808,10 @@ BC30452: Operator '/' is not defined for types 'Object' and 'Date'.
 BC30452: Operator '/' is not defined for types 'Object' and 'Char'.
         result = Ob / Ch
                  ~~~~~~~
-BC30452: Operator '/' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '/' is not defined for types 'TypeCode' and 'Date'.
         result = Tc / Da
                  ~~~~~~~
-BC30452: Operator '/' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '/' is not defined for types 'TypeCode' and 'Char'.
         result = Tc / Ch
                  ~~~~~~~
 BC30452: Operator '\' is not defined for types 'Date' and 'Boolean'.
@@ -856,7 +856,7 @@ BC30452: Operator '\' is not defined for types 'Date' and 'String'.
 BC30452: Operator '\' is not defined for types 'Date' and 'Object'.
         result = Da \ Ob
                  ~~~~~~~
-BC30452: Operator '\' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '\' is not defined for types 'Date' and 'TypeCode'.
         result = Da \ Tc
                  ~~~~~~~
 BC30452: Operator '\' is not defined for types 'Date' and 'Date'.
@@ -910,7 +910,7 @@ BC30452: Operator '\' is not defined for types 'Char' and 'String'.
 BC30452: Operator '\' is not defined for types 'Char' and 'Object'.
         result = Ch \ Ob
                  ~~~~~~~
-BC30452: Operator '\' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '\' is not defined for types 'Char' and 'TypeCode'.
         result = Ch \ Tc
                  ~~~~~~~
 BC30452: Operator '\' is not defined for types 'Char' and 'Date'.
@@ -1018,10 +1018,10 @@ BC30452: Operator '\' is not defined for types 'Object' and 'Date'.
 BC30452: Operator '\' is not defined for types 'Object' and 'Char'.
         result = Ob \ Ch
                  ~~~~~~~
-BC30452: Operator '\' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '\' is not defined for types 'TypeCode' and 'Date'.
         result = Tc \ Da
                  ~~~~~~~
-BC30452: Operator '\' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '\' is not defined for types 'TypeCode' and 'Char'.
         result = Tc \ Ch
                  ~~~~~~~
 BC30452: Operator 'Mod' is not defined for types 'Date' and 'Boolean'.
@@ -1066,7 +1066,7 @@ BC30452: Operator 'Mod' is not defined for types 'Date' and 'String'.
 BC30452: Operator 'Mod' is not defined for types 'Date' and 'Object'.
         result = Da Mod Ob
                  ~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'TypeCode'.
         result = Da Mod Tc
                  ~~~~~~~~~
 BC30452: Operator 'Mod' is not defined for types 'Date' and 'Date'.
@@ -1120,7 +1120,7 @@ BC30452: Operator 'Mod' is not defined for types 'Char' and 'String'.
 BC30452: Operator 'Mod' is not defined for types 'Char' and 'Object'.
         result = Ch Mod Ob
                  ~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'TypeCode'.
         result = Ch Mod Tc
                  ~~~~~~~~~
 BC30452: Operator 'Mod' is not defined for types 'Char' and 'Date'.
@@ -1228,10 +1228,10 @@ BC30452: Operator 'Mod' is not defined for types 'Object' and 'Date'.
 BC30452: Operator 'Mod' is not defined for types 'Object' and 'Char'.
         result = Ob Mod Ch
                  ~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator 'Mod' is not defined for types 'TypeCode' and 'Date'.
         result = Tc Mod Da
                  ~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator 'Mod' is not defined for types 'TypeCode' and 'Char'.
         result = Tc Mod Ch
                  ~~~~~~~~~
 BC30452: Operator '^' is not defined for types 'Date' and 'Boolean'.
@@ -1279,7 +1279,7 @@ BC30452: Operator '^' is not defined for types 'Date' and 'String'.
 BC30452: Operator '^' is not defined for types 'Date' and 'Object'.
         result = Da ^ Ob
                  ~~~~~~~
-BC30452: Operator '^' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '^' is not defined for types 'Date' and 'TypeCode'.
         result = Da ^ Tc
                  ~~~~~~~
 BC30452: Operator '^' is not defined for types 'Date' and 'Date'.
@@ -1336,7 +1336,7 @@ BC30452: Operator '^' is not defined for types 'Char' and 'String'.
 BC30452: Operator '^' is not defined for types 'Char' and 'Object'.
         result = Ch ^ Ob
                  ~~~~~~~
-BC30452: Operator '^' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '^' is not defined for types 'Char' and 'TypeCode'.
         result = Ch ^ Tc
                  ~~~~~~~
 BC30452: Operator '^' is not defined for types 'Char' and 'Date'.
@@ -1444,10 +1444,10 @@ BC30452: Operator '^' is not defined for types 'Object' and 'Date'.
 BC30452: Operator '^' is not defined for types 'Object' and 'Char'.
         result = Ob ^ Ch
                  ~~~~~~~
-BC30452: Operator '^' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '^' is not defined for types 'TypeCode' and 'Date'.
         result = Tc ^ Da
                  ~~~~~~~
-BC30452: Operator '^' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '^' is not defined for types 'TypeCode' and 'Char'.
         result = Tc ^ Ch
                  ~~~~~~~
 BC30452: Operator '<<' is not defined for types 'Date' and 'Boolean'.
@@ -1495,7 +1495,7 @@ BC30452: Operator '<<' is not defined for types 'Date' and 'String'.
 BC30452: Operator '<<' is not defined for types 'Date' and 'Object'.
         result = Da << Ob
                  ~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '<<' is not defined for types 'Date' and 'TypeCode'.
         result = Da << Tc
                  ~~~~~~~~
 BC30452: Operator '<<' is not defined for types 'Date' and 'Date'.
@@ -1552,7 +1552,7 @@ BC30452: Operator '<<' is not defined for types 'Char' and 'String'.
 BC30452: Operator '<<' is not defined for types 'Char' and 'Object'.
         result = Ch << Ob
                  ~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '<<' is not defined for types 'Char' and 'TypeCode'.
         result = Ch << Tc
                  ~~~~~~~~
 BC30452: Operator '<<' is not defined for types 'Char' and 'Date'.
@@ -1609,7 +1609,7 @@ BC30452: Operator '>>' is not defined for types 'Date' and 'String'.
 BC30452: Operator '>>' is not defined for types 'Date' and 'Object'.
         result = Da >> Ob
                  ~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '>>' is not defined for types 'Date' and 'TypeCode'.
         result = Da >> Tc
                  ~~~~~~~~
 BC30452: Operator '>>' is not defined for types 'Date' and 'Date'.
@@ -1666,7 +1666,7 @@ BC30452: Operator '>>' is not defined for types 'Char' and 'String'.
 BC30452: Operator '>>' is not defined for types 'Char' and 'Object'.
         result = Ch >> Ob
                  ~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '>>' is not defined for types 'Char' and 'TypeCode'.
         result = Ch >> Tc
                  ~~~~~~~~
 BC30452: Operator '>>' is not defined for types 'Char' and 'Date'.
@@ -1723,7 +1723,7 @@ BC30452: Operator 'OrElse' is not defined for types 'Date' and 'String'.
 BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Object'.
         result = Da OrElse Ob
                  ~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'TypeCode'.
         result = Da OrElse Tc
                  ~~~~~~~~~~~~
 BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Date'.
@@ -1780,7 +1780,7 @@ BC30452: Operator 'OrElse' is not defined for types 'Char' and 'String'.
 BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Object'.
         result = Ch OrElse Ob
                  ~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'TypeCode'.
         result = Ch OrElse Tc
                  ~~~~~~~~~~~~
 BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Date'.
@@ -1888,10 +1888,10 @@ BC30452: Operator 'OrElse' is not defined for types 'Object' and 'Date'.
 BC30452: Operator 'OrElse' is not defined for types 'Object' and 'Char'.
         result = Ob OrElse Ch
                  ~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator 'OrElse' is not defined for types 'TypeCode' and 'Date'.
         result = Tc OrElse Da
                  ~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator 'OrElse' is not defined for types 'TypeCode' and 'Char'.
         result = Tc OrElse Ch
                  ~~~~~~~~~~~~
 BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Boolean'.
@@ -1939,7 +1939,7 @@ BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'String'.
 BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Object'.
         result = Da AndAlso Ob
                  ~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'TypeCode'.
         result = Da AndAlso Tc
                  ~~~~~~~~~~~~~
 BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Date'.
@@ -1996,7 +1996,7 @@ BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'String'.
 BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Object'.
         result = Ch AndAlso Ob
                  ~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'TypeCode'.
         result = Ch AndAlso Tc
                  ~~~~~~~~~~~~~
 BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Date'.
@@ -2104,10 +2104,10 @@ BC30452: Operator 'AndAlso' is not defined for types 'Object' and 'Date'.
 BC30452: Operator 'AndAlso' is not defined for types 'Object' and 'Char'.
         result = Ob AndAlso Ch
                  ~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator 'AndAlso' is not defined for types 'TypeCode' and 'Date'.
         result = Tc AndAlso Da
                  ~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator 'AndAlso' is not defined for types 'TypeCode' and 'Char'.
         result = Tc AndAlso Ch
                  ~~~~~~~~~~~~~
 BC30452: Operator '=' is not defined for types 'Date' and 'Boolean'.
@@ -2149,7 +2149,7 @@ BC30452: Operator '=' is not defined for types 'Date' and 'Single'.
 BC30452: Operator '=' is not defined for types 'Date' and 'Double'.
         result = Da = [Do]
                  ~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '=' is not defined for types 'Date' and 'TypeCode'.
         result = Da = Tc
                  ~~~~~~~
 BC30452: Operator '=' is not defined for types 'Date' and 'Char'.
@@ -2194,7 +2194,7 @@ BC30452: Operator '=' is not defined for types 'Char' and 'Single'.
 BC30452: Operator '=' is not defined for types 'Char' and 'Double'.
         result = Ch = [Do]
                  ~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '=' is not defined for types 'Char' and 'TypeCode'.
         result = Ch = Tc
                  ~~~~~~~
 BC30452: Operator '=' is not defined for types 'Char' and 'Date'.
@@ -2278,10 +2278,10 @@ BC30452: Operator '=' is not defined for types 'Double' and 'Date'.
 BC30452: Operator '=' is not defined for types 'Double' and 'Char'.
         result = [Do] = Ch
                  ~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '=' is not defined for types 'TypeCode' and 'Date'.
         result = Tc = Da
                  ~~~~~~~
-BC30452: Operator '=' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '=' is not defined for types 'TypeCode' and 'Char'.
         result = Tc = Ch
                  ~~~~~~~
 BC30452: Operator '<>' is not defined for types 'Date' and 'Boolean'.
@@ -2323,7 +2323,7 @@ BC30452: Operator '<>' is not defined for types 'Date' and 'Single'.
 BC30452: Operator '<>' is not defined for types 'Date' and 'Double'.
         result = Da <> [Do]
                  ~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '<>' is not defined for types 'Date' and 'TypeCode'.
         result = Da <> Tc
                  ~~~~~~~~
 BC30452: Operator '<>' is not defined for types 'Date' and 'Char'.
@@ -2368,7 +2368,7 @@ BC30452: Operator '<>' is not defined for types 'Char' and 'Single'.
 BC30452: Operator '<>' is not defined for types 'Char' and 'Double'.
         result = Ch <> [Do]
                  ~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '<>' is not defined for types 'Char' and 'TypeCode'.
         result = Ch <> Tc
                  ~~~~~~~~
 BC30452: Operator '<>' is not defined for types 'Char' and 'Date'.
@@ -2452,10 +2452,10 @@ BC30452: Operator '<>' is not defined for types 'Double' and 'Date'.
 BC30452: Operator '<>' is not defined for types 'Double' and 'Char'.
         result = [Do] <> Ch
                  ~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '<>' is not defined for types 'TypeCode' and 'Date'.
         result = Tc <> Da
                  ~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '<>' is not defined for types 'TypeCode' and 'Char'.
         result = Tc <> Ch
                  ~~~~~~~~
 BC30452: Operator '<=' is not defined for types 'Date' and 'Boolean'.
@@ -2497,7 +2497,7 @@ BC30452: Operator '<=' is not defined for types 'Date' and 'Single'.
 BC30452: Operator '<=' is not defined for types 'Date' and 'Double'.
         result = Da <= [Do]
                  ~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '<=' is not defined for types 'Date' and 'TypeCode'.
         result = Da <= Tc
                  ~~~~~~~~
 BC30452: Operator '<=' is not defined for types 'Date' and 'Char'.
@@ -2542,7 +2542,7 @@ BC30452: Operator '<=' is not defined for types 'Char' and 'Single'.
 BC30452: Operator '<=' is not defined for types 'Char' and 'Double'.
         result = Ch <= [Do]
                  ~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '<=' is not defined for types 'Char' and 'TypeCode'.
         result = Ch <= Tc
                  ~~~~~~~~
 BC30452: Operator '<=' is not defined for types 'Char' and 'Date'.
@@ -2626,10 +2626,10 @@ BC30452: Operator '<=' is not defined for types 'Double' and 'Date'.
 BC30452: Operator '<=' is not defined for types 'Double' and 'Char'.
         result = [Do] <= Ch
                  ~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '<=' is not defined for types 'TypeCode' and 'Date'.
         result = Tc <= Da
                  ~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '<=' is not defined for types 'TypeCode' and 'Char'.
         result = Tc <= Ch
                  ~~~~~~~~
 BC30452: Operator '>=' is not defined for types 'Date' and 'Boolean'.
@@ -2671,7 +2671,7 @@ BC30452: Operator '>=' is not defined for types 'Date' and 'Single'.
 BC30452: Operator '>=' is not defined for types 'Date' and 'Double'.
         result = Da >= [Do]
                  ~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '>=' is not defined for types 'Date' and 'TypeCode'.
         result = Da >= Tc
                  ~~~~~~~~
 BC30452: Operator '>=' is not defined for types 'Date' and 'Char'.
@@ -2716,7 +2716,7 @@ BC30452: Operator '>=' is not defined for types 'Char' and 'Single'.
 BC30452: Operator '>=' is not defined for types 'Char' and 'Double'.
         result = Ch >= [Do]
                  ~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '>=' is not defined for types 'Char' and 'TypeCode'.
         result = Ch >= Tc
                  ~~~~~~~~
 BC30452: Operator '>=' is not defined for types 'Char' and 'Date'.
@@ -2800,10 +2800,10 @@ BC30452: Operator '>=' is not defined for types 'Double' and 'Date'.
 BC30452: Operator '>=' is not defined for types 'Double' and 'Char'.
         result = [Do] >= Ch
                  ~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '>=' is not defined for types 'TypeCode' and 'Date'.
         result = Tc >= Da
                  ~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '>=' is not defined for types 'TypeCode' and 'Char'.
         result = Tc >= Ch
                  ~~~~~~~~
 BC30452: Operator '<' is not defined for types 'Date' and 'Boolean'.
@@ -2845,7 +2845,7 @@ BC30452: Operator '<' is not defined for types 'Date' and 'Single'.
 BC30452: Operator '<' is not defined for types 'Date' and 'Double'.
         result = Da < [Do]
                  ~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '<' is not defined for types 'Date' and 'TypeCode'.
         result = Da < Tc
                  ~~~~~~~
 BC30452: Operator '<' is not defined for types 'Date' and 'Char'.
@@ -2890,7 +2890,7 @@ BC30452: Operator '<' is not defined for types 'Char' and 'Single'.
 BC30452: Operator '<' is not defined for types 'Char' and 'Double'.
         result = Ch < [Do]
                  ~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '<' is not defined for types 'Char' and 'TypeCode'.
         result = Ch < Tc
                  ~~~~~~~
 BC30452: Operator '<' is not defined for types 'Char' and 'Date'.
@@ -2974,10 +2974,10 @@ BC30452: Operator '<' is not defined for types 'Double' and 'Date'.
 BC30452: Operator '<' is not defined for types 'Double' and 'Char'.
         result = [Do] < Ch
                  ~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '<' is not defined for types 'TypeCode' and 'Date'.
         result = Tc < Da
                  ~~~~~~~
-BC30452: Operator '<' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '<' is not defined for types 'TypeCode' and 'Char'.
         result = Tc < Ch
                  ~~~~~~~
 BC30452: Operator '>' is not defined for types 'Date' and 'Boolean'.
@@ -3019,7 +3019,7 @@ BC30452: Operator '>' is not defined for types 'Date' and 'Single'.
 BC30452: Operator '>' is not defined for types 'Date' and 'Double'.
         result = Da > [Do]
                  ~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator '>' is not defined for types 'Date' and 'TypeCode'.
         result = Da > Tc
                  ~~~~~~~
 BC30452: Operator '>' is not defined for types 'Date' and 'Char'.
@@ -3064,7 +3064,7 @@ BC30452: Operator '>' is not defined for types 'Char' and 'Single'.
 BC30452: Operator '>' is not defined for types 'Char' and 'Double'.
         result = Ch > [Do]
                  ~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator '>' is not defined for types 'Char' and 'TypeCode'.
         result = Ch > Tc
                  ~~~~~~~
 BC30452: Operator '>' is not defined for types 'Char' and 'Date'.
@@ -3148,10 +3148,10 @@ BC30452: Operator '>' is not defined for types 'Double' and 'Date'.
 BC30452: Operator '>' is not defined for types 'Double' and 'Char'.
         result = [Do] > Ch
                  ~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator '>' is not defined for types 'TypeCode' and 'Date'.
         result = Tc > Da
                  ~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator '>' is not defined for types 'TypeCode' and 'Char'.
         result = Tc > Ch
                  ~~~~~~~
 BC30452: Operator 'Xor' is not defined for types 'Date' and 'Boolean'.
@@ -3199,7 +3199,7 @@ BC30452: Operator 'Xor' is not defined for types 'Date' and 'String'.
 BC30452: Operator 'Xor' is not defined for types 'Date' and 'Object'.
         result = Da Xor Ob
                  ~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'TypeCode'.
         result = Da Xor Tc
                  ~~~~~~~~~
 BC30452: Operator 'Xor' is not defined for types 'Date' and 'Date'.
@@ -3256,7 +3256,7 @@ BC30452: Operator 'Xor' is not defined for types 'Char' and 'String'.
 BC30452: Operator 'Xor' is not defined for types 'Char' and 'Object'.
         result = Ch Xor Ob
                  ~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'TypeCode'.
         result = Ch Xor Tc
                  ~~~~~~~~~
 BC30452: Operator 'Xor' is not defined for types 'Char' and 'Date'.
@@ -3364,10 +3364,10 @@ BC30452: Operator 'Xor' is not defined for types 'Object' and 'Date'.
 BC30452: Operator 'Xor' is not defined for types 'Object' and 'Char'.
         result = Ob Xor Ch
                  ~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator 'Xor' is not defined for types 'TypeCode' and 'Date'.
         result = Tc Xor Da
                  ~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator 'Xor' is not defined for types 'TypeCode' and 'Char'.
         result = Tc Xor Ch
                  ~~~~~~~~~
 BC30452: Operator 'Or' is not defined for types 'Date' and 'Boolean'.
@@ -3415,7 +3415,7 @@ BC30452: Operator 'Or' is not defined for types 'Date' and 'String'.
 BC30452: Operator 'Or' is not defined for types 'Date' and 'Object'.
         result = Da Or Ob
                  ~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator 'Or' is not defined for types 'Date' and 'TypeCode'.
         result = Da Or Tc
                  ~~~~~~~~
 BC30452: Operator 'Or' is not defined for types 'Date' and 'Date'.
@@ -3472,7 +3472,7 @@ BC30452: Operator 'Or' is not defined for types 'Char' and 'String'.
 BC30452: Operator 'Or' is not defined for types 'Char' and 'Object'.
         result = Ch Or Ob
                  ~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator 'Or' is not defined for types 'Char' and 'TypeCode'.
         result = Ch Or Tc
                  ~~~~~~~~
 BC30452: Operator 'Or' is not defined for types 'Char' and 'Date'.
@@ -3580,10 +3580,10 @@ BC30452: Operator 'Or' is not defined for types 'Object' and 'Date'.
 BC30452: Operator 'Or' is not defined for types 'Object' and 'Char'.
         result = Ob Or Ch
                  ~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator 'Or' is not defined for types 'TypeCode' and 'Date'.
         result = Tc Or Da
                  ~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator 'Or' is not defined for types 'TypeCode' and 'Char'.
         result = Tc Or Ch
                  ~~~~~~~~
 BC30452: Operator 'And' is not defined for types 'Date' and 'Boolean'.
@@ -3631,7 +3631,7 @@ BC30452: Operator 'And' is not defined for types 'Date' and 'String'.
 BC30452: Operator 'And' is not defined for types 'Date' and 'Object'.
         result = Da And Ob
                  ~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'Date' and 'System.TypeCode'.
+BC30452: Operator 'And' is not defined for types 'Date' and 'TypeCode'.
         result = Da And Tc
                  ~~~~~~~~~
 BC30452: Operator 'And' is not defined for types 'Date' and 'Date'.
@@ -3688,7 +3688,7 @@ BC30452: Operator 'And' is not defined for types 'Char' and 'String'.
 BC30452: Operator 'And' is not defined for types 'Char' and 'Object'.
         result = Ch And Ob
                  ~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'Char' and 'System.TypeCode'.
+BC30452: Operator 'And' is not defined for types 'Char' and 'TypeCode'.
         result = Ch And Tc
                  ~~~~~~~~~
 BC30452: Operator 'And' is not defined for types 'Char' and 'Date'.
@@ -3796,561 +3796,561 @@ BC30452: Operator 'And' is not defined for types 'Object' and 'Date'.
 BC30452: Operator 'And' is not defined for types 'Object' and 'Char'.
         result = Ob And Ch
                  ~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'System.TypeCode' and 'Date'.
+BC30452: Operator 'And' is not defined for types 'TypeCode' and 'Date'.
         result = Tc And Da
                  ~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'System.TypeCode' and 'Char'.
+BC30452: Operator 'And' is not defined for types 'TypeCode' and 'Char'.
         result = Tc And Ch
                  ~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '+' is not defined for types 'Integer' and 'DBNull'.
         result = [In] + DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '+' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing + DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '+' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value + Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '+' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value + DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '+' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value + [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '-' is not defined for types 'Integer' and 'DBNull'.
         result = [In] - DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '-' is not defined for types 'String' and 'DBNull'.
         result = St - DBNull.Value
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '-' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing - DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '-' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value - Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '-' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value - DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '-' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value - [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '-' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value - St
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '*' is not defined for types 'Integer' and 'DBNull'.
         result = [In] * DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '*' is not defined for types 'String' and 'DBNull'.
         result = St * DBNull.Value
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '*' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing * DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '*' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value * Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '*' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value * DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '*' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value * [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '*' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value * St
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '/' is not defined for types 'Integer' and 'DBNull'.
         result = [In] / DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '/' is not defined for types 'String' and 'DBNull'.
         result = St / DBNull.Value
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '/' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing / DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '/' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value / Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '/' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value / DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '/' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value / [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '/' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value / St
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '\' is not defined for types 'Integer' and 'DBNull'.
         result = [In] \ DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '\' is not defined for types 'String' and 'DBNull'.
         result = St \ DBNull.Value
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '\' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing \ DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '\' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value \ Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '\' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value \ DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '\' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value \ [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '\' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value \ St
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator 'Mod' is not defined for types 'Integer' and 'DBNull'.
         result = [In] Mod DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator 'Mod' is not defined for types 'String' and 'DBNull'.
         result = St Mod DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Mod' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing Mod DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Mod' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value Mod Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Mod' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value Mod DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator 'Mod' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value Mod [In]
                  ~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator 'Mod' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value Mod St
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '^' is not defined for types 'Integer' and 'DBNull'.
         result = [In] ^ DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '^' is not defined for types 'String' and 'DBNull'.
         result = St ^ DBNull.Value
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '^' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing ^ DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '^' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value ^ Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '^' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value ^ DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '^' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value ^ [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '^' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value ^ St
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '<<' is not defined for types 'Integer' and 'DBNull'.
         result = [In] << DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '<<' is not defined for types 'String' and 'DBNull'.
         result = St << DBNull.Value
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '<<' is not defined for types 'Integer' and 'DBNull'.
         result = Nothing << DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<<' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value << Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<<' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value << DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '<<' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value << [In]
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '<<' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value << St
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '>>' is not defined for types 'Integer' and 'DBNull'.
         result = [In] >> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '>>' is not defined for types 'String' and 'DBNull'.
         result = St >> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '>>' is not defined for types 'Integer' and 'DBNull'.
         result = Nothing >> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '>>' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value >> Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '>>' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value >> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '>>' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value >> [In]
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '>>' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value >> St
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator 'OrElse' is not defined for types 'Integer' and 'DBNull'.
         result = [In] OrElse DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator 'OrElse' is not defined for types 'String' and 'DBNull'.
         result = St OrElse DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'OrElse' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing OrElse DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'OrElse' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value OrElse Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'OrElse' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value OrElse DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator 'OrElse' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value OrElse [In]
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator 'OrElse' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value OrElse St
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator 'AndAlso' is not defined for types 'Integer' and 'DBNull'.
         result = [In] AndAlso DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator 'AndAlso' is not defined for types 'String' and 'DBNull'.
         result = St AndAlso DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'AndAlso' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing AndAlso DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'AndAlso' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value AndAlso Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'AndAlso' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value AndAlso DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator 'AndAlso' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value AndAlso [In]
                  ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator 'AndAlso' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value AndAlso St
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '&' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '&' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value & DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator 'Like' is not defined for types 'Integer' and 'DBNull'.
         result = [In] Like DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator 'Like' is not defined for types 'String' and 'DBNull'.
         result = St Like DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator 'Like' is not defined for types 'String' and 'DBNull'.
         result = Nothing Like DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator 'Like' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value Like Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Like' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value Like DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator 'Like' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value Like [In]
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator 'Like' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value Like St
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '=' is not defined for types 'Integer' and 'DBNull'.
         result = [In] = DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '=' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing = DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '=' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value = Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '=' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value = DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '=' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value = [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '<>' is not defined for types 'Integer' and 'DBNull'.
         result = [In] <> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<>' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing <> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<>' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value <> Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<>' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value <> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '<>' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value <> [In]
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '<=' is not defined for types 'Integer' and 'DBNull'.
         result = [In] <= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '<=' is not defined for types 'String' and 'DBNull'.
         result = St <= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<=' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing <= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<=' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value <= Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<=' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value <= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '<=' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value <= [In]
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '<=' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value <= St
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '>=' is not defined for types 'Integer' and 'DBNull'.
         result = [In] >= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '>=' is not defined for types 'String' and 'DBNull'.
         result = St >= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '>=' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing >= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '>=' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value >= Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '>=' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value >= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '>=' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value >= [In]
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '>=' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value >= St
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '<' is not defined for types 'Integer' and 'DBNull'.
         result = [In] < DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '<' is not defined for types 'String' and 'DBNull'.
         result = St < DBNull.Value
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing < DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value < Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '<' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value < DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '<' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value < [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '<' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value < St
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator '>' is not defined for types 'Integer' and 'DBNull'.
         result = [In] > DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator '>' is not defined for types 'String' and 'DBNull'.
         result = St > DBNull.Value
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '>' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing > DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '>' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value > Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator '>' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value > DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator '>' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value > [In]
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator '>' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value > St
                  ~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator 'Xor' is not defined for types 'Integer' and 'DBNull'.
         result = [In] Xor DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator 'Xor' is not defined for types 'String' and 'DBNull'.
         result = St Xor DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Xor' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing Xor DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Xor' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value Xor Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Xor' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value Xor DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator 'Xor' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value Xor [In]
                  ~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator 'Xor' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value Xor St
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator 'Or' is not defined for types 'Integer' and 'DBNull'.
         result = [In] Or DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator 'Or' is not defined for types 'String' and 'DBNull'.
         result = St Or DBNull.Value
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Or' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing Or DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Or' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value Or Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'Or' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value Or DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator 'Or' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value Or [In]
                  ~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator 'Or' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value Or St
                  ~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'Integer' and 'System.DBNull'.
+BC30452: Operator 'And' is not defined for types 'Integer' and 'DBNull'.
         result = [In] And DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'String' and 'System.DBNull'.
+BC30452: Operator 'And' is not defined for types 'String' and 'DBNull'.
         result = St And DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'And' is not defined for types 'DBNull' and 'DBNull'.
         result = Nothing And DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'And' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value And Nothing
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'System.DBNull'.
+BC30452: Operator 'And' is not defined for types 'DBNull' and 'DBNull'.
         result = DBNull.Value And DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'Integer'.
+BC30452: Operator 'And' is not defined for types 'DBNull' and 'Integer'.
         result = DBNull.Value And [In]
                  ~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'String'.
+BC30452: Operator 'And' is not defined for types 'DBNull' and 'String'.
         result = DBNull.Value And St
                  ~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '+' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray + DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '+' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '+' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value + ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '-' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray - DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '-' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '-' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value - ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '*' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray * DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '*' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '*' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value * ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '/' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray / DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '/' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '/' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value / ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '\' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray \ DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '\' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '\' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value \ ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator 'Mod' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray Mod DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator 'Mod' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value Mod ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '^' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray ^ DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '^' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '^' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value ^ ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '<<' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray << DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '<<' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value << ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '>>' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray >> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '>>' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value >> ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator 'OrElse' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray OrElse DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator 'OrElse' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value OrElse ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator 'AndAlso' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray AndAlso DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator 'AndAlso' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value AndAlso ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator 'Like' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray Like DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator 'Like' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value Like ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '=' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray = DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '=' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '=' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value = ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '<>' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray <> DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '<>' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value <> ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '<=' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray <= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '<=' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value <= ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '>=' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray >= DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '>=' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value >= ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '<' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray < DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '<' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '<' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value < ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator '>' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray > DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator '>' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value > ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator 'Xor' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray Xor DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator 'Xor' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value Xor ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator 'Or' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray Or DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator 'Or' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value Or ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'Char()' and 'System.DBNull'.
+BC30452: Operator 'And' is not defined for types 'Char()' and 'DBNull'.
         result = ChArray And DBNull.Value
                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'Char()'.
+BC30452: Operator 'And' is not defined for types 'DBNull' and 'Char()'.
         result = DBNull.Value And ChArray
                  ~~~~~~~~~~~~~~~~~~~~~~~~

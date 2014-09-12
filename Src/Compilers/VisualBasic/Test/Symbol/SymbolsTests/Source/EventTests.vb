@@ -772,10 +772,10 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
-BC30456: 'E1' is not a member of 'ClassLibrary1.Class1'.
+BC30456: 'E1' is not a member of 'Class1'.
         AddHandler x.E1, h
                    ~~~~
-BC30456: 'E1' is not a member of 'ClassLibrary1.Class1'.
+BC30456: 'E1' is not a member of 'Class1'.
         RemoveHandler x.E1, h
                       ~~~~
 ]]>
@@ -999,7 +999,7 @@ End Class
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadEventFlags1, "Overrides").WithArguments("Overrides"),
                 Diagnostic(ERRID.WRN_OverrideType5, "E").WithArguments("event", "E", "event", "class", "AbsEvent"),
-                Diagnostic(ERRID.ERR_BaseOnlyClassesMustBeExplicit2, "B").WithArguments("B", "error BC0000: " & vbNewLine & "    AbsEvent: Public MustOverride Event E As System.Action")
+                Diagnostic(ERRID.ERR_BaseOnlyClassesMustBeExplicit2, "B").WithArguments("B", "error BC0000: " & vbNewLine & "    AbsEvent: Public MustOverride Event E As Action")
                 )
         End Sub
 

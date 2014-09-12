@@ -3288,7 +3288,7 @@ class Test
                 "'return' error CS0126: An object of a type convertible to 'object' is required",
                 "'X' error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)",
                 "'return' error CS0126: An object of a type convertible to 'X' is required",
-                "'return' error CS0126: An object of a type convertible to 'N.C' is required",
+                "'return' error CS0126: An object of a type convertible to 'C' is required",
                 "'Y' error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)",
                 "'return' error CS0126: An object of a type convertible to 'Y' is required");
         }
@@ -3364,8 +3364,8 @@ class Test
     }
 }
 ",
-                "'return' error CS0127: Since 'MyNamespace.MyClass.F()' returns void, a return keyword must not be followed by an object expression",
-                "'return' error CS0127: Since 'MyNamespace.MyClass.P.set' returns void, a return keyword must not be followed by an object expression");
+                "'return' error CS0127: Since 'MyClass.F()' returns void, a return keyword must not be followed by an object expression",
+                "'return' error CS0127: Since 'MyClass.P.set' returns void, a return keyword must not be followed by an object expression");
         }
 
         [Fact]
@@ -10142,8 +10142,8 @@ public struct cly
     enum G : int { X = int.MinValue, Y = X - 1, Z }
 }
 ",
-                "'B' error CS0543: 'N.E.B': the enumerator value is too large to fit in its type",
-                "'D' error CS0543: 'N.F.D': the enumerator value is too large to fit in its type",
+                "'B' error CS0543: 'E.B': the enumerator value is too large to fit in its type",
+                "'D' error CS0543: 'F.D': the enumerator value is too large to fit in its type",
                 "'X - 1' error CS0220: The operation overflows at compile time in checked mode");
         }
 
@@ -10261,10 +10261,10 @@ namespace A.B
     }
 }
 ",
-                "'get_P' error CS0571: 'A.B.C.P.get': cannot explicitly call operator or accessor",
-                "'get_Q' error CS0571: 'A.B.C.Q.get': cannot explicitly call operator or accessor",
-                "'set_P' error CS0571: 'A.B.C.P.set': cannot explicitly call operator or accessor",
-                "'set_Q' error CS0571: 'A.B.C.Q.set': cannot explicitly call operator or accessor");
+                "'get_P' error CS0571: 'C.P.get': cannot explicitly call operator or accessor",
+                "'get_Q' error CS0571: 'C.Q.get': cannot explicitly call operator or accessor",
+                "'set_P' error CS0571: 'C.P.set': cannot explicitly call operator or accessor",
+                "'set_Q' error CS0571: 'C.Q.set': cannot explicitly call operator or accessor");
         }
 
         /// <summary>
@@ -10338,11 +10338,11 @@ public class C
     }
 }
 ",
-"'op_Addition' error CS0571: 'System.IntPtr.operator +(System.IntPtr, int)': cannot explicitly call operator or accessor",
-"'op_Subtraction' error CS0571: 'System.IntPtr.operator -(System.IntPtr, int)': cannot explicitly call operator or accessor",
-"'op_Equality' error CS0571: 'System.IntPtr.operator ==(System.IntPtr, System.IntPtr)': cannot explicitly call operator or accessor",
-"'op_Inequality' error CS0571: 'System.IntPtr.operator !=(System.IntPtr, System.IntPtr)': cannot explicitly call operator or accessor",
-"'op_Explicit' error CS0571: 'System.IntPtr.explicit operator System.IntPtr(int)': cannot explicitly call operator or accessor");
+"'op_Addition' error CS0571: 'IntPtr.operator +(IntPtr, int)': cannot explicitly call operator or accessor",
+"'op_Subtraction' error CS0571: 'IntPtr.operator -(IntPtr, int)': cannot explicitly call operator or accessor",
+"'op_Equality' error CS0571: 'IntPtr.operator ==(IntPtr, IntPtr)': cannot explicitly call operator or accessor",
+"'op_Inequality' error CS0571: 'IntPtr.operator !=(IntPtr, IntPtr)': cannot explicitly call operator or accessor",
+"'op_Explicit' error CS0571: 'IntPtr.explicit operator IntPtr(int)': cannot explicitly call operator or accessor");
         }
 
         [Fact]

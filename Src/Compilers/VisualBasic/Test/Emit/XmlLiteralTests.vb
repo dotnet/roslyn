@@ -2275,19 +2275,19 @@ End Class
 BC30002: Type 'Unknown' is not defined.
     Private Shared F8 As Unknown = Nothing
                          ~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XName'.
+BC30512: Option Strict On disallows implicit conversions from 'Object' to 'XName'.
         x = <a <%= F1 %>="b"/>
                ~~~~~~~~~
-BC30311: Value of type 'System.Xml.Linq.XElement' cannot be converted to 'System.Xml.Linq.XName'.
+BC30311: Value of type 'XElement' cannot be converted to 'XName'.
         x = <a <%= F4 %>="b"/>
                ~~~~~~~~~
-BC30311: Value of type 'A' cannot be converted to 'System.Xml.Linq.XName'.
+BC30311: Value of type 'A' cannot be converted to 'XName'.
         x = <a <%= F5 %>="b"/>
                ~~~~~~~~~
-BC30311: Value of type 'S' cannot be converted to 'System.Xml.Linq.XName'.
+BC30311: Value of type 'S' cannot be converted to 'XName'.
         x = <a <%= F6 %>="b"/>
                ~~~~~~~~~
-BC30311: Value of type 'T' cannot be converted to 'System.Xml.Linq.XName'.
+BC30311: Value of type 'T' cannot be converted to 'XName'.
         x = <a <%= F7 %>="b"/>
                ~~~~~~~~~
 ]]></errors>)
@@ -2510,27 +2510,27 @@ BC30002: Type 'Unknown' is not defined.
     Private Shared F8 As Unknown = Nothing
                          ~~~~~~~
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
-    'Public Overloads Sub New(name As System.Xml.Linq.XName)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XName'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XElement)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XElement'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XStreamingElement)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XStreamingElement'.
+    'Public Overloads Sub New(name As XName)': Option Strict On disallows implicit conversions from 'Object' to 'XName'.
+    'Public Overloads Sub New(other As XElement)': Option Strict On disallows implicit conversions from 'Object' to 'XElement'.
+    'Public Overloads Sub New(other As XStreamingElement)': Option Strict On disallows implicit conversions from 'Object' to 'XStreamingElement'.
         x = <<%= F1 %>/>
              ~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
-    'Public Overloads Sub New(name As System.Xml.Linq.XName)': Value of type 'A' cannot be converted to 'System.Xml.Linq.XName'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XElement)': Value of type 'A' cannot be converted to 'System.Xml.Linq.XElement'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XStreamingElement)': Value of type 'A' cannot be converted to 'System.Xml.Linq.XStreamingElement'.
+    'Public Overloads Sub New(name As XName)': Value of type 'A' cannot be converted to 'XName'.
+    'Public Overloads Sub New(other As XElement)': Value of type 'A' cannot be converted to 'XElement'.
+    'Public Overloads Sub New(other As XStreamingElement)': Value of type 'A' cannot be converted to 'XStreamingElement'.
         x = <<%= F5 %>/>
              ~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
-    'Public Overloads Sub New(name As System.Xml.Linq.XName)': Value of type 'S' cannot be converted to 'System.Xml.Linq.XName'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XElement)': Value of type 'S' cannot be converted to 'System.Xml.Linq.XElement'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XStreamingElement)': Value of type 'S' cannot be converted to 'System.Xml.Linq.XStreamingElement'.
+    'Public Overloads Sub New(name As XName)': Value of type 'S' cannot be converted to 'XName'.
+    'Public Overloads Sub New(other As XElement)': Value of type 'S' cannot be converted to 'XElement'.
+    'Public Overloads Sub New(other As XStreamingElement)': Value of type 'S' cannot be converted to 'XStreamingElement'.
         x = <<%= F6 %>/>
              ~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
-    'Public Overloads Sub New(name As System.Xml.Linq.XName)': Value of type 'T' cannot be converted to 'System.Xml.Linq.XName'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XElement)': Value of type 'T' cannot be converted to 'System.Xml.Linq.XElement'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XStreamingElement)': Value of type 'T' cannot be converted to 'System.Xml.Linq.XStreamingElement'.
+    'Public Overloads Sub New(name As XName)': Value of type 'T' cannot be converted to 'XName'.
+    'Public Overloads Sub New(other As XElement)': Value of type 'T' cannot be converted to 'XElement'.
+    'Public Overloads Sub New(other As XStreamingElement)': Value of type 'T' cannot be converted to 'XStreamingElement'.
         x = <<%= F7 %>/>
              ~~~~~~~~~
 ]]></errors>)
@@ -3353,10 +3353,10 @@ End Module
     ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC30456: 'AttributeValue' is not a member of 'System.Xml.Linq.XElement'.
+BC30456: 'AttributeValue' is not a member of 'XElement'.
         o = <x/>.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of XElement)'.
         o = <x/>.<y>.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~~~~~~~
 BC30456: 'Value' is not a member of 'String'.
@@ -3365,13 +3365,13 @@ BC30456: 'Value' is not a member of 'String'.
 BC30456: 'AttributeValue' is not a member of 'String'.
         o = <x/>.@y.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~~~~~~
-BC30456: 'Value' is not a member of 'System.Xml.Linq.XObject'.
+BC30456: 'Value' is not a member of 'XObject'.
         o = _1.Value
             ~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Xml.Linq.XObject'.
+BC30456: 'AttributeValue' is not a member of 'XObject'.
         o = _1.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Xml.Linq.XElement'.
+BC30456: 'AttributeValue' is not a member of 'XElement'.
         o = _2.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
 BC30456: 'AttributeValue' is not a member of 'X'.
@@ -3380,34 +3380,34 @@ BC30456: 'AttributeValue' is not a member of 'X'.
 BC30456: 'AttributeValue' is not a member of 'T'.
         o = _4.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
-BC30456: 'Value' is not a member of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)'.
+BC30456: 'Value' is not a member of 'IEnumerable(Of XObject)'.
         o = _5.Value
             ~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)'.
+BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of XObject)'.
         o = _5.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of XElement)'.
         o = _6.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Collections.Generic.IEnumerable(Of X)'.
+BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of X)'.
         o = _7.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Collections.Generic.IEnumerable(Of T As System.Xml.Linq.XElement)'.
+BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of T As XElement)'.
         o = _8.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
 BC30456: 'AttributeValue' is not a member of 'IEnumerableOfXElement'.
         o = _9.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Xml.Linq.XElement()'.
+BC30456: 'AttributeValue' is not a member of 'XElement()'.
         o = _10.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Collections.Generic.List(Of System.Xml.Linq.XElement)'.
+BC30456: 'AttributeValue' is not a member of 'List(Of XElement)'.
         o = _11.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~~
-BC30456: 'Value' is not a member of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)()'.
+BC30456: 'Value' is not a member of 'IEnumerable(Of XElement)()'.
         o = _12.Value
             ~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)()'.
+BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of XElement)()'.
         o = _12.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -3642,7 +3642,7 @@ End Module
 [Nothing]
 ]]>)
             compilation.Compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         System.Console.WriteLine("{0}", If(TryCast(<x/>.<y>, String), "[Nothing]"))
                                                    ~~~~~~~~
 ]]></errors>)
@@ -4382,9 +4382,9 @@ End Module
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
-    'Public Overloads Sub New(name As System.Xml.Linq.XName)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XName'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XElement)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XElement'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XStreamingElement)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XStreamingElement'.
+    'Public Overloads Sub New(name As XName)': Option Strict On disallows implicit conversions from 'Object' to 'XName'.
+    'Public Overloads Sub New(other As XElement)': Option Strict On disallows implicit conversions from 'Object' to 'XElement'.
+    'Public Overloads Sub New(other As XStreamingElement)': Option Strict On disallows implicit conversions from 'Object' to 'XStreamingElement'.
         Dim y2 = <<%= o2 %>></>
                   ~~~~~~~~~
 ]]></expected>)

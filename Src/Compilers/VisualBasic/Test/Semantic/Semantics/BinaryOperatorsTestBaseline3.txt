@@ -130,12 +130,12 @@ BC30038: Option Strict On prohibits operands of type Object for operator 'Or'.
 BC30038: Option Strict On prohibits operands of type Object for operator 'Or'.
         Ob3 = (Ob1 Or Ob2)
                       ~~~
-BC31080: Operator '=' is not defined for types 'System.IComparable' and 'System.IComparable'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'IComparable' and 'IComparable'. Use 'Is' operator to compare two reference types.
         Ob3 = (i1 = i2)
                ~~~~~~~
-BC31080: Operator '<>' is not defined for types 'System.IComparable' and 'System.IComparable'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '<>' is not defined for types 'IComparable' and 'IComparable'. Use 'Is' operator to compare two reference types.
         Ob3 = (i1 <> i2)
                ~~~~~~~~
-BC30452: Operator '>' is not defined for types 'System.IComparable' and 'System.IComparable'.
+BC30452: Operator '>' is not defined for types 'IComparable' and 'IComparable'.
         Ob3 = (i1 > i2)
                ~~~~~~~

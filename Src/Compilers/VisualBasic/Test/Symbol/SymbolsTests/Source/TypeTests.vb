@@ -1,14 +1,9 @@
 ' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -2638,19 +2633,19 @@ End Namespace
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC37210: Type 'NS1.C1' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'C1' conficts with public type defined in added module 'module.netmodule'.
     Friend Class C1
                  ~~
-BC37210: Type 'NS1.c2' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c2' conficts with public type defined in added module 'module.netmodule'.
     Friend Class c2
                  ~~
 BC40055: Casing of namespace name 'ns1' does not match casing of namespace name 'NS1' in 'a.vb'.
 Namespace ns1
           ~~~
-BC37210: Type 'ns1.C3' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'C3' conficts with public type defined in added module 'module.netmodule'.
     Friend Class C3
                  ~~
-BC37210: Type 'ns1.c4' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c4' conficts with public type defined in added module 'module.netmodule'.
     Friend Class c4
                  ~~
 </expected>)
@@ -2764,7 +2759,7 @@ End Namespace
 BC40055: Casing of namespace name 'ns1' does not match casing of namespace name 'NS1' in 'a.vb'.
 Namespace ns1
           ~~~
-BC37210: Type 'ns1.c4' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c4' conficts with public type defined in added module 'module.netmodule'.
     Friend Class c4
                  ~~
 </expected>)
@@ -2824,10 +2819,10 @@ Friend Class C1
 BC37210: Type 'c2' conficts with public type defined in added module 'module.netmodule'.
 Friend Class c2
              ~~
-BC37210: Type 'ns1.C3' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'C3' conficts with public type defined in added module 'module.netmodule'.
     Friend Class C3
                  ~~
-BC37210: Type 'ns1.c4' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c4' conficts with public type defined in added module 'module.netmodule'.
     Friend Class c4
                  ~~
 </expected>)
@@ -3049,15 +3044,15 @@ End Class
     </file>
 </compilation>
 
-            forwardedTypesSource.@name= "ForwardedTypes1"
+            forwardedTypesSource.@name = "ForwardedTypes1"
             Dim forwardedTypes1 = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseDll)
             Dim forwardedTypes1Ref = New VisualBasicCompilationReference(forwardedTypes1)
 
-            forwardedTypesSource.@name= "ForwardedTypes2"
+            forwardedTypesSource.@name = "ForwardedTypes2"
             Dim forwardedTypes2 = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseDll)
             Dim forwardedTypes2Ref = New VisualBasicCompilationReference(forwardedTypes2)
 
-            forwardedTypesSource.@name= "forwardedTypesMod"
+            forwardedTypesSource.@name = "forwardedTypesMod"
             Dim forwardedTypesModRef = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim modSource =
@@ -3142,7 +3137,7 @@ End Class
 
             Dim module4_Ref = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
 
-            forwardedTypesSource.@name= "consumer"
+            forwardedTypesSource.@name = "consumer"
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(forwardedTypesSource,
                 {

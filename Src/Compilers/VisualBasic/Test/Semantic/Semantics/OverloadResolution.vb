@@ -3242,8 +3242,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'Equal' can be called with these arguments:
-    'Public Shared Sub Equal(Of T)(exp As System.Collections.Generic.IEnumerable(Of T), act As T)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Sub Equal(Of T)(exp As T, act As System.Collections.Generic.IEnumerable(Of T))': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Sub Equal(Of T)(exp As IEnumerable(Of T), act As T)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Sub Equal(Of T)(exp As T, act As IEnumerable(Of T))': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
         Bar.Equal(foo, foo)
             ~~~~~
 </expected>)
@@ -3550,28 +3550,28 @@ BC32050: Type parameter 'S' for 'Public Sub F2(Of T, S)(x As Integer)' cannot be
 BC32050: Type parameter 'T' for 'Public Sub F2(Of T, S)(x As Integer)' cannot be inferred.
         F2(1)
         ~~
-BC30311: Value of type 'System.Guid' cannot be converted to 'Integer'.
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
         F6(g, g)
            ~
-BC30311: Value of type 'System.Guid' cannot be converted to 'Long'.
+BC30311: Value of type 'Guid' cannot be converted to 'Long'.
         F6(g, g)
               ~
-BC30311: Value of type 'System.Guid' cannot be converted to 'Long'.
+BC30311: Value of type 'Guid' cannot be converted to 'Long'.
         F6(y:=g, x:=g)
               ~
-BC30311: Value of type 'System.Guid' cannot be converted to 'Integer'.
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
         F6(y:=g, x:=g)
                     ~
-BC30311: Value of type 'System.Guid' cannot be converted to 'Integer'.
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
         F4(g, Nothing)
            ~
-BC30311: Value of type 'System.Guid' cannot be converted to 'Integer'.
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
         F4(1, g)
               ~
 BC30512: Option Strict On disallows implicit conversions from 'Long' to 'Integer'.
         F3(l)
            ~
-BC30311: Value of type 'System.Guid' cannot be converted to 'Integer'.
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
         F7(g)
            ~
 BC32029: Option Strict On disallows narrowing from type 'Integer' to type 'Short' in copying the value of 'ByRef' parameter 'x' back to the matching argument.
@@ -3662,8 +3662,8 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
         Foo(Of Integer)(1, 2)
         ~~~~~~~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'F1' can be called with these arguments:
-    'Public Sub F1(x As Integer)': Value of type 'System.Guid' cannot be converted to 'Integer'.
-    'Public Sub F1(x As Long)': Value of type 'System.Guid' cannot be converted to 'Long'.
+    'Public Sub F1(x As Integer)': Value of type 'Guid' cannot be converted to 'Integer'.
+    'Public Sub F1(x As Long)': Value of type 'Guid' cannot be converted to 'Long'.
         F1(g)
         ~~
 BC30518: Overload resolution failed because no accessible 'F1' can be called with these arguments:
@@ -4246,16 +4246,16 @@ End Module
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.AssertTheseDiagnostics(<![CDATA[
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
-    'Public Sub Bar(a As System.Action(Of C))': Not most specific.
-    'Public Function Bar(a As System.Action(Of D)) As String': Not most specific.
+    'Public Sub Bar(a As Action(Of C))': Not most specific.
+    'Public Function Bar(a As Action(Of D)) As String': Not most specific.
     Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
                       ~~~]]>)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.AssertTheseDiagnostics(<![CDATA[
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
-    'Public Sub Bar(a As System.Action(Of C))': Not most specific.
-    'Public Function Bar(a As System.Action(Of D)) As String': Not most specific.
+    'Public Sub Bar(a As Action(Of C))': Not most specific.
+    'Public Function Bar(a As Action(Of D)) As String': Not most specific.
     Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
                       ~~~]]>)
         End Sub

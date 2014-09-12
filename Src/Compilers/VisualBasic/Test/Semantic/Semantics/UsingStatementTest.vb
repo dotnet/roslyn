@@ -282,10 +282,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'Object' to 'System.IDisposable'.
+BC42016: Implicit conversion from 'Object' to 'IDisposable'.
         Using Nothing
               ~~~~~~~
-BC42016: Implicit conversion from 'Object' to 'System.IDisposable'.
+BC42016: Implicit conversion from 'Object' to 'IDisposable'.
         Using If(Nothing, Nothing)
               ~~~~~~~~~~~~~~~~~~~~
 </expected>)

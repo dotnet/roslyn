@@ -2410,7 +2410,7 @@ End Namespace
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30109: 'WindowsApplication1.Form1' is a class type and cannot be used as an expression.
+BC30109: 'Form1' is a class type and cannot be used as an expression.
             Dim x1 = WindowsApplication1.Form1
                      ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
@@ -2422,7 +2422,7 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
 BC30469: Reference to a non-shared member requires an object reference.
             Dim x4 = Form2.P2
                      ~~~~~~~~
-BC30109: 'WindowsApplication1.Form1' is a class type and cannot be used as an expression.
+BC30109: 'Form1' is a class type and cannot be used as an expression.
             WindowsApplication1.Form1 = x5
             ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
@@ -2472,7 +2472,7 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30109: 'WindowsApplication1.Form1' is a class type and cannot be used as an expression.
+BC30109: 'Form1' is a class type and cannot be used as an expression.
             Dim x1 = WindowsApplication1.Form1
                      ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
@@ -2484,7 +2484,7 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
 BC30469: Reference to a non-shared member requires an object reference.
             Dim x4 = Form2.P2
                      ~~~~~~~~
-BC30109: 'WindowsApplication1.Form1' is a class type and cannot be used as an expression.
+BC30109: 'Form1' is a class type and cannot be used as an expression.
             WindowsApplication1.Form1 = x5
             ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
@@ -2523,13 +2523,13 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
 BC30109: 'Form2' is a class type and cannot be used as an expression.
             Call Form2(1)
                  ~~~~~
-BC30109: 'WindowsApplication1.Form1' is a class type and cannot be used as an expression.
+BC30109: 'Form1' is a class type and cannot be used as an expression.
             Dim x101 = WindowsApplication1.Form1
                        ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
             Dim x102 = WindowsApplication1.Form1.P1 'BIND2:"WindowsApplication1.Form1"
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30109: 'WindowsApplication1.Form1' is a class type and cannot be used as an expression.
+BC30109: 'Form1' is a class type and cannot be used as an expression.
             Dim x103 = Form1
                        ~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
@@ -2541,13 +2541,13 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
 BC30469: Reference to a non-shared member requires an object reference.
             Dim x106 = Form2.P2
                        ~~~~~~~~
-BC30109: 'WindowsApplication1.Form1' is a class type and cannot be used as an expression.
+BC30109: 'Form1' is a class type and cannot be used as an expression.
             WindowsApplication1.Form1 = x101
             ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
             WindowsApplication1.Form1.P1 = x102
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30109: 'WindowsApplication1.Form1' is a class type and cannot be used as an expression.
+BC30109: 'Form1' is a class type and cannot be used as an expression.
             Form1 = x103
             ~~~~~
 BC30469: Reference to a non-shared member requires an object reference.

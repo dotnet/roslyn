@@ -3993,9 +3993,9 @@ End Module
             compilation.AssertTheseDiagnostics(
                 <expected><![CDATA[
                     BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
-    'Public Overloads Sub New(name As System.Xml.Linq.XName)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XName'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XElement)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XElement'.
-    'Public Overloads Sub New(other As System.Xml.Linq.XStreamingElement)': Option Strict On disallows implicit conversions from 'Object' to 'System.Xml.Linq.XStreamingElement'.
+    'Public Overloads Sub New(name As XName)': Option Strict On disallows implicit conversions from 'Object' to 'XName'.
+    'Public Overloads Sub New(other As XElement)': Option Strict On disallows implicit conversions from 'Object' to 'XElement'.
+    'Public Overloads Sub New(other As XStreamingElement)': Option Strict On disallows implicit conversions from 'Object' to 'XStreamingElement'.
         Dim y2 = <<%= o2 %>></>
                   ~~~~~~~~~
 ]]>

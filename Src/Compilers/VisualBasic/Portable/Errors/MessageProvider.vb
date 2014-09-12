@@ -74,6 +74,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VBDiagnostic(ErrorFactory.ErrorInfo(CType(code, ERRID), args), location)
         End Function
 
+        Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
+            ' show extra info for assembly if possible such as version, publictoken and etc
+            If symbol.Kind = SymbolKind.Assembly OrElse symbol.Kind = SymbolKind.Namespace Then
+                Return symbol.ToString()
+            End If
+
+            ' cases where we actually want fully qualified name
+            If errorCode = ERRID.ERR_AmbiguousAcrossInterfaces3 OrElse
+               errorCode = ERRID.ERR_TypeConflict6 OrElse
+               errorCode = ERRID.ERR_ExportedTypesConflict OrElse
+               errorCode = ERRID.ERR_ForwardedTypeConflictsWithDeclaration OrElse
+               errorCode = ERRID.ERR_ForwardedTypeConflictsWithExportedType OrElse
+               errorCode = ERRID.ERR_ForwardedTypesConflict Then
+                Return symbol.ToString()
+            End If
+
+            ' show fully qualified name for missing special types
+            If errorCode = ERRID.ERR_UnreferencedAssembly3 AndAlso
+               TypeOf symbol Is ITypeSymbol AndAlso
+               DirectCast(symbol, ITypeSymbol).SpecialType <> SpecialType.None Then
+                Return symbol.ToString()
+            End If
+
+            Return SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.VisualBasicShortErrorMessageFormat)
+        End Function
+
         ' Given a message identifier (e.g., CS0219), severity, warning as error and a culture, 
         ' get the entire prefix (e.g., "error BC42024:" for VB) used on error messages.
         Public Overrides Function GetMessagePrefix(id As String, severity As DiagnosticSeverity, isWarningAsError As Boolean, culture As CultureInfo) As String

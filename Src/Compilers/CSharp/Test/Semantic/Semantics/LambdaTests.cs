@@ -239,7 +239,7 @@ class C
     }
 }
 ",
-"'Foo' error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(System.Func<System.IComparable<I>>)' and 'C.Foo(System.Func<I>)'");
+"'Foo' error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'");
         }
 
         [WorkItem(539976, "DevDiv")]
@@ -498,7 +498,7 @@ class Program
 
             var diagnostics = csProject.GetDiagnostics().Select(DumpDiagnostic);
             Assert.Equal(1, diagnostics.Count());
-            Assert.Equal("'x' error CS0721: 'System.GC': static types cannot be used as parameters", diagnostics.First());
+            Assert.Equal("'x' error CS0721: 'GC': static types cannot be used as parameters", diagnostics.First());
         }
 
         [WorkItem(540251, "DevDiv")]

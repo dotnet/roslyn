@@ -809,7 +809,7 @@ BC30508: 'x' cannot expose type 'C(Of E.D).A' in class 'E' through class 'D'.
 BC30508: 'M' cannot expose type 'C(Of E.D).A' in class 'E' through class 'D'.
         Public Function M (x As A) As A
                                       ~
-BC30921: 'F' cannot inherit from class 'System.Collections.Generic.List(Of C(Of E.D).A)' because it expands the access of type 'C(Of E.D).A' to class 'E'.
+BC30921: 'F' cannot inherit from class 'List(Of C(Of E.D).A)' because it expands the access of type 'C(Of E.D).A' to class 'E'.
             Inherits System.Collections.Generic.List(Of A)
                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -843,7 +843,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30922: 'C' cannot inherit from interface 'System.Collections.Generic.IEnumerable(Of Ns.A)' because it expands the access of type 'Ns.A' outside the assembly.
+BC30922: 'C' cannot inherit from interface 'IEnumerable(Of A)' because it expands the access of type 'A' outside the assembly.
         Inherits IEnumerable(Of A)
                  ~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1595,175 +1595,175 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30509: 'PublicClass' cannot inherit from class 'Project1.Module1.PrivateClass' because it expands the access of the base class to namespace 'Project1'.
+BC30509: 'PublicClass' cannot inherit from class 'Module1.PrivateClass' because it expands the access of the base class to namespace 'Project1'.
             Inherits PrivateClass 'err expected - public can't inherit from private
                      ~~~~~~~~~~~~
-BC30509: 'Cls3' cannot inherit from class 'Project1.FriendModule1.PC1' because it expands the access of the base class to namespace 'Project1'.
+BC30509: 'Cls3' cannot inherit from class 'FriendModule1.PC1' because it expands the access of the base class to namespace 'Project1'.
             Inherits PC1 'error expected
                      ~~~
-BC30910: 'C1' cannot inherit from class 'Project1.FriendModule1.Cls2' because it expands the access of the base class outside the assembly.
+BC30910: 'C1' cannot inherit from class 'FriendModule1.Cls2' because it expands the access of the base class outside the assembly.
             inherits FriendModule1.Cls2 'err expected, Module1.Cls2 is really Friend
                      ~~~~~~~~~~~~~~~~~~
-BC30509: 'c1' cannot inherit from class 'Project1.PublicClass1.c2' because it expands the access of the base class to namespace 'Project1'.
+BC30509: 'c1' cannot inherit from class 'PublicClass1.c2' because it expands the access of the base class to namespace 'Project1'.
             Inherits c2 'Need a compile error
                      ~~
-BC30909: 'y' cannot expose type 'Project1.PathalogicalC2.c3.bob' outside the project through class 'PathalogicalC4'.
+BC30909: 'y' cannot expose type 'PathalogicalC2.c3.bob' outside the project through class 'PathalogicalC4'.
 	    Public Function y() As c3.bob
                             ~~~~~~
-BC30508: 'x' cannot expose type 'Project1.foo.foo2.foo3.foo4' in class 'Project1.foo' through class 'foo2'.
+BC30508: 'x' cannot expose type 'foo.foo2.foo3.foo4' in class 'foo' through class 'foo2'.
         Public x As foo3.foo4 'Error because somebody who derives from Protected Foo2 could see our Friend
                     ~~~~~~~~~
-BC30910: 'foo' cannot inherit from class 'Project1.outer.friendcls' because it expands the access of the base class outside the assembly.
+BC30910: 'foo' cannot inherit from class 'outer.friendcls' because it expands the access of the base class outside the assembly.
 	  inherits friendcls 'error because public visibility all the way out
             ~~~~~~~~~
-BC30909: 'e4' cannot expose type 'Project1.Class1.scen4' outside the project through class 'Class1'.
+BC30909: 'e4' cannot expose type 'Class1.scen4' outside the project through class 'Class1'.
     Protected e4 As scen4 'err - exposing a type restricted to the project outside the project
                     ~~~~~
-BC30508: 'x' cannot expose type 'Project1.Bug197195.E' in namespace 'Project1' through class 'Bug197195'.
+BC30508: 'x' cannot expose type 'Bug197195.E' in namespace 'Project1' through class 'Bug197195'.
     Public Function MyDelegate(x as E) as E 'Error - exposing protected types via Public delegate - delegates have special error reporting code
                                     ~
-BC30508: 'MyDelegate' cannot expose type 'Project1.Bug197195.E' in namespace 'Project1' through class 'Bug197195'.
+BC30508: 'MyDelegate' cannot expose type 'Bug197195.E' in namespace 'Project1' through class 'Bug197195'.
     Public Function MyDelegate(x as E) as E 'Error - exposing protected types via Public delegate - delegates have special error reporting code
                                           ~
-BC30508: 'Exposed' cannot expose type 'Project1.Bug237607_1.foo3.foo4' in namespace 'Project1' through class 'Bug237607_1'.
+BC30508: 'Exposed' cannot expose type 'Bug237607_1.foo3.foo4' in namespace 'Project1' through class 'Bug237607_1'.
      Friend Exposed As foo3.foo4 'can be seen by everybody in the Assembly  - the problem guy
                        ~~~~~~~~~
-BC30508: 'foo0' cannot expose type 'Project1.Bug238161_cls1.clsIn' in namespace 'Project1' through class 'Bug238161_cls2'.
+BC30508: 'foo0' cannot expose type 'Bug238161_cls1.clsIn' in namespace 'Project1' through class 'Bug238161_cls2'.
         Public Function foo0() As clsIn '----- Error expected
                                   ~~~~~
-BC30909: 'e' cannot expose type 'Project1.Bug277352B.foo' outside the project through class 'Bug277352A'.
+BC30909: 'e' cannot expose type 'Bug277352B.foo' outside the project through class 'Bug277352A'.
         Protected e As Bug277352B.foo '-- err expected
                        ~~~~~~~~~~~~~~
-BC30909: 'e' cannot expose type 'Project1.Bug277358B.foo' outside the project through class 'Bug277358A'.
+BC30909: 'e' cannot expose type 'Bug277358B.foo' outside the project through class 'Bug277358A'.
         Protected Friend e As Bug277358B.foo '--- error
                               ~~~~~~~~~~~~~~
-BC30508: 'parameter' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through interface 'PublicInterface'.
+BC30508: 'parameter' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through interface 'PublicInterface'.
             Function PublicFunc4(ByVal parameter As PrivateType_FriendCls) As PrivateType_FriendCls 'errors expected
                                                     ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicFunc4' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through interface 'PublicInterface'.
+BC30508: 'PublicFunc4' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through interface 'PublicInterface'.
             Function PublicFunc4(ByVal parameter As PrivateType_FriendCls) As PrivateType_FriendCls 'errors expected
                                                                               ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'parameter' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through interface 'FriendInterface'.
+BC30508: 'parameter' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through interface 'FriendInterface'.
             Function PublicFunc4(ByVal parameter As PrivateType_FriendCls) As PrivateType_FriendCls 'errors expected
                                                     ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicFunc4' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through interface 'FriendInterface'.
+BC30508: 'PublicFunc4' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through interface 'FriendInterface'.
             Function PublicFunc4(ByVal parameter As PrivateType_FriendCls) As PrivateType_FriendCls 'errors expected
                                                                               ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PrivateMember' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through structure 'BadPublicType_FriendCls'.
+BC30508: 'PrivateMember' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through structure 'BadPublicType_FriendCls'.
             Public PrivateMember As PrivateType_FriendCls 'Error expected
                                     ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PrivateMember' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through structure 'BadFriendType_FriendCls'.
+BC30508: 'PrivateMember' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through structure 'BadFriendType_FriendCls'.
             Public PrivateMember As PrivateType_FriendCls 'Error expected
                                     ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicAsPrivateType' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
+BC30508: 'PublicAsPrivateType' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
         Public PublicAsPrivateType As PrivateType_FriendCls 'Error expected
                                       ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicAsPrivateEnum' cannot expose type 'Project1.FriendCls.PrivateEnum_FriendCls' in namespace 'Project1' through class 'FriendCls'.
+BC30508: 'PublicAsPrivateEnum' cannot expose type 'FriendCls.PrivateEnum_FriendCls' in namespace 'Project1' through class 'FriendCls'.
         Public PublicAsPrivateEnum As PrivateEnum_FriendCls 'Error expected ' test an enum for kicks
                                       ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'FriendAsPrivateType' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
+BC30508: 'FriendAsPrivateType' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
         Friend FriendAsPrivateType As PrivateType_FriendCls 'Error expected
                                       ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'parameter' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
+BC30508: 'parameter' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
         Public Function PublicFunc5(ByVal parameter As PrivateType_FriendCls) As PrivateType_FriendCls 'Errors Expected
                                                        ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicFunc5' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
+BC30508: 'PublicFunc5' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
         Public Function PublicFunc5(ByVal parameter As PrivateType_FriendCls) As PrivateType_FriendCls 'Errors Expected
                                                                                  ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'parameter' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
+BC30508: 'parameter' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
         Friend Function FriendFunc5(ByVal parameter As PrivateType_FriendCls) As PrivateType_FriendCls 'Errors Expected
                                                        ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'FriendFunc5' cannot expose type 'Project1.FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
+BC30508: 'FriendFunc5' cannot expose type 'FriendCls.PrivateType_FriendCls' in namespace 'Project1' through class 'FriendCls'.
         Friend Function FriendFunc5(ByVal parameter As PrivateType_FriendCls) As PrivateType_FriendCls 'Errors Expected
                                                                                  ~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'parameter' cannot expose type 'Project1.PublicCls.FriendType_PublicCls' outside the project through interface 'PublicInterface'.
+BC30909: 'parameter' cannot expose type 'PublicCls.FriendType_PublicCls' outside the project through interface 'PublicInterface'.
             Function PublicFunc1(ByVal parameter As FriendType_PublicCls) As FriendType_PublicCls 'errors expected
                                                     ~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicFunc1' cannot expose type 'Project1.PublicCls.FriendType_PublicCls' outside the project through interface 'PublicInterface'.
+BC30909: 'PublicFunc1' cannot expose type 'PublicCls.FriendType_PublicCls' outside the project through interface 'PublicInterface'.
             Function PublicFunc1(ByVal parameter As FriendType_PublicCls) As FriendType_PublicCls 'errors expected
                                                                              ~~~~~~~~~~~~~~~~~~~~
-BC30508: 'parameter' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through interface 'PublicInterface'.
+BC30508: 'parameter' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through interface 'PublicInterface'.
             Function PublicFunc2(ByVal parameter As PrivateType_PublicCls) As PrivateType_PublicCls 'errors expected
                                                     ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicFunc2' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through interface 'PublicInterface'.
+BC30508: 'PublicFunc2' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through interface 'PublicInterface'.
             Function PublicFunc2(ByVal parameter As PrivateType_PublicCls) As PrivateType_PublicCls 'errors expected
                                                                               ~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'parameter' cannot expose type 'Project1.FriendCls.PublicType_FriendCls' outside the project through interface 'PublicInterface'.
+BC30909: 'parameter' cannot expose type 'FriendCls.PublicType_FriendCls' outside the project through interface 'PublicInterface'.
             Function PublicFunc3(ByVal parameter As FriendCls.PublicType_FriendCls) As FriendCls.PublicType_FriendCls 'errors expected - type is from a friend class
                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicFunc3' cannot expose type 'Project1.FriendCls.PublicType_FriendCls' outside the project through interface 'PublicInterface'.
+BC30909: 'PublicFunc3' cannot expose type 'FriendCls.PublicType_FriendCls' outside the project through interface 'PublicInterface'.
             Function PublicFunc3(ByVal parameter As FriendCls.PublicType_FriendCls) As FriendCls.PublicType_FriendCls 'errors expected - type is from a friend class
                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'parameter' cannot expose type 'Project1.FriendCls.FriendType_FriendCls' outside the project through interface 'PublicInterface'.
+BC30909: 'parameter' cannot expose type 'FriendCls.FriendType_FriendCls' outside the project through interface 'PublicInterface'.
             Function PublicFunc4(ByVal parameter As FriendCls.FriendType_FriendCls) As FriendCls.FriendType_FriendCls 'errors expected - type is from a friend class
                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicFunc4' cannot expose type 'Project1.FriendCls.FriendType_FriendCls' outside the project through interface 'PublicInterface'.
+BC30909: 'PublicFunc4' cannot expose type 'FriendCls.FriendType_FriendCls' outside the project through interface 'PublicInterface'.
             Function PublicFunc4(ByVal parameter As FriendCls.FriendType_FriendCls) As FriendCls.FriendType_FriendCls 'errors expected - type is from a friend class
                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'parameter' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through interface 'FriendInterface'.
+BC30508: 'parameter' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through interface 'FriendInterface'.
             Function PublicFunc2(ByVal parameter As PrivateType_PublicCls) As PrivateType_PublicCls 'errors expected
                                                     ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicFunc2' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through interface 'FriendInterface'.
+BC30508: 'PublicFunc2' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through interface 'FriendInterface'.
             Function PublicFunc2(ByVal parameter As PrivateType_PublicCls) As PrivateType_PublicCls 'errors expected
                                                                               ~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'FriendMember_PublicClass' cannot expose type 'Project1.PublicCls.FriendType_PublicCls' outside the project through structure 'BadPublicType_PublicCls'.
+BC30909: 'FriendMember_PublicClass' cannot expose type 'PublicCls.FriendType_PublicCls' outside the project through structure 'BadPublicType_PublicCls'.
             Public FriendMember_PublicClass As FriendType_PublicCls 'Error expected
                                                ~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PrivateMember_PublicClass' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through structure 'BadPublicType_PublicCls'.
+BC30508: 'PrivateMember_PublicClass' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through structure 'BadPublicType_PublicCls'.
             Public PrivateMember_PublicClass As PrivateType_PublicCls 'Error expected
                                                 ~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicMember_FriendClass' cannot expose type 'Project1.FriendCls.PublicType_FriendCls' outside the project through structure 'BadPublicType_PublicCls'.
+BC30909: 'PublicMember_FriendClass' cannot expose type 'FriendCls.PublicType_FriendCls' outside the project through structure 'BadPublicType_PublicCls'.
             Public PublicMember_FriendClass As FriendCls.PublicType_FriendCls 'Error expected - can't publicly expose something defined in a friend class
                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'FriendMember_FriendClass' cannot expose type 'Project1.FriendCls.FriendType_FriendCls' outside the project through structure 'BadPublicType_PublicCls'.
+BC30909: 'FriendMember_FriendClass' cannot expose type 'FriendCls.FriendType_FriendCls' outside the project through structure 'BadPublicType_PublicCls'.
             Public FriendMember_FriendClass As FriendCls.FriendType_FriendCls 'Error expected
                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PrivateMember_PublicClass' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through structure 'BadFriendType_PublicCls'.
+BC30508: 'PrivateMember_PublicClass' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through structure 'BadFriendType_PublicCls'.
             Public PrivateMember_PublicClass As PrivateType_PublicCls 'Error expected
                                                 ~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicAsFriendType_PublicClass' cannot expose type 'Project1.PublicCls.FriendType_PublicCls' outside the project through class 'PublicCls'.
+BC30909: 'PublicAsFriendType_PublicClass' cannot expose type 'PublicCls.FriendType_PublicCls' outside the project through class 'PublicCls'.
         Public PublicAsFriendType_PublicClass As FriendType_PublicCls 'Error expected
                                                  ~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicAsPrivateType_PublicClass' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
+BC30508: 'PublicAsPrivateType_PublicClass' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
         Public PublicAsPrivateType_PublicClass As PrivateType_PublicCls 'Error expected
                                                   ~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicAsPublicType_FriendClass' cannot expose type 'Project1.FriendCls.PublicType_FriendCls' outside the project through class 'PublicCls'.
+BC30909: 'PublicAsPublicType_FriendClass' cannot expose type 'FriendCls.PublicType_FriendCls' outside the project through class 'PublicCls'.
         Public PublicAsPublicType_FriendClass As FriendCls.PublicType_FriendCls 'error expected - can't publicly expose something defined in a friend class
                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicAsFriendType_FriendClass' cannot expose type 'Project1.FriendCls.FriendType_FriendCls' outside the project through class 'PublicCls'.
+BC30909: 'PublicAsFriendType_FriendClass' cannot expose type 'FriendCls.FriendType_FriendCls' outside the project through class 'PublicCls'.
         Public PublicAsFriendType_FriendClass As FriendCls.FriendType_FriendCls 'Error expected
                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'FriendAsPrivateType' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
+BC30508: 'FriendAsPrivateType' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
         Friend FriendAsPrivateType As PrivateType_PublicCls 'Error expected
                                       ~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'parameter' cannot expose type 'Project1.PublicCls.FriendType_PublicCls' outside the project through class 'PublicCls'.
+BC30909: 'parameter' cannot expose type 'PublicCls.FriendType_PublicCls' outside the project through class 'PublicCls'.
         Public Function PublicFunc3(parameter As FriendType_PublicCls) As FriendType_PublicCls  'Errors Expected
                                                  ~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicFunc3' cannot expose type 'Project1.PublicCls.FriendType_PublicCls' outside the project through class 'PublicCls'.
+BC30909: 'PublicFunc3' cannot expose type 'PublicCls.FriendType_PublicCls' outside the project through class 'PublicCls'.
         Public Function PublicFunc3(parameter As FriendType_PublicCls) As FriendType_PublicCls  'Errors Expected
                                                                           ~~~~~~~~~~~~~~~~~~~~
-BC30508: 'parameter' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
+BC30508: 'parameter' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
         Public Function PublicFunc4(ByVal parameter As PrivateType_PublicCls) As PrivateType_PublicCls 'Errors Expected
                                                        ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'PublicFunc4' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
+BC30508: 'PublicFunc4' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
         Public Function PublicFunc4(ByVal parameter As PrivateType_PublicCls) As PrivateType_PublicCls 'Errors Expected
                                                                                  ~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'parameter' cannot expose type 'Project1.FriendCls.PublicType_FriendCls' outside the project through class 'PublicCls'.
+BC30909: 'parameter' cannot expose type 'FriendCls.PublicType_FriendCls' outside the project through class 'PublicCls'.
         Public Function PublicFunc5(ByVal parameter As FriendCls.PublicType_FriendCls) As FriendCls.PublicType_FriendCls 'error Expected - type from a friend class
                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicFunc5' cannot expose type 'Project1.FriendCls.PublicType_FriendCls' outside the project through class 'PublicCls'.
+BC30909: 'PublicFunc5' cannot expose type 'FriendCls.PublicType_FriendCls' outside the project through class 'PublicCls'.
         Public Function PublicFunc5(ByVal parameter As FriendCls.PublicType_FriendCls) As FriendCls.PublicType_FriendCls 'error Expected - type from a friend class
                                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'parameter' cannot expose type 'Project1.FriendCls.FriendType_FriendCls' outside the project through class 'PublicCls'.
+BC30909: 'parameter' cannot expose type 'FriendCls.FriendType_FriendCls' outside the project through class 'PublicCls'.
         Public Function PublicFunc6(ByVal parameter As FriendCls.FriendType_FriendCls) As FriendCls.FriendType_FriendCls 'Errors Expected
                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30909: 'PublicFunc6' cannot expose type 'Project1.FriendCls.FriendType_FriendCls' outside the project through class 'PublicCls'.
+BC30909: 'PublicFunc6' cannot expose type 'FriendCls.FriendType_FriendCls' outside the project through class 'PublicCls'.
         Public Function PublicFunc6(ByVal parameter As FriendCls.FriendType_FriendCls) As FriendCls.FriendType_FriendCls 'Errors Expected
                                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'parameter' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
+BC30508: 'parameter' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
         Friend Function FriendFunc4(ByVal parameter As PrivateType_PublicCls) As PrivateType_PublicCls 'Errors Expected
                                                        ~~~~~~~~~~~~~~~~~~~~~
-BC30508: 'FriendFunc4' cannot expose type 'Project1.PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
+BC30508: 'FriendFunc4' cannot expose type 'PublicCls.PrivateType_PublicCls' in namespace 'Project1' through class 'PublicCls'.
         Friend Function FriendFunc4(ByVal parameter As PrivateType_PublicCls) As PrivateType_PublicCls 'Errors Expected
                                                                                  ~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1830,7 +1830,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30909: 'C' cannot expose type 'Project1.A.B' outside the project through class 'A'.
+BC30909: 'C' cannot expose type 'A.B' outside the project through class 'A'.
         Public C As B 
                     ~
 </expected>)

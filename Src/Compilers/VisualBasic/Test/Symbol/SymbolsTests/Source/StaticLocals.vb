@@ -838,28 +838,28 @@ End Class
 BC42024: Unused local variable: 'x1'.
         Static x1 As ArgIterator
                ~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Static x1 As ArgIterator
                      ~~~~~~~~~~~
 BC42024: Unused local variable: 'x2'.
         Static x2 As ArgIterator()
                ~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Static x2 As ArgIterator()
                      ~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Static x3 As New ArgIterator
                          ~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Static x4, x5 As New ArgIterator
                              ~~~~~~~~~~~
 BC42024: Unused local variable: 'x6'.
         Static x6() As ArgIterator
                ~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Static x6() As ArgIterator
                        ~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Static x7(1) As ArgIterator
                         ~~~~~~~~~~~
 </expected>)

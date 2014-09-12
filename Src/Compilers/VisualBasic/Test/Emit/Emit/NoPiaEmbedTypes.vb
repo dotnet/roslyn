@@ -3747,7 +3747,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36924: Type 'System.Collections.Generic.List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
 </errors>
 
             Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
@@ -3809,7 +3809,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36924: Type 'System.Collections.Generic.List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
         o.M2()
         ~~~~~~
 </errors>
@@ -3939,7 +3939,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36924: Type 'System.Collections.Generic.List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
 </errors>
 
             Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
@@ -4011,7 +4011,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36924: Type 'System.Collections.Generic.List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
         o.M2()
         ~~~~~~
 </errors>

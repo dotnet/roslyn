@@ -380,7 +380,7 @@ End Module
     </compilation>)
             AssertTheseDiagnostics(comp1,
 <expected>
-BC31143: Method 'Public Sub Foo(Of T)(x As T, y As T)' does not have a signature compatible with delegate 'Delegate Function System.Func(Of String, String)(arg As String) As String'.
+BC31143: Method 'Public Sub Foo(Of T)(x As T, y As T)' does not have a signature compatible with delegate 'Delegate Function Func(Of String, String)(arg As String) As String'.
         Dim x = New Func(Of String, String)(AddressOf Foo)
                                                       ~~~
 BC30581: 'AddressOf' expression cannot be converted to 'Object' because 'Object' is not a delegate type.
@@ -389,7 +389,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Object' because 'Object'
 BC30035: Syntax error.
         Dim x21 = Sub() Call Function() Sub() AddressOf Foo
                                               ~~~~~~~~~
-BC31143: Method 'Public Sub Foo(Of T)(x As T, y As T)' does not have a signature compatible with delegate 'Delegate Function System.Func(Of String, String)(arg As String) As String'.
+BC31143: Method 'Public Sub Foo(Of T)(x As T, y As T)' does not have a signature compatible with delegate 'Delegate Function Func(Of String, String)(arg As String) As String'.
         Dim x3 As Func(Of Func(Of String, String)) = Function() AddressOf Foo
                                                                           ~~~
 

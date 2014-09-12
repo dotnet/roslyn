@@ -783,10 +783,10 @@ BC30469: Reference to a non-shared member requires an object reference.
 BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
         Dim x As System.Action = AddressOf Test
                                  ~~~~~~~~~~~~~~
-BC31143: Method 'Public Sub Test(this As C1)' does not have a signature compatible with delegate 'Delegate Sub System.Action()'.
+BC31143: Method 'Public Sub Test(this As C1)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
         Dim x As System.Action = AddressOf NS1.Test
                                            ~~~~~~~~
-BC31143: Method 'Public Sub Test(this As C1)' does not have a signature compatible with delegate 'Delegate Sub System.Action()'.
+BC31143: Method 'Public Sub Test(this As C1)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
         Dim x As System.Action = AddressOf NS1.Module2.Test
                                            ~~~~~~~~~~~~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
@@ -851,13 +851,13 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36709: Option Strict On does not allow narrowing in implicit type conversions between extension method 'Public Sub F1(y As Integer)' defined in 'Module2' and delegate 'Delegate Sub System.Action(Of Long)(obj As Long)'.
+BC36709: Option Strict On does not allow narrowing in implicit type conversions between extension method 'Public Sub F1(y As Integer)' defined in 'Module2' and delegate 'Delegate Sub Action(Of Long)(obj As Long)'.
         Dim d1 As System.Action(Of Long) = AddressOf x.F1
                                                      ~~~~
-BC36710: Extension Method 'Public Sub F2(y As Long, z As Integer)' defined in 'Module2' does not have a signature compatible with delegate 'Delegate Sub System.Action(Of Long)(obj As Long)'.
+BC36710: Extension Method 'Public Sub F2(y As Long, z As Integer)' defined in 'Module2' does not have a signature compatible with delegate 'Delegate Sub Action(Of Long)(obj As Long)'.
         Dim d2 As System.Action(Of Long) = AddressOf x.F2
                                                      ~~~~
-BC30950: No accessible method 'F3' has a signature compatible with delegate 'Delegate Sub System.Action(Of Long)(obj As Long)':
+BC30950: No accessible method 'F3' has a signature compatible with delegate 'Delegate Sub Action(Of Long)(obj As Long)':
     Extension method 'Public Sub F3(y As Integer)' defined in 'Module2': Argument matching parameter 'y' narrows from 'Long' to 'Integer'.
     Extension method 'Public Sub F3(y As Byte)' defined in 'Module3': Argument matching parameter 'y' narrows from 'Long' to 'Byte'.
         Dim d3 As System.Action(Of Long) = AddressOf x.F3

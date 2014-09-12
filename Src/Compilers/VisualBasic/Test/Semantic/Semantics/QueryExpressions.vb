@@ -167,7 +167,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC32050: Type parameter 'T' for 'Public Function Where(Of T)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
+BC32050: Type parameter 'T' for 'Public Function Where(Of T)(x As Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
         Dim q1 As Object = From s In q Where s > 0 
                                        ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
@@ -212,10 +212,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC32050: Type parameter 'T' for 'Public Function Where(Of T, U)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
+BC32050: Type parameter 'T' for 'Public Function Where(Of T, U)(x As Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
         Dim q1 As Object = From s In q Where s > 0 
                                        ~~~~~
-BC32050: Type parameter 'U' for 'Public Function Where(Of T, U)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
+BC32050: Type parameter 'U' for 'Public Function Where(Of T, U)(x As Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
         Dim q1 As Object = From s In q Where s > 0 
                                        ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
@@ -263,7 +263,7 @@ End Module
 BC36594: Definition of method 'Where' is not accessible in this context.
         Dim q1 As Object = From s In q Where s > 0 
                                        ~~~~~
-BC36648: Data type(s) of the type parameter(s) in method 'Public Function Where(Of T, U)(x As System.Func(Of T, System.Action(Of U))) As QueryAble' cannot be inferred from these arguments.
+BC36648: Data type(s) of the type parameter(s) in method 'Public Function Where(Of T, U)(x As Func(Of T, Action(Of U))) As QueryAble' cannot be inferred from these arguments.
         Dim q1 As Object = From s In q Where s > 0 
                                        ~~~~~
 </expected>)
@@ -1018,13 +1018,13 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    'Public Function Where(x As System.Delegate) As QueryAble': Lambda expression cannot be converted to 'System.Delegate' because type 'System.Delegate' is declared 'MustInherit' and cannot be created.
-    'Public Function Where(x As System.MulticastDelegate) As QueryAble': Lambda expression cannot be converted to 'System.MulticastDelegate' because type 'System.MulticastDelegate' is declared 'MustInherit' and cannot be created.
+    'Public Function Where(x As [Delegate]) As QueryAble': Lambda expression cannot be converted to '[Delegate]' because type '[Delegate]' is declared 'MustInherit' and cannot be created.
+    'Public Function Where(x As MulticastDelegate) As QueryAble': Lambda expression cannot be converted to 'MulticastDelegate' because type 'MulticastDelegate' is declared 'MustInherit' and cannot be created.
     'Public Function Where(x As Object) As QueryAble': Lambda expression cannot be converted to 'Object' because 'Object' is not a delegate type.
-    'Public Function Where(x As System.Action(Of Integer)) As QueryAble': Nested function does not have the same signature as delegate 'System.Action(Of Integer)'.
-    'Public Function Where(x As System.Func(Of Integer, Integer, Boolean)) As QueryAble': Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer, Boolean)'.
+    'Public Function Where(x As Action(Of Integer)) As QueryAble': Nested function does not have the same signature as delegate 'Action(Of Integer)'.
+    'Public Function Where(x As Func(Of Integer, Integer, Boolean)) As QueryAble': Nested function does not have the same signature as delegate 'Func(Of Integer, Integer, Boolean)'.
     'Public Function Where(x As QueryAble.WithByRef) As QueryAble': Nested function does not have the same signature as delegate 'QueryAble.WithByRef'.
-    'Public Function Where(x As System.Func(Of Byte, Boolean)) As QueryAble': Nested function does not have the same signature as delegate 'System.Func(Of Byte, Boolean)'.
+    'Public Function Where(x As Func(Of Byte, Boolean)) As QueryAble': Nested function does not have the same signature as delegate 'Func(Of Byte, Boolean)'.
         Dim q1 As Object = From s In q Where s > 0
                                        ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
@@ -1874,7 +1874,7 @@ BC36606: Range variable name cannot match the name of a member of the 'Object' c
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q8 As Object = From name6 In q Select (From x In q Select name6 = x)
                                            ~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q8 As Object = From name6 In q Select (From x In q Select name6 = x)
                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30978: Range variable 'name6' hides a variable in an enclosing block or a range variable previously defined in the query expression.
@@ -1918,7 +1918,7 @@ BC36606: Range variable name cannot match the name of a member of the 'Object' c
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q8 As Object = From name6 In q Select (From x In q Select name6 = x)
                                            ~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q8 As Object = From name6 In q Select (From x In q Select name6 = x)
                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36633: Range variable 'name6' hides a variable in an enclosing block, a previously defined range variable, or an implicitly declared variable in a query expression.
@@ -1936,7 +1936,7 @@ BC36633: Range variable 'name9' hides a variable in an enclosing block, a previo
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q12 As Object = From x In q Select x1 As Integer = x
                                         ~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q12 As Object = From x In q Select x1 As Integer = x
                                         ~~~~~~~~~
 BC36633: Range variable 'x1' hides a variable in an enclosing block, a previously defined range variable, or an implicitly declared variable in a query expression.
@@ -2122,7 +2122,7 @@ BC30311: Value of type 'Date' cannot be converted to 'Boolean'.
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q5 As Object = From s In q Select s.Equals(0)
                                        ~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q5 As Object = From s In q Select s.Equals(0)
                                        ~~~~~~~~~~~~~~~~~~
 BC36610: Name 'DoesntExist' is either not declared or not in the current scope.
@@ -2221,13 +2221,13 @@ BC36629: Nullable type inference is not supported in this context.
 BC36607: 'In' expected.
         Dim q2 As Object = From s() In q Select s
                                  ~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q3 As Object = From s? As Integer In q Select s
                                    ~~~~~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q3 As Object = From s? As Integer In q Select s
                                    ~~~~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q3 As Object = From s? As Integer In q Select s
                                                    ~~~~~~~~
 BC36601: Type characters cannot be used in range variable declarations.
@@ -2322,19 +2322,19 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q1 As Object = From s As Byte In q
                                   ~~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q1 As Object = From s As Byte In q
                                   ~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q2 As Object = From s As Byte In q Select s
                                   ~~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q2 As Object = From s As Byte In q Select s
                                   ~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q2 As Object = From s As Byte In q Select s
                                                ~~~~~~~~
 </expected>)
@@ -2347,7 +2347,7 @@ BC36532: Nested function does not have the same signature as delegate 'System.Fu
 BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
         Dim q1 As Object = From s As Byte In q
                                   ~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q1 As Object = From s As Byte In q
                                   ~~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
@@ -2356,13 +2356,13 @@ BC36594: Definition of method 'Select' is not accessible in this context.
 BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
         Dim q2 As Object = From s As Byte In q Select s
                                   ~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q2 As Object = From s As Byte In q Select s
                                   ~~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q2 As Object = From s As Byte In q Select s
                                   ~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q2 As Object = From s As Byte In q Select s
                                                ~~~~~~~~
 </expected>)
@@ -2399,7 +2399,7 @@ End Module
 BC30002: Type 'DoesntExist' is not defined.
     Public Function Cast(Of T)() As DoesntExist
                                     ~~~~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'Object' to 'System.Guid'.
+BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Guid'.
         Dim q10 As Object = From s As Guid In q
                                    ~~~~~~~
 </expected>)
@@ -2433,7 +2433,7 @@ End Module
 BC36593: Expression of type 'QueryAble' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.
         Dim q10 As Object = From s As Integer In q Select CType(s, Guid)
                                                  ~
-BC30311: Value of type 'Integer' cannot be converted to 'System.Guid'.
+BC30311: Value of type 'Integer' cannot be converted to 'Guid'.
         Dim q10 As Object = From s As Integer In q Select CType(s, Guid)
                                                                 ~
 </expected>)
@@ -2883,8 +2883,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Where' is most specific for these arguments:
-    'Public Function Where(x As System.Func(Of Integer, Byte)) As QueryAble': Not most specific.
-    'Public Function Where(x As System.Func(Of Integer, System.DateTimeKind)) As QueryAble': Not most specific.
+    'Public Function Where(x As Func(Of Integer, Byte)) As QueryAble': Not most specific.
+    'Public Function Where(x As Func(Of Integer, DateTimeKind)) As QueryAble': Not most specific.
         q.Where(Function(s) 0)
           ~~~~~
 </expected>)
@@ -2929,8 +2929,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30519: Overload resolution failed because no accessible 'Where' can be called without a narrowing conversion:
-    'Public Function Where(x As System.Func(Of Integer, Byte)) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'Byte'.
-    'Public Function Where(x As System.Func(Of Integer, SByte)) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'SByte'.
+    'Public Function Where(x As Func(Of Integer, Byte)) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'Byte'.
+    'Public Function Where(x As Func(Of Integer, SByte)) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'SByte'.
         Dim q1 As Object = From s In q Where CObj(s)
                                        ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
@@ -2979,8 +2979,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30519: Overload resolution failed because no accessible 'Where' can be called without a narrowing conversion:
-    'Public Function Where(x As System.Linq.Expressions.Expression(Of System.Func(Of Integer, Byte))) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'Byte'.
-    'Public Function Where(x As System.Linq.Expressions.Expression(Of System.Func(Of Integer, SByte))) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'SByte'.
+    'Public Function Where(x As Expression(Of Func(Of Integer, Byte))) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'Byte'.
+    'Public Function Where(x As Expression(Of Func(Of Integer, SByte))) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'SByte'.
         Dim q1 As Object = From s In q Where CObj(s)
                                        ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
@@ -4015,7 +4015,7 @@ End Module
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q0 As Object = From s In q Select x1 = s, x2 = s
                                        ~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q0 As Object = From s In q Select x1 = s, x2 = s
                                        ~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -4688,7 +4688,7 @@ End Module
 BC36594: Definition of method 'Select' is not accessible in this context.
         Dim q0 As Object = From s In q Let t1 = s + 1
                                        ~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q0 As Object = From s In q Let t1 = s + 1
                                                 ~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
@@ -6069,7 +6069,7 @@ BC36610: Name 'DoesntExist' is either not declared or not in the current scope.
 BC36610: Name 'DoesntExist' is either not declared or not in the current scope.
         q0 = From s1 In New Integer() {1, 2} Join s2 In New Integer() {1, 2} On s2 + DoesntExist Equals s1 + s2 + DoesntExist
                                                                                                                   ~~~~~~~~~~~
-BC36621: 'Equals' cannot compare a value of type 'Date' with a value of type 'System.Guid'.
+BC36621: 'Equals' cannot compare a value of type 'Date' with a value of type 'Guid'.
         q0 = From s1 In New Date() {} Join s2 In New Guid() {} On s1 Equals s2
                                                                   ~~~~~~~~~~~~
 BC36618: 'On' expected.
@@ -8773,7 +8773,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30390: 'cls1.Private Function aggr10(sel As System.Func(Of Integer, Integer)) As Object' is not accessible in this context because it is 'Private'.
+BC30390: 'cls1.Private Function aggr10(sel As Func(Of Integer, Integer)) As Object' is not accessible in this context because it is 'Private'.
         Dim q10m = Aggregate i In colm Into aggr10(10)
                                             ~~~~~~~~~~
 </expected>)
@@ -9369,13 +9369,13 @@ End Module
 BC36594: Definition of method 'Select' is not accessible in this context.
         q0 = From s0 in q Aggregate s1 In q Into Where(True)
                           ~~~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         q0 = From s0 in q Aggregate s1 In q Into Where(True)
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         q0 = From s0 in q Aggregate s1 In q Into Where(True), Distinct
                           ~~~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         q0 = From s0 in q Aggregate s1 In q Into Where(True), Distinct
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36594: Definition of method 'Skip' is not accessible in this context.
@@ -9626,7 +9626,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public Function ElementAtOrDefault(x As Integer) As System.Guid'.
+BC30057: Too many arguments to 'Public Function ElementAtOrDefault(x As Integer) As Guid'.
         System.Console.WriteLine(xx1(0, 1))
                                         ~
 BC30367: Class 'DefaultQueryIndexer1' cannot be indexed because it has no default property.
@@ -9828,10 +9828,10 @@ Imports System.Linq
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36598: Instance of restricted type 'System.ArgIterator' cannot be used in a query expression.
+BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query expression.
                 Dim q1 = From i In col Where x.GetRemainingCount > 0 Select a = 1
                                              ~
-BC36598: Instance of restricted type 'System.ArgIterator' cannot be used in a query expression.
+BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query expression.
                 Dim q2 = From i In col Where y.GetRemainingCount > 0 Select a = 2
                                              ~
 </expected>)
@@ -9982,19 +9982,19 @@ BC36614: Range variable name cannot be inferred from an XML identifier that is n
 BC36599: Range variable name can be inferred only from a simple or qualified name with no arguments.
         o = From a In x Select y = 1, x.<Elem2>(0, 1)
                                       ~~~~~~~~~~~~~~~
-BC36582: Too many arguments to extension method 'Public Function ElementAtOrDefault(index As Integer) As System.Xml.Linq.XElement' defined in 'System.Linq.Enumerable'.
+BC36582: Too many arguments to extension method 'Public Function ElementAtOrDefault(index As Integer) As XElement' defined in 'Enumerable'.
         o = From a In x Select y = 1, x.<Elem2>(0, 1)
                                                    ~
 BC36599: Range variable name can be inferred only from a simple or qualified name with no arguments.
         o = From a In x Select y = 1, x...<Elem2>(0, 1)
                                       ~~~~~~~~~~~~~~~~~
-BC36582: Too many arguments to extension method 'Public Function ElementAtOrDefault(index As Integer) As System.Xml.Linq.XElement' defined in 'System.Linq.Enumerable'.
+BC36582: Too many arguments to extension method 'Public Function ElementAtOrDefault(index As Integer) As XElement' defined in 'Enumerable'.
         o = From a In x Select y = 1, x...<Elem2>(0, 1)
                                                      ~
-BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As System.Xml.Linq.XElement' defined in 'System.Linq.Enumerable'.
+BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As XElement' defined in 'Enumerable'.
         o = From a In x Select y = 1, x.<Elem2>()
                                         ~~~~~~~
-BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As System.Xml.Linq.XElement' defined in 'System.Linq.Enumerable'.
+BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As XElement' defined in 'Enumerable'.
         o = From a In x Select y = 1, x...<Elem2>()
                                           ~~~~~~~
 ]]></expected>)
@@ -10051,40 +10051,40 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2()
                   ~~~~~~~~~~~~~~~~~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         xx = From ii In New Queryable2()
                   ~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2() Select ii
                                          ~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         xx = From ii In New Queryable2() Select ii
                                          ~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2() Select (ii)
                                          ~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         xx = From ii In New Queryable2() Select (ii)
                                          ~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2() Select jj = ii
                                          ~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         xx = From ii In New Queryable2() Select jj = ii
                                          ~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2() Where True
                                          ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
         xx = From ii In New Queryable2() Where True
                                          ~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2(), jj In New Queryable2()
                   ~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2(), jj In New Queryable2()
                                           ~~
 </expected>)
@@ -10142,10 +10142,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2(), jj In New Queryable2()
                   ~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2(), jj In New Queryable2()
                                           ~~
 </expected>)
@@ -10168,25 +10168,25 @@ End Module
     </file>
     </compilation>, additionalRefs:={SystemCoreRef}).AssertTheseDiagnostics(
     <expected>
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim c1 As System.ArgIterator()() = Nothing
                   ~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim c2 As System.TypedReference()() = Nothing
                   ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z = From x In c1, y In c2
                      ~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z = From x In c1, y In c2
                      ~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z = From x In c1, y In c2
                      ~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z = From x In c1, y In c2
                               ~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z = From x In c1, y In c2
                               ~
 </expected>)
@@ -10461,7 +10461,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30390: 'QueryAble.Private Function TakeWhile(x As System.Func(Of Integer, Boolean)) As QueryAble(Of Integer)' is not accessible in this context because it is 'Private'.
+BC30390: 'QueryAble.Private Function TakeWhile(x As Func(Of Integer, Boolean)) As QueryAble(Of Integer)' is not accessible in this context because it is 'Private'.
         Dim q0 = From s1 In qi Take While False'BIND:"Take While False"
                                ~~~~~~~~~~~~~~~~
 </expected>)
@@ -10551,7 +10551,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30390: 'QueryAble.Private Function GroupBy(Of K, R)(key As System.Func(Of Integer, K), into As System.Func(Of K, QueryAble(Of Integer), R)) As QueryAble(Of R)' is not accessible in this context because it is 'Private'.
+BC30390: 'QueryAble.Private Function GroupBy(Of K, R)(key As Func(Of Integer, K), into As Func(Of K, QueryAble(Of Integer), R)) As QueryAble(Of R)' is not accessible in this context because it is 'Private'.
         Dim q As Object = From s In qi Group By key = Nothing Into [Select](s)
                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -10639,7 +10639,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30390: 'QueryAble.Private Function GroupJoin(Of I, K, R)(inner As QueryAble(Of I), outerKey As System.Func(Of Integer, K), innerKey As System.Func(Of I, K), x As System.Func(Of Integer, QueryAble(Of I), R)) As QueryAble(Of R)' is not accessible in this context because it is 'Private'.
+BC30390: 'QueryAble.Private Function GroupJoin(Of I, K, R)(inner As QueryAble(Of I), outerKey As Func(Of Integer, K), innerKey As Func(Of I, K), x As Func(Of Integer, QueryAble(Of I), R)) As QueryAble(Of R)' is not accessible in this context because it is 'Private'.
         Dim q0 As Object = From s1 In qi Group Join t1 In qi On s1 Equals t1 Into [Select](t1)
                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)

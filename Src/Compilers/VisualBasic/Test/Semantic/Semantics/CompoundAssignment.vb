@@ -223,31 +223,31 @@ BC42016: Implicit conversion from 'String' to 'Double'.
 BC42016: Implicit conversion from 'Double' to 'String'.
         x += 1
         ~~~~~~
-BC30452: Operator '+' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '+' is not defined for types 'Guid' and 'Integer'.
         y += 1
         ~~~~~~
-BC30452: Operator '-' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '-' is not defined for types 'Guid' and 'Integer'.
         y -= 1
         ~~~~~~
-BC30452: Operator '*' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '*' is not defined for types 'Guid' and 'Integer'.
         y *= 1
         ~~~~~~
-BC30452: Operator '/' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '/' is not defined for types 'Guid' and 'Integer'.
         y /= 1
         ~~~~~~
-BC30452: Operator '\' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '\' is not defined for types 'Guid' and 'Integer'.
         y \= 1
         ~~~~~~
-BC30452: Operator '^' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '^' is not defined for types 'Guid' and 'Integer'.
         y ^= 1
         ~~~~~~
-BC30452: Operator '<<' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '<<' is not defined for types 'Guid' and 'Integer'.
         y <<= 1
         ~~~~~~~
-BC30452: Operator '>>' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '>>' is not defined for types 'Guid' and 'Integer'.
         y >>= 1
         ~~~~~~~
-BC30452: Operator '&' is not defined for types 'System.Guid' and 'Integer'.
+BC30452: Operator '&' is not defined for types 'Guid' and 'Integer'.
         y &= 1
         ~~~~~~
 BC42016: Implicit conversion from 'Object' to 'String'.

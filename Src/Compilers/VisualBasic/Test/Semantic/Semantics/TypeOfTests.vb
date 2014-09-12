@@ -147,7 +147,7 @@ End Module
 BC30371: Module 'Program' cannot be used as a type.
         If TypeOf obj Is Program Then
                          ~~~~~~~
-BC31430: Expression of type 'String' can never be of type 'System.AppDomain'.
+BC31430: Expression of type 'String' can never be of type 'AppDomain'.
         If TypeOf s Is AppDomain Then
            ~~~~~~~~~~~~~~~~~~~~~
 BC31430: Expression of type 'String' can never be of type 'Integer'.

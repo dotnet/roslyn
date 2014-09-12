@@ -4597,31 +4597,31 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30390: 'TestC.Protected Sub Test1(x As System.Guid)' is not accessible in this context because it is 'Protected'.
+BC30390: 'TestC.Protected Sub Test1(x As Guid)' is not accessible in this context because it is 'Protected'.
         x.Test1(1)
         ~~~~~~~
-BC30311: Value of type 'Integer' cannot be converted to 'System.Guid'.
+BC30311: Value of type 'Integer' cannot be converted to 'Guid'.
         x.Test1(1)
                 ~
 BC30517: Overload resolution failed because no 'Test2' is accessible.
         x.Test2(1)
         ~~~~~~~
-BC30390: 'TestC.Protected Sub Test1(x As System.Guid)' is not accessible in this context because it is 'Protected'.
+BC30390: 'TestC.Protected Sub Test1(x As Guid)' is not accessible in this context because it is 'Protected'.
         x.Test1(Of Integer)(1)
         ~~~~~~~~~~~~~~~~~~~
-BC32045: 'Protected Sub Test1(x As System.Guid)' has no type parameters and so cannot have type arguments.
+BC32045: 'Protected Sub Test1(x As Guid)' has no type parameters and so cannot have type arguments.
         x.Test1(Of Integer)(1)
                ~~~~~~~~~~~~
 BC30517: Overload resolution failed because no 'Test2' is accessible.
         x.Test2(Of Integer)(1)
         ~~~~~~~~~~~~~~~~~~~
-BC30390: 'TestC.Protected Sub Test1(x As System.Guid)' is not accessible in this context because it is 'Protected'.
+BC30390: 'TestC.Protected Sub Test1(x As Guid)' is not accessible in this context because it is 'Protected'.
         x.Test1(1,2)
         ~~~~~~~
-BC30311: Value of type 'Integer' cannot be converted to 'System.Guid'.
+BC30311: Value of type 'Integer' cannot be converted to 'Guid'.
         x.Test1(1,2)
                 ~
-BC30057: Too many arguments to 'Protected Sub Test1(x As System.Guid)'.
+BC30057: Too many arguments to 'Protected Sub Test1(x As Guid)'.
         x.Test1(1,2)
                   ~
 BC30390: 'TestC.Protected Sub Test3(Of T)(x As Integer)' is not accessible in this context because it is 'Protected'.
@@ -4633,7 +4633,7 @@ BC32050: Type parameter 'T' for 'Protected Sub Test3(Of T)(x As Integer)' cannot
 BC30517: Overload resolution failed because no 'Test4' is accessible.
         x.Test4(1)
         ~~~~~~~
-BC30390: 'TestC.Protected Sub Test1(x As System.Guid)' is not accessible in this context because it is 'Protected'.
+BC30390: 'TestC.Protected Sub Test1(x As Guid)' is not accessible in this context because it is 'Protected'.
         x.Test1(DoesntExist)
         ~~~~~~~
 BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protection level.
@@ -4648,28 +4648,28 @@ BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protec
 BC30517: Overload resolution failed because no 'Test5' is accessible.
         x.Test5(y)
         ~~~~~~~
-BC30390: 'TestC.Protected Sub Test1(x As System.Guid)' is not accessible in this context because it is 'Protected'.
+BC30390: 'TestC.Protected Sub Test1(x As Guid)' is not accessible in this context because it is 'Protected'.
         Dim d1 As System.Action(Of Integer) = AddressOf x.Test1
                                                         ~~~~~~~
-BC31143: Method 'Protected Sub Test1(x As System.Guid)' does not have a signature compatible with delegate 'Delegate Sub System.Action(Of Integer)(obj As Integer)'.
+BC31143: Method 'Protected Sub Test1(x As Guid)' does not have a signature compatible with delegate 'Delegate Sub Action(Of Integer)(obj As Integer)'.
         Dim d1 As System.Action(Of Integer) = AddressOf x.Test1
                                                         ~~~~~~~
 BC30517: Overload resolution failed because no 'Test2' is accessible.
         Dim d2 As System.Action(Of Integer) = AddressOf x.Test2
                                                         ~~~~~~~
-BC30390: 'TestC.Protected Sub Test1(x As System.Guid)' is not accessible in this context because it is 'Protected'.
+BC30390: 'TestC.Protected Sub Test1(x As Guid)' is not accessible in this context because it is 'Protected'.
         Dim d3 As System.Action(Of Integer) = AddressOf x.Test1(Of Integer)
                                                         ~~~~~~~~~~~~~~~~~~~
-BC32045: 'Protected Sub Test1(x As System.Guid)' has no type parameters and so cannot have type arguments.
+BC32045: 'Protected Sub Test1(x As Guid)' has no type parameters and so cannot have type arguments.
         Dim d3 As System.Action(Of Integer) = AddressOf x.Test1(Of Integer)
                                                                ~~~~~~~~~~~~
 BC30517: Overload resolution failed because no 'Test2' is accessible.
         Dim d4 As System.Action(Of Integer) = AddressOf x.Test2(Of Integer)
                                                         ~~~~~~~~~~~~~~~~~~~
-BC30390: 'TestC.Protected Sub Test1(x As System.Guid)' is not accessible in this context because it is 'Protected'.
+BC30390: 'TestC.Protected Sub Test1(x As Guid)' is not accessible in this context because it is 'Protected'.
         Dim d5 As System.Action(Of Integer, Integer) = AddressOf x.Test1
                                                                  ~~~~~~~
-BC31143: Method 'Protected Sub Test1(x As System.Guid)' does not have a signature compatible with delegate 'Delegate Sub System.Action(Of Integer, Integer)(arg1 As Integer, arg2 As Integer)'.
+BC31143: Method 'Protected Sub Test1(x As Guid)' does not have a signature compatible with delegate 'Delegate Sub Action(Of Integer, Integer)(arg1 As Integer, arg2 As Integer)'.
         Dim d5 As System.Action(Of Integer, Integer) = AddressOf x.Test1
                                                                  ~~~~~~~
 BC30390: 'TestC.Protected Sub Test3(Of T)(x As Integer)' is not accessible in this context because it is 'Protected'.
@@ -4687,7 +4687,7 @@ BC30517: Overload resolution failed because no 'Test5' is accessible.
 BC30491: Expression does not produce a value.
         System.Console.WriteLine(1 + AddressOf x.Test1)
                                      ~~~~~~~~~~~~~~~~~
-BC30390: 'TestC.Protected Sub Test1(x As System.Guid)' is not accessible in this context because it is 'Protected'.
+BC30390: 'TestC.Protected Sub Test1(x As Guid)' is not accessible in this context because it is 'Protected'.
         System.Console.WriteLine(1 + AddressOf x.Test1)
                                                ~~~~~~~
 BC30491: Expression does not produce a value.

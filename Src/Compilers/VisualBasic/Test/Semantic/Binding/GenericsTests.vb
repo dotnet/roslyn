@@ -42,7 +42,7 @@ End Namespace
 
             AssertTheseDiagnostics(compilation,
     <expected>
-BC32042: Too few type arguments to 'GenArity200.vbCls5(Of UInteger()()).vbStrA(Of X, Y)'.
+BC32042: Too few type arguments to 'vbCls5(Of UInteger()()).vbStrA(Of X, Y)'.
 	        Dim Str14 As New vbCls5 (Of UInteger ()()).vbStrA (Of Integer)
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -98,7 +98,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC32042: Too few type arguments to 'GenImpClassOpenErrors.Module1.GenClassA(Of String).GenClassB(Of U)'.
+BC32042: Too few type arguments to 'Module1.GenClassA(Of String).GenClassB(Of U)'.
 Imports GenImpClassOpenErrors.GenClassA(Of String).GenClassB.GenClassC(Of String)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -264,8 +264,8 @@ End Namespace
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_RecordCycle2, "enumerator").WithArguments("s2",
                                                                                                           "error BC0000: " & vbCrLf &
-            "    'Program.s2' contains 'System.Collections.Generic.List(Of Program.s2).Enumerator' (variable 'enumerator')." & vbCrLf &
-            "    'System.Collections.Generic.List(Of Program.s2).Enumerator' contains 'Program.s2' (variable 'current')."))
+            "    's2' contains 'List(Of s2).Enumerator' (variable 'enumerator')." & vbCrLf &
+            "    'List(Of s2).Enumerator' contains 's2' (variable 'current')."))
         End Sub
 
         <WorkItem(543921, "DevDiv")>

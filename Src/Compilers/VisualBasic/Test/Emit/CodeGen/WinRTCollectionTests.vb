@@ -442,10 +442,10 @@ End Class]]>
                 comp,
             <expected>
                 <![CDATA[
-BC30456: 'GetEnumerator' is not a member of 'Windows.Data.Json.JsonArray'.
+BC30456: 'GetEnumerator' is not a member of 'JsonArray'.
         Dim en = New JsonArray().GetEnumerator()
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30456: 'GetEnumerator' is not a member of 'Windows.Foundation.WwwFormUrlDecoder'.
+BC30456: 'GetEnumerator' is not a member of 'WwwFormUrlDecoder'.
         en = new WwwFormUrlDecoder("?param1=test").GetEnumerator()
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>

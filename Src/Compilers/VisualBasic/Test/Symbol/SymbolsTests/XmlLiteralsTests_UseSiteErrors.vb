@@ -48,13 +48,13 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'System.Xml.Linq.XDeclaration' from assembly or module 'XDocumentTypesMissing.dll' failed.
+BC31091: Import of type 'XDeclaration' from assembly or module 'XDocumentTypesMissing.dll' failed.
     Private F As Object = <?xml version="1.0"?><x/><?p?>
                           ~~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'System.Xml.Linq.XDocument' from assembly or module 'XDocumentTypesMissing.dll' failed.
+BC31091: Import of type 'XDocument' from assembly or module 'XDocumentTypesMissing.dll' failed.
     Private F As Object = <?xml version="1.0"?><x/><?p?>
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'System.Xml.Linq.XProcessingInstruction' from assembly or module 'XDocumentTypesMissing.dll' failed.
+BC31091: Import of type 'XProcessingInstruction' from assembly or module 'XDocumentTypesMissing.dll' failed.
     Private F As Object = <?xml version="1.0"?><x/><?p?>
                                                    ~~~~~
 ]]></errors>)
@@ -83,7 +83,7 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'System.Xml.Linq.XComment' from assembly or module 'XCommentTypeMissing.dll' failed.
+BC31091: Import of type 'XComment' from assembly or module 'XCommentTypeMissing.dll' failed.
     Private F As Object = <!-- comment -->
                           ~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -129,13 +129,13 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'System.Xml.Linq.XElement' from assembly or module 'XElementTypeMissing.dll' failed.
+BC31091: Import of type 'XElement' from assembly or module 'XElementTypeMissing.dll' failed.
     Private F1 As XContainer = <x/>
                                 ~
-BC31091: Import of type 'System.Xml.Linq.XElement' from assembly or module 'XElementTypeMissing.dll' failed.
+BC31091: Import of type 'XElement' from assembly or module 'XElementTypeMissing.dll' failed.
     Private F3 As Object = F1.@x
                            ~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XContainer'.
+BC36808: XML attributes cannot be selected from type 'XContainer'.
     Private F3 As Object = F1.@x
                            ~~~~~
 ]]></errors>)
@@ -230,10 +230,10 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'System.Xml.Linq.XAttribute' from assembly or module 'XAttributeTypeMissing.dll' failed.
+BC31091: Import of type 'XAttribute' from assembly or module 'XAttributeTypeMissing.dll' failed.
     Private F2 As Object = <x <%= "a" %>="b"/>
                               ~~~~~~~~~~~~~~
-BC30456: 'CreateAttribute' is not a member of 'My.InternalXmlHelper'.
+BC30456: 'CreateAttribute' is not a member of 'InternalXmlHelper'.
     Private F3 As Object = <x a=<%= "b" %>/>
                                 ~~~~~~~~~~
 ]]></errors>)
@@ -296,7 +296,7 @@ End Class
 BC30057: Too many arguments to 'Public Sub New(o As Object)'.
     Private F2 As Object = <x <%= "a" %>="b"/>
                                          ~~~
-BC30456: 'CreateAttribute' is not a member of 'My.InternalXmlHelper'.
+BC30456: 'CreateAttribute' is not a member of 'InternalXmlHelper'.
     Private F3 As Object = <x a=<%= "b" %>/>
                                 ~~~~~~~~~~
 ]]></errors>)
@@ -343,10 +343,10 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'System.Xml.Linq.XName' from assembly or module 'XNameTypeMissing.dll' failed.
+BC31091: Import of type 'XName' from assembly or module 'XNameTypeMissing.dll' failed.
     Private F1 As Object = <x/>
                             ~
-BC31091: Import of type 'System.Xml.Linq.XName' from assembly or module 'XNameTypeMissing.dll' failed.
+BC31091: Import of type 'XName' from assembly or module 'XNameTypeMissing.dll' failed.
     Private F2 As Object = <<%= Nothing %> a="b"/>
                                            ~
 ]]></errors>)
@@ -396,16 +396,16 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'System.Xml.Linq.XContainer' from assembly or module 'XContainerTypeMissing.dll' failed.
+BC31091: Import of type 'XContainer' from assembly or module 'XContainerTypeMissing.dll' failed.
     Private F2 As XElement = <x a="b"/>
                              ~~~~~~~~~~
-BC31091: Import of type 'System.Xml.Linq.XContainer' from assembly or module 'XContainerTypeMissing.dll' failed.
+BC31091: Import of type 'XContainer' from assembly or module 'XContainerTypeMissing.dll' failed.
     Private F3 As XElement = <x>c</>
                              ~~~~~~~
-BC31091: Import of type 'System.Xml.Linq.XContainer' from assembly or module 'XContainerTypeMissing.dll' failed.
+BC31091: Import of type 'XContainer' from assembly or module 'XContainerTypeMissing.dll' failed.
     Private F4 As XElement = F1.<x>
                              ~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Xml.Linq.XElement'.
+BC36807: XML elements cannot be selected from type 'XElement'.
     Private F4 As XElement = F1.<x>
                              ~~~~~~
 ]]></errors>)
@@ -447,7 +447,7 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC30456: 'Add' is not a member of 'System.Xml.Linq.XContainer'.
+BC30456: 'Add' is not a member of 'XContainer'.
     Private F As Object = <x>c</>
                           ~~~~~~~
 ]]></errors>)
@@ -476,7 +476,7 @@ End Module
 </file>
 </compilation>, additionalRefs:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors>
-BC31091: Import of type 'System.Xml.Linq.XCData' from assembly or module 'XCDataTypeMissing.dll' failed.
+BC31091: Import of type 'XCData' from assembly or module 'XCDataTypeMissing.dll' failed.
     Private F As Object = &lt;![CDATA[value]]&gt;
                           ~~~~~~~~~~~~~~~~~
 </errors>)
@@ -504,7 +504,7 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'System.Xml.Linq.XNamespace' from assembly or module 'XNamespaceTypeMissing.dll' failed.
+BC31091: Import of type 'XNamespace' from assembly or module 'XNamespaceTypeMissing.dll' failed.
     Private F = GetXmlNamespace()
                 ~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -555,10 +555,10 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'My.InternalXmlHelper' from assembly or module 'XNamespaceTypeMissing_2.dll' failed.
+BC31091: Import of type 'InternalXmlHelper' from assembly or module 'XNamespaceTypeMissing_2.dll' failed.
     Private F = <x><%= Nothing %></>
                 ~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'System.Xml.Linq.XNamespace' from assembly or module 'XNamespaceTypeMissing_2.dll' failed.
+BC31091: Import of type 'XNamespace' from assembly or module 'XNamespaceTypeMissing_2.dll' failed.
     Private F = <x><%= Nothing %></>
                 ~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -622,7 +622,7 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC30456: 'Get' is not a member of 'System.Xml.Linq.XNamespace'.
+BC30456: 'Get' is not a member of 'XNamespace'.
     Shared F As Object = <p:x><%= Nothing %></>
                          ~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -673,16 +673,16 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31091: Import of type 'System.Xml.Linq.Extensions' from assembly or module 'ExtensionTypesMissing.dll' failed.
+BC31091: Import of type 'Extensions' from assembly or module 'ExtensionTypesMissing.dll' failed.
     Private F3 As Object = F1.<x>.<y>
                            ~~~~~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XContainer)'.
+BC36807: XML elements cannot be selected from type 'IEnumerable(Of XContainer)'.
     Private F3 As Object = F1.<x>.<y>
                            ~~~~~~~~~~
-BC31091: Import of type 'My.InternalXmlHelper' from assembly or module 'ExtensionTypesMissing.dll' failed.
+BC31091: Import of type 'InternalXmlHelper' from assembly or module 'ExtensionTypesMissing.dll' failed.
     Private F4 As Object = F1.@x
                            ~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XElement'.
+BC36808: XML attributes cannot be selected from type 'XElement'.
     Private F4 As Object = F1.@x
                            ~~~~~
 ]]></errors>)
@@ -731,16 +731,16 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC30456: 'Elements' is not a member of 'System.Xml.Linq.XContainer'.
+BC30456: 'Elements' is not a member of 'XContainer'.
     Private F2 As Object = F1.<x>
                            ~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Xml.Linq.XElement'.
+BC36807: XML elements cannot be selected from type 'XElement'.
     Private F2 As Object = F1.<x>
                            ~~~~~~
-BC30456: 'AttributeValue' is not a member of 'My.InternalXmlHelper'.
+BC30456: 'AttributeValue' is not a member of 'InternalXmlHelper'.
     Private F3 As Object = F1.@x
                            ~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XElement'.
+BC36808: XML attributes cannot be selected from type 'XElement'.
     Private F3 As Object = F1.@x
                            ~~~~~
 ]]></errors>)

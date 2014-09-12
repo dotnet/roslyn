@@ -152,7 +152,7 @@ BC30182: Type expected.
 BC30638: Array bounds cannot appear in type specifiers.
     System.Console.WriteLine(GetType((System.String)))
                                       ~~~~~~~~~~~~~
-BC30456: 'C2' is not a member of 'System.Type'.
+BC30456: 'C2' is not a member of 'Type'.
     System.Console.WriteLine(GetType((C1).C2)))
                              ~~~~~~~~~~~~~~~
 BC30182: Type expected.

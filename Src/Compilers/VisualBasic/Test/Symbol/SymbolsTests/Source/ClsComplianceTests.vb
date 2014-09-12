@@ -558,7 +558,7 @@ BC40033: Non CLS-compliant 'Sub M()' is not allowed in a CLS-compliant interface
 BC40033: Non CLS-compliant 'Property P As Object' is not allowed in a CLS-compliant interface.
     Property P()
              ~
-BC40033: Non CLS-compliant 'Event E As System.Action' is not allowed in a CLS-compliant interface.
+BC40033: Non CLS-compliant 'Event E As Action' is not allowed in a CLS-compliant interface.
     Event E As Action
           ~
 ]]></errors>)
@@ -2381,10 +2381,10 @@ End Class
                 </compilation>
 
             CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<errors><![CDATA[
-BC40050: Delegate type 'Q.Bad' of event 'E1' is not CLS-compliant.
+BC40050: Delegate type 'Bad' of event 'E1' is not CLS-compliant.
     Public Custom Event E1 As Q.Bad
                         ~~
-BC40050: Delegate type 'Q.Bad' of event 'E2' is not CLS-compliant.
+BC40050: Delegate type 'Bad' of event 'E2' is not CLS-compliant.
     Public Event E2 As Q.Bad
                  ~~
 BC40028: Type of parameter 'x' is not CLS-compliant.
@@ -2685,10 +2685,10 @@ End Namespace
 
             ' Two copies of each diagnostic - one from each file.
             comp.AssertTheseDiagnostics(<errors><![CDATA[
-BC40026: 'N1.Compliant' is not CLS-compliant because it derives from 'N1.NonCompliant', which is not CLS-compliant.
+BC40026: 'Compliant' is not CLS-compliant because it derives from 'NonCompliant', which is not CLS-compliant.
     Public Class Compliant
                  ~~~~~~~~~
-BC40040: Generic parameter constraint type 'N1.NonCompliant' is not CLS-compliant.
+BC40040: Generic parameter constraint type 'NonCompliant' is not CLS-compliant.
         Public Function M(Of T As NonCompliant)(n As NonCompliant)
                              ~
 BC40028: Type of parameter 'n' is not CLS-compliant.
@@ -2700,10 +2700,10 @@ BC40025: Type of member 'F' is not CLS-compliant.
 BC40027: Return type of function 'P' is not CLS-compliant.
         Public Property P As NonCompliant
                         ~
-BC40026: 'N2.Compliant' is not CLS-compliant because it derives from 'N2.NonCompliant', which is not CLS-compliant.
+BC40026: 'Compliant' is not CLS-compliant because it derives from 'NonCompliant', which is not CLS-compliant.
     Public Class Compliant
                  ~~~~~~~~~
-BC40040: Generic parameter constraint type 'N2.NonCompliant' is not CLS-compliant.
+BC40040: Generic parameter constraint type 'NonCompliant' is not CLS-compliant.
         Public Function M(Of T As NonCompliant)(n As NonCompliant)
                              ~
 BC40028: Type of parameter 'n' is not CLS-compliant.
@@ -2719,10 +2719,10 @@ BC40027: Return type of function 'P' is not CLS-compliant.
 
             CompilationUtils.AssertTheseDiagnostics(comp.GetDiagnosticsForTree(CompilationStage.Declare, tree1, filterSpanWithinTree:=Nothing, includeEarlierStages:=False),
                                                <errors><![CDATA[
-BC40026: 'N1.Compliant' is not CLS-compliant because it derives from 'N1.NonCompliant', which is not CLS-compliant.
+BC40026: 'Compliant' is not CLS-compliant because it derives from 'NonCompliant', which is not CLS-compliant.
     Public Class Compliant
                  ~~~~~~~~~
-BC40040: Generic parameter constraint type 'N1.NonCompliant' is not CLS-compliant.
+BC40040: Generic parameter constraint type 'NonCompliant' is not CLS-compliant.
         Public Function M(Of T As NonCompliant)(n As NonCompliant)
                              ~
 BC40028: Type of parameter 'n' is not CLS-compliant.
@@ -3611,7 +3611,7 @@ End Namespace
     </compilation>
 
             CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<errors><![CDATA[
-BC40030: event 'Public Event Scen6(x As Integer)' cannot be marked CLS-compliant because its containing type 'ClsCompClass001f.ContainerClass' is not CLS-compliant.
+BC40030: event 'Public Event Scen6(x As Integer)' cannot be marked CLS-compliant because its containing type 'ContainerClass' is not CLS-compliant.
         Public Event Scen6(ByVal x As Integer)
                      ~~~~~
             ]]></errors>)

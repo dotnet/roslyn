@@ -577,7 +577,7 @@ Imports System
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30452: Operator 'And' is not defined for types 'System.Guid' and 'System.Guid'.
+BC30452: Operator 'And' is not defined for types 'Guid' and 'Guid'.
         shared result = New Guid() And New Guid()
                         ~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -2926,7 +2926,7 @@ BC30103: '!' requires its left operand to have a type parameter, class or interf
 BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Double'.
             M([double]!P)
               ~~~~~~~~
-BC30367: Class 'System.Type' cannot be indexed because it has no default property.
+BC30367: Class 'Type' cannot be indexed because it has no default property.
             M([type]!P)
               ~~~~~~
 BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Integer()'.
@@ -2938,7 +2938,7 @@ BC30690: Structure 'Integer?' cannot be indexed because it has no default proper
 BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Date'.
             M([datetime]!P)
               ~~~~~~~~~~
-BC30555: Default member of 'System.Action' is not a property.
+BC30555: Default member of 'Action' is not a property.
             M([action]!P)
               ~~~~~~~~
 BC30547: 'T' cannot be indexed because it has no default property.
@@ -4633,25 +4633,25 @@ BC30306: Array subscript expression missing.
 BC30311: Value of type 'E1?' cannot be converted to 'S1?'.
                 Dim z = DirectCast (b, S1?)
                                     ~
-BC30311: Value of type 'E1?' cannot be converted to 'System.Nullable'.
+BC30311: Value of type 'E1?' cannot be converted to 'Nullable'.
                 z = DirectCast (b, System.Nullable)
                                 ~
 BC30311: Value of type 'S1?' cannot be converted to 'E1?'.
                 z = DirectCast (a, E1?)
                                 ~
-BC30311: Value of type 'S1?' cannot be converted to 'System.Nullable'.
+BC30311: Value of type 'S1?' cannot be converted to 'Nullable'.
                 z = DirectCast (a, System.Nullable)
                                 ~
-BC30311: Value of type 'System.Exception' cannot be converted to 'S1?'.
+BC30311: Value of type 'Exception' cannot be converted to 'S1?'.
                 z = DirectCast (c, S1?)
                                 ~
 BC42104: Variable 'c' is used before it has been assigned a value. A null reference exception could result at runtime.
                 z = DirectCast (c, S1?)
                                 ~
-BC30311: Value of type 'System.Exception' cannot be converted to 'E1?'.
+BC30311: Value of type 'Exception' cannot be converted to 'E1?'.
                 z = DirectCast (c, E1?)
                                 ~
-BC30311: Value of type 'System.Exception' cannot be converted to 'System.Nullable'.
+BC30311: Value of type 'Exception' cannot be converted to 'Nullable'.
                 z = DirectCast (c, System.Nullable)
                                 ~
 BC30311: Value of type 'I1' cannot be converted to 'S1?'.
@@ -4663,10 +4663,10 @@ BC42104: Variable 'd' is used before it has been assigned a value. A null refere
 BC30311: Value of type 'I1' cannot be converted to 'E1?'.
                 z = DirectCast (d, E1?)
                                 ~
-BC30311: Value of type 'System.Nullable' cannot be converted to 'S1?'.
+BC30311: Value of type 'Nullable' cannot be converted to 'S1?'.
                 z = DirectCast (d, System.Nullable)
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC42322: Runtime errors might occur when converting 'I1' to 'System.Nullable'.
+BC42322: Runtime errors might occur when converting 'I1' to 'Nullable'.
                 z = DirectCast (d, System.Nullable)
                                 ~
 BC30311: Value of type 'C1.C2' cannot be converted to 'S1?'.
@@ -4678,10 +4678,10 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
 BC30311: Value of type 'C1.C2' cannot be converted to 'E1?'.
                 z = DirectCast (e, E1?)
                                 ~
-BC30311: Value of type 'C1.C2' cannot be converted to 'System.Nullable'.
+BC30311: Value of type 'C1.C2' cannot be converted to 'Nullable'.
                 z = DirectCast (e, System.Nullable)
                                 ~
-BC30311: Value of type 'C1.C2' cannot be converted to 'System.ValueType'.
+BC30311: Value of type 'C1.C2' cannot be converted to 'ValueType'.
                 z = DirectCast (e, System.ValueType)
                                 ~
 BC30311: Value of type 'C1.C2(*,*)' cannot be converted to 'S1?'.
@@ -4693,10 +4693,10 @@ BC42104: Variable 'f' is used before it has been assigned a value. A null refere
 BC30311: Value of type 'C1.C2(*,*)' cannot be converted to 'E1?'.
                 z = DirectCast (f, E1?)
                                 ~
-BC30311: Value of type 'C1.C2(*,*)' cannot be converted to 'System.Nullable'.
+BC30311: Value of type 'C1.C2(*,*)' cannot be converted to 'Nullable'.
                 z = DirectCast (f, System.Nullable)
                                 ~
-BC30311: Value of type 'C1.C2(*,*)' cannot be converted to 'System.ValueType'.
+BC30311: Value of type 'C1.C2(*,*)' cannot be converted to 'ValueType'.
                 z = DirectCast (f, System.ValueType)
                                 ~
 </expected>)
@@ -4719,7 +4719,7 @@ End Class
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30311: Value of type 'System.Exception' cannot be converted to 'Integer'.
+BC30311: Value of type 'Exception' cannot be converted to 'Integer'.
         For Each x As Integer In New Exception() {Nothing, Nothing}
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -5821,8 +5821,8 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
-    Extension method 'Public Function Where(predicate As System.Func(Of Integer, Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
+    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
+    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
         x.Where(Function(y)
           ~~~~~
 </expected>)
@@ -6600,7 +6600,7 @@ BC30452: Operator '+' is not defined for types 'C1' and 'C1.C2'.
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30452: Operator 'And' is not defined for types 'System.Guid' and 'System.Guid'.
+BC30452: Operator 'And' is not defined for types 'Guid' and 'Guid'.
         shared result = New Guid() And New Guid()
                         ~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -6853,7 +6853,7 @@ BC30451: 'My' is not declared. It may be inaccessible due to its protection leve
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC30456: 'hasvalue' is not a member of 'System.Nullable'.
+BC30456: 'hasvalue' is not a member of 'Nullable'.
             blnReturn = system.nullable.hasvalue(x)
                         ~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -8045,12 +8045,12 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'ForEach' can be called with these arguments:
-    'Public Shared Overloads Function ForEach(Of TSource)(source As System.Collections.Generic.IEnumerable(Of TSource), body As System.Action(Of TSource)) As System.Threading.Tasks.ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As System.Collections.Generic.IEnumerable(Of TSource), body As System.Action(Of TSource, System.Threading.Tasks.ParallelLoopState)) As System.Threading.Tasks.ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As System.Collections.Generic.IEnumerable(Of TSource), body As System.Action(Of TSource, System.Threading.Tasks.ParallelLoopState, Long)) As System.Threading.Tasks.ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As System.Collections.Concurrent.Partitioner(Of TSource), body As System.Action(Of TSource)) As System.Threading.Tasks.ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As System.Collections.Concurrent.Partitioner(Of TSource), body As System.Action(Of TSource, System.Threading.Tasks.ParallelLoopState)) As System.Threading.Tasks.ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As System.Collections.Concurrent.OrderablePartitioner(Of TSource), body As System.Action(Of TSource, System.Threading.Tasks.ParallelLoopState, Long)) As System.Threading.Tasks.ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Overloads Function ForEach(Of TSource)(source As IEnumerable(Of TSource), body As Action(Of TSource)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Overloads Function ForEach(Of TSource)(source As IEnumerable(Of TSource), body As Action(Of TSource, ParallelLoopState)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Overloads Function ForEach(Of TSource)(source As IEnumerable(Of TSource), body As Action(Of TSource, ParallelLoopState, Long)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Overloads Function ForEach(Of TSource)(source As Partitioner(Of TSource), body As Action(Of TSource)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Overloads Function ForEach(Of TSource)(source As Partitioner(Of TSource), body As Action(Of TSource, ParallelLoopState)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Overloads Function ForEach(Of TSource)(source As OrderablePartitioner(Of TSource), body As Action(Of TSource, ParallelLoopState, Long)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Parallel.ForEach(a, Sub(x As Object) Console.WriteLine(x))
                  ~~~~~~~
 </expected>)
@@ -8090,8 +8090,8 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': Branching out of a 'Finally' is not valid.
-    Extension method 'Public Function Where(predicate As System.Func(Of Integer, Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': Branching out of a 'Finally' is not valid.
+    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
+    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
         x.Where(Function(y)
           ~~~~~
 BC42353: Function '&lt;anonymous method>' doesn't return a value on all code paths. Are you missing a 'Return' statement?
@@ -8799,10 +8799,10 @@ BC30545: Property access must assign to the property or use its value.
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30547: 'N.I' cannot be indexed because it has no default property.
+BC30547: 'I' cannot be indexed because it has no default property.
                     N(x(0))
                       ~
-BC30547: 'N.I' cannot be indexed because it has no default property.
+BC30547: 'I' cannot be indexed because it has no default property.
                     N(x!P)
                       ~
 </expected>)
@@ -8870,13 +8870,13 @@ End Class
             ' For now, lambdas result in BC30491 which differs from Dev10.
             ' This should change once lambda support is complete.
             Dim expectedErrors1 = <errors>
-BC30555: Default member of 'Function &lt;generated method&gt;() As System.Collections.Generic.Dictionary(Of String, String)' is not a property.
+BC30555: Default member of 'Function &lt;generated method&gt;() As Dictionary(Of String, String)' is not a property.
         o = Function()
             ~~~~~~~~~~~
-BC30555: Default member of 'System.Array' is not a property.
+BC30555: Default member of 'Array' is not a property.
         o = a!b
             ~
-BC30555: Default member of 'System.Func(Of System.Collections.Generic.Dictionary(Of Object, Object))' is not a property.
+BC30555: Default member of 'Func(Of Dictionary(Of Object, Object))' is not a property.
         o = f!c
             ~
                  </errors>
@@ -9951,7 +9951,7 @@ BC30654: 'Return' statement in a Function, Get, or Operator must return a value.
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC30657: 'System.Threading.IOCompletionCallback' has a return type that is not supported or parameter types that are not supported.
+BC30657: 'IOCompletionCallback' has a return type that is not supported or parameter types that are not supported.
                 x = New System.Threading.IOCompletionCallback(AddressOf Sub1)
                                                               ~~~~~~~~~~~~~~
 </expected>)
@@ -10429,10 +10429,10 @@ BC30686: Default property access is ambiguous between the inherited interface me
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30690: Structure 'N.S' cannot be indexed because it has no default property.
+BC30690: Structure 'S' cannot be indexed because it has no default property.
                     N(x(0))
                       ~
-BC30690: Structure 'N.S' cannot be indexed because it has no default property.
+BC30690: Structure 'S' cannot be indexed because it has no default property.
                     N(x!P)
                       ~
 </expected>)
@@ -10667,10 +10667,10 @@ BC30752: 'On Error' statements are not valid within 'SyncLock' statements.
         </file>
     </compilation>)
             Dim expectedErrors1 = <errors>
-BC30753: Option Strict On disallows implicit conversions from '_Collection' to 'Microsoft.VisualBasic.Collection'; the Visual Basic 6.0 collection type is not compatible with the .NET Framework collection type.
+BC30753: Option Strict On disallows implicit conversions from '_Collection' to 'Collection'; the Visual Basic 6.0 collection type is not compatible with the .NET Framework collection type.
                     return _collection
                            ~~~~~~~~~~~
-BC42322: Runtime errors might occur when converting '_Collection' to 'Microsoft.VisualBasic.Collection'.
+BC42322: Runtime errors might occur when converting '_Collection' to 'Collection'.
                     return _collection
                            ~~~~~~~~~~~
                  </errors>
@@ -11258,7 +11258,7 @@ End Class
         </file>
     </compilation>)
             Dim expectedErrors1 = <errors>
-BC30939: 'AddressOf' expression cannot be converted to 'System.Delegate' because type 'System.Delegate' is declared 'MustInherit' and cannot be created.
+BC30939: 'AddressOf' expression cannot be converted to '[Delegate]' because type '[Delegate]' is declared 'MustInherit' and cannot be created.
                     Dim x As [Delegate] = AddressOf main
                                           ~~~~~~~~~~~~~~
                  </errors>
@@ -12963,28 +12963,28 @@ End Module
 ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = <x/>.<y>
              ~~~~~~~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = CType(<x/>.<y>, String)
                    ~~~~~~~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = DirectCast(<x/>.<y>, String)
                         ~~~~~~~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = TryCast(<x/>.<y>, String)
                      ~~~~~~~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XElement)' to 'B'.
         _b = <x/>.<y>
              ~~~~~~~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XElement)' to 'B'.
         _b = CType(<x/>.<y>, B)
                    ~~~~~~~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XElement)' to 'B'.
         _b = DirectCast(<x/>.<y>, B)
                         ~~~~~~~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XElement)' to 'B'.
         _b = TryCast(<x/>.<y>, B)
                      ~~~~~~~~
 ]]></errors>)
@@ -13035,40 +13035,40 @@ End Module
 ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC30512: Option Strict On disallows implicit conversions from 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'.
+BC30512: Option Strict On disallows implicit conversions from 'IEnumerable(Of XElement)' to 'String'.
         _s = <x/>.<y>
              ~~~~~~~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = <x/>.<y>
              ~~~~~~~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = CType(<x/>.<y>, String)
                    ~~~~~~~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = DirectCast(<x/>.<y>, String)
                         ~~~~~~~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = TryCast(<x/>.<y>, String)
                      ~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'A'.
+BC30512: Option Strict On disallows implicit conversions from 'IEnumerable(Of XElement)' to 'A'.
         _a = <x/>.<y>
              ~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC30512: Option Strict On disallows implicit conversions from 'IEnumerable(Of XElement)' to 'B'.
         _b = <x/>.<y>
              ~~~~~~~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XElement)' to 'B'.
         _b = <x/>.<y>
              ~~~~~~~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XElement)' to 'B'.
         _b = CType(<x/>.<y>, B)
                    ~~~~~~~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XElement)' to 'B'.
         _b = DirectCast(<x/>.<y>, B)
                         ~~~~~~~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'B'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XElement)' to 'B'.
         _b = TryCast(<x/>.<y>, B)
                      ~~~~~~~~
-BC30512: Option Strict On disallows implicit conversions from 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'T'.
+BC30512: Option Strict On disallows implicit conversions from 'IEnumerable(Of XElement)' to 'T'.
         _t = <x/>.<y>
              ~~~~~~~~
 ]]></errors>)
@@ -13116,28 +13116,28 @@ End Module
 ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         o = _2
             ~~
-BC30311: Value of type 'System.Xml.Linq.XElement()' cannot be converted to 'String'.
+BC30311: Value of type 'XElement()' cannot be converted to 'String'.
         o = _3
             ~~
-BC30311: Value of type 'System.Collections.Generic.List(Of System.Xml.Linq.XElement)' cannot be converted to 'String'.
+BC30311: Value of type 'List(Of XElement)' cannot be converted to 'String'.
         o = _4
             ~~
-BC42322: Runtime errors might occur when converting 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)' to 'String'.
+BC42322: Runtime errors might occur when converting 'IEnumerable(Of XObject)' to 'String'.
         o = _5
             ~~
-BC30311: Value of type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)()' cannot be converted to 'String'.
+BC30311: Value of type 'IEnumerable(Of XElement)()' cannot be converted to 'String'.
         o = _6
             ~~
 BC42361: Cannot convert 'IEnumerableOfXElement' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerableOfXElement'.
         o = _7
             ~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of X)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of X)'.
+BC42361: Cannot convert 'IEnumerable(Of X)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of X)'.
         o = _8
             ~~
-BC42361: Cannot convert 'System.Collections.Generic.IEnumerable(Of T As System.Xml.Linq.XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of T As System.Xml.Linq.XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of T As XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T As XElement)'.
         o = _9
             ~~
 ]]></errors>)
@@ -13175,10 +13175,10 @@ End Module
 ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC42322: Runtime errors might occur when converting 'String' to 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42322: Runtime errors might occur when converting 'String' to 'IEnumerable(Of XElement)'.
         _i = _s
              ~~
-BC42322: Runtime errors might occur when converting 'B' to 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC42322: Runtime errors might occur when converting 'B' to 'IEnumerable(Of XElement)'.
         _i = _b
              ~~
 ]]></errors>)
@@ -13203,13 +13203,13 @@ End Module
     ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC31194: Value of type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC31194: Value of type 'IEnumerable(Of XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = <x/>.<y>
              ~~~~~~~~
-BC31194: Value of type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC31194: Value of type 'IEnumerable(Of XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = CType(<x/>.<y>, S)
                    ~~~~~~~~
-BC31194: Value of type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC31194: Value of type 'IEnumerable(Of XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         _s = DirectCast(<x/>.<y>, S)
                         ~~~~~~~~
 ]]></errors>)
@@ -13259,31 +13259,31 @@ End Module
     ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC30311: Value of type 'System.Xml.Linq.XElement' cannot be converted to 'S'.
+BC30311: Value of type 'XElement' cannot be converted to 'S'.
         o = _1
             ~~
-BC31194: Value of type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC31194: Value of type 'IEnumerable(Of XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         o = _2
             ~~
-BC30311: Value of type 'System.Xml.Linq.XElement()' cannot be converted to 'S'.
+BC30311: Value of type 'XElement()' cannot be converted to 'S'.
         o = _3
             ~~
-BC30311: Value of type 'System.Collections.Generic.List(Of System.Xml.Linq.XElement)' cannot be converted to 'S'.
+BC30311: Value of type 'List(Of XElement)' cannot be converted to 'S'.
         o = _4
             ~~
-BC30311: Value of type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)' cannot be converted to 'S'.
+BC30311: Value of type 'IEnumerable(Of XObject)' cannot be converted to 'S'.
         o = _5
             ~~
-BC30311: Value of type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)()' cannot be converted to 'S'.
+BC30311: Value of type 'IEnumerable(Of XElement)()' cannot be converted to 'S'.
         o = _6
             ~~
 BC31194: Value of type 'IEnumerableOfXElement' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerableOfXElement'.
         o = _7
             ~~
-BC31194: Value of type 'System.Collections.Generic.IEnumerable(Of X)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of X)'.
+BC31194: Value of type 'IEnumerable(Of X)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of X)'.
         o = _8
             ~~
-BC31194: Value of type 'System.Collections.Generic.IEnumerable(Of T As System.Xml.Linq.XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of T As System.Xml.Linq.XElement)'.
+BC31194: Value of type 'IEnumerable(Of T As XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T As XElement)'.
         o = _9
             ~~
 ]]></errors>)
@@ -13343,58 +13343,58 @@ End Module
     ]]></file>
 </compilation>, additionalRefs:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC30452: Operator '=' is not defined for types 'C' and 'System.Xml.Linq.XElement'.
+BC30452: Operator '=' is not defined for types 'C' and 'XElement'.
         b = (o = _1)
              ~~~~~~
-BC31195: Operator '=' is not defined for types 'C' and 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC31195: Operator '=' is not defined for types 'C' and 'IEnumerable(Of XElement)'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         b = (o = _2)
              ~~~~~~
-BC31195: Operator '=' is not defined for types 'C' and 'System.Xml.Linq.XElement()'. You can use the 'Value' property to get the string value of the first element of 'System.Xml.Linq.XElement()'.
+BC31195: Operator '=' is not defined for types 'C' and 'XElement()'. You can use the 'Value' property to get the string value of the first element of 'XElement()'.
         b = (o = _3)
              ~~~~~~
-BC31195: Operator '=' is not defined for types 'C' and 'System.Collections.Generic.List(Of System.Xml.Linq.XElement)'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.List(Of System.Xml.Linq.XElement)'.
+BC31195: Operator '=' is not defined for types 'C' and 'List(Of XElement)'. You can use the 'Value' property to get the string value of the first element of 'List(Of XElement)'.
         b = (o = _4)
              ~~~~~~
-BC30452: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)' and 'C'.
+BC30452: Operator '=' is not defined for types 'IEnumerable(Of XObject)' and 'C'.
         b = (_5 = o)
              ~~~~~~
-BC30452: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)()' and 'C'.
+BC30452: Operator '=' is not defined for types 'IEnumerable(Of XElement)()' and 'C'.
         b = (_6 = o)
              ~~~~~~
 BC31195: Operator '=' is not defined for types 'IEnumerableOfXElement' and 'C'. You can use the 'Value' property to get the string value of the first element of 'IEnumerableOfXElement'.
         b = (_7 = o)
              ~~~~~~
-BC31195: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of X)' and 'C'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of X)'.
+BC31195: Operator '=' is not defined for types 'IEnumerable(Of X)' and 'C'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of X)'.
         b = (_8 = o)
              ~~~~~~
-BC31195: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of T As System.Xml.Linq.XElement)' and 'C'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of T As System.Xml.Linq.XElement)'.
+BC31195: Operator '=' is not defined for types 'IEnumerable(Of T As XElement)' and 'C'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T As XElement)'.
         b = (_9 = o)
              ~~~~~~
-BC31195: Operator '=' is not defined for types 'System.Xml.Linq.XElement' and 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'.
+BC31195: Operator '=' is not defined for types 'XElement' and 'IEnumerable(Of XElement)'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
         b = (_1 = _2)
              ~~~~~~~
-BC31080: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' and 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'IEnumerable(Of XElement)'. Use 'Is' operator to compare two reference types.
         b = (_2 = _2)
              ~~~~~~~
-BC31080: Operator '=' is not defined for types 'System.Xml.Linq.XElement()' and 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'XElement()' and 'IEnumerable(Of XElement)'. Use 'Is' operator to compare two reference types.
         b = (_3 = _2)
              ~~~~~~~
-BC31195: Operator '=' is not defined for types 'System.Collections.Generic.List(Of System.Xml.Linq.XElement)' and 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'. You can use the 'Value' property to get the string value of the first element of 'System.Collections.Generic.List(Of System.Xml.Linq.XElement)'.
+BC31195: Operator '=' is not defined for types 'List(Of XElement)' and 'IEnumerable(Of XElement)'. You can use the 'Value' property to get the string value of the first element of 'List(Of XElement)'.
         b = (_4 = _2)
              ~~~~~~~
-BC31080: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)' and 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'IEnumerable(Of XObject)' and 'IEnumerable(Of XElement)'. Use 'Is' operator to compare two reference types.
         b = (_5 = _2)
              ~~~~~~~
-BC31080: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' and 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)()'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'IEnumerable(Of XElement)()'. Use 'Is' operator to compare two reference types.
         b = (_2 = _6)
              ~~~~~~~
-BC31080: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' and 'IEnumerableOfXElement'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'IEnumerableOfXElement'. Use 'Is' operator to compare two reference types.
         b = (_2 = _7)
              ~~~~~~~
-BC31080: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' and 'System.Collections.Generic.IEnumerable(Of X)'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'IEnumerable(Of X)'. Use 'Is' operator to compare two reference types.
         b = (_2 = _8)
              ~~~~~~~
-BC31080: Operator '=' is not defined for types 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)' and 'System.Collections.Generic.IEnumerable(Of T As System.Xml.Linq.XElement)'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'IEnumerable(Of T As XElement)'. Use 'Is' operator to compare two reference types.
         b = (_2 = _9)
              ~~~~~~~
 ]]></errors>)
@@ -13415,7 +13415,7 @@ BC31080: Operator '=' is not defined for types 'System.Collections.Generic.IEnum
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC31394: Expression of type 'System.ArgIterator' cannot be converted to 'Object' or 'ValueType'.
+BC31394: Expression of type 'ArgIterator' cannot be converted to 'Object' or 'ValueType'.
                 obj = New system.ArgIterator
                       ~~~~~~~~~~~~~~~~~~~~~~    
     </expected>)
@@ -13440,10 +13440,10 @@ Option Infer Off
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC31394: Expression of type 'System.ArgIterator' cannot be converted to 'Object' or 'ValueType'.
+BC31394: Expression of type 'ArgIterator' cannot be converted to 'Object' or 'ValueType'.
                 Dim obj = New ArgIterator
                           ~~~~~~~~~~~~~~~
-BC31394: Expression of type 'System.TypedReference' cannot be converted to 'Object' or 'ValueType'.
+BC31394: Expression of type 'TypedReference' cannot be converted to 'Object' or 'ValueType'.
                 obj = TypeRefInstance
                       ~~~~~~~~~~~~~~~
 BC42109: Variable 'TypeRefInstance' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
@@ -13470,10 +13470,10 @@ Option Infer Off
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC31394: Expression of type 'System.ArgIterator' cannot be converted to 'Object' or 'ValueType'.
+BC31394: Expression of type 'ArgIterator' cannot be converted to 'Object' or 'ValueType'.
                 Dim obj = New ArgIterator
                           ~~~~~~~~~~~~~~~
-BC31394: Expression of type 'System.RuntimeArgumentHandle' cannot be converted to 'Object' or 'ValueType'.
+BC31394: Expression of type 'RuntimeArgumentHandle' cannot be converted to 'Object' or 'ValueType'.
                 obj = New RuntimeArgumentHandle
                       ~~~~~~~~~~~~~~~~~~~~~~~~~
     </expected>)
@@ -13498,19 +13498,19 @@ End Module
 BC42024: Unused local variable: 'x'.
         Dim x As TypedReference()
             ~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim x As TypedReference()
                  ~~~~~~~~~~~~~~~~
 BC42024: Unused local variable: 'y'.
         Dim y() As ArgIterator
             ~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim y() As ArgIterator
                    ~~~~~~~~~~~
-BC31396: 'System.RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z = {New RuntimeArgumentHandle()}
               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z = {New RuntimeArgumentHandle()}
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -13540,22 +13540,22 @@ End Class
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         o = New C(Of ArgIterator)
                      ~~~~~~~~~~~
-BC31396: 'System.RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         o = New C(Of RuntimeArgumentHandle)
                      ~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         o = New C(Of TypedReference)
                      ~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         F(Of ArgIterator)(Nothing)
         ~~~~~~~~~~~~~~~~~
-BC31396: 'System.RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         F(Of RuntimeArgumentHandle)(Nothing)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         F(t)
         ~
 </expected>)
@@ -13582,25 +13582,25 @@ End Interface
     </file>
     </compilation>).AssertTheseDiagnostics(
     <expected>
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Private F As TypedReference
                  ~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Private G As ArgIterator()
                  ~~~~~~~~~~~~~
-BC31396: 'System.RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Private H = {New RuntimeArgumentHandle()}
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Sub M(e As ArgIterator())
                ~~~~~~~~~~~~~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     ReadOnly Property P As TypedReference
                            ~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Function F() As ArgIterator()()
                     ~~~~~~~~~~~~~~~
-BC31396: 'System.RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Property Q As RuntimeArgumentHandle()()
                   ~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -14703,10 +14703,10 @@ End Class
     </file>
     </compilation>).AssertTheseDiagnostics(
     <expected>
-BC32022: 'Private Event E As System.EventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
+BC32022: 'Private Event E As EventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
         E()
         ~
-BC32022: 'Private Event E As System.EventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
+BC32022: 'Private Event E As EventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
         M(E())
           ~
     </expected>)
@@ -15202,7 +15202,7 @@ BC32046: 'New' cannot be used on a type parameter that does not have a 'New' con
         </file>
     </compilation>)
             Dim expectedErrors1 = <errors>
-BC32050: Type parameter 'T' for 'Public Sub Foo(Of T)(a As System.Action(Of T))' cannot be inferred.
+BC32050: Type parameter 'T' for 'Public Sub Foo(Of T)(a As Action(Of T))' cannot be inferred.
                     Foo(AddressOf Bar)
                     ~~~
                  </errors>
@@ -16160,7 +16160,7 @@ BC36012: 'Using' resource variable type can not be array type.
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of System.Exception, Object)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Exception, Object)'.
                 Dim x As Func(Of Exception, Object) = Function(y$) y
                                                       ~~~~~~~~~~~~~~
 </expected>)
@@ -17453,7 +17453,7 @@ End Class
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T As Structure, S As Structure)(x As T, f As System.Func(Of T?, S?))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T As Structure, S As Structure)(x As T, f As Func(Of T?, S?))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Foo(1, AddressOf o.Bar)
         ~~~
 BC30002: Type 'IQueryable' is not defined.
@@ -17485,7 +17485,7 @@ BC42104: Variable 'qo' is used before it has been assigned a value. A null refer
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T)(x As System.Action(Of T()), y As System.Action(Of T()))' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T)(x As Action(Of T()), y As Action(Of T()))' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
                 Foo(x, y)
                 ~~~
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
@@ -17857,7 +17857,7 @@ BC36755: 'Variance(Of Double)' cannot be converted to 'IVariance2(Of Short)' bec
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36756: 'System.Collections.Generic.List(Of Cheetah)' cannot be converted to 'System.Collections.Generic.List(Of Animals)'. Consider using 'System.Collections.Generic.IEnumerable(Of Animals)' instead.
+BC36756: 'List(Of Cheetah)' cannot be converted to 'List(Of Animals)'. Consider using 'IEnumerable(Of Animals)' instead.
             Dim x As List(Of Animals) = New List(Of Cheetah)
                                         ~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -17990,28 +17990,28 @@ End Module
 BC31168: XML axis properties do not support late binding.
         x = F(Of Object).<x>
             ~~~~~~~~~~~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Xml.Linq.XObject'.
+BC36807: XML elements cannot be selected from type 'XObject'.
         x = F(Of XObject).<x>
             ~~~~~~~~~~~~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Xml.Linq.XAttribute'.
+BC36807: XML elements cannot be selected from type 'XAttribute'.
         x = F(Of XAttribute).<x>
             ~~~~~~~~~~~~~~~~~~~~
 BC36807: XML elements cannot be selected from type 'Object()'.
         x = F(Of Object()).<x>
             ~~~~~~~~~~~~~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Xml.Linq.XObject()'.
+BC36807: XML elements cannot be selected from type 'XObject()'.
         x = F(Of XObject()).<x>
             ~~~~~~~~~~~~~~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Xml.Linq.XAttribute()'.
+BC36807: XML elements cannot be selected from type 'XAttribute()'.
         x = F(Of XAttribute()).<x>
             ~~~~~~~~~~~~~~~~~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Collections.Generic.IEnumerable(Of Object)'.
+BC36807: XML elements cannot be selected from type 'IEnumerable(Of Object)'.
         x = F(Of IEnumerable(Of Object)).<x>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)'.
+BC36807: XML elements cannot be selected from type 'IEnumerable(Of XObject)'.
         x = F(Of IEnumerable(Of XObject)).<x>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36807: XML elements cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XAttribute)'.
+BC36807: XML elements cannot be selected from type 'IEnumerable(Of XAttribute)'.
         x = F(Of IEnumerable(Of XAttribute)).<x>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -18066,46 +18066,46 @@ End Module
 BC31168: XML axis properties do not support late binding.
         x = F(Of Object).@a
             ~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XObject'.
+BC36808: XML attributes cannot be selected from type 'XObject'.
         x = F(Of XObject).@a
             ~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XContainer'.
+BC36808: XML attributes cannot be selected from type 'XContainer'.
         x = F(Of XContainer).@a
             ~~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XDocument'.
+BC36808: XML attributes cannot be selected from type 'XDocument'.
         x = F(Of XDocument).@a
             ~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XAttribute'.
+BC36808: XML attributes cannot be selected from type 'XAttribute'.
         x = F(Of XAttribute).@a
             ~~~~~~~~~~~~~~~~~~~
 BC36808: XML attributes cannot be selected from type 'Object()'.
         x = F(Of Object()).@a
             ~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XObject()'.
+BC36808: XML attributes cannot be selected from type 'XObject()'.
         x = F(Of XObject()).@a
             ~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XContainer()'.
+BC36808: XML attributes cannot be selected from type 'XContainer()'.
         x = F(Of XContainer()).@a
             ~~~~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XDocument()'.
+BC36808: XML attributes cannot be selected from type 'XDocument()'.
         x = F(Of XDocument()).@a
             ~~~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Xml.Linq.XAttribute()'.
+BC36808: XML attributes cannot be selected from type 'XAttribute()'.
         x = F(Of XAttribute()).@a
             ~~~~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Collections.Generic.IEnumerable(Of Object)'.
+BC36808: XML attributes cannot be selected from type 'IEnumerable(Of Object)'.
         x = F(Of IEnumerable(Of Object)).@a
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)'.
+BC36808: XML attributes cannot be selected from type 'IEnumerable(Of XObject)'.
         x = F(Of IEnumerable(Of XObject)).@a
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XContainer)'.
+BC36808: XML attributes cannot be selected from type 'IEnumerable(Of XContainer)'.
         x = F(Of IEnumerable(Of XContainer)).@a
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XDocument)'.
+BC36808: XML attributes cannot be selected from type 'IEnumerable(Of XDocument)'.
         x = F(Of IEnumerable(Of XDocument)).@a
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36808: XML attributes cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XAttribute)'.
+BC36808: XML attributes cannot be selected from type 'IEnumerable(Of XAttribute)'.
         x = F(Of IEnumerable(Of XAttribute)).@a
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -18162,28 +18162,28 @@ End Module
 BC31168: XML axis properties do not support late binding.
         x = F(Of Object)...<x>
             ~~~~~~~~~~~~~~~~~~
-BC36809: XML descendant elements cannot be selected from type 'System.Xml.Linq.XObject'.
+BC36809: XML descendant elements cannot be selected from type 'XObject'.
         x = F(Of XObject)...<x>
             ~~~~~~~~~~~~~~~~~~~
-BC36809: XML descendant elements cannot be selected from type 'System.Xml.Linq.XAttribute'.
+BC36809: XML descendant elements cannot be selected from type 'XAttribute'.
         x = F(Of XAttribute)...<x>
             ~~~~~~~~~~~~~~~~~~~~~~
 BC36809: XML descendant elements cannot be selected from type 'Object()'.
         x = F(Of Object())...<x>
             ~~~~~~~~~~~~~~~~~~~~
-BC36809: XML descendant elements cannot be selected from type 'System.Xml.Linq.XObject()'.
+BC36809: XML descendant elements cannot be selected from type 'XObject()'.
         x = F(Of XObject())...<x>
             ~~~~~~~~~~~~~~~~~~~~~
-BC36809: XML descendant elements cannot be selected from type 'System.Xml.Linq.XAttribute()'.
+BC36809: XML descendant elements cannot be selected from type 'XAttribute()'.
         x = F(Of XAttribute())...<x>
             ~~~~~~~~~~~~~~~~~~~~~~~~
-BC36809: XML descendant elements cannot be selected from type 'System.Collections.Generic.IEnumerable(Of Object)'.
+BC36809: XML descendant elements cannot be selected from type 'IEnumerable(Of Object)'.
         x = F(Of IEnumerable(Of Object))...<x>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36809: XML descendant elements cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XObject)'.
+BC36809: XML descendant elements cannot be selected from type 'IEnumerable(Of XObject)'.
         x = F(Of IEnumerable(Of XObject))...<x>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36809: XML descendant elements cannot be selected from type 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XAttribute)'.
+BC36809: XML descendant elements cannot be selected from type 'IEnumerable(Of XAttribute)'.
         x = F(Of IEnumerable(Of XAttribute))...<x>
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -18699,7 +18699,7 @@ BC41998: Statement recursively calls the containing 'RaiseEvent' for event 't'.
         </file>
     </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
-BC41999: Implicit conversion from 'Object' to 'System.Exception' in copying the value of 'ByRef' parameter 'x' back to the matching argument.
+BC41999: Implicit conversion from 'Object' to 'Exception' in copying the value of 'ByRef' parameter 'x' back to the matching argument.
                         foo(o)
                             ~
                  </errors>
@@ -19286,7 +19286,7 @@ BC42026: Expression recursively calls the containing property 'Public Property P
         </file>
     </compilation>)
             Dim expectedErrors1 = <errors>
-BC42029: 'Catch' block never reached, because 'System.SystemException' inherits from 'System.Exception'.
+BC42029: 'Catch' block never reached, because 'SystemException' inherits from 'Exception'.
                     Catch ex As SystemException
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                  </errors>
@@ -20581,7 +20581,7 @@ End Module
         </file>
     </compilation>)
             Dim expectedErrors1 = <errors>
-BC42322: Runtime errors might occur when converting 'String' to 'System.Collections.Generic.IEnumerator(Of Integer)'.
+BC42322: Runtime errors might occur when converting 'String' to 'IEnumerator(Of Integer)'.
                     Dim xx As System.Collections.Generic.IEnumerator(Of Integer) = "hello"
                                                                                    ~~~~~~~
                  </errors>
@@ -21855,7 +21855,7 @@ Enum E
 BC30002: Type 'System.Int32' is not defined.
 Enum E
      ~
-BC31091: Import of type 'System.Enum' from assembly or module 'EnumWithoutMscorReference.dll' failed.
+BC31091: Import of type '[Enum]' from assembly or module 'EnumWithoutMscorReference.dll' failed.
 Enum E
      ~
 </errors>)
@@ -21898,7 +21898,7 @@ BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.
 BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'String'. Add one to your project.
         Dim a = DnT.DateString
                 ~~~~~~~~~~~~~~
-BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'System.Object'. Add one to your project.
+BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type '[Object]'. Add one to your project.
         Dim a = DnT.DateString
                 ~~~~~~~~~~~~~~
 ]]></errors>)
@@ -21919,7 +21919,7 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'System.Collections.Generic.List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
     Dim _myclass As MyClass1 = Nothing
                     ~~~~~~~~
 </errors>)
@@ -21942,10 +21942,10 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'System.Collections.Generic.List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
         Dim _myclass = MyClass1.Class1Foo
                        ~~~~~~~~
-BC36924: Type 'System.Collections.Generic.List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
         Dim _myclass = MyClass1.Class1Foo
                        ~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -21968,7 +21968,7 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'System.Collections.Generic.List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
         Dim _myclass = directcast(nothing, MyClass1)
                                            ~~~~~~~~
 </errors>)
@@ -23025,7 +23025,7 @@ BC30149: Class 'cls1' must implement 'Event E2 As Program.i1.del2' for interface
 BC30149: Class 'cls1' must implement 'Event E3 As Program.i1.del3' for interface 'i1'.
         Implements i1
                    ~~
-BC31423: Event 'Private Event E1 As System.Action' cannot implement event 'Event E1 As Program.i1.del1' on interface 'Program.i1' because their delegate types 'System.Action' and 'Program.i1.del1' do not match.
+BC31423: Event 'Private Event E1 As Action' cannot implement event 'Event E1 As Program.i1.del1' on interface 'Program.i1' because their delegate types 'Action' and 'Program.i1.del1' do not match.
         Private Event E1 As action Implements i1.E1
                                               ~~~~~
 BC30401: 'E2' cannot implement 'E2' because there is no matching event on interface 'i1'.
@@ -23133,7 +23133,7 @@ BC30149: Class 'cls1' must implement 'Event E2 As Program.i1.del2' for interface
 BC30401: 'E1' cannot implement 'E2' because there is no matching event on interface 'i1'.
         Private Event E1 As i1.del1 Implements i1.E1, i1.E2
                                                       ~~~~~
-BC31407: Event 'Private Event E2 As Program.i1.del2' cannot implement event 'Program.i1.Event E2a As System.Action(Of Integer)' because its delegate type does not match the delegate type of another event implemented by 'Private Event E2 As Program.i1.del2'.
+BC31407: Event 'Private Event E2 As Program.i1.del2' cannot implement event 'Program.i1.Event E2a As Action(Of Integer)' because its delegate type does not match the delegate type of another event implemented by 'Private Event E2 As Program.i1.del2'.
         Private Event E2(x As Integer) Implements i1.E1a, i1.E2a
                                                           ~~~~~~
 </errors>)

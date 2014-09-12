@@ -62,13 +62,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' vb error format + complete signature for delegates instead of just the name.
         Friend Shared ReadOnly DelegateSignatureFormat As New SymbolDisplayFormat(
-                                                            globalNamespaceStyle:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.GlobalNamespaceStyle,
-                                                            typeQualificationStyle:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.TypeQualificationStyle,
-                                                            genericsOptions:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.GenericsOptions,
-                                                            memberOptions:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.MemberOptions,
-                                                            parameterOptions:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.ParameterOptions,
-                                                            propertyStyle:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.PropertyStyle,
-                                                            localOptions:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.LocalOptions,
+                                                            globalNamespaceStyle:=SymbolDisplayFormat.VisualBasicShortErrorMessageFormat.GlobalNamespaceStyle,
+                                                            typeQualificationStyle:=SymbolDisplayFormat.VisualBasicShortErrorMessageFormat.TypeQualificationStyle,
+                                                            genericsOptions:=SymbolDisplayFormat.VisualBasicShortErrorMessageFormat.GenericsOptions,
+                                                            memberOptions:=SymbolDisplayFormat.VisualBasicShortErrorMessageFormat.MemberOptions,
+                                                            parameterOptions:=SymbolDisplayFormat.VisualBasicShortErrorMessageFormat.ParameterOptions,
+                                                            propertyStyle:=SymbolDisplayFormat.VisualBasicShortErrorMessageFormat.PropertyStyle,
+                                                            localOptions:=SymbolDisplayFormat.VisualBasicShortErrorMessageFormat.LocalOptions,
                                                             kindOptions:=SymbolDisplayKindOptions.IncludeTypeKeyword Or SymbolDisplayKindOptions.IncludeNamespaceKeyword,
                                                             delegateStyle:=SymbolDisplayDelegateStyle.NameAndSignature,
                                                             miscellaneousOptions:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.MiscellaneousOptions)

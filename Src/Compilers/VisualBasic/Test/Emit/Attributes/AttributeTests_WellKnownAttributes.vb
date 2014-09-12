@@ -1688,25 +1688,25 @@ End Class
 </compilation>
 
             CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
-BC30127: Attribute 'System.Runtime.CompilerServices.MethodImplAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
     <MethodImpl(CShort(1))>
                 ~~~~~~~~~
-BC30127: Attribute 'System.Runtime.CompilerServices.MethodImplAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
     <MethodImpl(CShort(2))>
                 ~~~~~~~~~
-BC30127: Attribute 'System.Runtime.CompilerServices.MethodImplAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
     <MethodImpl(CShort(3))>
                 ~~~~~~~~~
-BC30127: Attribute 'System.Runtime.CompilerServices.MethodImplAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
     <MethodImpl(CShort(5))>
                 ~~~~~~~~~
-BC30127: Attribute 'System.Runtime.CompilerServices.MethodImplAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
     <MethodImpl(CType(2, MethodImplOptions))>
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.CompilerServices.MethodImplAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
     <MethodImpl(CShort(4), MethodCodeType:=CType(8, MethodCodeType), MethodCodeType:=CType(9, MethodCodeType))>
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.CompilerServices.MethodImplAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
     <MethodImpl(CShort(4), MethodCodeType:=CType(8, MethodCodeType), MethodCodeType:=CType(9, MethodCodeType))>
                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>)
@@ -1867,7 +1867,7 @@ Imports System.Runtime.InteropServices
 </compilation>
 
             CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.DefaultCharSetAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'DefaultCharSetAttribute' is not valid: Incorrect argument value.
 <Module:DefaultCharSet(DirectCast(Integer.MaxValue, CharSet))>
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>)
@@ -3583,20 +3583,20 @@ End Interface
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.ClassInterfaceAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'ClassInterfaceAttribute' is not valid: Incorrect argument value.
 <ClassInterface(DirectCast(-1, ClassInterfaceType))>
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.ClassInterfaceAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'ClassInterfaceAttribute' is not valid: Incorrect argument value.
 <ClassInterface(DirectCast(3, ClassInterfaceType))>
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.ClassInterfaceAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'ClassInterfaceAttribute' is not valid: Incorrect argument value.
 <ClassInterface(CShort(-1))>
                 ~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.ClassInterfaceAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'ClassInterfaceAttribute' is not valid: Incorrect argument value.
 <ClassInterface(CShort(3))>
                 ~~~~~~~~~
 BC30519: Overload resolution failed because no accessible 'New' can be called without a narrowing conversion:
-    'Public Overloads Sub New(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)': Argument matching parameter 'classInterfaceType' narrows from 'Integer' to 'System.Runtime.InteropServices.ClassInterfaceType'.
+    'Public Overloads Sub New(classInterfaceType As ClassInterfaceType)': Argument matching parameter 'classInterfaceType' narrows from 'Integer' to 'ClassInterfaceType'.
     'Public Overloads Sub New(classInterfaceType As Short)': Argument matching parameter 'classInterfaceType' narrows from 'Integer' to 'Short'.
 <ClassInterface(3)>
  ~~~~~~~~~~~~~~
@@ -3685,20 +3685,20 @@ End Class
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.InterfaceTypeAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'InterfaceTypeAttribute' is not valid: Incorrect argument value.
 <InterfaceType(DirectCast(-1, ComInterfaceType))>
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.InterfaceTypeAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'InterfaceTypeAttribute' is not valid: Incorrect argument value.
 <InterfaceType(DirectCast(4, ComInterfaceType))>
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.InterfaceTypeAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'InterfaceTypeAttribute' is not valid: Incorrect argument value.
 <InterfaceType(CShort(-1))>
                ~~~~~~~~~~
-BC30127: Attribute 'System.Runtime.InteropServices.InterfaceTypeAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'InterfaceTypeAttribute' is not valid: Incorrect argument value.
 <InterfaceType(CShort(4))>
                ~~~~~~~~~
 BC30519: Overload resolution failed because no accessible 'New' can be called without a narrowing conversion:
-    'Public Overloads Sub New(interfaceType As System.Runtime.InteropServices.ComInterfaceType)': Argument matching parameter 'interfaceType' narrows from 'Integer' to 'System.Runtime.InteropServices.ComInterfaceType'.
+    'Public Overloads Sub New(interfaceType As ComInterfaceType)': Argument matching parameter 'interfaceType' narrows from 'Integer' to 'ComInterfaceType'.
     'Public Overloads Sub New(interfaceType As Short)': Argument matching parameter 'interfaceType' narrows from 'Integer' to 'Short'.
 <InterfaceType(4)>
  ~~~~~~~~~~~~~
@@ -4020,10 +4020,10 @@ Imports System.Runtime.InteropServices
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.TypeLibVersionAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
 <Assembly: TypeLibVersionAttribute(-1, Integer.MinValue)>
                                    ~~
-BC30127: Attribute 'System.Runtime.InteropServices.TypeLibVersionAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
 <Assembly: TypeLibVersionAttribute(-1, Integer.MinValue)>
                                        ~~~~~~~~~~~~~~~~
 ]]></expected>)
@@ -4085,16 +4085,16 @@ Imports System.Runtime.InteropServices
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC30127: Attribute 'System.Runtime.InteropServices.ComCompatibleVersionAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'ComCompatibleVersionAttribute' is not valid: Incorrect argument value.
 <Assembly: ComCompatibleVersionAttribute(-1, -1, -1, -1)>
                                          ~~
-BC30127: Attribute 'System.Runtime.InteropServices.ComCompatibleVersionAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'ComCompatibleVersionAttribute' is not valid: Incorrect argument value.
 <Assembly: ComCompatibleVersionAttribute(-1, -1, -1, -1)>
                                              ~~
-BC30127: Attribute 'System.Runtime.InteropServices.ComCompatibleVersionAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'ComCompatibleVersionAttribute' is not valid: Incorrect argument value.
 <Assembly: ComCompatibleVersionAttribute(-1, -1, -1, -1)>
                                                  ~~
-BC30127: Attribute 'System.Runtime.InteropServices.ComCompatibleVersionAttribute' is not valid: Incorrect argument value.
+BC30127: Attribute 'ComCompatibleVersionAttribute' is not valid: Incorrect argument value.
 <Assembly: ComCompatibleVersionAttribute(-1, -1, -1, -1)>
                                                      ~~
 ]]></expected>)
@@ -4158,16 +4158,16 @@ End Class
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID '69D3E2A0-BB0F-4FE3-9860-ED714C51075' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E2A0-BB0F-4FE3-9860-ED714C51075' is not correct.
 <Guid("69D3E2A0-BB0F-4FE3-9860-ED714C51075")> ' incorrect length (35 chars)
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID '69D3E2A0BB0F--4FE3-9860-ED714C510756' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E2A0BB0F--4FE3-9860-ED714C510756' is not correct.
 <Guid("69D3E2A0BB0F--4FE3-9860-ED714C510756")> ' invalid format
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID '' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '' is not correct.
 <Guid("")> ' empty string
       ~~
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID 'Nothing' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID 'Nothing' is not correct.
 <Guid(Nothing)> ' Nothing
       ~~~~~~~
 ]]></expected>)
@@ -4209,16 +4209,16 @@ End Class
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID '69D3E2A0BB0F4FE39860ED714C510756' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E2A0BB0F4FE39860ED714C510756' is not correct.
 <Guid("69D3E2A0BB0F4FE39860ED714C510756")>
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID '{69D3E2A0-BB0F-4FE3-9860-ED714C510756}' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '{69D3E2A0-BB0F-4FE3-9860-ED714C510756}' is not correct.
 <Guid("{69D3E2A0-BB0F-4FE3-9860-ED714C510756}")>
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID '(69D3E2A0-BB0F-4FE3-9860-ED714C510756)' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '(69D3E2A0-BB0F-4FE3-9860-ED714C510756)' is not correct.
 <Guid("(69D3E2A0-BB0F-4FE3-9860-ED714C510756)")>
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID '{0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '{0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}' is not correct.
 <Guid("{0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}")>
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
@@ -4240,7 +4240,7 @@ Imports System.Runtime.InteropServices
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied because the format of the GUID '69D3E2A0BB0F--4FE3-9860-ED714C510756' is not correct.
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E2A0BB0F--4FE3-9860-ED714C510756' is not correct.
 <Assembly: Guid("69D3E2A0BB0F--4FE3-9860-ED714C510756")>
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)

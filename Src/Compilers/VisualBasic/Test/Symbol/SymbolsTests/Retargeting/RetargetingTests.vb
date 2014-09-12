@@ -524,7 +524,7 @@ End Structure
 BC30002: Type 'System.Void' is not defined.
 Public Structure Test
 ~~~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'System.ValueType' from assembly or module 'test.dll' failed.
+BC31091: Import of type 'ValueType' from assembly or module 'test.dll' failed.
 Public Structure Test
                  ~~~~
 BC30002: Type 'System.Int16' is not defined.

@@ -3941,7 +3941,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public ReadOnly Property Foo As System.Func(Of String, Integer)'.
+BC30057: Too many arguments to 'Public ReadOnly Property Foo As Func(Of String, Integer)'.
         Call Foo("abc")
                  ~~~~~
 BC30545: Property access must assign to the property or use its value.
@@ -3987,7 +3987,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public Function Foo() As System.Func(Of String, Integer)'.
+BC30057: Too many arguments to 'Public Function Foo() As Func(Of String, Integer)'.
         Foo("abc")
             ~~~~~
 </expected>)

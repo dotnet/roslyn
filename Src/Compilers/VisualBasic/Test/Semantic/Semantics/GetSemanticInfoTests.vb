@@ -3888,7 +3888,7 @@ BC30002: Type 'System.Object' is not defined.
 BC30002: Type 'System.Void' is not defined.
         Delegate Function DelFunction() As Integer
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'System.MulticastDelegate' from assembly or module 'Compilation.dll' failed.
+BC31091: Import of type 'MulticastDelegate' from assembly or module 'Compilation.dll' failed.
         Delegate Function DelFunction() As Integer
                           ~~~~~~~~~~~
 BC30002: Type 'System.Int32' is not defined.
@@ -3912,7 +3912,7 @@ BC30002: Type 'System.Void' is not defined.
 BC30002: Type 'System.Void' is not defined.
         Delegate Sub DelSub(x as Integer)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'System.MulticastDelegate' from assembly or module 'Compilation.dll' failed.
+BC31091: Import of type 'MulticastDelegate' from assembly or module 'Compilation.dll' failed.
         Delegate Sub DelSub(x as Integer)
                      ~~~~~~
 BC30002: Type 'System.Int32' is not defined.
@@ -3921,13 +3921,13 @@ BC30002: Type 'System.Int32' is not defined.
 BC31091: Import of type 'Object' from assembly or module 'Compilation.dll' failed.
         Public DelField1 As DelFunction = AddressOf TestFunction
                                                     ~~~~~~~~~~~~
-BC31143: Method 'Friend Function TestFunction() As Integer' does not have a signature compatible with delegate 'Delegate Function Server.Scen8.DelFunction() As Integer'.
+BC31143: Method 'Friend Function TestFunction() As Integer' does not have a signature compatible with delegate 'Delegate Function Scen8.DelFunction() As Integer'.
         Public DelField1 As DelFunction = AddressOf TestFunction
                                                     ~~~~~~~~~~~~
 BC31091: Import of type 'Object' from assembly or module 'Compilation.dll' failed.
         Public DelField2 As DelSub = AddressOf TestSub
                                                ~~~~~~~
-BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature compatible with delegate 'Delegate Sub Server.Scen8.DelSub(x As Integer)'.
+BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature compatible with delegate 'Delegate Sub Scen8.DelSub(x As Integer)'.
         Public DelField2 As DelSub = AddressOf TestSub
                                                ~~~~~~~
 BC30002: Type 'System.Int32' is not defined.
@@ -3948,13 +3948,13 @@ BC30002: Type 'System.Void' is not defined.
 BC31091: Import of type 'Object' from assembly or module 'Compilation.dll' failed.
             Dim delLocal1 As DelFunction = AddressOf TestFunction
                                                      ~~~~~~~~~~~~
-BC31143: Method 'Friend Function TestFunction() As Integer' does not have a signature compatible with delegate 'Delegate Function Server.Scen8.DelFunction() As Integer'.
+BC31143: Method 'Friend Function TestFunction() As Integer' does not have a signature compatible with delegate 'Delegate Function Scen8.DelFunction() As Integer'.
             Dim delLocal1 As DelFunction = AddressOf TestFunction
                                                      ~~~~~~~~~~~~
 BC31091: Import of type 'Object' from assembly or module 'Compilation.dll' failed.
             Dim delLocal2 As DelSub = AddressOf TestSub
                                                 ~~~~~~~
-BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature compatible with delegate 'Delegate Sub Server.Scen8.DelSub(x As Integer)'.
+BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature compatible with delegate 'Delegate Sub Scen8.DelSub(x As Integer)'.
             Dim delLocal2 As DelSub = AddressOf TestSub
                                                 ~~~~~~~
 </errors>)
@@ -4097,7 +4097,7 @@ End Namespace
             Dim semanticModelA = compilation.GetSemanticModel(treeA)
             CompilationUtils.AssertTheseDiagnostics(semanticModelA.GetDiagnostics(),
 <expected>
-BC30311: Value of type 'System.Guid' cannot be converted to 'String'.
+BC30311: Value of type 'Guid' cannot be converted to 'String'.
         a = New Guid()
             ~~~~~~~~~~
 </expected>)
@@ -5804,8 +5804,8 @@ End Class
             Dim comp = CreateCompilationWithMscorlib(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
-    'Public Shared Sub M(a As System.Func(Of A))': Not most specific.
-    'Public Shared Sub M(b As System.Func(Of B))': Not most specific.
+    'Public Shared Sub M(a As Func(Of A))': Not most specific.
+    'Public Shared Sub M(b As Func(Of B))': Not most specific.
         M(Function() Nothing) ' Ambiguous.
         ~
 ]]></errors>)

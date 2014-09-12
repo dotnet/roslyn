@@ -216,8 +216,8 @@ End Namespace
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30294: Structure 's2' cannot contain an instance of itself: 
-    'Program.s2' contains 'System.Collections.Generic.List(Of Program.s2).Enumerator' (variable 'enumerator').
-    'System.Collections.Generic.List(Of Program.s2).Enumerator' contains 'Program.s2' (variable 'current').
+    's2' contains 'List(Of s2).Enumerator' (variable 'enumerator').
+    'List(Of s2).Enumerator' contains 's2' (variable 'current').
         Dim enumerator As Collections.Generic.List(Of s2).Enumerator
             ~~~~~~~~~~
 </expected>)

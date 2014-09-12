@@ -62,13 +62,13 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim v1 As Object = New With {.a=tr}
                                         ~~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim v2 As Object = New With {.a={{tr}}}
                                         ~~~~~~
-BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim v2 As Object = New With {.a={{tr}}}
                                         ~~~~~~
 </errors>)

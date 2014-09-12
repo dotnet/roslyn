@@ -32,12 +32,68 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
 
         /// <summary>
+        /// Formats a symbol description as in a C# compiler short error message.
+        /// </summary>
+        public static readonly SymbolDisplayFormat CSharpShortErrorMessageFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeType,
+                // Not showing the name is important because we visit parameters to display their
+                // types.  If we visited their types directly, we wouldn't get ref/out/params.
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+
+        /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.
         /// </summary>
         public static readonly SymbolDisplayFormat VisualBasicErrorMessageFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                genericsOptions:
+                    SymbolDisplayGenericsOptions.IncludeTypeParameters |
+                    SymbolDisplayGenericsOptions.IncludeTypeConstraints |
+                    SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeModifiers,
+                kindOptions:
+                    SymbolDisplayKindOptions.IncludeMemberKeyword,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeName |
+                    SymbolDisplayParameterOptions.IncludeOptionalBrackets |
+                    SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+
+        /// <summary>
+        /// Formats a symbol description as in a Visual Basic compiler short error message.
+        /// </summary>
+        public static readonly SymbolDisplayFormat VisualBasicShortErrorMessageFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 genericsOptions:
                     SymbolDisplayGenericsOptions.IncludeTypeParameters |

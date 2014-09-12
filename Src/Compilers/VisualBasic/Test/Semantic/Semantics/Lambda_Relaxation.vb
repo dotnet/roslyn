@@ -942,7 +942,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36670: Nested sub does not have a signature that is compatible with delegate 'System.Action(Of Integer)'.
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Action(Of Integer)'.
         Dim x1 As Action(Of Integer) = Sub(x As System.Guid) 'BIND1:"Sub(x As System.Guid)"
                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -988,7 +988,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36670: Nested sub does not have a signature that is compatible with delegate 'System.Action(Of Integer)'.
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Action(Of Integer)'.
         Dim x1 As Action(Of Integer) = ((Sub(x As System.Guid) 'BIND1:"Sub(x As System.Guid)"
                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1260,7 +1260,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36670: Nested sub does not have a signature that is compatible with delegate 'System.Func(Of Integer)'.
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Func(Of Integer)'.
         Dim x1 As Func(Of Integer) = Sub() 'BIND1:"Sub()"
                                      ~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1712,7 +1712,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of System.Guid)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Guid)'.
         Dim x1 As Func(Of Guid) = Function() As Integer 'BIND1:"Function() As Integer"
                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1963,16 +1963,16 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer)'.
         Dim x1 As Func(Of Integer) = Function(y As Integer) 1 'BIND1:"Function(y As Integer)"
                                      ~~~~~~~~~~~~~~~~~~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer)'.
         Dim x2 As Func(Of Integer) = Function(y As Integer) As Integer 'BIND2:"Function(y As Integer) As Integer"
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer, Integer)'.
         Dim x3 As Func(Of Integer, Integer, Integer) = Function(y) 1 'BIND3:"Function(y)"
                                                        ~~~~~~~~~~~~~
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer, Integer)'.
         Dim x4 As Func(Of Integer, Integer, Integer) = Function(y) As Integer 'BIND4:"Function(y) As Integer"
                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -2019,7 +2019,7 @@ End Module
 
                 CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36532: Nested function does not have the same signature as delegate 'System.Func(Of Integer, Integer)'.
+BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim x1 As Func(Of Integer, Integer) = Function(ByRef y As Integer) 1 'BIND1:"Function(ByRef y As Integer)"
                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -2368,22 +2368,22 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
     <![CDATA[
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim x2 As d5 = Sub(y1 As String, y2 As ArgIterator)
                                                ~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim x1 As Action(Of Object) = Function(y1 As Object) As ArgIterator
                                                                 ~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim x2 As Action(Of Object) = Function(y1 As Object) As ArgIterator
                                                                 ~~~~~~~~~~~
 BC42105: Function '<anonymous method>' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
                                       End Function '2
                                       ~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim x3 As Action(Of Object) = Function(y1 As Object)
                                       ~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim x4 As d6 = Function() Nothing
                        ~~~~~~~~~~
 ]]>
@@ -2447,28 +2447,28 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Object, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Integer, Integer)))': Not most specific.
 10:     Test1(Function() Function(a As Object) 1)
         ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Object, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Integer, Integer)))': Not most specific.
 20:     Test1(Function()
         ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Object, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Integer, Integer)))': Not most specific.
 30:     Test1(Function()
         ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Object, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Integer, Integer)))': Not most specific.
 40:     Test1(Function()
         ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
-    'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Object, Integer)))': Not most specific.
+    'Public Sub Test1(x As Func(Of Func(Of Integer, Integer)))': Not most specific.
         Test1(Function() AddressOf Test2)
         ~~~~~
 </expected>)
@@ -2542,8 +2542,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30519: Overload resolution failed because no accessible 'Test2' can be called without a narrowing conversion:
-    'Public Sub Test2(x As System.Func(Of Object, Integer))': Argument matching parameter 'x' narrows to 'System.Func(Of Object, Integer)'.
-    'Public Sub Test2(x As System.Func(Of Integer, Integer))': Argument matching parameter 'x' narrows to 'System.Func(Of Integer, Integer)'.
+    'Public Sub Test2(x As Func(Of Object, Integer))': Argument matching parameter 'x' narrows to 'Func(Of Object, Integer)'.
+    'Public Sub Test2(x As Func(Of Integer, Integer))': Argument matching parameter 'x' narrows to 'Func(Of Integer, Integer)'.
         Test2(Function(x As String) 1)
         ~~~~~
 </expected>)
@@ -2552,8 +2552,8 @@ BC30519: Overload resolution failed because no accessible 'Test2' can be called 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'Test2' can be called with these arguments:
-    'Public Sub Test2(x As System.Func(Of Object, Integer))': Option Strict On disallows implicit conversions from 'Object' to 'String'.
-    'Public Sub Test2(x As System.Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Integer' to 'String'.
+    'Public Sub Test2(x As Func(Of Object, Integer))': Option Strict On disallows implicit conversions from 'Object' to 'String'.
+    'Public Sub Test2(x As Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Integer' to 'String'.
         Test2(Function(x As String) 1)
         ~~~~~
 </expected>)

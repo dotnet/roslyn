@@ -235,7 +235,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC32042: Too few type arguments to 'System.Collections.Generic.IEnumerable(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
     Public Iterator Function foo As IEnumerable
                                     ~~~~~~~~~~~
 BC36939: 'Yield' cannot be used inside a 'Catch' statement or a 'Finally' statement.
@@ -273,7 +273,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC30311: Value of type 'Integer' cannot be converted to 'System.Exception'.
+BC30311: Value of type 'Integer' cannot be converted to 'Exception'.
         Yield 1       
               ~
 </errors>)
@@ -372,7 +372,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC36932: 'System.ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
+BC36932: 'ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
     Public Iterator Function f2(ByVal a As ArgIterator) As IEnumerator
                                            ~~~~~~~~~~~
 </errors>)
@@ -402,7 +402,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC32042: Too few type arguments to 'System.Collections.Generic.IEnumerable(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
     Public Iterator Function f1(o As Object) As IEnumerable
                                                 ~~~~~~~~~~~
 </errors>)
@@ -660,13 +660,13 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
 BC30201: Expression expected.
         g1(Iterator Sub() Yield, 5)
                                ~
-BC32042: Too few type arguments to 'System.Collections.Generic.IEnumerator(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerator(Of Out T)'.
     Sub g0(ByVal x As Func(Of IEnumerator))
                               ~~~~~~~~~~~
-BC32042: Too few type arguments to 'System.Collections.Generic.IEnumerator(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerator(Of Out T)'.
     Sub g1(ByVal x As Func(Of IEnumerator), ByVal y As Integer)
                               ~~~~~~~~~~~
-BC32042: Too few type arguments to 'System.Collections.Generic.IEnumerator(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerator(Of Out T)'.
     Iterator Function f() As IEnumerator
                              ~~~~~~~~~~~
 BC30201: Expression expected.
@@ -702,7 +702,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-    BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+    BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim i = Iterator Function()
                 ~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -825,7 +825,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC36645: Data type(s) of the type parameter(s) in method 'Public Sub baz(Of T)(x As System.Func(Of System.Collections.Generic.IEnumerator(Of T)))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36645: Data type(s) of the type parameter(s) in method 'Public Sub baz(Of T)(x As Func(Of IEnumerator(Of T)))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         baz(Iterator Function()
         ~~~
 </errors>)

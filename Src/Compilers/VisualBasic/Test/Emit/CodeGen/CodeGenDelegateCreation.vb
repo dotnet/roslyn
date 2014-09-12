@@ -566,10 +566,10 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
-BC30939: 'AddressOf' expression cannot be converted to 'System.Delegate' because type 'System.Delegate' is declared 'MustInherit' and cannot be created.
+BC30939: 'AddressOf' expression cannot be converted to '[Delegate]' because type '[Delegate]' is declared 'MustInherit' and cannot be created.
         Dim v1 As System.Delegate = AddressOf foo
                                     ~~~~~~~~~~~~~
-BC30939: 'AddressOf' expression cannot be converted to 'System.MulticastDelegate' because type 'System.MulticastDelegate' is declared 'MustInherit' and cannot be created.
+BC30939: 'AddressOf' expression cannot be converted to 'MulticastDelegate' because type 'MulticastDelegate' is declared 'MustInherit' and cannot be created.
         Dim v2 As System.MulticastDelegate = AddressOf C2.foo
                                              ~~~~~~~~~~~~~~~~
 </expected>)
@@ -2431,10 +2431,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(c,
 <expected>
-BC42016: Implicit conversion from 'System.Func(Of System.ArgumentException, System.Exception)' to 'System.Func(Of System.Exception, System.Exception)'; this conversion may fail because 'System.Exception' is not derived from 'System.ArgumentException', as required for the 'In' generic parameter 'T' in 'Delegate Function System.Func(Of In T, Out TResult)(arg As T) As TResult'.
+BC42016: Implicit conversion from 'Func(Of ArgumentException, Exception)' to 'Func(Of Exception, Exception)'; this conversion may fail because 'Exception' is not derived from 'ArgumentException', as required for the 'In' generic parameter 'T' in 'Delegate Function Func(Of In T, Out TResult)(arg As T) As TResult'.
         f = f2
             ~~
-BC42016: Implicit conversion from 'System.Func(Of System.ArgumentException, System.Exception)' to 'System.Func(Of System.Exception, System.ArgumentException)'; this conversion may fail because 'System.Exception' is not derived from 'System.ArgumentException', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function System.Func(Of In T, Out TResult)(arg As T) As TResult'.
+BC42016: Implicit conversion from 'Func(Of ArgumentException, Exception)' to 'Func(Of Exception, ArgumentException)'; this conversion may fail because 'Exception' is not derived from 'ArgumentException', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function Func(Of In T, Out TResult)(arg As T) As TResult'.
         f1 = f2
              ~~
 </expected>)
@@ -2442,10 +2442,10 @@ BC42016: Implicit conversion from 'System.Func(Of System.ArgumentException, Syst
             c = c.WithOptions(c.Options.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(c,
 <expected>
-BC36755: 'System.Func(Of System.ArgumentException, System.Exception)' cannot be converted to 'System.Func(Of System.Exception, System.Exception)' because 'System.Exception' is not derived from 'System.ArgumentException', as required for the 'In' generic parameter 'T' in 'Delegate Function System.Func(Of In T, Out TResult)(arg As T) As TResult'.
+BC36755: 'Func(Of ArgumentException, Exception)' cannot be converted to 'Func(Of Exception, Exception)' because 'Exception' is not derived from 'ArgumentException', as required for the 'In' generic parameter 'T' in 'Delegate Function Func(Of In T, Out TResult)(arg As T) As TResult'.
         f = f2
             ~~
-BC36754: 'System.Func(Of System.ArgumentException, System.Exception)' cannot be converted to 'System.Func(Of System.Exception, System.ArgumentException)' because 'System.Exception' is not derived from 'System.ArgumentException', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function System.Func(Of In T, Out TResult)(arg As T) As TResult'.
+BC36754: 'Func(Of ArgumentException, Exception)' cannot be converted to 'Func(Of Exception, ArgumentException)' because 'Exception' is not derived from 'ArgumentException', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function Func(Of In T, Out TResult)(arg As T) As TResult'.
         f1 = f2
              ~~
 </expected>)
@@ -2803,13 +2803,13 @@ End Class
 BC31029: Method 'Foo' cannot handle event 'e' because they do not have a compatible signature.
     Sub Foo(ParamArray x() As Integer) Handles MyClass.e
                                                        ~
-BC31143: Method 'Public Sub Foo(ParamArray x As Integer())' does not have a signature compatible with delegate 'Delegate Sub System.Action(Of System.Exception)(obj As System.Exception)'.
+BC31143: Method 'Public Sub Foo(ParamArray x As Integer())' does not have a signature compatible with delegate 'Delegate Sub Action(Of Exception)(obj As Exception)'.
         Dim e1 As Action(Of Exception) = AddressOf Foo
                                                    ~~~
 BC31029: Method 'Foo' cannot handle event 'e' because they do not have a compatible signature.
     Sub Foo(Optional x As Integer = 2) Handles MyClass.e
                                                        ~
-BC31143: Method 'Public Sub Foo([x As Integer = 2])' does not have a signature compatible with delegate 'Delegate Sub System.Action(Of System.Exception)(obj As System.Exception)'.
+BC31143: Method 'Public Sub Foo([x As Integer = 2])' does not have a signature compatible with delegate 'Delegate Sub Action(Of Exception)(obj As Exception)'.
         Dim e1 As Action(Of Exception) = AddressOf Foo
                                                    ~~~
 </expected>)

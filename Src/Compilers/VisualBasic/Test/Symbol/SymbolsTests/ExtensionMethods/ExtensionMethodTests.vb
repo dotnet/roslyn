@@ -2306,10 +2306,10 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected><![CDATA[
-BC31503: 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be used as an attribute because it is not a class.
+BC31503: 'ExtensionAttribute' cannot be used as an attribute because it is not a class.
 <System.Runtime.CompilerServices.ExtensionAttribute()> ' 1
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31503: 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be used as an attribute because it is not a class.
+BC31503: 'ExtensionAttribute' cannot be used as an attribute because it is not a class.
 <System.Runtime.CompilerServices.ExtensionAttribute()> ' 2
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
@@ -2335,10 +2335,10 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected><![CDATA[
-BC31504: 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
+BC31504: 'ExtensionAttribute' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
 <System.Runtime.CompilerServices.ExtensionAttribute()> ' 1
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31504: 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
+BC31504: 'ExtensionAttribute' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
 <System.Runtime.CompilerServices.ExtensionAttribute()> ' 2
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
