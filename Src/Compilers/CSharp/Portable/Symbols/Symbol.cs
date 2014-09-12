@@ -1139,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat format)
         {
-            var csharpModel = semanticModel as CSharpSemanticModel
+            var csharpModel = semanticModel as CSharpSemanticModel;
             if (csharpModel == null)
             {
                 throw new ArgumentException(CSharpResources.WrongSemanticModelType, this.Language);
