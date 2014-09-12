@@ -89,6 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(awaitExpression As AwaitExpressionSyntax) InferTypeInAwaitExpression(awaitExpression),
                     Function(binaryExpression As BinaryExpressionSyntax) InferTypeInBinaryExpression(binaryExpression, expression),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression, expression),
+                    Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause),
                     Function(conditionalExpression As BinaryConditionalExpressionSyntax) InferTypeInBinaryConditionalExpression(conditionalExpression, expression),
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, expression),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(),
@@ -143,6 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(binaryExpression As BinaryExpressionSyntax) InferTypeInBinaryExpression(binaryExpression, previousToken:=token),
                     Function(caseStatement As CaseStatementSyntax) InferTypeInCaseStatement(caseStatement),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression),
+                    Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause, previousToken:=token),
                     Function(conditionalExpression As BinaryConditionalExpressionSyntax) InferTypeInBinaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(token),
@@ -484,6 +486,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return GetTypes(castExpression.Type)
+            End Function
+
+            Private Function InferTypeInCatchFilterClause(catchFilterClause As CatchFilterClauseSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
+                If previousToken <> Nothing AndAlso previousToken <> catchFilterClause.WhenKeyword Then
+                    Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                End If
+
+                Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
             End Function
 
             Private Function InferTypeInDoStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of INamedTypeSymbol)

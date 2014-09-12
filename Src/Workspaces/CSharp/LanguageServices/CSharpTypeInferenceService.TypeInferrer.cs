@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -173,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BinaryExpressionSyntax binaryExpression) => InferTypeInBinaryExpression(binaryExpression, expression),
                     (CastExpressionSyntax castExpression) => InferTypeInCastExpression(castExpression, expression),
                     (CatchDeclarationSyntax catchDeclaration) => InferTypeInCatchDeclaration(catchDeclaration),
+                    (CatchFilterClauseSyntax catchFilterClause) => InferTypeInCatchFilterClause(catchFilterClause),
                     (ConditionalExpressionSyntax conditionalExpression) => InferTypeInConditionalExpression(conditionalExpression, expression),
                     (DoStatementSyntax doStatement) => InferTypeInDoStatement(doStatement),
                     (EqualsValueClauseSyntax equalsValue) => InferTypeInEqualsValueClause(equalsValue),
@@ -220,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BracketedArgumentListSyntax bracketedArgumentList) => InferTypeInBracketedArgumentList(bracketedArgumentList, token),
                     (CastExpressionSyntax castExpression) => InferTypeInCastExpression(castExpression, previousToken: token),
                     (CatchDeclarationSyntax catchDeclaration) => InferTypeInCatchDeclaration(catchDeclaration, token),
+                    (CatchFilterClauseSyntax catchFilterClause) => InferTypeInCatchFilterClause(catchFilterClause, token),
                     (ConditionalExpressionSyntax conditionalExpression) => InferTypeInConditionalExpression(conditionalExpression, previousToken: token),
                     (DoStatementSyntax doStatement) => InferTypeInDoStatement(doStatement, token),
                     (EqualsValueClauseSyntax equalsValue) => InferTypeInEqualsValueClause(equalsValue, token),
@@ -802,6 +805,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.SingletonEnumerable(this.Compilation.ExceptionType());
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeInCatchFilterClause(CatchFilterClauseSyntax catchFilterClause, SyntaxToken? previousToken = null)
+            {
+                // If we have a position, it has to be after "if ("
+                if (previousToken.HasValue && previousToken.Value != catchFilterClause.OpenParenToken)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                }
+
+                return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInCoalesceExpression(
