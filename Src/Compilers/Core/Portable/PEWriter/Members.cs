@@ -941,7 +941,7 @@ namespace Microsoft.Cci
 
     internal enum EncFuncCode
     {
-        Delta = 0,
+        Default = 0,
         AddMethod = 1,
         AddField = 2,
         AddParameter = 3,

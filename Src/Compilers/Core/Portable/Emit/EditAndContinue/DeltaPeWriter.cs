@@ -717,19 +717,21 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var member in index.GetRows())
             {
-                uint typeIndex = this.typeDefs[member.ContainingTypeDefinition];
-                Debug.Assert(typeIndex > 0);
+                if (index.IsAddedNotChanged(member))
+                {
+                    uint typeIndex = this.typeDefs[member.ContainingTypeDefinition];
+                    Debug.Assert(typeIndex > 0);
 
-                uint mapIndex;
-                var ok = map.TryGetValue(typeIndex, out mapIndex);
-                Debug.Assert(ok);
+                    uint mapIndex;
+                    var ok = map.TryGetValue(typeIndex, out mapIndex);
+                    Debug.Assert(ok);
 
-                uint row = index[member];
-                uint mapToken = mapTokenType | mapIndex;
-                table.Add(new EncLogRow() { Token = mapToken, FuncCode = addCode });
+                    uint mapToken = mapTokenType | mapIndex;
+                    table.Add(new EncLogRow() { Token = mapToken, FuncCode = addCode });
+                }
 
-                uint token = tokenType | row;
-                table.Add(new EncLogRow() { Token = token, FuncCode = EncFuncCode.Delta });
+                uint token = tokenType | index[member];
+                table.Add(new EncLogRow() { Token = token, FuncCode = EncFuncCode.Default });
             }
         }
 
@@ -749,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 uint token = tokenType | index[member];
-                table.Add(new EncLogRow() { Token = token, FuncCode = EncFuncCode.Delta });
+                table.Add(new EncLogRow() { Token = token, FuncCode = EncFuncCode.Default });
             }
         }
 
@@ -764,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 uint paramRowId = (uint)(parameterFirstId + i);
                 uint token = TokenTypeIds.ParamDef | paramRowId;
-                table.Add(new EncLogRow() { Token = token, FuncCode = EncFuncCode.Delta });
+                table.Add(new EncLogRow() { Token = token, FuncCode = EncFuncCode.Default });
             }
         }
 
@@ -774,7 +776,7 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var member in index.GetRows())
             {
                 uint token = tokenType | index[member];
-                table.Add(new EncLogRow() { Token = token, FuncCode = EncFuncCode.Delta });
+                table.Add(new EncLogRow() { Token = token, FuncCode = EncFuncCode.Default });
             }
         }
 
@@ -791,7 +793,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             for (int i = 0; i < nTokens; i++)
             {
-                table.Add(new EncLogRow() { Token = tokenType | (firstRowId + (uint)i), FuncCode = EncFuncCode.Delta });
+                table.Add(new EncLogRow() { Token = tokenType | (firstRowId + (uint)i), FuncCode = EncFuncCode.Default });
             }
         }
 
