@@ -116,15 +116,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             bool trackUnassignments = false,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
-            bool requireOutParamsAssigned = true,
-            bool ignoreInaccessibleStructFields = false)
+            bool requireOutParamsAssigned = true)
             : base(compilation, member, node, trackUnassignments: trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
             this.sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
             this.unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
-            this.emptyStructTypeCache = new EmptyStructTypeCache((object)member != null && ignoreInaccessibleStructFields ? member.ContainingType : null);
+            bool strict = compilation.Feature("strict") != null; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
+            this.emptyStructTypeCache = new EmptyStructTypeCache(!strict);
             this.requireOutParamsAssigned = requireOutParamsAssigned;
             this.topLevelMethod = member as MethodSymbol;
         }
@@ -142,11 +142,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
             this.unassignedVariableAddressOfSyntaxes = null;
-            this.emptyStructTypeCache = emptyStructs ?? new EmptyStructTypeCache(null);
+            bool strict = compilation.Feature("strict") != null; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
+            this.emptyStructTypeCache = emptyStructs ?? new EmptyStructTypeCache(!strict);
             this.requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
         }
 
+        /// <summary>
+        /// Constructor to be used for region analysis, for which a struct type should never be considered empty.
+        /// </summary>
         internal DataFlowPass(
             CSharpCompilation compilation,
             Symbol member,
@@ -155,15 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode lastInRegion,
             HashSet<Symbol> initiallyAssignedVariables = null,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
-            bool trackUnassignments = false,
-            bool ignoreInaccessibleStructFields = false)
+            bool trackUnassignments = false)
             : base(compilation, member, node, firstInRegion, lastInRegion, trackUnassignments: trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             this.sourceAssembly = null;
             this.currentMethodOrLambda = member as MethodSymbol;
             this.unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
-            this.emptyStructTypeCache = new EmptyStructTypeCache((object)member != null && !ignoreInaccessibleStructFields ? member.ContainingType : null);
+            this.emptyStructTypeCache = new NeverEmptyStructTypeCache();
         }
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
@@ -296,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static void Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics, bool requireOutParamsAssigned = true)
         {
-            var walker = new DataFlowPass(compilation, member, node, requireOutParamsAssigned: requireOutParamsAssigned, ignoreInaccessibleStructFields: true);
+            var walker = new DataFlowPass(compilation, member, node, requireOutParamsAssigned: requireOutParamsAssigned);
             try
             {
                 bool badRegion = false;

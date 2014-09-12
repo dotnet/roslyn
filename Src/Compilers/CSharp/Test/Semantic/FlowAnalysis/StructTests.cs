@@ -79,9 +79,9 @@ class C
         S s5 = s4;
     }
 }");
-            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn));
-            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut));
-            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned));
         }
 
         [Fact]
@@ -170,6 +170,48 @@ class GraphicsContext
                 // (3,13): error CS0523: Struct member 'S<T>.P' of type 'S<T[]>?' causes a cycle in the struct layout
                 //     S<T[]>? P { get; set; }
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));
+        }
+
+        [Fact, WorkItem(1017887)]
+        public void EmptyStructsFromMetadata()
+        {
+            var comp1 = CreateCompilationWithMscorlib(
+@"public struct StructWithReference
+{
+    string PrivateData;
+}
+public struct StructWithValue
+{
+    int PrivateData;
+}");
+            var sourceReference = new CSharpCompilationReference(comp1);
+            var metadataReference = new MetadataImageReference(comp1.EmitToStream());
+
+            var source2 =
+@"class Program
+{
+    public static void Main()
+    {
+        StructWithReference r1;
+        var r2 = r1;
+
+        StructWithValue v1;
+        var v2 = v1;
+    }
+}";
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
+                // (9,18): error CS0165: Use of unassigned local variable 'v1'
+                //         var v2 = v1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
+                );
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+                // (9,18): error CS0165: Use of unassigned local variable 'v1'
+                //         var v2 = v1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
+                );
         }
     }
 }

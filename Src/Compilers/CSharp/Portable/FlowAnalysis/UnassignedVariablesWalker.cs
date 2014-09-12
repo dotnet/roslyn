@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     class UnassignedVariablesWalker : DataFlowPass
     {
-        UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node, EmptyStructTypeCache emptyStructCache = null)
-            : base(compilation, member, node, emptyStructCache)
+        UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
+            : base(compilation, member, node, new NeverEmptyStructTypeCache())
         {
         }
 
-        internal static HashSet<Symbol> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, EmptyStructTypeCache emptyStructCache = null)
+        internal static HashSet<Symbol> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node)
         {
-            var walker = new UnassignedVariablesWalker(compilation, member, node, emptyStructCache);
+            var walker = new UnassignedVariablesWalker(compilation, member, node);
             try
             {
                 bool badRegion = false;

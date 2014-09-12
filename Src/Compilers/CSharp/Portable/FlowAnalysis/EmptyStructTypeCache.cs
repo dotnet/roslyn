@@ -18,11 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class EmptyStructTypeCache
     {
-        // These are relative to an accessing symbol, as inaccessible fields are
-        // not "considered" for flow analysis (C# language design decision April 2013)
-        private readonly NamedTypeSymbol accessor;
-
         private SmallDictionary<NamedTypeSymbol, bool> cache;
+
+        /// <summary>
+        /// When set, we ignore private reference fields of structs loaded from metadata.
+        /// </summary>
+        private bool dev12CompilerCompatibility;
+
         private SmallDictionary<NamedTypeSymbol, bool> Cache
         {
             get
@@ -31,9 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal EmptyStructTypeCache(NamedTypeSymbol accessor)
+        /// <summary>
+        /// Create a cache for computing whether or not a struct type is "empty".
+        /// </summary>
+        /// <param name="dev12CompilerCompatibility">Enable compatibility with the native compiler, which
+        ///  ignored private fields of reference type for structs loaded from metadata.</param>
+        internal EmptyStructTypeCache(bool dev12CompilerCompatibility)
         {
-            this.accessor = accessor;
+            this.dev12CompilerCompatibility = dev12CompilerCompatibility;
         }
 
         /// <summary>
@@ -149,28 +156,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!member.IsStatic)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
                 switch (member.Kind)
                 {
                     case SymbolKind.Field:
                         var field = (FieldSymbol)member;
-                        if (!field.IsFixed && ((object)this.accessor == null || AccessCheck.IsSymbolAccessible(field, this.accessor, ref useSiteDiagnostics)))
-                        {
-                            return field.AsMember(type);
-                        }
-                        break;
+                        return (field.IsFixed || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
 
                     case SymbolKind.Event:
                         EventSymbol eventSymbol = (EventSymbol)member;
-                        if (eventSymbol.HasAssociatedField && ((object)this.accessor == null || AccessCheck.IsSymbolAccessible(eventSymbol, this.accessor, ref useSiteDiagnostics)))
-                        {
-                            return eventSymbol.AssociatedField.AsMember(type);
-                        }
-                        break;
+                        return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);
                 }
             }
             return null;
+        }
+
+        private bool ShouldIgnoreStructField(Symbol member, TypeSymbol memberType)
+        {
+            return this.dev12CompilerCompatibility &&                                     // when we're trying to be compatible with the native compiler, we ignore
+                   member.DeclaredAccessibility == Accessibility.Private &&        // private fields
+                   !memberType.IsValueType &&                                      // of reference type (more precisely, not of value type)
+                   !member.Dangerous_IsFromSomeCompilationIncludingRetargeting;    // that come from metadata
         }
 
     }
@@ -178,10 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Specialized EmptyStructTypeCache that reports all structs as not empty
     /// </summary>
-    internal sealed class CaptureWalkerEmptyStructTypeCache : EmptyStructTypeCache
+    internal sealed class NeverEmptyStructTypeCache : EmptyStructTypeCache
     {
-        public CaptureWalkerEmptyStructTypeCache()
-           : base(null)
+        public NeverEmptyStructTypeCache()
+           : base(false)
         {
         }
 

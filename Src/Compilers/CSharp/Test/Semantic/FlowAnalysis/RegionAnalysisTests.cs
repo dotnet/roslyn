@@ -206,7 +206,7 @@ enum E1
 ");
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.AlwaysAssigned));
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.Captured));
-            Assert.Equal("c, d, e, f", GetSymbolNamesSortedAndJoined(analysis.DataFlowsIn));
+            Assert.Equal("a, b, c, d, e, f", GetSymbolNamesSortedAndJoined(analysis.DataFlowsIn));
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut));
             Assert.Equal("a, b, c, d, e, f", GetSymbolNamesSortedAndJoined(analysis.ReadInside));
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.ReadOutside));

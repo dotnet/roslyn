@@ -669,6 +669,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.DeclaringCompilation != null; }
         }
 
+        /// <summary>
+        /// Always prefer <see cref="IsFromCompilation"/>.
+        /// </summary>
+        /// <remarks>
+        /// For definite assignment analysis, we duplicate a bug from the native compiler whereby it ignores
+        /// private reference fields of struct types when the type is referenced from metadata. We use this
+        /// as an approximation for whether or not the symbol came from source (i.e. not metadata).
+        /// </remarks>
+        internal bool Dangerous_IsFromSomeCompilationIncludingRetargeting
+        {
+            get
+            {
+                if ((object)this.DeclaringCompilation != null) return true;
+                var assembly = ((this as AssemblySymbol) ?? this.ContainingAssembly) as Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingAssemblySymbol;
+                return (object)assembly != null && (object)assembly.UnderlyingAssembly != null && (object)assembly.UnderlyingAssembly.DeclaringCompilation != null;
+            }
+        }
+
         internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             foreach (var syntaxRef in this.DeclaringSyntaxReferences)

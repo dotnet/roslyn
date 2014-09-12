@@ -115,9 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int nextHoistedFieldId = 1;
 
         /// <summary>
-        /// Used to compute if a struct type is actually empty.
+        /// Used to enumerate the instance fields of a struct.
         /// </summary>
-        private EmptyStructTypeCache emptyStructTypeCache = new EmptyStructTypeCache(null);
+        private EmptyStructTypeCache emptyStructTypeCache = new NeverEmptyStructTypeCache();
 
         /// <summary>
         /// The set of captured variables seen in the method body.
@@ -327,12 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.TypeKind != TypeKind.Struct) return false; // enums, etc
             if (type.SpecialType == SpecialType.System_TypedReference) return true;
             if (type.SpecialType != SpecialType.None) return false; // int, etc
-            CSharpCompilation Compilation = this.CompilationState.ModuleBuilderOpt.Compilation;
-            if (type.DeclaringCompilation != Compilation) return true; // perhaps from ref assembly
-            if (emptyStructTypeCache.IsEmptyStructType(type)) return false;
-            foreach (var f in type.GetMembers())
+            if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
+            foreach (var f in emptyStructTypeCache.GetStructInstanceFields(type))
             {
-                if (f.Kind == SymbolKind.Field && !f.IsStatic && MightContainReferences(((FieldSymbol)f).Type)) return true;
+                if (MightContainReferences(f.Type)) return true;
             }
             return false;
         }

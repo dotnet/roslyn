@@ -601,18 +601,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Always prefer IsFromCompilation.
         ''' </summary>
         ''' <remarks>
-        ''' This property is actually a double workaround:
+        ''' This property is actually a triple workaround:
         ''' 
-        ''' 1) Unfortunately, when determining overriding/hiding/implementation relationships, we don't 
-        '''    have the "current" compilation available.  We could, but that would clutter up the API 
+        ''' 1) Unfortunately, when determining overriding/hiding/implementation relationships, we don't
+        '''    have the "current" compilation available.  We could, but that would clutter up the API
         '''    without providing much benefit.  As a compromise, we consider all compilations "current".
         ''' 
         ''' 2) TypeSymbol.Interfaces doesn't roundtrip in the presence of implicit interface implementation.
         '''    In particular, the metadata symbol may declare fewer interfaces than the source symbol so
         '''    that runtime implicit interface implementation will find the right symbol.  Thus, we need to
         '''    know what kind of symbol we are dealing with to be able to interpret the Interfaces property
-        '''    properly.  Since a retargeting TypeSymbol will reflect the behavior of the underlying source 
+        '''    properly.  Since a retargeting TypeSymbol will reflect the behavior of the underlying source
         '''    TypeSymbol, we need this property to match as well.  (C# does not have this problem.)
+        ''' 
+        ''' 3) The Dev12 VB compiler avoided loading private fields of structs from metadata, even though
+        '''    they're supposed to affect definite assignment analysis.  For compatibility
+        '''    we therefore ignore these fields when doing DA analysis.  (C# has a similar issue.)
         ''' </remarks>
         Friend ReadOnly Property Dangerous_IsFromSomeCompilationIncludingRetargeting As Boolean
             Get
