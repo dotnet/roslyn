@@ -3418,7 +3418,7 @@ Dim b = Loc
         End Sub
 
         <WorkItem(997208)>
-        <Fact(Skip:="997208")>
+        <Fact>
         Public Sub VbRuntime02()
 
             Dim dir = Temp.CreateDirectory()
