@@ -193,7 +193,7 @@ End Class
                                            <constant name="f" value="-3.402823E+38" type="Single"/>
                                            <constant name="d" value="1.79769313486232E+308" type="Double"/>
                                            <constant name="dec" value="1.5" type="Decimal"/>
-                                           <constant name="dt" value="40968" type="Double"/>
+                                           <constant name="dt" value="2.98187743664301E-266" type="Double"/>
                                        </locals>
                                        <scope startOffset="0x0" endOffset="0x2">
                                            <namespace name="System" importlevel="file"/>
@@ -203,7 +203,7 @@ End Class
                                            <constant name="f" value="-3.402823E+38" type="Single"/>
                                            <constant name="d" value="1.79769313486232E+308" type="Double"/>
                                            <constant name="dec" value="1.5" type="Decimal"/>
-                                           <constant name="dt" value="40968" type="Double"/>
+                                           <constant name="dt" value="2.98187743664301E-266" type="Double"/>
                                        </scope>
                                    </method>
                                </methods>

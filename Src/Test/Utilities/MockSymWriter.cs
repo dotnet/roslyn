@@ -36,7 +36,7 @@ namespace Roslyn.Test.Utilities
             throw new NotImplementedException();
         }
 
-        public virtual void DefineConstant2(string name, object value, uint sigToken)
+        public virtual void DefineConstant2(string name, VariantStructure value, uint sigToken)
         {
             throw new NotImplementedException();
         }

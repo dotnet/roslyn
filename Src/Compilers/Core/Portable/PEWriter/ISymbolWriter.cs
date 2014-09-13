@@ -49,7 +49,77 @@ namespace Microsoft.Cci
         void Abort();
         void DefineLocalVariable2(string name, uint attributes, uint sigToken, uint addrKind, uint addr1, uint addr2, uint addr3, uint startOffset, uint endOffset);
         void DefineGlobalVariable2(string name, uint attributes, uint sigToken, uint addrKind, uint addr1, uint addr2, uint addr3);
-        void DefineConstant2(string name, object value, uint sigToken);
+
+        /// <remarks>
+        /// <paramref name="value"/> has type <see cref="VariantStructure"/>, rather than <see cref="object"/>,
+        /// so that we can do custom marshalling of <see cref="System.DateTime"/>.  Unfortunately, .NET marshals
+        /// <see cref="System.DateTime"/>s as the number of days since 1899/12/30, whereas the native VB compiler
+       ///  marshalled them as the number of ticks since the Unix epoch (i.e. a much, much larger number).
+        /// </remarks>
+        void DefineConstant2([MarshalAs(UnmanagedType.LPWStr)] string name, VariantStructure value, uint sigToken);
+    }
+
+    internal static class ISymUnmanagedWriter2Helper
+    {
+        public static unsafe void DefineConstant2(this ISymUnmanagedWriter2 writer, string name, object value, uint sigToken)
+        {
+            VariantStructure variant = new VariantStructure();
+            Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
+            writer.DefineConstant2(name, variant, sigToken);
+        }
+    }
+
+    /// <summary>
+    /// A struct with the same size and layout as the native VARIANT type:
+    ///   2 bytes for a discriminator (i.e. which type of variant it is).
+    ///   6 bytes of padding
+    ///   8 or 16 bytes of data
+    /// </summary>
+    [StructLayout(LayoutKind.Explicit)]
+    internal struct VariantStructure
+    {
+        public VariantStructure(DateTime date) : this() // Need this to avoid errors about the uninteresting union fields.
+        {
+            this.longValue = date.Ticks;
+            this.type = (short)VarEnum.VT_DATE;
+        }
+
+        [FieldOffset(0)]
+        private readonly short type;
+
+        [FieldOffset(8)]
+        private readonly long longValue;
+
+        /// <summary>
+        /// This field determines the size of the struct 
+        /// (16 bytes on 32-bit platforms, 24 bytes on 64-bit platforms).
+        /// </summary>
+        [FieldOffset(8)]
+        private readonly VariantPadding padding;
+
+        // Fields below this point are only used to make inspecting this struct in the debugger easier.
+
+        [FieldOffset(0)] // NB: 0, not 8
+        private readonly decimal decimalValue;
+
+        [FieldOffset(8)]
+        private readonly bool boolValue;
+
+        [FieldOffset(8)]
+        private readonly long intValue;
+
+        [FieldOffset(8)]
+        private readonly double doubleValue;
+    }
+
+    /// <summary>
+    /// This type is 8 bytes on a 32-bit platforms and 16 bytes on 64-bit platforms.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct VariantPadding
+    {
+        public readonly IntPtr Data2;
+        public readonly IntPtr Data3;
     }
 
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("DCF7780D-BDE9-45DF-ACFE-21731A32000C"), SuppressUnmanagedCodeSecurity]
