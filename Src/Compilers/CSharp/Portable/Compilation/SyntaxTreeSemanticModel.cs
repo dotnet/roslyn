@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly CSharpCompilation compilation;
         private readonly SyntaxTree syntaxTree;
-        private readonly ConcurrentDictionary<CSharpSyntaxNode, MemberSemanticModel> memberModels = new ConcurrentDictionary<CSharpSyntaxNode, MemberSemanticModel>();
-        private readonly ConcurrentDictionary<TypeDeclarationSyntax, FieldInitializersInfo> instanceInitializersInfo = new ConcurrentDictionary<TypeDeclarationSyntax, FieldInitializersInfo>();
-        private readonly ConcurrentDictionary<TypeDeclarationSyntax, FieldInitializersInfo> staticInitializersInfo = new ConcurrentDictionary<TypeDeclarationSyntax, FieldInitializersInfo>();
+        private ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel> memberModels = ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel>.Empty;
+        private ImmutableDictionary<TypeDeclarationSyntax, FieldInitializersInfo> instanceInitializersInfo = ImmutableDictionary<TypeDeclarationSyntax, FieldInitializersInfo>.Empty;
+        private ImmutableDictionary<TypeDeclarationSyntax, FieldInitializersInfo> staticInitializersInfo = ImmutableDictionary<TypeDeclarationSyntax, FieldInitializersInfo>.Empty;
 
         private readonly BinderFactory binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> createMemberModelFunction;
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var createMemberModelFunction = this.createMemberModelFunction ??
                                             (this.createMemberModelFunction = this.CreateMemberModel);
 
-            return this.memberModels.GetOrAdd(node, createMemberModelFunction);
+            return ImmutableInterlocked.GetOrAdd(ref this.memberModels, node, createMemberModelFunction);
         }
 
         // Create a member model for the given declaration syntax. In certain very malformed
@@ -1199,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         siblingInitializers.TypeDeclarationSyntax.SyntaxTree == this.syntaxTree &&
                         siblingInitializers.TypeDeclarationSyntax.GetSyntax() == typeDecl)
                     {
-                        FieldInitializersInfo initializersInfo = GetFieldInitializersInfo(instanceInitializersInfo, siblingInitializers);
+                        FieldInitializersInfo initializersInfo = GetFieldInitializersInfo(ref instanceInitializersInfo, siblingInitializers);
 
                         if (!initializersInfo.Locals.IsDefaultOrEmpty)
                         {
@@ -1276,7 +1276,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if ((object)initializer.Field == field)
                     {
-                        FieldInitializersInfo initializersInfo = GetFieldInitializersInfo(field.IsStatic ? staticInitializersInfo : instanceInitializersInfo, siblingInitializers);
+                        FieldInitializersInfo initializersInfo =
+                            field.IsStatic ?
+                            GetFieldInitializersInfo(ref staticInitializersInfo, siblingInitializers) :
+                            GetFieldInitializersInfo(ref instanceInitializersInfo, siblingInitializers);
 
                         foreach (var info in initializersInfo.Initializers)
                         {
@@ -1295,9 +1298,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetFieldOrPropertyInitializerBinderSimple(field, outer);
         }
 
-        private FieldInitializersInfo GetFieldInitializersInfo(ConcurrentDictionary<TypeDeclarationSyntax, FieldInitializersInfo> map, FieldInitializers siblingInitializers)
+        private FieldInitializersInfo GetFieldInitializersInfo(ref ImmutableDictionary<TypeDeclarationSyntax, FieldInitializersInfo> map, FieldInitializers siblingInitializers)
         {
-            return map.GetOrAdd((TypeDeclarationSyntax)siblingInitializers.TypeDeclarationSyntax.GetSyntax(),
+            return ImmutableInterlocked.GetOrAdd(ref map, (TypeDeclarationSyntax)siblingInitializers.TypeDeclarationSyntax.GetSyntax(),
                                                             (typeDecl) =>
                                                             {
                                                                 var infos = ArrayBuilder<FieldInitializerInfo>.GetInstance(); // Exact size is not known up front.
