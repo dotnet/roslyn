@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Me.assignmentLocal = Nothing
 
                 ' Visit a l-value expression in context of 'address'
-                Dim right As BoundExpression = VisitExpression(node.LValue, ExprContext.Address)
+                Dim right As BoundExpression = VisitExpression(node.Target, ExprContext.Address)
 
                 ' record the Write to the local
                 Debug.Assert(storedAssignmentLocal IsNot Nothing)
@@ -551,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' this assert will fire if code relies on implicit CLR coercions 
                 ' - i.e assigns int value to a short local.
                 ' in that case we should force lhs to be a real local
-                Debug.Assert(node.ByRefLocal.Type.IsSameTypeIgnoringCustomModifiers(node.LValue.Type),
+                Debug.Assert(node.ByRefLocal.Type.IsSameTypeIgnoringCustomModifiers(node.Target.Type),
                              "cannot use stack when assignment involves implicit coercion of the value")
 
                 RecordVarWrite(storedAssignmentLocal.LocalSymbol)

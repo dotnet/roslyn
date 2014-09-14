@@ -1562,7 +1562,7 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitReferenceAssignment(node As BoundReferenceAssignment) As BoundNode
             VisitRvalue(node.ByRefLocal)
-            VisitRvalue(node.LValue)
+            VisitRvalue(node.Target)
             Return Nothing
         End Function
 

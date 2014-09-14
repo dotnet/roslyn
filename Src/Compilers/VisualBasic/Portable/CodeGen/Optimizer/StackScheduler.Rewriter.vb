@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Me.nodeCounter += 1
 
                 ' Visit the expression being assigned 
-                Dim right = DirectCast(Me.Visit(node.LValue), BoundExpression)
+                Dim right = DirectCast(Me.Visit(node.Target), BoundExpression)
 
                 ' this should not be the last store, why would be created such a variable after all???
                 Debug.Assert(locInfo.localDefs.Any(Function(d) nodeCounter = d.Start AndAlso nodeCounter <= d.End))

@@ -314,6 +314,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
+        Public Function ReferenceAssignment(byRefLocal As LocalSymbol, lValue As BoundExpression) As BoundReferenceAssignment
+            Debug.Assert(byRefLocal.Type = lValue.Type)
+            Debug.Assert(byRefLocal.IsByRef)
+
+            Dim boundNode = New BoundReferenceAssignment(_syntax, Local(byRefLocal, isLValue:=True), lValue, isLValue:=True, type:=lValue.Type)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
         Public Function Block(statements As ImmutableArray(Of BoundStatement)) As BoundBlock
             Return Block(ImmutableArray(Of LocalSymbol).Empty, statements)
         End Function
@@ -407,6 +416,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function LogicalAndAlso(left As BoundExpression, right As BoundExpression) As BoundBinaryOperator
             Return Binary(BinaryOperatorKind.AndAlso, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right)
+        End Function
+
+        Public Function LogicalOrElse(left As BoundExpression, right As BoundExpression) As BoundBinaryOperator
+            Return Binary(BinaryOperatorKind.OrElse, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right)
         End Function
 
         Public Function IntEqual(left As BoundExpression, right As BoundExpression) As BoundBinaryOperator
@@ -585,13 +598,17 @@ nextm:
 
         Public Function [DirectCast](expression As BoundExpression, type As TypeSymbol) As BoundDirectCast
             Debug.Assert(expression IsNot Nothing)
-            Debug.Assert(Not expression.IsNothingLiteral) ' Not supported yet
-            Debug.Assert(expression.Type.IsReferenceType OrElse expression.Type.IsTypeParameter()) 'Others are not supported yet
-            Debug.Assert(type.IsReferenceType) 'Others are not supported yet
-            Debug.Assert(Not expression.Type.IsErrorType)
+            Debug.Assert(expression.IsNothingLiteral OrElse expression.Type.IsReferenceType OrElse expression.Type.IsTypeParameter()) 'Others are not supported yet
+            Debug.Assert(type.IsReferenceType OrElse (type.IsTypeParameter AndAlso expression.IsNothingLiteral)) 'Others are not supported yet
+            Debug.Assert(expression.Type Is Nothing OrElse Not expression.Type.IsErrorType)
             Debug.Assert(Not type.IsErrorType)
 
-            Return New BoundDirectCast(Me.Syntax, expression, Conversions.ClassifyDirectCastConversion(expression.Type, type, Nothing), type)
+            Return New BoundDirectCast(Me.Syntax,
+                                       expression,
+                                       If(expression.IsNothingLiteral,
+                                          ConversionKind.WideningNothingLiteral,
+                                          Conversions.ClassifyDirectCastConversion(expression.Type, type, Nothing)),
+                                       type)
         End Function
 
         Public Function [If](condition As BoundExpression, thenClause As BoundStatement) As BoundStatement

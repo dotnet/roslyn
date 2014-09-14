@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim local As LocalSymbol = node.ByRefLocal.LocalSymbol
 
             Debug.Assert(Not Me._byRefLocalsInitializers.ContainsKey(local))
-            Me._byRefLocalsInitializers.Add(local, node.LValue)
+            Me._byRefLocalsInitializers.Add(local, node.Target)
 
             Return MyBase.VisitReferenceAssignment(node)
         End Function

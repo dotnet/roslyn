@@ -63,14 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If sideEffectsRequireSpill Then
                     For Each sideEffect In sideEffects
-                        If NeedsSpill(sideEffect) Then
-                            Debug.Assert(sideEffect.Kind = BoundKind.SpillSequence)
-                            Dim spill = DirectCast(sideEffect, BoundSpillSequence)
-                            builder.AssumeFieldsIfNeeded(spill)
-                            builder.AddStatement(Me.RewriteSpillSequenceIntoBlock(spill, True))
-                        Else
-                            builder.AddStatement(Me.F.ExpressionStatement(sideEffect))
-                        End If
+                        builder.AddStatement(MakeExpressionStatement(sideEffect, builder))
                     Next
                 End If
 
@@ -79,6 +72,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return builder.BuildSequenceAndFree(Me.F, valueOpt)
+            End Function
+
+            Private Function MakeExpressionStatement(expression As BoundExpression, ByRef builder As SpillBuilder) As BoundStatement
+                If NeedsSpill(expression) Then
+                    Debug.Assert(expression.Kind = BoundKind.SpillSequence)
+                    Dim spill = DirectCast(expression, BoundSpillSequence)
+                    builder.AssumeFieldsIfNeeded(spill)
+                    Return Me.RewriteSpillSequenceIntoBlock(spill, True)
+                Else
+                    Return Me.F.ExpressionStatement(expression)
+                End If
             End Function
 
             Public Overrides Function VisitCall(node As BoundCall) As BoundNode
@@ -251,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' ByRef local was not captured
                     Dim rewrittenLeft As BoundLocal = DirectCast(Me.VisitExpression(origByRefLocal), BoundLocal)
 
-                    Dim rewrittenRight As BoundExpression = Me.VisitExpression(node.LValue)
+                    Dim rewrittenRight As BoundExpression = Me.VisitExpression(node.Target)
                     Debug.Assert(rewrittenRight.IsLValue)
                     Dim rightRequiresSpill As Boolean = NeedsSpill(rewrittenRight)
 
@@ -425,17 +429,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     condition = SpillRValue(condition, builder)
                 End If
 
-                Dim tempLocal As LocalSymbol = Me.F.SynthesizedLocal(rewritten.Type)
-                builder.AddLocal(tempLocal)
+                Dim sequenceValueOpt As BoundExpression
 
-                builder.AddStatement(
-                    Me.F.If(
-                        condition:=condition,
-                        thenClause:=MakeAssignmentStatement(whenTrue, tempLocal, builder),
-                        elseClause:=MakeAssignmentStatement(whenFalse, tempLocal, builder)))
+                If Not rewritten.Type.IsVoidType() Then
+                    Dim tempLocal As LocalSymbol = Me.F.SynthesizedLocal(rewritten.Type)
 
-                Return builder.BuildSequenceAndFree(Me.F,
-                                                    Me.F.Local(tempLocal, False))
+                    builder.AddLocal(tempLocal)
+
+                    builder.AddStatement(
+                        Me.F.If(
+                            condition:=condition,
+                            thenClause:=MakeAssignmentStatement(whenTrue, tempLocal, builder),
+                            elseClause:=MakeAssignmentStatement(whenFalse, tempLocal, builder)))
+
+                    sequenceValueOpt = Me.F.Local(tempLocal, False)
+                Else
+                    builder.AddStatement(
+                        Me.F.If(
+                            condition:=condition,
+                            thenClause:=MakeExpressionStatement(whenTrue, builder),
+                            elseClause:=MakeExpressionStatement(whenFalse, builder)))
+
+                    sequenceValueOpt = Nothing
+                End If
+
+                Return builder.BuildSequenceAndFree(Me.F, sequenceValueOpt)
             End Function
 
             Private Function MakeAssignmentStatement(expression As BoundExpression, temp As LocalSymbol, <[In], Out> ByRef builder As SpillBuilder) As BoundStatement

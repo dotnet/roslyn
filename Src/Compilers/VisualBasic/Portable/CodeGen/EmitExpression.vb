@@ -1605,8 +1605,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitReferenceAssignment(capture As BoundReferenceAssignment, used As Boolean, Optional needReference As Boolean = False)
             Debug.Assert(Not needReference OrElse used)
 
-            Dim temp = EmitAddress(capture.LValue, addressKind:=AddressKind.Writeable)
-            Debug.Assert(temp Is Nothing, "reference assignment should not clone the referent")
+            Dim temp = EmitAddress(capture.Target, addressKind:=AddressKind.Writeable)
+
+            ' TODO: We can leak a temp here, but we don't have a good way to infer when it is safe to let it go. 
+            Debug.Assert(temp Is Nothing OrElse Not capture.Target.IsLValue, "reference assignment should not clone the referent")
 
             If used Then
                 _builder.EmitOpCode(ILOpCode.Dup)

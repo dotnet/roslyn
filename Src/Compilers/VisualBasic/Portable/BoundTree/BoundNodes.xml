@@ -353,7 +353,7 @@
         <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
         <Field Name="ByRefLocal" Type="BoundLocal"/>
-        <Field Name="LValue" Type="BoundExpression" Null="allow"/>
+        <Field Name="Target" Type="BoundExpression" Null="allow"/>
         <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
     </Node>
   
@@ -1713,7 +1713,7 @@
   <Node Name="BoundConditionalAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="Placeholder" Type="BoundValuePlaceholderBase"/>
+    <Field Name="Placeholder" Type="BoundRValuePlaceholder"/>
     <Field Name="AccessExpression" Type="BoundExpression"/>
   </Node>
 </Tree>

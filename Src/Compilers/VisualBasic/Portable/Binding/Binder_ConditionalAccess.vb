@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class Binder
 
         Private Function BindConditionalAccessExpression(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
-            Dim placeholder As BoundValuePlaceholderBase = Nothing
+            Dim placeholder As BoundRValuePlaceholder = Nothing
             Dim boundExpression As BoundExpression = BindConditionalAccessReceiver(node, diagnostics, placeholder)
 
             Dim accessBinder As New ConditionalAccessBinder(Me, node, placeholder)
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundConditionalAccess(node, boundExpression, placeholder, whenNotNull, Nothing)
         End Function
 
-        Private Function BindConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef placeholder As BoundValuePlaceholderBase) As BoundExpression
+        Private Function BindConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef placeholder As BoundRValuePlaceholder) As BoundExpression
             Dim boundExpression As BoundExpression
 
             If node.Expression Is Nothing Then
@@ -47,16 +47,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type As TypeSymbol = boundExpression.Type
 
             Dim placeholderType As TypeSymbol = type
-            Dim placeholderIsLValue = boundExpression.IsLValue OrElse boundExpression.IsMeReference
 
             If type.IsValueType Then
                 If type.IsNullableType() Then
                     placeholderType = type.GetNullableUnderlyingType()
-                    placeholderIsLValue = False
-
-                    If boundExpression.IsLValue Then
-                        boundExpression = Me.MakeRValue(boundExpression, diagnostics)
-                    End If
                 Else
                     ' Operator '{0}' is not defined for type '{1}'.
                     ReportDiagnostic(diagnostics, node.QuestionMarkToken, ERRID.ERR_UnaryOperand2, node.QuestionMarkToken.ValueText, type)
@@ -64,12 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Create a placeholder
-            If placeholderIsLValue Then
-                placeholder = New BoundLValuePlaceholder(node, placeholderType)
-            Else
-                placeholder = New BoundRValuePlaceholder(node, placeholderType)
-            End If
-
+            placeholder = New BoundRValuePlaceholder(node, placeholderType)
             placeholder.SetWasCompilerGenerated()
 
             Return boundExpression
@@ -86,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundExpression = TryGetConditionalAccessReceiver(node)
 
             If result Is Nothing Then
-                Dim placeholder As BoundValuePlaceholderBase = Nothing
+                Dim placeholder As BoundRValuePlaceholder = Nothing
                 BindConditionalAccessReceiver(node, New DiagnosticBag(), placeholder)
                 Return placeholder
             End If
