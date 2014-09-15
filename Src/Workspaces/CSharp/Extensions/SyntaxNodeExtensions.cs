@@ -18,22 +18,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind)
         {
-            return node != null && node.Parent.IsKind(kind);
+            return node != null && CodeAnalysis.CSharpExtensions.IsKind(node.Parent, kind);
         }
 
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2)
-        {
-            return node.IsKind(kind1) || node.IsKind(kind2);
-        }
-
-        public static bool IsKind(this SyntaxNode node, params SyntaxKind[] kinds)
         {
             if (node == null)
             {
                 return false;
             }
 
-            return kinds.Contains(node.CSharpKind());
+            var csharpKind = node.CSharpKind();
+            return csharpKind == kind1 || csharpKind == kind2;
+        }
+
+        public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var csharpKind = node.CSharpKind();
+            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3;
+        }
+
+        public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var csharpKind = node.CSharpKind();
+            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4;
+        }
+
+        public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var csharpKind = node.CSharpKind();
+            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5;
         }
 
         /// <summary>
@@ -421,10 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (trivia.HasStructure)
             {
                 var parentSpan = trivia.GetStructure().Span;
-                if (trivia.GetStructure().IsKind(SyntaxKind.RegionDirectiveTrivia) ||
-                    trivia.GetStructure().IsKind(SyntaxKind.EndRegionDirectiveTrivia) ||
-                    trivia.GetStructure().IsKind(SyntaxKind.IfDirectiveTrivia) ||
-                    trivia.GetStructure().IsKind(SyntaxKind.EndIfDirectiveTrivia))
+                if (trivia.GetStructure().IsKind(SyntaxKind.RegionDirectiveTrivia,
+                                                 SyntaxKind.EndRegionDirectiveTrivia,
+                                                 SyntaxKind.IfDirectiveTrivia,
+                                                 SyntaxKind.EndIfDirectiveTrivia))
                 {
                     var match = ((DirectiveTriviaSyntax)trivia.GetStructure()).GetMatchingDirective(cancellationToken);
                     if (match != null)
@@ -437,8 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return true;
                         }
 
-                        if (trivia.GetStructure().IsKind(SyntaxKind.IfDirectiveTrivia) ||
-                            trivia.GetStructure().IsKind(SyntaxKind.EndIfDirectiveTrivia))
+                        if (trivia.GetStructure().IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia))
                         {
                             var ppSpan = TextSpan.FromBounds(
                                 Math.Min(parentSpan.Start, matchSpan.Start),
@@ -449,8 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
                 else if (
-                    trivia.GetStructure().IsKind(SyntaxKind.ElseDirectiveTrivia) ||
-                    trivia.GetStructure().IsKind(SyntaxKind.ElifDirectiveTrivia))
+                    trivia.GetStructure().IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia))
                 {
                     if (!ifEndIfSpans.IntersectsWith(parentSpan.Start))
                     {

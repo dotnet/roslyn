@@ -14,9 +14,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SyntaxTriviaExtensions
     {
+        public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind)
+        {
+            return trivia.CSharpKind() == kind;
+        }
+
+        public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind1, SyntaxKind kind2)
+        {
+            var triviaKind = trivia.CSharpKind();
+            return triviaKind == kind1 || triviaKind == kind2;
+        }
+
         public static bool MatchesKind(this SyntaxTrivia trivia, params SyntaxKind[] kinds)
         {
-            return kinds.Any(k => k == trivia.CSharpKind());
+            var triviaKind = trivia.CSharpKind();
+            foreach (var kind in kinds)
+            {
+                if (triviaKind == kind)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool IsRegularComment(this SyntaxTrivia trivia)
