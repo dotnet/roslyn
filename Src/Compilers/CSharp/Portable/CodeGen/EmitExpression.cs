@@ -366,6 +366,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConditionalReceiver(BoundConditionalReceiver expression, bool used)
         {
+            Debug.Assert(!expression.Type.IsValueType);
+
+            if (!expression.Type.IsReferenceType)
+            {
+                EmitLoadIndirect(expression.Type, expression.Syntax);
+            }
+
             EmitPopIfUnused(used);
         }
 

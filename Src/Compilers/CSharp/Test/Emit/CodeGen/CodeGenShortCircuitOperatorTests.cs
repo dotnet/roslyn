@@ -3102,5 +3102,211 @@ True");
 
         }
 
+
+        [Fact]
+        public void ConditionalExtensionAccessGeneric001()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        long? x = 1;
+        Test0(x);
+        return;
+    }
+    static void Test0<T>(T x) 
+    {
+        x?.CheckT();
+    }
+}
+static class Ext
+{
+    public static void CheckT<T>(this T x)
+    {
+        System.Console.WriteLine(typeof(T));
+        return;
+    }
+}
+
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            comp.VerifyIL("Test.Test0<T>(T)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000e
+  IL_0008:  ldarg.0
+  IL_0009:  call       ""void Ext.CheckT<T>(T)""
+  IL_000e:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void ConditionalExtensionAccessGeneric002()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        long? x = 1;
+        Test0(ref x);
+        return;
+    }
+    static void Test0<T>(ref T x) 
+    {
+        x?.CheckT();
+    }
+}
+static class Ext
+{
+    public static void CheckT<T>(this T x)
+    {
+        System.Console.WriteLine(typeof(T));
+        return;
+    }
+}
+
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            comp.VerifyIL("Test.Test0<T>(ref T)", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0023
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        ""T""
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  ldobj      ""T""
+  IL_0028:  call       ""void Ext.CheckT<T>(T)""
+  IL_002d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalExtensionAccessGeneric003()
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        Test0(""qqq"");
+    }
+
+    static void Test0<T>(T x) where T:IEnumerable<char>
+    {
+        x?.Count();
+    }
+
+    static void Test1<T>(ref T x) where T:IEnumerable<char>
+    {
+        x?.Count();
+    }
+}
+
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"");
+            comp.VerifyIL("Test.Test0<T>(T)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_0014
+  IL_0008:  ldarg.0
+  IL_0009:  box        ""T""
+  IL_000e:  call       ""int System.Linq.Enumerable.Count<char>(System.Collections.Generic.IEnumerable<char>)""
+  IL_0013:  pop
+  IL_0014:  ret
+}
+").VerifyIL("Test.Test1<T>(ref T)", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0023
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        ""T""
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  ldobj      ""T""
+  IL_0028:  box        ""T""
+  IL_002d:  call       ""int System.Linq.Enumerable.Count<char>(System.Collections.Generic.IEnumerable<char>)""
+  IL_0032:  pop
+  IL_0033:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void ConditionalExtensionAccessGenericAsync001()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class Test
+{
+    static void Main()
+    {
+
+    }
+    async Task<int?> TestAsync<T>(T[] x) where T : I1
+    {
+        return x[0]?.CallAsync(await PassAsync());
+    }
+    static async Task<int> PassAsync()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+interface I1
+{
+    int CallAsync(int x);
+}
+
+
+";
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            base.CompileAndVerify(comp);
+        }
+
     }
 }

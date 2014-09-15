@@ -47,13 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isAsync = this.factory.CurrentMethod.IsAsync;
 
             ConditionalAccessLoweringKind loweringKind;
+            var needTemp = NeedsTemp(loweredReceiver, localsMayBeAssigned: false);
 
-            if (!receiverType.IsValueType && !isAsync && !node.Type.IsDynamic())
+            if (!isAsync && !node.Type.IsDynamic() &&
+                (receiverType.IsReferenceType || receiverType.IsTypeParameter() && needTemp))
             {
                 // trivial cases can be handled more efficiently in IL gen
                 loweringKind = ConditionalAccessLoweringKind.None;
             }
-            else if(NeedsTemp(loweredReceiver, localsMayBeAssigned: false))
+            else if(needTemp)
             {
                 if (receiverType.IsReferenceType || receiverType.IsNullableType())
                 {
@@ -122,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(accessExpressionType == nodeType.GetNullableUnderlyingType());
                 loweredAccessExpression = factory.New((NamedTypeSymbol)nodeType, loweredAccessExpression);
+
+                if (unconditionalAccess != null)
+                {
+                    unconditionalAccess = factory.New((NamedTypeSymbol)nodeType, unconditionalAccess);
+                }
             }
             else
             {
