@@ -16,15 +16,18 @@ namespace Microsoft.CodeAnalysis
     {
         private sealed class LinkedFileDiffMergingSession
         {
+            private readonly bool logSessionInfo;
+
             private Solution oldSolution;
             private Solution newSolution;
             private SolutionChanges solutionChanges;
 
-            public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
+            public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges, bool logSessionInfo)
             {
                 this.oldSolution = oldSolution;
                 this.newSolution = newSolution;
                 this.solutionChanges = solutionChanges;
+                this.logSessionInfo = logSessionInfo;
             }
 
             internal async Task<Solution> MergeDiffsAsync(CancellationToken cancellationToken)
@@ -284,6 +287,12 @@ namespace Microsoft.CodeAnalysis
 
             private void LogLinkedFileDiffMergingSessionInfo(LinkedFileDiffMergingSessionInfo sessionInfo)
             {
+                // don't report telemetry
+                if (!this.logSessionInfo)
+                {
+                    return;
+                }
+
                 var sessionId = SessionLogMessasge.GetNextId();
 
                 Logger.Log(FunctionId.Workspace_Solution_LinkedFileDiffMergingSession, SessionLogMessasge.Create(sessionId, sessionInfo));

@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithRemovedDocuments(
-            ProjectState projectState, 
+            ProjectState projectState,
             IReadOnlyList<DocumentId> documentIds)
         {
             var builder = this.linkedFilesMap.ToBuilder();
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new ArgumentException("The given documentId was not found in the linkedFilesMap.");
                 }
-                
+
                 if (documentIdsWithPath.Length == 1)
                 {
                     builder.Remove(filePath);
@@ -1240,9 +1240,9 @@ namespace Microsoft.CodeAnalysis
             var project = this.GetProjectState(documentInfo.Id.ProjectId);
 
             var doc = DocumentState.Create(
-                documentInfo, 
-                project.ParseOptions, 
-                project.LanguageServices, 
+                documentInfo,
+                project.ParseOptions,
+                project.LanguageServices,
                 this.solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind);
 
             return this.AddDocument(doc);
@@ -1470,7 +1470,8 @@ namespace Microsoft.CodeAnalysis
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(Solution oldSolution, SolutionChanges? solutionChanges = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
+            // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
+            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution), logSessionInfo: solutionChanges != null);
             return await session.MergeDiffsAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -1692,7 +1693,7 @@ namespace Microsoft.CodeAnalysis
                 // old and new projects are the same instance
                 return this;
             }
-            
+
             return this.ForkProject(newProject);
         }
 
@@ -1717,8 +1718,8 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = this.projectIdToProjectStateMap.SetItem(projectId, newProjectState);
             var newDependencyGraph = withProjectReferenceChange ? CreateDependencyGraph(this.projectIds, newStateMap) : this.dependencyGraph;
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            var newLinkedFilesMap = withDocumentListChange 
-                ? CreateLinkedFilesMapWithChangedProject(projectIdToProjectStateMap[projectId], newProjectState) 
+            var newLinkedFilesMap = withDocumentListChange
+                ? CreateLinkedFilesMapWithChangedProject(projectIdToProjectStateMap[projectId], newProjectState)
                 : this.linkedFilesMap;
 
             // If we have a tracker for this project, then fork it as well (along with the
