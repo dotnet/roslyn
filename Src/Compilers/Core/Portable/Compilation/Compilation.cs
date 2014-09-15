@@ -1676,13 +1676,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.lazyFeatures == null)
             {
-                var set = new Dictionary<string, string>();
+                var set = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 if (Options.Features != null)
                 {
-                    foreach (var s in Options.Features)
+                    foreach (var feature in Options.Features)
                     {
-                        string feature = s.ToLowerInvariant();
-
                         int colon = feature.IndexOf(':');
                         if (colon > 0)
                         {
@@ -1701,7 +1699,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             string v;
-            return this.lazyFeatures.TryGetValue(p.ToLowerInvariant(), out v) ? v : null;
+            return this.lazyFeatures.TryGetValue(p, out v) ? v : null;
         }
 
         #endregion
