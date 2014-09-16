@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        // TODO: inherit directly from MetadataReferenceProvider when bug #797360 is fixed
-        private sealed class Provider : MetadataFileReferenceProvider
+        private sealed class Provider : MetadataReferenceProvider
         {
             private readonly IDocumentationProviderService documentationService;
 

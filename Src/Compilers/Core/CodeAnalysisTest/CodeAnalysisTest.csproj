@@ -103,9 +103,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Collections" />
-    <Reference Include="System.IO" />
-    <Reference Include="System.Reflection.Primitives" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>

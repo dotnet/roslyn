@@ -269,22 +269,6 @@
     <Reference Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
-    <!-- workaround for bug 967430 -->
-    <Reference Include="System.Runtime" />
-    <Reference Include="System.Resources.ResourceManager" />
-    <Reference Include="System.Xml.ReaderWriter" />
-    <Reference Include="System.Xml.XDocument" />
-    <Reference Include="System.Linq" />
-    <Reference Include="System.Runtime.InteropServices" />
-    <Reference Include="System.Runtime.Extensions" />
-    <Reference Include="System.Collections.Concurrent" />
-    <Reference Include="System.Reflection" />
-    <Reference Include="System.Reflection.Primitives" />
-    <Reference Include="System.Globalization" />
-    <Reference Include="System.IO" />
-    <Reference Include="System.Collections" />
-    <Reference Include="System.Threading.Tasks" />
-    <Reference Include="System.Text.Encoding" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />

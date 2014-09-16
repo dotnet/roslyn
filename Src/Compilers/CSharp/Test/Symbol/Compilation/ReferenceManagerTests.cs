@@ -1915,17 +1915,15 @@ internal class C
         {
             var mscorlibPP7 = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib, display: "mscorlib, PP7");
             var systemRuntimePP7 = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime, display: "System.Runtime, PP7");
+            var systemRuntimeFacade = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime, display: "System.Runtime, facade");
 
             var plSource = @"public class C {}";
             var pl = CreateCompilation(plSource, new[] { mscorlibPP7, systemRuntimePP7 });
 
-            var dir = Temp.CreateDirectory();
-            var mscorlibFile = dir.CreateFile("mscorlib.dll").WriteAllBytes(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45.mscorlib);
-            
             var mainRefs = new MetadataReference[] 
             {
                 new CSharpCompilationReference(pl), 
-                new MetadataFileReference(mscorlibFile.Path, MetadataReferenceProperties.Assembly)
+                new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45.mscorlib)
             };
 
             var mainSource = @"public class D : C { }";
@@ -1937,33 +1935,9 @@ internal class C
                 // (1,18): error CS0012: The type 'System.Object' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("System.Object", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"));
 
-            // empty facades directory:
+            // facade specified:
 
-            main.VerifyDiagnostics(
-                // (1,18): error CS0012: The type 'System.Object' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("System.Object", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"));
-
-            // System.Runtime facade present:
-            var facades = dir.CreateDirectory("Facades");
-            var systemRuntimeFacade = facades.CreateFile("System.Runtime.dll").WriteAllBytes(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime);
-
-            main = CreateCompilation(mainSource, mainRefs, options: TestOptions.ReleaseDll.WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
-            main.VerifyDiagnostics();
-
-            var expectedReferences = new string[] 
-            { 
-                "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", 
-                pl.AssemblyName + ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", 
-                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
-            };
-
-            AssertEx.Equal(expectedReferences, main.ReferencedAssemblyNames.Select(n => n.GetDisplayName()));
-            AssertEx.Equal(expectedReferences, main.GetBoundReferenceManager().ReferencedAssembliesMap.Values.Select(ra => ra.Symbol.Identity.GetDisplayName()));
-
-
-            // facade explicitly specified:
-
-            main = CreateCompilation(mainSource, mainRefs.Concat(new[] { new MetadataFileReference(systemRuntimeFacade.Path, MetadataReferenceProperties.Assembly) }));
+            main = CreateCompilation(mainSource, mainRefs.Concat(new[] { systemRuntimeFacade }));
             main.VerifyDiagnostics();
         }
 

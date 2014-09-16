@@ -28,31 +28,5 @@ namespace Microsoft.CodeAnalysis
         {
             return new MetadataFileReference(resolvedPath, properties);
         }
-
-        // TODO: workaround for bug #797360; remove
-        internal override IEnumerable<PortableExecutableReference> GetFacadeReferences(string mscorlibPath)
-        {
-            string facadesDirectory = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetDirectoryName(mscorlibPath), @"Facades");
-            string[] files;
-
-            if (!Directory.Exists(facadesDirectory))
-            {
-                yield break;
-            }
-
-            try
-            {
-                files = Directory.GetFiles(facadesDirectory, "*.dll", SearchOption.TopDirectoryOnly);
-            }
-            catch
-            {
-                yield break;
-            }
-
-            foreach (string file in files)
-            {
-                yield return new MetadataFileReference(file, MetadataReferenceProperties.Assembly);
-            }
-        }
     }
 }

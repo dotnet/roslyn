@@ -26,11 +26,5 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A <see cref="PortableExecutableReference"/> corresponding to the <paramref name="resolvedPath"/> and
         /// <paramref name="properties"/> parameters.</returns>
         public abstract PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties);
-
-        // TODO: workaround for bug #797360; remove
-        internal virtual IEnumerable<PortableExecutableReference> GetFacadeReferences(string mscorlibPath)
-        {
-            return SpecializedCollections.EmptyEnumerable<PortableExecutableReference>();
-        }
     }
 }
