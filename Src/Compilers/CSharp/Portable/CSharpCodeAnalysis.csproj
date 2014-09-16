@@ -352,7 +352,6 @@
     <Compile Include="FlowAnalysis\DataFlowPass.VariableIdentifier.cs" />
     <Compile Include="FlowAnalysis\DataFlowsInWalker.cs" />
     <Compile Include="FlowAnalysis\DataFlowsOutWalker.cs" />
-    <Compile Include="FlowAnalysis\DisposeCheckerPass.cs" />
     <Compile Include="FlowAnalysis\EmptyStructTypeCache.cs" />
     <Compile Include="FlowAnalysis\EntryPointsWalker.cs" />
     <Compile Include="FlowAnalysis\ExitPointsWalker.cs" />

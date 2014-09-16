@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
             DataFlowPass.Analyze(compilation, method, block, diagnostics);
-            DisposeCheckerPass.Analyze(compilation, method, block, diagnostics);
             return result;
         }
     }

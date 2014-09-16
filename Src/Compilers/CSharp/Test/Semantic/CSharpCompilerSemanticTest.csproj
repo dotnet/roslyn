@@ -150,7 +150,6 @@
     <Compile Include="Semantics\UseSiteErrorTests.cs" />
     <Compile Include="Semantics\UsingStatementTests.cs" />
     <Compile Include="Semantics\VarianceTests.cs" />
-    <Compile Include="StaticAnalysisTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
