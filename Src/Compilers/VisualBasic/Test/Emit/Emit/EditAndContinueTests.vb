@@ -4072,14 +4072,14 @@ End Module
 
         Private Shared Sub CheckNames(readers As MetadataReader(), [handles] As StringHandle(), ParamArray expectedNames As String())
             Dim actualNames = readers.GetStrings([handles])
-            AssertEx.Equal(actualNames, expectedNames)
+            AssertEx.Equal(expectedNames, actualNames)
         End Sub
 
         Private Shared Sub CheckNamesSorted(readers As MetadataReader(), [handles] As StringHandle(), ParamArray expectedNames As String())
             Dim actualNames = readers.GetStrings([handles])
             Array.Sort(actualNames)
             Array.Sort(expectedNames)
-            AssertEx.Equal(actualNames, expectedNames)
+            AssertEx.Equal(expectedNames, actualNames)
         End Sub
 
         Private Shared Function EncLogRowToString(row As EditAndContinueLogEntry) As String
