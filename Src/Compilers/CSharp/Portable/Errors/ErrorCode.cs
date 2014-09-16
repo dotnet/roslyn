@@ -1300,11 +1300,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
         ERR_ParameterlessStructCtorsMustBePublic = 8075,
-
-        // Values in the range 10000-10099 are used for "Code Analysis" issues previously reported by FXCop
-        WRN_CA2000_DisposeObjectsBeforeLosingScope1 = 10000,
-        WRN_CA2000_DisposeObjectsBeforeLosingScope2 = 10001,
-
-        WRN_CA2202_DoNotDisposeObjectsMultipleTimes = 10002,
     }
 }
