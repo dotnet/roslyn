@@ -14,5 +14,6 @@ namespace Microsoft.CodeAnalysis.Rename
         public static readonly Option<bool> RenameOverloads = new Option<bool>(RenameFeatureName, "RenameOverloads", defaultValue: false);
         public static readonly Option<bool> RenameInStrings = new Option<bool>(RenameFeatureName, "RenameInStrings", defaultValue: false);
         public static readonly Option<bool> RenameInComments = new Option<bool>(RenameFeatureName, "RenameInComments", defaultValue: false);
+        public static readonly Option<bool> PreviewChanges = new Option<bool>(RenameFeatureName, "PreviewChanges", defaultValue: false);
     }
 }
