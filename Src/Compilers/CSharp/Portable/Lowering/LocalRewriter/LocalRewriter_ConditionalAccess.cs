@@ -150,7 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConditionalAccessLoweringKind.CaptureReceiverByVal:
                     // capture the receiver into a temp
-                    loweredReceiver = factory.AssignmentExpression(factory.Local(temp), loweredReceiver);
+                    loweredReceiver = factory.Sequence(
+                                            factory.AssignmentExpression(factory.Local(temp), loweredReceiver),
+                                            factory.Local(temp));
+
                     goto case ConditionalAccessLoweringKind.NoCapture;
 
                 case ConditionalAccessLoweringKind.NoCapture:
