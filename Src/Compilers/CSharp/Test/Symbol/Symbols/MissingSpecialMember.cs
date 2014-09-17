@@ -597,6 +597,9 @@ namespace System
                     case WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean:
                         // C# can't embed VB core.
                         continue;
+                    case WellKnownMember.System_Array__Empty:
+                        // Not available yet, but will be in upcoming release.
+                        continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.
 

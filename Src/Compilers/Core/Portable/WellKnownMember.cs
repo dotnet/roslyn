@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis
         System_Math__PowDoubleDouble,
 
         System_Array__get_Length,
+        System_Array__Empty,
 
         System_Convert__ToBooleanDecimal,
         System_Convert__ToBooleanInt32,

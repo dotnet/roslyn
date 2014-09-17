@@ -569,6 +569,9 @@ End Namespace
                     Case WellKnownMember.Count
                         ' Not a real value.
                         Continue For
+                    Case WellKnownMember.System_Array__Empty
+                        ' Not available yet, but will be in upcoming release.
+                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownTypeMember(wkm)
@@ -647,6 +650,9 @@ End Namespace
                          WellKnownMember.Microsoft_VisualBasic_Information__VbTypeName,
                          WellKnownMember.Microsoft_VisualBasic_Interaction__CallByName
                         ' The type is not embedded, so the member is not available.
+                        Continue For
+                    Case WellKnownMember.System_Array__Empty
+                        ' Not available yet, but will be in upcoming release.
                         Continue For
                 End Select
 

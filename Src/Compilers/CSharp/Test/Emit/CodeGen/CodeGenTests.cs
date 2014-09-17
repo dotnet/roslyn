@@ -4190,6 +4190,216 @@ public class D
 ");
         }
 
+        // Test that Array.Empty<T>() is used instead of "new T[0]" when Array.Empty<T>() is available.
+        [Fact]
+        public void ParamCallUsesCachedArray()
+        {
+            var verifier = CompileAndVerify(@"
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Int32 { }
+    public class String { }
+    public class Attribute { }
+    public struct Void { }
+    public class ParamArrayAttribute { }
+    public abstract class Array {
+        public static T[] Empty<T>() { return new T[0]; }
+    }
+}
+
+public class Program
+{
+    public static void Callee1(params object[] values) { }
+    public static void Callee2(params int[] values) { }
+    public static void Callee3<T>(params T[] values) { }
+
+    public static void Main() { }
+
+    public static void M<T>()
+    {
+        Callee1();
+        Callee1(System.Array.Empty<object>());
+        Callee1(null);
+        Callee1(new object[0]);
+        Callee1(""Hello"");
+        Callee1(""Hello"", ""World"");
+
+        Callee2();
+        Callee2(System.Array.Empty<int>());
+        Callee2(null);
+        Callee2(new int[0]);
+        Callee2(1);
+        Callee2(1, 2);
+
+        Callee3<string>();
+        Callee3<string>(System.Array.Empty<string>());
+        Callee3<string>(null);
+        Callee3<string>(new string[0]);
+        Callee3<string>(""Hello"");
+        Callee3<string>(""Hello"", ""World"");
+
+        Callee3<T>();
+        Callee3<T>(System.Array.Empty<T>());
+        Callee3<T>(null);
+        Callee3<T>(new T[0]);
+        Callee3<T>(default(T));
+        Callee3<T>(default(T), default(T));
+    }
+}
+", verify: false, options: TestOptions.ReleaseExe);
+            verifier.VerifyIL("Program.M<T>()",
+@"{
+  // Code size      297 (0x129)
+  .maxstack  4
+  IL_0000:  call       ""object[] System.Array.Empty<object>()""
+  IL_0005:  call       ""void Program.Callee1(params object[])""
+  IL_000a:  call       ""object[] System.Array.Empty<object>()""
+  IL_000f:  call       ""void Program.Callee1(params object[])""
+  IL_0014:  ldnull
+  IL_0015:  call       ""void Program.Callee1(params object[])""
+  IL_001a:  ldc.i4.0
+  IL_001b:  newarr     ""object""
+  IL_0020:  call       ""void Program.Callee1(params object[])""
+  IL_0025:  ldc.i4.1
+  IL_0026:  newarr     ""object""
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldstr      ""Hello""
+  IL_0032:  stelem.ref
+  IL_0033:  call       ""void Program.Callee1(params object[])""
+  IL_0038:  ldc.i4.2
+  IL_0039:  newarr     ""object""
+  IL_003e:  dup
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldstr      ""Hello""
+  IL_0045:  stelem.ref
+  IL_0046:  dup
+  IL_0047:  ldc.i4.1
+  IL_0048:  ldstr      ""World""
+  IL_004d:  stelem.ref
+  IL_004e:  call       ""void Program.Callee1(params object[])""
+  IL_0053:  call       ""int[] System.Array.Empty<int>()""
+  IL_0058:  call       ""void Program.Callee2(params int[])""
+  IL_005d:  call       ""int[] System.Array.Empty<int>()""
+  IL_0062:  call       ""void Program.Callee2(params int[])""
+  IL_0067:  ldnull
+  IL_0068:  call       ""void Program.Callee2(params int[])""
+  IL_006d:  ldc.i4.0
+  IL_006e:  newarr     ""int""
+  IL_0073:  call       ""void Program.Callee2(params int[])""
+  IL_0078:  ldc.i4.1
+  IL_0079:  newarr     ""int""
+  IL_007e:  dup
+  IL_007f:  ldc.i4.0
+  IL_0080:  ldc.i4.1
+  IL_0081:  stelem.i4
+  IL_0082:  call       ""void Program.Callee2(params int[])""
+  IL_0087:  ldc.i4.2
+  IL_0088:  newarr     ""int""
+  IL_008d:  dup
+  IL_008e:  ldc.i4.0
+  IL_008f:  ldc.i4.1
+  IL_0090:  stelem.i4
+  IL_0091:  dup
+  IL_0092:  ldc.i4.1
+  IL_0093:  ldc.i4.2
+  IL_0094:  stelem.i4
+  IL_0095:  call       ""void Program.Callee2(params int[])""
+  IL_009a:  call       ""string[] System.Array.Empty<string>()""
+  IL_009f:  call       ""void Program.Callee3<string>(params string[])""
+  IL_00a4:  call       ""string[] System.Array.Empty<string>()""
+  IL_00a9:  call       ""void Program.Callee3<string>(params string[])""
+  IL_00ae:  ldnull
+  IL_00af:  call       ""void Program.Callee3<string>(params string[])""
+  IL_00b4:  ldc.i4.0
+  IL_00b5:  newarr     ""string""
+  IL_00ba:  call       ""void Program.Callee3<string>(params string[])""
+  IL_00bf:  ldc.i4.1
+  IL_00c0:  newarr     ""string""
+  IL_00c5:  dup
+  IL_00c6:  ldc.i4.0
+  IL_00c7:  ldstr      ""Hello""
+  IL_00cc:  stelem.ref
+  IL_00cd:  call       ""void Program.Callee3<string>(params string[])""
+  IL_00d2:  ldc.i4.2
+  IL_00d3:  newarr     ""string""
+  IL_00d8:  dup
+  IL_00d9:  ldc.i4.0
+  IL_00da:  ldstr      ""Hello""
+  IL_00df:  stelem.ref
+  IL_00e0:  dup
+  IL_00e1:  ldc.i4.1
+  IL_00e2:  ldstr      ""World""
+  IL_00e7:  stelem.ref
+  IL_00e8:  call       ""void Program.Callee3<string>(params string[])""
+  IL_00ed:  call       ""T[] System.Array.Empty<T>()""
+  IL_00f2:  call       ""void Program.Callee3<T>(params T[])""
+  IL_00f7:  call       ""T[] System.Array.Empty<T>()""
+  IL_00fc:  call       ""void Program.Callee3<T>(params T[])""
+  IL_0101:  ldnull
+  IL_0102:  call       ""void Program.Callee3<T>(params T[])""
+  IL_0107:  ldc.i4.0
+  IL_0108:  newarr     ""T""
+  IL_010d:  call       ""void Program.Callee3<T>(params T[])""
+  IL_0112:  ldc.i4.1
+  IL_0113:  newarr     ""T""
+  IL_0118:  call       ""void Program.Callee3<T>(params T[])""
+  IL_011d:  ldc.i4.2
+  IL_011e:  newarr     ""T""
+  IL_0123:  call       ""void Program.Callee3<T>(params T[])""
+  IL_0128:  ret
+}
+");
+
+            verifier = CompileAndVerify(@"
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Int32 { }
+    public class String { }
+    public class Attribute { }
+    public struct Void { }
+    public class ParamArrayAttribute { }
+    public abstract class Array { }
+}
+
+public class Program
+{
+    public static void Callee1(params object[] values) { }
+    public static void Callee2(params int[] values) { }
+    public static void Callee3<T>(params T[] values) { }
+
+    public static void Main() { }
+
+    public static void M<T>()
+    {
+        Callee1();
+        Callee2();
+        Callee3<string>();
+    }
+}
+", verify: false, options: TestOptions.ReleaseExe);
+            verifier.VerifyIL("Program.M<T>()",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""object""
+  IL_0006:  call       ""void Program.Callee1(params object[])""
+  IL_000b:  ldc.i4.0
+  IL_000c:  newarr     ""int""
+  IL_0011:  call       ""void Program.Callee2(params int[])""
+  IL_0016:  ldc.i4.0
+  IL_0017:  newarr     ""string""
+  IL_001c:  call       ""void Program.Callee3<string>(params string[])""
+  IL_0021:  ret
+}
+");
+        }
+
         [Fact]
         public void BoxingConversions()
         {

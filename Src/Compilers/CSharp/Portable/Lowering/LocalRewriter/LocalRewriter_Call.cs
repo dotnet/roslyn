@@ -615,6 +615,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             var paramArrayType = parameters[paramsParam].Type;
             var arrayArgs = paramArray.ToImmutableAndFree();
 
+            if (arrayArgs.Length == 0) // if this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" if it's available
+            {
+                ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
+                if (ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
+                {
+                    MethodSymbol arrayEmpty = this.compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
+                    if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
+                    {
+                        // return an invocation of "Array.Empty<T>()"
+                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create<TypeSymbol>(ats.ElementType)); 
+                        return new BoundCall(
+                            syntax,
+                            null,
+                            arrayEmpty,
+                            ImmutableArray<BoundExpression>.Empty,
+                            default(ImmutableArray<string>),
+                            default(ImmutableArray<RefKind>),
+                            isDelegateCall: false,
+                            expanded: false,
+                            invokedAsExtensionMethod: false,
+                            argsToParamsOpt: default(ImmutableArray<int>),
+                            resultKind: LookupResultKind.Viable,
+                            type: arrayEmpty.ReturnType);
+                    }
+                }
+            }
+
             var int32Type = methodOrIndexer.ContainingAssembly.GetPrimitiveType(Microsoft.Cci.PrimitiveTypeCode.Int32);
 
             return new BoundArrayCreation(
