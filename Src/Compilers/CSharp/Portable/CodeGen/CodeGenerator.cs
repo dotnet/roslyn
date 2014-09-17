@@ -272,12 +272,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             BoundStatement statement = node.StatementOpt;
             int instructionsEmitted = 0;
-
             if (statement != null)
             {
-                instructionsEmitted = -builder.InstructionsEmitted;
-                this.EmitStatement(statement);
-                instructionsEmitted += builder.InstructionsEmitted;
+                instructionsEmitted = this.EmitStatementAndCountInstructions(statement);
             }
 
             if (instructionsEmitted == 0 && syntax != null && optimizations == OptimizationLevel.Debug)
@@ -298,12 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             BoundStatement statement = node.StatementOpt;
             int instructionsEmitted = 0;
-
             if (statement != null)
             {
-                instructionsEmitted = -builder.InstructionsEmitted;
-                this.EmitStatement(statement);
-                instructionsEmitted += builder.InstructionsEmitted;
+                instructionsEmitted = this.EmitStatementAndCountInstructions(statement);
             }
 
             if (instructionsEmitted == 0 && span != default(TextSpan) && optimizations == OptimizationLevel.Debug)

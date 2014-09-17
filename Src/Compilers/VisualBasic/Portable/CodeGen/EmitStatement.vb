@@ -7,12 +7,8 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Symbols
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
@@ -82,6 +78,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 #End If
         End Sub
+
+        Private Function EmitStatementAndCountInstructions(statement As BoundStatement) As Integer
+            Dim n = _builder.InstructionsEmitted
+            EmitStatement(statement)
+            Return _builder.InstructionsEmitted - n
+        End Function
 
         Private Sub EmitNoOpStatement(statement As BoundNoOpStatement)
             Select Case statement.Flavor
@@ -1262,7 +1264,7 @@ OtherExpressions:
                 Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None) Or
                     If(local.IsPinned, LocalSlotConstraints.Pinned, LocalSlotConstraints.None)
                 Dim name As String = GetLocalDebugName(local)
-                Debug.Assert(Not local.SynthesizedLocalKind.IsNamed(_optimizations) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
+                Debug.Assert(Not HasDebugName(local) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
 
                 Dim localDef = _builder.LocalSlotManager.DeclareLocal(
                     type:=translatedType,
@@ -1299,14 +1301,14 @@ OtherExpressions:
         End Function
 
         Private Function HasDebugName(local As LocalSymbol) As Boolean
-            Return local.Name IsNot Nothing OrElse local.SynthesizedLocalKind.IsNamed(Me._optimizations)
+            Return local.SynthesizedLocalKind.IsNamed(_optimizations)
         End Function
 
         Private Sub FreeLocal(temp As LocalSymbol)
             'TODO: releasing locals with name NYI.
             'NOTE: VB considers named local's extent to be whole method 
             '      so releasing them may just not be possible.
-            If Not HasDebugName(temp) AndAlso Not Me.IsStackLocal(temp) Then
+            If temp.Name Is Nothing AndAlso Not HasDebugName(temp) AndAlso Not Me.IsStackLocal(temp) Then
                 _builder.LocalSlotManager.FreeLocal(temp)
             End If
         End Sub
@@ -1430,7 +1432,6 @@ OtherExpressions:
 
             EmitSwitch(node.Jumps)
         End Sub
-
 
     End Class
 

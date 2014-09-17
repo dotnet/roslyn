@@ -89,6 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #endif
         }
 
+        private int EmitStatementAndCountInstructions(BoundStatement statement)
+        {
+            int n = this.builder.InstructionsEmitted;
+            this.EmitStatement(statement);
+            return this.builder.InstructionsEmitted - n;
+        }
+
         private void EmitStatementList(BoundStatementList list)
         {
             for (int i = 0, n = list.Statements.Length; i < n; i++)
@@ -565,20 +572,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             builder.CloseIteratorScope();
         }
 
-        //There are two ways a value can be returned from a function:
+        // There are two ways a value can be returned from a function:
         // - Using ret opcode
         // - Store return value if any to a predefined temp and jump to the epilogue block
-        // Sometimes ret is not an option (try/catch etc.). We also do this when emit debuggable code
-        // this function is a stub for the logic that decides that.
+        // Sometimes ret is not an option (try/catch etc.). We also do this when emitting
+        // debuggable code. This function is a stub for the logic that decides that.
         private bool ShouldUseIndirectReturn()
         {
             return optimizations == OptimizationLevel.Debug || builder.InExceptionHandler;
         }
 
-        // compiler generated return mapped to a block is very likely the synthetic return
+        // Compiler generated return mapped to a block is very likely the synthetic return
         // that was added at the end of the last block of a void method by analysis.
-        // This is likely to be the last return in the method,
-        // so if we have not yet emitted return sequence, it is convenient to do it right here (if we can).
+        // This is likely to be the last return in the method, so if we have not yet
+        // emitted return sequence, it is convenient to do it right here (if we can).
         private bool CanHandleReturnLabel(BoundReturnStatement boundReturnStatement)
         {
             return boundReturnStatement.WasCompilerGenerated &&
@@ -1265,6 +1272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var name = GetLocalDebugName(local);
+            Debug.Assert(!HasDebugName(local) || !string.IsNullOrEmpty(name), "compiler generated names must be nonempty");
+
             LocalSlotConstraints constraints;
             Cci.ITypeReference translatedType;
 
@@ -1340,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool HasDebugName(LocalSymbol local)
         {
-            return local.Name != null || local.SynthesizedLocalKind.IsNamed(this.optimizations);
+            return local.SynthesizedLocalKind.IsNamed(this.optimizations);
         }
 
         /// <summary>
@@ -1349,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void FreeLocal(LocalSymbol local)
         {
             //TODO: releasing named locals is NYI.
-            if (!HasDebugName(local) && !IsStackLocal(local))
+            if ((local.Name == null) && !HasDebugName(local) && !IsStackLocal(local))
             {
                 builder.LocalSlotManager.FreeLocal(local);
             }

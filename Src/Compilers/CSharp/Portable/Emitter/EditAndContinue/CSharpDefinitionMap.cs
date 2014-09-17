@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 };
             }
 
-            return new VariableSlotAllocator(symbolMap, syntaxMap, previousDeclarators, previousLocals);
+            return new EncVariableSlotAllocator(symbolMap, syntaxMap, previousDeclarators, previousLocals);
         }
 
         private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodHandle handle)

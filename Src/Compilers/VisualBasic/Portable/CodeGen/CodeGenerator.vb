@@ -252,11 +252,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Dim statement = node.StatementOpt
             Dim instructionsEmitted As Integer = 0
-
             If statement IsNot Nothing Then
-                instructionsEmitted = -_builder.InstructionsEmitted
-                EmitStatement(statement)
-                instructionsEmitted += _builder.InstructionsEmitted
+                instructionsEmitted = EmitStatementAndCountInstructions(statement)
             End If
 
             If instructionsEmitted = 0 AndAlso syntax IsNot Nothing AndAlso _optimizations = OptimizationLevel.Debug Then
@@ -274,11 +271,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Dim statement = node.StatementOpt
             Dim instructionsEmitted As Integer = 0
-
             If statement IsNot Nothing Then
-                instructionsEmitted = -_builder.InstructionsEmitted
-                EmitStatement(statement)
-                instructionsEmitted += _builder.InstructionsEmitted
+                instructionsEmitted = EmitStatementAndCountInstructions(statement)
             End If
 
             If instructionsEmitted = 0 AndAlso span <> Nothing AndAlso _optimizations = OptimizationLevel.Debug Then

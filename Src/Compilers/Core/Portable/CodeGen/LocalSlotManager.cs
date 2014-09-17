@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // The actual identities are populated if/when the locals are reused.
             if (slotAllocatorOpt != null)
             {
-                lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>();
-                lazyAllLocals.AddRange(slotAllocatorOpt.PreviousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
+                this.lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>();
+                slotAllocatorOpt.AddPreviousLocals(this.lazyAllLocals);
             }
         }
 
@@ -193,32 +193,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
         {
-            if (lazyAllLocals == null)
+            if (this.lazyAllLocals == null)
             {
-                lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>(1);
+                this.lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>(1);
             }
 
             LocalDefinition local;
 
             if (symbolOpt != null && slotAllocatorOpt != null)
             {
-                int slot = slotAllocatorOpt.GetPreviousLocalSlot(symbolOpt, type, constraints, synthesizedKind);
-                if (slot >= 0)
+                local = this.slotAllocatorOpt.GetPreviousLocal(type, symbolOpt, nameOpt, synthesizedKind, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
+                if (local != null)
                 {
-                    // replacing a pre-allocated local
-                    Debug.Assert(this.lazyAllLocals[slot] is SignatureOnlyLocalDefinition);
-
-                    local = new LocalDefinition(
-                        symbolOpt,
-                        nameOpt,
-                        type,
-                        slot,
-                        synthesizedKind,
-                        pdbAttributes,
-                        constraints,
-                        isDynamic,
-                        dynamicTransformFlags);
-
+                    int slot = local.SlotIndex;
                     this.lazyAllLocals[slot] = local;
                     return local;
                 }
@@ -250,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<Cci.ILocalDefinition> LocalsInOrder()
         {
-            if (lazyAllLocals == null)
+            if (this.lazyAllLocals == null)
             {
                 return ImmutableArray<Cci.ILocalDefinition>.Empty;
             }

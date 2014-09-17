@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             End Function
             End If
 
-            Return New VariableSlotAllocator(symbolMap, syntaxMap, previousDeclarators, previousLocals)
+            Return New EncVariableSlotAllocator(symbolMap, syntaxMap, previousDeclarators, previousLocals)
         End Function
 
         Private Overloads Function TryGetMethodHandle(baseline As EmitBaseline, def As IMethodDefinition, <Out> ByRef handle As MethodHandle) As Boolean
