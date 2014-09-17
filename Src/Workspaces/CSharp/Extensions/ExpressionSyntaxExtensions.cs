@@ -1438,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
                             .WithLeadingTrivia(name.GetLeadingTrivia());
-                        issueSpan = new TextSpan(name.Span.End - 9, 9);
+                        issueSpan = new TextSpan(identifierToken.Span.End - 9, 9);
 
                         return true;
                     }
