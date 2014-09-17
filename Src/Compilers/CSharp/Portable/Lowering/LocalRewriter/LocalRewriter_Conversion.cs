@@ -554,6 +554,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: A sequence of side effects with an always-null expression as its value
             // CONSIDER: can be optimized also. Should we?
 
+            if (expression.IsLiteralNull())
+            {
+                return true;
+            }
+
             if (!expression.Type.IsNullableType())
             {
                 return false;
@@ -573,8 +578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
             }
-
-            // (int?)null has already been converted to default(int?), so no need to test for that.
 
             return false;
         }

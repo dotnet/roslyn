@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
         {
-            return VisitConditionalAccess(node, used: true);
+            return RewriteConditionalAccess(node, used: true);
         }
 
         // null when currently enclosing conditional access node
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // in simple cases could be left unlowered.
         // IL gen can generate more compact code for unlowered conditional accesses 
         // by utilizing stack dup/pop instructions 
-        internal BoundExpression VisitConditionalAccess(BoundConditionalAccess node, bool used)
+        internal BoundExpression RewriteConditionalAccess(BoundConditionalAccess node, bool used, BoundExpression rewrittenWhenNull = null)
         {
             Debug.Assert(!this.inExpressionLambda);
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConditionalAccessLoweringKind loweringKind;
             var needTemp = NeedsTemp(loweredReceiver, localsMayBeAssigned: false);
 
-            if (!isAsync && !node.Type.IsDynamic() &&
+            if (!isAsync && !node.Type.IsDynamic() && rewrittenWhenNull == null &&
                 (receiverType.IsReferenceType || receiverType.IsTypeParameter() && needTemp))
             {
                 // trivial cases can be handled more efficiently in IL gen
@@ -139,6 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression result;
                      var objectType = compilation.GetSpecialType(SpecialType.System_Object);
 
+            rewrittenWhenNull = rewrittenWhenNull ?? factory.Default(nodeType);
+
             switch (loweringKind)
             {
                 case ConditionalAccessLoweringKind.None:
@@ -162,12 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 factory.Null(objectType));
 
                         var consequence = loweredAccessExpression;
-                        var alternative = factory.Default(nodeType);
 
                         result = RewriteConditionalOperator(node.Syntax,
                             condition,
                             consequence,
-                            alternative,
+                            rewrittenWhenNull,
                             null,
                             nodeType);
 
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         result = RewriteConditionalOperator(node.Syntax,
                            isNull,
-                           factory.Default(nodeType),
+                           rewrittenWhenNull,
                            loweredAccessExpression,
                            null,
                            nodeType);
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     factory.Convert(objectType, loweredReceiver),
                                                     factory.Null(objectType)),
                             loweredAccessExpression,
-                            factory.Default(nodeType),
+                            rewrittenWhenNull,
                             null,
                             nodeType);
 

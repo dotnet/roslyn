@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDynamicInvocation((BoundDynamicInvocation)expression, resultDiscarded: true);
 
                 case BoundKind.ConditionalAccess:
-                    return VisitConditionalAccess((BoundConditionalAccess)expression, used: false);
+                    return RewriteConditionalAccess((BoundConditionalAccess)expression, used: false);
             }
             return VisitExpression(expression);
         }

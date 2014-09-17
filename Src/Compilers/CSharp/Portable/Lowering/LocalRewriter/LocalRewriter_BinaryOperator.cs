@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -15,7 +16,76 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
+            // check for common trivial cases like  arr?.Length > 0
+            // in such situations we can fuse two operations and thus
+            // avoid doing lifting.
+            // In the given example if "arr" is null then the result is false, 
+            // otherwise we can do unlifted ">" directly on arr.Length
+            if (node.OperatorKind.IsLifted() ||
+                node.OperatorKind == BinaryOperatorKind.NullableNullEqual ||
+                node.OperatorKind == BinaryOperatorKind.NullableNullNotEqual)
+            {
+                BoundExpression foldedWithConditionalAccess = TryFoldWithConditionalAccess(node);
+                if (foldedWithConditionalAccess != null)
+                {
+                    return foldedWithConditionalAccess;
+                }
+            }
+
             return VisitBinaryOperator(node);
+        }
+
+        private BoundExpression TryFoldWithConditionalAccess(BoundBinaryOperator node)
+        {
+            var syntax = node.Syntax;
+            var left = node.Left;
+            var right = node.Right;
+            BoundConditionalAccess conditionalAccess;
+
+            if (!node.OperatorKind.IsLifted())
+            {
+                var operatorKind = node.OperatorKind;
+                if (operatorKind == BinaryOperatorKind.NullableNullEqual || operatorKind == BinaryOperatorKind.NullableNullNotEqual)
+                {
+                    var leftAlwaysNull = NullableNeverHasValue(left);
+                    var rightAlwaysNull = NullableNeverHasValue(right);
+
+                    if (leftAlwaysNull || rightAlwaysNull)
+                    {
+                        BoundExpression maybeNull = leftAlwaysNull ? right : left;
+
+                        if (TryGetOptimizableNullableConditionalAccess(maybeNull, out conditionalAccess))
+                        {
+                            BoundExpression accessExpression = conditionalAccess.AccessExpression;
+                            BoundExpression whenNull;
+
+                            accessExpression = factory.Sequence(accessExpression, MakeBooleanConstant(syntax, operatorKind == BinaryOperatorKind.NullableNullNotEqual));
+                            conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, accessExpression, accessExpression.Type);
+                            whenNull = MakeBooleanConstant(syntax, operatorKind == BinaryOperatorKind.NullableNullEqual);
+                            return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var unliftedOperatorKind = node.OperatorKind.Unlifted();
+                if (unliftedOperatorKind.IsComparison() && TryGetOptimizableNullableConditionalAccess(left, out conditionalAccess))
+                {
+                    var rightAlwaysHasValue = NullableAlwaysHasValue(VisitExpression(right));
+
+                    if (rightAlwaysHasValue != null && !NeedsTemp(rightAlwaysHasValue))
+                    {
+                        BoundExpression accessExpression = conditionalAccess.AccessExpression;
+                        accessExpression = node.Update(unliftedOperatorKind, accessExpression, rightAlwaysHasValue, null, node.MethodOpt, node.ResultKind, node.Type);
+                        conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, accessExpression, accessExpression.Type);
+                        var whenNull = MakeBooleanConstant(syntax, unliftedOperatorKind.Operator() == BinaryOperatorKind.NotEqual);
+                        return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
+                    }
+                }
+            }
+
+            return null;
         }
 
         public BoundExpression VisitBinaryOperator(BoundBinaryOperator node, BoundUnaryOperator applyParentUnaryOperator = null)
@@ -628,13 +698,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    BoundExpression literal = MakeLiteral(syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.NotEqual), boolType);
-                    return new BoundSequence(
-                        syntax: syntax,
-                        locals: ImmutableArray<LocalSymbol>.Empty,
-                        sideEffects: ImmutableArray.Create<BoundExpression>(maybeNull),
-                        value: literal,
-                        type: boolType);
+                    BoundExpression falseExpr = MakeBooleanConstant(syntax, operatorKind == BinaryOperatorKind.NotEqual);
+                    return factory.Sequence(maybeNull, falseExpr);
                 }
             }
 

@@ -12,11 +12,39 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
+            // check for common pattern   a?.b ?? c  where b is a value type
+            // in such cases the result of the expression is either b or c
+            // we can skip nullable wrapping/unwrapping
+
+            BoundConditionalAccess conditionalAccess;
+            if (TryGetOptimizableNullableConditionalAccess(node.LeftOperand, out conditionalAccess))
+            {
+                var type = node.RightOperand.Type;
+                conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.AccessExpression, type);
+
+                var whenNull = (BoundExpression)Visit(node.RightOperand);
+                return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
+            }
+
             BoundExpression rewrittenLeft = (BoundExpression)Visit(node.LeftOperand);
             BoundExpression rewrittenRight = (BoundExpression)Visit(node.RightOperand);
             TypeSymbol rewrittenResultType = VisitType(node.Type);
 
             return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftConversion, rewrittenResultType);
+        }
+
+        private bool TryGetOptimizableNullableConditionalAccess(BoundExpression operand, out BoundConditionalAccess conditionalAccess)
+        {
+            if (operand.Kind != BoundKind.ConditionalAccess ||
+                            inExpressionLambda ||
+                            factory.CurrentMethod.IsAsync)
+            {
+                conditionalAccess = null;
+                return false;
+            }
+
+            conditionalAccess = (BoundConditionalAccess)operand;
+            return conditionalAccess.Type.IsNullableType() && !conditionalAccess.AccessExpression.Type.IsNullableType();
         }
 
         private BoundExpression MakeNullCoalescingOperator(

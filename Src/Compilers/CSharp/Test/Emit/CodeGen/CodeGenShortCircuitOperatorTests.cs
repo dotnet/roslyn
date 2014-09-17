@@ -3308,5 +3308,693 @@ interface I1
             base.CompileAndVerify(comp);
         }
 
+        [Fact]
+        public void ConditionalMemberAccessCoalessce001()
+        {
+            var source = @"
+class Program
+{
+    class C1
+    {
+        public int x{get; set;}
+        public int? y{get; set;}
+    }
+
+    static void Main()
+    {
+        var c = new C1();
+        System.Console.WriteLine(Test1(c));
+        System.Console.WriteLine(Test1(null));
+
+        System.Console.WriteLine(Test2(c));
+        System.Console.WriteLine(Test2(null));
+    }
+
+    static int Test1(C1 c)
+    {
+        return c?.x ?? 42;
+    }
+
+    static int Test2(C1 c)
+    {
+        return c?.y ?? 42;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"0
+42
+42
+42");
+            comp.VerifyIL("Program.Test1(Program.C1)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.s   42
+  IL_0005:  ret
+  IL_0006:  ldarg.0
+  IL_0007:  callvirt   ""int Program.C1.x.get""
+  IL_000c:  ret
+}
+").VerifyIL("Program.Test2(Program.C1)", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  1
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    ""int?""
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int? Program.C1.y.get""
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""bool int?.HasValue.get""
+  IL_001c:  brtrue.s   IL_0021
+  IL_001e:  ldc.i4.s   42
+  IL_0020:  ret
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""int int?.GetValueOrDefault()""
+  IL_0028:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessCoalessce001r()
+        {
+            var source = @"
+class Program
+{
+    class C1
+    {
+        public int x {get; set;}
+        public int? y {get; set;}
+    }
+
+    static void Main()
+    {
+        var c = new C1();
+        C1 n = null;
+
+        System.Console.WriteLine(Test1(ref c));
+        System.Console.WriteLine(Test1(ref n));
+
+        System.Console.WriteLine(Test2(ref c));
+        System.Console.WriteLine(Test2(ref n));
+    }
+
+    static int Test1(ref C1 c)
+    {
+        return c?.x ?? 42;
+    }
+
+    static int Test2(ref C1 c)
+    {
+        return c?.y ?? 42;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"0
+42
+42
+42");
+            comp.VerifyIL("Program.Test1(ref Program.C1)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (Program.C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  brtrue.s   IL_0009
+  IL_0006:  ldc.i4.s   42
+  IL_0008:  ret
+  IL_0009:  ldloc.0
+  IL_000a:  callvirt   ""int Program.C1.x.get""
+  IL_000f:  ret
+}
+").VerifyIL("Program.Test2(ref Program.C1)", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  dup
+  IL_0003:  brtrue.s   IL_0011
+  IL_0005:  pop
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  initobj    ""int?""
+  IL_000e:  ldloc.1
+  IL_000f:  br.s       IL_0016
+  IL_0011:  call       ""int? Program.C1.y.get""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""bool int?.HasValue.get""
+  IL_001e:  brtrue.s   IL_0023
+  IL_0020:  ldc.i4.s   42
+  IL_0022:  ret
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  call       ""int int?.GetValueOrDefault()""
+  IL_002a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessCoalessce002()
+        {
+            var source = @"
+class Program
+{
+    struct C1
+    {
+        public int x{get; set;}
+        public int? y{get; set;}
+    }
+
+    static void Main()
+    {
+        var c = new C1();
+        System.Console.WriteLine(Test1(c));
+        System.Console.WriteLine(Test1(null));
+
+        System.Console.WriteLine(Test2(c));
+        System.Console.WriteLine(Test2(null));
+    }
+
+    static int Test1(C1? c)
+    {
+        return c?.x ?? 42;
+    }
+
+    static int Test2(C1? c)
+    {
+        return c?.y ?? 42;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"0
+42
+42
+42");
+            comp.VerifyIL("Program.Test1(Program.C1?)", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  .locals init (Program.C1 V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool Program.C1?.HasValue.get""
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  ret
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       ""int Program.C1.x.get""
+  IL_001b:  ret
+}
+").VerifyIL("Program.Test2(Program.C1?)", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  1
+  .locals init (int? V_0,
+                int? V_1,
+                Program.C1 V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool Program.C1?.HasValue.get""
+  IL_0007:  brtrue.s   IL_0014
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""int?""
+  IL_0011:  ldloc.1
+  IL_0012:  br.s       IL_0023
+  IL_0014:  ldarga.s   V_0
+  IL_0016:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
+  IL_001b:  stloc.2
+  IL_001c:  ldloca.s   V_2
+  IL_001e:  call       ""int? Program.C1.y.get""
+  IL_0023:  stloc.0
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""bool int?.HasValue.get""
+  IL_002b:  brtrue.s   IL_0030
+  IL_002d:  ldc.i4.s   42
+  IL_002f:  ret
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  call       ""int int?.GetValueOrDefault()""
+  IL_0037:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessCoalessce002r()
+        {
+            var source = @"
+class Program
+{
+    struct C1
+    {
+        public int x{get; set;}
+        public int? y{get; set;}
+    }
+
+    static void Main()
+    {
+        C1? c = new C1();
+        C1? n = null;
+
+        System.Console.WriteLine(Test1(ref c));
+        System.Console.WriteLine(Test1(ref n));
+
+        System.Console.WriteLine(Test2(ref c));
+        System.Console.WriteLine(Test2(ref n));
+    }
+
+    static int Test1(ref C1? c)
+    {
+        return c?.x ?? 42;
+    }
+
+    static int Test2(ref C1? c)
+    {
+        return c?.y ?? 42;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"0
+42
+42
+42");
+            comp.VerifyIL("Program.Test1(ref Program.C1?)", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (Program.C1? V_0,
+                Program.C1? V_1,
+                Program.C1 V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Program.C1?""
+  IL_0006:  dup
+  IL_0007:  stloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool Program.C1?.HasValue.get""
+  IL_0010:  brtrue.s   IL_0015
+  IL_0012:  ldc.i4.s   42
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
+  IL_001c:  stloc.2
+  IL_001d:  ldloca.s   V_2
+  IL_001f:  call       ""int Program.C1.x.get""
+  IL_0024:  ret
+}
+").VerifyIL("Program.Test2(ref Program.C1?)", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  2
+  .locals init (int? V_0,
+                Program.C1? V_1,
+                Program.C1? V_2,
+                int? V_3,
+                Program.C1 V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Program.C1?""
+  IL_0006:  dup
+  IL_0007:  stloc.1
+  IL_0008:  stloc.2
+  IL_0009:  ldloca.s   V_2
+  IL_000b:  call       ""bool Program.C1?.HasValue.get""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  initobj    ""int?""
+  IL_001a:  ldloc.3
+  IL_001b:  br.s       IL_002d
+  IL_001d:  ldloca.s   V_1
+  IL_001f:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
+  IL_0024:  stloc.s    V_4
+  IL_0026:  ldloca.s   V_4
+  IL_0028:  call       ""int? Program.C1.y.get""
+  IL_002d:  stloc.0
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  call       ""bool int?.HasValue.get""
+  IL_0035:  brtrue.s   IL_003a
+  IL_0037:  ldc.i4.s   42
+  IL_0039:  ret
+  IL_003a:  ldloca.s   V_0
+  IL_003c:  call       ""int int?.GetValueOrDefault()""
+  IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessNullCheck001()
+        {
+            var source = @"
+class Program
+{
+    class C1
+    {
+        public int x{get; set;}
+    }
+
+    static void Main()
+    {
+        var c = new C1();
+        System.Console.WriteLine(Test1(c));
+        System.Console.WriteLine(Test1(null));
+
+        System.Console.WriteLine(Test2(c));
+        System.Console.WriteLine(Test2(null));
+
+        System.Console.WriteLine(Test3(c));
+        System.Console.WriteLine(Test3(null));
+    }
+
+    static bool Test1(C1 c)
+    {
+        return c?.x == null;
+    }
+
+    static bool Test2(C1 c)
+    {
+        return c?.x != null;
+    }
+
+    static bool Test3(C1 c)
+    {
+        return c?.x > null;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"False
+True
+True
+False
+False
+False");
+            comp.VerifyIL("Program.Test1(Program.C1)", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.1
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""int Program.C1.x.get""
+  IL_000b:  pop
+  IL_000c:  ldc.i4.0
+  IL_000d:  ret
+}
+").VerifyIL("Program.Test2(Program.C1)", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""int Program.C1.x.get""
+  IL_000b:  pop
+  IL_000c:  ldc.i4.1
+  IL_000d:  ret
+}
+").VerifyIL("Program.Test3(Program.C1)", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000a
+  IL_0003:  ldarg.0
+  IL_0004:  call       ""int Program.C1.x.get""
+  IL_0009:  pop
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessBinary001()
+        {
+            var source = @"
+public enum N
+{
+    zero = 0,
+    one = 1,
+    mone = -1
+}
+
+class Program
+{
+    class C1
+    {
+        public N x{get; set;}
+    }
+
+    static void Main()
+    {
+        var c = new C1();
+        System.Console.WriteLine(Test1(c));
+        System.Console.WriteLine(Test1(null));
+
+        System.Console.WriteLine(Test2(c));
+        System.Console.WriteLine(Test2(null));
+
+        System.Console.WriteLine(Test3(c));
+        System.Console.WriteLine(Test3(null));
+    }
+
+    static bool Test1(C1 c)
+    {
+        return c?.x == N.zero;
+    }
+
+    static bool Test2(C1 c)
+    {
+        return c?.x != N.one;
+    }
+
+    static bool Test3(C1 c)
+    {
+        return c?.x > N.mone;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"True
+False
+True
+True
+True
+False");
+            comp.VerifyIL("Program.Test1(Program.C1)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""N Program.C1.x.get""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ceq
+  IL_000e:  ret
+}
+").VerifyIL("Program.Test2(Program.C1)", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.1
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""N Program.C1.x.get""
+  IL_000b:  ldc.i4.1
+  IL_000c:  ceq
+  IL_000e:  ldc.i4.0
+  IL_000f:  ceq
+  IL_0011:  ret
+}
+").VerifyIL("Program.Test3(Program.C1)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""N Program.C1.x.get""
+  IL_000b:  ldc.i4.m1
+  IL_000c:  cgt
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessBinary002()
+        {
+            var source = @"
+
+static class ext
+{
+    public static Program.C1.S1 y(this Program.C1 self)
+    {
+        return self.x;
+    }
+}
+
+class Program
+{
+    public class C1
+    {
+        public struct S1
+        {
+            public static bool operator <(S1 s1, int s2)
+            {
+                System.Console.WriteLine('<');
+                return true;
+            }
+            public static bool operator >(S1 s1, int s2)
+            {
+                System.Console.WriteLine('>');
+                return false;
+            }
+        }
+
+        public S1 x { get; set; }
+    }
+
+    static void Main()
+    {
+        C1 c = new C1();
+        C1 n = null;
+        System.Console.WriteLine(Test1(c));
+        System.Console.WriteLine(Test1(n));
+
+        System.Console.WriteLine(Test2(ref c));
+        System.Console.WriteLine(Test2(ref n));
+
+        System.Console.WriteLine(Test3(c));
+        System.Console.WriteLine(Test3(n));
+
+        System.Console.WriteLine(Test4(ref c));
+        System.Console.WriteLine(Test4(ref n));
+     }
+
+    static bool Test1(C1 c)
+    {
+        return c?.x > -1;
+    }
+
+    static bool Test2(ref C1 c)
+    {
+        return c?.x < -1;
+    }
+
+    static bool Test3(C1 c)
+    {
+        return c?.y() > -1;
+    }
+
+    static bool Test4(ref C1 c)
+    {
+        return c?.y() < -1;
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"   >
+False
+False
+<
+True
+False
+>
+False
+False
+<
+True
+False");
+            comp.VerifyIL("Program.Test1(Program.C1)", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""Program.C1.S1 Program.C1.x.get""
+  IL_000b:  ldc.i4.m1
+  IL_000c:  call       ""bool Program.C1.S1.op_GreaterThan(Program.C1.S1, int)""
+  IL_0011:  ret
+}
+").VerifyIL("Program.Test2(ref Program.C1)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (Program.C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  brtrue.s   IL_0008
+  IL_0006:  ldc.i4.0
+  IL_0007:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  callvirt   ""Program.C1.S1 Program.C1.x.get""
+  IL_000e:  ldc.i4.m1
+  IL_000f:  call       ""bool Program.C1.S1.op_LessThan(Program.C1.S1, int)""
+  IL_0014:  ret
+}
+").VerifyIL("Program.Test3(Program.C1)", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""Program.C1.S1 ext.y(Program.C1)""
+  IL_000b:  ldc.i4.m1
+  IL_000c:  call       ""bool Program.C1.S1.op_GreaterThan(Program.C1.S1, int)""
+  IL_0011:  ret
+}
+").VerifyIL("Program.Test4(ref Program.C1)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (Program.C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  brtrue.s   IL_0008
+  IL_0006:  ldc.i4.0
+  IL_0007:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""Program.C1.S1 ext.y(Program.C1)""
+  IL_000e:  ldc.i4.m1
+  IL_000f:  call       ""bool Program.C1.S1.op_LessThan(Program.C1.S1, int)""
+  IL_0014:  ret
+}
+");
+        }
+
     }
 }

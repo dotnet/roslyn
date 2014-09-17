@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression receiverOpt = fieldAccess.ReceiverOpt;
 
                         //If the receiver is static or is the receiver is of kind "Base" or "this", then we can just generate field = field + value
-                        if (receiverOpt == null || fieldAccess.FieldSymbol.IsStatic || !NeedsTemp(receiverOpt))
+                        if (fieldAccess.FieldSymbol.IsStatic || !NeedsTemp(receiverOpt))
                         {
                             return fieldAccess;
                         }
@@ -613,8 +613,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 case BoundKind.Literal:
-                    // don't allocate a temp for simple integral primitive types:
-                    return (object)expression.Type != null && !expression.Type.SpecialType.IsClrInteger();
+                    // don't allocate a temp for simple primitive types:
+                    var type = expression.Type;
+                    return (object)type != null && 
+                        !type.SpecialType.IsClrInteger() &&
+                        !type.IsReferenceType &&
+                        !type.IsEnumType();
 
                 case BoundKind.Parameter:
                     return localsMayBeAssigned || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
