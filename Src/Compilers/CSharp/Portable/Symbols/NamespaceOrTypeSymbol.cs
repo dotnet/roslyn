@@ -3,10 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -260,7 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>
         /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
         /// </returns>
-        /// <remarks></remarks>
         internal virtual NamedTypeSymbol LookupMetadataType(ref MetadataTypeName emittedTypeName)
         {
             Debug.Assert(!emittedTypeName.IsNull);

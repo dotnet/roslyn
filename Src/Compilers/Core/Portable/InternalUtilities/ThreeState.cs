@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represent an optional bool as a single byte.
+    /// Represents an optional bool as a single byte.
     /// </summary>
     internal enum ThreeState : byte
     {

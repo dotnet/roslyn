@@ -3316,5 +3316,258 @@ internal static class Test
             CompileAndVerify(compilation);
         }
 
+        [Fact, WorkItem(1010648, "DevDiv")]
+        public void ExtensionMethodFromUsingStatic()
+        {
+            const string source = @"
+using System;
+using N.S;
+
+class Program
+{
+    static void Main()
+    {
+        1.Foo();
+        Foo(1);
+    }
+}
+
+namespace N
+{
+    static class S
+    {
+        public static void Foo(this int x)
+        {
+            Console.Write(x);
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput:  "11");
+        }
+
+        [Fact, WorkItem(1010648, "DevDiv")]
+        public void ExtensionMethodImportedTwiceNoErrors()
+        {
+            const string source = @"
+using System;
+using N;
+using N.S;
+
+class Program
+{
+    static void Main()
+    {
+        1.Foo();
+    }
+}
+
+namespace N
+{
+    static class S
+    {
+        public static void Foo(this int x)
+        {
+            Console.WriteLine(x);
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput:  "1");
+        }
+
+        [Fact, WorkItem(1010648, "DevDiv")]
+        public void ExtensionMethodIsNotDisambiguatedByUsingStaticAtTheSameLevel()
+        {
+            const string source = @"
+using N;
+using N.S;
+
+class Program
+{
+    static void Main()
+    {
+        1.Foo();
+    }
+}
+
+namespace N
+{
+    static class S
+    {
+        public static void Foo(this int x)
+        {
+        }
+    }
+
+    static class R
+    {
+        public static void Foo(this int x)
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'S.Foo(int)' and 'R.Foo(int)'
+                //         1.Foo();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.S.Foo(int)", "N.R.Foo(int)").WithLocation(9, 11));
+        }
+
+        [Fact, WorkItem(1010648, "DevDiv")]
+        public void ExtensionMethodIsDisambiguatedByUsingStaticAtDeeperLevel()
+        {
+            const string source = @"
+using System;
+using N;
+
+namespace K
+{
+    using S;
+
+    class Program
+    {
+        static void Main()
+        {
+            1.Foo();
+        }
+    }
+}
+
+namespace N
+{
+    static class S
+    {
+        public static void Foo(this int x)
+        {
+            Console.WriteLine(""S"");
+        }
+    }
+
+    static class R
+    {
+        public static void Foo(this int x)
+        {
+            Console.WriteLine(""R"");
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "S");
+        }
+
+        [Fact, WorkItem(1010648, "DevDiv")]
+        public void ExtensionMethodAmbiguousAcrossMultipleUsingStatic()
+        {
+            const string source = @"
+using System;
+
+namespace K
+{
+    using N.S;
+    using N.R;
+
+    class Program
+    {
+        static void Main()
+        {
+            1.Foo();
+        }
+    }
+}
+
+namespace N
+{
+    static class S
+    {
+        public static void Foo(this int x)
+        {
+            Console.WriteLine(""S"");
+        }
+    }
+
+    static class R
+    {
+        public static void Foo(this int x)
+        {
+            Console.WriteLine(""R"");
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (13,15): error CS0121: The call is ambiguous between the following methods or properties: 'S.Foo(int)' and 'R.Foo(int)'
+                //             1.Foo();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.S.Foo(int)", "N.R.Foo(int)").WithLocation(13, 15));
+        }
+
+        [Fact, WorkItem(1010648, "DevDiv")]
+        public void ExtensionMethodsInTheContainingClassDoNotHaveHigherPrecedence()
+        {
+            const string source = @"
+namespace N
+{
+    using Program;
+
+    static class Program
+    {
+        static void Main()
+        {
+            1.Foo();
+        }
+
+        public static void Foo(this int x)
+        {
+        }
+    }
+
+    static class R
+    {
+        public static void Foo(this int x)
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (10,15): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Foo(int)' and 'R.Foo(int)'
+                //             1.Foo();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.Program.Foo(int)", "N.R.Foo(int)").WithLocation(10, 15),
+                // (4,5): hidden CS8019: Unnecessary using directive.
+                //     using Program;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Program;").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(1010648, "DevDiv")]
+        public void UsingAliasDoesNotImportExtensionMethods()
+        {
+            const string source = @"
+namespace K
+{
+    using X = N.S;
+    class Program
+    {
+        static void Main()
+        {
+            1.Foo();
+        }
+    }
+}
+
+namespace N
+{
+    static class S
+    {
+        public static void Foo(this int x)
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (9,15): error CS1061: 'int' does not contain a definition for 'Foo' and no extension method 'Foo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //             1.Foo();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Foo").WithArguments("int", "Foo").WithLocation(9, 15),
+                // (4,5): hidden CS8019: Unnecessary using directive.
+                //     using X = N.S;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.S;").WithLocation(4, 5));
+        }
     }
 }

@@ -271,31 +271,31 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The name for the <c>Add</c> method to be invoked for each element in a collection initializer expression
-        /// (see C# Specification, �7.6.10.3 Collection initializers).
+        /// (see C# Specification, §7.6.10.3 Collection initializers).
         /// </summary>
         public const string CollectionInitializerAddMethodName = "Add";
 
         /// <summary>
         /// The required name for the <c>GetAwaiter</c> method used to obtain an awaiter for a task
-        /// (see C# Specification, �7.7.7.1 Awaitable expressions).
+        /// (see C# Specification, §7.7.7.1 Awaitable expressions).
         /// </summary>
         public const string GetAwaiter = "GetAwaiter";
-		
-		/// <summary>
+
+        /// <summary>
         /// The required name for the <c>IsCompleted</c> property used to determine if a task is already complete
-        /// (see C# Specification, �7.7.7.1 Awaitable expressions).
+        /// (see C# Specification, §7.7.7.1 Awaitable expressions).
         /// </summary>
         public const string IsCompleted = "IsCompleted";
-		
-		/// <summary>
+
+        /// <summary>
         /// The required name for the <c>GetResult</c> method used to obtain the outcome of a task once it is complete
-        /// (see C# Specification, �7.7.7.1 Awaitable expressions).
+        /// (see C# Specification, §7.7.7.1 Awaitable expressions).
         /// </summary>
         public const string GetResult = "GetResult";
-		
-		/// <summary>
+
+        /// <summary>
         /// The name of the <see cref="INotifyCompletion.OnCompleted"/> method used to register a resumption delegate
-        /// (see C# Specification, �7.7.7.1 Awaitable expressions).
+        /// (see C# Specification, §7.7.7.1 Awaitable expressions).
         /// </summary>
         public const string OnCompleted = "OnCompleted";
     }

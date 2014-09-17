@@ -7,7 +7,6 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)backupLocation == null)
                 {
-                    backupLocation = ((TypeSyntax)inheritedTypeDecls[0]).GetLocation();
+                    backupLocation = inheritedTypeDecls[0].GetLocation();
                 }
 
                 foreach (TypeSyntax t in inheritedTypeDecls)

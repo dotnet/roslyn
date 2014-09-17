@@ -7,9 +7,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -448,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         /// <summary>
         /// Returns true if this symbol contains anything unsafe within it.  for example
-        /// List&lt;int*&gt; is unsafe, as it "int* Foo { get; }"
+        /// List&lt;int*[]&gt; is unsafe, as it "int* Foo { get; }"
         /// </summary>
         public static bool IsUnsafe(this ISymbol member)
         {
@@ -949,7 +947,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var methods = returnType.GetMembers().OfType<IMethodSymbol>();
 
-            // NOTE: (vladres) The current version of C# Spec, �7.7.7.3 'Runtime evaluation of await expressions', requires that
+            // NOTE: (vladres) The current version of C# Spec, §7.7.7.3 'Runtime evaluation of await expressions', requires that
             // NOTE: the interface method INotifyCompletion.OnCompleted or ICriticalNotifyCompletion.UnsafeOnCompleted is invoked
             // NOTE: (rather than any OnCompleted method conforming to a certain pattern).
             // NOTE: Should this code be updated to match the spec?

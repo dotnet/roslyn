@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // return a distinguished value for 'object' so we can return the same value for 'dynamic'.
             // That's because the hash code ignores the distinction between dynamic and object.  It also
             // ignores custom modifiers.
-            if (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
+            if (this.SpecialType == SpecialType.System_Object)
             {
                 return (int)SpecialType.System_Object;
             }

@@ -122,15 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Look for symbols that are members of the specified namespace or type
+        /// Look for symbols that are members of the specified namespace or type.
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="nsOrType"></param>
-        /// <param name="name"></param>
-        /// <param name="arity"></param>
-        /// <param name="useSiteDiagnostics"/>
-        /// <param name="basesBeingResolved"></param>
-        /// <param name="options"></param>
         private void LookupMembersWithFallback(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
         {
             Debug.Assert(options.AreValid());

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,16 +10,15 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Instrumentation;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Allows asking semantic questions about a tree of syntax nodes in a Compilation. Typically,
     /// an instance is obtained by a call to <see cref="Compilation"/>.<see
-    /// cref="M:Compilation.GetSemanticModel"/>. 
+    /// cref="Compilation.GetSemanticModel"/>. 
     /// </summary>
     /// <remarks>
     /// <para>An instance of <see cref="CSharpSemanticModel"/> caches local symbols and semantic
@@ -240,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundNode;
             if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace || binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType))
             {
-                boundNode = binder.BindNamespaceOrType((TypeSyntax)expression, diagnostics);
+                boundNode = binder.BindNamespaceOrType(expression, diagnostics);
             }
             else
             {
@@ -1440,8 +1439,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol baseType;
                     if ((object)containingType == null || (object)(baseType = containingType.BaseTypeNoUseSiteDiagnostics) == null)
                     {
-                        throw new ArgumentException("position",
-                            "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)");
+                        throw new ArgumentException(
+                            "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)",
+                            "position");
                     }
                     container = baseType;
                 }
@@ -2545,7 +2545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public abstract IMethodSymbol GetDeclaredSymbol(BaseMethodDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
-        #region "GetDeclaredSymbol overloads for BasePropertyDeclarationSyntax and its subtypes"
+        #region GetDeclaredSymbol overloads for BasePropertyDeclarationSyntax and its subtypes
 
         /// <summary>
         /// Given a syntax node that declares a property, indexer or an event, get the corresponding declared symbol.
@@ -2706,7 +2706,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="typeParameter"></param>
-        /// <returns></returns>
         public abstract ITypeParameterSymbol GetDeclaredSymbol(TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -2714,7 +2713,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="forEachStatement"></param>
-        /// <returns></returns>
         public ILocalSymbol GetDeclaredSymbol(ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDeclaredSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
@@ -2733,7 +2731,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="catchDeclaration"></param>
-        /// <returns></returns>
         public ILocalSymbol GetDeclaredSymbol(CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDeclaredSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
@@ -3109,12 +3106,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
                     {
-                        var thisReference = (BoundExpression)boundNode;
-                        Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(thisReference.Syntax));
+                        Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
                         NamedTypeSymbol containingType = binder.ContainingType;
                         var containingMember = binder.ContainingMember();
 
-                        var thisParam = GetThisParameter(thisReference.Type, containingType, containingMember, out resultKind);
+                        var thisParam = GetThisParameter(boundNode.Type, containingType, containingMember, out resultKind);
                         symbols = ImmutableArray.Create<Symbol>(thisParam);
                     }
                     break;
@@ -3124,7 +3120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = boundNode.ExpressionSymbol;
                         if ((object)symbol != null)
                         {
-                            symbols = ImmutableArray.Create<Symbol>(symbol);
+                            symbols = ImmutableArray.Create(symbol);
                             resultKind = boundNode.ResultKind;
                         }
                     }
@@ -3344,7 +3340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!ReferenceEquals(symbolOpt, null))
             {
-                symbols = ImmutableArray.Create<Symbol>(symbolOpt);
+                symbols = ImmutableArray.Create(symbolOpt);
                 resultKind = node.ResultKind;
             }
             else if (!originalCandidates.IsDefault)
@@ -4149,14 +4145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets for each statement info.
         /// </summary>
         /// <param name="node">The node.</param>
-        /// <returns></returns>
         public abstract ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node);
 
         /// <summary>
         /// Gets await expression info.
         /// </summary>
         /// <param name="node">The node.</param>
-        /// <returns></returns>
         public abstract AwaitExpressionInfo GetAwaitExpressionInfo(PrefixUnaryExpressionSyntax node);
 
         /// <summary>

@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Declarations.Length == 1)
                 {
-                    return ImmutableArray.Create<SourceLocation>(Declarations[0].NameLocation);
+                    return ImmutableArray.Create(Declarations[0].NameLocation);
                 }
                 else
                 {
