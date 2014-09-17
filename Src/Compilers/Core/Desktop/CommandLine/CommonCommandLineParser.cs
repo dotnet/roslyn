@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis
                 if (arg.StartsWith("@", StringComparison.Ordinal))
                 {
                     // response file:
-                    string path = RemoveAllQuotes(arg.Substring(1)).TrimEnd();
+                    string path = RemoveAllQuotes(arg.Substring(1)).TrimEnd(null);
                     string resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                     if (resolvedPath != null)
                     {

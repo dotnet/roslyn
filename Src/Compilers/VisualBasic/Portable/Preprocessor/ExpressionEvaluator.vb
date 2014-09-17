@@ -210,6 +210,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ReportSemanticError(ERRID.ERR_BadCCExpression, expr)
         End Function
 
+        Private Shared Function ReportSemanticError(id As ERRID, node As VisualBasicSyntaxNode) As BadCConst
+            Return ReportSemanticError(id, node, SpecializedCollections.EmptyObjects)
+        End Function
+
         Private Shared Function ReportSemanticError(id As ERRID, node As VisualBasicSyntaxNode, ParamArray args As Object()) As BadCConst
             ' TODO: should we use the node?
             Return New BadCConst(id, args)

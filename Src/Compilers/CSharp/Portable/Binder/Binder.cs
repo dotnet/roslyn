@@ -364,14 +364,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), syntax.Location));
         }
 
+        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxToken token)
+        {
+            diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code), token.GetLocation()));
+        }
+
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxToken token, params object[] args)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), token.GetLocation()));
         }
 
+        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax)
+        {
+            Error(diagnostics, code, syntax.GetLocation());
+        }
+
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
             Error(diagnostics, code, syntax.GetLocation(), args);
+        }
+
+        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, Location location)
+        {
+            diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code), location));
         }
 
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, Location location, params object[] args)

@@ -1206,9 +1206,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void AddDiagnostic(ErrorCode code, Location location)
+        {
+            var info = new CSDiagnosticInfo(code);
+            var diag = new CSDiagnostic(info, location);
+            this.diagnostics.Enqueue(diag);
+        }
+
         private void AddDiagnostic(ErrorCode code, Location location, params object[] args)
         {
-            var info = new CSDiagnosticInfo(code, args, ImmutableArray<Symbol>.Empty, ImmutableArray<Location>.Empty);
+            var info = new CSDiagnosticInfo(code, args);
             var diag = new CSDiagnostic(info, location);
             this.diagnostics.Enqueue(diag);
         }

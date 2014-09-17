@@ -322,6 +322,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new node from this node with the leading trivia removed.
+        /// </summary>
+        public static TSyntax WithoutLeadingTrivia<TSyntax>(
+            this TSyntax node
+            ) where TSyntax : SyntaxNode
+        {
+            return node.WithLeadingTrivia((IEnumerable<SyntaxTrivia>)null);
+        }
+
+        /// <summary>
         /// Creates a new node from this node with the leading trivia replaced.
         /// </summary>
         public static TSyntax WithLeadingTrivia<TSyntax>(
@@ -353,6 +363,16 @@ namespace Microsoft.CodeAnalysis
             var last = node.GetLastToken(includeZeroWidth: true);
             var newLast = last.WithTrailingTrivia(trivia);
             return node.ReplaceToken(last, newLast);
+        }
+
+        /// <summary>
+        /// Creates a new node from this node with the trailing trivia removed.
+        /// </summary>
+        public static TSyntax WithoutTrailingTrivia<TSyntax>(
+            this TSyntax node
+            ) where TSyntax : SyntaxNode
+        {
+            return node.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)null);
         }
 
         /// <summary>

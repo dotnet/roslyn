@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim leadingTrivia = expression.GetLeadingTrivia()
             Dim trailingTrivia = expression.GetTrailingTrivia()
 
-            Dim strippedExpression = expression.WithLeadingTrivia().WithTrailingTrivia()
+            Dim strippedExpression = expression.WithoutLeadingTrivia().WithoutTrailingTrivia()
 
             Return SyntaxFactory.ParenthesizedExpression(strippedExpression) _
                          .WithLeadingTrivia(leadingTrivia) _
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim leadingTrivia = parenthesized.GetLeadingTrivia()
             Dim trailingTrivia = parenthesized.GetTrailingTrivia()
 
-            Dim stripped = parenthesized.WithLeadingTrivia().WithTrailingTrivia()
+            Dim stripped = parenthesized.WithoutLeadingTrivia().WithoutTrailingTrivia()
 
             Dim castKeyword = targetType.SpecialType.GetPredefinedCastKeyword()
             If castKeyword = SyntaxKind.None Then

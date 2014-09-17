@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                      If n.HasTrailingTrivia AndAlso nodeWithParams.GetLastToken() = nodeWithParams.ParameterList.CloseParenToken Then
                                                          Dim trailing = n.GetTrailingTrivia
                                                          nodeWithParams = DirectCast(n _
-                                                             .WithTrailingTrivia() _
+                                                             .WithoutTrailingTrivia() _
                                                              .WithParameterList(newParamList) _
                                                              .WithTrailingTrivia(trailing), T)
                                                      End If

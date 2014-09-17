@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (boundFromExpression.HasDynamicType())
             {
                 diagnostics.Add(ErrorCode.ERR_BadDynamicQuery, fromClause.Expression.Location);
-                boundFromExpression = BadExpression(fromClause.Expression, new[] { boundFromExpression });
+                boundFromExpression = BadExpression(fromClause.Expression, boundFromExpression);
             }
 
             QueryTranslationState state = new QueryTranslationState();
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (e2.HasDynamicType())
             {
                 diagnostics.Add(ErrorCode.ERR_BadDynamicQuery, join.InExpression.Location);
-                e2 = BadExpression(join.InExpression, new[] { e2 });
+                e2 = BadExpression(join.InExpression, e2);
             }
 
             BoundExpression castInvocation = null;

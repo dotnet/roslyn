@@ -333,6 +333,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
+        Public Function Block() As BoundBlock
+            Return Block(ImmutableArray(Of BoundStatement).Empty)
+        End Function
+
         Public Function Block(ParamArray statements As BoundStatement()) As BoundBlock
             Return Block(ImmutableArray.Create(Of BoundStatement)(statements))
         End Function
@@ -558,6 +562,10 @@ nextm:
         End Function
 
 #End If
+
+        Public Function [Call](receiver As BoundExpression, method As MethodSymbol) As BoundCall
+            Return [Call](receiver, method, ImmutableArray(Of BoundExpression).Empty)
+        End Function
 
         Public Function [Call](receiver As BoundExpression, method As MethodSymbol, ParamArray args As BoundExpression()) As BoundCall
             Return [Call](receiver, method, ImmutableArray.Create(Of BoundExpression)(args))

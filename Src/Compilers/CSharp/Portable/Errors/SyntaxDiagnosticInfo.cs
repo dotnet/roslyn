@@ -19,8 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Width = width;
         }
 
+        internal SyntaxDiagnosticInfo(int offset, int width, ErrorCode code)
+            : this(offset, width, code, SpecializedCollections.EmptyObjects)
+        {
+        }
+
         internal SyntaxDiagnosticInfo(ErrorCode code, params object[] args)
             : this(0, 0, code, args)
+        {
+        }
+
+        internal SyntaxDiagnosticInfo(ErrorCode code)
+            : this(0, 0, code)
         {
         }
 

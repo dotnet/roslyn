@@ -12056,7 +12056,7 @@ xmlDoc)
                 If stringMapper IsNot Nothing Then
                     For i = 0 To diagnostics.Count - 1
                         Dim info = DirectCast(diagnostics(i), DiagnosticWithInfo).Info
-                        info = ErrorFactory.ErrorInfo(CType(info.Code, ERRID), (From a In info.Arguments Select stringMapper(a)).ToArray())
+                        info = If(info.Arguments Is Nothing, ErrorFactory.ErrorInfo(CType(info.Code, ERRID)), ErrorFactory.ErrorInfo(CType(info.Code, ERRID), (From a In info.Arguments Select stringMapper(a)).ToArray()))
                         diagnostics(i) = New VBDiagnostic(info, NoLocation.Singleton)
                     Next
                 End If

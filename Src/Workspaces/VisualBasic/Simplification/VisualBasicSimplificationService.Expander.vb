@@ -575,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         SyntaxKind.SimpleMemberAccessExpression,
                         left,
                         SyntaxFactory.Token(SyntaxKind.DotToken),
-                        DirectCast(newNode, SimpleNameSyntax).WithLeadingTrivia()) _
+                        DirectCast(newNode, SimpleNameSyntax).WithoutLeadingTrivia()) _
                             .WithLeadingTrivia(identifiersLeadingTrivia)
                     End If
 
@@ -654,7 +654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     ' now create syntax for the combination of left and right syntax, or a simple replacement in case of an identifier
                     Dim parent = originalNode.Parent
                     Dim leadingTrivia = rewrittenNode.GetLeadingTrivia()
-                    rewrittenNode = rewrittenNode.WithLeadingTrivia()
+                    rewrittenNode = rewrittenNode.WithoutLeadingTrivia()
 
                     Select Case parent.VisualBasicKind
                         Case SyntaxKind.QualifiedName

@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return GetLineColumnDelta(lineColumn, formattedTrivia)
             End If
 
-            Dim docComment = FormatDocumnetComment(lineColumn, trivia)
+            Dim docComment = FormatDocumentComment(lineColumn, trivia)
             changes.Add(docComment)
 
             Return GetLineColumnDelta(lineColumn, docComment)
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return GetLineColumnDelta(lineColumn, formattedTrivia)
             End If
 
-            Dim docComment = FormatDocumnetComment(lineColumn, trivia)
+            Dim docComment = FormatDocumentComment(lineColumn, trivia)
             If docComment <> trivia Then
                 changes.Add(New TextChange(trivia.FullSpan, docComment.ToFullString()))
             End If
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return GetLineColumnDelta(lineColumn, docComment)
         End Function
 
-        Private Function FormatDocumnetComment(lineColumn As LineColumn, trivia As SyntaxTrivia) As SyntaxTrivia
+        Private Function FormatDocumentComment(lineColumn As LineColumn, trivia As SyntaxTrivia) As SyntaxTrivia
 
             Dim indentation = Me.Context.GetBaseIndentation(trivia.SpanStart)
 
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' If the doc comment was parsed from a text fragment, there may not be
             ' an end-of-line at all. We need to trim the end before we check the
             ' number of line breaks in the text.
-            Dim textWithoutFinalNewLine = text.TrimEnd()
+            Dim textWithoutFinalNewLine = text.TrimEnd(Nothing)
             If textWithoutFinalNewLine.GetNumberOfLineBreaks() = 0 Then
                 Return trivia
             End If

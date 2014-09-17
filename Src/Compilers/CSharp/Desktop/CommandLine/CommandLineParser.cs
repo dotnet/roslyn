@@ -1564,6 +1564,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  no error in csc.exe
         }
 
+        private static void AddDiagnostic(IList<Diagnostic> diagnostics, ErrorCode errorCode)
+        {
+            diagnostics.Add(Diagnostic.Create(CSharp.MessageProvider.Instance, (int)errorCode));
+        }
+
         private static void AddDiagnostic(IList<Diagnostic> diagnostics, ErrorCode errorCode, params object[] arguments)
         {
             diagnostics.Add(Diagnostic.Create(CSharp.MessageProvider.Instance, (int)errorCode, arguments));

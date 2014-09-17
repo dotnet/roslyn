@@ -39,6 +39,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared ReadOnly GetErrorInfo_WRN_ObjectAssumedProperty1_WRN_MissingAsClauseinProperty As Func(Of DiagnosticInfo) =
             Function() ErrorInfo(ERRID.WRN_ObjectAssumedProperty1, ErrorInfo(ERRID.WRN_MissingAsClauseinProperty))
 
+        Public Shared Function ErrorInfo(id As ERRID) As DiagnosticInfo
+            Return New DiagnosticInfo(MessageProvider.Instance, id)
+        End Function
+
         Public Shared Function ErrorInfo(id As ERRID, ParamArray arguments As Object()) As DiagnosticInfo
             Return New DiagnosticInfo(MessageProvider.Instance, id, arguments)
         End Function

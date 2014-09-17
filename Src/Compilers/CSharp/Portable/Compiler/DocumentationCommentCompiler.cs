@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!skipFirstLine)
             {
-                string trimmed = lines[0].TrimStart();
+                string trimmed = lines[0].TrimStart(null);
                 if (!skipLastLine && numLines == 1)
                 {
                     trimmed = TrimEndOfMultiLineComment(trimmed);

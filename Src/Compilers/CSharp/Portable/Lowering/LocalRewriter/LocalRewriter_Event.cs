@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     receiverOpt: null,
                     method: getOrCreateMethod,
-                    arguments: fieldAccess);
+                    arg0: fieldAccess);
             }
             else
             {

@@ -321,6 +321,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return syntax.AddTrailingSyntax(ResyncAt(state, resyncTokens))
         End Function
 
+        Private Function ResyncAt(Of T As VisualBasicSyntaxNode)(syntax As T) As T
+            Return syntax.AddTrailingSyntax(ResyncAt())
+        End Function
+
         Private Function ResyncAt(Of T As VisualBasicSyntaxNode)(syntax As T, ParamArray resyncTokens As SyntaxKind()) As T
             Debug.Assert(resyncTokens IsNot Nothing)
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
             var invocation = syntaxFactoryService.InvocationExpression(
                 memberAccess,
                 operand1,
-                operand2.WithTrailingTrivia(),
+                operand2.WithoutTrailingTrivia(),
                 ordinal)
                 .WithAdditionalAnnotations(Formatter.Annotation);
             if (!isEquals)

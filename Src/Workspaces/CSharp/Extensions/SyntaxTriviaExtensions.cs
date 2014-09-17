@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     commentText = commentText.Substring(2);
                 }
 
-                return commentText.TrimStart();
+                return commentText.TrimStart(null);
             }
             else if (trivia.CSharpKind() == SyntaxKind.MultiLineCommentTrivia)
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (trimmedLine.StartsWith("*"))
                     {
                         trimmedLine = trimmedLine.TrimStart('*');
-                        trimmedLine = trimmedLine.TrimStart();
+                        trimmedLine = trimmedLine.TrimStart(null);
                     }
 
                     textBuilder.AppendLine(trimmedLine);

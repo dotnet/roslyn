@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var siteInitialization = factory.Conditional(
                 factory.ObjectEqual(callSiteFieldAccess, nullCallSite),
-                factory.AssignmentExpression(callSiteFieldAccess, factory.Call(null, callSiteFactoryMethod, new[] { binderConstruction })),
+                factory.AssignmentExpression(callSiteFieldAccess, factory.Call(null, callSiteFactoryMethod, binderConstruction)),
                 nullCallSite,
                 callSiteField.Type);
 
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 flags |= CSharpArgumentInfoFlags.UseCompileTimeType;
             }
 
-            return factory.Call(null, argumentInfoFactory, new[] { factory.Literal((int)flags), factory.Literal(name) });
+            return factory.Call(null, argumentInfoFactory, factory.Literal((int)flags), factory.Literal(name));
         }
 
         internal static ImmutableArray<BoundExpression> GetCallSiteArguments(BoundExpression callSiteFieldAccess, BoundExpression receiver, ImmutableArray<BoundExpression> arguments, BoundExpression right)

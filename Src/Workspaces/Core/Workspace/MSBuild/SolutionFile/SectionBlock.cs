@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string startLine;
             while ((startLine = reader.ReadLine()) != null)
             {
-                startLine = startLine.TrimStart();
+                startLine = startLine.TrimStart(null);
                 if (startLine != string.Empty)
                 {
                     break;
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string line;
             while ((line = reader.ReadLine()) != null)
             {
-                line = line.TrimStart();
+                line = line.TrimStart(null);
 
                 // ignore empty lines
                 if (line == string.Empty)

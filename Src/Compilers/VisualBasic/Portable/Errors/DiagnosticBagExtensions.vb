@@ -18,6 +18,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name = "diagnostics"></param>
         ''' <param name = "code"></param>
         ''' <param name = "location"></param>
+        ''' <returns></returns>
+        <System.Runtime.CompilerServices.Extension()>
+        Friend Function Add(diagnostics As DiagnosticBag, code As ERRID, location As Location) As DiagnosticInfo
+            Dim info = ErrorFactory.ErrorInfo(code)
+            Dim diag = New VBDiagnostic(info, location)
+            diagnostics.Add(diag)
+            Return info
+        End Function
+
+        ''' <summary>
+        ''' Add a diagnostic to the bag.
+        ''' </summary>
+        ''' <param name = "diagnostics"></param>
+        ''' <param name = "code"></param>
+        ''' <param name = "location"></param>
         ''' <param name = "args"></param>
         ''' <returns></returns>
         <System.Runtime.CompilerServices.Extension()>

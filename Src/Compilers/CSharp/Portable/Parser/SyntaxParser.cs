@@ -671,6 +671,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        protected TNode AddError<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
+        {
+            return AddError(node, code, SpecializedCollections.EmptyObjects);
+        }
+
         protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
         {
             if (!node.IsMissing)
@@ -734,24 +739,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, MakeError(offset, location.Width, code, args));
         }
 
+        protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
+        {
+            var firstToken = node.GetFirstToken();
+            return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code));
+        }
+
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
         {
             var firstToken = node.GetFirstToken();
             return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code, args));
         }
 
+        protected TNode AddErrorToLastToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
+        {
+            int offset;
+            int width;
+            GetOffsetAndWidthForLastToken(node, out offset, out width);
+            return WithAdditionalDiagnostics(node, MakeError(offset, width, code));
+        }
+
         protected TNode AddErrorToLastToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
         {
+            int offset;
+            int width;
+            GetOffsetAndWidthForLastToken(node, out offset, out width);
+            return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
+        }
+
+        private static void GetOffsetAndWidthForLastToken<TNode>(TNode node, out int offset, out int width) where TNode : CSharpSyntaxNode
+        {
             var lastToken = node.GetLastNonmissingToken();
-            var offset = node.FullWidth; //advance to end of entire node
-            var width = 0;
+            offset = node.FullWidth; //advance to end of entire node
+            width = 0;
             if (lastToken != null) //will be null if all tokens are missing
             {
                 offset -= lastToken.FullWidth; //rewind past last token
                 offset += lastToken.GetLeadingTriviaWidth(); //advance past last token leading trivia - now at start of last token
                 width += lastToken.Width;
             }
-            return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
+        }
+
+        protected static SyntaxDiagnosticInfo MakeError(int offset, int width, ErrorCode code)
+        {
+            return new SyntaxDiagnosticInfo(offset, width, code);
         }
 
         protected static SyntaxDiagnosticInfo MakeError(int offset, int width, ErrorCode code, params object[] args)

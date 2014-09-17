@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // If the doc comment was parsed from a text fragment, there may not be
                 // an end-of-line at all. We need to trim the end before we check the
                 // number of line breaks in the text.
-                var textWithoutFinalNewLine = text.TrimEnd();
+                var textWithoutFinalNewLine = text.TrimEnd(null);
                 if (textWithoutFinalNewLine.GetNumberOfLineBreaks() == 0)
                 {
                     return trivia;

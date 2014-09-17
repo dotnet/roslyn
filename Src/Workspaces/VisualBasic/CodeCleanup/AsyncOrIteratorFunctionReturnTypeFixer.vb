@@ -198,8 +198,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
 
             Dim currentTypeArgument = genericName.TypeArgumentList.Arguments.First
             Dim newTypeArgument = typeSyntax _
-                                  .WithLeadingTrivia() _
-                                  .WithTrailingTrivia()
+                                  .WithoutLeadingTrivia() _
+                                  .WithoutTrailingTrivia()
 
             newTypeSyntax = newTypeSyntax.ReplaceNode(currentTypeArgument, newTypeArgument) _
                 .WithLeadingTrivia(leadingTrivia) _

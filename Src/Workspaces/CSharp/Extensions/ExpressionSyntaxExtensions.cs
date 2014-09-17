@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var leadingTrivia = expression.GetLeadingTrivia();
             var trailingTrivia = expression.GetTrailingTrivia();
-            expression = expression.WithLeadingTrivia()
-                                   .WithTrailingTrivia();
+            expression = expression.WithoutLeadingTrivia()
+                                   .WithoutTrailingTrivia();
 
             if (includeElasticTrivia)
             {

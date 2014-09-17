@@ -49,7 +49,7 @@ namespace Roslyn.Diagnostics.CodeFixes
         {
             // Rewrite the expression to include a .ConfigureAwait() after it. We reattach trailing trivia to the end.
             // This is especially important for VB, as the end-of-line may be in the trivia
-            var fixedExpression = FixExpression(expression.WithTrailingTrivia(), cancellationToken)
+            var fixedExpression = FixExpression(expression.WithoutTrailingTrivia(), cancellationToken)
                                       .WithTrailingTrivia(expression.GetTrailingTrivia());
             var fixedDocument = document.WithSyntaxRoot(root.ReplaceNode(expression, fixedExpression));
             return Simplifier.ReduceAsync(fixedDocument, fixedExpression.FullSpan, cancellationToken: cancellationToken);

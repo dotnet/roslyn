@@ -28,6 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 17543 - 17543
         ' .Parser::ReportSyntaxError( [ unsigned Errid ] [ _In_ Token* Beg ] [ _In_ Token* End ] [ bool MarkErrorStatementBad ] [ _Inout_ bool& ErrorInConstruct ] )
 
+        Friend Shared Function ReportSyntaxError(Of T As VisualBasicSyntaxNode)(syntax As T, ErrorId As ERRID) As T
+            Return DirectCast(syntax.AddError(ErrorFactory.ErrorInfo(ErrorId)), T)
+        End Function
+
         Friend Shared Function ReportSyntaxError(Of T As VisualBasicSyntaxNode)(syntax As T, ErrorId As ERRID, ParamArray args() As Object) As T
             Return DirectCast(syntax.AddError(ErrorFactory.ErrorInfo(ErrorId, args)), T)
         End Function

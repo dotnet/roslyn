@@ -898,6 +898,18 @@ namespace Microsoft.CodeAnalysis
             return new DeclarationInfo(node, codeBlocks, declaredSymbol);
         }
 
+        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
+        {
+            return GetDeclarationInfo(node, getSymbol, cancellationToken, (IEnumerable<SyntaxNode>)null);
+        }
+
+        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, SyntaxNode executableCodeBlock)
+        {
+            var declaredSymbol = getSymbol ? GetDeclaredSymbolCore(node, cancellationToken) : null;
+            var codeBlock = executableCodeBlock == null ? ImmutableArray<SyntaxNode>.Empty : ImmutableArray.Create(executableCodeBlock);
+            return new DeclarationInfo(node, codeBlock, declaredSymbol);
+        }
+
         internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, params SyntaxNode[] executableCodeBlocks)
         {
             return GetDeclarationInfo(node, getSymbol, cancellationToken, executableCodeBlocks.AsEnumerable());

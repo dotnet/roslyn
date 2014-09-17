@@ -772,6 +772,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ReportDiagnostic(diagBag, diag)
         End Sub
 
+        Public Shared Sub ReportDiagnostic(diagBag As DiagnosticBag, location As Location, id As ERRID)
+            ReportDiagnostic(diagBag, location, ErrorFactory.ErrorInfo(id))
+        End Sub
+
         Public Shared Sub ReportDiagnostic(diagBag As DiagnosticBag, location As Location, id As ERRID, ParamArray args As Object())
             ReportDiagnostic(diagBag, location, ErrorFactory.ErrorInfo(id, args))
         End Sub

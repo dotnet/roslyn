@@ -93,6 +93,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type
+        /// </summary>
+        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax)
+        {
+            return BadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty);
+        }
+
+        /// <summary>
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, and the given bound child.
+        /// </summary>
+        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, BoundNode childNode)
+        {
+            return BadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childNode);
+        }
+
+        /// <summary>
         /// Generates a new <see cref="BoundBadExpression"/> with no known type, and the given bound children.
         /// </summary>
         private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, params BoundNode[] childNodes)
@@ -101,11 +117,52 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookup resultKind.
+        /// </summary>
+        protected BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind lookupResultKind)
+        {
+            return BadExpression(syntax, lookupResultKind, ImmutableArray<Symbol>.Empty);
+        }
+
+        /// <summary>
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookup resultKind and the given bound child.
+        /// </summary>
+        protected BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind lookupResultKind, BoundNode childNode)
+        {
+            return BadExpression(syntax, lookupResultKind, ImmutableArray<Symbol>.Empty, childNode);
+        }
+
+        /// <summary>
         /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookup resultKind and the given bound children.
         /// </summary>
         protected BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind lookupResultKind, params BoundNode[] childNodes)
         {
             return BadExpression(syntax, lookupResultKind, ImmutableArray<Symbol>.Empty, childNodes);
+        }
+
+        /// <summary>
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookupResultKind and given symbols for GetSemanticInfo API.
+        /// </summary>
+        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols)
+        {
+            return new BoundBadExpression(syntax,
+                resultKind,
+                symbols,
+                ImmutableArray<BoundNode>.Empty,
+                CreateErrorType());
+        }
+
+        /// <summary>
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookupResultKind and given symbols for GetSemanticInfo API,
+        /// and the given bound child.
+        /// </summary>
+        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, BoundNode childNode)
+        {
+            return new BoundBadExpression(syntax,
+                resultKind,
+                symbols,
+                ImmutableArray.Create(childNode),
+                CreateErrorType());
         }
 
         /// <summary>

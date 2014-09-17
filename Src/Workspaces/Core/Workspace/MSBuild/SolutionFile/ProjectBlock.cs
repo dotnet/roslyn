@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         internal static ProjectBlock Parse(TextReader reader)
         {
-            var startLine = reader.ReadLine().TrimStart();
+            var startLine = reader.ReadLine().TrimStart(null);
             var scanner = new LineScanner(startLine);
 
             if (scanner.ReadUpToAndEat("(\"") != "Project")

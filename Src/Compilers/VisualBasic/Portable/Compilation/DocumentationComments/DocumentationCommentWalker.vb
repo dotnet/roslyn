@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If Me._reportDiagnostics Then
                         Dim location = If(errorLocation, reference.GetLocation)
-                        Me._diagnostics.Add(errid, location, reference.ToFullString().TrimEnd())
+                        Me._diagnostics.Add(errid, location, reference.ToFullString().TrimEnd(Nothing))
                     End If
                 End Sub
 

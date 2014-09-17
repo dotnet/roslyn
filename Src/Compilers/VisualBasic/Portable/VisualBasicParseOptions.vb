@@ -23,9 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates an instance of VisualBasicParseOptions.
         ''' </summary>
         ''' <param name="languageVersion">The parser language version.</param>
-        ''' <param name="documentationMode">The comentation mode.</param>
+        ''' <param name="documentationMode">The documentation mode.</param>
         ''' <param name="kind">The kind of source code.<see cref="SourceCodeKind"/></param>
-        ''' <param name="preprocessorSymbols">An immutable array of KeyValuePair representing pre processor symbols.</param>
+        ''' <param name="preprocessorSymbols">An enumerable sequence of KeyValuePair representing preprocessor symbols.</param>
         Public Sub New(
             Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic11,
             Optional documentationMode As DocumentationMode = DocumentationMode.Parse,

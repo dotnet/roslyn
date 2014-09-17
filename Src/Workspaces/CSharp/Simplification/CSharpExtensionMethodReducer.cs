@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         }
                         else if (node.Expression.CSharpKind() == SyntaxKind.IdentifierName)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments.ElementAt(0).Expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithLeadingTrivia());
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments.ElementAt(0).Expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
                         }
                         else if (node.Expression.CSharpKind() == SyntaxKind.GenericName)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments.ElementAt(0).Expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithLeadingTrivia());
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments.ElementAt(0).Expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
                         }
                         else
                         {

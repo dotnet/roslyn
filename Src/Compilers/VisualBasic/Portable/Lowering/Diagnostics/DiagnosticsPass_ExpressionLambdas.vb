@@ -373,8 +373,8 @@ lSelect:
             GenerateDiagnostic(ERRID.ERR_ExpressionTreeNotSupported, node)
         End Sub
 
-        Private Sub GenerateDiagnostic(code As ERRID, node As BoundNode, ParamArray args As Object())
-            Me._diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(code, args), node.Syntax.GetLocation()))
+        Private Sub GenerateDiagnostic(code As ERRID, node As BoundNode)
+            Me._diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(code), node.Syntax.GetLocation()))
         End Sub
 
     End Class

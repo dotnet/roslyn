@@ -52,9 +52,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, ResultKind, Type);
         }
 
-        public static BoundCall Synthesized(CSharpSyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method, params BoundExpression[] arguments)
+        public static BoundCall Synthesized(CSharpSyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method)
         {
-            return Synthesized(syntax, receiverOpt, method, arguments.AsImmutableOrNull());
+            return Synthesized(syntax, receiverOpt, method, ImmutableArray<BoundExpression>.Empty);
+        }
+
+        public static BoundCall Synthesized(CSharpSyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method, BoundExpression arg0)
+        {
+            return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0));
+        }
+
+        public static BoundCall Synthesized(CSharpSyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
+        {
+            return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0, arg1));
         }
 
         public static BoundCall Synthesized(CSharpSyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments)

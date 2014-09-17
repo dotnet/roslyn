@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = GetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredFirst, loweredSecond, loweredThird);
+            return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
         private BoundExpression RewriteStringConcatenationManyExprs(CSharpSyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = GetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
-                return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredArgs[0], loweredArgs[1], loweredArgs[2], loweredArgs[3]);
+                return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredArgs);
             }
             else
             {

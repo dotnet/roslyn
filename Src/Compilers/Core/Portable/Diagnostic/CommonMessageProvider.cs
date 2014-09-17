@@ -2,7 +2,7 @@
 
 using System;
 using System.Globalization;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -41,7 +41,15 @@ namespace Microsoft.CodeAnalysis
         public abstract Type ErrorCodeType { get; }
 
         /// <summary>
-        /// Create a simple language speicific diagnostic for given error code.
+        /// Create a simple language specific diagnostic for given error code.
+        /// </summary>
+        public Diagnostic CreateDiagnostic(int code, Location location)
+        {
+            return CreateDiagnostic(code, location, SpecializedCollections.EmptyObjects);
+        }
+
+        /// <summary>
+        /// Create a simple language specific diagnostic for given error code.
         /// </summary>
         public abstract Diagnostic CreateDiagnostic(int code, Location location, params object[] args);
 

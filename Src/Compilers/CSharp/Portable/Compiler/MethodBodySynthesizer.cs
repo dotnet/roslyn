@@ -104,9 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression setSubmission = BoundCall.Synthesized(syntax,
                 null,
                 submissionAdder,
-                sessionReference,
-                new BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType) { WasCompilerGenerated = true },
-                thisReference
+                ImmutableArray.Create<BoundExpression>(sessionReference, new BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType) { WasCompilerGenerated = true }, thisReference)
             );
 
             var hostObjectField = synthesizedFields.GetHostObjectField();
@@ -285,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 receiverOpt: null,
                 method: getOrCreateMethod,
-                arguments: fieldAccess);
+                arg0: fieldAccess);
 
             // value
             BoundParameter parameterAccess = new BoundParameter(
@@ -297,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 receiverOpt: getOrCreateCall,
                 method: processHandlerMethod,
-                arguments: parameterAccess);
+                arg0: parameterAccess);
 
             if (isAddMethod)
             {
