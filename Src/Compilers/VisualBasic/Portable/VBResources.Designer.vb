@@ -11299,15 +11299,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Warning treated as error : {0}.
-        '''</summary>
-        Friend ReadOnly Property ERR_WarningTreatedAsError() As String
-            Get
-                Return ResourceManager.GetString("ERR_WarningTreatedAsError", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Event declarations that target WinMD must specify a delegate type.  Add an As clause to the event declaration..
         '''</summary>
         Friend ReadOnly Property ERR_WinRTEventWithoutDelegate() As String

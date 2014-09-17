@@ -9315,15 +9315,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to : Warning as Error.
-        /// </summary>
-        internal static string IDS_WarnAsError {
-            get {
-                return ResourceManager.GetString("IDS_WarnAsError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to where.
         /// </summary>
         internal static string IDS_WhereClause {

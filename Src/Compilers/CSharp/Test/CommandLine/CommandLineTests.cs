@@ -1677,7 +1677,7 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
             // Diagnostic thrown as error.
-            Assert.True(outWriter.ToString().Contains("a.cs(2,7): error Warning01: Warning as Error: Throwing a diagnostic for types declared"));
+            Assert.True(outWriter.ToString().Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared"));
 
             // Clean up temp files
             CleanupAllGeneratedFiles(file.Path);
@@ -1714,7 +1714,7 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
             // Diagnostic thrown as error: command line always overrides ruleset.
-            Assert.Contains("a.cs(2,7): error Warning01: Warning as Error: Throwing a diagnostic for types declared", outWriter.ToString());
+            Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", outWriter.ToString());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             csc = new MockCSharpCompiler(null, dir.Path,
@@ -1725,7 +1725,7 @@ class C
             exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
             // Diagnostic thrown as error: command line always overrides ruleset.
-            Assert.Contains("a.cs(2,7): error Warning01: Warning as Error: Throwing a diagnostic for types declared", outWriter.ToString());
+            Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", outWriter.ToString());
 
             // Clean up temp files
             CleanupAllGeneratedFiles(file.Path);
@@ -4677,7 +4677,7 @@ public class C
             var csc = new MockCSharpCompiler(rsp, baseDirectory, new[] { source });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
-            Assert.Contains("error CS0168: Warning as Error: The variable 'x' is declared but never used\r\n", outWriter.ToString());
+            Assert.Contains("error CS0168: The variable 'x' is declared but never used\r\n", outWriter.ToString());
 
             // Checks the case with /noconfig (expect to see warning, instead of error)
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -5406,7 +5406,7 @@ public class Test
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = new MockCSharpCompiler(null, baseDir, new[] { "/nologo", "/warn:3", "/warnaserror", source.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
-            Assert.Equal(fileName + "(12,20): error CS1522: Warning as Error: Empty switch block", outWriter.ToString().Trim());
+            Assert.Equal(fileName + "(12,20): error CS1522: Empty switch block", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
         }
@@ -6843,13 +6843,13 @@ class C
             // TEST: Verify that compiler warning CS0168 as well as custom warning diagnostic Warning01 can be promoted to errors via /warnaserror.
             // Promoting compiler warning CS0168 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror" }, expectedWarningCount: 1, expectedErrorCount: 1);
-            Assert.Contains("a.cs(6,13): error CS0168: Warning as Error: The variable 'i' is declared but never used", output);
+            Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that compiler warning CS0168 as well as custom warning diagnostic Warning01 can be promoted to errors via /warnaserror+.
             // Promoting compiler warning CS0168 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+" }, expectedWarningCount: 1, expectedErrorCount: 1);
-            Assert.Contains("a.cs(6,13): error CS0168: Warning as Error: The variable 'i' is declared but never used", output);
+            Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that /warnaserror- keeps compiler warning CS0168 as well as custom warning diagnostic Warning01 as warnings.
@@ -6860,14 +6860,14 @@ class C
 
             // TEST: Verify that custom warning diagnostic Warning01 can be individually promoted to an error via /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Something,Warning01" }, expectedWarningCount: 2, expectedErrorCount: 1);
-            Assert.Contains("a.cs(2,7): error Warning01: Warning as Error: Throwing a diagnostic for types declared", output);
+            Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that compiler warning CS0168 can be individually promoted to an error via /warnaserror+:.
             // This doesn't work correctly currently - promoting compiler warning CS0168 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:CS0168" }, expectedWarningCount: 1, expectedErrorCount: 1);
-            Assert.Contains("a.cs(6,13): error CS0168: Warning as Error: The variable 'i' is declared but never used", output);
+            Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that diagnostic ids are processed in case-sensitive fashion inside /warnaserror.
@@ -6879,7 +6879,7 @@ class C
             // TEST: Verify that custom warning diagnostic Warning01 as well as compiler warning CS0168 can be promoted to errors via /warnaserror:.
             // This doesn't work currently - promoting CS0168 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:CS0168,Warning01" }, expectedWarningCount: 1, expectedErrorCount: 1);
-            Assert.Contains("a.cs(6,13): error CS0168: Warning as Error: The variable 'i' is declared but never used", output);
+            Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that /warn:0 overrides /warnaserror+.
@@ -6940,7 +6940,7 @@ class C
 
             // TEST: Verify that last /warnaserror[+/-] flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror+" }, expectedWarningCount: 1, expectedErrorCount: 1);
-            Assert.Contains("a.cs(6,13): error CS0168: Warning as Error: The variable 'i' is declared but never used", output);
+            Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that last /warnaserror[+/-] flag on command line wins.
@@ -6951,7 +6951,7 @@ class C
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Warning01", "/warnaserror+:Warning01" }, expectedWarningCount: 2, expectedErrorCount: 1);
-            Assert.Contains("a.cs(2,7): error Warning01: Warning as Error: Throwing a diagnostic for types declared", output);
+            Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
@@ -6963,7 +6963,7 @@ class C
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Warning01,CS0168,58000", "/warnaserror+" }, expectedWarningCount: 1, expectedErrorCount: 1);
-            Assert.Contains("a.cs(6,13): error CS0168: Warning as Error: The variable 'i' is declared but never used", output);
+            Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
@@ -6980,18 +6980,18 @@ class C
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror+:Warning01" }, expectedWarningCount: 2, expectedErrorCount: 1);
-            Assert.Contains("a.cs(2,7): error Warning01: Warning as Error: Throwing a diagnostic for types declared", output);
+            Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Warning01,CS0168,58000", "/warnaserror+" }, expectedWarningCount: 1, expectedErrorCount: 1);
-            Assert.Contains("a.cs(6,13): error CS0168: Warning as Error: The variable 'i' is declared but never used", output);
+            Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror", "/warnaserror+:Warning01,CS0168,58000" }, expectedWarningCount: 1, expectedErrorCount: 1);
-            Assert.Contains("a.cs(6,13): error CS0168: Warning as Error: The variable 'i' is declared but never used", output);
+            Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].

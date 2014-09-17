@@ -434,7 +434,6 @@ End Module
             comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x").WithWarningAsError(True),
-                Diagnostic(ERRID.ERR_WarningTreatedAsError, "x").WithArguments("Unused local variable: 'x'."),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
@@ -449,8 +448,7 @@ End Module
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z"),
-                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True),
-                Diagnostic(ERRID.ERR_WarningTreatedAsError, "End Function").WithArguments("Function 'foo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used."))
+                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
 
             ' Treat 42105 and 42099 as Errors
             ' vbc a.vb /warnaserror:42105,42099
@@ -463,7 +461,6 @@ End Module
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
-                Diagnostic(ERRID.ERR_WarningTreatedAsError, "z").WithArguments("Unused local constant: 'z'."),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
 
             ' Treat All as Errors but Suppress 42024
@@ -474,7 +471,6 @@ End Module
             comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
-                Diagnostic(ERRID.ERR_WarningTreatedAsError, "z").WithArguments("Unused local constant: 'z'."),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
 
             ' Suppress All with treaing 42024 as an error, which will be ignored

@@ -777,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadInterfaceEnumSpecifier1 = 31069
         ERR_BadInterfaceClassSpecifier1 = 31070
         ERR_BadInterfaceStructSpecifier1 = 31071
-        ERR_WarningTreatedAsError = 31072
+        'ERR_WarningTreatedAsError = 31072
         'ERR_DelegateConstructorMissing1 = 31074    unused in Roslyn
         ERR_UseOfObsoleteSymbolNoMessage1 = 31075
         ERR_MetaDataIsNotAssembly = 31076

@@ -100,15 +100,9 @@ namespace Microsoft.CodeAnalysis
                 prefix = "error";
             }
 
-            return string.Format(culture, "{0} {1}{2}",
+            return string.Format(culture, "{0} {1}",
                 prefix,
-                diagnostic.Id,
-                diagnostic.IsWarningAsError ? GetWarnAsErrorMessage(culture) : "");
-        }
-
-        internal virtual string GetWarnAsErrorMessage(CultureInfo culture)
-        {
-            return "";
+                diagnostic.Id);
         }
 
         internal static readonly DiagnosticFormatter Instance = new DiagnosticFormatter();

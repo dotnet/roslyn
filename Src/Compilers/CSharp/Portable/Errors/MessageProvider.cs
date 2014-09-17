@@ -46,13 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Given a message identifier (e.g., CS0219), severity, warning as error and a culture, 
-        // get the entire prefix (e.g., "error CS0219: Warning as Error:" for C#) used on error messages.
+        // get the entire prefix (e.g., "error CS0219:" for C#) used on error messages.
         public override string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture)
         {
-            return String.Format(culture, "{0} {1}{2}",
+            return String.Format(culture, "{0} {1}",
                 severity == DiagnosticSeverity.Error || isWarningAsError ? "error" : "warning",
-                id,
-                isWarningAsError ? ErrorFacts.GetMessage(MessageID.IDS_WarnAsError, culture) : "");
+                id);
         }
 
         public override int GetWarningLevel(int code)

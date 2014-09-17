@@ -66,10 +66,6 @@ SRC.VB(6) : error BC42017: Late bound resolution; runtime errors could occur.
 
         if (a.Something &lt;&gt; 2)
             ~~~~~~~~~~~      
-SRC.VB(6) : error BC31072: Warning treated as error : Late bound resolution; runtime errors could occur.
-
-        if (a.Something &lt;&gt; 2)
-            ~~~~~~~~~~~      
 SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;'; use the 'IsNot' operator to test object identity.
 
         if (a.Something &lt;&gt; 2)
@@ -103,10 +99,6 @@ End Module
 
             Assert.Equal(<text>
 SRC.VB(6) : error BC42017: Late bound resolution; runtime errors could occur.
-
-        if (a.Something &lt;&gt; 2)
-            ~~~~~~~~~~~      
-SRC.VB(6) : error BC31072: Warning treated as error : Late bound resolution; runtime errors could occur.
 
         if (a.Something &lt;&gt; 2)
             ~~~~~~~~~~~      

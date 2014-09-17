@@ -10,11 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal override string GetWarnAsErrorMessage(CultureInfo culture)
-        {
-            return ErrorFacts.GetMessage(MessageID.IDS_WarnAsError, culture);
-        }
-
         public new static readonly CSharpDiagnosticFormatter Instance = new CSharpDiagnosticFormatter();
     }
 }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_MethodGroup = MessageBase + 12513,
         IDS_AnonMethod = MessageBase + 12514,
         IDS_FeatureSwitchOnBool = MessageBase + 12517,
-        IDS_WarnAsError = MessageBase + 12518,
+        //IDS_WarnAsError = MessageBase + 12518,
         IDS_Collection = MessageBase + 12520,
         IDS_FeaturePropertyAccessorMods = MessageBase + 12522,
         IDS_FeatureExternAlias = MessageBase + 12523,

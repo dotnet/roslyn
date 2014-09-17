@@ -1999,9 +1999,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 accumulator.Add(filtered)
-                If filtered.IsWarningAsError AndAlso Not hasWarnAsError Then
+
+                If filtered.IsWarningAsError Then
                     hasWarnAsError = True
-                    accumulator.Add(New VBDiagnostic(New DiagnosticInfo(VisualBasic.MessageProvider.Instance, CInt(ERRID.ERR_WarningTreatedAsError), diagnostic.GetMessage()), CType(diagnostic.Location, Location)))
                 End If
             Next
 

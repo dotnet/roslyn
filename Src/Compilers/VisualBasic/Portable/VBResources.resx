@@ -1926,9 +1926,6 @@
   <data name="ERR_BadInterfaceInterfaceSpecifier1" xml:space="preserve">
     <value>Interface in an interface cannot be declared '{0}'.</value>
   </data>
-  <data name="ERR_WarningTreatedAsError" xml:space="preserve">
-    <value>Warning treated as error : {0}</value>
-  </data>
   <data name="ERR_UseOfObsoleteSymbolNoMessage1" xml:space="preserve">
     <value>'{0}' is obsolete.</value>
   </data>
