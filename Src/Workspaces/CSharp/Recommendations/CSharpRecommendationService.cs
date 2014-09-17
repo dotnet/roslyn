@@ -468,6 +468,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             Debug.Assert(!excludeInstance || !useBaseReferenceAccessibility);
 
             var position = originalExpression.SpanStart;
+
+            // nameof(X.|
+            // Show static and instance members.
+            if (context.IsNameOfContext)
+            {
+                excludeInstance = false;
+                excludeStatic = false;
+            }
+
             IEnumerable<ISymbol> symbols = useBaseReferenceAccessibility
                 ? context.SemanticModel.LookupBaseMembers(position)
                 : excludeInstance

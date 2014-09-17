@@ -2076,22 +2076,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt, CancellationToken cancellationToken)
         {
-            // cases:
-            //    nameof( |
-
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
+
+            // nameof(Foo.|
+            // nameof(Foo.Bar.|
+            // Locate the open paren.
+            if (token.IsKind(SyntaxKind.DotToken) && token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                var parentMemberAccess = token.Parent;
+                while (parentMemberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    parentMemberAccess = parentMemberAccess.Parent;
+                }
+
+                if (parentMemberAccess.IsParentKind(SyntaxKind.Argument) &&
+                    parentMemberAccess.Parent.IsChildNode<ArgumentListSyntax>(a => a.Arguments.FirstOrDefault()))
+                {
+                    token = ((ArgumentListSyntax)parentMemberAccess.Parent.Parent).OpenParenToken;
+                }
+            }
 
             ExpressionSyntax parentExpression = null;
 
             // simple case
+            // nameof(|
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
                 token.Parent.IsKind(SyntaxKind.NameOfExpression))
             {
                 parentExpression = (ExpressionSyntax)token.Parent;
             }
 
-            // if the nameof expression has a missing close paren, it is parsed as in invocation expression.
+            // if the nameof expression has a missing close paren, it is parsed as an invocation expression.
             if (token.Parent.IsKind(SyntaxKind.ArgumentList) &&
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression))
             {
