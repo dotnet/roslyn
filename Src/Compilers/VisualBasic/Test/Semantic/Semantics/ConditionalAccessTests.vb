@@ -113,7 +113,7 @@ Module Module1
     End Sub
 
     Sub Test1(x As S1?)
-	    Dim y = x?.P1
+	    Dim y = x?.P1 'BIND1:"P1"
         System.Console.WriteLine(if(y.HasValue, y.ToString(), "Null"))
     End Sub
 
@@ -720,6 +720,54 @@ Null
   IL_003b:  call       "Sub Module1.Do(Of String)(String)"
   IL_0040:  ret
 }]]>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim node1 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
+
+            typeInfo = semanticModel.GetTypeInfo(node1)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString())
+
+            symbolInfo = semanticModel.GetSymbolInfo(node1)
+
+            Assert.Equal("ReadOnly Property S1.P1 As System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+
+            Dim member = DirectCast(node1.Parent, MemberAccessExpressionSyntax)
+
+            Assert.Null(member.Expression)
+
+            typeInfo = semanticModel.GetTypeInfo(member)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString())
+
+            symbolInfo = semanticModel.GetSymbolInfo(member)
+
+            Assert.Equal("ReadOnly Property S1.P1 As System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+
+            Dim conditional = DirectCast(member.Parent, ConditionalAccessExpressionSyntax)
+
+            typeInfo = semanticModel.GetTypeInfo(conditional)
+            Assert.Equal("System.Nullable(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of System.Int32)", typeInfo.ConvertedType.ToTestDisplayString())
+
+            symbolInfo = semanticModel.GetSymbolInfo(conditional)
+
+            Assert.Null(symbolInfo.Symbol)
+            Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+            Dim receiver = DirectCast(conditional.Expression, IdentifierNameSyntax)
+
+            typeInfo = semanticModel.GetTypeInfo(receiver)
+            Assert.Equal("System.Nullable(Of S1)", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of S1)", typeInfo.ConvertedType.ToTestDisplayString())
+
+            symbolInfo = semanticModel.GetSymbolInfo(receiver)
+
+            Assert.Equal("x As System.Nullable(Of S1)", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
         <Fact()>
@@ -1223,15 +1271,15 @@ Module Module1
 
 
     Function Invoke(x As System.Func(Of Integer, String)) As String
-        Return x?(1)
+        Return x?(1) 'BIND1:"(1)"
     End Function
 
     Function Index(x As String()) As String
-        Return x?(0)
+        Return x?(0) 'BIND2:"(0)"
     End Function
 
     Function DefaultProperty(x As C1) As String
-        Return x?(3)
+        Return x?(3) 'BIND3:"(3)"
     End Function
 
 End Module
@@ -1258,6 +1306,115 @@ Null
 3
 Null
 ]]>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            If True Then
+                Dim node1 As InvocationExpressionSyntax = CompilationUtils.FindBindingText(Of InvocationExpressionSyntax)(compilation, "a.vb", 1)
+
+                Assert.Null(node1.Expression)
+
+                typeInfo = semanticModel.GetTypeInfo(node1)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(node1)
+
+                Assert.Equal("Function System.Func(Of System.Int32, System.String).Invoke(arg As System.Int32) As System.String", symbolInfo.Symbol.ToTestDisplayString())
+
+                Dim conditional = DirectCast(node1.Parent, ConditionalAccessExpressionSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(conditional)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(conditional)
+
+                Assert.Null(symbolInfo.Symbol)
+                Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+                Dim receiver = DirectCast(conditional.Expression, IdentifierNameSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(receiver)
+                Assert.Equal("System.Func(Of System.Int32, System.String)", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Func(Of System.Int32, System.String)", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(receiver)
+                Assert.Equal("x As System.Func(Of System.Int32, System.String)", symbolInfo.Symbol.ToTestDisplayString())
+            End If
+
+            If True Then
+                Dim node2 As InvocationExpressionSyntax = CompilationUtils.FindBindingText(Of InvocationExpressionSyntax)(compilation, "a.vb", 2)
+
+                Assert.Null(node2.Expression)
+
+                typeInfo = semanticModel.GetTypeInfo(node2)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(node2)
+
+                Assert.Null(symbolInfo.Symbol)
+                Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+                Dim conditional = DirectCast(node2.Parent, ConditionalAccessExpressionSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(conditional)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(conditional)
+
+                Assert.Null(symbolInfo.Symbol)
+                Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+                Dim receiver = DirectCast(conditional.Expression, IdentifierNameSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(receiver)
+                Assert.Equal("System.String()", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String()", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(receiver)
+                Assert.Equal("x As System.String()", symbolInfo.Symbol.ToTestDisplayString())
+            End If
+
+            If True Then
+                Dim node3 As InvocationExpressionSyntax = CompilationUtils.FindBindingText(Of InvocationExpressionSyntax)(compilation, "a.vb", 3)
+
+                Assert.Null(node3.Expression)
+
+                typeInfo = semanticModel.GetTypeInfo(node3)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(node3)
+
+                Assert.Equal("ReadOnly Property C1.P1(i As System.Int32) As System.String", symbolInfo.Symbol.ToTestDisplayString())
+
+                Dim conditional = DirectCast(node3.Parent, ConditionalAccessExpressionSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(conditional)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(conditional)
+
+                Assert.Null(symbolInfo.Symbol)
+                Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+                Dim receiver = DirectCast(conditional.Expression, IdentifierNameSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(receiver)
+                Assert.Equal("C1", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("C1", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(receiver)
+                Assert.Equal("x As C1", symbolInfo.Symbol.ToTestDisplayString())
+            End If
+
         End Sub
 
         <Fact()>
@@ -1291,15 +1448,15 @@ Module Module1
     End Sub
 
     Function Test1(x As XElement) As String
-        Return x?.@a1
+        Return x?.@a1 'BIND1:"a1"
     End Function
 
     Function Test2(x As XElement) As IEnumerable(Of XElement)
-        Return x?.<e1>
+        Return x?.<e1> 'BIND2:"<e1>"
     End Function
 
     Function Test3(x As XElement) As IEnumerable(Of XElement)
-        Return x?...<e2>
+        Return x?...<e2> 'BIND3:"<e2>"
     End Function
 
 End Module
@@ -1318,6 +1475,141 @@ Null
 Null
 Null
 ]]>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            If True Then
+                Dim node1 As XmlNameSyntax = CompilationUtils.FindBindingText(Of XmlNameSyntax)(compilation, "a.vb", 1)
+
+                typeInfo = semanticModel.GetTypeInfo(node1)
+                Assert.Null(typeInfo.Type)
+
+                symbolInfo = semanticModel.GetSymbolInfo(node1)
+
+                Assert.Null(symbolInfo.Symbol)
+                Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+                Dim member = DirectCast(node1.Parent, XmlMemberAccessExpressionSyntax)
+
+                Assert.Null(member.Base)
+
+                typeInfo = semanticModel.GetTypeInfo(member)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(member)
+                Assert.Equal("Property My.InternalXmlHelper.AttributeValue(source As System.Xml.Linq.XElement, name As System.Xml.Linq.XName) As System.String", symbolInfo.Symbol.ToTestDisplayString())
+
+                Dim conditional = DirectCast(member.Parent, ConditionalAccessExpressionSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(conditional)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(conditional)
+
+                Assert.Null(symbolInfo.Symbol)
+                Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+                Dim receiver = DirectCast(conditional.Expression, IdentifierNameSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(receiver)
+                Assert.Equal("System.Xml.Linq.XElement", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Xml.Linq.XElement", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(receiver)
+                Assert.Equal("x As System.Xml.Linq.XElement", symbolInfo.Symbol.ToTestDisplayString())
+            End If
+
+            If True Then
+                Dim node2 As XmlBracketedNameSyntax = CompilationUtils.FindBindingText(Of XmlBracketedNameSyntax)(compilation, "a.vb", 2)
+
+                typeInfo = semanticModel.GetTypeInfo(node2)
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(node2)
+
+                Assert.Equal("Function System.Xml.Linq.XContainer.Elements(name As System.Xml.Linq.XName) As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", symbolInfo.Symbol.ToTestDisplayString())
+
+                Dim member = DirectCast(node2.Parent, XmlMemberAccessExpressionSyntax)
+
+                Assert.Null(member.Base)
+
+                typeInfo = semanticModel.GetTypeInfo(member)
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(member)
+                Assert.Equal("Function System.Xml.Linq.XContainer.Elements(name As System.Xml.Linq.XName) As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", symbolInfo.Symbol.ToTestDisplayString())
+
+                Dim conditional = DirectCast(member.Parent, ConditionalAccessExpressionSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(conditional)
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(conditional)
+
+                Assert.Null(symbolInfo.Symbol)
+                Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+                Dim receiver = DirectCast(conditional.Expression, IdentifierNameSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(receiver)
+                Assert.Equal("System.Xml.Linq.XElement", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Xml.Linq.XElement", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(receiver)
+                Assert.Equal("x As System.Xml.Linq.XElement", symbolInfo.Symbol.ToTestDisplayString())
+            End If
+
+            If True Then
+                Dim node3 As XmlBracketedNameSyntax = CompilationUtils.FindBindingText(Of XmlBracketedNameSyntax)(compilation, "a.vb", 3)
+
+                typeInfo = semanticModel.GetTypeInfo(node3)
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(node3)
+
+                Assert.Equal("Function System.Xml.Linq.XContainer.Descendants(name As System.Xml.Linq.XName) As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", symbolInfo.Symbol.ToTestDisplayString())
+
+                Dim member = DirectCast(node3.Parent, XmlMemberAccessExpressionSyntax)
+
+                Assert.Null(member.Base)
+
+                typeInfo = semanticModel.GetTypeInfo(member)
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(member)
+                Assert.Equal("Function System.Xml.Linq.XContainer.Descendants(name As System.Xml.Linq.XName) As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", symbolInfo.Symbol.ToTestDisplayString())
+
+                Dim conditional = DirectCast(member.Parent, ConditionalAccessExpressionSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(conditional)
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(conditional)
+
+                Assert.Null(symbolInfo.Symbol)
+                Assert.True(symbolInfo.CandidateSymbols.IsEmpty)
+
+                Dim receiver = DirectCast(conditional.Expression, IdentifierNameSyntax)
+
+                typeInfo = semanticModel.GetTypeInfo(receiver)
+                Assert.Equal("System.Xml.Linq.XElement", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("System.Xml.Linq.XElement", typeInfo.ConvertedType.ToTestDisplayString())
+
+                symbolInfo = semanticModel.GetSymbolInfo(receiver)
+                Assert.Equal("x As System.Xml.Linq.XElement", symbolInfo.Symbol.ToTestDisplayString())
+            End If
+
         End Sub
 
         <Fact()>
