@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return anonymousTypes;
         }
 
-        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(IMethodSymbol method)
+        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method)
         {
             return this.previousDefinitions.TryCreateVariableSlotAllocator(this.previousGeneration, method);
         }

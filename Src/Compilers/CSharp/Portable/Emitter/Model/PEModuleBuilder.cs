@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(IMethodSymbol method)
+        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method)
         {
             return null;
         }
