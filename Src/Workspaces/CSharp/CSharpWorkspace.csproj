@@ -153,6 +153,7 @@
     <Compile Include="Extensions\StatementSyntaxExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\SymbolDisplayPartExtensions.cs" />
+    <Compile Include="Extensions\SyntaxKindExtensions.cs" />
     <Compile Include="Extensions\SyntaxListExtensions.cs" />
     <Compile Include="Extensions\SyntaxNodeExtensions.cs" />
     <Compile Include="Extensions\SyntaxNodeExtensions.SingleLineRewriter.cs" />

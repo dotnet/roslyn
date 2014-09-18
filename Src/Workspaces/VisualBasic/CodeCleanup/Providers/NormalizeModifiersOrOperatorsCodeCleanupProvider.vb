@@ -42,14 +42,16 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             ' list of modifier syntax kinds in order
             ' this order will be used when the rewriter re-order modifiers
-            Private Shared ReadOnly ModifierKindsInOrder As List(Of SyntaxKind) = New List(Of SyntaxKind) From {
+            ' PERF: Using UShort instead of SyntaxKind as the element type so that the compiler can use array literal initialization
+            Private Shared ReadOnly ModifierKindsInOrder As SyntaxKind() = DirectCast(New UShort() {
                 SyntaxKind.PartialKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword,
                 SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.OverridableKeyword,
                 SyntaxKind.MustOverrideKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.MustInheritKeyword,
                 SyntaxKind.NotInheritableKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword,
                 SyntaxKind.ReadOnlyKeyword, SyntaxKind.WriteOnlyKeyword, SyntaxKind.DimKeyword, SyntaxKind.ConstKeyword,
                 SyntaxKind.WithEventsKeyword, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.CustomKeyword,
-                SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword}
+                SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword},
+                SyntaxKind())
 
             Private Shared ReadOnly RemoveDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,
@@ -382,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 ' do quick check to see whether modifiers are already in right order
-                If IsModifiersInRightOrder(modifiers) Then
+                If AreModifiersInRightOrder(modifiers) Then
                     Return modifiers
                 End If
 
@@ -515,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' check whether given modifiers are in right order (in sync with ModifierKindsInOrder list)
             ''' </summary>
-            Private Function IsModifiersInRightOrder(modifiers As SyntaxTokenList) As Boolean
+            Private Function AreModifiersInRightOrder(modifiers As SyntaxTokenList) As Boolean
                 Dim startIndex = 0
                 For Each modifier In modifiers
                     Dim newIndex = ModifierKindsInOrder.IndexOf(modifier.VisualBasicKind, startIndex)

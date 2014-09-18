@@ -71,7 +71,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         <Extension()>
+        Friend Function IsInStatementBlockOfKind(context As VisualBasicSyntaxContext, kind As SyntaxKind) As Boolean
+            Return IsInStatementBlockHelper(context, Function(n, k) n.IsKind(k), kind)
+        End Function
+
+        <Extension()>
         Friend Function IsInStatementBlockOfKind(context As VisualBasicSyntaxContext, ParamArray kinds As SyntaxKind()) As Boolean
+            Return IsInStatementBlockHelper(context, Function(n, k) n.IsKind(k), kinds)
+        End Function
+
+        Private Function IsInStatementBlockHelper(Of TArg)(context As VisualBasicSyntaxContext, predicate As Func(Of SyntaxNode, TArg, Boolean), arg As TArg) As Boolean
             Dim ancestor = context.TargetToken.Parent
 
             Do While ancestor IsNot Nothing
@@ -84,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                     End If
                 End If
 
-                If ancestor.IsKind(kinds) Then
+                If predicate(ancestor, arg) Then
                     Return True
                 End If
 

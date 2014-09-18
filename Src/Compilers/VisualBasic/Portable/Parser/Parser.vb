@@ -5872,7 +5872,7 @@ checkNullable:
         End Function
 
         Private Shared Function IsToken(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
-            Return Array.IndexOf(kinds, token.Kind) >= 0
+            Return kinds.Contains(token.Kind)
         End Function
 
         Friend Function ConsumeUnexpectedTokens(Of TNode As VisualBasicSyntaxNode)(node As TNode) As TNode

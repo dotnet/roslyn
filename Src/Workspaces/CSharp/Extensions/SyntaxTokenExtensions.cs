@@ -46,11 +46,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsLiteral(this SyntaxToken token)
         {
-            return token.CSharpKind() == SyntaxKind.CharacterLiteralToken
-                || token.CSharpKind() == SyntaxKind.FalseKeyword
-                || token.CSharpKind() == SyntaxKind.NumericLiteralToken
-                || token.CSharpKind() == SyntaxKind.StringLiteralToken
-                || token.CSharpKind() == SyntaxKind.TrueKeyword;
+            switch (token.CSharpKind())
+            {
+                case SyntaxKind.CharacterLiteralToken:
+                case SyntaxKind.FalseKeyword:
+                case SyntaxKind.NumericLiteralToken:
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.TrueKeyword:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         public static bool IntersectsWith(this SyntaxToken token, int position)
@@ -333,16 +340,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsValidAttributeTarget(this SyntaxToken token)
         {
-            var kind = token.CSharpKind();
-            return kind == SyntaxKind.AssemblyKeyword ||
-                   kind == SyntaxKind.ModuleKeyword ||
-                   kind == SyntaxKind.FieldKeyword ||
-                   kind == SyntaxKind.EventKeyword ||
-                   kind == SyntaxKind.MethodKeyword ||
-                   kind == SyntaxKind.ParamKeyword ||
-                   kind == SyntaxKind.PropertyKeyword ||
-                   kind == SyntaxKind.ReturnKeyword ||
-                   kind == SyntaxKind.TypeKeyword;
+            switch (token.CSharpKind())
+            {
+                case SyntaxKind.AssemblyKeyword:
+                case SyntaxKind.ModuleKeyword:
+                case SyntaxKind.FieldKeyword:
+                case SyntaxKind.EventKeyword:
+                case SyntaxKind.MethodKeyword:
+                case SyntaxKind.ParamKeyword:
+                case SyntaxKind.PropertyKeyword:
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.TypeKeyword:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
     }
 }

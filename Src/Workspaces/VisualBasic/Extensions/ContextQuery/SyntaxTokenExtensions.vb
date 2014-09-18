@@ -98,30 +98,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         <Extension()>
         Friend Function IsModifier(token As SyntaxToken) As Boolean
-            Return token.IsKind(SyntaxKind.AsyncKeyword,
-                                SyntaxKind.ConstKeyword,
-                                SyntaxKind.DefaultKeyword,
-                                SyntaxKind.PublicKeyword,
-                                SyntaxKind.FriendKeyword,
-                                SyntaxKind.ShadowsKeyword,
-                                SyntaxKind.MustOverrideKeyword,
-                                SyntaxKind.MustInheritKeyword,
-                                SyntaxKind.PrivateKeyword,
-                                SyntaxKind.NarrowingKeyword,
-                                SyntaxKind.WideningKeyword,
-                                SyntaxKind.NotInheritableKeyword,
-                                SyntaxKind.NotOverridableKeyword,
-                                SyntaxKind.OverloadsKeyword,
-                                SyntaxKind.OverridableKeyword,
-                                SyntaxKind.OverridesKeyword,
-                                SyntaxKind.PartialKeyword,
-                                SyntaxKind.ProtectedKeyword,
-                                SyntaxKind.ReadOnlyKeyword,
-                                SyntaxKind.WriteOnlyKeyword,
-                                SyntaxKind.SharedKeyword,
-                                SyntaxKind.WithEventsKeyword,
-                                SyntaxKind.CustomKeyword,
-                                SyntaxKind.IteratorKeyword)
+            Select Case token.VisualBasicKind
+                Case SyntaxKind.AsyncKeyword,
+                     SyntaxKind.ConstKeyword,
+                     SyntaxKind.DefaultKeyword,
+                     SyntaxKind.PublicKeyword,
+                     SyntaxKind.FriendKeyword,
+                     SyntaxKind.ShadowsKeyword,
+                     SyntaxKind.MustOverrideKeyword,
+                     SyntaxKind.MustInheritKeyword,
+                     SyntaxKind.PrivateKeyword,
+                     SyntaxKind.NarrowingKeyword,
+                     SyntaxKind.WideningKeyword,
+                     SyntaxKind.NotInheritableKeyword,
+                     SyntaxKind.NotOverridableKeyword,
+                     SyntaxKind.OverloadsKeyword,
+                     SyntaxKind.OverridableKeyword,
+                     SyntaxKind.OverridesKeyword,
+                     SyntaxKind.PartialKeyword,
+                     SyntaxKind.ProtectedKeyword,
+                     SyntaxKind.ReadOnlyKeyword,
+                     SyntaxKind.WriteOnlyKeyword,
+                     SyntaxKind.SharedKeyword,
+                     SyntaxKind.WithEventsKeyword,
+                     SyntaxKind.CustomKeyword,
+                     SyntaxKind.IteratorKeyword
+                    Return True
+                Case Else
+                    Return False
+            End Select
         End Function
     End Module
 End Namespace

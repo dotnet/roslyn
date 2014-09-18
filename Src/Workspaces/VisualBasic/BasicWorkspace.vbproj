@@ -157,6 +157,7 @@
     <Compile Include="Extensions\StringExtensions.vb" />
     <Compile Include="Extensions\SymbolDisplayPartExtensions.vb" />
     <Compile Include="Extensions\SymbolExtensions.vb" />
+    <Compile Include="Extensions\SyntaxKindExtensions.vb" />
     <Compile Include="Extensions\SyntaxListExtensions.vb" />
     <Compile Include="Extensions\SyntaxNodeExtensions.vb" />
     <Compile Include="Extensions\SyntaxTokenExtensions.vb" />

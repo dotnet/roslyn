@@ -480,6 +480,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return False
         End Function
 
+        ' PERF: Use UShort instead of SyntaxKind so the compiler can use array literal initialization.
+        Private ReadOnly multilineStatementBlockStartKinds As SyntaxKind() = DirectCast(New UShort() {
+            SyntaxKind.MultiLineFunctionLambdaExpression,
+            SyntaxKind.MultiLineSubLambdaExpression,
+            SyntaxKind.SubBlock,
+            SyntaxKind.FunctionBlock,
+            SyntaxKind.PropertyGetBlock,
+            SyntaxKind.PropertySetBlock,
+            SyntaxKind.AddHandlerBlock,
+            SyntaxKind.RemoveHandlerBlock,
+            SyntaxKind.RaiseEventBlock,
+            SyntaxKind.ConstructorBlock,
+            SyntaxKind.OperatorBlock
+        }, SyntaxKind())
+
         ''' <summary>
         ''' The specified position is where I could start a statement in a place where one or more
         ''' statements could exist.
@@ -518,17 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return syntaxTree.IsInStatementBlockOfKind(position,
                                                        targetToken,
                                                        cancellationToken,
-                                                       SyntaxKind.MultiLineFunctionLambdaExpression,
-                                                       SyntaxKind.MultiLineSubLambdaExpression,
-                                                       SyntaxKind.SubBlock,
-                                                       SyntaxKind.FunctionBlock,
-                                                       SyntaxKind.PropertyGetBlock,
-                                                       SyntaxKind.PropertySetBlock,
-                                                       SyntaxKind.AddHandlerBlock,
-                                                       SyntaxKind.RemoveHandlerBlock,
-                                                       SyntaxKind.RaiseEventBlock,
-                                                       SyntaxKind.ConstructorBlock,
-                                                       SyntaxKind.OperatorBlock)
+                                                       multilineStatementBlockStartKinds)
         End Function
 
         <Extension()>

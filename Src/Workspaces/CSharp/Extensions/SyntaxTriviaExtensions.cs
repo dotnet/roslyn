@@ -27,16 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool MatchesKind(this SyntaxTrivia trivia, params SyntaxKind[] kinds)
         {
-            var triviaKind = trivia.CSharpKind();
-            foreach (var kind in kinds)
-            {
-                if (triviaKind == kind)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return kinds.Contains(trivia.CSharpKind());
         }
 
         public static bool IsRegularComment(this SyntaxTrivia trivia)
