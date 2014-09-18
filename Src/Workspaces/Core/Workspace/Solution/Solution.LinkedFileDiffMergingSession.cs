@@ -318,8 +318,6 @@ namespace Microsoft.CodeAnalysis
                 private const string InsertedMergeConflictComments = "InsertedMergeConflictComments";
                 private const string InsertedMergeConflictCommentsAtAdjustedLocation = "InsertedMergeConflictCommentsAtAdjustedLocation";
 
-                private static int globalId = 0;
-
                 public static KeyValueLogMessage Create(int sessionId, LinkedFileDiffMergingSessionInfo sessionInfo)
                 {
                     return KeyValueLogMessage.Create(m =>
@@ -350,7 +348,7 @@ namespace Microsoft.CodeAnalysis
 
                 public static int GetNextId()
                 {
-                    return Interlocked.Increment(ref globalId);
+                    return LogAggregator.GetNextId();
                 }
             }
 
