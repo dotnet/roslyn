@@ -105,6 +105,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Private Shared Function IsDefinedOrImplementedInSourceTree(symbol As Symbol, tree As SyntaxTree, span As TextSpan?) As Boolean
+            If symbol.IsDefinedInSourceTree(tree, span) Then
+                Return True
+            End If
+
+            Dim method = TryCast(symbol, SourceMemberMethodSymbol)
+            If method IsNot Nothing AndAlso
+                method.IsPartialDefinition Then
+
+                Dim implementationPart = method.PartialImplementationPart
+                If implementationPart IsNot Nothing Then
+                    Return implementationPart.IsDefinedInSourceTree(tree, span)
+                End If
+            End If
+
+            Return False
+        End Function
+
         ''' <summary>
         ''' Completes binding and performs analysis of bound trees for the purpose of obtaining diagnostics.
         ''' 
@@ -128,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim filter As Predicate(Of Symbol) = Nothing
 
             If tree IsNot Nothing Then
-                filter = Function(sym) sym.IsDefinedInSourceTree(tree, filterSpanWithinTree, cancellationToken)
+                filter = Function(sym) IsDefinedOrImplementedInSourceTree(sym, tree, filterSpanWithinTree)
             End If
 
             Dim compiler = New MethodCompiler(compilation,

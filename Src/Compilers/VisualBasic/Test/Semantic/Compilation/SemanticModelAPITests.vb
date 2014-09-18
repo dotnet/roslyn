@@ -4154,6 +4154,37 @@ BC30002: Type 'A' is not defined.
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
         End Sub
+
+        <Fact>
+        Sub PartialMethodImplementationDiagnostics()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Partial Class MyPartialClass
+    Partial Private Sub MyPartialMethod(t As MyUndefinedType)
+
+    End Sub
+End Class
+]]></file>
+    <file name="b.vb"><![CDATA[
+Partial Class MyPartialClass
+    Private Sub MyPartialMethod(t As MyUndefinedType)
+        Dim c = New MyUndefinedType(23, True)
+    End Sub
+End Class
+]]></file>
+</compilation>, Nothing, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+
+            Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "b.vb")
+            Dim errs = semanticModel.GetDiagnostics()
+            Assert.Equal(2, errs.Length())
+            errs = semanticModel.GetDeclarationDiagnostics()
+            Assert.Equal(1, errs.Length())
+            errs = semanticModel.GetMethodBodyDiagnostics()
+            Assert.Equal(1, errs.Length())
+            Dim treeErrs = compilation.GetParseDiagnostics()
+            Assert.Equal(0, treeErrs.Length())
+        End Sub
 #End Region
 
     End Class

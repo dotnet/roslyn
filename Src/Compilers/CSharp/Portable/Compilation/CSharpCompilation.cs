@@ -1989,6 +1989,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ReportUnusedImports(diagnostics, cancellationToken);
         }
 
+        private static bool IsDefinedOrImplementedInSourceTree(Symbol symbol, SyntaxTree tree, TextSpan? span)
+        {
+            if (symbol.IsDefinedInSourceTree(tree, span))
+            {
+                return true;
+            }
+
+            if (symbol.IsPartialDefinition())
+            {
+                MethodSymbol implementationPart = ((MethodSymbol)symbol).PartialImplementationPart;
+                if ((object)implementationPart != null)
+                {
+                    return implementationPart.IsDefinedInSourceTree(tree, span);
+                }
+            }
+
+            return false;
+        }
+
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
@@ -1999,7 +2018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 generateDebugInfo: false,
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
-                filterOpt: s => s.IsDefinedInSourceTree(tree, span),
+                filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
                 cancellationToken: cancellationToken);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken, tree, span);

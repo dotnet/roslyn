@@ -5630,5 +5630,54 @@ class C { }
             var conversionC = model.ClassifyConversion(methodGroupSyntax, typeFuncC);
             Assert.Equal(ConversionKind.MethodGroup, conversionC.Kind);
         }
+
+        [WorkItem(872064, "DevDiv")]
+        [Fact]
+        public void PartialMethodImplementationDiagnostics()
+        {
+            var file1 = @"
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+    }
+
+    partial class MyPartialClass
+    {
+        partial void MyPartialMethod(MyUndefinedMethod m);
+    }
+}
+";
+
+            var file2 = @"
+namespace ConsoleApplication1
+{
+    partial class MyPartialClass
+    {
+        partial void MyPartialMethod(MyUndefinedMethod m)
+        {
+            c = new MyUndefinedMethod(23, true);
+        }
+    }
+}
+";
+
+            var tree1 = Parse(file1);
+            var tree2 = Parse(file2);
+            var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+            var model = comp.GetSemanticModel(tree2);
+
+            var errs = model.GetDiagnostics();
+            Assert.Equal(3, errs.Count());
+            errs = model.GetSyntaxDiagnostics();
+            Assert.Equal(0, errs.Count());
+            errs = model.GetDeclarationDiagnostics();
+            Assert.Equal(1, errs.Count());
+            errs = model.GetMethodBodyDiagnostics();
+            Assert.Equal(2, errs.Count());
+        }
     }
 }
