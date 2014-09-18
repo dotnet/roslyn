@@ -3029,7 +3029,7 @@ End Module
     End Sub
 
     Private Class CustomDiagnosticAnalyzer
-        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
+        Inherits DiagnosticAnalyzer
 
         Private ReadOnly descriptor As DiagnosticDescriptor
         Private ReadOnly kind As SyntaxKind
@@ -3041,20 +3041,18 @@ End Module
             Me.reporter = reporter
         End Sub
 
-        Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+        Public Overrides Sub Initialize(context As AnalysisContext)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, kind)
+        End Sub
+
+        Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
             Get
                 Return ImmutableArray.Create(descriptor)
             End Get
         End Property
 
-        Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-            Get
-                Return ImmutableArray.Create(kind)
-            End Get
-        End Property
-
-        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-            addDiagnostic(reporter(node, descriptor))
+        Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+            context.ReportDiagnostic(reporter(context.Node, descriptor))
         End Sub
     End Class
 

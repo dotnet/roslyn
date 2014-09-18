@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
-    public abstract class CA1003DiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
+    public abstract class CA1003DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1003";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             INamedTypeSymbol eventArgs,
             INamedTypeSymbol comSourceInterfacesAttribute);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -39,36 +39,40 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            var eventHandler = WellKnownTypes.EventHandler(compilation);
-            if (eventHandler == null)
-            {
-                return null;
-            }
+            analysisContext.RegisterCompilationStartAction(
+                (context) =>
+                {
+                    var eventHandler = WellKnownTypes.EventHandler(context.Compilation);
+                    if (eventHandler == null)
+                    {
+                        return;
+                    }
 
-            var genericEventHandler = WellKnownTypes.GenericEventHandler(compilation);
-            if (genericEventHandler == null)
-            {
-                return null;
-            }
+                    var genericEventHandler = WellKnownTypes.GenericEventHandler(context.Compilation);
+                    if (genericEventHandler == null)
+                    {
+                        return;
+                    }
 
-            var eventArgs = WellKnownTypes.EventArgs(compilation);
-            if (eventArgs == null)
-            {
-                return null;
-            }
+                    var eventArgs = WellKnownTypes.EventArgs(context.Compilation);
+                    if (eventArgs == null)
+                    {
+                        return;
+                    }
 
-            var comSourceInterfacesAttribute = WellKnownTypes.ComSourceInterfaceAttribute(compilation);
-            if (comSourceInterfacesAttribute == null)
-            {
-                return null;
-            }
+                    var comSourceInterfacesAttribute = WellKnownTypes.ComSourceInterfaceAttribute(context.Compilation);
+                    if (comSourceInterfacesAttribute == null)
+                    {
+                        return;
+                    }
 
-            return GetAnalyzer(compilation, eventHandler, genericEventHandler, eventArgs, comSourceInterfacesAttribute);
+                    context.RegisterSymbolAction(GetAnalyzer(context.Compilation, eventHandler, genericEventHandler, eventArgs, comSourceInterfacesAttribute).AnalyzeSymbol, SymbolKind.Event);
+                });
         }
 
-        protected abstract class AnalyzerBase : ISymbolAnalyzer
+        protected abstract class AnalyzerBase
         {
             private Compilation compilation;
             private INamedTypeSymbol eventHandler;
@@ -90,25 +94,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 this.comSourceInterfacesAttribute = comSourceInterfacesAttribute;
             }
 
-            public ImmutableArray<SymbolKind> SymbolKindsOfInterest
+            public void AnalyzeSymbol(SymbolAnalysisContext context)
             {
-                get
-                {
-                    return ImmutableArray.Create(SymbolKind.Event);
-                }
-            }
-
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get
-                {
-                    return ImmutableArray.Create(Rule);
-                }
-            }
-
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                var eventSymbol = (IEventSymbol)symbol;
+                var eventSymbol = (IEventSymbol)context.Symbol;
                 if (eventSymbol != null)
                 {
                     var eventType = eventSymbol.Type as INamedTypeSymbol;
@@ -118,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         !HasComSourceInterfacesAttribute(eventSymbol.ContainingType) &&
                         IsViolatingEventHandler(eventType))
                     {
-                        addDiagnostic(eventSymbol.CreateDiagnostic(Rule));
+                        context.ReportDiagnostic(eventSymbol.CreateDiagnostic(Rule));
                     }
                 }
             }

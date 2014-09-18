@@ -160,28 +160,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Class
 
         Class ComplainAboutX
-            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
-
-            Private Shared ReadOnly m_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(Of SyntaxKind)(SyntaxKind.IdentifierName)
-
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-                Get
-                    Return m_kindsOfInterest
-                End Get
-            End Property
+            Inherits DiagnosticAnalyzer
 
             Private Shared ReadOnly CA9999_UseOfVariableThatStartsWithX As DiagnosticDescriptor = New DiagnosticDescriptor(id:="CA9999", title:="CA9999_UseOfVariableThatStartsWithX", messageFormat:="Use of variable whose name starts with 'x': '{0}'", category:="Test", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-            Private ReadOnly Property IDiagnosticAnalyzer_SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+            Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                 Get
                     Return ImmutableArray.Create(CA9999_UseOfVariableThatStartsWithX)
                 End Get
             End Property
 
-            Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                Dim id = CType(node, IdentifierNameSyntax)
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.IdentifierName)
+            End Sub
+
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Dim id = CType(context.Node, IdentifierNameSyntax)
                 If id.Identifier.ValueText.StartsWith("x") Then
-                    addDiagnostic(New TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.GetLocation(), "Use of variable whose name starts with 'x': '{0}'", False, id.Identifier.ValueText))
+                    context.ReportDiagnostic(New TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.GetLocation(), "Use of variable whose name starts with 'x': '{0}'", False, id.Identifier.ValueText))
                 End If
             End Sub
         End Class
@@ -358,29 +354,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Sub
 
         Class FullyDisabledAnalyzer
-            Implements IDiagnosticAnalyzer
+            Inherits DiagnosticAnalyzer
+
             Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
             Public Shared desc2 As New DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
 
-            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
                     Return ImmutableArray.Create(desc1, desc2)
                 End Get
             End Property
 
+            Public Overrides Sub Initialize(context As AnalysisContext)
+            End Sub
         End Class
 
         Class PartiallyDisabledAnalyzer
-            Implements IDiagnosticAnalyzer
+            Inherits DiagnosticAnalyzer
+
             Public Shared desc1 As New DiagnosticDescriptor("XX003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
             Public Shared desc2 As New DiagnosticDescriptor("XX004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
                     Return ImmutableArray.Create(desc1, desc2)
                 End Get
             End Property
 
+            Public Overrides Sub Initialize(context As AnalysisContext)
+            End Sub
         End Class
 
         <Fact>
@@ -402,25 +404,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Sub
 
         Class ModuleStatementAnalyzer
-            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
+            Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
                     Return ImmutableArray.Create(desc1)
                 End Get
             End Property
 
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-                Get
-                    Return ImmutableArray.Create(SyntaxKind.ModuleStatement)
-                End Get
-            End Property
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.ModuleStatement)
+            End Sub
 
-            Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                Dim moduleStatement = DirectCast(node, ModuleStatementSyntax)
-                addDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, node.GetLocation))
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Dim moduleStatement = DirectCast(context.Node, ModuleStatementSyntax)
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, context.Node.GetLocation))
             End Sub
         End Class
 
@@ -443,25 +443,23 @@ End Module
         End Sub
 
         Class MockSymbolAnalyzer
-            Implements ISymbolAnalyzer
+            Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
                     Return ImmutableArray.Create(desc1)
                 End Get
             End Property
 
-            Public ReadOnly Property SymbolKindsOfInterest As ImmutableArray(Of SymbolKind) Implements ISymbolAnalyzer.SymbolKindsOfInterest
-                Get
-                    Return ImmutableArray.Create(SymbolKind.NamedType)
-                End Get
-            End Property
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
+            End Sub
 
-            Public Sub AnalyzeSymbol(symbol As ISymbol, compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISymbolAnalyzer.AnalyzeSymbol
-                Dim sourceLoc = symbol.Locations.First(Function(l) l.IsInSource)
-                addDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
+            Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+                Dim sourceLoc = context.Symbol.Locations.First(Function(l) l.IsInSource)
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
             End Sub
         End Class
 
@@ -491,31 +489,29 @@ End Class
         End Sub
 
         Class NamespaceAndTypeNodeAnalyzer
-            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
+            Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
                     Return ImmutableArray.Create(desc1)
                 End Get
             End Property
 
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-                Get
-                    Return ImmutableArray.Create(SyntaxKind.NamespaceBlock, SyntaxKind.ClassBlock)
-                End Get
-            End Property
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.NamespaceBlock, SyntaxKind.ClassBlock)
+            End Sub
 
-            Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                 Dim location As Location = Nothing
-                Select Case node.VisualBasicKind
+                Select Case context.Node.VisualBasicKind
                     Case SyntaxKind.NamespaceBlock
-                        location = DirectCast(node, NamespaceBlockSyntax).NamespaceStatement.Name.GetLocation
+                        location = DirectCast(context.Node, NamespaceBlockSyntax).NamespaceStatement.Name.GetLocation
                     Case SyntaxKind.ClassBlock
-                        location = DirectCast(node, ClassBlockSyntax).Begin.Identifier.GetLocation
+                        location = DirectCast(context.Node, ClassBlockSyntax).Begin.Identifier.GetLocation
                 End Select
-                addDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, location))
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, location))
             End Sub
         End Class
 

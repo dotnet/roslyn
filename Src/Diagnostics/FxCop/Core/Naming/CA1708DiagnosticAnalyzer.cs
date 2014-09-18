@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 {
     [DiagnosticAnalyzer]
-    public sealed class CA1708DiagnosticAnalyzer : AbstractNamedTypeAnalyzer, ICompilationAnalyzer
+    public sealed class CA1708DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1708";
         internal const string Namespace = "Namespaces";
@@ -41,20 +41,27 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             }
         }
 
-        public void AnalyzeCompilation(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            var globalNamespaces = compilation.GlobalNamespace.GetNamespaceMembers()
-                .Where(item => item.ContainingAssembly == compilation.Assembly);
+            base.Initialize(analysisContext);
 
-            var globalTypes = compilation.GlobalNamespace.GetTypeMembers().Where(item =>
-                    item.ContainingAssembly == compilation.Assembly &&
+            analysisContext.RegisterCompilationEndAction(AnalyzeCompilation);
+        }
+
+        private void AnalyzeCompilation(CompilationEndAnalysisContext context)
+        {
+            var globalNamespaces = context.Compilation.GlobalNamespace.GetNamespaceMembers()
+                .Where(item => item.ContainingAssembly == context.Compilation.Assembly);
+
+            var globalTypes = context.Compilation.GlobalNamespace.GetTypeMembers().Where(item =>
+                    item.ContainingAssembly == context.Compilation.Assembly &&
                     IsExternallyVisible(item));
 
-            CheckTypeNames(globalTypes, addDiagnostic);
-            CheckNamespaceMembers(globalNamespaces, compilation, addDiagnostic);
+            CheckTypeNames(globalTypes, context.ReportDiagnostic);
+            CheckNamespaceMembers(globalNamespaces, context.Compilation, context.ReportDiagnostic);
         }
         
-        public override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             // Do not descent into non-publicly visible types
             // Note: This is the behavior of FxCop, it might be more correct to descend into internal but not private

@@ -12,39 +12,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
     Public Class BasicCA1309DiagnosticAnalyzer
         Inherits CA1309DiagnosticAnalyzer
 
-        Protected Overrides Function GetAnalyzer(stringComparisonType As INamedTypeSymbol) As AbstractCodeBlockAnalyzer
-            Return New Analyzer(stringComparisonType)
-        End Function
+        Protected Overrides Sub GetAnalyzer(context As CompilationStartAnalysisContext, stringComparisonType As INamedTypeSymbol)
+            context.RegisterSyntaxNodeAction(AddressOf New Analyzer(stringComparisonType).AnalyzeNode, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression, SyntaxKind.InvocationExpression)
+        End Sub
 
         Private NotInheritable Class Analyzer
             Inherits AbstractCodeBlockAnalyzer
-            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
-
-            Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
-                SyntaxKind.EqualsExpression,
-                SyntaxKind.NotEqualsExpression,
-                SyntaxKind.InvocationExpression)
 
             Public Sub New(stringComparisonType As INamedTypeSymbol)
                 MyBase.New(stringComparisonType)
             End Sub
 
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-                Get
-                    Return _kindsOfInterest
-                End Get
-            End Property
-
-            Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                Select Case node.VisualBasicKind
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Select Case context.Node.VisualBasicKind
                     Case SyntaxKind.InvocationExpression
-                        AnalyzeInvocationExpression(DirectCast(node, InvocationExpressionSyntax), semanticModel, addDiagnostic)
+                        AnalyzeInvocationExpression(DirectCast(context.Node, InvocationExpressionSyntax), context.SemanticModel, AddressOf context.ReportDiagnostic)
                     Case Else
-                        AnalyzeBinaryExpression(DirectCast(node, BinaryExpressionSyntax), semanticModel, addDiagnostic)
+                        AnalyzeBinaryExpression(DirectCast(context.Node, BinaryExpressionSyntax), context.SemanticModel, AddressOf context.ReportDiagnostic)
                 End Select
             End Sub
 
-            Private Sub AnalyzeInvocationExpression(node As InvocationExpressionSyntax, model As SemanticModel, addDiagnostic As Action(Of Diagnostic))
+            Private Sub AnalyzeInvocationExpression(node As InvocationExpressionSyntax, model As SemanticModel, reportDiagnostic As Action(Of Diagnostic))
                 If (node.Expression.VisualBasicKind() = SyntaxKind.SimpleMemberAccessExpression) Then
                     Dim memberAccess = CType(node.Expression, MemberAccessExpressionSyntax)
                     If memberAccess.Name IsNot Nothing AndAlso IsEqualsOrCompare(memberAccess.Name.Identifier.ValueText) Then
@@ -54,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
 
                             If Not IsAcceptableOverload(methodSymbol, model) Then
                                 ' wrong overload
-                                addDiagnostic(memberAccess.Name.GetLocation().CreateDiagnostic(Rule))
+                                reportDiagnostic(memberAccess.Name.GetLocation().CreateDiagnostic(Rule))
                             Else
                                 Dim lastArgument = TryCast(node.ArgumentList.Arguments.Last(), SimpleArgumentSyntax)
                                 Dim lastArgSymbol = model.GetSymbolInfo(lastArgument.Expression).Symbol
@@ -62,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
                                 lastArgSymbol.ContainingType.Equals(StringComparisonType) AndAlso
                                 Not IsOrdinalOrOrdinalIgnoreCase(lastArgument, model) Then
                                     ' right overload, wrong value
-                                    addDiagnostic(lastArgument.GetLocation().CreateDiagnostic(Rule))
+                                    reportDiagnostic(lastArgument.GetLocation().CreateDiagnostic(Rule))
                                 End If
                             End If
                         End If

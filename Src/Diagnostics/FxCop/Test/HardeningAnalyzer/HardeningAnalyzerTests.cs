@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.HardeningAnalyzer
 {
     public class HardeningAnalyzerTests : DiagnosticAnalyzerTestBase
     {
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             throw new NotImplementedException();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest();
         }
@@ -64,9 +64,9 @@ public class Class6<TTypeParameter>
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
 
         [DiagnosticAnalyzer]
-        internal class ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest : ISymbolAnalyzer
+        internal class ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest : DiagnosticAnalyzer
         {
-            public ImmutableArray<SymbolKind> SymbolKindsOfInterest
+            private SymbolKind[] SymbolKindsOfInterest
             {
                 get
                 {
@@ -74,16 +74,19 @@ public class Class6<TTypeParameter>
                 }
             }
 
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-            }
-
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
                     return SupportedRules;
                 }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(
+                    (symbolContext) => { },
+                    SymbolKindsOfInterest);
             }
         }
 #endregion

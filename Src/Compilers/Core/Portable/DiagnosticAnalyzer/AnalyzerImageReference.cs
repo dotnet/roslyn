@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public sealed class AnalyzerImageReference : AnalyzerReference
     {
-        private readonly ImmutableArray<IDiagnosticAnalyzer> analyzers;
+        private readonly ImmutableArray<DiagnosticAnalyzer> analyzers;
         private readonly string fullPath;
         private readonly string display;
 
-        public AnalyzerImageReference(ImmutableArray<IDiagnosticAnalyzer> analyzers, string fullPath = null, string display = null)
+        public AnalyzerImageReference(ImmutableArray<DiagnosticAnalyzer> analyzers, string fullPath = null, string display = null)
         {
             if (analyzers.Any(a => a == null))
             {
@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.display = display;
         }
 
-        public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForAllLanguages()
+        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             return this.analyzers;
         }
 
-        public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers(string language)
+        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {
             return this.analyzers;
         }

@@ -7204,14 +7204,19 @@ public class C
     }
 
     [DiagnosticAnalyzer]
-    abstract class CompilationStartedAnalyzer : ICompilationNestedAnalyzerFactory
+    abstract class CompilationStartedAnalyzer : DiagnosticAnalyzer
     {
-        public abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-        public abstract IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken);
+        public override abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public abstract void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context);
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
+        }
     }
 
     [DiagnosticAnalyzer]
-    class HiddenDiagnosticAnalyzer : CompilationStartedAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+    class HiddenDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Hidden01 = new DiagnosticDescriptor("Hidden01", "", "Throwing a diagnostic for #region", "", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
         internal static readonly DiagnosticDescriptor Hidden02 = new DiagnosticDescriptor("Hidden02", "", "Throwing a diagnostic for something else", "", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
@@ -7224,31 +7229,19 @@ public class C
             }
         }
 
-        public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            get
-            {
-                return ImmutableArray.Create(SyntaxKind.RegionDirectiveTrivia);
-            }
+            context.ReportDiagnostic(Diagnostic.Create(Hidden01, context.Node.GetLocation()));
         }
 
-        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
         {
-            addDiagnostic(Diagnostic.Create(Hidden01, node.GetLocation()));
-        }
-
-        public override IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            return null;
-        }
-
-        public void OnAnalysisCompleted(Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
-        {
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.RegionDirectiveTrivia);
         }
     }
 
     [DiagnosticAnalyzer]
-    class InfoDiagnosticAnalyzer : CompilationStartedAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+    class InfoDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Info01 = new DiagnosticDescriptor("Info01", "", "Throwing a diagnostic for #pragma restore", "", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
@@ -7260,44 +7253,24 @@ public class C
             }
         }
 
-        public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            get
+            if ((context.Node as PragmaWarningDirectiveTriviaSyntax).DisableOrRestoreKeyword.IsKind(SyntaxKind.RestoreKeyword))
             {
-                return ImmutableArray.Create(SyntaxKind.PragmaWarningDirectiveTrivia);
+                context.ReportDiagnostic(Diagnostic.Create(Info01, context.Node.GetLocation()));
             }
         }
 
-        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
         {
-            if ((node as PragmaWarningDirectiveTriviaSyntax).DisableOrRestoreKeyword.IsKind(SyntaxKind.RestoreKeyword))
-            {
-                addDiagnostic(Diagnostic.Create(Info01, node.GetLocation()));
-            }
-        }
-
-        public override IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            return null;
-        }
-
-        public void OnAnalysisCompleted(Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
-        {
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.PragmaWarningDirectiveTrivia);
         }
     }
 
     [DiagnosticAnalyzer]
-    class WarningDiagnosticAnalyzer : CompilationStartedAnalyzer, ISymbolAnalyzer
+    class WarningDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Warning01 = new DiagnosticDescriptor("Warning01", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-        public ImmutableArray<SymbolKind> SymbolKindsOfInterest
-        {
-            get
-            {
-                return ImmutableArray.Create(SymbolKind.NamedType);
-            }
-        }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -7307,23 +7280,19 @@ public class C
             }
         }
 
-        public override IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
         {
-            return null;
-        }
-
-        public void OnAnalysisCompleted(Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
-        {
-        }
-
-        public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            addDiagnostic(Diagnostic.Create(Warning01, symbol.Locations.First()));
+            context.RegisterSymbolAction(
+                (symbolContext) =>
+                {
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning01, symbolContext.Symbol.Locations.First()));
+                },
+                SymbolKind.NamedType);
         }
     }
 
     [DiagnosticAnalyzer]
-    class ErrorDiagnosticAnalyzer : CompilationStartedAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+    class ErrorDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Error01 = new DiagnosticDescriptor("Error01", "", "Throwing a diagnostic for #pragma disable", "", DiagnosticSeverity.Error, isEnabledByDefault: true);
         internal static readonly DiagnosticDescriptor Error02 = new DiagnosticDescriptor("Error02", "", "Throwing a diagnostic for something else", "", DiagnosticSeverity.Error, isEnabledByDefault: true);
@@ -7336,29 +7305,19 @@ public class C
             }
         }
 
-        public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+        public override void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
         {
-            get
-            {
-                return ImmutableArray.Create(SyntaxKind.PragmaWarningDirectiveTrivia);
-            }
+            context.RegisterSyntaxNodeAction(
+                (nodeContext) =>
+                {
+                    if ((nodeContext.Node as PragmaWarningDirectiveTriviaSyntax).DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword))
+                    {
+                        nodeContext.ReportDiagnostic(Diagnostic.Create(Error01, nodeContext.Node.GetLocation()));
+                    }
+                },
+                SyntaxKind.PragmaWarningDirectiveTrivia
+                );
         }
 
-        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            if ((node as PragmaWarningDirectiveTriviaSyntax).DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword))
-            {
-                addDiagnostic(Diagnostic.Create(Error01, node.GetLocation()));
-            }
-        }
-
-        public override IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            return null;
-        }
-
-        public void OnAnalysisCompleted(Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
-        {
-        }
     }
 }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.expectedOptions = expectedOptions;
         }
 
-        protected override void OnInterfaceMember(SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null)
+        protected override void OnAbstractMember(string AbstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null)
         {
         }
     

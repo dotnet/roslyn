@@ -14,23 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     /// A public or protected method has a name that starts with Get, takes no parameters, and returns a value that is not an array.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpCA1024DiagnosticAnalyzer : CA1024DiagnosticAnalyzer
+    public class CSharpCA1024DiagnosticAnalyzer : CA1024DiagnosticAnalyzer<SyntaxKind>
     {
         protected override CA1024CodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer()
         {
             return new CodeBlockEndedAnalyzer();
         }
 
-        private class CodeBlockEndedAnalyzer : CA1024CodeBlockEndedAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+        private class CodeBlockEndedAnalyzer : CA1024CodeBlockEndedAnalyzer
         {
-            private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.InvocationExpression);
-
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
-            {
-                get
+            public override SyntaxKind SyntaxKindOfInterest
                 {
-                    return kindsOfInterest;
-                }
+                get { return SyntaxKind.InvocationExpression; }
             }
 
             protected override Location GetDiagnosticLocation(SyntaxNode node)

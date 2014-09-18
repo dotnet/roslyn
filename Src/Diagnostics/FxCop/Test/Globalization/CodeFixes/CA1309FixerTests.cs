@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Globalization
     {
         #region Helper methods
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CSharpCA1309DiagnosticAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new BasicCA1309DiagnosticAnalyzer();
         }

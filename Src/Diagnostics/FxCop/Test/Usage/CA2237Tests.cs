@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class CA2237Tests : DiagnosticAnalyzerTestBase
     {
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new SerializationRulesDiagnosticAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new SerializationRulesDiagnosticAnalyzer();
         }

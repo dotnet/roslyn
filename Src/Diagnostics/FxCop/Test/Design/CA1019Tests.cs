@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class CA1019Tests : DiagnosticAnalyzerTestBase
     {
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new BasicCA1019DiagnosticAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CSharpCA1019DiagnosticAnalyzer();
         }

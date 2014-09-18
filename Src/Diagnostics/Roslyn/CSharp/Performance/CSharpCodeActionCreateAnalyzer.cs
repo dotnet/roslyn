@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Roslyn.Diagnostics.Analyzers.CSharp
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpCodeActionCreateAnalyzer : CodeActionCreateAnalyzer
+    public class CSharpCodeActionCreateAnalyzer : CodeActionCreateAnalyzer<SyntaxKind>
     {
         protected override AbstractCodeBlockStartedAnalyzer GetCodeBlockStartedAnalyzer(ImmutableHashSet<ISymbol> symbols)
         {
@@ -24,13 +25,14 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
             {
             }
 
-            protected override AbstractSyntaxAnalyzer GetSyntaxAnalyzer(ImmutableHashSet<ISymbol> symbols)
+            protected override void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<SyntaxKind> context, ImmutableHashSet<ISymbol> symbols)
             {
-                return new SyntaxAnalyzer(symbols);
+                var analyzer = new SyntaxAnalyzer(symbols);
+                context.RegisterSyntaxNodeAction(analyzer.AnalyzeNode, analyzer.SyntaxKindsOfInterest.ToArray());
             }
         }
 
-        private sealed class SyntaxAnalyzer : AbstractSyntaxAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+        private sealed class SyntaxAnalyzer : AbstractSyntaxAnalyzer
         {
             public SyntaxAnalyzer(ImmutableHashSet<ISymbol> symbols) : base(symbols)
             {
@@ -41,15 +43,15 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
                 get { return ImmutableArray.Create(SyntaxKind.InvocationExpression); }
             }
 
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var invocation = node as InvocationExpressionSyntax;
+                var invocation = context.Node as InvocationExpressionSyntax;
                 if (invocation == null)
                 {
                     return;
                 }
 
-                AnalyzeInvocationExpression(invocation.Expression, semanticModel, addDiagnostic, cancellationToken);
+                AnalyzeInvocationExpression(invocation.Expression, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
             }
         }
     }

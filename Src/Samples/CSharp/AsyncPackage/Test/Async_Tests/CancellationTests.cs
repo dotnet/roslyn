@@ -45,7 +45,7 @@ namespace ConsoleApplication1
             return new CancellationCodeFix();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CancellationAnalyzer();
         }

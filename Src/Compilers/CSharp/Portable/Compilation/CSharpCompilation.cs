@@ -2894,7 +2894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lazyMakeMemberMissingMap != null && lazyMakeMemberMissingMap.ContainsKey(member);
         }
 
-        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<IDiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
+        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             return new AnalyzerDriver<CSharp.SyntaxKind>(analyzers, n => n.CSharpKind(), options, cancellationToken);
         }

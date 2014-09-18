@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -2008,7 +2008,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not (hasError OrElse hasWarnAsError)
         End Function
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of IDiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver
+        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.VisualBasicKind
             Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, options, cancellationToken)
         End Function

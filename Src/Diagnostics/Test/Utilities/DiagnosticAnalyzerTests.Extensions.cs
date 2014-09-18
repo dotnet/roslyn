@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public static class DiagnosticAnalyzerTestsExtensions
     {
-        public static void Verify(this IEnumerable<Diagnostic> actualResults, IDiagnosticAnalyzer analyzer, params DiagnosticResult[] expectedResults)
+        public static void Verify(this IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expectedResults)
         {
             int expectedCount = expectedResults.Count();
             int actualCount = actualResults.Count();
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static void VerifyDiagnosticLocation(IDiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, DiagnosticResultLocation expected)
+        private static void VerifyDiagnosticLocation(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, DiagnosticResultLocation expected)
         {
             var actualSpan = actual.GetLineSpan();
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static string FormatDiagnostics(IDiagnosticAnalyzer analyzer, params Diagnostic[] diagnostics)
+        private static string FormatDiagnostics(DiagnosticAnalyzer analyzer, params Diagnostic[] diagnostics)
         {
             var builder = new StringBuilder();
             for (int i = 0; i < diagnostics.Length; ++i)
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return builder.ToString();
         }
 
-        private static string FormatDiagnostics(IDiagnosticAnalyzer analyzer, IEnumerable<Diagnostic> diagnostics)
+        private static string FormatDiagnostics(DiagnosticAnalyzer analyzer, IEnumerable<Diagnostic> diagnostics)
         {
             return FormatDiagnostics(analyzer, diagnostics.ToArray());
         }

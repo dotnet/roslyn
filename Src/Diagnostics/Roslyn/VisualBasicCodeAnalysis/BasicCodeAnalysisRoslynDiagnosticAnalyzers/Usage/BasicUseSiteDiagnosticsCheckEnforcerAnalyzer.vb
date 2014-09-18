@@ -65,16 +65,16 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
                 End Get
             End Property
 
-            Public Overrides Sub AnalyzeNode(node As SyntaxNode, model As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken)
-                Dim name = DirectCast(node, MemberAccessExpressionSyntax).Name
+            Public Overrides Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Dim name = DirectCast(context.Node, MemberAccessExpressionSyntax).Name
                 If name.VisualBasicKind = SyntaxKind.IdentifierName Then
                     Dim identifier = DirectCast(name, IdentifierNameSyntax)
                     Dim containingTypeName As String = Nothing
                     If PropertiesToValidateMap.TryGetValue(identifier.ToString(), containingTypeName) Then
-                        Dim sym As ISymbol = model.GetSymbolInfo(identifier, cancellationToken).Symbol
+                        Dim sym As ISymbol = context.SemanticModel.GetSymbolInfo(identifier, context.CancellationToken).Symbol
                         If sym IsNot Nothing AndAlso sym.Kind = SymbolKind.Property Then
                             If containingTypeName = sym.ContainingType.ToDisplayString() Then
-                                addDiagnostic(CreateDiagnostic(identifier))
+                                context.ReportDiagnostic(CreateDiagnostic(identifier))
                             End If
                         End If
                     End If

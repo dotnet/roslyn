@@ -10,7 +10,7 @@ namespace AsyncPackage
     /// This Analyzer determines if a method is Async and needs to be returning a Task instead of having a void return type.
     /// </summary>
     [DiagnosticAnalyzer]
-    public class AsyncVoidAnalyzer : ISymbolAnalyzer
+    public class AsyncVoidAnalyzer : DiagnosticAnalyzer
     {
         internal const string AsyncVoidId = "Async001";
 
@@ -21,16 +21,19 @@ namespace AsyncPackage
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(VoidReturnType); } }
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Method);
+        }
 
-        public ImmutableArray<SymbolKind> SymbolKindsOfInterest { get { return ImmutableArray.Create(SymbolKind.Method); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(VoidReturnType); } }
 
-        public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private void AnalyzeSymbol(SymbolAnalysisContext context)
         {
             // Filter out methods that do not use Async and that do not have exactly two parameters
-            var methodSymbol = (IMethodSymbol)symbol;
+            var methodSymbol = (IMethodSymbol)context.Symbol;
 
-            var eventType = compilation.GetTypeByMetadataName("System.EventArgs");
+            var eventType = context.Compilation.GetTypeByMetadataName("System.EventArgs");
 
             if (methodSymbol.ReturnsVoid && methodSymbol.IsAsync)
             {
@@ -50,7 +53,7 @@ namespace AsyncPackage
                         {
                             // Check if the second parameter implements EventArgs. If it does; return.
                             var checkForEventType = secondParam.Type.BaseType;
-                            while (checkForEventType.OriginalDefinition != compilation.GetTypeByMetadataName("System.Object"))
+                            while (checkForEventType.OriginalDefinition != context.Compilation.GetTypeByMetadataName("System.Object"))
                             {
                                 if (checkForEventType == eventType)
                                 {
@@ -63,7 +66,7 @@ namespace AsyncPackage
                     }
                 }
 
-                addDiagnostic(Diagnostic.Create(VoidReturnType, methodSymbol.Locations[0], methodSymbol.Name));
+                context.ReportDiagnostic(Diagnostic.Create(VoidReturnType, methodSymbol.Locations[0], methodSymbol.Name));
                 return;
             }
 

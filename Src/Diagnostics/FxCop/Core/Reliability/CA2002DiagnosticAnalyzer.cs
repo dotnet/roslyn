@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
     /// A thread that tries to acquire a lock on an object that has a weak identity can be blocked by a second thread in 
     /// a different application domain that has a lock on the same object. 
     /// </summary>
-    public class CA2002DiagnosticAnalyzer : IDiagnosticAnalyzer
+    public abstract class CA2002DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA2002";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182290.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {

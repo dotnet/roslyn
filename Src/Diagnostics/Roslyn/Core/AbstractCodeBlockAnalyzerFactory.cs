@@ -2,15 +2,16 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class AbstractCodeBlockAnalyzerFactory<TSyntaxKind> : ICodeBlockNestedAnalyzerFactory
+    public abstract class AbstractCodeBlockAnalyzerFactory<TSyntaxKind> : DiagnosticAnalyzer
     {
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -18,27 +19,25 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCodeBlockStartAction<TSyntaxKind>(CreateAnalyzerWithinCodeBlock);
+        }
+
         protected abstract DiagnosticDescriptor Descriptor { get; }
         protected abstract ExecutableNodeAnalyzer GetExecutableNodeAnalyzer();
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+        private void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<TSyntaxKind> context)
         {
-            return GetExecutableNodeAnalyzer();
+            var analyzer = GetExecutableNodeAnalyzer();
+            context.RegisterSyntaxNodeAction(analyzer.AnalyzeNode, analyzer.SyntaxKindsOfInterest.ToArray());
         }
 
-        protected abstract class ExecutableNodeAnalyzer : ISyntaxNodeAnalyzer<TSyntaxKind>
+        protected abstract class ExecutableNodeAnalyzer
         {
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get
-                {
-                    return ImmutableArray.Create(Descriptor);
-                }
-            }
-
             protected abstract DiagnosticDescriptor Descriptor { get; }
             public abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
-            public abstract void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
+            public abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 
             protected Diagnostic CreateDiagnostic(SyntaxNode node)
             {

@@ -32,7 +32,7 @@ Imports Microsoft.CodeAnalysis.Text
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Class DiagnosticAnalyzer
     ' Implementing syntax node analyzer because the make const diagnostics in one method body are not dependent on the contents of other method bodies.
-    Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
+    Inherits Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
 
     Public Const MakeConstDiagnosticId As String = "MakeConstVB"
     Public Shared ReadOnly MakeConstRule As New DiagnosticDescriptor(MakeConstDiagnosticId,
@@ -42,13 +42,11 @@ Class DiagnosticAnalyzer
                                                                      DiagnosticSeverity.Warning,
                                                                      isEnabledByDefault:=True)
 
-    Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-        Get
-            Return ImmutableArray.Create(SyntaxKind.LocalDeclarationStatement)
-        End Get
-    End Property
+    Public Overrides Sub Initialize(context As AnalysisContext)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.LocalDeclarationStatement)
+    End Sub
 
-    Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
         Get
             Return ImmutableArray.Create(MakeConstRule)
         End Get
@@ -89,9 +87,9 @@ Class DiagnosticAnalyzer
         Return True
     End Function
 
-    Private Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-        If CanBeMadeConst(CType(node, LocalDeclarationStatementSyntax), semanticModel) Then
-            addDiagnostic(Diagnostic.Create(MakeConstRule, node.GetLocation()))
+    Private Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+        If CanBeMadeConst(CType(context.Node, LocalDeclarationStatementSyntax), context.SemanticModel) Then
+            context.ReportDiagnostic(Diagnostic.Create(MakeConstRule, context.Node.GetLocation()))
         End If
     End Sub
 End Class

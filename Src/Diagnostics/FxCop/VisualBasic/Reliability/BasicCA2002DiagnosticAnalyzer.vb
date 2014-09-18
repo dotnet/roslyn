@@ -14,18 +14,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2002DiagnosticAnalyzer
         Inherits CA2002DiagnosticAnalyzer
-        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
-        Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(Of SyntaxKind)(SyntaxKind.SyncLockStatement)
-        Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-            Get
-                Return _kindsOfInterest
-            End Get
-        End Property
+        Public Overrides Sub Initialize(analysisContext As AnalysisContext)
+            AnalysisContext.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.SyncLockStatement)
+        End Sub
 
-        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-            Dim lockStatement = DirectCast(node, SyncLockStatementSyntax)
-            MyBase.GetDiagnosticsForNode(lockStatement.Expression, semanticModel, addDiagnostic)
+        Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+            Dim lockStatement = DirectCast(context.Node, SyncLockStatementSyntax)
+            MyBase.GetDiagnosticsForNode(lockStatement.Expression, context.SemanticModel, AddressOf context.ReportDiagnostic)
         End Sub
     End Class
 End Namespace

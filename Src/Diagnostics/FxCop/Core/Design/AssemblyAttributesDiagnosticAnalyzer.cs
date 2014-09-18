@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
     [DiagnosticAnalyzer]
-    public sealed class AssemblyAttributesDiagnosticAnalyzer : ICompilationAnalyzer
+    public sealed class AssemblyAttributesDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string CA1016RuleName = "CA1016";
         internal const string CA1014RuleName = "CA1014";
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(CA1016Rule, CA1014Rule);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -43,10 +43,15 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        public void AnalyzeCompilation(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            var assemblyVersionAttributeSymbol = WellKnownTypes.AssemblyVersionAttribute(compilation);
-            var assemblyComplianceAttributeSymbol = WellKnownTypes.CLSCompliantAttribute(compilation);
+            analysisContext.RegisterCompilationEndAction(AnalyzeCompilation);
+        }
+
+        private void AnalyzeCompilation(CompilationEndAnalysisContext context)
+        {
+            var assemblyVersionAttributeSymbol = WellKnownTypes.AssemblyVersionAttribute(context.Compilation);
+            var assemblyComplianceAttributeSymbol = WellKnownTypes.CLSCompliantAttribute(context.Compilation);
 
             if (assemblyVersionAttributeSymbol == null && assemblyComplianceAttributeSymbol == null)
             {
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             bool assemblyComplianceAttributeFound = false;
 
             // Check all assembly level attributes for the target attribute
-            foreach (var attribute in compilation.Assembly.GetAttributes())
+            foreach (var attribute in context.Compilation.Assembly.GetAttributes())
             {
                 if (attribute.AttributeClass.Equals(assemblyVersionAttributeSymbol))
                 {
@@ -87,12 +92,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             {
                 if (!assemblyVersionAttributeFound)
                 {
-                    addDiagnostic(Diagnostic.Create(CA1016Rule, Location.None));
+                    context.ReportDiagnostic(Diagnostic.Create(CA1016Rule, Location.None));
                 }
 
                 if (!assemblyComplianceAttributeFound)
                 {
-                    addDiagnostic(Diagnostic.Create(CA1014Rule, Location.None));
+                    context.ReportDiagnostic(Diagnostic.Create(CA1014Rule, Location.None));
                 }
             }
         }

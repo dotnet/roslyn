@@ -7,23 +7,20 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers
 {
-    public abstract class AbstractNamedTypeAnalyzer : ISymbolAnalyzer
+    public abstract class AbstractNamedTypeAnalyzer : DiagnosticAnalyzer
     {
-        public ImmutableArray<SymbolKind> SymbolKindsOfInterest
+        public override abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            get
-            {
-                return ImmutableArray.Create(SymbolKind.NamedType);
-            }
+            analysisContext.RegisterSymbolAction(
+                (context) =>
+                    {
+                        AnalyzeSymbol((INamedTypeSymbol)context.Symbol, context.Compilation, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                    },
+                SymbolKind.NamedType);
         }
 
-        public abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
-        public abstract void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
-
-        void ISymbolAnalyzer.AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            AnalyzeSymbol((INamedTypeSymbol)symbol, compilation, addDiagnostic, options, cancellationToken);
-        }
+        protected abstract void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
     }
 }

@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         #region Verifiers
          
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new StaticTypeRulesDiagnosticAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new StaticTypeRulesDiagnosticAnalyzer();
         }

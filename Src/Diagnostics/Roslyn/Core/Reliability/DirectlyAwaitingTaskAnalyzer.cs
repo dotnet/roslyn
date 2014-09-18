@@ -10,24 +10,30 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class DirectlyAwaitingTaskAnalyzer<TSyntaxKind> : IDiagnosticAnalyzer, ICompilationNestedAnalyzerFactory
+    public abstract class DirectlyAwaitingTaskAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
     {
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        internal const string NameForExportAttribute = "DirectlyAwaitingTaskAnalyzer";
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get { return ImmutableArray.Create(DirectlyAwaitingTaskAnalyzerRule.Rule); }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            if (compilation.AssemblyName.Contains("FxCopAnalyzer") ||
-                compilation.AssemblyName.Contains("FxCopDiagnosticFixers"))
-            {
-                return null;
-            }
+            analysisContext.RegisterCompilationStartAction(
+                (context) =>
+                {
+                    if (context.Compilation.AssemblyName.Contains("FxCopAnalyzer") ||
+                        context.Compilation.AssemblyName.Contains("FxCopDiagnosticFixers"))
+                    {
+                        return;
+                    }
 
-            var taskTypes = new Lazy<ImmutableArray<INamedTypeSymbol>>(() => GetTaskTypes(compilation));
+                    var taskTypes = new Lazy<ImmutableArray<INamedTypeSymbol>>(() => GetTaskTypes(context.Compilation));
 
-            return new CodeBlockAnalyzer(this, taskTypes);
+                    context.RegisterCodeBlockStartAction<TSyntaxKind>(new CodeBlockAnalyzer(this, taskTypes).Initialize);
+                });
         }
 
         private static ImmutableArray<INamedTypeSymbol> GetTaskTypes(Compilation compilation)
@@ -41,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract SyntaxNode GetAwaitedExpression(SyntaxNode awaitNode);
         protected abstract TSyntaxKind AwaitSyntaxKind { get; }
 
-        private sealed class CodeBlockAnalyzer : ICodeBlockNestedAnalyzerFactory
+        private sealed class CodeBlockAnalyzer
         {
             private readonly DirectlyAwaitingTaskAnalyzer<TSyntaxKind> analyzer;
             private readonly Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes;
@@ -52,18 +58,13 @@ namespace Roslyn.Diagnostics.Analyzers
                 this.taskTypes = taskTypes;
             }
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            public void Initialize(CodeBlockStartAnalysisContext<TSyntaxKind> context)
             {
-                get { return ImmutableArray.Create(DirectlyAwaitingTaskAnalyzerRule.Rule); }
-            }
-
-            public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                return new SyntaxNodeAnalyzer(analyzer, taskTypes);
+                context.RegisterSyntaxNodeAction(new SyntaxNodeAnalyzer(analyzer, taskTypes).AnalyzeNode, analyzer.AwaitSyntaxKind);
             }
         }
 
-        private sealed class SyntaxNodeAnalyzer : ISyntaxNodeAnalyzer<TSyntaxKind>
+        private sealed class SyntaxNodeAnalyzer
         {
             private readonly DirectlyAwaitingTaskAnalyzer<TSyntaxKind> analyzer;
             private readonly Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes;
@@ -74,30 +75,14 @@ namespace Roslyn.Diagnostics.Analyzers
                 this.taskTypes = taskTypes;
             }
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                get
-                {
-                    return ImmutableArray.Create(DirectlyAwaitingTaskAnalyzerRule.Rule);
-                }
-            }
-
-            public ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest
-            {
-                get
-                {
-                    return ImmutableArray.Create(analyzer.AwaitSyntaxKind);
-                }
-            }
-
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                var expression = analyzer.GetAwaitedExpression(node);
-                var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+                var expression = analyzer.GetAwaitedExpression(context.Node);
+                var type = context.SemanticModel.GetTypeInfo(expression, context.CancellationToken).Type;
 
                 if (type != null && taskTypes.Value.Contains(type.OriginalDefinition))
                 {
-                    addDiagnostic(Diagnostic.Create(DirectlyAwaitingTaskAnalyzerRule.Rule, expression.GetLocation()));
+                    context.ReportDiagnostic(Diagnostic.Create(DirectlyAwaitingTaskAnalyzerRule.Rule, expression.GetLocation()));
                 }
             }
         }

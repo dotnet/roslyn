@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
 {
     [DiagnosticAnalyzer]
-    public sealed class PInvokeDiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
+    public sealed class PInvokeDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string CA1401 = "CA1401";
         public const string CA2101 = "CA2101";
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA1401, RuleCA2101);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -44,36 +44,40 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
             }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            var dllImportType = compilation.GetTypeByMetadataName("System.Runtime.InteropServices.DllImportAttribute");
+            analysisContext.RegisterCompilationStartAction(
+                (context) =>
+                {
+                    var dllImportType = context.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.DllImportAttribute");
             if (dllImportType == null)
             {
-                return null;
+                        return;
             }
 
-            var marshalAsType = compilation.GetTypeByMetadataName("System.Runtime.InteropServices.MarshalAsAttribute");
+                    var marshalAsType = context.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.MarshalAsAttribute");
             if (marshalAsType == null)
             {
-                return null;
+                        return;
             }
 
-            var stringBuilderType = compilation.GetTypeByMetadataName("System.Text.StringBuilder");
+                    var stringBuilderType = context.Compilation.GetTypeByMetadataName("System.Text.StringBuilder");
             if (stringBuilderType == null)
             {
-                return null;
+                        return;
             }
 
-            var unmanagedType = compilation.GetTypeByMetadataName("System.Runtime.InteropServices.UnmanagedType");
+                    var unmanagedType = context.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.UnmanagedType");
             if (unmanagedType == null)
             {
-                return null;
+                        return;
             }
 
-            return new Analyzer(dllImportType, marshalAsType, stringBuilderType, unmanagedType);
+                    context.RegisterSymbolAction(new Analyzer(dllImportType, marshalAsType, stringBuilderType, unmanagedType).AnalyzeSymbol, SymbolKind.Method);
+                });
         }
 
-        private sealed class Analyzer : ISymbolAnalyzer
+        private sealed class Analyzer
         {
             private INamedTypeSymbol dllImportType;
             private INamedTypeSymbol marshalAsType;
@@ -92,25 +96,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                 this.unmanagedType = unmanagedType;
             }
 
-            public ImmutableArray<SymbolKind> SymbolKindsOfInterest
+            public void AnalyzeSymbol(SymbolAnalysisContext context)
             {
-                get
-                {
-                    return ImmutableArray.Create(SymbolKind.Method);
-                }
-            }
-
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get
-                {
-                    return supportedDiagnostics;
-                }
-            }
-
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                var methodSymbol = (IMethodSymbol)symbol;
+                var methodSymbol = (IMethodSymbol)context.Symbol;
                 if (methodSymbol == null)
                 {
                     return;
@@ -128,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                 // CA1401 - PInvoke methods should not be visible
                 if (methodSymbol.DeclaredAccessibility == Accessibility.Public || methodSymbol.DeclaredAccessibility == Accessibility.Protected)
                 {
-                    addDiagnostic(symbol.CreateDiagnostic(RuleCA1401, methodSymbol.Name));
+                    context.ReportDiagnostic(context.Symbol.CreateDiagnostic(RuleCA1401, methodSymbol.Name));
                 }
 
                 // CA2101 - Specify marshalling for PInvoke string arguments
@@ -151,13 +139,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                                 {
                                     // track the diagnostic on the [MarshalAs] attribute
                                     var marshalAsLocation = GetAttributeLocation(marshalAsAttribute);
-                                    addDiagnostic(marshalAsLocation.CreateDiagnostic(RuleCA2101));
+                                    context.ReportDiagnostic(marshalAsLocation.CreateDiagnostic(RuleCA2101));
                                 }
                                 else if (!appliedCA2101ToMethod)
                                 {
                                     // track the diagnostic on the [DllImport] attribute
                                     appliedCA2101ToMethod = true;
-                                    addDiagnostic(defaultLocation.CreateDiagnostic(RuleCA2101));
+                                    context.ReportDiagnostic(defaultLocation.CreateDiagnostic(RuleCA2101));
                                 }
                             }
                         }
@@ -167,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                     if (!appliedCA2101ToMethod && dllImportData.CharacterSet != CharSet.Unicode &&
                         (methodSymbol.ReturnType.SpecialType == SpecialType.System_String || methodSymbol.ReturnType.Equals(this.stringBuilderType)))
                     {
-                        addDiagnostic(defaultLocation.CreateDiagnostic(RuleCA2101));
+                        context.ReportDiagnostic(defaultLocation.CreateDiagnostic(RuleCA2101));
                     }
                 }
             }

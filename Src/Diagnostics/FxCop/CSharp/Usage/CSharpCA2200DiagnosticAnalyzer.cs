@@ -10,21 +10,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpCA2200DiagnosticAnalyzer : CA2200DiagnosticAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+    public class CSharpCA2200DiagnosticAnalyzer : CA2200DiagnosticAnalyzer
     {
-        private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.ThrowStatement);
-
-        public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            get
-            {
-                return kindsOfInterest;
-            }
+            analysisContext.RegisterSyntaxNodeAction<SyntaxKind>(AnalyzeNode, SyntaxKind.ThrowStatement);
         }
 
-        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var throwStatement = (ThrowStatementSyntax)node;
+            var throwStatement = (ThrowStatementSyntax)context.Node;
             var expr = throwStatement.Expression;
             if (expr == null)
             {
@@ -37,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 {
                     case SyntaxKind.CatchClause:
                         {
-                            var local = semanticModel.GetSymbolInfo(expr).Symbol as ILocalSymbol;
+                            var local = context.SemanticModel.GetSymbolInfo(expr).Symbol as ILocalSymbol;
                             if (local == null || local.Locations.Length == 0)
                             {
                                 return;
@@ -48,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                             var catchClause = syntax as CatchClauseSyntax;
                             if (catchClause != null && catchClause.Declaration.Span.Contains(local.Locations[0].SourceSpan))
                             {
-                                addDiagnostic(CreateDiagnostic(throwStatement));
+                                context.ReportDiagnostic(CreateDiagnostic(throwStatement));
                                 return;
                             }
                         }

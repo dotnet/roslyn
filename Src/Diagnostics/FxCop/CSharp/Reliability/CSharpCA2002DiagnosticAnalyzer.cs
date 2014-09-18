@@ -21,22 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Reliability
     /// a different application domain that has a lock on the same object. 
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpCA2002DiagnosticAnalyzer : CA2002DiagnosticAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+    public class CSharpCA2002DiagnosticAnalyzer : CA2002DiagnosticAnalyzer
     {
-        private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create<SyntaxKind>(SyntaxKind.LockStatement);
-
-        public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            get
+            analysisContext.RegisterSyntaxNodeAction(
+                (context) =>
             {
-                return kindsOfInterest;
-            }
-        }
-
-        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            var lockStatement = (LockStatementSyntax)node;
-            GetDiagnosticsForNode(lockStatement.Expression, semanticModel, addDiagnostic);
+                    var lockStatement = (LockStatementSyntax)context.Node;
+                    GetDiagnosticsForNode(lockStatement.Expression, context.SemanticModel, context.ReportDiagnostic);
+                },
+                SyntaxKind.LockStatement);
         }
     }
 }

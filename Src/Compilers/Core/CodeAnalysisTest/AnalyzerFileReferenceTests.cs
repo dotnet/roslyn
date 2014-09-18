@@ -103,7 +103,7 @@ Delta: Gamma: Beta: Test B
         public void TestGetAnalyzers()
         {
             AnalyzerFileReference reference = new AnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
-            var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             reference.AddAnalyzers(builder, null);
             var analyzers = builder.ToImmutable();
             Assert.Equal(7, analyzers.Length);
@@ -150,7 +150,7 @@ Delta: Gamma: Beta: Test B
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
             var analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
@@ -169,7 +169,7 @@ Delta: Gamma: Beta: Test B
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
             var analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
@@ -188,7 +188,7 @@ Delta: Gamma: Beta: Test B
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
             var analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
@@ -200,29 +200,33 @@ Delta: Gamma: Beta: Test B
         }
 
         [DiagnosticAnalyzer]
-        public class TestAnalyzer : IDiagnosticAnalyzer
+        public class TestAnalyzer : DiagnosticAnalyzer
         {
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+            public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        public class TestAnalyzerCS : IDiagnosticAnalyzer
+        public class TestAnalyzerCS : DiagnosticAnalyzer
         {
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+            public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
         }
 
         [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-        public class TestAnalyzerVB : IDiagnosticAnalyzer
+        public class TestAnalyzerVB : DiagnosticAnalyzer
         {
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+            public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
         }
 
         public class SomeType
         {
             [DiagnosticAnalyzer]
-            public class NestedAnalyzer : IDiagnosticAnalyzer
+            public class NestedAnalyzer : DiagnosticAnalyzer
             {
-                public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+                public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
             }
         }
     }
@@ -239,37 +243,42 @@ Delta: Gamma: Beta: Test B
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class TestAnalyzerCSVB : IDiagnosticAnalyzer
+    public class TestAnalyzerCSVB : DiagnosticAnalyzer
     {
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [DiagnosticAnalyzer]
-    public class TestAnalyzerCSAll : IDiagnosticAnalyzer
+    public class TestAnalyzerCSAll : DiagnosticAnalyzer
     {
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
     }
 
     [DiagnosticAnalyzer]
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class TestAnalyzerAllCS : IDiagnosticAnalyzer
+    public class TestAnalyzerAllCS : DiagnosticAnalyzer
     {
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
     }
 
     public class TestAnalyzerNone
     { }
 
     [DiagnosticAnalyzer]
-    public abstract class AbstractAnalyzer : IDiagnosticAnalyzer
+    public abstract class AbstractAnalyzer : DiagnosticAnalyzer
     {
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
     }
 
     [DiagnosticAnalyzer]
-    public class OpenGenericAnalyzer<T> : IDiagnosticAnalyzer
+    public class OpenGenericAnalyzer<T> : DiagnosticAnalyzer
     {
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+        public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
     }
 }

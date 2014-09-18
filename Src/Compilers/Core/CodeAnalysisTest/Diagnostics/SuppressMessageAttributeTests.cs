@@ -45,7 +45,7 @@ public class C
 {
 }
 ",
-                new IDiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C"), new WarningOnTypeDeclarationAnalyzer() });
+                new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C"), new WarningOnTypeDeclarationAnalyzer() });
         }
 
         [Fact]
@@ -60,7 +60,7 @@ public class C
 {
 }
 ",
-                new IDiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C") });
+                new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C") });
         }
 
         [Fact]
@@ -208,7 +208,7 @@ public class E
 {
 }
 ",
-                new IDiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("E"), new WarningOnTypeDeclarationAnalyzer() });
+                new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("E"), new WarningOnTypeDeclarationAnalyzer() });
         }
 
         [Fact]
@@ -1107,7 +1107,7 @@ End Class
 
         #endregion
 
-        protected void VerifyCSharp(string source, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
+        protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Verify(source, LanguageNames.CSharp, analyzers, diagnostics);
         }
@@ -1117,13 +1117,13 @@ End Class
             VerifyTokenDiagnostics(markup, LanguageNames.CSharp, diagnostics);
         }
 
-        protected void VerifyBasic(string source, string rootNamespace, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
+        protected void VerifyBasic(string source, string rootNamespace, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Assert.False(string.IsNullOrWhiteSpace(rootNamespace), string.Format("Invalid root namespace '{0}'", rootNamespace));
             Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, rootNamespace);
         }
 
-        protected void VerifyBasic(string source, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
+        protected void VerifyBasic(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics);
         }
@@ -1133,7 +1133,7 @@ End Class
             VerifyTokenDiagnostics(markup, LanguageNames.VisualBasic, diagnostics);
         }
 
-        protected virtual void Verify(string source, string language, IDiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, string rootNamespace = null)
+        protected virtual void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, string rootNamespace = null)
         {
             Assert.True(analyzers != null && analyzers.Length > 0, "Must specify at least one diagnostic analyzer to test suppression");
             var compilation = CreateCompilation(source, language, analyzers, rootNamespace);
@@ -1148,10 +1148,10 @@ End Class
             MarkupTestFile.GetSpans(markup, out source, out spans);
             Assert.True(spans.Count > 0, "Must specify a span within which to generate diagnostics on each token");
 
-            Verify(source, language, new IDiagnosticAnalyzer[] { new WarningOnTokenAnalyzer(spans) }, diagnostics);
+            Verify(source, language, new DiagnosticAnalyzer[] { new WarningOnTokenAnalyzer(spans) }, diagnostics);
         }
 
-        private static Compilation CreateCompilation(string source, string language, IDiagnosticAnalyzer[] analyzers, string rootNamespace)
+        private static Compilation CreateCompilation(string source, string language, DiagnosticAnalyzer[] analyzers, string rootNamespace)
         {
             string fileName = language == LanguageNames.CSharp ? "Test.cs" : "Test.vb";
             string projectName = "TestProject";

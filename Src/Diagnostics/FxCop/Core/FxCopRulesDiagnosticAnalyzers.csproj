@@ -119,6 +119,7 @@
     <Compile Include="Naming\CA1715DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CA1813DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CA1821DiagnosticAnalyzer.cs" />
+    <Compile Include="Performance\CA1821DiagnosticAnalyzerRule.cs" />
     <Compile Include="Performance\CodeFixes\CA1813CodeFixProviderBase.cs" />
     <Compile Include="Performance\CodeFixes\CA1821CodeFixProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

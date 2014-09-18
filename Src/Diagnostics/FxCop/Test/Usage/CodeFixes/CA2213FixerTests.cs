@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class CA2213FixerTests : CodeFixTestBase
     {
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new BasicCA2213DiagnosticAnalyzer();
         }
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new CA2213BasicCodeFixProvider();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CSharpCA2213DiagnosticAnalyzer();
         }

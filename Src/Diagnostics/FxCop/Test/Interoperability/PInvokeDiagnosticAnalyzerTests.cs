@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interoperability
         private const string CA1401RuleText = "P/Invoke method '{0}' should not be visible";
         private const string CA1901RuleText = "Specify marshaling for P/Invoke string arguments";
 
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new PInvokeDiagnosticAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new PInvokeDiagnosticAnalyzer();
         }

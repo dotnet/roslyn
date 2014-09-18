@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
         }
 
-        protected override ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
         {
             return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, touchedFiles);
         }

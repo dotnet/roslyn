@@ -160,6 +160,10 @@
     <Compile Include="Diagnostic\DiagnosticInfo.DiagnosticInfoWithOverridenSeverity.cs" />
     <Compile Include="Diagnostic\WellKnownDiagnosticTags.cs" />
     <Compile Include="Diagnostic\Diagnostic_SimpleDiagnostic.cs" />
+    <Compile Include="DiagnosticAnalyzer\DiagnosticAnalysisContext.cs" />
+    <Compile Include="DiagnosticAnalyzer\DiagnosticAnalyzer.cs" />
+    <Compile Include="DiagnosticAnalyzer\DiagnosticAnalyzerAction.cs" />
+    <Compile Include="DiagnosticAnalyzer\DiagnosticStartAnalysisScope.cs" />
     <Compile Include="Diagnostic\DiagnosticBag.cs" />
     <Compile Include="Diagnostic\DiagnosticDescriptor.cs" />
     <Compile Include="Diagnostic\DiagnosticFormatter.cs" />
@@ -179,15 +183,6 @@
     <Compile Include="DiagnosticAnalyzer\CompilationEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\AsyncQueue.cs" />
     <Compile Include="DiagnosticAnalyzer\DiagnosticAnalyzerAttribute.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICodeBlockAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICodeBlockNestedAnalyzerFactory.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICompilationAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICompilationNestedAnalyzerFactory.cs" />
-    <Compile Include="DiagnosticAnalyzer\ISemanticModelAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\IDiagnosticAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ISymbolAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ISyntaxNodeAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ISyntaxTreeAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageAttributeState.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageAttributeState.TargetSymbolResolver.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentIncludeCache.cs" />

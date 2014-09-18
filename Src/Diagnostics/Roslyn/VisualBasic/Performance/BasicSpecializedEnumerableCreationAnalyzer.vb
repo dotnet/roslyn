@@ -12,47 +12,40 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
     Public Class BasicSpecializedEnumerableCreationAnalyzer
         Inherits SpecializedEnumerableCreationAnalyzer
 
-        Protected Overrides Function GetCodeBlockStartedAnalyzer(genericEnumerableSymbol As INamedTypeSymbol, genericEmptyEnumerableSymbol As IMethodSymbol) As AbstractCodeBlockStartedAnalyzer
-            Return New CodeBlockStartedAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
-        End Function
+        Protected Overrides Sub GetCodeBlockStartedAnalyzer(context As CompilationStartAnalysisContext, genericEnumerableSymbol As INamedTypeSymbol, genericEmptyEnumerableSymbol As IMethodSymbol)
+            context.RegisterCodeBlockStartAction(Of SyntaxKind)(AddressOf New CodeBlockStartedAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol).Initialize)
+        End Sub
 
         Private NotInheritable Class CodeBlockStartedAnalyzer
-            Inherits AbstractCodeBlockStartedAnalyzer
+            Inherits AbstractCodeBlockStartedAnalyzer(Of SyntaxKind)
 
             Public Sub New(genericEnumerableSymbol As INamedTypeSymbol, genericEmptyEnumerableSymbol As IMethodSymbol)
                 MyBase.New(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
             End Sub
 
-            Protected Overrides Function GetSyntaxAnalyzer(genericEnumerableSymbol As INamedTypeSymbol, genericEmptyEnumerableSymbol As IMethodSymbol) As AbstractSyntaxAnalyzer
-                Return New SyntaxAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
-            End Function
+            Protected Overrides Sub GetSyntaxAnalyzer(context As CodeBlockStartAnalysisContext(Of SyntaxKind), genericEnumerableSymbol As INamedTypeSymbol, genericEmptyEnumerableSymbol As IMethodSymbol)
+                context.RegisterSyntaxNodeAction(AddressOf New SyntaxAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol).AnalyzeNode, SyntaxKind.ReturnStatement)
+            End Sub
         End Class
 
         Private NotInheritable Class SyntaxAnalyzer
             Inherits AbstractSyntaxAnalyzer
-            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
             Public Sub New(genericEnumerableSymbol As INamedTypeSymbol, genericEmptyEnumerableSymbol As IMethodSymbol)
                 MyBase.New(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
             End Sub
 
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-                Get
-                    Return ImmutableArray.Create(SyntaxKind.ReturnStatement)
-                End Get
-            End Property
-
-            Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                Dim expressionsToAnalyze = node.DescendantNodes().Where(Function(n) ShouldAnalyzeExpression(n, semanticModel))
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Dim expressionsToAnalyze = context.Node.DescendantNodes().Where(Function(n) ShouldAnalyzeExpression(n, context.SemanticModel))
 
                 For Each expression In expressionsToAnalyze
                     Select Case expression.VisualBasicKind()
                         Case SyntaxKind.ArrayCreationExpression
-                            AnalyzeArrayCreationExpression(DirectCast(expression, ArrayCreationExpressionSyntax), addDiagnostic)
+                            AnalyzeArrayCreationExpression(DirectCast(expression, ArrayCreationExpressionSyntax), AddressOf context.ReportDiagnostic)
                         Case SyntaxKind.CollectionInitializer
-                            AnalyzeCollectionInitializerExpression(DirectCast(expression, CollectionInitializerSyntax), expression, addDiagnostic)
+                            AnalyzeCollectionInitializerExpression(DirectCast(expression, CollectionInitializerSyntax), expression, AddressOf context.ReportDiagnostic)
                         Case SyntaxKind.SimpleMemberAccessExpression
-                            AnalyzeMemberAccessName(DirectCast(expression, MemberAccessExpressionSyntax).Name, semanticModel, addDiagnostic)
+                            AnalyzeMemberAccessName(DirectCast(expression, MemberAccessExpressionSyntax).Name, context.SemanticModel, AddressOf context.ReportDiagnostic)
                     End Select
                 Next
             End Sub

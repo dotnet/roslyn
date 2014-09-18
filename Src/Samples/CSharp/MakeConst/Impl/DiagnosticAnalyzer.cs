@@ -35,7 +35,7 @@ namespace MakeConstCS
     // Implementing syntax node analyzer because the make const diagnostics in one method body are not dependent on the contents of other method bodies.
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class DiagnosticAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>
+    internal class DiagnosticAnalyzer : Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
     {
         public const string MakeConstDiagnosticId = "MakeConstCS";
         public static readonly DiagnosticDescriptor MakeConstRule = new DiagnosticDescriptor(MakeConstDiagnosticId,
@@ -45,9 +45,12 @@ namespace MakeConstCS
                                                                                              DiagnosticSeverity.Warning,
                                                                                              isEnabledByDefault: true);
 
-        public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get { return ImmutableArray.Create(SyntaxKind.LocalDeclarationStatement); } }
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.LocalDeclarationStatement);
+        }
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(MakeConstRule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(MakeConstRule); } }
 
         private static bool CanBeMadeConst(LocalDeclarationStatementSyntax localDeclaration, SemanticModel semanticModel)
         {
@@ -119,11 +122,11 @@ namespace MakeConstCS
             return true;
         }
 
-        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (CanBeMadeConst((LocalDeclarationStatementSyntax)node, semanticModel))
+            if (CanBeMadeConst((LocalDeclarationStatementSyntax)context.Node, context.SemanticModel))
             {
-                addDiagnostic(Diagnostic.Create(MakeConstRule, node.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(MakeConstRule, context.Node.GetLocation()));
             }
         }
     }

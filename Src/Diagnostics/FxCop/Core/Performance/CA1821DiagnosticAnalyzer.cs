@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
 {
-    public abstract class CA1821DiagnosticAnalyzer : ICodeBlockNestedAnalyzerFactory
+    public abstract class CA1821DiagnosticAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1821";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -21,28 +21,32 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                                                                          helpLink: "http://msdn.microsoft.com/library/bb264476.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return ImmutableArray.Create(Rule);
+                return ImmutableArray.Create(CA1821DiagnosticAnalyzerRule.Rule);
             }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            var method = ownerSymbol as IMethodSymbol;
+            analysisContext.RegisterCodeBlockStartAction<TSyntaxKind>(
+                (context) =>
+        {
+                    var method = context.OwningSymbol as IMethodSymbol;
             if (method == null)
             {
-                return null;
+                        return;
             }
 
             if (!IsDestructor(method))
             {
-                return null;
+                        return;
             }
 
-            return GetCodeBlockEndedAnalyzer();
+                    context.RegisterCodeBlockEndAction(GetCodeBlockEndedAnalyzer().AnalyzeCodeBlock);
+                });
         }
 
         protected abstract AbstractCodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer();
@@ -73,21 +77,21 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
             return overridden.ContainingType.SpecialType == SpecialType.System_Object; // it is object.Finalize
         }
 
-        protected abstract class AbstractCodeBlockEndedAnalyzer : ICodeBlockAnalyzer
+        protected abstract class AbstractCodeBlockEndedAnalyzer
         {
             public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(Rule);
+                    return ImmutableArray.Create(CA1821DiagnosticAnalyzerRule.Rule);
                 }
             }
 
-            public void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
             {
-                if (IsEmptyFinalizer(codeBlock, semanticModel))
+                if (IsEmptyFinalizer(context.CodeBlock, context.SemanticModel))
                 {
-                    addDiagnostic(ownerSymbol.CreateDiagnostic(Rule));
+                    context.ReportDiagnostic(context.OwningSymbol.CreateDiagnostic(CA1821DiagnosticAnalyzerRule.Rule));
                 }
             }
 

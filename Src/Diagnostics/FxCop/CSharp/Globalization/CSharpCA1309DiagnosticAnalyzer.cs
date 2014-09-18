@@ -14,45 +14,32 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA1309DiagnosticAnalyzer : CA1309DiagnosticAnalyzer
     {
-        protected override AbstractCodeBlockAnalyzer GetAnalyzer(INamedTypeSymbol stringComparisonType)
+        protected override void GetAnalyzer(CompilationStartAnalysisContext context, INamedTypeSymbol stringComparisonType)
         {
-            return new Analyzer(stringComparisonType);
+            context.RegisterSyntaxNodeAction(new Analyzer(stringComparisonType).AnalyzeNode, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression, SyntaxKind.InvocationExpression);
         }
 
-        private sealed class Analyzer : AbstractCodeBlockAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+        private sealed class Analyzer : AbstractCodeBlockAnalyzer
         {
-            private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(
-                SyntaxKind.EqualsExpression,
-                SyntaxKind.NotEqualsExpression,
-                SyntaxKind.InvocationExpression);
-
             public Analyzer(INamedTypeSymbol stringComparisonType)
                 : base(stringComparisonType)
             {
             }
 
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                get
-                {
-                    return kindsOfInterest;
-                }
-            }
-
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                var kind = node.CSharpKind();
+                var kind = context.Node.CSharpKind();
                 if (kind == SyntaxKind.InvocationExpression)
                 {
-                    AnalyzeInvocationExpression((InvocationExpressionSyntax)node, semanticModel, addDiagnostic);
+                    AnalyzeInvocationExpression((InvocationExpressionSyntax)context.Node, context.SemanticModel, context.ReportDiagnostic);
                 }
                 else if (kind == SyntaxKind.EqualsExpression || kind == SyntaxKind.NotEqualsExpression)
                 {
-                    AnalyzeBinaryExpression((BinaryExpressionSyntax)node, semanticModel, addDiagnostic);
+                    AnalyzeBinaryExpression((BinaryExpressionSyntax)context.Node, context.SemanticModel, context.ReportDiagnostic);
                 }
             }
 
-            private void AnalyzeInvocationExpression(InvocationExpressionSyntax node, SemanticModel model, Action<Diagnostic> addDiagnostic)
+            private void AnalyzeInvocationExpression(InvocationExpressionSyntax node, SemanticModel model, Action<Diagnostic> reportDiagnostic)
             {
                 if (node.Expression.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
@@ -67,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                             if (!IsAcceptableOverload(methodSymbol, model))
                             {
                                 // wrong overload
-                                addDiagnostic(memberAccess.Name.GetLocation().CreateDiagnostic(Rule));
+                                reportDiagnostic(memberAccess.Name.GetLocation().CreateDiagnostic(Rule));
                             }
                             else
                             {
@@ -78,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                                     !IsOrdinalOrOrdinalIgnoreCase(lastArgument, model))
                                 {
                                     // right overload, wrong value
-                                    addDiagnostic(lastArgument.GetLocation().CreateDiagnostic(Rule));
+                                    reportDiagnostic(lastArgument.GetLocation().CreateDiagnostic(Rule));
                                 }
                             }
                         }

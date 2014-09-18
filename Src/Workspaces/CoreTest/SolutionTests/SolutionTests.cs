@@ -342,14 +342,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ValidateSolutionAndCompilations(solution);
         }
 
-        private class MockDiagnosticAnalyzer : IDiagnosticAnalyzer
+        private class MockDiagnosticAnalyzer : DiagnosticAnalyzer
         {
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
                     throw new NotImplementedException();
                 }
+            }
+
+            public override void Initialize(AnalysisContext analysisContext)
+            {
             }
         }
 
@@ -361,7 +365,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.AddProject(project1, "foo", "foo.dll", LanguageNames.CSharp);
             Assert.Empty(solution.Projects.Single().AnalyzerReferences);
 
-            IDiagnosticAnalyzer analyzer = new MockDiagnosticAnalyzer();
+            DiagnosticAnalyzer analyzer = new MockDiagnosticAnalyzer();
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
             
             // Test AddAnalyzer
@@ -388,7 +392,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             
             // Test AddAnalyzers
             analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
-            IDiagnosticAnalyzer secondAnalyzer = new MockDiagnosticAnalyzer();
+            DiagnosticAnalyzer secondAnalyzer = new MockDiagnosticAnalyzer();
             var secondAnalyzerReference = new AnalyzerImageReference(ImmutableArray.Create(secondAnalyzer));
             var analyzerReferences = new[] { analyzerReference, secondAnalyzerReference };
             solution = solution.AddAnalyzerReferences(project1, analyzerReferences);

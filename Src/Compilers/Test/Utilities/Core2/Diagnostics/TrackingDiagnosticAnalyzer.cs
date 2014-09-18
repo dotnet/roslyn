@@ -20,14 +20,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public class Entry
         {
+            public readonly string AbstractMemberName;
             public readonly string CallerName;
             public readonly TSyntaxKind SyntaxKind;
             public readonly SymbolKind? SymbolKind;
             public readonly MethodKind? MethodKind;
             public readonly bool ReturnsVoid;
 
-            public Entry(string callerName, SyntaxNode node, ISymbol symbol)
+            public Entry(string abstractMemberName, string callerName, SyntaxNode node, ISymbol symbol)
             {
+                AbstractMemberName = abstractMemberName;
                 CallerName = callerName;
                 SyntaxKind = node == null ? default(TSyntaxKind) : (TSyntaxKind)(object)(ushort)node.RawKind;
                 SymbolKind = symbol == null ? (SymbolKind?)null : symbol.Kind;
@@ -43,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private readonly ConcurrentQueue<Entry> callLog = new ConcurrentQueue<Entry>();
 
-        protected override void OnInterfaceMember(SyntaxNode node, ISymbol symbol, string callerName)
+        protected override void OnAbstractMember(string abstractMemberName, SyntaxNode node, ISymbol symbol, string callerName)
         {
-            callLog.Enqueue(new Entry(callerName, node, symbol));
+            callLog.Enqueue(new Entry(abstractMemberName, callerName, node, symbol));
         }
 
         public IEnumerable<Entry> CallLog
@@ -60,21 +62,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static readonly Regex omittedSyntaxKindRegex =
             new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter");
 
-        private bool FilterByInterface<T>(Entry entry)
+        private bool FilterByAbstractName(Entry entry, string abstractMemberName)
         {
-            return GetInterfaceMemberNames(typeof(T)).Contains(entry.CallerName);
+            return abstractMemberName == entry.AbstractMemberName;
         }
 
-        public void VerifyAllInterfaceMembersWereCalled()
+        public void VerifyAllAnalyzerMembersWereCalled()
         {
             var actualMembers = callLog.Select(e => e.CallerName).Distinct();
-            AssertSequenceEqual(AllInterfaceMemberNames, actualMembers);
+            AssertSequenceEqual(AllAnalyzerMemberNames, actualMembers);
         }
 
         public void VerifyAnalyzeSymbolCalledForAllSymbolKinds()
         {
             var expectedSymbolKinds = new[] { SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Property };
-            var actualSymbolKinds = callLog.Where(FilterByInterface<ISymbolAnalyzer>).Where(e => e.SymbolKind.HasValue).Select(e => e.SymbolKind.Value).Distinct();
+            var actualSymbolKinds = callLog.Where(a => FilterByAbstractName(a, "Symbol")).Where(e => e.SymbolKind.HasValue).Select(e => e.SymbolKind.Value).Distinct();
             AssertSequenceEqual(expectedSymbolKinds, actualSymbolKinds);
         }
 
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyAnalyzeNodeCalledForAllSyntaxKinds()
         {
             var expectedSyntaxKinds = AllSyntaxKinds.Where(IsAnalyzeNodeSupported);
-            var actualSyntaxKinds = callLog.Where(FilterByInterface<ISyntaxNodeAnalyzer<TSyntaxKind>>).Select(e => e.SyntaxKind).Distinct();
+            var actualSyntaxKinds = callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Distinct();
             AssertIsSuperset(expectedSyntaxKinds, actualSyntaxKinds);
         }
 
@@ -120,9 +122,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             expectedArguments = expectedArguments.Where(a => IsOnCodeBlockSupported(a.SymbolKind, a.MethodKind, a.ReturnsVoid));
 
-            var actualOnCodeBlockStartedArguments = callLog.Where(FilterByInterface<ICodeBlockNestedAnalyzerFactory>)
+            var actualOnCodeBlockStartedArguments = callLog.Where(a => FilterByAbstractName(a, "CodeBlockStart"))
                 .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
-            var actualOnCodeBlockEndedArguments = callLog.Where(FilterByInterface<ICodeBlockAnalyzer>)
+            var actualOnCodeBlockEndedArguments = callLog.Where(a => FilterByAbstractName(a, "CodeBlock"))
                 .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
 
             if (!allowUnexpectedCalls)

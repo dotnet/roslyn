@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = TestResource.AllInOneCSharpCode;
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyAnalyzerDiagnostics(new[] { analyzer });
-            analyzer.VerifyAllInterfaceMembersWereCalled();
+            analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
 
             analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyCSharpAnalyzerDiagnostics(new[] { analyzer });
-            analyzer.VerifyAllInterfaceMembersWereCalled();
+            analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();

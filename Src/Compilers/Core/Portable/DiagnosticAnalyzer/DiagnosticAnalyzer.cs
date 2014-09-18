@@ -5,14 +5,19 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// The base interface for types that implement program analyzers that are capable of
-    /// producing diagnostics at compile-time.
+    /// The base type for diagnostic analyzers.
     /// </summary>
-    public interface IDiagnosticAnalyzer
+    public abstract class DiagnosticAnalyzer
     {
         /// <summary>
         /// Returns a set of descriptors for the diagnostics that this analyzer is capable of producing.
         /// </summary>
-        ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+
+        /// <summary>
+        /// Called once at session start to register actions in the analysis context.
+        /// </summary>
+        /// <param name="context"></param>
+        public abstract void Initialize(AnalysisContext context);
     }
 }

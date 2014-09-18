@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class EnumWithFlagsAttributesRulesTests : DiagnosticAnalyzerTestBase
     {
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new BasicEnumWithFlagsDiagnosticAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CSharpEnumWithFlagsDiagnosticAnalyzer();
         }

@@ -11,46 +11,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     Public Class BasicCA2213DiagnosticAnalyzer
         Inherits CA2213DiagnosticAnalyzer
 
-        Protected Overrides Function GetAnalyzer(disposableType As INamedTypeSymbol) As AbstractAnalyzer
-            Return New Analyzer(disposableType)
+        Protected Overrides Function GetAnalyzer(context As CompilationStartAnalysisContext, disposableType As INamedTypeSymbol) As AbstractAnalyzer
+            Dim analyzer As New Analyzer(disposableType)
+            context.RegisterSyntaxNodeAction(AddressOf Analyzer.AnalyzeNode, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.UsingStatement)
+            Return analyzer
         End Function
 
         Private NotInheritable Class Analyzer
             Inherits AbstractAnalyzer
-            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
-
-            Dim _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.UsingStatement)
 
             Public Sub New(disposableType As INamedTypeSymbol)
                 MyBase.New(disposableType)
             End Sub
 
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-                Get
-                    Return _kindsOfInterest
-                End Get
-            End Property
-
-            Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                Select Case node.VisualBasicKind
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Select Case context.Node.VisualBasicKind
                     Case SyntaxKind.SimpleMemberAccessExpression
                         ' NOTE: This cannot be optimized based on memberAccess.Name because a given method
                         ' may be an explicit interface implementation of IDisposable.Dispose.
-                        Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
-                        Dim methodSymbol = TryCast(SemanticModel.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)
+                        Dim memberAccess = DirectCast(context.Node, MemberAccessExpressionSyntax)
+                        Dim methodSymbol = TryCast(context.SemanticModel.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)
                         If methodSymbol IsNot Nothing AndAlso
                             (methodSymbol.MetadataName = Dispose OrElse methodSymbol.ExplicitInterfaceImplementations.Any(Function(m) m.MetadataName = Dispose)) Then
                             Dim exp = RemoveParentheses(memberAccess.Expression)
-                            Dim fieldSymbol = TryCast(SemanticModel.GetSymbolInfo(exp).Symbol, IFieldSymbol)
+                            Dim fieldSymbol = TryCast(context.SemanticModel.GetSymbolInfo(exp).Symbol, IFieldSymbol)
                             If fieldSymbol IsNot Nothing Then
                                 NoteFieldDisposed(fieldSymbol)
                             End If
                         End If
 
                     Case SyntaxKind.UsingStatement
-                        Dim usingStatementExpression = RemoveParentheses(DirectCast(node, UsingStatementSyntax).Expression)
+                        Dim usingStatementExpression = RemoveParentheses(DirectCast(context.Node, UsingStatementSyntax).Expression)
                         If usingStatementExpression IsNot Nothing Then
-                            Dim fieldSymbol = TryCast(SemanticModel.GetSymbolInfo(usingStatementExpression).Symbol, IFieldSymbol)
+                            Dim fieldSymbol = TryCast(context.SemanticModel.GetSymbolInfo(usingStatementExpression).Symbol, IFieldSymbol)
                             If fieldSymbol IsNot Nothing Then
                                 NoteFieldDisposed(fieldSymbol)
                             End If

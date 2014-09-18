@@ -9,7 +9,7 @@ Imports System.Threading
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA1024DiagnosticAnalyzer
-        Inherits CA1024DiagnosticAnalyzer
+        Inherits CA1024DiagnosticAnalyzer(Of SyntaxKind)
 
         Protected Overrides Function GetCodeBlockEndedAnalyzer() As CA1024CodeBlockEndedAnalyzer
             Return New CodeBlockEndedAnalyzer()
@@ -17,18 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
 
         Private Class CodeBlockEndedAnalyzer
             Inherits CA1024CodeBlockEndedAnalyzer
-            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
-            Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(Of SyntaxKind)(SyntaxKind.InvocationExpression)
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
+            Public Overrides ReadOnly Property SyntaxKindOfInterest As SyntaxKind
                 Get
-                    Return _kindsOfInterest
+                    Return SyntaxKind.InvocationExpression
                 End Get
             End Property
-
-            Private Sub BasicAnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                AnalyzeNode(node, semanticModel, addDiagnostic, options, cancellationToken)
-            End Sub
 
             Protected Overrides Function GetDiagnosticLocation(node As SyntaxNode) As Location
                 Dim methodBlock = TryCast(node, MethodBlockSyntax)

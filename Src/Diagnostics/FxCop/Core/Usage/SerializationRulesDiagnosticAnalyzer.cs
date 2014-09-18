@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
     [DiagnosticAnalyzer]
-    public sealed class SerializationRulesDiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
+    public sealed class SerializationRulesDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         // Implement serialization constructors
         internal const string RuleCA2229Id = "CA2229";
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA2229, RuleCA2235, RuleCA2237);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -60,33 +60,37 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            var iserializableTypeSymbol = compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable");
+            analysisContext.RegisterCompilationStartAction(
+                (context) =>
+                {
+                    var iserializableTypeSymbol = context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable");
             if (iserializableTypeSymbol == null)
             {
-                return null;
+                        return;
             }
 
-            var serializationInfoTypeSymbol = compilation.GetTypeByMetadataName("System.Runtime.Serialization.SerializationInfo");
+                    var serializationInfoTypeSymbol = context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.SerializationInfo");
             if (serializationInfoTypeSymbol == null)
             {
-                return null;
+                        return;
             }
 
-            var streamingContextTypeSymbol = compilation.GetTypeByMetadataName("System.Runtime.Serialization.StreamingContext");
+                    var streamingContextTypeSymbol = context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.StreamingContext");
             if (streamingContextTypeSymbol == null)
             {
-                return null;
+                        return;
             }
 
-            var serializableAttributeTypeSymbol = compilation.GetTypeByMetadataName("System.SerializableAttribute");
+                    var serializableAttributeTypeSymbol = context.Compilation.GetTypeByMetadataName("System.SerializableAttribute");
             if (serializableAttributeTypeSymbol == null)
             {
-                return null;
+                        return;
             }
 
-            return new Analyzer(iserializableTypeSymbol, serializationInfoTypeSymbol, streamingContextTypeSymbol, serializableAttributeTypeSymbol);
+                    context.RegisterSymbolAction(new Analyzer(iserializableTypeSymbol, serializationInfoTypeSymbol, streamingContextTypeSymbol, serializableAttributeTypeSymbol).AnalyzeSymbol, SymbolKind.NamedType);
+                });
         }
 
         private sealed class Analyzer : AbstractNamedTypeAnalyzer
@@ -116,7 +120,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 }
             }
 
-            public override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeSymbol(SymbolAnalysisContext context)
+            {
+                AnalyzeSymbol((INamedTypeSymbol)context.Symbol, context.Compilation, context.ReportDiagnostic, context.Options, context.CancellationToken);
+            }
+
+            protected override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 // If the type is public and implements ISerializable
                 if (namedTypeSymbol.DeclaredAccessibility == Accessibility.Public && namedTypeSymbol.AllInterfaces.Contains(this.iserializableTypeSymbol))

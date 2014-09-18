@@ -1700,24 +1700,24 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 [DiagnosticAnalyzer]
-class MyAnalyzer : ISymbolAnalyzer
+class MyAnalyzer : DiagnosticAnalyzer
 {
     internal static readonly long loadTime = DateTime.Now.Ticks;
     internal static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor(""MyAnalyzer01"", string.Empty, ""Analyzer loaded at: {0}"", string.Empty, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get { return ImmutableArray.Create(descriptor); }
     }
 
-    public ImmutableArray<SymbolKind> SymbolKindsOfInterest
+    public override void Initialize(AnalysisContext context)
     {
-        get { return ImmutableArray.Create(SymbolKind.NamedType); }
+        context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
     }
 
-    public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+    private void AnalyzeSymbol(SymbolAnalysisContext context)
     {
-        addDiagnostic(Diagnostic.Create(descriptor, symbol.Locations.First(), loadTime));
+        context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Symbol.Locations.First(), loadTime));
     }
 }"
                 }

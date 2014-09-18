@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interoperability
     {
         #region Verifiers 
 
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new PInvokeDiagnosticAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new PInvokeDiagnosticAnalyzer();
         }

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
     [DiagnosticAnalyzer]
-    public sealed class CA1017DiagnosticAnalyzer : ICompilationAnalyzer
+    public sealed class CA1017DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1017";
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                                       helpLink: "http://msdn.microsoft.com/library/ms182157.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -31,17 +31,22 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        public void AnalyzeCompilation(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            if (AssemblyHasPublicTypes(compilation.Assembly))
+            analysisContext.RegisterCompilationEndAction(AnalyzeCompilation);
+        }
+
+        private void AnalyzeCompilation(CompilationEndAnalysisContext context)
+        {
+            if (AssemblyHasPublicTypes(context.Compilation.Assembly))
             {
-                var comVisibleAttributeSymbol = WellKnownTypes.ComVisibleAttribute(compilation);
+                var comVisibleAttributeSymbol = WellKnownTypes.ComVisibleAttribute(context.Compilation);
                 if (comVisibleAttributeSymbol == null)
                 {
                     return;
                 }
 
-                var attributeInstance = compilation.Assembly.GetAttributes().FirstOrDefault(a => a.AttributeClass.Equals(comVisibleAttributeSymbol));
+                var attributeInstance = context.Compilation.Assembly.GetAttributes().FirstOrDefault(a => a.AttributeClass.Equals(comVisibleAttributeSymbol));
 
                 if (attributeInstance != null)
                 {
@@ -51,13 +56,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         attributeInstance.ConstructorArguments[0].Value.Equals(true))
                     {
                         // Has the attribute, with the value 'true'.
-                        addDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(FxCopRulesResources.CA1017_AttributeTrue, compilation.Assembly.Name)));
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(FxCopRulesResources.CA1017_AttributeTrue, context.Compilation.Assembly.Name)));
                     }
                 }
                 else
                 {
                     // No ComVisible attribute at all.
-                    addDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(FxCopRulesResources.CA1017_NoAttribute, compilation.Assembly.Name)));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(FxCopRulesResources.CA1017_NoAttribute, context.Compilation.Assembly.Name)));
                 }
             }
 

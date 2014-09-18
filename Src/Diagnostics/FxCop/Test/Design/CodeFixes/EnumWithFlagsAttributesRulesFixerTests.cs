@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new EnumWithFlagsBasicCodeFixProvider();
         }
 
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new BasicEnumWithFlagsDiagnosticAnalyzer();
         }
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new EnumWithFlagsCSharpCodeFixProvider();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CSharpEnumWithFlagsDiagnosticAnalyzer();
         }

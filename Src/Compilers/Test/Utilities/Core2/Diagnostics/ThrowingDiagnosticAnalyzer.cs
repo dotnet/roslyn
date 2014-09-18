@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             throwOnList.Add(method);
         }
 
-        protected override void OnInterfaceMember(SyntaxNode node, ISymbol symbol, string methodName)
+        protected override void OnAbstractMember(string abstractMemberName, SyntaxNode node, ISymbol symbol, string methodName)
         {
             if (throwOnList.Contains(methodName))
             {
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Func<IDiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis, string exceptionDiagnosticId)
+        public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Func<DiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis, string exceptionDiagnosticId)
         {
-            var handled = new bool?[AllInterfaceMemberNames.Length];
-            for (int i = 0; i < AllInterfaceMemberNames.Length; i++)
+            var handled = new bool?[AllAnalyzerMemberNames.Length];
+            for (int i = 0; i < AllAnalyzerMemberNames.Length; i++)
             {
-                var member = AllInterfaceMemberNames[i];
+                var member = AllAnalyzerMemberNames[i];
                 var analyzer = new ThrowingDiagnosticAnalyzer<TSyntaxKind>();
                 analyzer.ThrowOn(member);
                 try
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var membersHandled = AllInterfaceMemberNames.Zip(handled, (m, h) => new { Member = m, Handled = h });
+            var membersHandled = AllAnalyzerMemberNames.Zip(handled, (m, h) => new { Member = m, Handled = h });
             Assert.True(!handled.Any(h => h == false) && handled.Any(h => true), Environment.NewLine +
                 "  Exceptions thrown by analyzers in these members were *NOT* handled:" + Environment.NewLine + string.Join(Environment.NewLine, membersHandled.Where(mh => mh.Handled == false).Select(mh => mh.Member)) + Environment.NewLine + Environment.NewLine +
                 "  Exceptions thrown from these members were handled gracefully:"       + Environment.NewLine + string.Join(Environment.NewLine, membersHandled.Where(mh => mh.Handled == true) .Select(mh => mh.Member)) + Environment.NewLine + Environment.NewLine +

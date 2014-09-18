@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCodeActionCreateAnalyzer
-        Inherits CodeActionCreateAnalyzer
+        Inherits CodeActionCreateAnalyzer(Of SyntaxKind)
 
         Protected Overrides Function GetCodeBlockStartedAnalyzer(symbols As ImmutableHashSet(Of ISymbol)) As AbstractCodeBlockStartedAnalyzer
             Return New CodeBlockStartedAnalyzer(symbols)
@@ -23,32 +23,32 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
                 MyBase.New(symbols)
             End Sub
 
-            Protected Overrides Function GetSyntaxAnalyzer(symbols As ImmutableHashSet(Of ISymbol)) As AbstractSyntaxAnalyzer
-                Return New SyntaxAnalyzer(symbols)
-            End Function
+            Protected Overrides Sub GetSyntaxAnalyzer(context As CodeBlockStartAnalysisContext(Of SyntaxKind), symbols As ImmutableHashSet(Of ISymbol))
+                Dim analyzer = New SyntaxAnalyzer(symbols)
+                context.RegisterSyntaxNodeAction(AddressOf analyzer.AnalyzeNode, analyzer.SyntaxKindsOfInterest.ToArray())
+            End Sub
         End Class
 
         Private NotInheritable Class SyntaxAnalyzer
             Inherits AbstractSyntaxAnalyzer
-            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
             Public Sub New(symbols As ImmutableHashSet(Of ISymbol))
                 MyBase.New(symbols)
             End Sub
 
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
+            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
                 Get
                     Return ImmutableArray.Create(SyntaxKind.InvocationExpression)
                 End Get
             End Property
 
-            Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                Dim invocation = TryCast(node, InvocationExpressionSyntax)
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Dim invocation = TryCast(context.Node, InvocationExpressionSyntax)
                 If invocation Is Nothing Then
                     Return
                 End If
 
-                AnalyzeInvocationExpression(invocation.Expression, semanticModel, addDiagnostic, cancellationToken)
+                AnalyzeInvocationExpression(invocation.Expression, context.SemanticModel, AddressOf context.ReportDiagnostic, context.CancellationToken)
             End Sub
         End Class
     End Class

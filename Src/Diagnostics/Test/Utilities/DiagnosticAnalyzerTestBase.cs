@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static string VisualBasicDefaultFilePath = DefaultFilePathPrefix + 0 + "." + VisualBasicDefaultExt;
         internal static string TestProjectName = "TestProject";
 
-        protected abstract IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
-        protected abstract IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
+        protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
+        protected abstract DiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
 
         protected static DiagnosticResult GetGlobalResult(string id, string message)
         {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
         }
 
-        protected void Verify(string source, string language, IDiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
+        protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
         {
             Verify(new[] { source }, language, analyzer, expected);
         }
@@ -165,12 +165,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Verify(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
         }
 
-        protected void Verify(string[] sources, string language, IDiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
+        protected void Verify(string[] sources, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
         {
             GetSortedDiagnostics(sources, language, analyzer).Verify(analyzer, expected);
         }
 
-        protected static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, IDiagnosticAnalyzer analyzer)
+        protected static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer)
         {
             var documentsAndUseSpan = GetDocumentsAndSpans(sources, language);
             var documents = documentsAndUseSpan.Item1;
@@ -244,12 +244,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution.GetProject(projectId);
         }
 
-        protected static Diagnostic[] GetSortedDiagnostics(IDiagnosticAnalyzer analyzer, Document document, TextSpan?[] spans = null)
+        protected static Diagnostic[] GetSortedDiagnostics(DiagnosticAnalyzer analyzer, Document document, TextSpan?[] spans = null)
         {
             return GetSortedDiagnostics(analyzer, new[] { document }, spans);
         }
 
-        protected static Diagnostic[] GetSortedDiagnostics(IDiagnosticAnalyzer analyzer, Document[] documents, TextSpan?[] spans = null)
+        protected static Diagnostic[] GetSortedDiagnostics(DiagnosticAnalyzer analyzer, Document[] documents, TextSpan?[] spans = null)
         {
             var projects = new HashSet<Project>();
             foreach (var document in documents)
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return results;
         }
 
-        protected static void AnalyzeDocumentCore(IDiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        protected static void AnalyzeDocumentCore(DiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
             var diagnostics = semanticModel.Compilation.GetAnalyzerDiagnostics(new[] { analyzer }, continueOnAnalyzerException: continueOnAnalyzerException);

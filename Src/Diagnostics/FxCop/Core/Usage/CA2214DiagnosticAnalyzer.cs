@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     /// until run time. When a constructor calls a virtual method, it is possible that the constructor for the 
     /// instance that invokes the method has not executed. 
     /// </summary>
-    public abstract class CA2214DiagnosticAnalyzer : ICodeBlockNestedAnalyzerFactory
+    public abstract class CA2214DiagnosticAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
     {
-        internal const string RuleId = "CA2214";
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
+        public const string RuleId = "CA2214";
+        public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          FxCopRulesResources.DoNotCallOverridableMethodsInConstructors,
                                                                          FxCopRulesResources.DoNotCallOverridableMethodsInConstructors,
                                                                          FxCopDiagnosticCategory.Usage,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182331.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -40,14 +40,21 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            return ShouldOmitThisDiagnostic(ownerSymbol, semanticModel.Compilation) ?
-                null :
-                GetCodeBlockEndedAnalyzer(ownerSymbol as IMethodSymbol);
+            analysisContext.RegisterCodeBlockStartAction<TSyntaxKind>(
+                (context) =>
+                {
+                    if (ShouldOmitThisDiagnostic(context.OwningSymbol, context.SemanticModel.Compilation))
+                    {
+                        return;
+                    }
+
+                    GetCodeBlockEndedAnalyzer(context, context.OwningSymbol as IMethodSymbol);
+                });
         }
 
-        protected abstract IDiagnosticAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol);
+        protected abstract void GetCodeBlockEndedAnalyzer(CodeBlockStartAnalysisContext<TSyntaxKind> context, IMethodSymbol constructorSymbol);
 
         private static bool ShouldOmitThisDiagnostic(ISymbol symbol, Compilation compilation)
         {
@@ -79,17 +86,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             }
 
             return false;
-        }
-
-        protected abstract class AbstractSyntaxNodeAnalyzer : IDiagnosticAnalyzer
-        {
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get
-                {
-                    return ImmutableArray.Create(Rule);
-                }
-            }
         }
     }
 }

@@ -15,52 +15,47 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpSpecializedEnumerableCreationAnalyzer : SpecializedEnumerableCreationAnalyzer
     {
-        protected override AbstractCodeBlockStartedAnalyzer GetCodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
+        protected override void GetCodeBlockStartedAnalyzer(CompilationStartAnalysisContext context, INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
         {
-            return new CodeBlockStartedAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol);
+            context.RegisterCodeBlockStartAction<SyntaxKind>(new CodeBlockStartedAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol).Initialize);
         }
 
-        private sealed class CodeBlockStartedAnalyzer : AbstractCodeBlockStartedAnalyzer
+        private sealed class CodeBlockStartedAnalyzer : AbstractCodeBlockStartedAnalyzer<SyntaxKind>
         {
             public CodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol) :
                 base(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
             {
             }
 
-            protected override AbstractSyntaxAnalyzer GetSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
+            protected override void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
-                return new SyntaxAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol);
+                context.RegisterSyntaxNodeAction(new SyntaxAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol).AnalyzeNode, SyntaxKind.ReturnStatement);
             }
         }
 
-        private sealed class SyntaxAnalyzer : AbstractSyntaxAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+        private sealed class SyntaxAnalyzer : AbstractSyntaxAnalyzer
         {
             public SyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol) :
                 base(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
             {
             }
 
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                get { return ImmutableArray.Create(SyntaxKind.ReturnStatement); }
-            }
-
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                var expressionsToAnalyze = node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, semanticModel));
+                var expressionsToAnalyze = context.Node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, context.SemanticModel));
 
                 foreach (var expression in expressionsToAnalyze)
                 {
                     switch (expression.CSharpKind())
                     {
                         case SyntaxKind.ArrayCreationExpression:
-                            AnalyzeArrayCreationExpression((ArrayCreationExpressionSyntax)expression, addDiagnostic);
+                            AnalyzeArrayCreationExpression((ArrayCreationExpressionSyntax)expression, context.ReportDiagnostic);
                             break;
                         case SyntaxKind.ImplicitArrayCreationExpression:
-                            AnalyzeInitializerExpression(((ImplicitArrayCreationExpressionSyntax)expression).Initializer, addDiagnostic);
+                            AnalyzeInitializerExpression(((ImplicitArrayCreationExpressionSyntax)expression).Initializer, context.ReportDiagnostic);
                             break;
                         case SyntaxKind.SimpleMemberAccessExpression:
-                            AnalyzeMemberAccessName(((MemberAccessExpressionSyntax)expression).Name, semanticModel, addDiagnostic);
+                            AnalyzeMemberAccessName(((MemberAccessExpressionSyntax)expression).Name, context.SemanticModel, context.ReportDiagnostic);
                             break;
                     }
                 }

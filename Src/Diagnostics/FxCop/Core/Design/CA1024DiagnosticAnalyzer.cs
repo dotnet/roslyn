@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// Cause:
     /// A public or protected method has a name that starts with Get, takes no parameters, and returns a value that is not an array.
     /// </summary>
-    public abstract class CA1024DiagnosticAnalyzer : ICodeBlockNestedAnalyzerFactory
+    public abstract class CA1024DiagnosticAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1024";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         private const string GetHashCodeName = "GetHashCode";
         private const string GetEnumeratorName = "GetEnumerator";
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -38,64 +38,64 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            var methodSymbol = ownerSymbol as IMethodSymbol;
+            analysisContext.RegisterCodeBlockStartAction<TSyntaxKind>(
+                (context) =>
+                {
+                    var methodSymbol = context.OwningSymbol as IMethodSymbol;
 
-            if (methodSymbol == null ||
-                methodSymbol.ReturnsVoid ||
-                methodSymbol.ReturnType.Kind == SymbolKind.ArrayType ||
-                methodSymbol.Parameters.Length > 0 ||
-                !(methodSymbol.DeclaredAccessibility == Accessibility.Public || methodSymbol.DeclaredAccessibility == Accessibility.Protected) ||
-                methodSymbol.IsAccessorMethod() ||
-                !IsPropertyLikeName(methodSymbol.Name))
-            {
-                return null;
-            }
+                    if (methodSymbol == null ||
+                        methodSymbol.ReturnsVoid ||
+                        methodSymbol.ReturnType.Kind == SymbolKind.ArrayType ||
+                        methodSymbol.Parameters.Length > 0 ||
+                        !(methodSymbol.DeclaredAccessibility == Accessibility.Public || methodSymbol.DeclaredAccessibility == Accessibility.Protected) ||
+                        methodSymbol.IsAccessorMethod() ||
+                        !IsPropertyLikeName(methodSymbol.Name))
+                    {
+                        return;
+                    }
 
-            // Fxcop has a few additional checks to reduce the noise for this diagnostic:
-            // Ensure that the method is non-generic, non-virtual/override, has no overloads and doesn't have special names: 'GetHashCode' or 'GetEnumerator'.
-            // Also avoid generating this diagnostic if the method body has any invocation expressions.
-            if (methodSymbol.IsGenericMethod ||
-                methodSymbol.IsVirtual ||
-                methodSymbol.IsOverride ||
-                methodSymbol.ContainingType.GetMembers(methodSymbol.Name).Length > 1 ||
-                methodSymbol.Name == GetHashCodeName ||
-                methodSymbol.Name == GetEnumeratorName)
-            {
-                return null;
-            }
+                    // Fxcop has a few additional checks to reduce the noise for this diagnostic:
+                    // Ensure that the method is non-generic, non-virtual/override, has no overloads and doesn't have special names: 'GetHashCode' or 'GetEnumerator'.
+                    // Also avoid generating this diagnostic if the method body has any invocation expressions.
+                    if (methodSymbol.IsGenericMethod ||
+                        methodSymbol.IsVirtual ||
+                        methodSymbol.IsOverride ||
+                        methodSymbol.ContainingType.GetMembers(methodSymbol.Name).Length > 1 ||
+                        methodSymbol.Name == GetHashCodeName ||
+                        methodSymbol.Name == GetEnumeratorName)
+                    {
+                        return;
+                    }
 
-            return GetCodeBlockEndedAnalyzer();
+                    CA1024CodeBlockEndedAnalyzer analyzer = GetCodeBlockEndedAnalyzer();
+                    context.RegisterCodeBlockEndAction(analyzer.AnalyzeCodeBlock);
+                    context.RegisterSyntaxNodeAction(analyzer.AnalyzeNode, analyzer.SyntaxKindOfInterest);
+                });
         }
 
         protected abstract CA1024CodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer();
 
-        protected abstract class CA1024CodeBlockEndedAnalyzer : ICodeBlockAnalyzer
+        protected abstract class CA1024CodeBlockEndedAnalyzer
         {
             protected bool suppress = false;
 
             protected abstract Location GetDiagnosticLocation(SyntaxNode node);
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get
-                {
-                    return ImmutableArray.Create(Rule);
-                }
-            }
+            public abstract TSyntaxKind SyntaxKindOfInterest { get; }
 
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
                 // We are analyzing an invocation expression node. This method is suffiently complex to suppress the diagnostic.
                 suppress = true;
             }
 
-            public void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
             {
                 if (!suppress)
                 {
-                    addDiagnostic(GetDiagnosticLocation(codeBlock).CreateDiagnostic(Rule, ownerSymbol.Name));
+                    context.ReportDiagnostic(GetDiagnosticLocation(context.CodeBlock).CreateDiagnostic(Rule, context.OwningSymbol.Name));
                 }
             }
         }

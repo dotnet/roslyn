@@ -13,7 +13,7 @@ namespace AsyncPackage
     /// This analyzer check to see if there are Cancellation Tokens that can be propagated through async method calls
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CancellationAnalyzer : ICodeBlockNestedAnalyzerFactory
+    public class CancellationAnalyzer : DiagnosticAnalyzer
     {
         internal const string CancellationId = "Async005";
 
@@ -24,40 +24,40 @@ namespace AsyncPackage
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
-
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext context)
         {
-            var methodDeclaration = ownerSymbol as IMethodSymbol;
+            context.RegisterCodeBlockStartAction<SyntaxKind>(CreateAnalyzerWithinCodeBlock);
+        }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+        private void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<SyntaxKind> context)
+        {
+            var methodDeclaration = context.OwningSymbol as IMethodSymbol;
 
             if (methodDeclaration != null)
             {
-                ITypeSymbol cancellationTokenType = semanticModel.Compilation.GetTypeByMetadataName("System.Threading.CancellationToken");
+                ITypeSymbol cancellationTokenType = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Threading.CancellationToken");
 
                 var paramTypes = methodDeclaration.Parameters.Select(x => x.Type);
 
                 if (paramTypes.Contains(cancellationTokenType))
                 {
                     // Analyze the inside of the code block for invocationexpressions
-                    return new CancellationAnalyzer_Inner();
+                    context.RegisterSyntaxNodeAction(new CancellationAnalyzer_Inner().AnalyzeNode, SyntaxKind.InvocationExpression);
                 }
             }
-
-            return null;
         }
 
-        internal class CancellationAnalyzer_Inner : ISyntaxNodeAnalyzer<SyntaxKind>
+        internal class CancellationAnalyzer_Inner
         {
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(CancellationAnalyzer.Rule); } }
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get { return ImmutableArray.Create(SyntaxKind.InvocationExpression); } }
-
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var invokeMethod = semanticModel.GetSymbolInfo(node).Symbol as IMethodSymbol;
+                var invokeMethod = context.SemanticModel.GetSymbolInfo(context.Node).Symbol as IMethodSymbol;
 
                 if (invokeMethod != null)
                 {
-                    ITypeSymbol cancellationTokenType = semanticModel.Compilation.GetTypeByMetadataName("System.Threading.CancellationToken");
+                    ITypeSymbol cancellationTokenType = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Threading.CancellationToken");
 
                     var invokeParams = invokeMethod.Parameters.Select(x => x.Type);
 
@@ -65,9 +65,9 @@ namespace AsyncPackage
                     {
                         var passedToken = false;
 
-                        foreach (var arg in ((InvocationExpressionSyntax)node).ArgumentList.Arguments)
+                        foreach (var arg in ((InvocationExpressionSyntax)context.Node).ArgumentList.Arguments)
                         {
-                            var thisArgType = semanticModel.GetTypeInfo(arg.Expression).Type;
+                            var thisArgType = context.SemanticModel.GetTypeInfo(arg.Expression).Type;
 
                             if (thisArgType != null && thisArgType.Equals(cancellationTokenType))
                             {
@@ -77,15 +77,10 @@ namespace AsyncPackage
 
                         if (!passedToken)
                         {
-                            addDiagnostic(Diagnostic.Create(CancellationAnalyzer.Rule, node.GetLocation()));
-                        }
+                            context.ReportDiagnostic(Diagnostic.Create(CancellationAnalyzer.Rule, context.Node.GetLocation()));
                     }
                 }
             }
-
-            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
-            {
-                return;
             }
         }
     }

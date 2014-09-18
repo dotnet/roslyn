@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis
     public static class DiagnosticExtensions
     {
         private const int EN_US = 1033;
-        public static Func<Exception, IDiagnosticAnalyzer, bool> AlwaysCatchAnalyzerExceptions = (e, a) => true;
-        public static Func<Exception, IDiagnosticAnalyzer, bool> DonotCatchAnalyzerExceptions = (e, a) => e is OperationCanceledException;
+        public static Func<Exception, DiagnosticAnalyzer, bool> AlwaysCatchAnalyzerExceptions = (e, a) => true;
+        public static Func<Exception, DiagnosticAnalyzer, bool> DonotCatchAnalyzerExceptions = (e, a) => e is OperationCanceledException;
 
         /// <summary>
         /// This is obsolete. Use Verify instead.
@@ -96,17 +96,17 @@ namespace Microsoft.CodeAnalysis
             return c;
         }
 
-        public static CSharpCompilation VerifyCSharpAnalyzerDiagnostics(this CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
+        public static CSharpCompilation VerifyCSharpAnalyzerDiagnostics(this CSharpCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
         {
             return VerifyAnalyzerDiagnostics(c, n => n.CSharpKind(), analyzers, options, expected, continueOnAnalyzerException);
         }
 
-        public static VisualBasicCompilation VerifyVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
+        public static VisualBasicCompilation VerifyVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
         {
             return VerifyAnalyzerDiagnostics(c, n => n.VisualBasicKind(), analyzers, options, expected, continueOnAnalyzerException);
         }
 
-        public static TCompilation VerifyAnalyzerOccuranceCount<TCompilation>(this TCompilation c, IDiagnosticAnalyzer[] analyzers, int expectedCount, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static TCompilation VerifyAnalyzerOccuranceCount<TCompilation>(this TCompilation c, DiagnosticAnalyzer[] analyzers, int expectedCount, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
             where TCompilation : Compilation
         {
             var csComp = c as CSharpCompilation;
@@ -124,14 +124,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
-                this TCompilation c, IDiagnosticAnalyzer[] analyzers, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
+                this TCompilation c, DiagnosticAnalyzer[] analyzers, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
             return c.VerifyAnalyzerDiagnostics(analyzers, null, continueOnAnalyzerException, expected);
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
-                this TCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
+                this TCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
             var csComp = c as CSharpCompilation;
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TCompilation VerifyAnalyzerDiagnostics<TCompilation, TSyntaxKind>(
-                this TCompilation c, Func<SyntaxNode, TSyntaxKind> getKind, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options, DiagnosticDescription[] expected, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+                this TCompilation c, Func<SyntaxNode, TSyntaxKind> getKind, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options, DiagnosticDescription[] expected, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
             where TCompilation : Compilation
             where TSyntaxKind : struct
         {
@@ -157,21 +157,21 @@ namespace Microsoft.CodeAnalysis
             return c; // note this is a new compilation
         }
 
-        public static ImmutableArray<Diagnostic> GetCSharpAnalyzerDiagnostics(this CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static ImmutableArray<Diagnostic> GetCSharpAnalyzerDiagnostics(this CSharpCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             ImmutableArray<Diagnostic> diagnostics;
             c = GetAnalyzerDiagnostics(c, n => n.CSharpKind(), analyzers, options, continueOnAnalyzerException, out diagnostics);
             return diagnostics;
         }
 
-        public static ImmutableArray<Diagnostic> GetVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static ImmutableArray<Diagnostic> GetVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             ImmutableArray<Diagnostic> diagnostics;
             c = GetAnalyzerDiagnostics(c, n => n.VisualBasicKind(), analyzers, options, continueOnAnalyzerException, out diagnostics);
             return diagnostics;
         }
 
-        public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(this TCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(this TCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
             where TCompilation : Compilation
         {
             var csComp = c as CSharpCompilation;
@@ -189,9 +189,9 @@ namespace Microsoft.CodeAnalysis
         private static TCompilation GetAnalyzerDiagnostics<TCompilation, TSyntaxKind>(
                 this TCompilation c,
                 Func<SyntaxNode, TSyntaxKind> getKind,
-                IDiagnosticAnalyzer[] analyzers,
+                DiagnosticAnalyzer[] analyzers,
                 AnalyzerOptions options,
-                Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException,
+                Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
                 out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
             where TSyntaxKind : struct
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
         /// <paramref name="continueOnError"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
         /// </summary>
-        public static bool IsDiagnosticAnalyzerSuppressed(this IDiagnosticAnalyzer analyzer, CompilationOptions options)
+        public static bool IsDiagnosticAnalyzerSuppressed(this DiagnosticAnalyzer analyzer, CompilationOptions options)
         {
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, (exception, throwingAnalyzer) => true);
         }

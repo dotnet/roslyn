@@ -10,7 +10,7 @@ namespace AsyncPackage
     /// This analyzer will run a codefix on any method that qualifies as async that renames it to follow naming conventions
     /// </summary>
     [DiagnosticAnalyzer]
-    public class RenameAsyncAnalyzer : ISymbolAnalyzer
+    public class RenameAsyncAnalyzer : DiagnosticAnalyzer
     {
         internal const string RenameAsyncId = "Async002";
 
@@ -21,23 +21,26 @@ namespace AsyncPackage
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(RenameAsyncMethod); } }
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Method);
+        }
 
-        public ImmutableArray<SymbolKind> SymbolKindsOfInterest { get { return ImmutableArray.Create(SymbolKind.Method); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(RenameAsyncMethod); } }
 
-        public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private static void AnalyzeSymbol(SymbolAnalysisContext context)
         {
             // Filter out methods that do not use Async and make sure to include methods that return a Task
-            var methodSymbol = (IMethodSymbol)symbol;
+            var methodSymbol = (IMethodSymbol)context.Symbol;
 
             // Check if method name is an override or virtual class. If it is disregard it.
             // (This assumes if a method is virtual the programmer will not want to change the name)
             // Check if the method returns a Task or Task<TResult>
-            if ((methodSymbol.ReturnType == compilation.GetTypeByMetadataName("System.Threading.Tasks.Task")
-                || methodSymbol.ReturnType.OriginalDefinition == compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1").OriginalDefinition)
+            if ((methodSymbol.ReturnType == context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task")
+                || methodSymbol.ReturnType.OriginalDefinition == context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1").OriginalDefinition)
                 && !methodSymbol.Name.EndsWith("Async") && !methodSymbol.IsOverride && !methodSymbol.IsVirtual)
             {
-                addDiagnostic(Diagnostic.Create(RenameAsyncMethod, methodSymbol.Locations[0], methodSymbol.Name));
+                context.ReportDiagnostic(Diagnostic.Create(RenameAsyncMethod, methodSymbol.Locations[0], methodSymbol.Name));
                 return;
             }
 

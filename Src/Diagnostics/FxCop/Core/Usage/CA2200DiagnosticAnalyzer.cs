@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
-    public abstract class CA2200DiagnosticAnalyzer : IDiagnosticAnalyzer
+    public abstract class CA2200DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA2200";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182363.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {

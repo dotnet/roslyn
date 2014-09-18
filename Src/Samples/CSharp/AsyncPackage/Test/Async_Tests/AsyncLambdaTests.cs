@@ -54,7 +54,7 @@ namespace ConsoleApplication1
             return new AsyncLambdaVariableCodeFix();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new AsyncLambdaAnalyzer();
         }

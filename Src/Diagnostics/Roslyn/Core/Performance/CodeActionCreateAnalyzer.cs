@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class CodeActionCreateAnalyzer : IDiagnosticAnalyzer, ICompilationNestedAnalyzerFactory
+    public abstract class CodeActionCreateAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
     {
         internal const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         internal const string CreateMethodName = "Create";
@@ -23,34 +23,39 @@ namespace Roslyn.Diagnostics.Analyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get { return ImmutableArray.Create(DontUseCodeActionCreateRule); }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext context)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
+        }
 
-            var codeActionSymbol = compilation.GetTypeByMetadataName(CodeActionMetadataName);
+        private void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+
+            var codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
             if (codeActionSymbol == null)
             {
-                return null;
+                return;
             }
 
             var createSymbols = codeActionSymbol.GetMembers(CreateMethodName).Where(m => m is IMethodSymbol);
             if (createSymbols == null)
             {
-                return null;
+                return;
             }
 
             var createSymbolsSet = ImmutableHashSet.CreateRange(createSymbols);
-            return GetCodeBlockStartedAnalyzer(createSymbolsSet);
+            context.RegisterCodeBlockStartAction<TSyntaxKind>(GetCodeBlockStartedAnalyzer(createSymbolsSet).CreateAnalyzerWithinCodeBlock);
         }
 
         protected abstract AbstractCodeBlockStartedAnalyzer GetCodeBlockStartedAnalyzer(ImmutableHashSet<ISymbol> symbols);
 
-        protected abstract class AbstractCodeBlockStartedAnalyzer : ICodeBlockNestedAnalyzerFactory
+        protected abstract class AbstractCodeBlockStartedAnalyzer
         {
             private readonly ImmutableHashSet<ISymbol> symbols;
 
@@ -59,31 +64,21 @@ namespace Roslyn.Diagnostics.Analyzers
                 this.symbols = symbols;
             }
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get { return ImmutableArray.Create(DontUseCodeActionCreateRule); }
-            }
+            protected abstract void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<TSyntaxKind> context, ImmutableHashSet<ISymbol> symbols);
 
-            protected abstract AbstractSyntaxAnalyzer GetSyntaxAnalyzer(ImmutableHashSet<ISymbol> symbols);
-
-            public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<TSyntaxKind> context)
             {
-                return GetSyntaxAnalyzer(symbols);
+                GetSyntaxAnalyzer(context, symbols);
             }
         }
 
-        protected abstract class AbstractSyntaxAnalyzer : IDiagnosticAnalyzer
+        protected abstract class AbstractSyntaxAnalyzer
         {
             private readonly ImmutableHashSet<ISymbol> symbols;
 
             public AbstractSyntaxAnalyzer(ImmutableHashSet<ISymbol> symbols)
             {
                 this.symbols = symbols;
-            }
-
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get { return ImmutableArray.Create(DontUseCodeActionCreateRule); }
             }
 
             private bool IsCodeActionCreate(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)

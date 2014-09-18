@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static ImmutableArray<IDiagnosticAnalyzer> GetOrCreateAnalyzersFromFile(AnalyzerFileReference analyzerReference, string langauge = null)
+        internal static ImmutableArray<DiagnosticAnalyzer> GetOrCreateAnalyzersFromFile(AnalyzerFileReference analyzerReference, string langauge = null)
         {
             string fullPath = analyzerReference.FullPath;
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (cachedAnalyzers.Analyzers.IsAlive && cachedAnalyzers.Language == langauge)
                     {
-                        return (ImmutableArray<IDiagnosticAnalyzer>)cachedAnalyzers.Analyzers.Target;
+                        return (ImmutableArray<DiagnosticAnalyzer>)cachedAnalyzers.Analyzers.Target;
                     }
                     else
                     {
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // get all analyzers in the assembly:
-                var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+                var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
                 analyzerReference.AddAnalyzers(builder, langauge);
                 var analyzers = builder.ToImmutable();
 

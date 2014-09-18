@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
 {
-    public abstract class CA1309DiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
+    public abstract class CA1309DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1309";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
         internal const string StringComparisonTypeName = "System.StringComparison";
         internal const string IgnoreCaseText = "IgnoreCase";
 
-        protected abstract AbstractCodeBlockAnalyzer GetAnalyzer(INamedTypeSymbol stringComparisonType);
+        protected abstract void GetAnalyzer(CompilationStartAnalysisContext context, INamedTypeSymbol stringComparisonType);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -38,27 +38,26 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
             }
         }
 
-        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            var stringComparisonType = compilation.GetTypeByMetadataName(StringComparisonTypeName);
-            return stringComparisonType != null ? GetAnalyzer(stringComparisonType) : null;
+            analysisContext.RegisterCompilationStartAction(
+                (context) =>
+                {
+                    var stringComparisonType = context.Compilation.GetTypeByMetadataName(StringComparisonTypeName);
+                    if (stringComparisonType != null)
+                    {
+                        GetAnalyzer(context, stringComparisonType);
+                    }
+                });
         }
 
-        protected abstract class AbstractCodeBlockAnalyzer : IDiagnosticAnalyzer
+        protected abstract class AbstractCodeBlockAnalyzer
         {
             protected INamedTypeSymbol StringComparisonType { get; private set; }
 
             public AbstractCodeBlockAnalyzer(INamedTypeSymbol stringComparisonType)
             {
                 this.StringComparisonType = stringComparisonType;
-            }
-
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get
-                {
-                    return ImmutableArray.Create(Rule);
-                }
             }
 
             protected static bool IsEqualsOrCompare(string methodName)

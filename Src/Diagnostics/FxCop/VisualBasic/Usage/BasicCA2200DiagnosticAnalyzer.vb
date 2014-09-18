@@ -10,17 +10,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2200DiagnosticAnalyzer
         Inherits CA2200DiagnosticAnalyzer
-        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
-        Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.ThrowStatement)
+        Public Overrides Sub Initialize(analysisContext As AnalysisContext)
+            AnalysisContext.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.ThrowStatement)
+        End Sub
 
-        Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-            Get
-                Return _kindsOfInterest
-            End Get
-        End Property
-
-        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
+        Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+            Dim node As SyntaxNode = context.Node
             Dim throwStatement = DirectCast(node, ThrowStatementSyntax)
             Dim throwExpression = throwStatement.Expression
             If throwExpression Is Nothing Then
@@ -37,15 +33,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
 
                     Case SyntaxKind.CatchStatement
                         Dim catchStatement = DirectCast(node, CatchStatementSyntax)
-                        If IsCaughtLocalThrown(semanticModel, catchStatement, throwExpression) Then
-                            addDiagnostic(CreateDiagnostic(throwStatement))
+                        If IsCaughtLocalThrown(context.SemanticModel, catchStatement, throwExpression) Then
+                            context.ReportDiagnostic(CreateDiagnostic(throwStatement))
                             Return
                         End If
 
                     Case SyntaxKind.CatchPart
                         Dim catchStatement = DirectCast(node, CatchPartSyntax).Begin
-                        If IsCaughtLocalThrown(semanticModel, catchStatement, throwExpression) Then
-                            addDiagnostic(CreateDiagnostic(throwStatement))
+                        If IsCaughtLocalThrown(context.SemanticModel, catchStatement, throwExpression) Then
+                            context.ReportDiagnostic(CreateDiagnostic(throwStatement))
                             Return
                         End If
                 End Select

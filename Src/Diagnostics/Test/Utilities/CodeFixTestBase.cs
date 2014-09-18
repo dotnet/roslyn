@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
         }
 
-        protected void VerifyFix(string language, IDiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
+        protected void VerifyFix(string language, DiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
         {
             var document = CreateDocument(oldSource, language);
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyFix(document, analyzer, codeFixProvider, newSource, codeFixIndex, useCompilerAnalyzerDriver: false, allowNewCompilerDiagnostics: allowNewCompilerDiagnostics);
         }
 
-        private void VerifyFix(Document document, IDiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string newSource, int? codeFixIndex, bool useCompilerAnalyzerDriver, bool allowNewCompilerDiagnostics)
+        private void VerifyFix(Document document, DiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string newSource, int? codeFixIndex, bool useCompilerAnalyzerDriver, bool allowNewCompilerDiagnostics)
         {
             var analyzerDiagnostics = GetSortedDiagnostics(analyzer, document, useCompilerAnalyzerDriver: useCompilerAnalyzerDriver);
             var compilerDiagnostics = document.GetSemanticModelAsync().Result.GetDiagnostics();
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static Diagnostic[] GetSortedDiagnostics(IDiagnosticAnalyzer analyzerFactory, Document document, bool useCompilerAnalyzerDriver, TextSpan? span = null)
+        private static Diagnostic[] GetSortedDiagnostics(DiagnosticAnalyzer analyzerFactory, Document document, bool useCompilerAnalyzerDriver, TextSpan? span = null)
         {
             TextSpan spanToTest = span.HasValue ? span.Value : document.GetSyntaxRootAsync().Result.FullSpan;
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return GetSortedDiagnostics(diagnostics);
         }
 
-        private static IEnumerable<Diagnostic> GetDiagnosticsUsingIDEAnalyzerDriver(IDiagnosticAnalyzer analyzer, Document document, TextSpan? span)
+        private static IEnumerable<Diagnostic> GetDiagnosticsUsingIDEAnalyzerDriver(DiagnosticAnalyzer analyzer, Document document, TextSpan? span)
         {
             // TODO(mavasani): Uncomment the below code once FxCop Analyzers have been ported to new IDiagnosticAnalyzer API.
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
-        private static IEnumerable<Diagnostic> GetDiagnosticsUsingCompilerAnalyzerDriver(IDiagnosticAnalyzer analyzer, Document document, TextSpan? span)
+        private static IEnumerable<Diagnostic> GetDiagnosticsUsingCompilerAnalyzerDriver(DiagnosticAnalyzer analyzer, Document document, TextSpan? span)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
             var compilation = semanticModel.Compilation;

@@ -13,7 +13,7 @@ namespace AsyncPackage
     /// Analyzer that examines async lambdas and checks if they are being passed or stored as void-returning delegate types.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class AsyncLambdaAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>
+    public class AsyncLambdaAnalyzer : DiagnosticAnalyzer
     {
         internal const string AsyncLambdaId1 = "Async003";
         internal const string AsyncLambdaId2 = "Async004";
@@ -32,35 +32,32 @@ namespace AsyncPackage
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule1, Rule2); } }
-
-        public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+        public override void Initialize(AnalysisContext context)
         {
-            get
-            {
-                return ImmutableArray.Create(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression, SyntaxKind.AnonymousMethodExpression);
-            }
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression, SyntaxKind.AnonymousMethodExpression);
         }
 
-        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule1, Rule2); } }
+
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var symbol = semanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = context.SemanticModel.GetSymbolInfo(context.Node).Symbol;
 
             var methodLambda = symbol as IMethodSymbol;
 
             if (methodLambda != null && methodLambda.IsAsync)
             {
-                var type = semanticModel.GetTypeInfo(node);
+                var type = context.SemanticModel.GetTypeInfo(context.Node);
                 if (this.CheckIfVoidReturningDelegateType(type.ConvertedType))
                 {
                     // check if the lambda is being assigned to a variable.  This has a code fix.
-                    var parent = node.Parent;
+                    var parent = context.Node.Parent;
 
                     while (parent != null && !(parent is InvocationExpressionSyntax))
                     {
                         if (parent is VariableDeclarationSyntax)
                         {
-                            addDiagnostic(Diagnostic.Create(Rule2, parent.GetLocation()));
+                            context.ReportDiagnostic(Diagnostic.Create(Rule2, parent.GetLocation()));
                             return;
                         }
 
@@ -68,7 +65,7 @@ namespace AsyncPackage
                     }
 
                     // if not, add the normal diagnostic
-                    addDiagnostic(Diagnostic.Create(Rule1, node.GetLocation()));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule1, context.Node.GetLocation()));
                     return;
                 }
             }

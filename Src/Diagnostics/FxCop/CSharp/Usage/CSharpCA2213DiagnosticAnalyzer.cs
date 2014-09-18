@@ -15,39 +15,31 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA2213DiagnosticAnalyzer : CA2213DiagnosticAnalyzer
     {
-        protected override AbstractAnalyzer GetAnalyzer(INamedTypeSymbol disposableType)
+        protected override AbstractAnalyzer GetAnalyzer(CompilationStartAnalysisContext context, INamedTypeSymbol disposableType)
         {
-            return new Analyzer(disposableType);
+            Analyzer analyzer = new Analyzer(disposableType);
+            context.RegisterSyntaxNodeAction(analyzer.AnalyzeNode, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.UsingStatement);
+            return analyzer;
         }
 
-        private sealed class Analyzer : AbstractAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+        private sealed class Analyzer : AbstractAnalyzer
         {
-            private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.UsingStatement);
-
             public Analyzer(INamedTypeSymbol disposableType)
                 : base(disposableType)
             {
             }
 
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                get
+                if (context.Node.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
-                    return kindsOfInterest;
-                }
-            }
-
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                if (node.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
-                {
-                    var memberAccess = (MemberAccessExpressionSyntax)node;
+                    var memberAccess = (MemberAccessExpressionSyntax)context.Node;
                     if (memberAccess.Name != null && memberAccess.Name.Identifier.ValueText == Dispose)
                     {
-                        var methodSymbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol as IMethodSymbol;
+                        var methodSymbol = context.SemanticModel.GetSymbolInfo(memberAccess.Name).Symbol as IMethodSymbol;
                         if (methodSymbol != null && methodSymbol.MetadataName == Dispose)
                         {
-                            var fieldSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IFieldSymbol;
+                            var fieldSymbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IFieldSymbol;
                             if (fieldSymbol != null)
                             {
                                 NoteFieldDisposed(fieldSymbol);
@@ -55,12 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                         }
                     }
                 }
-                else if (node.CSharpKind() == SyntaxKind.UsingStatement)
+                else if (context.Node.CSharpKind() == SyntaxKind.UsingStatement)
                 {
-                    var usingStatementExpression = ((UsingStatementSyntax)node).Expression;
+                    var usingStatementExpression = ((UsingStatementSyntax)context.Node).Expression;
                     if (usingStatementExpression != null)
                     {
-                        var fieldSymbol = semanticModel.GetSymbolInfo(usingStatementExpression).Symbol as IFieldSymbol;
+                        var fieldSymbol = context.SemanticModel.GetSymbolInfo(usingStatementExpression).Symbol as IFieldSymbol;
                         if (fieldSymbol != null)
                         {
                             NoteFieldDisposed(fieldSymbol);

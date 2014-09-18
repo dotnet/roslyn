@@ -134,12 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        class ComplainAboutX : ISyntaxNodeAnalyzer<SyntaxKind>
+        class ComplainAboutX : DiagnosticAnalyzer
         {
             private static readonly DiagnosticDescriptor CA9999_UseOfVariableThatStartsWithX =
                 new DiagnosticDescriptor(id: "CA9999", title: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
@@ -147,20 +147,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
 
-            private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create<SyntaxKind>
-            (
-                // A use of an identifier. Note that identifiers used in a definitional context use a different syntax
-                SyntaxKind.IdentifierName
-            );
-
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get { return kindsOfInterest; } }
-
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public override void Initialize(AnalysisContext context)
             {
-                var id = (IdentifierNameSyntax)node;
+                context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.IdentifierName);
+            }
+
+            private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
+            {
+                var id = (IdentifierNameSyntax)context.Node;
                 if (id.Identifier.ValueText.StartsWith("x"))
                 {
-                    addDiagnostic(new TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.Location, "Use of variable whose name starts with 'x': '{0}'", false, id.Identifier.ValueText));
+                    context.ReportDiagnostic(new TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.Location, "Use of variable whose name starts with 'x': '{0}'", false, id.Identifier.ValueText));
                 }
             }
         }
@@ -184,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyCSharpAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyCSharpAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
                 // (5,18): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -216,7 +213,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyCSharpAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyCSharpAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
                 // (6,14): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //     int x3 = x1 + x2;
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -277,7 +274,7 @@ public class C : NotFound
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"))
-            .VerifyCSharpAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyCSharpAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -310,7 +307,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyCSharpAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyCSharpAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -323,10 +320,10 @@ public class C : NotFound
 
         }
 
-        class SyntaxAndSymbolAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>, ISymbolAnalyzer
+        class SyntaxAndSymbolAnalyzer : DiagnosticAnalyzer
         {
             private static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor("XX0001", "My Syntax/Symbol Diagnostic", "My Syntax/Symbol Diagnostic for '{0}'", "Compiler", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
@@ -334,47 +331,37 @@ public class C : NotFound
                 }
             }
 
-            public ImmutableArray<SymbolKind> SymbolKindsOfInterest
+            public override void Initialize(AnalysisContext context)
             {
-                get
-                {
-                    return ImmutableArray.Create(SymbolKind.NamedType);
-                }
+                context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.Attribute, SyntaxKind.ClassDeclaration, SyntaxKind.UsingDirective);
+                context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
             }
 
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+            private void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                get
-                {
-                    return ImmutableArray.Create(SyntaxKind.Attribute, SyntaxKind.ClassDeclaration, SyntaxKind.UsingDirective);
-                }
-            }
-
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                switch (node.CSharpKind())
+                switch (context.Node.CSharpKind())
                 {
                     case SyntaxKind.Attribute:
-                        var diag1 = CodeAnalysis.Diagnostic.Create(descriptor, node.GetLocation(), "Attribute");
-                        addDiagnostic(diag1);
+                        var diag1 = CodeAnalysis.Diagnostic.Create(descriptor, context.Node.GetLocation(), "Attribute");
+                        context.ReportDiagnostic(diag1);
                         break;
 
                     case SyntaxKind.ClassDeclaration:
-                        var diag2 = CodeAnalysis.Diagnostic.Create(descriptor, node.GetLocation(), "ClassDeclaration");
-                        addDiagnostic(diag2);
+                        var diag2 = CodeAnalysis.Diagnostic.Create(descriptor, context.Node.GetLocation(), "ClassDeclaration");
+                        context.ReportDiagnostic(diag2);
                         break;
 
                     case SyntaxKind.UsingDirective:
-                        var diag3 = CodeAnalysis.Diagnostic.Create(descriptor, node.GetLocation(), "UsingDirective");
-                        addDiagnostic(diag3);
+                        var diag3 = CodeAnalysis.Diagnostic.Create(descriptor, context.Node.GetLocation(), "UsingDirective");
+                        context.ReportDiagnostic(diag3);
                         break;
                 }
             }
 
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            private void AnalyzeSymbol(SymbolAnalysisContext context)
             {
-                var diag1 = CodeAnalysis.Diagnostic.Create(descriptor, symbol.Locations[0], "NamedType");
-                addDiagnostic(diag1);
+                var diag1 = CodeAnalysis.Diagnostic.Create(descriptor, context.Symbol.Locations[0], "NamedType");
+                context.ReportDiagnostic(diag1);
             }
         }
 
@@ -391,7 +378,7 @@ public class C { }";
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
-                .VerifyCSharpAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null,
+                .VerifyCSharpAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null,
                     // Symbol diagnostics
                     Diagnostic("XX0001", "C").WithWarningAsError(true),
                     // Syntax diagnostics
@@ -580,25 +567,33 @@ public class C { }").WithWarningAsError(true)); // class declaration
             Assert.Contains(disabledDiag, effectiveDiags);
         }
 
-        internal class FullyDisabledAnalyzer : IDiagnosticAnalyzer
+        internal class FullyDisabledAnalyzer : DiagnosticAnalyzer
         {
             public static DiagnosticDescriptor desc1 = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
             public static DiagnosticDescriptor desc2 = new DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get { return ImmutableArray.Create(desc1, desc2); }
             }
+
+            public override void Initialize(AnalysisContext context)
+            {
+            }
         }
 
-        internal class PartiallyDisabledAnalyzer : IDiagnosticAnalyzer
+        internal class PartiallyDisabledAnalyzer : DiagnosticAnalyzer
         {
             public static DiagnosticDescriptor desc1 = new DiagnosticDescriptor("XX003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
             public static DiagnosticDescriptor desc2 = new DiagnosticDescriptor("XX004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get { return ImmutableArray.Create(desc1, desc2); }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
             }
         }
 

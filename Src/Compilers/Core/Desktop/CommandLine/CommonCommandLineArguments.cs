@@ -331,9 +331,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
         {
-            var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {

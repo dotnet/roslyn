@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 {
     [DiagnosticAnalyzer]
-    public sealed class CA1715DiagnosticAnalyzer : ISymbolAnalyzer
+    public sealed class CA1715DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1715";
         internal static readonly DiagnosticDescriptor InterfaceRule = new DiagnosticDescriptor(RuleId,
@@ -33,15 +33,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
 
-        public ImmutableArray<SymbolKind> SymbolKindsOfInterest
-        {
-            get
-            {
-                return ImmutableArray.Create(SymbolKind.Method, SymbolKind.NamedType);
-            }
-        }
-
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
@@ -49,18 +41,24 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             }
         }
 
-        public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            switch (symbol.Kind)
+            analysisContext.RegisterSymbolAction(
+                (context) =>
+            {
+                    switch (context.Symbol.Kind)
             {
                 case SymbolKind.NamedType:
-                    AnalyzeNamedTypeSymbol((INamedTypeSymbol)symbol, addDiagnostic);
+                            AnalyzeNamedTypeSymbol((INamedTypeSymbol)context.Symbol, context.ReportDiagnostic);
                     break;
 
                 case SymbolKind.Method:
-                    AnalyzeMethodSymbol((IMethodSymbol)symbol, addDiagnostic);
+                            AnalyzeMethodSymbol((IMethodSymbol)context.Symbol, context.ReportDiagnostic);
                     break;
             }
+                },
+                SymbolKind.Method,
+                SymbolKind.NamedType);
         }
         
         private static void AnalyzeNamedTypeSymbol(INamedTypeSymbol symbol, Action<Diagnostic> addDiagnostic)

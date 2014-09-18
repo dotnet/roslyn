@@ -20,16 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     /// instance that invokes the method has not executed. 
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpCA2214DiagnosticAnalyzer : CA2214DiagnosticAnalyzer
+    public class CSharpCA2214DiagnosticAnalyzer : CA2214DiagnosticAnalyzer<SyntaxKind>
     {
-        protected override IDiagnosticAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol)
+        protected override void GetCodeBlockEndedAnalyzer(CodeBlockStartAnalysisContext<SyntaxKind> context, IMethodSymbol constructorSymbol)
         {
-            return new SyntaxNodeAnalyzer(constructorSymbol);
+            context.RegisterSyntaxNodeAction(new SyntaxNodeAnalyzer(constructorSymbol).AnalyzeNode, SyntaxKind.InvocationExpression);
         }
 
-        private sealed class SyntaxNodeAnalyzer : AbstractSyntaxNodeAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
+        private sealed class SyntaxNodeAnalyzer
         {
-            private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.InvocationExpression);
             private INamedTypeSymbol containingType;
 
             public SyntaxNodeAnalyzer(IMethodSymbol constructorSymbol)
@@ -37,16 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                 this.containingType = constructorSymbol.ContainingType;
             }
 
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
-            {
-                get
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
-                    return kindsOfInterest;
-                }
-            }
-
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
                 // TODO: For this to be correct, we need flow analysis to determine if a given method
                 // is actually invoked inside the current constructor. A method may be assigned to a
                 // delegate which can be called inside or outside the constructor. A method may also
@@ -54,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                 // Currently, FxCop does not produce a warning if a virtual method is called indirectly
                 // through a delegate or through a lambda.
 
-                var invocationExpression = (InvocationExpressionSyntax)node;
-                var method = semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol as IMethodSymbol;
+                var invocationExpression = (InvocationExpressionSyntax)context.Node;
+                var method = context.SemanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol as IMethodSymbol;
                 if (method != null &&
                     (method.IsAbstract || method.IsVirtual) &&
                     method.ContainingType == this.containingType)
                 {
-                    addDiagnostic(invocationExpression.Expression.CreateDiagnostic(Rule));
+                    context.ReportDiagnostic(invocationExpression.Expression.CreateDiagnostic(Rule));
                 }
             }
         }

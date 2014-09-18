@@ -44,12 +44,12 @@ namespace ConsoleApplication1
             return new RenameAsyncCodeFix();
         }
 
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new RenameAsyncAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new RenameAsyncAnalyzer();
         }

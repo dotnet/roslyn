@@ -16,12 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected const string TestDiagnosticCategory = "Test";
         protected const string TestDiagnosticMessageTemplate = "{0}";
 
-        protected abstract class AbstractMockAnalyzer : IDiagnosticAnalyzer
-        {
-            public abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-        }
-
-        protected class WarningOnCompilationEndedAnalyzer : AbstractMockAnalyzer, ICompilationAnalyzer
+        protected class WarningOnCompilationEndedAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "CompilationEnded";
             private static DiagnosticDescriptor rule = GetRule(Id);
@@ -34,40 +29,46 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            public void AnalyzeCompilation(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public override void Initialize(AnalysisContext analysisContext)
             {
-                addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, Location.None, Id));
+                analysisContext.RegisterCompilationEndAction(
+                    (context) =>
+                        {
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, Location.None, Id));
+                        }
+                    );
             }
         }
 
         // Produces a warning on the declaration of any symbol whose name starts with a specified prefix
-        protected class WarningOnNamePrefixDeclarationAnalyzer : AbstractMockAnalyzer, ISymbolAnalyzer
+        protected class WarningOnNamePrefixDeclarationAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Declaration";
             private static DiagnosticDescriptor rule = GetRule(Id);
 
             private string errorSymbolPrefix;
-            private static readonly ImmutableArray<SymbolKind> kindsOfInterest = ImmutableArray.Create(SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Property);
 
             public WarningOnNamePrefixDeclarationAnalyzer(string errorSymbolPrefix)
             {
                 this.errorSymbolPrefix = errorSymbolPrefix;
             }
 
-            public virtual ImmutableArray<SymbolKind> SymbolKindsOfInterest
+            public override void Initialize(AnalysisContext analysisContext)
             {
-                get
-                {
-                    return kindsOfInterest;
-                }
-            }
-
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                if (symbol.Name.StartsWith(this.errorSymbolPrefix))
-                {
-                    addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, symbol.Locations.First(), symbol.Name));
-                }
+                analysisContext.RegisterSymbolAction(
+                    (context) =>
+                        {
+                            if (context.Symbol.Name.StartsWith(this.errorSymbolPrefix))
+                            {
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Symbol.Locations.First(), context.Symbol.Name));
+                            }
+                        },
+                    SymbolKind.Event,
+                    SymbolKind.Field,
+                    SymbolKind.Method,
+                    SymbolKind.NamedType,
+                    SymbolKind.Namespace,
+                    SymbolKind.Property);
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -80,23 +81,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
 
         // Produces a warning on the declaration of any named type
-        protected class WarningOnTypeDeclarationAnalyzer : AbstractMockAnalyzer, ISymbolAnalyzer
+        protected class WarningOnTypeDeclarationAnalyzer : DiagnosticAnalyzer
         {
             public const string TypeId = "TypeDeclaration";
             private static DiagnosticDescriptor rule = GetRule(TypeId);
-            private static readonly ImmutableArray<SymbolKind> kindsOfInterest = ImmutableArray.Create(SymbolKind.NamedType);
 
-            public virtual ImmutableArray<SymbolKind> SymbolKindsOfInterest
+            public override void Initialize(AnalysisContext analysisContext)
             {
-                get
-                {
-                    return kindsOfInterest;
-                }
-            }
-
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-                addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, symbol.Locations.First(), symbol.Name));
+                analysisContext.RegisterSymbolAction(
+                    (context) =>
+                        {
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Symbol.Locations.First(), context.Symbol.Name));
+                        },
+                    SymbolKind.NamedType);
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
 
         // Produces a warning for the end of every code body and every invocation expression within that code body
-        protected class WarningOnCodeBodyAnalyzer : AbstractMockAnalyzer, ICodeBlockNestedAnalyzerFactory
+        protected class WarningOnCodeBodyAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "CodeBody";
             private static DiagnosticDescriptor rule = GetRule(Id);
@@ -129,79 +126,59 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+            public override void Initialize(AnalysisContext analysisContext)
             {
                 if (this.language == LanguageNames.CSharp)
                 {
-                    return new CSharpCodeBodyAnalyzer();
+                    analysisContext.RegisterCodeBlockStartAction<CSharp.SyntaxKind>(new CSharpCodeBodyAnalyzer().Initialize);
                 }
                 else
                 {
-                    return new BasicCodeBodyAnalyzer();
+                    analysisContext.RegisterCodeBlockStartAction<VisualBasic.SyntaxKind>(new BasicCodeBodyAnalyzer().Initialize);
                 }
             }
 
-            protected class CSharpCodeBodyAnalyzer : ISyntaxNodeAnalyzer<CSharp.SyntaxKind>, ICodeBlockAnalyzer
+            protected class CSharpCodeBodyAnalyzer
             {
-                public ImmutableArray<CSharp.SyntaxKind> SyntaxKindsOfInterest
+                public void Initialize(CodeBlockStartAnalysisContext<CSharp.SyntaxKind> analysisContext)
                 {
-                    get
-                    {
-                        return ImmutableArray.Create(CSharp.SyntaxKind.InvocationExpression);
-                    }
-                }
+                    analysisContext.RegisterCodeBlockEndAction(
+                        (context) =>
+                            {
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.OwningSymbol.Locations.First(), context.OwningSymbol.Name + ":end"));
+                            });
 
-                public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-                {
-                    get
-                    {
-                        return ImmutableArray.Create(rule);
-                    }
-                }
-
-                public void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-                {
-                    addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, ownerSymbol.Locations.First(), ownerSymbol.Name + ":end"));
-                }
-
-                public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-                {
-                    addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, node.GetLocation(), node.ToFullString()));
+                    analysisContext.RegisterSyntaxNodeAction(
+                        (context) =>
+                            {
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Node.GetLocation(), context.Node.ToFullString()));
+                            },
+                        CSharp.SyntaxKind.InvocationExpression);
                 }
             }
 
-            protected class BasicCodeBodyAnalyzer : ISyntaxNodeAnalyzer<VisualBasic.SyntaxKind>, ICodeBlockAnalyzer
+            protected class BasicCodeBodyAnalyzer
             {
-                public ImmutableArray<VisualBasic.SyntaxKind> SyntaxKindsOfInterest
+                public void Initialize(CodeBlockStartAnalysisContext<VisualBasic.SyntaxKind> analysisContext)
                 {
-                    get
-                    {
-                        return ImmutableArray.Create(VisualBasic.SyntaxKind.InvocationExpression);
-                    }
-                }
+                    analysisContext.RegisterCodeBlockEndAction(
+                        (context) =>
+                            {
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.OwningSymbol.Locations.First(), context.OwningSymbol.Name + ":end"));
+                            });
 
-                public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-                {
-                    get
-                    {
-                        return ImmutableArray.Create(rule);
-                    }
-                }
-
-                public void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-                {
-                    addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, ownerSymbol.Locations.First(), ownerSymbol.Name + ":end"));
-                }
-
-                public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-                {
-                    addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, node.GetLocation(), node.ToFullString()));
+                    analysisContext.RegisterSyntaxNodeAction(
+                        (context) =>
+                            {
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Node.GetLocation(), context.Node.ToFullString()));
+                            },
+                        VisualBasic.SyntaxKind.InvocationExpression);
                 }
             }
         }
 
         // Produces a warning for each comment trivium in a syntax tree
-        protected class WarningOnCommentAnalyzer : AbstractMockAnalyzer, ISyntaxTreeAnalyzer
+        protected class WarningOnCommentAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Comment";
             private static DiagnosticDescriptor rule = GetRule(Id);
@@ -214,23 +191,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            public void AnalyzeSyntaxTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public override void Initialize(AnalysisContext analysisContext)
             {
-                var comments = tree.GetRoot().DescendantTrivia()
-                    .Where(t =>
-                        t.CSharpKind() == CSharp.SyntaxKind.SingleLineCommentTrivia ||
-                        t.CSharpKind() == CSharp.SyntaxKind.MultiLineCommentTrivia ||
-                        t.VisualBasicKind() == VisualBasic.SyntaxKind.CommentTrivia);
+                analysisContext.RegisterSyntaxTreeAction(
+                    (context) =>
+                        {
+                             var comments = context.Tree.GetRoot().DescendantTrivia()
+                                .Where(t =>
+                                    t.CSharpKind() == CSharp.SyntaxKind.SingleLineCommentTrivia ||
+                                    t.CSharpKind() == CSharp.SyntaxKind.MultiLineCommentTrivia ||
+                                    t.VisualBasicKind() == VisualBasic.SyntaxKind.CommentTrivia);
 
-                foreach (var comment in comments)
-                {
-                    addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, comment.GetLocation(), comment.ToFullString()));
-                }
+                            foreach (var comment in comments)
+                            {
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, comment.GetLocation(), comment.ToFullString()));
+                            }
+                        });
             }
         }
 
         // Produces a warning for each token overlapping the given span in a syntax tree
-        protected class WarningOnTokenAnalyzer : AbstractMockAnalyzer, ISyntaxTreeAnalyzer
+        protected class WarningOnTokenAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Token";
             private static DiagnosticDescriptor rule = GetRule(Id);
@@ -249,15 +230,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            public void AnalyzeSyntaxTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public override void Initialize(AnalysisContext analysisContext)
             {
-                foreach (var nodeOrToken in tree.GetRoot().DescendantNodesAndTokens())
-                {
-                    if (nodeOrToken.IsToken && this.spans.Any(s => s.OverlapsWith(nodeOrToken.FullSpan)))
-                    {
-                        addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, nodeOrToken.GetLocation(), nodeOrToken.ToFullString()));
-                    }
-                }
+                analysisContext.RegisterSyntaxTreeAction(
+                    (context) =>
+                        {
+                            foreach (var nodeOrToken in context.Tree.GetRoot().DescendantNodesAndTokens())
+                            {
+                                if (nodeOrToken.IsToken && this.spans.Any(s => s.OverlapsWith(nodeOrToken.FullSpan)))
+                                {
+                                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, nodeOrToken.GetLocation(), nodeOrToken.ToFullString()));
+                                }
+                            }
+                        });
             }
         }
 

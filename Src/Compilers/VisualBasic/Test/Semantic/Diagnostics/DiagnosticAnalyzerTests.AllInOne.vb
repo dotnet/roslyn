@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim source = TestResource.AllInOneVisualBasicBaseline
             Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
             CreateCompilationWithMscorlib({source}).VerifyAnalyzerDiagnostics({analyzer})
-            analyzer.VerifyAllInterfaceMembersWereCalled()
+            analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds()
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds()

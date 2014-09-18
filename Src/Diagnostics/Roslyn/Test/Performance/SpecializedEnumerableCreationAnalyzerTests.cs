@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Performance
 {
     public class SpecializedEnumerableCreationAnalyzerTests : DiagnosticAnalyzerTestBase
     {
-        protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CSharpSpecializedEnumerableCreationAnalyzer();
         }
 
-        protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
             return new BasicSpecializedEnumerableCreationAnalyzer();
         }

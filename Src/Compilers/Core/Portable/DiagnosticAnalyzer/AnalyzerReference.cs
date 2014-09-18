@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// In most instances, either the analyzer reference is associated with a project or is being queried for analyzers in a particular language context.
         /// If so, use <see cref="GetAnalyzers(string)"/> method.
         /// </summary>
-        public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForAllLanguages();
+        public abstract ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages();
 
         /// <summary>
         /// Gets all the diagnostic analyzers defined in this assembly reference for the given <paramref name="language"/>.
         /// </summary>
         /// <param name="language">Language name.</param>
-        public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers(string language);
+        public abstract ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language);
     }
 }

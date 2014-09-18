@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Performance
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA1821DiagnosticAnalyzer
-        Inherits CA1821DiagnosticAnalyzer
+        Inherits CA1821DiagnosticAnalyzer(Of SyntaxKind)
 
         Protected Overrides Function GetCodeBlockEndedAnalyzer() As AbstractCodeBlockEndedAnalyzer
             Return New CodeBlockEndedAnalyzer()

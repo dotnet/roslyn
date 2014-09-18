@@ -6826,25 +6826,28 @@ End Module"
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     MustInherit Class MockAbstractDiagnosticAnalyzer
-        Implements ICompilationNestedAnalyzerFactory, ICompilationAnalyzer
+        Inherits DiagnosticAnalyzer
 
-        Public MustOverride ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
-        Public MustOverride Function CreateAnalzyerWithinCompilation(compilation As Compilation, options As AnalyzerOptions, cancellationToken As CancellationToken) As IDiagnosticAnalyzer Implements ICompilationNestedAnalyzerFactory.CreateAnalyzerWithinCompilation
-        Public MustOverride Sub AnalyzeCompilation(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ICompilationAnalyzer.AnalyzeCompilation
+        Public Overrides Sub Initialize(context As AnalysisContext)
+            context.RegisterCompilationStartAction(AddressOf CreateAnalyzerWithinCompilation)
+            context.RegisterCompilationEndAction(AddressOf AnalyzeCompilation)
+        End Sub
+
+        Public MustOverride Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+        Public MustOverride Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Class HiddenDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
-        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
         Friend Shared ReadOnly Hidden01 As DiagnosticDescriptor = New DiagnosticDescriptor("Hidden01", "", "Throwing a diagnostic for #ExternalSource", "", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
 
-        Public Overrides Function CreateAnalzyerWithinCompilation(compilation As Compilation, options As AnalyzerOptions, cancellationToken As CancellationToken) As IDiagnosticAnalyzer
-            Return Nothing
-        End Function
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.ExternalSourceDirectiveTrivia)
+        End Sub
 
-        Public Overrides Sub AnalyzeCompilation(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -6853,30 +6856,23 @@ End Module"
             End Get
         End Property
 
-        Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-            Get
-                Return ImmutableArray.Create(SyntaxKind.ExternalSourceDirectiveTrivia)
-            End Get
-        End Property
-
-        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-            addDiagnostic(Diagnostic.Create(Hidden01, node.GetLocation()))
+        Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+            context.ReportDiagnostic(Diagnostic.Create(Hidden01, context.Node.GetLocation()))
         End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Class InfoDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
-        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
         Friend Shared ReadOnly Info01 As DiagnosticDescriptor = New DiagnosticDescriptor("Info01", "", "Throwing a diagnostic for #Enable", "", DiagnosticSeverity.Info, isEnabledByDefault:=True)
         Friend Shared ReadOnly Info02 As DiagnosticDescriptor = New DiagnosticDescriptor("Info02", "", "Throwing a diagnostic for something else", "", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
-        Public Overrides Function CreateAnalzyerWithinCompilation(compilation As Compilation, options As AnalyzerOptions, cancellationToken As CancellationToken) As IDiagnosticAnalyzer
-            Return Nothing
-        End Function
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.EnableWarningDirectiveTrivia)
+        End Sub
 
-        Public Overrides Sub AnalyzeCompilation(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -6885,31 +6881,24 @@ End Module"
             End Get
         End Property
 
-        Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-            Get
-                Return ImmutableArray.Create(SyntaxKind.EnableWarningDirectiveTrivia)
-            End Get
-        End Property
-
-        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-            addDiagnostic(Diagnostic.Create(Info01, node.GetLocation()))
+        Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+            context.ReportDiagnostic(Diagnostic.Create(Info01, context.Node.GetLocation()))
         End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Class WarningDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
-        Implements ISymbolAnalyzer
 
         Friend Shared ReadOnly Warning01 As DiagnosticDescriptor = New DiagnosticDescriptor("Warning01", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
         Friend Shared ReadOnly Warning02 As DiagnosticDescriptor = New DiagnosticDescriptor("Warning02", "", "Throwing a diagnostic for something else", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
         Friend Shared ReadOnly Warning03 As DiagnosticDescriptor = New DiagnosticDescriptor("Warning03", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-        Public Overrides Function CreateAnalzyerWithinCompilation(compilation As Compilation, options As AnalyzerOptions, cancellationToken As CancellationToken) As IDiagnosticAnalyzer
-            Return Nothing
-        End Function
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
+        End Sub
 
-        Public Overrides Sub AnalyzeCompilation(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -6918,30 +6907,23 @@ End Module"
             End Get
         End Property
 
-        Public ReadOnly Property SymbolKindsOfInterest As ImmutableArray(Of SymbolKind) Implements ISymbolAnalyzer.SymbolKindsOfInterest
-            Get
-                Return ImmutableArray.Create(SymbolKind.NamedType)
-            End Get
-        End Property
-
-        Public Sub AnalyzeSymbol(symbol As ISymbol, compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISymbolAnalyzer.AnalyzeSymbol
-            addDiagnostic(Diagnostic.Create(Warning01, symbol.Locations.First()))
-            addDiagnostic(Diagnostic.Create(Warning03, symbol.Locations.First()))
+        Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+            context.ReportDiagnostic(Diagnostic.Create(Warning01, context.Symbol.Locations.First()))
+            context.ReportDiagnostic(Diagnostic.Create(Warning03, context.Symbol.Locations.First()))
         End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Class ErrorDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
-        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
         Friend Shared ReadOnly Error01 As DiagnosticDescriptor = New DiagnosticDescriptor("Error01", "", "Throwing a diagnostic for #Disable", "", DiagnosticSeverity.Error, isEnabledByDefault:=True)
 
-        Public Overrides Function CreateAnalzyerWithinCompilation(compilation As Compilation, options As AnalyzerOptions, cancellationToken As CancellationToken) As IDiagnosticAnalyzer
-            Return Nothing
-        End Function
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.DisableWarningDirectiveTrivia)
+        End Sub
 
-        Public Overrides Sub AnalyzeCompilation(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -6950,14 +6932,8 @@ End Module"
             End Get
         End Property
 
-        Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-            Get
-                Return ImmutableArray.Create(SyntaxKind.DisableWarningDirectiveTrivia)
-            End Get
-        End Property
-
-        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-            addDiagnostic(Diagnostic.Create(Error01, node.GetLocation()))
+        Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+            context.ReportDiagnostic(Diagnostic.Create(Error01, context.Node.GetLocation()))
         End Sub
     End Class
 End Namespace
