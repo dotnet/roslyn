@@ -20,6 +20,10 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\CSharp\csc2\csc2.vcxproj">
+      <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
+      <Name>csc2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Desktop\CodeAnalysis.Desktop.csproj">
       <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
       <Name>CodeAnalysis.Desktop</Name>
@@ -43,6 +47,10 @@
     <ProjectReference Include="..\MSBuildTasks\MSBuildTasks.csproj">
       <Project>{AC2BE224-FB28-40D4-B174-63CABDD488ED}</Project>
       <Name>MSBuildTasks</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\vbc2\vbc2.vcxproj">
+      <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
+      <Name>vbc2</Name>
     </ProjectReference>
     <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508f118-f62e-4c16-a6f4-7c3b56e166ad}</Project>
@@ -86,6 +94,7 @@
   <ItemGroup>
     <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="CompilerServerTests.cs" />
+    <Compile Include="RunKeepAliveTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

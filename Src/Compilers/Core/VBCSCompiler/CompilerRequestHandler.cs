@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             switch (req.Language)
             {
-                case BuildProtocolConstants.RequestLanguage.RequestId_CSharpCompile:
+                case BuildProtocolConstants.RequestLanguage.CSharpCompile:
                     CompilerServerLogger.Log("Request to compile C#");
                     return CSharpCompile(req, cancellationToken);
 
-                case BuildProtocolConstants.RequestLanguage.RequestId_VisualBasicCompile:
+                case BuildProtocolConstants.RequestLanguage.VisualBasicCompile:
                     CompilerServerLogger.Log("Request to compile VB");
                     return BasicCompile(req, cancellationToken);
 
@@ -69,15 +69,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             foreach (BuildRequest.Argument arg in req.Arguments)
             {
-                if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.ArgumentId_CurrentDirectory)
+                if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CurrentDirectory)
                 {
                     currentDirectory = arg.Value;
                 }
-                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.ArgumentId_LibEnvVariable)
+                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.LibEnvVariable)
                 {
                     libDirectory = arg.Value;
                 }
-                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.ArgumentId_CommandLineArgument)
+                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CommandLineArgument)
                 {
                     uint argIndex = arg.ArgumentIndex;
                     while (argIndex >= commandLineArguments.Count)

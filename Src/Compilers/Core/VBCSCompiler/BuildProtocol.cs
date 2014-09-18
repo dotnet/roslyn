@@ -406,19 +406,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         // that won't occur accidentally for debugging.
         public enum RequestLanguage
         {
-            RequestId_CSharpCompile = 0x44532521,
-            RequestId_VisualBasicCompile = 0x44532522,
+            CSharpCompile = 0x44532521,
+            VisualBasicCompile = 0x44532522,
         }
 
         // Arugments for CSharp and VB Compiler
         public enum ArgumentId
         {
             // The current directory of the client
-            ArgumentId_CurrentDirectory = 0x51147221,
+            CurrentDirectory = 0x51147221,
             // A comment line argument. The argument index indicates which one (0 .. N)
-            ArgumentId_CommandLineArgument = 0x51147222,
+            CommandLineArgument,
             // The "LIB" environment variable of the client
-            ArgumentId_LibEnvVariable = 0x51147223,
+            LibEnvVariable,
+            // Request a longer keep alive time for the server
+            KeepAlive
         }
 
         /// <summary>

@@ -3,5 +3,5 @@
 
 int main(int argc, char * argv[])
 {
-	return Run(RequestLanguage::REQUESTID_VBCOMPILE);
+	return Run(RequestLanguage::VBCOMPILE);
 }

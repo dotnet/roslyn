@@ -17,20 +17,27 @@ const int PROTOCOL_VERSION = 1;
 // The id numbers below are just random. It's useful to use id numbers
 // that won't occur accidentally for debugging.
 enum RequestLanguage {
-// csc -- compile C#
-REQUESTID_CSHARPCOMPILE = 0x44532521,
-// vbc -- compiler VB
-REQUESTID_VBCOMPILE = 0x44532522,
+	// csc -- compile C#
+	CSHARPCOMPILE = 0x44532521,
+	// vbc -- compiler VB
+	VBCOMPILE = 0x44532522,
 };
-// Arguments for CSharp and VB Compiler
 
+// Possible arguments to the server or the compilation
 enum ArgumentId {
-// The current directory of the client
-ARGUMENTID_CURRENTDIRECTORY = 0x51147221,
-// A comment line argument. The argument index indicates which one (0 .. N)
-ARGUMENTID_COMMANDLINEARGUMENT = 0x51147222,
-// The "LIB" environment variable of the client
-ARGUMENTID_LIBENVVARIABLE = 0x51147223,
+	// The current directory of the client
+	CURRENTDIRECTORY = 0x51147221,
+	// A comment line argument. The argument index indicates which one (0 .. N)
+	COMMANDLINEARGUMENT,
+	// The "LIB" environment variable of the client
+	LIBENVVARIABLE,
+	// How long to extend compiler server lifetime
+	KEEPALIVE
+};
+
+enum KeepAlive {
+	DEFAULT = -2,
+	FOREVER = -1,
 };
 
 // Class representing a compilation request to be sent to the server.
@@ -52,16 +59,16 @@ ARGUMENTID_LIBENVVARIABLE = 0x51147223,
 class Request
 {
 public:
-	int protocolVersion;
-	RequestLanguage language;
-	bool utf8Output;
+	int ProtocolVersion;
+	RequestLanguage Language;
+	bool Utf8Output;
 
 	struct Argument {
 		ArgumentId id;
 		int index;
 		wstring value;
 
-		Argument(ArgumentId id, int index, LPCWSTR value)
+		Argument(ArgumentId id, int index, wstring&& value)
 			: id(id), index(index), value(value)
 		{}
 
@@ -72,27 +79,30 @@ public:
 				&& this->value == right.value;
 		}
 	};
-	vector<Argument> arguments;
 
 	Request(Request&& other);
 	Request(int version,
 		    RequestLanguage language,
             bool utf8Output,
 			vector<Argument>&& arguments);
+	Request(RequestLanguage,
+			wstring&& currentDirectory);
 
 	Request& operator=(Request&& other);
+
+	vector<Argument>& Arguments();
+
+	void AddCommandLineArguments(vector<wstring>& commandLineArgs);
+	void AddLibEnvVariable(wstring&& value);
+	void AddKeepAlive(wstring&& keepAlive);
 
 	// Write the request buffer to the pipe, prefixed by its length.
     // This procedure either succeeds or logs an error and exits the process.
 	bool WriteToPipe(IPipe&);
-};
 
-Request CreateRequest(
-	RequestLanguage,
-	LPCWSTR currentDirectory,
-	LPCWSTR commandLineArgs [],
-	int argsCount,
-	LPCWSTR libEnvVariable);
+private:
+	vector<Argument> arguments;
+};
 
 // Base class for all possible responses to a request.
 // The ResponseType enum should list all possible response types

@@ -8,9 +8,14 @@
 CompletedResponse Run(
 	RequestLanguage language,
 	LPCWSTR currentDirectory,
-	LPCWSTR commandLineArgs [],
+	LPCWSTR commandLineArgs[],
 	int argsCount,
 	LPCWSTR libEnvVar,
 	bool &utf8Output);
 
 int Run(RequestLanguage);
+
+void ParseAndValidateClientArguments(
+	vector<wstring>& arguments,
+	bool& utf8Output,
+	wstring& keepAliveValue);

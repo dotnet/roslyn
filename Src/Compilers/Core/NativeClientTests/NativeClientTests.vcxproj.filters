@@ -15,16 +15,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="pipe_extensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="native_client_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="catch.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pipe_extensions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
+    <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
   </ItemGroup>
 </Project>

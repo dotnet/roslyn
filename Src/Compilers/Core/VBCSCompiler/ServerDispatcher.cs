@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         /// Number of milliseconds that the server will stay alive 
         /// after the last request disconnects.
-        private const int DefaultServerDieTimeout = 1; // Minimal timeout
+        private const int DefaultServerDieTimeout = 100; // Minimal timeout
 
         /// <summary>
         /// Main entry point for the process. Initialize the server dispatcher
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CompilerServerLogger.Initialize("SRV");
             CompilerServerLogger.Log("Process started");
 
-            int dieTimeout;
+            int dieTimeoutMs;
             // First try to get the die timeout from an environment variable,
             // then try to get the die timeout from the app.config file.
             // Set to default if any failures
@@ -58,22 +58,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 string dieTimeoutStr;
                 if (((dieTimeoutStr = Environment.GetEnvironmentVariable("RoslynDieTimeout")) != null ||
                      (dieTimeoutStr = ConfigurationManager.AppSettings["dieTimeout"]) != null)
-                    && int.TryParse(dieTimeoutStr, out dieTimeout)
-                    && dieTimeout > 0)
+                    && int.TryParse(dieTimeoutStr, out dieTimeoutMs)
+                    && dieTimeoutMs > 0)
                 {
                     // The die timeout settings are stored in seconds, not
                     // milliseconds
-                    dieTimeout *= 1000;
+                    dieTimeoutMs *= 1000;
                 }
                 else
                 {
-                    dieTimeout = DefaultServerDieTimeout;
+                    dieTimeoutMs = DefaultServerDieTimeout;
                 }
-                CompilerServerLogger.Log("Die timeout is: " + dieTimeout + "milliseconds.");
+                CompilerServerLogger.Log("Die timeout is: " + dieTimeoutMs + "milliseconds.");
             }
             catch (ConfigurationErrorsException e)
             {
-                dieTimeout = DefaultServerDieTimeout;
+                dieTimeoutMs = DefaultServerDieTimeout;
                 CompilerServerLogger.LogException(e, "Could not read AppSettings");
             }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var dispatcher = new ServerDispatcher(BuildProtocolConstants.PipeName,
                                                   new CompilerRequestHandler(),
-                                                  dieTimeout);
+                                                  dieTimeoutMs);
 
             //Debugger.Launch();
 
@@ -99,15 +99,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         // All writes should be Interlocked.
         private int activeConnectionCount = 0;
 
-        // If -1, the server never shuts down automatically.
-        // If 0, the server shuts down after the first compilation.
-        // Otherwise, the server times out when no new requests are received.
-        private readonly int serverDieTimeout;
-
-        // If the serverDieTimeout is 0 we have to block the main thread
-        // until the compilation is done, but we don't want to accept any
-        // more connections.
-        private AutoResetEvent dieTimeoutBlock;
+        private readonly KeepAliveTimer keepAliveTimer;
 
         // The current pipe stream which is waiting for connections
         private NamedPipeServerStream waitingPipeStream = null;
@@ -135,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             this.basePipeName = basePipeName;
             this.handler = handler;
 
-            this.serverDieTimeout = serverDieTimeout;
+            this.keepAliveTimer = new KeepAliveTimer(serverDieTimeout);
 
             var _ = new AnalyzerWatcher(this);
         }
@@ -206,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.Log("Pipe connection detected.");
 
                 // Cancel the timeouts
-                CancelTimeoutTimerIfNecessary();
+                this.keepAliveTimer.CancelIfActive();
 
                 // Dispatch the new connection on the thread pool
                 var newConnection = DispatchConnection(pipeStream);
@@ -217,14 +209,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 activeConnections.RemoveAll(t => t.IsCompleted);
                 activeConnections.Add(newConnection);
 
-                // If our timeout is 0, then we stop after the first
-                // connection. Otherwise, continue.
-                if (this.serverDieTimeout == 0)
+                if (this.keepAliveTimer.StopAfterFirstConnection)
                 {
-                    this.dieTimeoutBlock = new AutoResetEvent(false);
-                    this.dieTimeoutBlock.WaitOne();
                     break;
                 }
+
                 // Next time around the loop, create a new instance of the pipe
                 // to listen for another connection.
             }
@@ -252,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     CompilerServerLogger.Log("Memory available - accepting connection");
 
-                    Connection connection = new Connection(pipeStream, handler);
+                    Connection connection = new Connection(pipeStream, handler, this.keepAliveTimer);
 
                     try
                     {
@@ -344,18 +333,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             Interlocked.Decrement(ref this.activeConnectionCount);
 
-            if (this.serverDieTimeout == 0)
-            {
-                this.waitingPipeStream.Close();
-                Debug.Assert(this.dieTimeoutBlock != null);
-                this.dieTimeoutBlock.Set();
-            }
-
-            if (this.serverDieTimeout > 0 &&
-                this.activeConnectionCount == 0)
-            {
-                StartTimeoutTimerIfNecessary();
-            }
+            StartTimeoutTimerIfNecessary();
             CompilerServerLogger.Log("Removed connection {0}, {1} remaining.", connection.LoggingIdentifier, this.activeConnectionCount);
         }
 
@@ -386,57 +364,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // cleanup afterwards
                 this.waitingPipeStream.Close();
                 CompilerServerLogger.Log("Waiting for pipe connection timed out after {0} ms.",
-                    this.serverDieTimeout);
+                    this.keepAliveTimer.KeepAliveTime);
             }
             else
             {
-                lock (this.timeoutLockObject)
-                {
-                    this.timeoutCTS = null;
-                }
+                this.keepAliveTimer.Clear();
             }
         }
-
-        private readonly object timeoutLockObject = new object();
-        private CancellationTokenSource timeoutCTS = null;
 
         /// <summary>
         /// If no timer is active in this instance, start a new one.
         /// </summary>
         public void StartTimeoutTimerIfNecessary()
         {
-            if (this.serverDieTimeout > 0 &&
-                this.activeConnectionCount == 0 &&
-                this.timeoutCTS == null)
+            if (this.keepAliveTimer.IsKeepAliveFinite &&
+                this.activeConnectionCount == 0)
             {
-                lock (this.timeoutLockObject)
-                {
-                    if (timeoutCTS == null)
-                    {
-                        timeoutCTS = new CancellationTokenSource();
-                        Task delay = Task.Delay(this.serverDieTimeout,
-                            timeoutCTS.Token);
-                        delay.ContinueWith(ServerDieTimeoutFired);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Cancels the currently active timer if one exists.
-        /// </summary>
-        public void CancelTimeoutTimerIfNecessary()
-        {
-            if (this.timeoutCTS != null)
-            {
-                lock (this.timeoutLockObject)
-                {
-                    if (this.timeoutCTS != null)
-                    {
-                        this.timeoutCTS.Cancel();
-                        this.timeoutCTS = null;
-                    }
-                }
+                var timerTask = this.keepAliveTimer.StartTimer();
+                timerTask?.ContinueWith(ServerDieTimeoutFired);
             }
         }
     }

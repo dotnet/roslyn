@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             private readonly NamedPipeServerStream pipeStream;
             private readonly IRequestHandler handler;
+            private readonly KeepAliveTimer keepAliveTimer;
 
             private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
@@ -39,7 +40,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             /// <summary>
             /// Create a new connection, and listen for request on a new thread.
             /// </summary>
-            public Connection(NamedPipeServerStream pipeStream, IRequestHandler handler)
+            public Connection(NamedPipeServerStream pipeStream,
+                              IRequestHandler handler,
+                              KeepAliveTimer keepAliveTimer)
             {
                 try
                 {
@@ -54,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 this.pipeStream = pipeStream;
                 this.handler = handler;
+                this.keepAliveTimer = keepAliveTimer;
             }
 
             public async Task ServeConnection()
@@ -84,6 +88,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     FinishConnection(CompletionReason.SecurityViolation);
                     return;
                 }
+
+                CheckForNewKeepAlive(request);
 
                 // Start a monitor that cancels if the pipe closes on us
                 var _ = MonitorPipeForDisconnection().ConfigureAwait(false);
@@ -126,6 +132,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 Log("Completed writing response to named pipe.");
                 FinishConnection(CompletionReason.Success);
             }
+
+            /// <summary>
+            /// Check the request arguments for a new keep alive time. If one is present,
+            /// set the server timer to the new time.
+            /// </summary>
+            /// <param name="request"></param>
+            private void CheckForNewKeepAlive(BuildRequest request)
+            {
+                foreach (var arg in request.Arguments)
+                {
+                    if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.KeepAlive)
+                    {
+                        int result;
+                        // If the value is not a valid integer for any reason,
+                        // ignore it and continue with the current timeout. The client
+                        // is responsible for doing validation of the argument.
+                        if (int.TryParse(arg.Value, out result))
+                        {
+                            // Keep alive times are stored in milliseconds, but specified in seconds
+                            this.keepAliveTimer.KeepAliveTime = result * 1000;
+                        }
+                    }
+                }
+            }
+
 
             // The IsConnected property on named pipes does not detect when the client has disconnected
             // if we don't attempt any new I/O after the client disconnects. We start an async I/O here

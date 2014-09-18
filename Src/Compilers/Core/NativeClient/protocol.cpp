@@ -6,9 +6,10 @@
 using namespace std;
 
 Request::Request(Request&& other)
-	: protocolVersion(other.protocolVersion)
-	, language(other.language)
-	, utf8Output(other.utf8Output)
+	: ProtocolVersion(other.ProtocolVersion)
+	, Language(other.Language)
+	, Utf8Output(other.Utf8Output)
+	, arguments(other.arguments)
 { }
 
 // We use a request buffer to format an entire request. We do this because its more efficient,
@@ -18,10 +19,10 @@ Request::Request(
     RequestLanguage language,
     bool utf8Output,
     vector<Argument>&& arguments)
+	: ProtocolVersion(version),
+	  Language(language),
+	  Utf8Output(utf8Output)
 {
-    this->protocolVersion = version;
-    this->language = language;
-    this->utf8Output = utf8Output;
 	swap(this->arguments, arguments);
 }
 
@@ -29,52 +30,46 @@ Request& Request::operator=(Request&& other)
 {
 	if (this != &other)
 	{
-		protocolVersion = other.protocolVersion;
-		language = other.language;
-		utf8Output = other.utf8Output;
+		ProtocolVersion = other.ProtocolVersion;
+		Language = other.Language;
+		Utf8Output = other.Utf8Output;
+		arguments = other.arguments;
 	}
 	return *this;
 }
 
-Request CreateRequest(
+Request::Request(
 	RequestLanguage language,
-	LPCWSTR currentDirectory,
-	LPCWSTR commandLineArgs [],
-	int argsCount,
-	LPCWSTR libEnvVariable)
+	wstring&& currentDirectory)
+	: Request(PROTOCOL_VERSION,
+			  language,
+		      false,
+		      { Request::Argument(
+				  ArgumentId::CURRENTDIRECTORY, 0, move(currentDirectory)) })
+{ }
+
+vector<Request::Argument>& Request::Arguments()
 {
-    Log(L"Formatting request");
+	return this->arguments;
+}
 
-    auto arguments = vector<Request::Argument>();
-
-    // Current directory.
-    arguments.emplace_back(ARGUMENTID_CURRENTDIRECTORY, 0, currentDirectory);
-
-    // "LIB" environment variable.
-    if (libEnvVariable != nullptr)
+void Request::AddCommandLineArguments(vector<wstring>& commandLineArgs)
+{
+    for (size_t i = 0; i < commandLineArgs.size(); ++i)
     {
-        arguments.emplace_back(ARGUMENTID_LIBENVVARIABLE, 0, libEnvVariable);
+		this->arguments.emplace_back(ArgumentId::COMMANDLINEARGUMENT, i,
+			wstring(commandLineArgs.at(i)));
     }
+}
 
-    bool utf8Output = false;
-    // Command line arguments 
-    for (int i = 0; i < argsCount; ++i)
-    {
-        LPCWSTR arg = commandLineArgs[i];
-        arguments.emplace_back(ARGUMENTID_COMMANDLINEARGUMENT, i, arg);
+void Request::AddLibEnvVariable(wstring&& value)
+{
+	arguments.emplace_back(ArgumentId::LIBENVVARIABLE, 0, move(value));
+}
 
-        // The /utf8output option must be handled on the client side. 
-        if (wcscmp(arg, L"/utf8output") == 0 || wcscmp(arg, L"-utf8output") == 0)
-        {
-            utf8Output = true;
-        }
-    }
-
-    return Request(
-        PROTOCOL_VERSION,
-        language,
-        utf8Output,
-        move(arguments));
+void Request::AddKeepAlive(wstring&& value)
+{
+	arguments.emplace_back(ArgumentId::KEEPALIVE, 0, move(value));
 }
 
 // TODO(angocke): This function is dependent on the machine architecture being little
@@ -110,8 +105,8 @@ bool Request::WriteToPipe(IPipe& pipe)
 {
     vector<BYTE> buffer;
 
-    AddInt32(buffer, this->protocolVersion);
-    AddInt32(buffer, this->language);
+    AddInt32(buffer, this->ProtocolVersion);
+    AddInt32(buffer, this->Language);
     
     AddInt32(buffer, static_cast<int>(this->arguments.size()));
     for (auto arg : this->arguments)

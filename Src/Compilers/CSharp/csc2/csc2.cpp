@@ -5,5 +5,5 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	return Run(RequestLanguage::REQUESTID_CSHARPCOMPILE);
+	return Run(RequestLanguage::CSHARPCOMPILE);
 }
