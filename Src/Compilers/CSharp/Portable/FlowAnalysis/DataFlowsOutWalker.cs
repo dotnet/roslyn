@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and flow out of the region in that loop (and into the region inside the loop).
             foreach (Symbol variable in dataFlowsIn)
             {
-                int slot = this.MakeSlot(variable);
+                int slot = this.GetOrCreateSlot(variable);
                 if (slot > 0 && !this.State.IsAssigned(slot))
                 {
                     dataFlowsOut.Add(variable);

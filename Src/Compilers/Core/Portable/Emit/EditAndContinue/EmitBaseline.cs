@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// Map from syntax to local variable for methods added or updated
-        /// since the initial generation, indexed by method row.
+        /// since the initial generation, indexed by method row id.
         /// </summary>
         internal readonly IReadOnlyDictionary<uint, ImmutableArray<EncLocalInfo>> LocalsForMethodsAddedOrChanged;
 

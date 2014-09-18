@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         protected new CSharpCompilation GetCompilationForEmit(
             IEnumerable<string> source,
-            MetadataReference[] additionalRefs,
+            IEnumerable<MetadataReference> additionalRefs,
             CompilationOptions options)
         {
             return (CSharpCompilation)base.GetCompilationForEmit(source, additionalRefs, options);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         internal CompilationVerifier CompileAndVerify(
             string source,
-            MetadataReference[] additionalRefs = null,
+            IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
             EmitOptions emitOptions = EmitOptions.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
@@ -593,12 +593,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected override Compilation GetCompilationForEmit(
             IEnumerable<string> source,
-            MetadataReference[] additionalRefs,
+            IEnumerable<MetadataReference> additionalRefs,
             CompilationOptions options)
         {
             return CreateCompilationWithMscorlib(
                 source,
-                references: (additionalRefs != null) ? additionalRefs.ToList() : null,
+                references: additionalRefs,
                 options: (CSharpCompilationOptions)options,
                 assemblyName: GetUniqueName());
         }

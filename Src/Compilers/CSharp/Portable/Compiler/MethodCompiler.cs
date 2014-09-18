@@ -1280,19 +1280,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 Cci.AsyncMethodBodyDebugInfo asyncDebugInfo = null;
+                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdbs);
+
                 if ((object)method.AsyncKickoffMethod == null) // is this the MoveNext of an async method?
                 {
-                    CodeGen.CodeGenerator.Run(
-                        method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdbs);
+                    codeGen.Generate();
                 }
                 else
                 {
                     int asyncCatchHandlerOffset;
                     ImmutableArray<int> asyncYieldPoints;
                     ImmutableArray<int> asyncResumePoints;
-                    CodeGen.CodeGenerator.Run(
-                        method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdbs, 
-                        out asyncCatchHandlerOffset, out asyncYieldPoints, out asyncResumePoints);
+                    codeGen.
+                        Generate(out asyncCatchHandlerOffset, out asyncYieldPoints, out asyncResumePoints);
+
                     asyncDebugInfo = new Cci.AsyncMethodBodyDebugInfo(method.AsyncKickoffMethod, asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints);
                 }
 

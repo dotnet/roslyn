@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return GetMembers(((CSharpCompilation)compilation).GlobalNamespace, name, out lastSymbol);
         }
 
-        private static ImmutableArray<Symbol> GetMembers(NamespaceSymbol @namespace, string name, out NamespaceOrTypeSymbol lastSymbol)
+        private static ImmutableArray<Symbol> GetMembers(NamespaceSymbol @namespace, string qualifiedName, out NamespaceOrTypeSymbol lastSymbol)
         {
-            var parts = SplitMemberName(name);
+            var parts = SplitMemberName(qualifiedName);
             
             lastSymbol = @namespace;
             for (int i = 0; i < parts.Length - 1; i++)
@@ -178,10 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return lastSymbol.GetMembers(parts[parts.Length - 1]);
         }
 
-        public static Symbol GetMember(this NamespaceSymbol @namespace, string name)
+        public static Symbol GetMember(this NamespaceSymbol @namespace, string qualifiedName)
         {
             NamespaceOrTypeSymbol lastSymbol;
-            var members = GetMembers(@namespace, name, out lastSymbol);
+            var members = GetMembers(@namespace, qualifiedName, out lastSymbol);
             Assert.True(members.Length == 1, "Available memebers:\r\n" + string.Join("\r\n", lastSymbol.GetMembers()));
             return members.Single();
         }

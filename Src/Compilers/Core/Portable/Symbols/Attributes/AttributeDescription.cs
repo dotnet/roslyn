@@ -342,6 +342,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] signaturesOfWindowsRuntimeImportAttribute = { Signature_HasThis_Void };
         private static readonly byte[][] signaturesOfDynamicSecurityMethodAttribute = { Signature_HasThis_Void };
         private static readonly byte[][] signaturesOfRequiredAttributeAttribute = { Signature_HasThis_Void_Type };
+        private static readonly byte[][] signaturesOfAsyncStateMachineAttribute = { Signature_HasThis_Void_Type };
         private static readonly byte[][] signaturesOfRuntimeCompatibilityAttribute = { Signature_HasThis_Void };
         private static readonly byte[][] signaturesOfTypeForwardedToAttribute = { Signature_HasThis_Void_Type };
         private static readonly byte[][] signaturesOfSTAThreadAttribute = { Signature_HasThis_Void };
@@ -460,6 +461,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription WindowsRuntimeImportAttribute = new AttributeDescription("System.Runtime.InteropServices.WindowsRuntime", "WindowsRuntimeImportAttribute", signaturesOfWindowsRuntimeImportAttribute);
         internal static readonly AttributeDescription DynamicSecurityMethodAttribute = new AttributeDescription("System.Security", "DynamicSecurityMethodAttribute", signaturesOfDynamicSecurityMethodAttribute);
         internal static readonly AttributeDescription RequiredAttributeAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiredAttributeAttribute", signaturesOfRequiredAttributeAttribute);
+        internal static readonly AttributeDescription AsyncStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AsyncStateMachineAttribute", signaturesOfDeprecatedAttribute);
         internal static readonly AttributeDescription CompilationRelaxationsAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilationRelaxationsAttribute", signaturesOfCompilationRelaxationsAttribute);
         internal static readonly AttributeDescription RuntimeCompatibilityAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeCompatibilityAttribute", signaturesOfRuntimeCompatibilityAttribute);
         internal static readonly AttributeDescription DebuggableAttribute = new AttributeDescription("System.Diagnostics", "DebuggableAttribute", signaturesOfDebuggableAttribute);

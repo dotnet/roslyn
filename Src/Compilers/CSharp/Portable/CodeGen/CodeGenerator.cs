@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private CodeGenerator(
+        public CodeGenerator(
             MethodSymbol method,
             BoundStatement block,
             ILBuilder builder,
@@ -120,13 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return stackLocals != null && stackLocals.Contains(local);
         }
 
-        public static void Run(MethodSymbol method, BoundStatement block, ILBuilder builder, PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics, OptimizationLevel optimizations, bool emittingPdbs)
+        public void Generate()
         {
-            CodeGenerator generator = new CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs);
-            generator.Generate();
-            Debug.Assert(generator.asyncCatchHandlerOffset < 0);
-            Debug.Assert(generator.asyncYieldPoints == null);
-            Debug.Assert(generator.asyncResumePoints == null);
+            this.GenerateImpl();
+
+            Debug.Assert(this.asyncCatchHandlerOffset < 0);
+            Debug.Assert(this.asyncYieldPoints == null);
+            Debug.Assert(this.asyncResumePoints == null);
 
             if (!diagnostics.HasAnyErrors())
             {
@@ -134,23 +134,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        public static void Run(MethodSymbol method, BoundStatement block, ILBuilder builder, PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics, OptimizationLevel optimizations, bool emittingPdbs,
-            out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
+        public void Generate(out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
         {
-            CodeGenerator generator = new CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs);
-            generator.Generate();
+            this.GenerateImpl();
 
             if (!diagnostics.HasAnyErrors())
             {
                 builder.Realize();
             }
 
-            asyncCatchHandlerOffset = (generator.asyncCatchHandlerOffset < 0)
+            asyncCatchHandlerOffset = (this.asyncCatchHandlerOffset < 0)
                 ? -1
-                : generator.builder.GetILOffsetFromMarker(generator.asyncCatchHandlerOffset);
+                : this.builder.GetILOffsetFromMarker(this.asyncCatchHandlerOffset);
 
-            ArrayBuilder<int> yieldPoints = generator.asyncYieldPoints;
-            ArrayBuilder<int> resumePoints = generator.asyncResumePoints;
+            ArrayBuilder<int> yieldPoints = this.asyncYieldPoints;
+            ArrayBuilder<int> resumePoints = this.asyncResumePoints;
             if (yieldPoints == null)
             {
                 asyncYieldPoints = ImmutableArray<int>.Empty;
@@ -163,8 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 int n = yieldPoints.Count;
                 for (int i = 0; i < n; i++)
                 {
-                    int yieldOffset = generator.builder.GetILOffsetFromMarker(yieldPoints[i]);
-                    int resumeOffset = generator.builder.GetILOffsetFromMarker(resumePoints[i]);
+                    int yieldOffset = this.builder.GetILOffsetFromMarker(yieldPoints[i]);
+                    int resumeOffset = this.builder.GetILOffsetFromMarker(resumePoints[i]);
                     Debug.Assert(resumeOffset >= 0); // resume marker should always be reachable from dispatch
 
                     // yield point may not be reachable if the whole 
@@ -183,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void Generate()
+        private void GenerateImpl()
         {
             SetInitialDebugDocument();
 

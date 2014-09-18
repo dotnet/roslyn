@@ -15,24 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncLocalsTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private static readonly MetadataReference[] AsyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+
+        public CodeGenAsyncLocalsTests()
         {
             SynchronizationContext.SetSynchronizationContext(null);
-
-            options = options ?? TestOptions.ReleaseExe;
-
-            IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
-            references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
-
-            return CreateCompilationWithMscorlib45(source, options: options, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions options = null)
         {
-            SynchronizationContext.SetSynchronizationContext(null);
-
-            var compilation = this.CreateCompilation(source, references: references, options: options);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: emitOptions);
+            references = (references != null) ? references.Concat(AsyncRefs) : AsyncRefs;
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, emitOptions: emitOptions);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)
@@ -114,7 +107,7 @@ class Test
         }
 
         [Fact]
-        public void AsyncWithParamsAndLocals_UnHoisted()
+        public void AsyncWithParamsAndLocals_Unhoisted()
         {
             var source = @"
 using System;

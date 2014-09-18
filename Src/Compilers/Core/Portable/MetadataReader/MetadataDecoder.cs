@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         where AssemblySymbol : class, Symbol, IAssemblySymbol
         where Symbol : class, ISymbol
     {
-        protected readonly PEModule Module;
+        public readonly PEModule Module;
 
         // Identity of an assembly containing the module, or null if the module is a standalone module
         protected readonly AssemblyIdentity ContainingAssemblyIdentity;
@@ -798,10 +798,12 @@ namespace Microsoft.CodeAnalysis
             }
             catch (UnsupportedSignatureContent)
             {
+                localInfo = ImmutableArray<LocalInfo>.Empty;
                 return false;
             }
             catch (BadImageFormatException)
             {
+                localInfo = ImmutableArray<LocalInfo>.Empty;
                 return false;
             }
 
@@ -1528,7 +1530,7 @@ namespace Microsoft.CodeAnalysis
                     throw new UnsupportedSignatureContent();
                 }
             }
-            catch (Exception e) if (e is UnsupportedSignatureContent || e is BadImageFormatException) 
+            catch (Exception e) if (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
                 for (; paramIndex <= paramCount; paramIndex++)
                 {

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit
                             return SymbolChange.Added;
                         }
 
-                        // Nothign changes in this member on an update of the generator.
+                        // The symbol should be reused when the generator is updated.
                         if (!synthesizedDef.HasMethodBodyDependency)
                         {
                             return SymbolChange.None;
@@ -70,6 +70,11 @@ namespace Microsoft.CodeAnalysis.Emit
                                 // The state machine or closure class has been added.
                                 return SymbolChange.Added;
                             }
+                        }
+
+                        if (synthesizedSymbol.Kind == SymbolKind.Field)
+                        {
+                            return SymbolChange.Added;
                         }
 
                         // If the containing type of the synthesized symbol exists we can just reuse the existing synthesized member.

@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.Diagnostics = diagnostics;
         }
 
+        /// <summary>
+        /// Returns true if the specified local/parameter needs to be hoisted to a field.
+        /// Variable may be hoisted even if it is not captured, to improve debugging experience.
+        /// </summary>
         protected abstract bool NeedsProxy(Symbol localOrParameter);
 
         protected void RewriteLocals(ImmutableArray<LocalSymbol> locals, ArrayBuilder<LocalSymbol> newLocals)

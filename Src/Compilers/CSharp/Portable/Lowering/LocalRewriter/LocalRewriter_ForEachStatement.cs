@@ -19,11 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   RewriteStringForEachStatement
         /// </summary>
         /// <remarks>
-        /// NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
         /// We are diverging from the C# 4 spec (and Dev10) to follow the C# 5 spec.
         /// The iteration variable will be declared *inside* each loop iteration,
         /// rather than outside the loop.
-        /// NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
         /// </remarks>
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {

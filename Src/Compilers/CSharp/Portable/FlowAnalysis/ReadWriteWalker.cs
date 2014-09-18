@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var local = node.IterationVariable;
             if ((object)local != null)
             {
-                MakeSlot(local);
+                GetOrCreateSlot(local);
                 Assign(node, value: null);
             }
         }

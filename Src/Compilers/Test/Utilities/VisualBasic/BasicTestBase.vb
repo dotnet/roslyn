@@ -473,7 +473,7 @@ Public MustInherit Class BasicTestBaseBase
 
     Protected Overrides Function GetCompilationForEmit(
         source As IEnumerable(Of String),
-        additionalRefs() As MetadataReference,
+        additionalRefs As IEnumerable(Of MetadataReference),
         options As CompilationOptions
     ) As Compilation
         Return VisualBasicCompilation.Create(

@@ -984,11 +984,6 @@ namespace Microsoft.CodeAnalysis
             return HasStringValuedAttribute(token, AttributeDescription.GuidAttribute, out guidValue);
         }
 
-        internal bool HasCoClassAttribute(Handle token, out string coClassName)
-        {
-            return HasStringValuedAttribute(token, AttributeDescription.CoClassAttribute, out coClassName);
-        }
-
         internal bool HasFixedBufferAttribute(Handle token, out string elementTypeName, out int bufferSize)
         {
             return HasStringAndIntValuedAttribute(token, AttributeDescription.FixedBufferAttribute, out elementTypeName, out bufferSize);
@@ -1369,7 +1364,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private bool HasStringValuedAttribute(Handle token, AttributeDescription description, out string value)
+        internal bool HasStringValuedAttribute(Handle token, AttributeDescription description, out string value)
         {
             AttributeInfo info = FindTargetAttribute(token, description);
             if (info.HasValue)

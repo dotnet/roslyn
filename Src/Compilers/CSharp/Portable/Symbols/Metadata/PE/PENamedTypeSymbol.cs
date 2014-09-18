@@ -1889,28 +1889,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (ReferenceEquals(uncommon.lazyComImportCoClassType, ErrorTypeSymbol.UnknownResultType))
                 {
-                    Interlocked.CompareExchange(ref uncommon.lazyComImportCoClassType, MakeComImportCoClassType(), ErrorTypeSymbol.UnknownResultType);
+                    var type = this.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.CoClassAttribute);
+                    var coClassType = ((object)type != null && (type.TypeKind == TypeKind.Class || type.IsErrorType())) ? (NamedTypeSymbol)type : null;
+
+                    Interlocked.CompareExchange(ref uncommon.lazyComImportCoClassType, coClassType, ErrorTypeSymbol.UnknownResultType);
                 }
 
                 return uncommon.lazyComImportCoClassType;
             }
-        }
-
-        private NamedTypeSymbol MakeComImportCoClassType()
-        {
-            Debug.Assert(this.IsInterfaceType());
-            string coClassTypeName;
-            if (this.ContainingPEModule.Module.HasCoClassAttribute(this.handle, out coClassTypeName))
-            {
-                var decoder = new MetadataDecoder(this.ContainingPEModule);
-                var namedType = decoder.GetTypeSymbolForSerializedType(coClassTypeName);
-                if (namedType.TypeKind == TypeKind.Class || namedType.IsErrorType())
-                {
-                    return (NamedTypeSymbol)namedType;
-                }
-            }
-
-            return null;
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()

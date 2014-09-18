@@ -381,6 +381,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
+        internal TypeSymbol TryDecodeAttributeWithTypeArgument(Handle handle, AttributeDescription attributeDescription)
+        {
+            string typeName;
+            if (module.HasStringValuedAttribute(handle, attributeDescription, out typeName))
+            {
+                return new MetadataDecoder(this).GetTypeSymbolForSerializedType(typeName);
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Filters extension attributes from the attribute results.
         /// </summary>

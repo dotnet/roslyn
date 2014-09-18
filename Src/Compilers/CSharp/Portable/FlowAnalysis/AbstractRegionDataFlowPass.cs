@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SetState(ReachableState());
             MakeSlots(MethodParameters);
-            if ((object)MethodThisParameter != null) MakeSlot(MethodThisParameter);
+            if ((object)MethodThisParameter != null) GetOrCreateSlot(MethodThisParameter);
             return base.Scan(ref badRegion);
         }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // assign slots to the parameters
             foreach (var parameter in parameters)
             {
-                MakeSlot(parameter);
+                GetOrCreateSlot(parameter);
             }
         }
     }

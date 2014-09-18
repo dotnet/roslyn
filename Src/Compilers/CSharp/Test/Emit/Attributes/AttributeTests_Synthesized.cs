@@ -338,12 +338,12 @@ public class C
             {
                 var comp = CreateCompilationWithMscorlib(source, options: options);
 
-                CompileAndVerify(comp, symbolValidator: m =>
+                CompileAndVerify(comp, symbolValidator: module =>
                 {
-                    var iter = m.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__0");
+                    var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__0");
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
 
-                    foreach (var member in iter.GetMembers())
+                    foreach (var member in iter.GetMembers().Where(member => member is MethodSymbol))
                     {
                         switch (member.Name)
                         {

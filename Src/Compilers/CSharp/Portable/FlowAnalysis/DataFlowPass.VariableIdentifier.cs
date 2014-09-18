@@ -2,9 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,14 +9,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected struct VariableIdentifier : IEquatable<VariableIdentifier>
         {
-            public static VariableIdentifier None = new VariableIdentifier(null, 0);
-
             public readonly Symbol Symbol;
             public readonly int ContainingSlot;
 
             public VariableIdentifier(Symbol symbol, int containingSlot = 0)
             {
-                Debug.Assert((object)symbol == null || symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Parameter);
+                Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Parameter);
                 Symbol = symbol;
                 ContainingSlot = containingSlot;
             }

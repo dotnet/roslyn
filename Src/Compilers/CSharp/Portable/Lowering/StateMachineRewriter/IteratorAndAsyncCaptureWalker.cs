@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // parameters are NOT intitially assigned here - if that is a problem, then
             // the parameters must be captured.
-            MakeSlot(parameter);
+            GetOrCreateSlot(parameter);
         }
 
         protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)

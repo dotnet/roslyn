@@ -15,24 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncEHTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions compOptions = null)
+        private static readonly MetadataReference[] AsyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+
+        public CodeGenAsyncEHTests()
         {
             SynchronizationContext.SetSynchronizationContext(null);
-
-            compOptions = compOptions ?? TestOptions.ReleaseExe;
-
-            IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
-            references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
-
-            return CreateCompilationWithMscorlib45(source, options: compOptions, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions compOptions = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions options = null)
         {
-            SynchronizationContext.SetSynchronizationContext(null);
-
-            var compilation = this.CreateCompilation(source, references: references, compOptions: compOptions);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: emitOptions);
+            references = (references != null) ? references.Concat(AsyncRefs) : AsyncRefs;
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, emitOptions: emitOptions);
         }
 
         [Fact]
@@ -508,7 +501,7 @@ class Test
             var expected = @"
 2
 ";
-            var v = CompileAndVerify(source, compOptions: TestOptions.DebugExe, expectedOutput: expected);
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected);
 
             v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -619,7 +612,7 @@ class Test
     }
    -IL_00ce:  nop
    -IL_00cf:  ldarg.0
-    IL_00d0:  ldarg.0
+      IL_00d0:  ldarg.0
     IL_00d1:  ldfld      ""int Test.<G>d__1.<x>5__1""
     IL_00d6:  stfld      ""int Test.<G>d__1.<>7__wrap4""
     IL_00db:  call       ""System.Threading.Tasks.Task<int> Test.F()""
@@ -1024,37 +1017,37 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   // Code size      178 (0xb2)
   .maxstack  3
   .locals init (int V_0,
-                int V_1,
-                int V_2, //x
-                int V_3,
-                System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
-                System.Exception V_5)
+  int V_1, 
+  int V_2, //x
+  int V_3,
+  System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
+  System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<G>d__1.<>1__state""
   IL_0006:  stloc.0
   .try
-  {
-    IL_0007:  ldloc.0
+{
+  IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_0053
     IL_000a:  ldc.i4.0
     IL_000b:  stloc.2
     IL_000c:  ldc.i4.0
     IL_000d:  stloc.3
-    .try
-    {
+  .try
+{
       IL_000e:  ldloc.2
       IL_000f:  dup
       IL_0010:  div
       IL_0011:  stloc.2
       IL_0012:  leave.s    IL_0019
-    }
-    catch object
-    {
+}
+  catch object
+{
       IL_0014:  pop
       IL_0015:  ldc.i4.1
       IL_0016:  stloc.3
       IL_0017:  leave.s    IL_0019
-    }
+}
     IL_0019:  ldloc.3
     IL_001a:  ldc.i4.1
     IL_001b:  bne.un.s   IL_0080
@@ -1097,9 +1090,9 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
     IL_0080:  ldloc.2
     IL_0081:  stloc.1
     IL_0082:  leave.s    IL_009d
-  }
+}
   catch System.Exception
-  {
+{
     IL_0084:  stloc.s    V_5
     IL_0086:  ldarg.0
     IL_0087:  ldc.i4.s   -2
@@ -1109,7 +1102,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
     IL_0094:  ldloc.s    V_5
     IL_0096:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
     IL_009b:  leave.s    IL_00b1
-  }
+}
   IL_009d:  ldarg.0
   IL_009e:  ldc.i4.s   -2
   IL_00a0:  stfld      ""int Test.<G>d__1.<>1__state""

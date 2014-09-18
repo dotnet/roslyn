@@ -1029,7 +1029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Dim coClassTypeName As String = Nothing
-            If Not Me.ContainingPEModule.Module.HasCoClassAttribute(Me.m_Handle, coClassTypeName) Then
+            If Not Me.ContainingPEModule.Module.HasStringValuedAttribute(Me.m_Handle, AttributeDescription.CoClassAttribute, coClassTypeName) Then
                 Return Nothing
             End If
 

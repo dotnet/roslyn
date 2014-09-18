@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         
         protected abstract Compilation GetCompilationForEmit(
             IEnumerable<string> source,
-            MetadataReference[] additionalRefs,
+            IEnumerable<MetadataReference> additionalRefs,
             CompilationOptions options);
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationVerifier CompileAndVerify(
             string source,
-            MetadataReference[] additionalRefs = null,
+            IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
             EmitOptions emitOptions = EmitOptions.All,
             Action<IModuleSymbol, EmitOptions> sourceSymbolValidator = null,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationVerifier CompileAndVerify(
             string[] sources,
-            MetadataReference[] additionalRefs = null,
+            IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
             EmitOptions emitOptions = EmitOptions.All,
             Action<IModuleSymbol, EmitOptions> sourceSymbolValidator = null,

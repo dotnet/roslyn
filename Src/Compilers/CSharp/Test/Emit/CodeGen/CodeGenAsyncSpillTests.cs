@@ -15,24 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncSpillTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions compOptions = null)
+        private static readonly MetadataReference[] AsyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+
+        public CodeGenAsyncSpillTests()
         {
             SynchronizationContext.SetSynchronizationContext(null);
-
-            compOptions = compOptions ?? TestOptions.ReleaseExe;
-
-            IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
-            references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
-
-            return CreateCompilationWithMscorlib45(source, options: compOptions, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions compOptions = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions options = null)
         {
-            SynchronizationContext.SetSynchronizationContext(null);
-
-            var compilation = this.CreateCompilation(source, references: references, compOptions: compOptions);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: emitOptions);
+            references = (references != null) ? references.Concat(AsyncRefs) : AsyncRefs;
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, emitOptions: emitOptions);
         }
 
         [Fact]
@@ -603,7 +596,7 @@ public class Test
     }
 }
 ";
-            var v = CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Test.<F>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -777,7 +770,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
+            CompileAndVerify(source, options: TestOptions.DebugDll);
         }
 
         [Fact]
@@ -786,7 +779,7 @@ public class Test
             var source = @"
 using System.Threading.Tasks;
 
-public class Test
+public class C
 {
     public static int H(int a, object b, int c)
     {
@@ -810,7 +803,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
+            CompileAndVerify(source, options: TestOptions.DebugDll);
         }
 
         [Fact]
@@ -843,7 +836,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
+            CompileAndVerify(source, options: TestOptions.DebugDll);
         }
 
         [Fact]
@@ -1879,7 +1872,7 @@ class Driver
             var expected = @"
 0
 ";
-            CompileAndVerify(source, expected);
+            CompileAndVerify(source, expected, references: new[] { CSharpRef });
         }
 
         [Fact]
@@ -2377,7 +2370,7 @@ class Test
         Console.WriteLine(Foo().Result);
     }
 }";
-            CompileAndVerify(source, "0");
+            CompileAndVerify(source, "0", references: new[] { CSharpRef });
         }
 
         [Fact]
