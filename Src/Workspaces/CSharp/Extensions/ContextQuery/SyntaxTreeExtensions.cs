@@ -2082,18 +2082,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // nameof(Foo.|
             // nameof(Foo.Bar.|
             // Locate the open paren.
-            if (token.IsKind(SyntaxKind.DotToken) && token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (token.IsKind(SyntaxKind.DotToken))
             {
-                var parentMemberAccess = token.Parent;
-                while (parentMemberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
+                // Could have been parsed as member access
+                if (token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {
-                    parentMemberAccess = parentMemberAccess.Parent;
-                }
+                    var parentMemberAccess = token.Parent;
+                    while (parentMemberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
+                    {
+                        parentMemberAccess = parentMemberAccess.Parent;
+                    }
 
-                if (parentMemberAccess.IsParentKind(SyntaxKind.Argument) &&
-                    parentMemberAccess.Parent.IsChildNode<ArgumentListSyntax>(a => a.Arguments.FirstOrDefault()))
+                    if (parentMemberAccess.IsParentKind(SyntaxKind.Argument) &&
+                        parentMemberAccess.Parent.IsChildNode<ArgumentListSyntax>(a => a.Arguments.FirstOrDefault()))
+                    {
+                        token = ((ArgumentListSyntax)parentMemberAccess.Parent.Parent).OpenParenToken;
+                    }
+                }
+                
+                // Could have been parsed as a qualified name.
+                if (token.Parent.IsKind(SyntaxKind.QualifiedName))
                 {
-                    token = ((ArgumentListSyntax)parentMemberAccess.Parent.Parent).OpenParenToken;
+                    var parentQualifiedName = token.Parent;
+                    while (parentQualifiedName.IsParentKind(SyntaxKind.QualifiedName))
+                    {
+                        parentQualifiedName = parentQualifiedName.Parent;
+                    }
+
+                    if (parentQualifiedName.IsParentKind(SyntaxKind.Argument) &&
+                        parentQualifiedName.Parent.IsChildNode<ArgumentListSyntax>(a => a.Arguments.FirstOrDefault()))
+                    {
+                        token = ((ArgumentListSyntax)parentQualifiedName.Parent.Parent).OpenParenToken;
+                    }
+                    else if (parentQualifiedName.IsParentKind(SyntaxKind.NameOfExpression))
+                    {
+                        token = ((NameOfExpressionSyntax)parentQualifiedName.Parent).OpenParenToken;
+                    }
                 }
             }
 
