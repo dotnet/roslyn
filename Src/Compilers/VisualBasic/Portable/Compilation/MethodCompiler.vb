@@ -804,19 +804,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim emittedBody As MethodBody = Nothing
 
                     If Not diagnosticsThisMethod.HasAnyErrors Then
+                        Dim variableSlotAllocatorOpt = _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method)
                         Dim rewrittenBody = Rewriter.LowerBodyOrInitializer(
                             method,
                             boundBody,
                             previousSubmissionFields:=Nothing,
                             compilationState:=compilationState,
                             diagnostics:=diagnosticsThisMethod,
+                            variableSlotAllocatorOpt:=variableSlotAllocatorOpt,
                             isBodySynthesized:=True)
 
                         If Not diagnosticsThisMethod.HasAnyErrors Then
                             emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                              method,
                                                              rewrittenBody,
-                                                             variableSlotAllocatorOpt:=Nothing,
+                                                             variableSlotAllocatorOpt:=variableSlotAllocatorOpt,
                                                              debugDocumentProvider:=Nothing,
                                                              diagnostics:=diagnosticsThisMethod,
                                                              namespaceScopes:=Nothing)
@@ -853,6 +855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim method = methodWithBody.Method
 
                 Dim diagnosticsThisMethod As DiagnosticBag = DiagnosticBag.GetInstance()
+                Debug.Assert(_moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method) Is Nothing)
 
                 Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                      method,
@@ -1176,6 +1179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    previousSubmissionFields,
                                                                    compilationState,
                                                                    diagsForCurrentMethod,
+                                                                   variableSlotAllocatorOpt:=Nothing,
                                                                    isBodySynthesized:=True)
 
                             compilationState.AddMethodWrapper(accessor, accessor, body)
@@ -1249,8 +1253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics = DiagnosticBag.GetInstance()
             End If
 
-            Dim variableSlotAllocatorOpt As VariableSlotAllocator = Nothing
-
+            Dim variableSlotAllocatorOpt = If(_moduleBeingBuiltOpt Is Nothing, Nothing, _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method))
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    body,
                                                    previousSubmissionFields,

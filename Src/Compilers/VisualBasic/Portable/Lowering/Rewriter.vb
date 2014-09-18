@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
             diagnostics As DiagnosticBag,
-            <Out> Optional ByRef variableSlotAllocatorOpt As VariableSlotAllocator = Nothing,
+            variableSlotAllocatorOpt As VariableSlotAllocator,
             Optional isBodySynthesized As Boolean = False) As BoundBlock
 
             Debug.Assert(Not body.HasErrors)
@@ -61,9 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If lambdaRewritten.HasErrors Then
                 Return lambdaRewritten
             End If
-
-            variableSlotAllocatorOpt = If(isBodySynthesized OrElse compilationState.ModuleBuilderOpt Is Nothing, Nothing,
-                compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method))
 
             ' Rewrite Iterator methods
             Dim iteratorRewritten = IteratorRewriter.Rewrite(lambdaRewritten,
