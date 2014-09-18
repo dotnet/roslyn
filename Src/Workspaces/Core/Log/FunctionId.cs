@@ -251,5 +251,20 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         EditorTestApp_RefreshTask,
         EditorTestApp_UpdateDiagnostics,
+
+        IncrementalAnalyzerProcessor_Analyzers,
+        IncrementalAnalyzerProcessor_Analyzer,
+        IncrementalAnalyzerProcessor_Shutdown,
+
+        WorkCoordinatorRegistrationService_Register,
+        WorkCoordinatorRegistrationService_Unregister,
+        WorkCoordinatorRegistrationService_Reanalyze,
+
+        WorkCoordinator_SolutionCrawlerOption,
+        WorkCoordinator_PersistentStorageAdded,
+        WorkCoordinator_PersistentStorageRemoved,
+        WorkCoordinator_Shutdown,
+
+        DiagnosticAnalyzerService_Analyzers
     }
 }
