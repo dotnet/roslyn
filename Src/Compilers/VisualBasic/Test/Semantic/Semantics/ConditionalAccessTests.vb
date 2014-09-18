@@ -2279,34 +2279,67 @@ Imports System.Linq
 Module Module1
 
     Sub Main()
+        Dim c1 As New C1()
         Dim x As System.Func(Of String) = Function() "x"
         Dim y = <a><b></b></a>
+        Dim z As System.Func(Of System.Func(Of String)) = Function() Function() "z"
 
+        System.Console.WriteLine(new With {c1?.P2})
+        System.Console.WriteLine(new With {c1?.P2()})
         System.Console.WriteLine(New With {x?()})
         System.Console.WriteLine(New With {y?.<b>(0)})
+        System.Console.WriteLine(New With {y?...<b>(0)})
+        System.Console.WriteLine(New With {y.<b>?(0)})
+        System.Console.WriteLine(New With {y...<b>?(0)})
+        System.Console.WriteLine(New With {y?.<b>?(0)})
+        System.Console.WriteLine(New With {y?...<b>?(0)})
+        System.Console.WriteLine(New With {z?()()})
+        System.Console.WriteLine(New With {z()?()})
+        System.Console.WriteLine(New With {z?()?()})
+        System.Console.WriteLine(New With {y?.<b>?.Count})
+        System.Console.WriteLine(New With {y?.<b>.Count})
+        System.Console.WriteLine(New With {y.<b>?.Count})
     End Sub
 
 End Module
+
+Class C1
+
+    ReadOnly Property P2 As String
+        Get
+            Return 4
+        End Get
+    End Property
+End Class
+
 ]]>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, XmlReferences, TestOptions.ExperimentalReleaseExe, TestOptions.ExperimentalReleaseExe.ParseOptions)
 
-            ' TODO: Should succeed
-            '            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
-            '            <![CDATA[
-            ']]>)
-
             AssertTheseDiagnostics(compilation,
-<expected><![CDATA[
-BC36556: Anonymous type member name can be inferred only from a simple or qualified name with no arguments.
-        System.Console.WriteLine(New With {x?()})
-                                           ~~~~
-BC36556: Anonymous type member name can be inferred only from a simple or qualified name with no arguments.
-        System.Console.WriteLine(New With {y?.<b>(0)})
-                                           ~~~~~~~~~
-]]></expected>)
+<expected>
+</expected>)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+{ P2 = 4 }
+{ P2 = 4 }
+{ x = x }
+{ b = <b></b> }
+{ b = <b></b> }
+{ b = <b></b> }
+{ b = <b></b> }
+{ b = <b></b> }
+{ b = <b></b> }
+{ z = z }
+{ z = z }
+{ z = z }
+{ b = 1 }
+{ b = 1 }
+{ b = 1 }]]>)
+
         End Sub
 
         <Fact()>

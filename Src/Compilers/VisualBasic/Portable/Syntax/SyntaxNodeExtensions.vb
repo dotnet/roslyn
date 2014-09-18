@@ -130,13 +130,14 @@ TryAgain:
 
                     If input.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                         ' See if this is an identifier qualifed with XmlElementAccessExpression or XmlDescendantAccessExpression
+                        Dim receiver As ExpressionSyntax = If(memberAccess.Expression, GetCorrespondingConditionalAccessReceiver(memberAccess))
 
-                        If memberAccess.Expression IsNot Nothing Then
-                            Select Case memberAccess.Expression.Kind
+                        If receiver IsNot Nothing Then
+                            Select Case receiver.Kind
                                 Case SyntaxKind.XmlElementAccessExpression,
                                     SyntaxKind.XmlDescendantAccessExpression
 
-                                    input = memberAccess.Expression
+                                    input = receiver
                                     GoTo TryAgain
                             End Select
                         End If
@@ -157,8 +158,14 @@ TryAgain:
                 Case SyntaxKind.InvocationExpression
                     Dim invocation = DirectCast(input, InvocationExpressionSyntax)
 
+                    Dim target As ExpressionSyntax = If(invocation.Expression, GetCorrespondingConditionalAccessReceiver(invocation))
+
+                    If target Is Nothing Then
+                        Exit Select
+                    End If
+
                     If invocation.ArgumentList Is Nothing OrElse invocation.ArgumentList.Arguments.Count = 0 Then
-                        input = invocation.Expression
+                        input = target
                         GoTo TryAgain
                     End If
 
@@ -166,17 +173,28 @@ TryAgain:
 
                     If invocation.ArgumentList.Arguments.Count = 1 Then
                         ' See if this is an indexed XmlElementAccessExpression or XmlDescendantAccessExpression
-                        Select Case invocation.Expression.Kind
+                        Select Case target.Kind
                             Case SyntaxKind.XmlElementAccessExpression,
                                 SyntaxKind.XmlDescendantAccessExpression
-                                input = invocation.Expression
+                                input = target
                                 GoTo TryAgain
                         End Select
                     End If
 
-                    ' TODO
-                    'Case SyntaxKind.ConditionalAccessExpression
+                Case SyntaxKind.ConditionalAccessExpression
+                    input = DirectCast(input, ConditionalAccessExpressionSyntax).WhenNotNull
+                    GoTo TryAgain
             End Select
+
+            Return Nothing
+        End Function
+
+        Private Function GetCorrespondingConditionalAccessReceiver(node As ExpressionSyntax) As ExpressionSyntax
+            Dim access As ConditionalAccessExpressionSyntax = GetCorrespondingConditionalAccessExpression(node)
+
+            If access IsNot Nothing Then
+                Return access.Expression
+            End If
 
             Return Nothing
         End Function
