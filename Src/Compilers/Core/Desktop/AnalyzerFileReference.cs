@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return ImmutableInterlocked.GetOrAdd(ref this.lazyAnalyzersPerLanguage, language, CreateLanguageSpecificAnalyzers, this);
-            }
+        }
 
         private static ImmutableArray<DiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string language, AnalyzerFileReference @this)
-            {
+        {
             return MetadataCache.GetOrCreateAnalyzersFromFile(@this, language);
         }
 
@@ -155,14 +155,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!analyzerTypeNameMap.TryGetValue(string.Empty, out analyzerTypeNames))
                 {
                     analyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
-            }
+                }
                 else
                 {
                     analyzers = GetAnalyzersForTypeNames(analyzerAssembly, analyzerTypeNames).ToImmutableArrayOrEmpty();
                 }
 
                 ImmutableInterlocked.InterlockedInitialize(ref this.lazyLanguageAgnosticAnalyzers, analyzers);
-        }
+            }
 
             return this.lazyLanguageAgnosticAnalyzers;
         }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (languageOpt == null)
                 {
                     hasAnyAnalyzerTypes = analyzerTypeNameMap.Any();
-            }
+                }
                 else
                 {
                     hasAnyAnalyzerTypes = analyzerTypeNameMap.ContainsKey(string.Empty) || analyzerTypeNameMap.ContainsKey(languageOpt);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // If there are no analyzers, don't load the assembly at all.
                 if (!hasAnyAnalyzerTypes)
-            {
+                {
                     this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
                     return;
                 }
@@ -200,13 +200,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception e) if (e is FileLoadException || e is FileNotFoundException || e is BadImageFormatException ||
                                     e is SecurityException || e is ArgumentException || e is PathTooLongException)
-                {
+            {
                 this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
                 return;
             }
 
             var initialCount = builder.Count;
-            
+
             // Add language agnostic analyzers.
             var languageAgnosticAnalyzers = this.GetLanguageAgnosticAnalyzers(analyzerTypeNameMap, analyzerAssembly);
             builder.AddRange(languageAgnosticAnalyzers);
@@ -221,27 +221,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
             }
-                }
+        }
 
         private static IEnumerable<string> GetLanguageSpecificAnalyzerTypeNames(ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string languageOpt)
         {
             HashSet<string> languageSpecificAnalyzerTypeNames = new HashSet<string>();
             if (languageOpt == null)
-                {
+            {
                 // If the user didn't ask for a specific language then return all language specific analyzers.
                 languageSpecificAnalyzerTypeNames.AddAll(analyzerTypeNameMap.SelectMany(kvp => kvp.Key != string.Empty ? kvp.Value : SpecializedCollections.EmptyEnumerable<string>()));
-                }
-                else
-                {
+            }
+            else
+            {
                 // Add the analyzers for the specific language.
                 if (analyzerTypeNameMap.ContainsKey(languageOpt))
                 {
                     languageSpecificAnalyzerTypeNames.AddAll(analyzerTypeNameMap[languageOpt]);
                 }
-                }
+            }
 
             return languageSpecificAnalyzerTypeNames;
-            }
+        }
 
         private IEnumerable<DiagnosticAnalyzer> GetAnalyzersForTypeNames(Assembly analyzerAssembly, IEnumerable<string> analyzerTypeNames)
         {
@@ -301,59 +301,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule)
-                {
-            var supportedLanguages =  from customAttrHandle in typeDef.GetCustomAttributes()
-                                      where IsDiagnosticAnalyzerAttribute(peModule, customAttrHandle)
-                                      let supportedLangauge = GetSupportedLanguage(peModule, customAttrHandle)
-                                      where supportedLangauge != null
-                                      select supportedLangauge;
+        {
+            var supportedLanguages = from customAttrHandle in typeDef.GetCustomAttributes()
+                                     where IsDiagnosticAnalyzerAttribute(peModule, customAttrHandle)
+                                     let supportedLangauge = GetSupportedLanguage(peModule, customAttrHandle)
+                                     where supportedLangauge != null
+                                     select supportedLangauge;
 
             // If the analyzer claims it is language agnostic but also claims it supports some specific language, ignore the specific languages.
             if (supportedLanguages.Contains(string.Empty))
-                    {
+            {
                 return SpecializedCollections.SingletonEnumerable(string.Empty);
             }
             else
-                    {
+            {
                 return supportedLanguages;
+            }
+        }
+
+        private static string GetSupportedLanguage(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            // The DiagnosticAnalyzerAttribute has two constructors:
+            // 1. Paramterless - means that the analyzer is applicable to any language. 
+            // 2. Single string parameter specifying the language.
+            // Parse the argument blob to extract these two cases.
+            BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
+
+            // Single string parameter
+            if (argsReader.Length > 4)
+            {
+                // check prolog
+                if (argsReader.ReadByte() == 1 && argsReader.ReadByte() == 0)
+                {
+                    string languageName;
+                    if (PEModule.CrackStringInAttributeValue(out languageName, ref argsReader))
+                    {
+                        return languageName;
                     }
                 }
-                        
-        private static string GetSupportedLanguage(PEModule peModule, CustomAttributeHandle customAttrHandle)
-                            {
-                                // The DiagnosticAnalyzerAttribute has two constructors:
-                                // 1. Paramterless - means that the analyzer is applicable to any language. 
-                                // 2. Single string parameter specifying the language.
-                                // Parse the argument blob to extract these two cases.
-                                BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
-
-                                // Single string parameter
-                                if (argsReader.Length > 4)
-                                {
-                                    // check prolog
-                                    if (argsReader.ReadByte() == 1 && argsReader.ReadByte() == 0)
-                                    {
-                                        string languageName;
-                                        if (PEModule.CrackStringInAttributeValue(out languageName, ref argsReader))
-                {
-                        return languageName;
-                                        }
-                                    }
-                                }
-                                // otherwise the attribute is applicable to all languages.
-                                else
-                    {
+            }
+            // otherwise the attribute is applicable to all languages.
+            else
+            {
                 return string.Empty;
-                    }
+            }
 
             return null;
-                }
+        }
 
         private static bool IsDiagnosticAnalyzerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
             Handle ctor;
             return peModule.IsTargetAttribute(customAttrHandle, diagnosticNamespaceName, nameof(DiagnosticAnalyzerAttribute), out ctor);
-            }
+        }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             else
             {
                 var declaringTypeDef = peModule.MetadataReader.GetTypeDefinition(declaringType);
-                return GetFullyQualifiedTypeName(declaringTypeDef, peModule) +  "+" + peModule.MetadataReader.GetString(typeDef.Name);
+                return GetFullyQualifiedTypeName(declaringTypeDef, peModule) + "+" + peModule.MetadataReader.GetString(typeDef.Name);
             }
         }
 
