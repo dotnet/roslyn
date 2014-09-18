@@ -345,6 +345,7 @@
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
     <Compile Include="Log\KeyValueLogMessage.cs" />
+    <Compile Include="Log\LogAggregator.cs" />
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
