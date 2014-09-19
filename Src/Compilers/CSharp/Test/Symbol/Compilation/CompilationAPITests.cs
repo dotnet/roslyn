@@ -1894,5 +1894,20 @@ public class C { public static FrameworkName Foo() { return null; }}";
 
             AssertXmlEqual(expected, actual);
         }
+
+        [Fact]
+        public void ConsistentParseOptions()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+            var tree2 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+            var tree3 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+
+            var assemblyName = GetUniqueName();
+            var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            CSharp.CSharpCompilation.Create(assemblyName, new[] { tree1, tree2 }, new[] { MscorlibRef }, compilationOptions);
+            Assert.Throws(typeof(ArgumentException), () => {
+                CSharp.CSharpCompilation.Create(assemblyName, new[] { tree1, tree3 }, new[] { MscorlibRef }, compilationOptions);
+            });
+        }
     }
 }

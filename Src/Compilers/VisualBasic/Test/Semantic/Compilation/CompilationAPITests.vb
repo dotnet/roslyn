@@ -1730,5 +1730,17 @@ End Namespace
 
             AssertXmlEqual(expected, actual)
         End Sub
+
+        <Fact>
+        Public Sub ConsistentParseOptions()
+            Dim tree1 = SyntaxFactory.ParseSyntaxTree("", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+            Dim tree2 = SyntaxFactory.ParseSyntaxTree("", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+            Dim tree3 = SyntaxFactory.ParseSyntaxTree("", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic11))
+
+            Dim assemblyName = GetUniqueName()
+            Dim CompilationOptions = New VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            VisualBasic.VisualBasicCompilation.Create(assemblyName, {tree1, tree2}, {MscorlibRef}, CompilationOptions)
+            Assert.Throws(Of ArgumentException)(Function() VisualBasic.VisualBasicCompilation.Create(assemblyName, {tree1, tree3}, {MscorlibRef}, CompilationOptions))
+        End Sub
     End Class
 End Namespace

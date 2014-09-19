@@ -168,6 +168,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private lazyCompilationUnitCompletedTrees As HashSet(Of SyntaxTree)
 
+        ''' <summary>
+        ''' The common language version among the trees of the compilation.
+        ''' </summary>
+        Private m_LanguageVersion As LanguageVersion
+
         Public Overrides ReadOnly Property Language As String
             Get
                 Return LanguageNames.VisualBasic
@@ -189,6 +194,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows ReadOnly Property Options As VisualBasicCompilationOptions
             Get
                 Return m_Options
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' The language version that was used to parse the syntax trees of this compilation.
+        ''' </summary>
+        Public ReadOnly Property LanguageVersion As LanguageVersion
+            Get
+                Return m_LanguageVersion
             End Get
         End Property
 
@@ -398,6 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 m_embeddedTrees = embeddedTrees
                 m_declarationTable = declarationTable
                 m_anonymousTypeManager = New AnonymousTypeManager(Me)
+                m_languageVersion = CommonLanguageVersion(syntaxTrees)
 
                 m_scriptClass = New Lazy(Of ImplicitNamedTypeSymbol)(AddressOf BindScriptClass)
 
@@ -423,6 +438,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Using
         End Sub
+
+        Private Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As LanguageVersion
+            ' We don't check m_Options.ParseOptions.LanguageVersion for consistency, because
+            ' it isn't consistent in practice.  In fact sometimes m_Options.ParseOptions is Nothing.
+            Dim result As LanguageVersion? = Nothing
+            For Each tree In syntaxTrees
+                Dim version = CType(tree.Options, VisualBasicParseOptions).LanguageVersion
+                If result Is Nothing Then
+                    result = version
+                ElseIf result <> version Then
+                    Throw New ArgumentException("inconsistent language versions", "syntaxTrees")
+                End If
+            Next
+
+            Return If(result, VisualBasicParseOptions.Default.LanguageVersion)
+        End Function
 
         ''' <summary>
         ''' Create a duplicate of this compilation with different symbol instances

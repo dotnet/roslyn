@@ -159,6 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// The language version that was used to parse the syntax trees of this compilation.
+        /// </summary>
+        public LanguageVersion LanguageVersion
+        {
+            get; private set;
+        }
+
         public override INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
         {
             return new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)container, name, arity, null);
@@ -294,6 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.globalImports = new Lazy<Imports>(BindGlobalUsings);
                 this.globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
                 this.anonymousTypeManager = new AnonymousTypeManager(this);
+                this.LanguageVersion = CommonLanguageVersion(syntaxTrees);
 
                 if (isSubmission)
                 {
@@ -323,6 +332,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (EventQueue != null) EventQueue.Enqueue(new CompilationStartedEvent(this));
             }
         }
+
+        private static LanguageVersion CommonLanguageVersion(ImmutableArray<SyntaxTree> syntaxTrees)
+        {
+            LanguageVersion? result = null;
+            foreach (var tree in syntaxTrees)
+            {
+                var version = ((CSharpParseOptions)tree.Options).LanguageVersion;
+                if (result == null)
+                {
+                    result = version;
+                }
+                else if (result != version)
+                {
+                    throw new ArgumentException("inconsistent language versions", nameof(syntaxTrees));
+                }
+            }
+
+            return result ?? CSharpParseOptions.Default.LanguageVersion;
+        }
+
 
         /// <summary>
         /// Create a duplicate of this compilation with different symbol instances.
