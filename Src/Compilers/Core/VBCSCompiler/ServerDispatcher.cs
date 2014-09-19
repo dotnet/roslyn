@@ -381,7 +381,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 this.activeConnectionCount == 0)
             {
                 var timerTask = this.keepAliveTimer.StartTimer();
-                timerTask?.ContinueWith(ServerDieTimeoutFired);
+                if (timerTask != null)
+                {
+                    timerTask.ContinueWith(ServerDieTimeoutFired);
+                }
             }
         }
     }
