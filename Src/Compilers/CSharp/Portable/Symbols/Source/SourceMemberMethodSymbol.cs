@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.IsPartial
-                    && this.BlockSyntax == null
+                    && this.BodySyntax == null
                     && !this.IsExpressionBodied;
             }
         }
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.IsPartial
-                    && this.BlockSyntax != null
+                    && this.BodySyntax != null
                     && !this.IsExpressionBodied;
             }
         }

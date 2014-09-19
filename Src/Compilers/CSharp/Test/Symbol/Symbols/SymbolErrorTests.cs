@@ -2330,49 +2330,55 @@ interface I<T> { }
         [Fact]
         public void CS0179ERR_ExternHasBody01()
         {
-            var text = @"namespace NS
+            var text = @"
+namespace NS
 {
     public class C
     {
         extern C() { }
-        extern void M() { }
-        extern object P { get { return null; } set { } }
+        extern void M1() { }
+        extern int M2() => 1;
+        extern object P1 { get { return null; } set { } }
+        extern int P2 => 1;
         extern event System.Action E { add { } remove { } }
         extern static public int operator + (C c1, C c2) { return 1; }
+        extern static public int operator - (C c1, C c2) => 1;
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(text);
 
             comp.VerifyDiagnostics(
-// (5,16): error CS0179: 'NS.C.C()' cannot be extern and declare a body
-//         extern C() { }
-Diagnostic(ErrorCode.ERR_ExternHasBody, "C").WithArguments("NS.C.C()"),
-
-// (6,21): error CS0179: 'NS.C.M()' cannot be extern and declare a body
-//         extern void M() { }
-Diagnostic(ErrorCode.ERR_ExternHasBody, "M").WithArguments("NS.C.M()"),
-
-// (7,27): error CS0179: 'NS.C.P.get' cannot be extern and declare a body
-//         extern object P { get { return null; } set { } }
-Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("NS.C.P.get"),
-
-// (7,48): error CS0179: 'NS.C.P.set' cannot be extern and declare a body
-//         extern object P { get { return null; } set { } }
-Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("NS.C.P.set"),
-
-// (8,40): error CS0179: 'NS.C.E.add' cannot be extern and declare a body
-//         extern event System.Action E { add { } remove { } }
-Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("NS.C.E.add"),
-
-// (8,48): error CS0179: 'NS.C.E.remove' cannot be extern and declare a body
-//         extern event System.Action E { add { } remove { } }
-Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("NS.C.E.remove"),
-
-// (9,29): error CS0179: 'NS.C.operator +(NS.C, NS.C)' cannot be extern and declare a body
-//         extern int operator + (C c1, C c2) { return 1; }
-Diagnostic(ErrorCode.ERR_ExternHasBody, "+").WithArguments("NS.C.operator +(NS.C, NS.C)")
-                );
+                // (6,16): error CS0179: 'C.C()' cannot be extern and declare a body
+                //         extern C() { }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "C").WithArguments("NS.C.C()").WithLocation(6, 16),
+                // (7,21): error CS0179: 'C.M1()' cannot be extern and declare a body
+                //         extern void M1() { }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "M1").WithArguments("NS.C.M1()").WithLocation(7, 21),
+                // (8,20): error CS0179: 'C.M2()' cannot be extern and declare a body
+                //         extern int M2() => 1;
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "M2").WithArguments("NS.C.M2()").WithLocation(8, 20),
+                // (9,28): error CS0179: 'C.P1.get' cannot be extern and declare a body
+                //         extern object P1 { get { return null; } set { } }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("NS.C.P1.get").WithLocation(9, 28),
+                // (9,49): error CS0179: 'C.P1.set' cannot be extern and declare a body
+                //         extern object P1 { get { return null; } set { } }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("NS.C.P1.set").WithLocation(9, 49),
+                // (10,26): error CS0179: 'C.P2.get' cannot be extern and declare a body
+                //         extern int P2 => 1;
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "1").WithArguments("NS.C.P2.get").WithLocation(10, 26),
+                // (11,40): error CS0179: 'C.E.add' cannot be extern and declare a body
+                //         extern event System.Action E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("NS.C.E.add").WithLocation(11, 40),
+                // (11,48): error CS0179: 'C.E.remove' cannot be extern and declare a body
+                //         extern event System.Action E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("NS.C.E.remove").WithLocation(11, 48),
+                // (12,43): error CS0179: 'C.operator +(C, C)' cannot be extern and declare a body
+                //         extern static public int operator + (C c1, C c2) { return 1; }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "+").WithArguments("NS.C.operator +(NS.C, NS.C)").WithLocation(12, 43),
+                // (13,43): error CS0179: 'C.operator -(C, C)' cannot be extern and declare a body
+                //         extern static public int operator - (C c1, C c2) => 1;
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "-").WithArguments("NS.C.operator -(NS.C, NS.C)").WithLocation(13, 43));
         }
 
         [Fact]

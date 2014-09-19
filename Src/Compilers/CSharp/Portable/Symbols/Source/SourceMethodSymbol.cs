@@ -515,11 +515,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        internal BlockSyntax BlockSyntax
+        internal SyntaxNode BodySyntax
         {
             get
             {
-                return (this.bodySyntaxReference == null) ? null : this.bodySyntaxReference.GetSyntax() as BlockSyntax;
+                return (this.bodySyntaxReference == null) ? null : this.bodySyntaxReference.GetSyntax();
             }
         }
 

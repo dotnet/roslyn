@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Analyze(compilation, method, block, diagnostics))
                 {
                     // we don't analyze synthesized void methods.
-                    block = AppendImplicitReturn(block, method, (object)sourceMethod != null ? sourceMethod.BlockSyntax : null);
+                    block = AppendImplicitReturn(block, method, ((object)sourceMethod != null) ? sourceMethod.BodySyntax as BlockSyntax : null);
                 }
             }
             else if (Analyze(compilation, method, block, diagnostics))

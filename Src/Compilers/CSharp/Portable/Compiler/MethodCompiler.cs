@@ -1391,14 +1391,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (sourceMethod.IsExtern)
                 {
-                    if (sourceMethod.BlockSyntax == null)
+                    if (sourceMethod.BodySyntax == null)
                     {
                         // Generate warnings only if we are not generating ERR_ExternHasBody error
                         GenerateExternalMethodWarnings(sourceMethod, diagnostics);
                     }
+
                     return null;
                 }
-                else if (sourceMethod.IsDefaultValueTypeConstructor())
+
+                if (sourceMethod.IsDefaultValueTypeConstructor())
                 {
                     // No body for default struct constructor.
                     return null;
@@ -1406,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
 
-                var blockSyntax = sourceMethod.BlockSyntax;
+                var blockSyntax = sourceMethod.BodySyntax as BlockSyntax;
                 Debug.Assert(initializationScopeLocals.IsDefaultOrEmpty || sourceMethod.IsPrimaryCtor);
 
                 if (blockSyntax != null)
@@ -1458,7 +1460,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else // for [if (blockSyntax != null)]
+                else if (sourceMethod.IsExpressionBodied)
+                {
+                    var methodSyntax = sourceMethod.SyntaxNode;
+                    var arrowExpression = methodSyntax.GetExpressionBodySyntax();
+
+                    Binder binder = factory.GetBinder(arrowExpression);
+                    binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
+                    // Add locals
+                    binder = new ScopedExpressionBinder(binder, arrowExpression.Expression);
+                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                }
+                else if (sourceMethod.IsPrimaryCtor)
+                {
+                    body = null;
+                }
+                else
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbol;
                     if ((object)property != null && property.IsAutoProperty)
@@ -1466,27 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
 
-                    if (sourceMethod.IsExpressionBodied)
-                    {
-                        var methodSyntax = sourceMethod.SyntaxNode;
-                        var arrowExpression = methodSyntax.GetExpressionBodySyntax();
-
-                        Binder binder = factory.GetBinder(arrowExpression);
-                        binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
-                        // Add locals
-                        binder = new ScopedExpressionBinder(binder, arrowExpression.Expression);
-                            return binder.BindExpressionBodyAsBlock(
-                            arrowExpression, diagnostics);
-                    }
-
-                    if (sourceMethod.IsPrimaryCtor)
-                    {
-                        body = null;
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return null;
                 }
             }
             else

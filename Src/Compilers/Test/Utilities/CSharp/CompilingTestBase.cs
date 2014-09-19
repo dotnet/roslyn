@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -92,14 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // Tests just the errors found while binding method M in class C.
         public void TestErrors(string code, params string[] errors)
         {
-
             var compilation = CreateCompilationWithMscorlib(code);
             var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var factory = compilation.GetBinderFactory(method.SyntaxTree);
-            var parameterBinderContext = factory.GetBinder(method.BlockSyntax);
-            var binder = new ExecutableCodeBinder(method.BlockSyntax.Parent, method, parameterBinderContext);
+            var bodyBlock = (BlockSyntax)method.BodySyntax;
+            var parameterBinderContext = factory.GetBinder(bodyBlock);
+            var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
             var diagnostics = new DiagnosticBag();
-            var block = (BoundBlock)binder.BindStatement(method.BlockSyntax, diagnostics);
+            var block = (BoundBlock)binder.BindStatement(bodyBlock, diagnostics);
             AssertEx.SetEqual(errors, diagnostics.AsEnumerable().Select(DumpDiagnostic));
         }
 
@@ -108,9 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateCompilationWithMscorlib(code);
             var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var factory = compilation.GetBinderFactory(method.SyntaxTree);
-            var parameterBinderContext = factory.GetBinder(method.BlockSyntax);
-            var binder = new ExecutableCodeBinder(method.BlockSyntax.Parent, method, parameterBinderContext);
-            var block = (BoundBlock)binder.BindStatement(method.BlockSyntax, new DiagnosticBag());
+            var bodyBlock = (BlockSyntax)method.BodySyntax;
+            var parameterBinderContext = factory.GetBinder(bodyBlock);
+            var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
+            var block = (BoundBlock)binder.BindStatement(bodyBlock, new DiagnosticBag());
             var actualWarnings = new DiagnosticBag();
             DiagnosticsPass.IssueDiagnostics(compilation, block, actualWarnings, method);
             AssertEx.SetEqual(expectedWarnings, actualWarnings.AsEnumerable().Select(DumpDiagnostic));

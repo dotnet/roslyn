@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -104,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var asSourceMethod = method.ConstructedFrom as SourceMethodSymbol;
                     if ((object)asSourceMethod != null)
                     {
-                        var syntax = asSourceMethod.BlockSyntax;
-
+                        var syntax = asSourceMethod.BodySyntax as BlockSyntax;
                         if (syntax != null)
                         {
                             return AddSequencePoint(syntax, body, asSourceMethod.IsPrimaryCtor);

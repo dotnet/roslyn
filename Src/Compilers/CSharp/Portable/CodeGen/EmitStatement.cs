@@ -505,14 +505,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         //       it is desirable, for debug purposes, that this ret is emitted inside top level { } 
         private bool IsLastBlockInMethod(BoundBlock block)
         {
-            if (this.block == block)
+            if (this.boundBody == block)
             {
                 return true;
             }
 
             //sometimes top level node is a statement list containing 
             //epilogue and then a block. If we are having that block, it will do.
-            var list = this.block as BoundStatementList;
+            var list = this.boundBody as BoundStatementList;
             if (list != null && list.Statements.LastOrDefault() == block)
             {
                 return true;

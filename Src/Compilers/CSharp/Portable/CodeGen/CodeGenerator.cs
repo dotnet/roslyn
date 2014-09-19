@@ -16,8 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     internal sealed partial class CodeGenerator
     {
         private readonly MethodSymbol method;
-        private readonly BlockSyntax methodBlockSyntax;
-        private readonly BoundStatement block;
+
+        // Syntax of the method body (block or an expression), 
+        // or null if the method being emitted isn't a source method.
+        private readonly SyntaxNode methodBodySyntaxOpt;
+
+        private readonly BoundStatement boundBody;
         private readonly ILBuilder builder;
         private readonly PEModuleBuilder module;
         private readonly DiagnosticBag diagnostics;
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (result == null)
                 {
                     Debug.Assert(!this.method.ReturnsVoid, "returning something from void method?");
-                    result = AllocateTemp(this.method.ReturnType, block.Syntax);
+                    result = AllocateTemp(this.method.ReturnType, boundBody.Syntax);
                     returnTemp = result;
                 }
                 return result;
@@ -69,15 +73,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public CodeGenerator(
             MethodSymbol method,
-            BoundStatement block,
+            BoundStatement boundBody,
             ILBuilder builder,
             PEModuleBuilder moduleBuilder,
             DiagnosticBag diagnostics,
             OptimizationLevel optimizations,
             bool emittingPdbs)
         {
+            Debug.Assert((object)method != null);
+            Debug.Assert(boundBody != null);
+            Debug.Assert(builder != null);
+            Debug.Assert(moduleBuilder != null);
+            Debug.Assert(diagnostics != null);
+
             this.method = method;
-            this.block = block;
+            this.boundBody = boundBody;
             this.builder = builder;
             this.module = moduleBuilder;
             this.diagnostics = diagnostics;
@@ -100,19 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (this.optimizations == OptimizationLevel.Release)
             {
-                this.block = Optimizer.Optimize(block, out stackLocals);
+                this.boundBody = Optimizer.Optimize(boundBody, out stackLocals);
             }
-
-            Debug.Assert((object)method != null);
-            Debug.Assert(block != null);
-            Debug.Assert(builder != null);
-            Debug.Assert(moduleBuilder != null);
-
-            var asSourceMethod = method as SourceMethodSymbol;
-            if ((object)asSourceMethod != null)
-            {
-                methodBlockSyntax = asSourceMethod.BlockSyntax;
-            }
+            
+            methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
         }
 
         private bool IsStackLocal(LocalSymbol local)
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 this.builder.DefineInitialHiddenSequencePoint();
             }
 
-            EmitStatement(block);
+            EmitStatement(boundBody);
 
             if (indirectReturnState == IndirectReturnState.Needed)
             {
@@ -209,20 +210,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(method.ReturnsVoid == (returnTemp == null));
 
-            // in debug mode user could set a breakpoint on the last "}" of the method and 
-            // expect to hit it before exiting the method
-            // we do it by rewriting all returns into a jump to an Exit label 
-            // and mark the Exit sequence with sequence point for the span of the last "}"
-            BlockSyntax blockSyntax = null;
-            SourceMethodSymbol sourceMethod = method as SourceMethodSymbol;
-            if ((object)sourceMethod != null && (object)sourceMethod.IteratorElementType == null)
+            if (this.emitPdbSequencePoints && (object)method.IteratorElementType == null)
             {
-                blockSyntax = sourceMethod.BlockSyntax;
-            }
-
-            if (blockSyntax != null && this.emitPdbSequencePoints)
-            {
-                EmitSequencePoint(block.SyntaxTree ?? sourceMethod.SyntaxTree, blockSyntax.CloseBraceToken.Span);
+                // In debug mode user could set a breakpoint on the last "}" of the method and 
+                // expect to hit it before exiting the method.
+                // We do it by rewriting all returns into a jump to an Exit label 
+                // and mark the Exit sequence with sequence point for the span of the last "}".
+                BlockSyntax blockSyntax = methodBodySyntaxOpt as BlockSyntax;
+                if (blockSyntax != null)
+                {
+                    EmitSequencePoint(blockSyntax.SyntaxTree, blockSyntax.CloseBraceToken.Span);
+                }
             }
 
             if (returnTemp != null)
@@ -308,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void SetInitialDebugDocument()
         {
-            if (emitPdbSequencePoints && this.methodBlockSyntax != null)
+            if (emitPdbSequencePoints && this.methodBodySyntaxOpt != null)
             {
                 // If methodBlockSyntax is available (i.e. we're in a SourceMethodSymbol), then
                 // provide the IL builder with our best guess at the appropriate debug document.
@@ -316,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // points, then the IL Builder will drop the sequence point for lack of a document.
                 // This negatively impacts the scenario where we insert hidden sequence points at
                 // the beginnings of methods so that step-into (F11) will handle them correctly.
-                builder.SetInitialDebugDocument(this.methodBlockSyntax.SyntaxTree);
+                builder.SetInitialDebugDocument(this.methodBodySyntaxOpt.SyntaxTree);
             }
         }
 
