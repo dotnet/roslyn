@@ -139,6 +139,31 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
+    ''' <param name="additionalRefs"></param>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Function CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(
+        sources As XElement,
+        Optional additionalRefs As IEnumerable(Of MetadataReference) = Nothing,
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+
+        If additionalRefs Is Nothing Then additionalRefs = {}
+        Dim references = {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929}.Concat(additionalRefs)
+
+        Return CreateCompilationWithReferences(sources, references, options, parseOptions:=parseOptions)
+    End Function
+
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name="sources">The sources compile according to the following schema        
+    ''' &lt;compilation name="assemblyname[optional]"&gt;
+    ''' &lt;file name="file1.vb[optional]"&gt;
+    ''' source
+    ''' &lt;/file&gt;
+    ''' &lt;/compilation&gt;
+    ''' </param>
     Public Function CreateCompilationWithReferences(sources As XElement,
                                                     references As IEnumerable(Of MetadataReference),
                                                     Optional options As VisualBasicCompilationOptions = Nothing,

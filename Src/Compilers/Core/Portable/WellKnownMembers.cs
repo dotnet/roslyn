@@ -2535,6 +2535,11 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_ComponentModel_EditorBrowsableState,
 
+                // System_Runtime_GCLatencyMode__SustainedLowLatency
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
+                (byte)WellKnownType.System_Runtime_GCLatencyMode,                                                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_GCLatencyMode,                   // Field Signature
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -2833,6 +2838,7 @@ namespace Microsoft.CodeAnalysis
                 "Run",                                      // System_Windows_Forms_Application__RunForm
                 "CurrentManagedThreadId",                   // System_Environment__CurrentManagedThreadId
                 ".ctor",                                    // System_ComponentModel_EditorBrowsableAttribute__ctor
+                "SustainedLowLatency",                      // System_Runtime_GCLatencyMode__SustainedLowLatency
             };
 
             descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

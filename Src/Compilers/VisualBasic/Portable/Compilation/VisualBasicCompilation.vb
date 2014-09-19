@@ -1227,6 +1227,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(MyBase.ReplaceReference(oldReference, newReference), VisualBasicCompilation)
         End Function
 
+        ''' <summary>
+        ''' Determine if enum arrays can be initialized using block initialization.
+        ''' </summary>
+        ''' <returns>True if it's safe to use block initialization for enum arrays.</returns>
+        ''' <remarks>
+        ''' In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
+        ''' This is fixed in 4.5 thus enabling block array initialization for a very common case.
+        ''' We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .Net 4.5
+        ''' </remarks>
+        Friend ReadOnly Property EnableEnumArrayBlockInitialization As Boolean
+            Get
+                Dim sustainedLowLatency = GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency)
+                Return sustainedLowLatency IsNot Nothing AndAlso sustainedLowLatency.ContainingAssembly = Assembly.CorLibrary
+            End Get
+        End Property
+
 #End Region
 
 #Region "Symbols"

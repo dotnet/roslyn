@@ -242,6 +242,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Environment,
 
+        System_Runtime_GCLatencyMode,
+
         Available,
         Last = Available - 1,
     }
@@ -478,6 +480,8 @@ namespace Microsoft.CodeAnalysis
             "System.Windows.Forms.Application",
 
             "System.Environment",
+
+            "System.Runtime.GCLatencyMode",
         };
 
         private readonly static Dictionary<string, WellKnownType> nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

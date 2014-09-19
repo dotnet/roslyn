@@ -6593,7 +6593,7 @@ public class D
 
 
         [Fact]
-        public void InitFromBlobEnum()
+        public void ArrayInitFromBlobEnum()
         {
             string source = @"
 public class D
@@ -6663,6 +6663,68 @@ DBNull
   IL_0037:  box        ""System.TypeCode""
   IL_003c:  call       ""void System.Console.WriteLine(object)""
   IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ArrayInitFromBlobEnumNetFx45()
+        {
+            var source = @"
+public class D
+{
+    public static void Main()
+    {
+        System.TypeCode[] x = new System.TypeCode[] {
+                        System.TypeCode.Boolean,
+                        System.TypeCode.Byte, 
+                        System.TypeCode.Char, 
+                        System.TypeCode.DateTime, 
+                        System.TypeCode.DBNull
+                    };
+
+        System.Console.WriteLine(x[1]);
+        System.Console.WriteLine(x[2]);
+        System.Console.WriteLine(x[4]);
+    }
+}
+";
+
+            var expectedOutput = @"
+Byte
+Char
+DBNull
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source: source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            //NOTE: 
+            // the emit is specific to the target CLR version
+            verifier.VerifyIL("D.Main",
+@"{
+  // Code size       56 (0x38)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""System.TypeCode""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-3191FF614021ADF3122AC274EA5B6097C21BEB81""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  dup
+  IL_0012:  ldc.i4.1
+  IL_0013:  ldelem.i4
+  IL_0014:  box        ""System.TypeCode""
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  dup
+  IL_001f:  ldc.i4.2
+  IL_0020:  ldelem.i4
+  IL_0021:  box        ""System.TypeCode""
+  IL_0026:  call       ""void System.Console.WriteLine(object)""
+  IL_002b:  ldc.i4.4
+  IL_002c:  ldelem.i4
+  IL_002d:  box        ""System.TypeCode""
+  IL_0032:  call       ""void System.Console.WriteLine(object)""
+  IL_0037:  ret
 }
 ");
         }

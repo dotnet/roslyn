@@ -356,6 +356,8 @@ namespace Microsoft.CodeAnalysis
 
         System_ComponentModel_EditorBrowsableAttribute__ctor,
 
+        System_Runtime_GCLatencyMode__SustainedLowLatency,
+
         Count
     }
 }

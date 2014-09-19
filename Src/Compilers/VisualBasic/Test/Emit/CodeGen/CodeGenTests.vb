@@ -6823,6 +6823,89 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub ArrayInitFromBlobEnum()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module M1
+    Sub M()
+        Dim x As System.TypeCode() = {
+                        System.TypeCode.Boolean,
+                        System.TypeCode.Byte, 
+                        System.TypeCode.Char, 
+                        System.TypeCode.DateTime, 
+                        System.TypeCode.DBNull}
+    End Sub
+End Module
+    </file>
+</compilation>).
+            VerifyIL("M1.M",
+            <![CDATA[
+{
+  // Code size       29 (0x1d)
+  .maxstack  4
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     "System.TypeCode"
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.3
+  IL_0009:  stelem.i4
+  IL_000a:  dup
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldc.i4.6
+  IL_000d:  stelem.i4
+  IL_000e:  dup
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldc.i4.4
+  IL_0011:  stelem.i4
+  IL_0012:  dup
+  IL_0013:  ldc.i4.3
+  IL_0014:  ldc.i4.s   16
+  IL_0016:  stelem.i4
+  IL_0017:  dup
+  IL_0018:  ldc.i4.4
+  IL_0019:  ldc.i4.2
+  IL_001a:  stelem.i4
+  IL_001b:  pop
+  IL_001c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayInitFromBlobEnumNetFx45()
+            ' In NetFx 4.5 and higher, we can use fast literal initialization for enums
+            CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb">
+Module M1
+    Sub M()
+        Dim x As System.TypeCode() = {
+                        System.TypeCode.Boolean,
+                        System.TypeCode.Byte, 
+                        System.TypeCode.Char, 
+                        System.TypeCode.DateTime, 
+                        System.TypeCode.DBNull}
+    End Sub
+End Module
+    </file>
+</compilation>)).VerifyIL("M1.M",
+            <![CDATA[
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     "System.TypeCode"
+  IL_0006:  dup
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-3191FF614021ADF3122AC274EA5B6097C21BEB81"
+  IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+  IL_0011:  pop
+  IL_0012:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
         Public Sub TryCastAndPropertyAccess()
             CompileAndVerify(
 <compilation>

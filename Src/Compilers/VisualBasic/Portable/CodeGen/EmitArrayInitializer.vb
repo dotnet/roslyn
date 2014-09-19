@@ -16,19 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
     Partial Class CodeGenerator
 
-        ' In CLR4.0, block array initializers do not work 
-        ' on all combinations of {32/64 X Debug/Retail} when array elements are enums.
-        '
-        ' This is fixed in 4.5 thus enabling block array 
-        ' initialization for a very common case.
-        Private ReadOnly Property IsTargetHigherThan40 As Boolean
-            Get
-                ' Currently we can never be sure that 
-                ' the target will Not be executing on 4.0 Or older runtime.
-                Return False
-            End Get
-        End Property
-
         Private Enum ArrayInitializerStyle
             ' Initialize every element
             Element
@@ -212,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             If elementType.IsEnumType() Then
-                If Not Me.IsTargetHigherThan40 Then
+                If Not _module.Compilation.EnableEnumArrayBlockInitialization Then
                     Return ArrayInitializerStyle.Element
                 End If
                 elementType = DirectCast(elementType, NamedTypeSymbol).EnumUnderlyingType

@@ -14,18 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     partial class CodeGenerator
     {
-        // In CLR4.0, block array initializers do not work
-        // on all combinations of {32/64 X Debug/Retail} when array elements are enums.
-        //
-        // This is fixed in 4.5 thus enabling block array 
-        // initialization for a very common case.
-        private bool IsTargetHigherThan40
-        {
-            // Currently we can never be sure that 
-            // the target will not be executing on 4.0 or older runtime.
-            get { return false; }
-        }
-
         private enum ArrayInitializerStyle
         {
             // Initialize every element
@@ -242,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (elementType.IsEnumType())
             {
-                if (!this.IsTargetHigherThan40)
+                if (!this.module.Compilation.EnableEnumArrayBlockInitialization)
                 {
                     return ArrayInitializerStyle.Element;
                 }
