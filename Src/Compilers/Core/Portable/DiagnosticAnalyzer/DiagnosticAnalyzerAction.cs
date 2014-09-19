@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public DiagnosticAnalyzer Analyzer { get { return this.analyzer; } }
     }
 
-    public class SymbolAnalyzerAction : AnalyzerAction
+    public sealed class SymbolAnalyzerAction : AnalyzerAction
     {
-        private Action<SymbolAnalysisContext> action;
-        private ImmutableArray<SymbolKind> kinds;
+        private readonly Action<SymbolAnalysisContext> action;
+        private readonly ImmutableArray<SymbolKind> kinds;
 
         public SymbolAnalyzerAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> kinds, DiagnosticAnalyzer analyzer)
             : base(analyzer)
@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public ImmutableArray<SymbolKind> Kinds { get { return this.kinds; } }
     }
 
-    public class SyntaxNodeAnalyzerAction<TSyntaxKind> : AnalyzerAction
+    public sealed class SyntaxNodeAnalyzerAction<TSyntaxKind> : AnalyzerAction
     {
-        private Action<SyntaxNodeAnalysisContext> action;
-        private ImmutableArray<TSyntaxKind> kinds;
+        private readonly Action<SyntaxNodeAnalysisContext> action;
+        private readonly ImmutableArray<TSyntaxKind> kinds;
 
         public SyntaxNodeAnalyzerAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TSyntaxKind> kinds, DiagnosticAnalyzer analyzer)
             : base(analyzer)
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public ImmutableArray<TSyntaxKind> Kinds { get { return this.kinds; } }
     }
 
-    public class CompilationStartAnalyzerAction : AnalyzerAction
+    public sealed class CompilationStartAnalyzerAction : AnalyzerAction
     {
-        private Action<CompilationStartAnalysisContext> action;
+        private readonly Action<CompilationStartAnalysisContext> action;
 
         public CompilationStartAnalyzerAction(Action<CompilationStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<CompilationStartAnalysisContext> Action { get { return this.action; } }
     }
 
-    public class CompilationEndAnalyzerAction : AnalyzerAction
+    public sealed class CompilationEndAnalyzerAction : AnalyzerAction
     {
-        private Action<CompilationEndAnalysisContext> action;
+        private readonly Action<CompilationEndAnalysisContext> action;
 
         public CompilationEndAnalyzerAction(Action<CompilationEndAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<CompilationEndAnalysisContext> Action { get { return this.action; } }
     }
 
-    public class SemanticModelAnalyzerAction : AnalyzerAction
+    public sealed class SemanticModelAnalyzerAction : AnalyzerAction
     {
-        private Action<SemanticModelAnalysisContext> action;
+        private readonly Action<SemanticModelAnalysisContext> action;
 
         public SemanticModelAnalyzerAction(Action<SemanticModelAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<SemanticModelAnalysisContext> Action { get { return this.action; } }
     }
 
-    public class SyntaxTreeAnalyzerAction : AnalyzerAction
+    public sealed class SyntaxTreeAnalyzerAction : AnalyzerAction
     {
-        private Action<SyntaxTreeAnalysisContext> action;
+        private readonly Action<SyntaxTreeAnalysisContext> action;
 
         public SyntaxTreeAnalyzerAction(Action<SyntaxTreeAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<SyntaxTreeAnalysisContext> Action { get { return this.action; } }
     }
 
-    public class CodeBlockStartAnalyzerAction<TSyntaxKind> : AnalyzerAction
+    public sealed class CodeBlockStartAnalyzerAction<TSyntaxKind> : AnalyzerAction
     {
-        private Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action;
+        private readonly Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action;
 
         public CodeBlockStartAnalyzerAction(Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<CodeBlockStartAnalysisContext<TSyntaxKind>> Action { get { return this.action; } }
     }
 
-    public class CodeBlockEndAnalyzerAction<TSyntaxKind> : AnalyzerAction
+    public sealed class CodeBlockEndAnalyzerAction<TSyntaxKind> : AnalyzerAction
     {
-        private Action<CodeBlockEndAnalysisContext> action;
+        private readonly Action<CodeBlockEndAnalysisContext> action;
 
         public CodeBlockEndAnalyzerAction(Action<CodeBlockEndAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)

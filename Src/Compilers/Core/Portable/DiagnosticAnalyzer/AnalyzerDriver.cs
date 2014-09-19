@@ -154,10 +154,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var compilation = startCompilation.Compilation;
             Interlocked.CompareExchange(ref this.compilation, compilation, null);
 
-            // Compute the set of effective analyzers based on suppression, and running the initial analyzers
+            // Compute the set of effective actions based on suppression, and running the initial analyzers
             var sessionAnalysisScope = GetSessionAnalysisScope(initialAnalyzers, compilation.Options, addDiagnostic, continueOnAnalyzerException, cancellationToken);
-            var compilationAnalysisScope = GetCompilationAnalysisScope(sessionAnalysisScope, compilation, analyzerOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken);
-            this.compilationAnalysisScope = compilationAnalysisScope;
+            Interlocked.CompareExchange(ref this.compilationAnalysisScope, GetCompilationAnalysisScope(sessionAnalysisScope, compilation, analyzerOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken), null);
             ImmutableInterlocked.InterlockedInitialize(ref this.declarationAnalyzerActionsByKind, MakeDeclarationAnalyzersByKind());
 
             // Invoke the syntax tree analyzers
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var syntaxAnalyzers = ArrayBuilder<Task>.GetInstance();
             foreach (var tree in compilation.SyntaxTrees)
             {
-                foreach (var a in compilationAnalysisScope.SyntaxTreeActions)
+                foreach (var a in this.compilationAnalysisScope.SyntaxTreeActions)
                 {
                     var runningAsynchronously = Task.Run(() =>
                     {
@@ -489,11 +488,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return sessionScope;
         }
 
-        public static HostSessionStartAnalysisScope GetSessionAnalysisScope(IEnumerable<DiagnosticAnalyzer> analyzers, CompilationOptions compilationOptions, Action<Diagnostic> addDiagnostic, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken)
+        private static HostSessionStartAnalysisScope GetSessionAnalysisScope(IEnumerable<DiagnosticAnalyzer> analyzers, CompilationOptions compilationOptions, Action<Diagnostic> addDiagnostic, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken)
         {
             return GetSessionAnalysisScope(analyzers, compilationOptions, IsDiagnosticAnalyzerSuppressed, addDiagnostic, continueOnAnalyzerException, cancellationToken);
         }
 
+        // ToDo: This method is public only to make it available to the IDE analyzer driver. Figure out how to make it internal.
+        /// <summary>
+        /// Create the initial analysis scope from a set of available analyzers.
+        /// </summary>
+        /// <param name="analyzers"></param>
+        /// <returns></returns>
         public static HostSessionStartAnalysisScope GetSessionAnalysisScope(IEnumerable<DiagnosticAnalyzer> analyzers)
         {
             return GetSessionAnalysisScope(analyzers, null, (analyzer, options, add, continueOn, cancellation) => false, (d) => { }, (exception, analyzer) => true, CancellationToken.None);
@@ -503,13 +508,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             HostCompilationStartAnalysisScope compilationScope = new HostCompilationStartAnalysisScope(session);
 
-            for (int index = 0; index < session.CompilationStartActions.Length; index++)
+            foreach (CompilationStartAnalyzerAction startAction in session.CompilationStartActions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                CompilationStartAnalyzerAction analyzer = session.CompilationStartActions[index];
-                ExecuteAndCatchIfThrows(analyzer.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                ExecuteAndCatchIfThrows(startAction.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
                 {
-                    analyzer.Action(new CompilationStartAnalysisContext(new AnalyzerCompilationStartAnalysisScope(analyzer.Analyzer, compilationScope), compilation, analyzerOptions, cancellationToken));
+                    startAction.Action(new CompilationStartAnalysisContext(new AnalyzerCompilationStartAnalysisScope(startAction.Analyzer, compilationScope), compilation, analyzerOptions, cancellationToken));
                 });
             }
 
