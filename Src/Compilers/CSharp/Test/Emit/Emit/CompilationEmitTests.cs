@@ -1475,7 +1475,7 @@ using System;
                                      Assert.Equal(expectedAMembers[i], actualAMembers[i].Name);
                                  }
 
-                                 string[] expectedBMembers = { ".ctor", "BeginInvoke", "EndInvoke", "Invoke" };
+                                 string[] expectedBMembers = { ".ctor", "Invoke", "BeginInvoke", "EndInvoke" };
                                  var actualBMembers = ((SourceModuleSymbol)m).GlobalNamespace.GetTypeMembers("B").Single().GetMembers().ToArray();
 
                                  for (int i = 0; i < System.Math.Max(expectedBMembers.Length, actualBMembers.Length); i++)
@@ -1628,7 +1628,7 @@ public class Test
 
                 Assert.False(peReader.IsAssembly);
 
-                Assert.Equal(outputName + extension, peReader.GetString(peReader.GetModuleDefinition().Name));
+                Assert.Equal(module.Name, peReader.GetString(peReader.GetModuleDefinition().Name));
             }
         }
 
@@ -1659,7 +1659,7 @@ public class Test
                 Assert.True(peReader.IsAssembly);
 
                 Assert.Equal(nameOverride, peReader.GetString(peReader.GetAssemblyDefinition().Name));
-                Assert.Equal(nameOverride + extension, peReader.GetString(peReader.GetModuleDefinition().Name));
+                Assert.Equal(module.Name, peReader.GetString(peReader.GetModuleDefinition().Name));
             }
         }
 
@@ -1690,7 +1690,7 @@ public class Test
                 Assert.True(peReader.IsAssembly);
 
                 Assert.Equal(nameOverride, peReader.GetString(peReader.GetAssemblyDefinition().Name));
-                Assert.Equal(nameOverride, peReader.GetString(peReader.GetModuleDefinition().Name));
+                Assert.Equal(module.Name, peReader.GetString(peReader.GetModuleDefinition().Name));
             }
         }
 
@@ -1721,7 +1721,7 @@ public class Test
                 Assert.True(peReader.IsAssembly);
 
                 Assert.Equal(nameOverride, peReader.GetString(peReader.GetAssemblyDefinition().Name));
-                Assert.Equal(nameOverride + extension, peReader.GetString(peReader.GetModuleDefinition().Name));
+                Assert.Equal(module.Name, peReader.GetString(peReader.GetModuleDefinition().Name));
             }
         }
 
@@ -1752,7 +1752,7 @@ public class Test
                 Assert.True(peReader.IsAssembly);
 
                 Assert.Equal(nameOverride, peReader.GetString(peReader.GetAssemblyDefinition().Name));
-                Assert.Equal(nameOverride, peReader.GetString(peReader.GetModuleDefinition().Name));
+                Assert.Equal(module.Name, peReader.GetString(peReader.GetModuleDefinition().Name));
             }
         }
 

@@ -3929,6 +3929,42 @@ class Program
             CompileAndVerify(source, expectedOutput: "7");
         }
 
+        [WorkItem(1019237, "DevDiv")]
+        [Fact]
+        public void OrderOfDelegateMembers()
+        {
+            var source = @"
+using System.Linq;
+
+class Program
+{
+    delegate int D1();
+
+    static void Main()
+    {
+        foreach (var member in typeof(D1).GetMembers(
+            System.Reflection.BindingFlags.DeclaredOnly |
+            System.Reflection.BindingFlags.Public |
+            System.Reflection.BindingFlags.Instance).OrderBy(m=>m.MetadataToken))
+        {
+            System.Console.WriteLine(member.ToString());
+        }
+    }
+}
+";
+            // ref emit would just have different metadata tokens
+            // we are not interested in testing that
+            CompileAndVerify(source, 
+                additionalRefs: new[] { LinqAssemblyRef }, 
+                emitOptions: EmitOptions.RefEmitBug,   
+                expectedOutput: @"
+Void .ctor(System.Object, IntPtr)
+Int32 Invoke()
+System.IAsyncResult BeginInvoke(System.AsyncCallback, System.Object)
+Int32 EndInvoke(System.IAsyncResult)
+");
+        }
+
         [WorkItem(540092, "DevDiv")]
         [Fact]
         public void NestedAnonymousMethodsusingLocalAndField()

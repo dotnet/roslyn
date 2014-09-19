@@ -602,7 +602,7 @@ class B
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "D", "A", "B");
                 CheckNames(reader0, reader0.GetFieldDefNames(), "E");
                 CheckNames(reader0, reader0.GetEventDefNames(), "E");
-                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "BeginInvoke", "EndInvoke", "Invoke", "add_E", "remove_E", ".ctor", ".ctor");
+                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "BeginInvoke", "EndInvoke", "add_E", "remove_E", ".ctor", ".ctor");
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
@@ -1286,7 +1286,7 @@ delegate void D();
             {
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B", "C", "D");
-                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", ".ctor", "M1", "get_P1", "add_E1", "remove_E1", ".ctor", ".ctor", "BeginInvoke", "EndInvoke", "Invoke");
+                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", ".ctor", "M1", "get_P1", "add_E1", "remove_E1", ".ctor", ".ctor", "Invoke", "BeginInvoke", "EndInvoke");
                 CheckAttributes(reader0,
                     new CustomAttributeRow(Handle(1, TableIndex.Field), Handle(2, TableIndex.MethodDef)),
                     new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(1, TableIndex.MethodDef)),
@@ -1518,7 +1518,7 @@ class C
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "D", "C");
                 CheckNames(reader0, reader0.GetEventDefNames(), "E");
                 CheckNames(reader0, reader0.GetFieldDefNames(), "F", "E");
-                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "BeginInvoke", "EndInvoke", "Invoke", "get_P", "add_E", "remove_E", "M", ".ctor");
+                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "BeginInvoke", "EndInvoke", "get_P", "add_E", "remove_E", "M", ".ctor");
                 CheckNames(reader0, reader0.GetPropertyDefNames(), "P");
 
                 var method0 = compilation0.GetMember<MethodSymbol>("C.M");
