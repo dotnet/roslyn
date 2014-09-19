@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerMemberAccessExpression:
                     return BindMemberAccess((MemberAccessExpressionSyntax)node, invoked, indexed, diagnostics: diagnostics);
                 case SyntaxKind.SimpleAssignmentExpression:
-                    return BindAssignment((BinaryExpressionSyntax)node, diagnostics);
+                    return BindAssignment((AssignmentExpressionSyntax)node, diagnostics);
                 case SyntaxKind.CastExpression:
                     return BindCast((CastExpressionSyntax)node, diagnostics);
                 case SyntaxKind.ElementAccessExpression:
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
-                    return BindCompoundAssignment((BinaryExpressionSyntax)node, diagnostics);
+                    return BindCompoundAssignment((AssignmentExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.AliasQualifiedName:
                 case SyntaxKind.PredefinedType:
@@ -4459,7 +4459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (memberInitializer.Kind == SyntaxKind.SimpleAssignmentExpression)
             {
-                var initializer = (BinaryExpressionSyntax)memberInitializer;
+                var initializer = (AssignmentExpressionSyntax)memberInitializer;
 
                 // Bind member initializer identifier, i.e. left part of assignment
                 BoundExpression boundLeft = null;
@@ -4510,7 +4510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // returns BadBoundExpression or BoundObjectInitializerMember
         private BoundExpression BindObjectInitializerMember(
-            BinaryExpressionSyntax namedAssignment,
+            AssignmentExpressionSyntax namedAssignment,
             BoundImplicitReceiver implicitReceiver,
             DiagnosticBag diagnostics)
         {
@@ -4727,7 +4727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var memberInitializerSyntax = boundMemberInitializer.Syntax;
 
                 Debug.Assert(memberInitializerSyntax.Kind == SyntaxKind.SimpleAssignmentExpression);
-                var namedAssignment = (BinaryExpressionSyntax)memberInitializerSyntax;
+                var namedAssignment = (AssignmentExpressionSyntax)memberInitializerSyntax;
 
                 var memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
                 if (memberNameSyntax != null)

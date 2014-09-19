@@ -586,28 +586,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.LogicalAndExpression;
                 case SyntaxKind.BarBarToken:
                     return SyntaxKind.LogicalOrExpression;
-                case SyntaxKind.BarEqualsToken:
-                    return SyntaxKind.OrAssignmentExpression;
-                case SyntaxKind.AmpersandEqualsToken:
-                    return SyntaxKind.AndAssignmentExpression;
-                case SyntaxKind.CaretEqualsToken:
-                    return SyntaxKind.ExclusiveOrAssignmentExpression;
-                case SyntaxKind.LessThanLessThanEqualsToken:
-                    return SyntaxKind.LeftShiftAssignmentExpression;
-                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-                    return SyntaxKind.RightShiftAssignmentExpression;
-                case SyntaxKind.PlusEqualsToken:
-                    return SyntaxKind.AddAssignmentExpression;
-                case SyntaxKind.MinusEqualsToken:
-                    return SyntaxKind.SubtractAssignmentExpression;
-                case SyntaxKind.AsteriskEqualsToken:
-                    return SyntaxKind.MultiplyAssignmentExpression;
-                case SyntaxKind.SlashEqualsToken:
-                    return SyntaxKind.DivideAssignmentExpression;
-                case SyntaxKind.PercentEqualsToken:
-                    return SyntaxKind.ModuloAssignmentExpression;
-                case SyntaxKind.EqualsToken:
-                    return SyntaxKind.SimpleAssignmentExpression;
                 default:
                     return SyntaxKind.None;
             }
@@ -652,6 +630,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 default:
                     return false;
+            }
+        }
+
+        public static SyntaxKind GetAssignmentExpression(SyntaxKind token)
+        {
+            switch (token)
+            {
+                case SyntaxKind.BarEqualsToken:
+                    return SyntaxKind.OrAssignmentExpression;
+                case SyntaxKind.AmpersandEqualsToken:
+                    return SyntaxKind.AndAssignmentExpression;
+                case SyntaxKind.CaretEqualsToken:
+                    return SyntaxKind.ExclusiveOrAssignmentExpression;
+                case SyntaxKind.LessThanLessThanEqualsToken:
+                    return SyntaxKind.LeftShiftAssignmentExpression;
+                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    return SyntaxKind.RightShiftAssignmentExpression;
+                case SyntaxKind.PlusEqualsToken:
+                    return SyntaxKind.AddAssignmentExpression;
+                case SyntaxKind.MinusEqualsToken:
+                    return SyntaxKind.SubtractAssignmentExpression;
+                case SyntaxKind.AsteriskEqualsToken:
+                    return SyntaxKind.MultiplyAssignmentExpression;
+                case SyntaxKind.SlashEqualsToken:
+                    return SyntaxKind.DivideAssignmentExpression;
+                case SyntaxKind.PercentEqualsToken:
+                    return SyntaxKind.ModuloAssignmentExpression;
+                case SyntaxKind.EqualsToken:
+                    return SyntaxKind.SimpleAssignmentExpression;
+                default:
+                    return SyntaxKind.None;
             }
         }
 

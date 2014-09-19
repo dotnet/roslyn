@@ -396,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-
             public override void VisitBinaryExpression(BinaryExpressionSyntax node)
             {
                 if (!IsSimpleBinaryOperator(node.Kind))

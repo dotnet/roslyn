@@ -679,7 +679,7 @@ class Program
 PredefinedTypeSyntax void has type void
 IdentifierNameSyntax var has type double
 LiteralExpressionSyntax 0.0 has type double
-BinaryExpressionSyntax i += 1 + 2L has type double
+AssignmentExpressionSyntax i += 1 + 2L has type double
 IdentifierNameSyntax i has type double
 BinaryExpressionSyntax 1 + 2L has type long
 LiteralExpressionSyntax 1 has type int
@@ -2218,7 +2218,7 @@ class Program
                 {
                     // Print value of the variable on the 'Left' side of
                     // compound assignement statements encountered.
-                    var compoundAssignmentExpression = (BinaryExpressionSyntax)node.Expression;
+                    var compoundAssignmentExpression = (AssignmentExpressionSyntax)node.Expression;
                     StatementSyntax consoleWriteLineStatement =
                         SyntaxFactory.ParseStatement(string.Format("System.Console.WriteLine({0});", compoundAssignmentExpression.Left.ToString()));
 

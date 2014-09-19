@@ -186,7 +186,7 @@ namespace ImplementNotifyPropertyChangedCS
                 return false;
             }
 
-            var assignment = (BinaryExpressionSyntax)expression;
+            var assignment = (AssignmentExpressionSyntax)expression;
 
             return IsBackingField(assignment.Left, backingField, semanticModel)
                 && IsPropertyValueParameter(assignment.Right, semanticModel);

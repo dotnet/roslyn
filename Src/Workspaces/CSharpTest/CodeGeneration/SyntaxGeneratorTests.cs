@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         [Fact]
         public void TestAssignmentStatement()
         {
-            VerifySyntax<BinaryExpressionSyntax>(g.AssignmentStatement(g.IdentifierName("x"), g.IdentifierName("y")), "x = (y)");
+            VerifySyntax<AssignmentExpressionSyntax>(g.AssignmentStatement(g.IdentifierName("x"), g.IdentifierName("y")), "x = (y)");
         }
 
         [Fact]

@@ -5654,7 +5654,7 @@ class Module1
             types[types.Length - 1] = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_SByte));
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
-                         select (node as BinaryExpressionSyntax)).
+                         select (node as AssignmentExpressionSyntax)).
                          Where(node => (object)node != null).ToArray();
 
             n = 0;
@@ -5692,14 +5692,14 @@ class Module1
             TypeSymbol rightType,
             CSharpCompilation compilation,
             SemanticModel semanticModel,
-            BinaryExpressionSyntax node1,
-            BinaryExpressionSyntax node2,
-            BinaryExpressionSyntax node3,
-            BinaryExpressionSyntax node4,
-            BinaryExpressionSyntax node5,
-            BinaryExpressionSyntax node6,
-            BinaryExpressionSyntax node7,
-            BinaryExpressionSyntax node8
+            ExpressionSyntax node1,
+            ExpressionSyntax node2,
+            ExpressionSyntax node3,
+            ExpressionSyntax node4,
+            ExpressionSyntax node5,
+            ExpressionSyntax node6,
+            ExpressionSyntax node7,
+            ExpressionSyntax node8
         )
         {
             SymbolInfo info1 = semanticModel.GetSymbolInfo(node1);
@@ -6209,9 +6209,7 @@ class Module1
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
-                         select node as BinaryExpressionSyntax).
-                         Where(node => (object)node != null).ToArray();
+            var nodes = tree.GetRoot().DescendantNodes().Where(node => node is BinaryExpressionSyntax || node is AssignmentExpressionSyntax).ToArray();
 
             Assert.Equal(2, nodes.Length);
 

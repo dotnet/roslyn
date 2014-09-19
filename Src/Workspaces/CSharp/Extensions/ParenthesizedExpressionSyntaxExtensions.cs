@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -103,59 +104,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Operator precedence cases:
+            // - If the parent is not an expression, do not remove parentheses
+            // - Otherwise, parentheses may be removed if doing so does not change operator associations.
+            return parentExpression == null ? false : !RemovalChangesAssociation(node, expression, parentExpression);
+        }
+
+        private static bool RemovalChangesAssociation(ParenthesizedExpressionSyntax node, ExpressionSyntax expression, ExpressionSyntax parentExpression)
+        {
             var precedence = expression.GetOperatorPrecedence();
-            if (parentExpression != null)
+            var parentPrecedence = parentExpression.GetOperatorPrecedence();
+            if (precedence == OperatorPrecedence.None || parentPrecedence == OperatorPrecedence.None)
             {
-                var parentPrecedence = parentExpression.GetOperatorPrecedence();
-
-                // Only remove if the expression's precedence is higher than its parent.
-                if (parentPrecedence != OperatorPrecedence.None &&
-                    precedence > parentPrecedence)
-                {
-                    return true;
-                }
-
-                // If the expression's precedence is the same as its parent, and both are binary expressions,
-                // check for associativity and commutability.
-                if (precedence != OperatorPrecedence.None && precedence == parentPrecedence)
-                {
-                    var binaryExpression = expression as BinaryExpressionSyntax;
-                    var parentBinaryExpression = parentExpression as BinaryExpressionSyntax;
-                    if (binaryExpression == null || parentBinaryExpression == null)
-                    {
-                        return true;
-                    }
-
-                    // Handle associate cases. Note that all binary expressions except assignment 
-                    // and null-coalescing are left associative.
-                    if (parentBinaryExpression.Left == node)
-                    {
-                        if (!parentBinaryExpression.IsAnyAssignExpression() &&
-                            !parentBinaryExpression.IsKind(SyntaxKind.CoalesceExpression))
-                        {
-                            return true;
-                        }
-                    }
-                    else if (parentBinaryExpression.Right == node)
-                    {
-                        if (parentBinaryExpression.IsAnyAssignExpression() ||
-                            parentBinaryExpression.IsKind(SyntaxKind.CoalesceExpression))
-                        {
-                            return true;
-                        }
-                    }
-
-                    // If both the expression and it's parent are binary expressions and their kinds
-                    // are the same, check to see if they are commutative (e.g. + or *).
-                    if (parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) &&
-                        expression.CSharpKind() == parentExpression.CSharpKind())
-                    {
-                        return true;
-                    }
-                }
+                // Be conservative if the expression or its parent has no precedence.
+                return true;
             }
 
-            return false;
+            if (precedence > parentPrecedence)
+            {
+                // Association never changes if the expression's precedence is higher than its parent.
+                return false;
+            }
+            else if (precedence < parentPrecedence)
+            {
+                // Association always changes if the expression's precedence is lower that its parent.
+                return true;
+            }
+            else if (precedence == parentPrecedence)
+            {
+                // If the expression's precedence is the same as its parent, and both are binary expressions,
+                // check for associativity and commutability.
+
+                if (!(expression is BinaryExpressionSyntax || expression is AssignmentExpressionSyntax))
+                {
+                    // If the expression is not a binary expression, association never changes.
+                    return false;
+                }
+
+                var parentBinaryExpression = parentExpression as BinaryExpressionSyntax;
+                if (parentBinaryExpression != null)
+                {
+                    // If both the expression and its parent are binary expressions and their kinds
+                    // are the same, check to see if they are commutative (e.g. + or *).
+                    if (parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) &&
+                        node.Expression.CSharpKind() == parentBinaryExpression.CSharpKind())
+                    {
+                        return false;
+                    }
+
+                    // Null-coalescing is right associative; removing parens from the LHS changes the association.
+                    if (parentExpression.IsKind(SyntaxKind.CoalesceExpression))
+                    {
+                        return parentBinaryExpression.Left == node;
+                    }
+
+                    // All other binary operators are left associative; removing parens from the RHS changes the association.
+                    return parentBinaryExpression.Right == node;
+                }
+
+                var parentAssignmentExpression = parentExpression as AssignmentExpressionSyntax;
+                if (parentAssignmentExpression != null)
+                {
+                    // Assignment expressions are right associative; removing parens from the LHS changes the association.
+                    return parentAssignmentExpression.Left == node;
+                }
+
+                // If the parent is not a binary expression, association never changes.
+                return false;
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         private static bool RemovalMayIntroduceCastAmbiguity(ParenthesizedExpressionSyntax node)

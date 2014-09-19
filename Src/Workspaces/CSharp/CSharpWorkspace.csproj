@@ -115,7 +115,6 @@
     <Compile Include="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseParameterListSyntaxExtensions.cs" />
-    <Compile Include="Extensions\BinaryExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\BreakpointSpans.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>

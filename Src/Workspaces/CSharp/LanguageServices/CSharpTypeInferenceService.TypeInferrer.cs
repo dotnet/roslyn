@@ -109,15 +109,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
-            private IEnumerable<ITypeSymbol> GetTypesComplex(ExpressionSyntax expression)
+            private static bool DecomposeBinaryOrAssignmentExpression(ExpressionSyntax expression, out SyntaxToken operatorToken, out ExpressionSyntax left, out ExpressionSyntax right)
             {
                 var binaryExpression = expression as BinaryExpressionSyntax;
                 if (binaryExpression != null)
                 {
-                    var types = InferTypeInBinaryExpression(binaryExpression, binaryExpression.Left).Where(t => !IsUnusableType(t));
+                    operatorToken = binaryExpression.OperatorToken;
+                    left = binaryExpression.Left;
+                    right = binaryExpression.Right;
+                    return true;
+                }
+
+                var assignmentExpression = expression as AssignmentExpressionSyntax;
+                if (assignmentExpression != null)
+                {
+                    operatorToken = assignmentExpression.OperatorToken;
+                    left = assignmentExpression.Left;
+                    right = assignmentExpression.Right;
+                    return true;
+                }
+
+                operatorToken = default(SyntaxToken);
+                left = right = null;
+                return false;
+            }
+
+            private IEnumerable<ITypeSymbol> GetTypesComplex(ExpressionSyntax expression)
+            {
+                SyntaxToken operatorToken;
+                ExpressionSyntax left, right;
+                if (DecomposeBinaryOrAssignmentExpression(expression, out operatorToken, out left, out right))
+                {
+                    var types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, left).Where(t => !IsUnusableType(t));
                     if (types.IsEmpty())
                     {
-                        types = InferTypeInBinaryExpression(binaryExpression, binaryExpression.Right).Where(t => !IsUnusableType(t));
+                        types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, right).Where(t => !IsUnusableType(t));
                     }
 
                     return types;
@@ -171,7 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ArrayTypeSyntax arrayType) => InferTypeInArrayType(arrayType),
                     (AttributeArgumentSyntax attribute) => InferTypeInAttributeArgument(attribute),
                     (AttributeSyntax attribute) => InferTypeInAttribute(attribute),
-                    (BinaryExpressionSyntax binaryExpression) => InferTypeInBinaryExpression(binaryExpression, expression),
+                    (BinaryExpressionSyntax binaryExpression) => InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, expression),
+                    (AssignmentExpressionSyntax assignmentExpression) => InferTypeInBinaryOrAssignmentExpression(assignmentExpression, assignmentExpression.OperatorToken, assignmentExpression.Left, assignmentExpression.Right, expression),
                     (CastExpressionSyntax castExpression) => InferTypeInCastExpression(castExpression, expression),
                     (CatchDeclarationSyntax catchDeclaration) => InferTypeInCatchDeclaration(catchDeclaration),
                     (CatchFilterClauseSyntax catchFilterClause) => InferTypeInCatchFilterClause(catchFilterClause),
@@ -218,7 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ArrayTypeSyntax arrayType) => InferTypeInArrayType(arrayType, token),
                     (AttributeListSyntax attributeDeclaration) => InferTypeInAttributeDeclaration(attributeDeclaration, token),
                     (AttributeTargetSpecifierSyntax attributeTargetSpecifier) => InferTypeInAttributeTargetSpecifier(attributeTargetSpecifier, token),
-                    (BinaryExpressionSyntax binaryExpression) => InferTypeInBinaryExpression(binaryExpression, previousToken: token),
+                    (BinaryExpressionSyntax binaryExpression) => InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, previousToken: token),
+                    (AssignmentExpressionSyntax assignmentExpression) => InferTypeInBinaryOrAssignmentExpression(assignmentExpression, assignmentExpression.OperatorToken, assignmentExpression.Left, assignmentExpression.Right, previousToken: token),
                     (BracketedArgumentListSyntax bracketedArgumentList) => InferTypeInBracketedArgumentList(bracketedArgumentList, token),
                     (CastExpressionSyntax castExpression) => InferTypeInCastExpression(castExpression, previousToken: token),
                     (CatchDeclarationSyntax catchDeclaration) => InferTypeInCatchDeclaration(catchDeclaration, token),
@@ -665,19 +693,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (tokenIndex + 1) / 2;
             }
 
-            private IEnumerable<ITypeSymbol> InferTypeInBinaryExpression(BinaryExpressionSyntax binop, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
+            private IEnumerable<ITypeSymbol> InferTypeInBinaryOrAssignmentExpression(ExpressionSyntax binop, SyntaxToken operatorToken, ExpressionSyntax left, ExpressionSyntax right, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
             {
                 // If we got here through a token, then it must have actually been the binary
                 // operator's token.
-                Contract.ThrowIfTrue(previousToken.HasValue && previousToken.Value != binop.OperatorToken);
+                Contract.ThrowIfTrue(previousToken.HasValue && previousToken.Value != operatorToken);
 
                 if (binop.CSharpKind() == SyntaxKind.CoalesceExpression)
                 {
-                    return InferTypeInCoalesceExpression(binop, expressionOpt, previousToken);
+                    return InferTypeInCoalesceExpression((BinaryExpressionSyntax)binop, expressionOpt, previousToken);
                 }
 
-                var onRightOfToken = binop.Right == expressionOpt || previousToken.HasValue;
-                switch (binop.OperatorToken.CSharpKind())
+                var onRightOfToken = right == expressionOpt || previousToken.HasValue;
+                switch (operatorToken.CSharpKind())
                 {
                     case SyntaxKind.LessThanLessThanToken:
                     case SyntaxKind.GreaterThanGreaterThanToken:
@@ -694,8 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Infer operands of && and || as bool regardless of the other operand.
-                if (binop.OperatorToken.CSharpKind() == SyntaxKind.AmpersandAmpersandToken ||
-                    binop.OperatorToken.CSharpKind() == SyntaxKind.BarBarToken)
+                if (operatorToken.CSharpKind() == SyntaxKind.AmpersandAmpersandToken ||
+                    operatorToken.CSharpKind() == SyntaxKind.BarBarToken)
                 {
                     return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
@@ -704,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // type.  This is often a reasonable heuristics to use for most operators.  NOTE(cyrusn):
                 // we could try to bind the token to see what overloaded operators it corresponds to.
                 // But the gain is pretty marginal IMO.
-                var otherSide = onRightOfToken ? binop.Left : binop.Right;
+                var otherSide = onRightOfToken ? left : right;
 
                 var otherSideTypes = GetTypes(otherSide);
                 if (otherSideTypes.Any())
@@ -714,12 +742,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // For &, &=, |, |=, ^, and ^=, since we couldn't infer the type of either side, 
                 // try to infer the type of the entire binary expression.
-                if (binop.OperatorToken.CSharpKind() == SyntaxKind.AmpersandToken ||
-                    binop.OperatorToken.CSharpKind() == SyntaxKind.AmpersandEqualsToken ||
-                    binop.OperatorToken.CSharpKind() == SyntaxKind.BarToken ||
-                    binop.OperatorToken.CSharpKind() == SyntaxKind.BarEqualsToken ||
-                    binop.OperatorToken.CSharpKind() == SyntaxKind.CaretToken ||
-                    binop.OperatorToken.CSharpKind() == SyntaxKind.CaretEqualsToken)
+                if (operatorToken.CSharpKind() == SyntaxKind.AmpersandToken ||
+                    operatorToken.CSharpKind() == SyntaxKind.AmpersandEqualsToken ||
+                    operatorToken.CSharpKind() == SyntaxKind.BarToken ||
+                    operatorToken.CSharpKind() == SyntaxKind.BarEqualsToken ||
+                    operatorToken.CSharpKind() == SyntaxKind.CaretToken ||
+                    operatorToken.CSharpKind() == SyntaxKind.CaretEqualsToken)
                 {
                     var parentTypes = InferTypes(binop);
                     if (parentTypes.Any())
@@ -730,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If it's a plus operator, then do some smarts in case it might be a string or
                 // delegate.
-                if (binop.OperatorToken.CSharpKind() == SyntaxKind.PlusToken)
+                if (operatorToken.CSharpKind() == SyntaxKind.PlusToken)
                 {
                     // See Bug 6045.  Note: we've already checked the other side of the operator.  So this
                     // is the case where the other side was also unknown.  So we walk one higher and if
@@ -743,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Otherwise pick some sane defaults for certain common cases.
-                switch (binop.OperatorToken.CSharpKind())
+                switch (operatorToken.CSharpKind())
                 {
                     case SyntaxKind.BarToken:
                     case SyntaxKind.CaretToken:
@@ -1085,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (initializerExpression.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     // new Foo { a = { Foo() } }
-                    var assignExpression = (BinaryExpressionSyntax)initializerExpression.Parent;
+                    var assignExpression = (AssignmentExpressionSyntax)initializerExpression.Parent;
                     IEnumerable<ITypeSymbol> types = GetTypes(assignExpression.Left);
 
                     if (types.Any(t => t is INamedTypeSymbol))

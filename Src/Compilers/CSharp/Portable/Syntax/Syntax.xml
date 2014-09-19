@@ -475,17 +475,6 @@
     <Kind Name="IsExpression"/>
     <Kind Name="AsExpression"/>
     <Kind Name="CoalesceExpression"/>
-    <Kind Name="SimpleAssignmentExpression"/>
-    <Kind Name="AddAssignmentExpression"/>
-    <Kind Name="SubtractAssignmentExpression"/>
-    <Kind Name="MultiplyAssignmentExpression"/>
-    <Kind Name="DivideAssignmentExpression"/>
-    <Kind Name="ModuloAssignmentExpression"/>
-    <Kind Name="AndAssignmentExpression"/>
-    <Kind Name="ExclusiveOrAssignmentExpression"/>
-    <Kind Name="OrAssignmentExpression"/>
-    <Kind Name="LeftShiftAssignmentExpression"/>
-    <Kind Name="RightShiftAssignmentExpression"/>
     <Field Name="Left" Type="ExpressionSyntax">
       <PropertyComment>
         <summary>ExpressionSyntax node representing the expression on the left of the binary operator.</summary>
@@ -513,17 +502,6 @@
       <Kind Name="IsKeyword"/>
       <Kind Name="AsKeyword"/>
       <Kind Name="QuestionQuestionToken"/>
-      <Kind Name="EqualsToken"/>
-      <Kind Name="PlusEqualsToken"/>
-      <Kind Name="MinusEqualsToken"/>
-      <Kind Name="AsteriskEqualsToken"/>
-      <Kind Name="SlashEqualsToken"/>
-      <Kind Name="PercentEqualsToken"/>
-      <Kind Name="AmpersandEqualsToken"/>
-      <Kind Name="CaretEqualsToken"/>
-      <Kind Name="BarEqualsToken"/>
-      <Kind Name="LessThanLessThanEqualsToken"/>
-      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the operator of the binary expression.</summary>
       </PropertyComment>
@@ -538,6 +516,51 @@
     </TypeComment>
     <FactoryComment>
       <summary>Creates an BinaryExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="AssignmentExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="SimpleAssignmentExpression"/>
+    <Kind Name="AddAssignmentExpression"/>
+    <Kind Name="SubtractAssignmentExpression"/>
+    <Kind Name="MultiplyAssignmentExpression"/>
+    <Kind Name="DivideAssignmentExpression"/>
+    <Kind Name="ModuloAssignmentExpression"/>
+    <Kind Name="AndAssignmentExpression"/>
+    <Kind Name="ExclusiveOrAssignmentExpression"/>
+    <Kind Name="OrAssignmentExpression"/>
+    <Kind Name="LeftShiftAssignmentExpression"/>
+    <Kind Name="RightShiftAssignmentExpression"/>
+    <Field Name="Left" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+      <Kind Name="PlusEqualsToken"/>
+      <Kind Name="MinusEqualsToken"/>
+      <Kind Name="AsteriskEqualsToken"/>
+      <Kind Name="SlashEqualsToken"/>
+      <Kind Name="PercentEqualsToken"/>
+      <Kind Name="AmpersandEqualsToken"/>
+      <Kind Name="CaretEqualsToken"/>
+      <Kind Name="BarEqualsToken"/>
+      <Kind Name="LessThanLessThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the operator of the assignment expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Right" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents an expression that has an assignment operator.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an AssignmentExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">

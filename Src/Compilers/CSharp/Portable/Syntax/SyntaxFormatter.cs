@@ -298,7 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return token.CSharpKind() == SyntaxKind.RegionKeyword && next.LeadingWidth > 0;
             }
 
-            if ((token.Parent is BinaryExpressionSyntax && BinaryTokenNeedsSeparator(token.CSharpKind())) ||
+            if ((token.Parent is AssignmentExpressionSyntax && AssignmentTokenNeedsSeparator(token.CSharpKind())) ||
+                (next.Parent is AssignmentExpressionSyntax && AssignmentTokenNeedsSeparator(next.CSharpKind())) ||
+                (token.Parent is BinaryExpressionSyntax && BinaryTokenNeedsSeparator(token.CSharpKind())) ||
                 (next.Parent is BinaryExpressionSyntax && BinaryTokenNeedsSeparator(next.CSharpKind())))
             {
                 return true;
@@ -427,6 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 default:
                     return SyntaxFacts.GetBinaryExpression(kind) != SyntaxKind.None;
             }
+        }
+
+        private static bool AssignmentTokenNeedsSeparator(SyntaxKind kind)
+        {
+            return SyntaxFacts.GetAssignmentExpression(kind) != SyntaxKind.None;
         }
 
         private SyntaxTriviaList RewriteTrivia(

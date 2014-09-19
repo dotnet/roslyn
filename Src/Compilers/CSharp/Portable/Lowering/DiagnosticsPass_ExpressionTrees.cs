@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool hasBaseReceiver = node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.BaseReference;
-            Binder.ReportDiagnosticsIfObsolete(diagnostics, node.Event, ((BinaryExpressionSyntax)node.Syntax).Left, hasBaseReceiver, this.containingSymbol, this.containingSymbol.ContainingType, BinderFlags.None);
+            Binder.ReportDiagnosticsIfObsolete(diagnostics, node.Event, ((AssignmentExpressionSyntax)node.Syntax).Left, hasBaseReceiver, this.containingSymbol, this.containingSymbol.ContainingType, BinderFlags.None);
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitEventAssignmentOperator(node);
         }

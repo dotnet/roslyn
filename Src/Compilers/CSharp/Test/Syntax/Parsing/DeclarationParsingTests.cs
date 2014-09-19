@@ -3830,7 +3830,7 @@ class Class1<T>{
             var es = (ExpressionStatementSyntax)body.Statements[0];
             Assert.NotNull(es.Expression);
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, es.Expression.Kind);
-            var bx = (BinaryExpressionSyntax)es.Expression;
+            var bx = (AssignmentExpressionSyntax)es.Expression;
             Assert.Equal(SyntaxKind.IdentifierName, bx.Right.Kind);
             Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.CSharpKind());
         }
@@ -3886,7 +3886,7 @@ class Class1<T>{
             var xs = (ExpressionStatementSyntax)body.Statements[0];
             Assert.NotNull(xs.Expression);
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, xs.Expression.Kind);
-            var bx = (BinaryExpressionSyntax)xs.Expression;
+            var bx = (AssignmentExpressionSyntax)xs.Expression;
             Assert.Equal(SyntaxKind.IdentifierName, bx.Right.Kind);
             Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.CSharpKind());
         }

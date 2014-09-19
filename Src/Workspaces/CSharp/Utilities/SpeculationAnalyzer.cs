@@ -272,14 +272,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             if (currentOriginalNode is BinaryExpressionSyntax)
             {
                 // If replacing the node will result in a broken binary expression, we won't remove it.
-                var originalExpression = (BinaryExpressionSyntax)currentOriginalNode;
-                var newExpression = (BinaryExpressionSyntax)currentReplacedNode;
-                if (ReplacementBreaksBinaryExpression(originalExpression, newExpression))
-                {
-                    return true;
-                }
-
-                return !ImplicitConversionsAreCompatible(originalExpression, newExpression);
+                return ReplacementBreaksBinaryExpression((BinaryExpressionSyntax)currentOriginalNode, (BinaryExpressionSyntax)currentReplacedNode);
+            }
+            else if (currentOriginalNode is AssignmentExpressionSyntax)
+            {
+                // If replacing the node will result in a broken assignment expression, we won't remove it.
+                return ReplacementBreaksAssignmentExpression((AssignmentExpressionSyntax)currentOriginalNode, (AssignmentExpressionSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode is SelectOrGroupClauseSyntax || currentOriginalNode is OrderingSyntax)
             {
@@ -555,16 +553,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return true;
             }
 
-            if (binaryExpression.IsCompoundAssignExpression() &&
-                binaryExpression.CSharpKind() != SyntaxKind.LeftShiftAssignmentExpression &&
-                binaryExpression.CSharpKind() != SyntaxKind.RightShiftAssignmentExpression &&
-                ReplacementBreaksCompoundAssignExpression(binaryExpression.Left, binaryExpression.Right, newBinaryExpression.Left, newBinaryExpression.Right))
-            {
-                return true;
-            }
-
             return !SymbolsAreCompatible(binaryExpression, newBinaryExpression) ||
-                !TypesAreCompatible(binaryExpression, newBinaryExpression);
+                !TypesAreCompatible(binaryExpression, newBinaryExpression) ||
+                !ImplicitConversionsAreCompatible(binaryExpression, newBinaryExpression);
         }
 
         private bool ReplacementBreaksIsOrAsExpression(BinaryExpressionSyntax originalIsOrAsExpression, BinaryExpressionSyntax newIsOrAsExpression)
@@ -590,6 +581,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // Is and As operators do not consider any user-defined operators, just ensure that the conversion exists.
             return originalConversion.Exists != newConversion.Exists;
+        }
+
+        private bool ReplacementBreaksAssignmentExpression(AssignmentExpressionSyntax assignmentExpression, AssignmentExpressionSyntax newAssignmentExpression)
+        {
+            if (assignmentExpression.IsCompoundAssignExpression() &&
+                assignmentExpression.CSharpKind() != SyntaxKind.LeftShiftAssignmentExpression &&
+                assignmentExpression.CSharpKind() != SyntaxKind.RightShiftAssignmentExpression &&
+                ReplacementBreaksCompoundAssignExpression(assignmentExpression.Left, assignmentExpression.Right, newAssignmentExpression.Left, newAssignmentExpression.Right))
+            {
+                return true;
+            }
+
+            return !SymbolsAreCompatible(assignmentExpression, newAssignmentExpression) ||
+                !TypesAreCompatible(assignmentExpression, newAssignmentExpression) ||
+                !ImplicitConversionsAreCompatible(assignmentExpression, newAssignmentExpression);
         }
 
         private bool ReplacementBreaksQueryClause(QueryClauseSyntax originalClause, QueryClauseSyntax newClause)

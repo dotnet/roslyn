@@ -8033,7 +8033,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return IsExpectedPrefixUnaryOperator(tk)
                         || (IsPredefinedType(tk) && tk != SyntaxKind.VoidKeyword)
                         || SyntaxFacts.IsAnyUnaryExpression(tk)
-                        || SyntaxFacts.IsBinaryExpression(tk);
+                        || SyntaxFacts.IsBinaryExpression(tk)
+                        || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk);
             }
         }
 
@@ -8172,6 +8173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFacts.IsBinaryExpression(kind);
         }
 
+        private static bool IsExpectedAssignmentOperator(SyntaxKind kind)
+        {
+            return SyntaxFacts.IsAssignmentExpressionOperatorToken(kind);
+        }
+
         private bool IsPossibleAwaitExpressionStatement()
         {
             return this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
@@ -8296,14 +8302,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             while (true)
             {
-                // We either have a binary operator here, or we're finished.
+                // We either have a binary or assignment operator here, or we're finished.
                 tk = this.CurrentToken.Kind;
-                if (!IsExpectedBinaryOperator(tk))
+
+                bool isAssignmentOperator = false;
+                if (IsExpectedBinaryOperator(tk))
+                {
+                    opKind = SyntaxFacts.GetBinaryExpression(tk);
+                }
+                else if (IsExpectedAssignmentOperator(tk))
+                {
+                    opKind = SyntaxFacts.GetAssignmentExpression(tk);
+                    isAssignmentOperator = true;
+                }
+                else
                 {
                     break;
                 }
 
-                opKind = SyntaxFacts.GetBinaryExpression(tk);
                 newPrecedence = GetPrecedence(opKind);
 
                 Debug.Assert(newPrecedence > 0);      // All binary operators must have precedence > 0!
@@ -8316,7 +8332,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // check to see if they really are adjacent
                     if (this.CurrentToken.GetTrailingTriviaWidth() == 0 && this.PeekToken(1).GetLeadingTriviaWidth() == 0)
                     {
-                        opKind = SyntaxFacts.GetBinaryExpression(this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                        if (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
+                        {
+                            opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
+                        }
+                        else
+                        {
+                            opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                            isAssignmentOperator = true;
+                        }
                         newPrecedence = GetPrecedence(opKind);
                         doubleOp = true;
                     }
@@ -8351,9 +8375,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    leftOperand = syntaxFactory.BinaryExpression(opKind, leftOperand, opToken,
-                                                                 this.ParseSubExpression(newPrecedence,
-                                                                                         allowDeclarationExpression: SyntaxFacts.IsAssignmentExpressionOperatorToken(opToken.Kind)));
+                    var rightOperand = this.ParseSubExpression(newPrecedence, allowDeclarationExpression: isAssignmentOperator);
+                    if (isAssignmentOperator)
+                    {
+                        leftOperand = syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, rightOperand);
+                    }
+                    else
+                    {
+                        leftOperand = syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, rightOperand);
+                    }
                 }
             }
 
@@ -9655,7 +9685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 expression = this.ParseExpression();
             }
 
-            return syntaxFactory.BinaryExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
+            return syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
         }
 
         private ExpressionSyntax ParseDictionaryInitializer()
@@ -9673,7 +9703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var elementAccess = syntaxFactory.ImplicitElementAccess(arguments);
-            return syntaxFactory.BinaryExpression(SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
+            return syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()

@@ -12573,7 +12573,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<BinaryExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<AssignmentExpressionSyntax>(sourceCode);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -13633,7 +13633,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<BinaryExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<AssignmentExpressionSyntax>(sourceCode);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -14362,7 +14362,7 @@ struct Class1
 	extern public event EventHandler e1 = /*<bind>*/ e2 = new EventHandler(this, new EventArgs()) = null /*</bind>*/;
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<BinaryExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<AssignmentExpressionSyntax>(sourceCode);
 
             Assert.NotNull(semanticInfo.Type);
         }

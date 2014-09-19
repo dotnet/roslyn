@@ -664,25 +664,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsAnyAssignExpression(this SyntaxNode node)
         {
-            return (node as BinaryExpressionSyntax).IsAnyAssignExpression();
+            return SyntaxFacts.IsAssignmentExpression(node.CSharpKind());
+        }
+
+        public static bool IsCompoundAssignExpression(this SyntaxNode node)
+        {
+            switch (node.CSharpKind())
+            {
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                    return true;
+            }
+
+            return false;
         }
 
         public static bool IsLeftSideOfAssignExpression(this SyntaxNode node)
         {
             return node.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
-                ((BinaryExpressionSyntax)node.Parent).Left == node;
+                ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 
         public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
         {
             return node.Parent.IsAnyAssignExpression() &&
-                ((BinaryExpressionSyntax)node.Parent).Left == node;
+                ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 
         public static bool IsRightSideOfAnyAssignExpression(this SyntaxNode node)
         {
             return node.Parent.IsAnyAssignExpression() &&
-                ((BinaryExpressionSyntax)node.Parent).Right == node;
+                ((AssignmentExpressionSyntax)node.Parent).Right == node;
         }
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)

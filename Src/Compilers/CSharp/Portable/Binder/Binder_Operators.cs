@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private BoundExpression BindCompoundAssignment(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindCompoundAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind));
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
-                ReportBinaryOperatorError(node, diagnostics, left, right, resultKind);
+                ReportAssignmentOperatorError(node, diagnostics, left, right, resultKind);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
                     Conversion.NoConversion, Conversion.NoConversion, resultKind, originalUserDefinedOperators, CreateErrorType(), hasErrors: true);
             }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Performs some validation of the accessor that couldn't be done in CheckEventValueKind, because
         /// the specific accessor wasn't known.
         /// </remarks>
-        private BoundExpression BindEventAssignment(BinaryExpressionSyntax node, BoundEventAccess left, BoundExpression right, BinaryOperatorKind opKind, DiagnosticBag diagnostics)
+        private BoundExpression BindEventAssignment(AssignmentExpressionSyntax node, BoundEventAccess left, BoundExpression right, BinaryOperatorKind opKind, DiagnosticBag diagnostics)
         {
             Debug.Assert(opKind == BinaryOperatorKind.Addition || opKind == BinaryOperatorKind.Subtraction);
 
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                ReportBinaryOperatorError(node, diagnostics, left, right, resultKind);
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
                 resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
             }
 
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, errorCode, node, operatorName, operand.Display);
         }
 
-        private void ReportBinaryOperatorError(BinaryExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
+        private void ReportAssignmentOperatorError(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
             if (((SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.PlusEqualsToken || (SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.MinusEqualsToken) &&
                 (object)left.Type != null && left.Type.TypeKind == TypeKind.Delegate)
@@ -607,12 +607,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ErrorCode errorCode = resultKind == LookupResultKind.Ambiguous ?
-                    ErrorCode.ERR_AmbigBinaryOps : // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
+            }
+        }
+
+        private void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
+        {
+            ErrorCode errorCode = resultKind == LookupResultKind.Ambiguous ?
+                ErrorCode.ERR_AmbigBinaryOps : // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
                 ErrorCode.ERR_BadBinaryOps;    // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
 
-                Error(diagnostics, errorCode, node, node.OperatorToken.Text, left.Display, right.Display);
-            }
+            Error(diagnostics, errorCode, node, operatorToken.Text, left.Display, right.Display);
         }
 
         private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
@@ -668,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!best.HasValue)
             {
-                ReportBinaryOperatorError(node, diagnostics, left, right, lookupResult);
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, lookupResult);
             }
             else
             {
@@ -682,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!bothBool &&
                     signature.Kind.OperandTypes() != BinaryOperatorKind.UserDefined)
                 {
-                    ReportBinaryOperatorError(node, diagnostics, left, right, lookupResult);
+                    ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, lookupResult);
                 }
                 else if (bothBool ||
                     IsValidUserDefinedConditionalLogicalOperator(node, signature, diagnostics))

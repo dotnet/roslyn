@@ -129,21 +129,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             }
         }
 
-        private static BinaryExpressionSyntax GetExpressionSyntaxChange(SyntaxTree newTree)
+        private static AssignmentExpressionSyntax GetExpressionSyntaxChange(SyntaxTree newTree)
         {
             var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var method = classType.Members[0] as MethodDeclarationSyntax;
             var block = method.Body;
             var statement = block.Statements[0] as ExpressionStatementSyntax;
-            var expression = statement.Expression as BinaryExpressionSyntax;
+            var expression = statement.Expression as AssignmentExpressionSyntax;
             return expression;
         }
 
-        private static BinaryExpressionSyntax GetGlobalStatementSyntaxChange(SyntaxTree newTree)
+        private static AssignmentExpressionSyntax GetGlobalStatementSyntaxChange(SyntaxTree newTree)
         {
             var statementType = newTree.GetCompilationUnitRoot().Members[0] as GlobalStatementSyntax;
             var statement = statementType.Statement as ExpressionStatementSyntax;
-            var expression = statement.Expression as BinaryExpressionSyntax;
+            var expression = statement.Expression as AssignmentExpressionSyntax;
             return expression;
         }
         #endregion

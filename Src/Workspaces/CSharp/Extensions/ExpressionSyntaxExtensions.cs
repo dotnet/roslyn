@@ -329,8 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (expression.Parent != null)
                 {
-                    var binaryExpression = expression.Parent as BinaryExpressionSyntax;
-                    if (binaryExpression.IsKind(SyntaxKind.SimpleAssignmentExpression) && binaryExpression.Left == expression)
+                    if (expression.IsLeftSideOfAssignExpression())
                     {
                         return true;
                     }
@@ -377,8 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return true;
                     }
 
-                    var binaryExpression = expression.Parent as BinaryExpressionSyntax;
-                    if (binaryExpression.IsAnyAssignExpression() && binaryExpression.Left == expression)
+                    if (expression.IsLeftSideOfAnyAssignExpression())
                     {
                         return true;
                     }
@@ -535,6 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Parent type checks.
             if (expression.Parent is PostfixUnaryExpressionSyntax ||
                 expression.Parent is BinaryExpressionSyntax ||
+                expression.Parent is AssignmentExpressionSyntax ||
                 expression.Parent is QueryClauseSyntax ||
                 expression.Parent is SelectOrGroupClauseSyntax ||
                 expression.Parent is CheckedExpressionSyntax)

@@ -1265,7 +1265,7 @@ public class Cls
                             switch (parent.Kind)
                             {
                                 case SyntaxKind.SimpleAssignmentExpression:
-                                    if (((BinaryExpressionSyntax)parent).Left == previous)
+                                    if (((AssignmentExpressionSyntax)parent).Left == previous)
                                     {
                                         parentToAnalyze = parent;
                                         isSimpleAssignmentTarget = true;
@@ -1282,7 +1282,7 @@ public class Cls
                                 case SyntaxKind.OrAssignmentExpression:
                                 case SyntaxKind.LeftShiftAssignmentExpression:
                                 case SyntaxKind.RightShiftAssignmentExpression:
-                                    if (((BinaryExpressionSyntax)parent).Left == previous)
+                                    if (((AssignmentExpressionSyntax)parent).Left == previous)
                                     {
                                         parentToAnalyze = parent;
                                         isCompoundAssignmentTarget = true;

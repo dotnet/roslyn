@@ -199,7 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing around the binary operators
-            if (currentToken.Parent is BinaryExpressionSyntax || previousToken.Parent is BinaryExpressionSyntax)
+            if (currentToken.Parent is BinaryExpressionSyntax ||
+                previousToken.Parent is BinaryExpressionSyntax ||
+                currentToken.Parent is AssignmentExpressionSyntax ||
+                previousToken.Parent is AssignmentExpressionSyntax)
             {
                 switch (optionSet.GetOption(CSharpFormattingOptions.SpacingAroundBinaryOperator))
                 {

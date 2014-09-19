@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (parent.CSharpKind() == SyntaxKind.ObjectInitializerExpression)
                     {
                         return currentNode.CSharpKind() == SyntaxKind.SimpleAssignmentExpression &&
-                            object.Equals(((BinaryExpressionSyntax)currentNode).Left, identifierName);
+                            object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
                     }
                     else if (parent is ExpressionSyntax)
                     {

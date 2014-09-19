@@ -257,36 +257,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestBinaryOperators()
         {
             TestBinary(SyntaxKind.PlusToken);
-            TestBinary(SyntaxKind.PlusEqualsToken);
             TestBinary(SyntaxKind.MinusToken);
-            TestBinary(SyntaxKind.MinusEqualsToken);
             TestBinary(SyntaxKind.AsteriskToken);
-            TestBinary(SyntaxKind.AsteriskEqualsToken);
             TestBinary(SyntaxKind.SlashToken);
-            TestBinary(SyntaxKind.SlashEqualsToken);
             TestBinary(SyntaxKind.PercentToken);
-            TestBinary(SyntaxKind.PercentEqualsToken);
-            TestBinary(SyntaxKind.EqualsToken);
+            TestBinary(SyntaxKind.EqualsEqualsToken);
             TestBinary(SyntaxKind.ExclamationEqualsToken);
             TestBinary(SyntaxKind.LessThanToken);
             TestBinary(SyntaxKind.LessThanEqualsToken);
             TestBinary(SyntaxKind.LessThanLessThanToken);
-            TestBinary(SyntaxKind.LessThanLessThanEqualsToken);
             TestBinary(SyntaxKind.GreaterThanToken);
             TestBinary(SyntaxKind.GreaterThanEqualsToken);
             TestBinary(SyntaxKind.GreaterThanGreaterThanToken);
-            TestBinary(SyntaxKind.GreaterThanGreaterThanEqualsToken);
             TestBinary(SyntaxKind.AmpersandToken);
             TestBinary(SyntaxKind.AmpersandAmpersandToken);
-            TestBinary(SyntaxKind.AmpersandEqualsToken);
             TestBinary(SyntaxKind.BarToken);
             TestBinary(SyntaxKind.BarBarToken);
-            TestBinary(SyntaxKind.BarEqualsToken);
             TestBinary(SyntaxKind.CaretToken);
-            TestBinary(SyntaxKind.CaretEqualsToken);
             TestBinary(SyntaxKind.IsKeyword);
             TestBinary(SyntaxKind.AsKeyword);
             TestBinary(SyntaxKind.QuestionQuestionToken);
+        }
+
+        private void TestAssignment(SyntaxKind kind)
+        {
+            var text = "(a) " + SyntaxFacts.GetText(kind) + " b";
+            var expr = this.ParseExpression(text);
+
+            Assert.NotNull(expr);
+            var opKind = SyntaxFacts.GetAssignmentExpression(kind);
+            Assert.Equal(opKind, expr.Kind);
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var a = (AssignmentExpressionSyntax)expr;
+            Assert.NotNull(a.OperatorToken);
+            Assert.Equal(kind, a.OperatorToken.CSharpKind());
+            Assert.NotNull(a.Left);
+            Assert.NotNull(a.Right);
+            Assert.Equal("(a)", a.Left.ToString());
+            Assert.Equal("b", a.Right.ToString());
+        }
+
+        [Fact]
+        public void TestAssignmentOperators()
+        {
+            TestAssignment(SyntaxKind.PlusEqualsToken);
+            TestAssignment(SyntaxKind.MinusEqualsToken);
+            TestAssignment(SyntaxKind.AsteriskEqualsToken);
+            TestAssignment(SyntaxKind.SlashEqualsToken);
+            TestAssignment(SyntaxKind.PercentEqualsToken);
+            TestAssignment(SyntaxKind.EqualsToken);
+            TestAssignment(SyntaxKind.LessThanLessThanEqualsToken);
+            TestAssignment(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+            TestAssignment(SyntaxKind.AmpersandEqualsToken);
+            TestAssignment(SyntaxKind.BarEqualsToken);
+            TestAssignment(SyntaxKind.CaretEqualsToken);
         }
 
         private void TestMemberAccess(SyntaxKind kind)
@@ -907,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, oc.Initializer.Expressions.Count);
             Assert.Equal("B = { X = x }", oc.Initializer.Expressions[0].ToString());
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, oc.Initializer.Expressions[0].Kind);
-            var b = (BinaryExpressionSyntax)oc.Initializer.Expressions[0];
+            var b = (AssignmentExpressionSyntax)oc.Initializer.Expressions[0];
             Assert.Equal("B", b.Left.ToString());
             Assert.Equal(SyntaxKind.ObjectInitializerExpression, b.Right.Kind);
         }
@@ -2661,7 +2686,7 @@ class C
 
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, expr.Kind);
 
-            var target = ((ParenthesizedExpressionSyntax)((ParenthesizedExpressionSyntax)((BinaryExpressionSyntax)expr).Left).Expression).Expression;
+            var target = ((ParenthesizedExpressionSyntax)((ParenthesizedExpressionSyntax)((AssignmentExpressionSyntax)expr).Left).Expression).Expression;
 
             Assert.Equal(SyntaxKind.DeclarationExpression, target.Kind);
 
