@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             this.IsEnabledByDefault = isEnabledByDefault;
             this.Description = description ?? string.Empty;
             this.HelpLink = helpLink ?? string.Empty;
-            this.CustomTags = customTags;
+            this.CustomTags = customTags.AsImmutableOrEmpty();
         }
     }
 }
