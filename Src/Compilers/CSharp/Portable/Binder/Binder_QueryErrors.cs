@@ -162,29 +162,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (queryClause.Kind)
             {
                 case SyntaxKind.JoinClause:
-                    clauseKind = "join"; // TODO: should be ErrorCode.IDS_JoinClause.Localize();
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.JoinKeyword); 
                     multiple = true;
                     break;
                 case SyntaxKind.LetClause:
-                    clauseKind = "let"; // TODO: ErrorCode.IDS_LetClause
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.LetKeyword); 
                     break;
                 case SyntaxKind.SelectClause:
-                    clauseKind = "select"; // TODO ErrorCode.IDS_Select
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.SelectKeyword); 
                     break;
                 case SyntaxKind.WhereClause:
-                    clauseKind = "where"; // TODO: ErrorCode.IDS_Where
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.WhereKeyword); 
                     break;
                 case SyntaxKind.OrderByClause:
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
-                    clauseKind = "order by"; // TODO: ErrorCode.IDS_OrderByClause
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.OrderByKeyword); 
                     multiple = true;
                     break;
                 case SyntaxKind.QueryContinuation:
-                    clauseKind = "into"; // TODO: ErrorCode.IDS_ContinuationClause
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.IntoKeyword); 
                     break;
                 case SyntaxKind.GroupClause:
-                    clauseKind = "group by"; // TODO: ErrorCode.IDS_GroupByClause
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.GroupKeyword) + " " +SyntaxFacts.GetText(SyntaxKind.ByKeyword); 
                     multiple = true;
                     break;
                 case SyntaxKind.FromClause:
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return;
                     }
-                    clauseKind = "from"; // TODO: ErrorCode.IDS_FromClause
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.FromKeyword); 
                     break;
                 default:
                     clauseKind = "unknown";

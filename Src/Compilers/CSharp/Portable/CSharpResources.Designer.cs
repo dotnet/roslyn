@@ -8540,29 +8540,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to anonymous type.
-        /// </summary>
-        internal static string IDS_AnonymousType {
-            get {
-                return ResourceManager.GetString("IDS_AnonymousType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to collection.
         /// </summary>
         internal static string IDS_Collection {
             get {
                 return ResourceManager.GetString("IDS_Collection", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to into.
-        /// </summary>
-        internal static string IDS_ContinuationClause {
-            get {
-                return ResourceManager.GetString("IDS_ContinuationClause", resourceCulture);
             }
         }
         
@@ -9018,29 +9000,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to from.
-        /// </summary>
-        internal static string IDS_FromClause {
-            get {
-                return ResourceManager.GetString("IDS_FromClause", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;global namespace&gt;.
         /// </summary>
         internal static string IDS_GlobalNamespace {
             get {
                 return ResourceManager.GetString("IDS_GlobalNamespace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to group by.
-        /// </summary>
-        internal static string IDS_GroupByClause {
-            get {
-                return ResourceManager.GetString("IDS_GroupByClause", resourceCulture);
             }
         }
         
@@ -9054,29 +9018,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to join.
-        /// </summary>
-        internal static string IDS_JoinClause {
-            get {
-                return ResourceManager.GetString("IDS_JoinClause", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to lambda expression.
         /// </summary>
         internal static string IDS_Lambda {
             get {
                 return ResourceManager.GetString("IDS_Lambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to let.
-        /// </summary>
-        internal static string IDS_LetClause {
-            get {
-                return ResourceManager.GetString("IDS_LetClause", resourceCulture);
             }
         }
         
@@ -9144,15 +9090,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to orderby.
-        /// </summary>
-        internal static string IDS_OrderByClause {
-            get {
-                return ResourceManager.GetString("IDS_OrderByClause", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;path list&gt;.
         /// </summary>
         internal static string IDS_PathList {
@@ -9185,15 +9122,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_RELATEDWARNING {
             get {
                 return ResourceManager.GetString("IDS_RELATEDWARNING", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to select.
-        /// </summary>
-        internal static string IDS_SelectClause {
-            get {
-                return ResourceManager.GetString("IDS_SelectClause", resourceCulture);
             }
         }
         
@@ -9329,15 +9257,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_VersionExperimental {
             get {
                 return ResourceManager.GetString("IDS_VersionExperimental", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to where.
-        /// </summary>
-        internal static string IDS_WhereClause {
-            get {
-                return ResourceManager.GetString("IDS_WhereClause", resourceCulture);
             }
         }
         

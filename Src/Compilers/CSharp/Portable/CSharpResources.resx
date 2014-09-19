@@ -189,9 +189,6 @@
   <data name="IDS_Lambda" xml:space="preserve">
     <value>lambda expression</value>
   </data>
-  <data name="IDS_AnonymousType" xml:space="preserve">
-    <value>anonymous type</value>
-  </data>
   <data name="IDS_Collection" xml:space="preserve">
     <value>collection</value>
   </data>
@@ -296,30 +293,6 @@
   </data>
   <data name="IDS_Invariantly" xml:space="preserve">
     <value>invariantly</value>
-  </data>
-  <data name="IDS_LetClause" xml:space="preserve">
-    <value>let</value>
-  </data>
-  <data name="IDS_SelectClause" xml:space="preserve">
-    <value>select</value>
-  </data>
-  <data name="IDS_JoinClause" xml:space="preserve">
-    <value>join</value>
-  </data>
-  <data name="IDS_FromClause" xml:space="preserve">
-    <value>from</value>
-  </data>
-  <data name="IDS_WhereClause" xml:space="preserve">
-    <value>where</value>
-  </data>
-  <data name="IDS_OrderByClause" xml:space="preserve">
-    <value>orderby</value>
-  </data>
-  <data name="IDS_GroupByClause" xml:space="preserve">
-    <value>group by</value>
-  </data>
-  <data name="IDS_ContinuationClause" xml:space="preserve">
-    <value>into</value>
   </data>
   <data name="IDS_FeatureDynamic" xml:space="preserve">
     <value>dynamic</value>
