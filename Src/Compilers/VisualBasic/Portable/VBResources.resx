@@ -4481,13 +4481,13 @@
   <data name="ChainingSpeculativeModelIsNotSupported" xml:space="preserve">
     <value>Chaining speculative semantic model is not supported. You should create a speculative model from the non-speculative ParentModel.</value>
   </data>
-  <data name="LogoLine1" xml:space="preserve">
+  <data name="IDS_LogoLine1" xml:space="preserve">
     <value>Microsoft (R) Visual Basic Compiler version {0}</value>
   </data>
-  <data name="LogoLine2" xml:space="preserve">
+  <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>
-  <data name="VBCHelp" xml:space="preserve">
+  <data name="IDS_VBCHelp" xml:space="preserve">
     <value><![CDATA[                  Visual Basic Compiler Options
 
                                   - OUTPUT FILE -
@@ -4663,7 +4663,7 @@
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
     <value>'{0}' is not a valid format specifier</value>
   </data>
-  <data name="InvalidPreprocessorConstantType" xml:space="preserve">
+  <data name="IDS_InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
   </data>
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">

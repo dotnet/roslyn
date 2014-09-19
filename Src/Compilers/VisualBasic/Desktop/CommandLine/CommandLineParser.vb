@@ -1424,7 +1424,7 @@ lVbRuntimePlus:
                     Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
 
                     If constant Is Nothing Then
-                        Throw New ArgumentException(String.Format(VBResources.InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType()), parameterName)
+                        Throw New ArgumentException(String.Format(ErrorFactory.IdToString(ERRID.IDS_InvalidPreprocessorConstantType, Culture), symbol.Key, symbol.Value.GetType()), parameterName)
                     End If
 
                     result(symbol.Key) = constant

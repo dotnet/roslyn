@@ -145,11 +145,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)
             For Each reference In resolvedReferences
                 If reference.Properties.Kind = MetadataImageKind.Module Then
-                    consoleOutput.WriteLine(ErrorFactory.ResourceManager.GetString("IDS_MSG_ADDMODULE"), reference.Display)
+                    consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_MSG_ADDMODULE, Culture), reference.Display)
                 ElseIf reference.Properties.EmbedInteropTypes Then
-                    consoleOutput.WriteLine(ErrorFactory.ResourceManager.GetString("IDS_MSG_ADDLINKREFERENCE"), reference.Display)
+                    consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_MSG_ADDLINKREFERENCE, Culture), reference.Display)
                 Else
-                    consoleOutput.WriteLine(ErrorFactory.ResourceManager.GetString("IDS_MSG_ADDREFERENCE"), reference.Display)
+                    consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_MSG_ADDREFERENCE, Culture), reference.Display)
                 End If
             Next
 
@@ -177,8 +177,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="consoleOutput"></param>
         Protected Overrides Sub PrintLogo(consoleOutput As TextWriter)
             Dim thisAssembly As Assembly = Me.GetType().Assembly
-            consoleOutput.WriteLine(VBResources.LogoLine1, FileVersionInfo.GetVersionInfo(thisAssembly.Location).FileVersion)
-            consoleOutput.WriteLine(VBResources.LogoLine2)
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine1, Culture), FileVersionInfo.GetVersionInfo(thisAssembly.Location).FileVersion)
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine2, Culture))
             consoleOutput.WriteLine()
         End Sub
 
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="consoleOutput"></param>
         Protected Overrides Sub PrintHelp(consoleOutput As TextWriter)
-            consoleOutput.WriteLine(VBResources.VBCHelp)
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture))
         End Sub
 
         Protected Overrides Function TryGetCompilerDiagnosticCode(diagnosticId As String, ByRef code As UInteger) As Boolean

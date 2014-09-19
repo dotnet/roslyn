@@ -110,6 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNameof = MessageBase + 12695,
         IDS_FeatureDictionaryInitializer = MessageBase + 12696,
         IDS_FeatureStructParameterlessConstructors = MessageBase + 12697,
+
+        IDS_LogoLine1 = MessageBase + 12698,
+        IDS_LogoLine2 = MessageBase + 12699,
+        IDS_CSCHelp = MessageBase + 12700,
     }
 
     // Message IDs may refer to strings that need to be localized.

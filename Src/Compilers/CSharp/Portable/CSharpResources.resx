@@ -3780,13 +3780,13 @@
   <data name="ChainingSpeculativeModelIsNotSupported" xml:space="preserve">
     <value>Chaining speculative semantic model is not supported. You should create a speculative model from the non-speculative ParentModel.</value>
   </data>
-  <data name="LogoLine1" xml:space="preserve">
+  <data name="IDS_LogoLine1" xml:space="preserve">
     <value>Microsoft (R) Visual C# Compiler version {0}</value>
   </data>
-  <data name="LogoLine2" xml:space="preserve">
+  <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>
-  <data name="CSCHelp" xml:space="preserve">
+  <data name="IDS_CSCHelp" xml:space="preserve">
     <value>
       <![CDATA[                        Visual C# Compiler Options
 

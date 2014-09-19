@@ -1855,8 +1855,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_PrefixAndXmlnsLocalName = 42360
         WRN_UseValueForXmlExpression3 = 42361 ' Replaces ERR_UseValueForXmlExpression3
 
-        IDS_ProjectSettingsLocationName = 42362 ' unless we have a separate resource, we need to use a error number for this.
-
         'WRN_PDBConstantStringValueTooLong = 42363  we gave up on this warning. See comments in commonCompilation.Emit()
         WRN_ReturnTypeAttributeOnWriteOnlyProperty = 42364
 
@@ -1906,9 +1904,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATUREID_Last = 55007
 
         ' Adding diagnostic arguments from resx file, TO DO: ASSIGN IDS
+        IDS_ProjectSettingsLocationName
         IDS_FunctionReturnType
         IDS_TheSystemCannotFindThePathSpecified
         IDS_UnrecognizedFileFormat
+        IDS_MSG_ADDMODULE
+        IDS_MSG_ADDLINKREFERENCE
+        IDS_MSG_ADDREFERENCE
+        IDS_LogoLine1
+        IDS_LogoLine2
+        IDS_VBCHelp
+        IDS_InvalidPreprocessorConstantType
 
     End Enum
 End Namespace

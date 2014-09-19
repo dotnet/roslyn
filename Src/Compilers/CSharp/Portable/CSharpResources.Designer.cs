@@ -89,25 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
-        ///                              Visual C# Compiler Options
-        ///
-        ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of 
-        ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short 
-        ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form: 
-        ///                               /t:winexe)
-        /// /target:library     [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string CSCHelp {
-            get {
-                return ResourceManager.GetString("CSCHelp", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to element is expected.
         /// </summary>
         internal static string ElementIsExpected {
@@ -8622,6 +8603,25 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 
+        ///                              Visual C# Compiler Options
+        ///
+        ///                        - OUTPUT FILES -
+        /// /out:&lt;file&gt;                   Specify output file name (default: base name of 
+        ///                               file with main class or first file)
+        /// /target:exe                   Build a console executable (default) (Short 
+        ///                               form: /t:exe)
+        /// /target:winexe                Build a Windows executable (Short form: 
+        ///                               /t:winexe)
+        /// /target:library     [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string IDS_CSCHelp {
+            get {
+                return ResourceManager.GetString("IDS_CSCHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to directory does not exist.
         /// </summary>
         internal static string IDS_DirectoryDoesNotExist {
@@ -9099,6 +9099,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler version {0}.
+        /// </summary>
+        internal static string IDS_LogoLine1 {
+            get {
+                return ResourceManager.GetString("IDS_LogoLine1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copyright (C) Microsoft Corporation. All rights reserved..
+        /// </summary>
+        internal static string IDS_LogoLine2 {
+            get {
+                return ResourceManager.GetString("IDS_LogoLine2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method group.
         /// </summary>
         internal static string IDS_MethodGroup {
@@ -9419,24 +9437,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string LocationMustBeProvided {
             get {
                 return ResourceManager.GetString("LocationMustBeProvided", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler version {0}.
-        /// </summary>
-        internal static string LogoLine1 {
-            get {
-                return ResourceManager.GetString("LogoLine1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Copyright (C) Microsoft Corporation. All rights reserved..
-        /// </summary>
-        internal static string LogoLine2 {
-            get {
-                return ResourceManager.GetString("LogoLine2", resourceCulture);
             }
         }
         
