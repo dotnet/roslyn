@@ -13,12 +13,12 @@ if %elevated% == 0 (
     goto :eof
     )
 
-if "%targetVS%"=="" set targetVS=12.0
+if "%targetVS%"=="" set targetVS=14.0
 if "%targetHive%"=="" set targetHive=Roslyn
 
 set PreviewVersion=0.6.40308.1
 set unconfigure=false
-set verification=-Vr 
+set verification=-Vr
 set label=Disable
 
 echo Prepare for Roslyn Open Source development
@@ -27,7 +27,7 @@ echo.
 echo Create or clean the RoslynDev addin hive
 echo.
 
-if "%VSSDK120Install%" == "" ( 
+if "%VSSDK140Install%" == "" (
     echo ERROR!   To build and debug the .Net compilers Open source projects requires the latest Visual Studio SDK.
     echo.
     set errorlevel=1
@@ -47,11 +47,14 @@ if not "%unconfigure%" == "true" (
     )
 
 if not "%unconfigure%" == "true" (
-    "%VSSDK120Install%\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Reset /VSInstance=%targetVS% /RootSuffix=%TargetHive%  2> nul
+    "%VSSDK140Install%\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Reset /VSInstance=%targetVS% /RootSuffix=%TargetHive%  2> nul
 
 	msbuild %~dp0\prepare.msbuild
     )
 
+call :DisableVerificationFor "Microsoft.CodeAnalysis.CSharp.Desktop,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.Desktop,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.VisualBasic.Desktop,31BF3856AD364E35"
 call :DisableVerificationFor "Microsoft.CodeAnalysis,31BF3856AD364E35"
 call :DisableVerificationFor "Microsoft.CodeAnalysis.CSharp,31BF3856AD364E35"
 call :DisableVerificationFor "Microsoft.CodeAnalysis.VisualBasic,31BF3856AD364E35"
@@ -76,7 +79,7 @@ echo.
 
 if "%unconfigure%" == "true" (
     rem Reset the RoslynDev hive from the main hive, 
-    "%VSSDK120Install%\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Clean /VSInstance=%targetVS% /RootSuffix=%TargetHive%  2> nul
+    "%VSSDK140Install%\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Clean /VSInstance=%targetVS% /RootSuffix=%TargetHive%  2> nul
     reg delete HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\%targetVS%%TargetHive% /F > nul 2>&1
     reg delete HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\%targetVS%%TargetHive%_Config /F > nul 2>&1
     )
