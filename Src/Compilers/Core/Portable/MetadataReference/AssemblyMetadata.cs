@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using Roslyn.Utilities;
-using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -220,7 +221,10 @@ namespace Microsoft.CodeAnalysis
             for (int i = 1; i < Modules.Length; i++)
             {
                 var module = Modules[i].Module;
-                if (!module.IsLinkedModule && !MetadataHelpers.IsRuntimeWinMd(module.Name))
+                // Ignore winmd modules since runtime winmd
+                // modules may be loaded as non-primary modules.
+                if (!module.IsLinkedModule &&
+                    (module.MetadataReader.MetadataKind != MetadataKind.WindowsMetadata))
                 {
                     return false;
                 }
