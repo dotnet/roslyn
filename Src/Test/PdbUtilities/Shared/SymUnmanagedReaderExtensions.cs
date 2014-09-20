@@ -49,18 +49,12 @@ namespace Roslyn.Utilities.Pdb
 
         internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method, int offset, bool isScopeEndInclusive, uint? attributesToIgnoreOpt)
         {
-            char[] nameBuffer = null;
-            string[] result = null;
-            int maxSlot = -1;
-
+            var builder = ImmutableArray.CreateBuilder<string>();
             ISymUnmanagedScope rootScope = method.GetRootScope();
-
-            ISymUnmanagedVariable[] localsBuffer = null;
-
             bool haveAttributesToIgnore = attributesToIgnoreOpt.HasValue;
             uint attributesToIgnore = attributesToIgnoreOpt.GetValueOrDefault();
 
-            ForEachLocalVariableRecursive(rootScope, offset, isScopeEndInclusive, ref localsBuffer, local =>
+            ForEachLocalVariableRecursive(rootScope, offset, isScopeEndInclusive, local =>
             {
                 if (haveAttributesToIgnore)
                 {
@@ -72,78 +66,47 @@ namespace Roslyn.Utilities.Pdb
                     }
                 }
 
-                int nameLength;
-                local.GetName(0, out nameLength, null);
-
-                if (nameLength > 0)
+                int slot;
+                local.GetAddressField1(out slot);
+                while (builder.Count <= slot)
                 {
-                    EnsureBufferSize(ref nameBuffer, nameLength);
-                    local.GetName(nameLength, out nameLength, nameBuffer);
-
-                    int slot;
-                    local.GetAddressField1(out slot);
-
-                    if (maxSlot < slot) 
-                    {
-                        maxSlot = slot;
-                    }
-
-                    EnsureBufferSize(ref result, slot + 1);
-
-                    // nameBuffer is NUL-terminated
-                    Debug.Assert(nameBuffer[nameLength - 1] == '\0');
-                    result[slot] = new string(nameBuffer, 0, nameLength - 1);
+                    builder.Add(null);
                 }
+
+                var name = local.GetName();
+                builder[slot] = name;
             });
 
-            if (result == null)
-            {
-                return ImmutableArray.Create<string>();
-            }
-
-            return ImmutableArray.Create(result, 0, maxSlot + 1);
+            return builder.ToImmutable();
         }
 
         private static void ForEachLocalVariableRecursive(
             ISymUnmanagedScope scope,
             int offset,
             bool isScopeEndInclusive,
-            ref ISymUnmanagedVariable[] localsBuffer,
             Action<ISymUnmanagedVariable> action)
         {
             Debug.Assert((offset < 0) || scope.IsInScope(offset, isScopeEndInclusive));
 
             // apply action on locals of the current scope:
-
-            int localCount;
-            scope.GetLocalCount(out localCount);
-
-            if (localCount > 0)
+            var locals = GetLocalsInternal(scope);
+            if (locals != null)
             {
-                EnsureBufferSize(ref localsBuffer, localCount);
-                scope.GetLocals(localCount, out localCount, localsBuffer);
-
-                for (int i = 0; i < localCount; i++)
+                foreach (var local in locals)
                 {
-                    action(localsBuffer[i]);
+                    action(local);
                 }
             }
 
             // recurse:
-
-            int childCount;
-            scope.GetChildren(0, out childCount, null);
-
-            if (childCount > 0)
+            var children = GetScopesInternal(scope);
+            if (children != null)
             {
-                var children = new ISymUnmanagedScope[childCount];
-                scope.GetChildren(childCount, out childCount, children);
-
                 foreach (var child in children)
                 {
                     if ((offset < 0) || child.IsInScope(offset, isScopeEndInclusive))
                     {
-                        ForEachLocalVariableRecursive(child, offset, isScopeEndInclusive, ref localsBuffer, action);
+                        ForEachLocalVariableRecursive(child, offset, isScopeEndInclusive, action);
                         if (offset >= 0)
                         {
                             return;
@@ -170,21 +133,6 @@ namespace Roslyn.Utilities.Pdb
             return isEndInclusive ? offset <= endOffset : offset < endOffset;
         }
 
-        private static void EnsureBufferSize<T>(ref T[] buffer, int minSize)
-        {
-            Debug.Assert(minSize != 0);
-
-            if (buffer == null)
-            {
-                buffer = new T[Math.Max(8, minSize)];
-            }
-
-            if (minSize > buffer.Length)
-            {
-                Array.Resize(ref buffer, Math.Max((buffer.Length + 1) * 2, minSize));
-            }
-        }
-
         public static ISymUnmanagedScope GetRootScope(this ISymUnmanagedMethod method)
         {
             ISymUnmanagedScope scope;
@@ -194,11 +142,17 @@ namespace Roslyn.Utilities.Pdb
 
         public static ImmutableArray<ISymUnmanagedScope> GetScopes(this ISymUnmanagedScope scope)
         {
+            var scopes = GetScopesInternal(scope);
+            return (scopes == null) ? ImmutableArray<ISymUnmanagedScope>.Empty : ImmutableArray.Create(scopes);
+        }
+
+        private static ISymUnmanagedScope[] GetScopesInternal(ISymUnmanagedScope scope)
+        {
             int numAvailable;
             scope.GetChildren(0, out numAvailable, null);
             if (numAvailable == 0)
             {
-                return ImmutableArray<ISymUnmanagedScope>.Empty;
+                return null;
             }
 
             int numRead;
@@ -209,16 +163,22 @@ namespace Roslyn.Utilities.Pdb
                 throw new InvalidOperationException(string.Format("Read only {0} of {1} child scopes.", numRead, numAvailable));
             }
 
-            return ImmutableArray.Create(scopes);
+            return scopes;
         }
 
         public static ImmutableArray<ISymUnmanagedVariable> GetLocals(this ISymUnmanagedScope scope)
+        {
+            var locals = GetLocalsInternal(scope);
+            return (locals == null) ? ImmutableArray<ISymUnmanagedVariable>.Empty : ImmutableArray.Create(locals);
+        }
+
+        private static ISymUnmanagedVariable[] GetLocalsInternal(ISymUnmanagedScope scope)
         {
             int numAvailable;
             scope.GetLocalCount(out numAvailable);
             if (numAvailable == 0)
             {
-                return ImmutableArray<ISymUnmanagedVariable>.Empty;
+                return null;
             }
 
             int numRead;
@@ -229,7 +189,7 @@ namespace Roslyn.Utilities.Pdb
                 throw new InvalidOperationException(string.Format("Read only {0} of {1} locals.", numRead, numAvailable));
             }
 
-            return ImmutableArray.Create(locals);
+            return locals;
         }
 
         public static string GetName(this ISymUnmanagedVariable local)
