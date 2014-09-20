@@ -765,30 +765,54 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 declaredNode.DescendantNodesAndSelf(descendIntoTrivia: true) :
                 declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true).Except(descendantDeclsToSkip);
 
-            ExecuteSyntaxAnalyzers(nodesToAnalyze, analyzersByKind, semanticModel,
-                addDiagnostic, continueOnAnalyzerException, analyzerOptions, getKind, cancellationToken);
+            ExecuteSyntaxNodeActions(nodesToAnalyze, analyzersByKind, semanticModel,
+                analyzerOptions, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken);
         }
 
         /// <summary>
-        /// Executes the given code block analyzers on all the executable code blocks for each declaration info in <paramref name="declarationsInNode"/>.
+        /// Executes the given syntax node action on the given syntax node.
+        /// </summary>
+        /// <param name="syntaxNodeAction">Action to execute.</param>
+        /// <param name="node">Syntax node to be analyzed.</param>
+        /// <param name="semanticModel">SemanticModel to be used in the analysis.</param>
+        /// <param name="analyzerOptions">Analyzer options.</param>
+        /// <param name="addDiagnostic">Delegate to add diagnostics.</param>
+        /// <param name="continueOnAnalyzerException">Predicate to decide if exceptions from the action should be handled or not.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public static void ExecuteSyntaxNodeAction(
+            SyntaxNodeAnalyzerAction<TSyntaxKind> syntaxNodeAction,
+            SyntaxNode node,
+            SemanticModel semanticModel,
+            AnalyzerOptions analyzerOptions,
+            Action<Diagnostic> addDiagnostic,
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            CancellationToken cancellationToken)
+        {
+            var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, semanticModel, analyzerOptions, addDiagnostic, cancellationToken);
+            // Catch Exception from action.
+            ExecuteAndCatchIfThrows(syntaxNodeAction.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () => syntaxNodeAction.Action(syntaxNodeContext));
+        }
+
+        /// <summary>
+        /// Executes the given code block actions on all the executable code blocks for each declaration info in <paramref name="declarationsInNode"/>.
         /// </summary>
         /// <param name="codeBlockStartedAnalyzers">Code block analyzer factories.</param>
         /// <param name="codeBlockEndedAnalyzers">Stateless code block analyzers.</param>
         /// <param name="declarationsInNode">Declarations to be analyzed.</param>
+        /// <param name="semanticModel">SemanticModel to be shared amongst all actions.</param>
         /// <param name="analyzerOptions">Analyzer options.</param>
-        /// <param name="semanticModel">SemanticModel to be shared amongst all analyzers.</param>
         /// <param name="addDiagnostic">Delegate to add diagnostics.</param>
-        /// <param name="continueOnAnalyzerException">Predicate to decide if exceptions from any analyzer should be handled or not.</param>
+        /// <param name="continueOnAnalyzerException">Predicate to decide if exceptions from any action should be handled or not.</param>
         /// <param name="getKind">Delegate to compute language specific syntax kind for a syntax node.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <param name="getAnalyzerKindsOfInterest">Optional delegate to return cached syntax kinds.
         /// If null, then this property is explicitly invoked by the driver to compute syntax kinds of interest.</param>
-        public static void ExecuteCodeBlockAnalyzers(
+        public static void ExecuteCodeBlockActions(
             IEnumerable<CodeBlockStartAnalyzerAction<TSyntaxKind>> codeBlockStartedAnalyzers,
             IEnumerable<CodeBlockEndAnalyzerAction<TSyntaxKind>> codeBlockEndedAnalyzers,
             IEnumerable<DeclarationInfo> declarationsInNode,
-            AnalyzerOptions analyzerOptions,
             SemanticModel semanticModel,
+            AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             Func<SyntaxNode, TSyntaxKind> getKind,
@@ -862,8 +886,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 GetNodeAnalyzersByKind(executableNodeAnalyzers, executableNodeAnalyzersByKind, addDiagnostic, getAnalyzerKindsOfInterest);
 
                 var nodesToAnalyze = executableCodeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf());
-                ExecuteSyntaxAnalyzers(nodesToAnalyze, executableNodeAnalyzersByKind, semanticModel,
-                    addDiagnostic, continueOnAnalyzerException, analyzerOptions, getKind, cancellationToken);
+                ExecuteSyntaxNodeActions(nodesToAnalyze, executableNodeAnalyzersByKind, semanticModel,
+                    analyzerOptions, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken);
 
                 foreach (var b in executableNodeAnalyzersByKind.Values)
                 {
@@ -949,29 +973,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static void ExecuteSyntaxAnalyzers(
+        private static void ExecuteSyntaxNodeActions(
             IEnumerable<SyntaxNode> nodesToAnalyze,
-            IDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>> nodeAnalyzersByKind,
+            IDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>> nodeActionsByKind,
             SemanticModel model,
-            Action<Diagnostic> addDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             AnalyzerOptions analyzerOptions,
+            Action<Diagnostic> addDiagnostic,
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnException,
             Func<SyntaxNode, TSyntaxKind> getKind,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(nodeAnalyzersByKind != null);
-            Debug.Assert(nodeAnalyzersByKind.Any());
+            Debug.Assert(nodeActionsByKind != null);
+            Debug.Assert(nodeActionsByKind.Any());
 
             foreach (var child in nodesToAnalyze)
             {
-                ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>> analyzersForKind;
-                if (nodeAnalyzersByKind.TryGetValue(getKind(child), out analyzersForKind))
+                ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>> actionsForKind;
+                if (nodeActionsByKind.TryGetValue(getKind(child), out actionsForKind))
                 {
-                    foreach (var analyzer in analyzersForKind)
+                    foreach (var analyzer in actionsForKind)
                     {
-                        var syntaxNodeContext = new SyntaxNodeAnalysisContext(child, model, analyzerOptions, addDiagnostic, cancellationToken);
-                        // Catch Exception from analyzer.
-                        ExecuteAndCatchIfThrows(analyzer.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () => analyzer.Action(syntaxNodeContext));
+                        ExecuteSyntaxNodeAction(analyzer, child, model, analyzerOptions, addDiagnostic, continueOnException, cancellationToken);
                     }
                 }
             }
