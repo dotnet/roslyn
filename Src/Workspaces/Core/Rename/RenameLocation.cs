@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Rename
             this.IsCandidateLocation = referenceLocation.IsCandidateLocation && !(referenceLocation.CandidateReason == CandidateReason.LateBound);
             this.IsRenamableAliasUsage = false;
             this.IsRenamableAccessor = false;
+            this.ContainingLocationForStringOrComment = default(TextSpan);
         }
 
         public bool Equals(RenameLocation other)

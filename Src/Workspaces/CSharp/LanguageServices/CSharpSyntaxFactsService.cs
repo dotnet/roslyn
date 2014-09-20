@@ -990,6 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return openBrace.CSharpKind() == SyntaxKind.OpenBraceToken;
             }
 
+            openBrace = default(SyntaxToken);
             return false;
         }
     }
