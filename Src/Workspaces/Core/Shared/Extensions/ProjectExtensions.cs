@@ -30,5 +30,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return !semanticVersion.Equals(currentSemanticVersion);
         }
+
+        public static async Task<VersionStamp> GetVersionAsync(this Project project, CancellationToken cancellationToken)
+        {
+            var version = project.Version;
+            var latestVersion = await project.GetLatestDocumentVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            return version.GetNewerVersion(latestVersion);
+        }
     }
 }

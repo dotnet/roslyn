@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,9 +50,15 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return new StatisticResult(max, min, median, mean, range, mode, values.Count);
         }
 
+        public void SetCount(object key, int count)
+        {
+            var counter = GetCounter(key);
+            counter.SetCount(count);
+        }
+
         public void IncreaseCount(object key)
         {
-            var counter = map.GetOrAdd(key, _ => new Counter());
+            var counter = GetCounter(key);
             counter.IncreaseCount();
         }
 
@@ -81,9 +88,19 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return this.GetEnumerator();
         }
 
+        private Counter GetCounter(object key)
+        {
+            return map.GetOrAdd(key, _ => new Counter());
+        }
+
         internal class Counter
         {
             private int count = 0;
+
+            public void SetCount(int count)
+            {
+                this.count = count;
+            }
 
             public void IncreaseCount()
             {

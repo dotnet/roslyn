@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         WorkCoordinator_PersistentStorageRemoved,
         WorkCoordinator_Shutdown,
 
-        DiagnosticAnalyzerService_Analyzers
+        DiagnosticAnalyzerService_Analyzers,
+        PersistedSemanticVersion_Info
     }
 }

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -29,8 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static async Task<bool> IdentifierSetPrecalculatedAsync(Document document, CancellationToken cancellationToken)
         {
-            var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-
+            var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var persistedVersion = esentStorage.GetIdentifierSetVersion(document);
-                return VersionStamp.CanReusePersistedVersion(version, persistedVersion);
+                return document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistedVersion);
             }
         }
 

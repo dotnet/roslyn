@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<ObjectReader, VersionStamp, T> readFrom, CancellationToken cancellationToken) where T : AbstractPersistableState
         {
             var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
-            var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // attempt to load from persisted state
             using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
@@ -56,9 +57,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     VersionStamp persistVersion;
                     if (TryReadVersion(reader, formatVersion, out persistVersion) &&
-                        VersionStamp.CanReusePersistedVersion(version, persistVersion))
+                        document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
                     {
-                        return readFrom(reader, version);
+                        return readFrom(reader, syntaxVersion);
                     }
                 }
             }
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.Requires(document.IsFromPrimaryBranch());
 
             var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
-            var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // check whether we already have info for this document
             using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         VersionStamp persistVersion;
                         return TryReadVersion(reader, formatVersion, out persistVersion) &&
-                               VersionStamp.CanReusePersistedVersion(version, persistVersion);
+                               document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
                     }
                 }
             }

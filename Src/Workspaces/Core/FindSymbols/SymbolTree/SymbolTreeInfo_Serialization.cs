@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -28,7 +29,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var persistentStorageService = project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
-            var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            var projectVersion = await project.GetVersionAsync(cancellationToken).ConfigureAwait(false);
+            var semanticVersion = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // attempt to load from persisted state
             SymbolTreeInfo info;
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         using (var reader = new ObjectReader(stream))
                         {
                             info = ReadFrom(reader);
-                            if (info != null && VersionStamp.CanReusePersistedVersion(version, info.version))
+                            if (info != null && project.CanReusePersistedSemanticVersion(projectVersion, semanticVersion, info.version))
                             {
                                 return ValueTuple.Create(true, info);
                             }

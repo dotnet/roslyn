@@ -351,6 +351,9 @@
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
     <Compile Include="Simplification\SimplifyTypeNameFixAllCodeAction.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
+    <Compile Include="Versions\Extensions.cs" />
+    <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
+    <Compile Include="Versions\PersistedVersionStampLogger.cs" />
     <Compile Include="Workspace\Host\Caching\AbstractCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\CacheOptions.cs" />
     <Compile Include="Workspace\Host\Caching\CostBasedCache.Nested.cs" />
@@ -946,9 +949,7 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Workspace\DocumentationComments\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
