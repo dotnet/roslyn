@@ -110,10 +110,11 @@ void OutputWideString(FILE * outputFile, wstring str, bool utf8Output)
 }
 
 // Output the response we got back from the server onto our stdout and stderr.
-void OutputResponse(const CompletedResponse &response, bool utf8Output)
+void OutputResponse(const CompletedResponse &response)
 {
-    OutputWideString(stdout, response.output, utf8Output);
-    OutputWideString(stderr, response.errorOutput, utf8Output);
+	auto utf8output = response.Utf8Output;
+    OutputWideString(stdout, response.Output, utf8output);
+    OutputWideString(stderr, response.ErrorOutput, utf8output);
 }
 
 // Get the expected process path of the server. We assume that the server EXE
@@ -166,7 +167,7 @@ HANDLE ConnectToProcess(DWORD processID, int timeoutMs)
 bool TryCompile(HANDLE pipeHandle,
                 RequestLanguage language,
                 LPCWSTR currentDirectory,
-				vector<wstring>& commandLineArgs,
+				list<wstring>& commandLineArgs,
                 LPCWSTR libEnvVariable,
 				wstring& keepAlive,
                 CompletedResponse &response)
@@ -438,21 +439,22 @@ HANDLE TryExistingProcesses(LPCWSTR expectedProcessName)
     return NULL;
 }
 
+// N.B. Native client arguments (e.g., /keepalive) are NOT supported in response
+// files.
+// Aside from separation of concerns, this is important because we endeavor to
+// send the exact command line given to the native client to the server, minus
+// any native client-specific arguments. If we were to accept native client
+// arguments in the response file, we would have to edit the response file to
+// remove the argument or mangle the command line given to the server.
 void ParseAndValidateClientArguments(
-	vector<wstring>& arguments,
-	bool& utf8Output,
+	list<wstring>& arguments,
 	wstring& keepAliveValue)
 {
-	utf8Output = false;
-	auto iter = arguments.begin();
-	while (iter != arguments.end())
+	auto iter = arguments.cbegin();
+	while (iter != arguments.cend())
 	{
 		auto arg = *iter;
-		if (arg == L"/utf8output")
-		{
-			utf8Output = true;
-		}
-		else if (arg.find(L"/keepalive") == 0)
+		if (arg.find(L"/keepalive") == 0)
 		{
 			auto prefixLen = wcslen(L"/keepalive");
 
@@ -484,6 +486,7 @@ void ParseAndValidateClientArguments(
 
 		++iter;
 	}
+
 }
 
 CompletedResponse Run(
@@ -491,15 +494,13 @@ CompletedResponse Run(
     LPCWSTR currentDirectory,
 	LPCWSTR rawCommandLineArgs[],
 	int argsCount,
-    LPCWSTR libEnvVar,
-    bool& utf8Output)
+    LPCWSTR libEnvVar)
 {
-	vector<wstring> commandLineArgs(rawCommandLineArgs,
+	list<wstring> commandLineArgs(rawCommandLineArgs,
 		rawCommandLineArgs + argsCount);
-	// Throws FatalError if there was a problem parsing a client/server command
-	// line argument
+	// Throws FatalError if there was a problem parsing a command line argument
 	wstring keepAlive;
-	ParseAndValidateClientArguments(commandLineArgs, utf8Output, keepAlive);
+	ParseAndValidateClientArguments(commandLineArgs, keepAlive);
 
     wchar_t expectedProcessPath[MAX_PATH];
 
@@ -661,7 +662,6 @@ int Run(RequestLanguage language)
         int argsCount;
         auto commandLineArgs = GetCommandLineArgs(argsCount);
         wstring libEnvVariable;
-        bool utf8Output;
 
         // Change stderr, stdout to binary, because the output we get from the server already 
         // has CR and LF in it. If we don't do this, we get CR CR LF at each newline.
@@ -674,11 +674,10 @@ int Run(RequestLanguage language)
             // Don't include the name of the process
             commandLineArgs.get() + 1,
             argsCount - 1,
-            GetEnvVar(L"LIB", libEnvVariable) ? libEnvVariable.c_str() : nullptr,
-            utf8Output);
+            GetEnvVar(L"LIB", libEnvVariable) ? libEnvVariable.c_str() : nullptr);
 
-        OutputResponse(response, utf8Output);
-        return response.exitCode;
+		OutputResponse(response);
+        return response.ExitCode;
     }
     catch (FatalError &e)
     {

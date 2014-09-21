@@ -8,7 +8,6 @@ using namespace std;
 Request::Request(Request&& other)
 	: ProtocolVersion(other.ProtocolVersion)
 	, Language(other.Language)
-	, Utf8Output(other.Utf8Output)
 	, arguments(other.arguments)
 { }
 
@@ -17,11 +16,9 @@ Request::Request(Request&& other)
 Request::Request(
     int version,
     RequestLanguage language,
-    bool utf8Output,
     vector<Argument>&& arguments)
-	: ProtocolVersion(version),
-	  Language(language),
-	  Utf8Output(utf8Output)
+	: ProtocolVersion(version)
+	, Language(language)
 {
 	swap(this->arguments, arguments);
 }
@@ -32,7 +29,6 @@ Request& Request::operator=(Request&& other)
 	{
 		ProtocolVersion = other.ProtocolVersion;
 		Language = other.Language;
-		Utf8Output = other.Utf8Output;
 		arguments = other.arguments;
 	}
 	return *this;
@@ -43,7 +39,6 @@ Request::Request(
 	wstring&& currentDirectory)
 	: Request(PROTOCOL_VERSION,
 			  language,
-		      false,
 		      { Request::Argument(
 				  ArgumentId::CURRENTDIRECTORY, 0, move(currentDirectory)) })
 { }
@@ -53,12 +48,16 @@ vector<Request::Argument>& Request::Arguments()
 	return this->arguments;
 }
 
-void Request::AddCommandLineArguments(vector<wstring>& commandLineArgs)
+void Request::AddCommandLineArguments(list<wstring>& commandLineArgs)
 {
-    for (size_t i = 0; i < commandLineArgs.size(); ++i)
+	size_t i;
+	list<wstring>::const_iterator iter;
+	for (iter = commandLineArgs.cbegin(), i = 0;
+		 iter != commandLineArgs.cend();
+		 ++iter, ++i)
     {
-		this->arguments.emplace_back(ArgumentId::COMMANDLINEARGUMENT, i,
-			wstring(commandLineArgs.at(i)));
+		this->arguments.emplace_back(
+			ArgumentId::COMMANDLINEARGUMENT, i, wstring(*iter));
     }
 }
 
@@ -122,30 +121,32 @@ bool Request::WriteToPipe(IPipe& pipe)
 }
 
 CompletedResponse::CompletedResponse(CompletedResponse&& other)
-	: exitCode(other.exitCode)
-	, output(move(other.output))
-	, errorOutput(move(other.errorOutput))
+	: ExitCode(other.ExitCode)
+	, Utf8Output(other.Utf8Output)
+	, Output(move(other.Output))
+	, ErrorOutput(move(other.ErrorOutput))
 { }
 
 // Encapsulate the response we got from the server.
 // output and errorOutput are now owned by the CompletedResponse
-CompletedResponse::CompletedResponse(int exitCode,
-                                     wstring&& output,
-                                     wstring&& errorOutput)
-{
-    this->exitCode = exitCode;
-	swap(this->output, output);
-	swap(this->errorOutput, errorOutput);
-}
+CompletedResponse::CompletedResponse(
+	int exitCode,
+	bool utf8Output,
+	wstring&& output,
+	wstring&& errorOutput)
+	: ExitCode(exitCode)
+	, Utf8Output(utf8Output)
+	, Output(move(output))
+	, ErrorOutput(move(errorOutput))
+{ }
 
 CompletedResponse& CompletedResponse::operator=(CompletedResponse&& other)
 {
-	if (this != &other)
-	{
-		exitCode = other.exitCode;
-		swap(output, other.output);
-		swap(errorOutput, other.errorOutput);
-	}
+	swap(ExitCode, other.ExitCode);
+	swap(Utf8Output, other.Utf8Output);
+	swap(this->Output, other.Output);
+	swap(this->ErrorOutput, other.Output);
+	
 	return *this;
 }
 
@@ -177,10 +178,15 @@ CompletedResponse ReadCompletedResponse(IPipe& pipe)
     {
         FailFormatted(L"Pipe read failed\n");
     }
+	bool utf8output;
+	if (!pipe.Read(&utf8output, sizeof(utf8output)))
+	{
+		FailFormatted(L"Pipe read failed\n");
+	}
     auto output = ReadStringFromPipe(pipe);
     auto errorOutput = ReadStringFromPipe(pipe);
 
-    return CompletedResponse(exitCode, move(output), move(errorOutput));
+    return CompletedResponse(exitCode, utf8output, move(output), move(errorOutput));
 }
 
 // Reads a response from the pipe. If an unexpected response is

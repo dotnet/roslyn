@@ -57,7 +57,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
 
                     // We can't do anything with a request we don't know about. 
-                    return new CompletedBuildResponse(0, "", "");
+                    return new CompletedBuildResponse(-1,
+                        utf8output: false,
+                        output: "",
+                        errorOutput:  "");
             }
         }
 
@@ -104,20 +107,36 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If we don't have a current directory, compilation can't proceed. This shouldn't ever happen,
                 // because our clients always send the current directory.
                 Debug.Assert(false, "Client did not send current directory; this is required.");
-                return new CompletedBuildResponse(-1, "", "");
+                return new CompletedBuildResponse(-1,
+                    utf8output: false,
+                    output: "",
+                    errorOutput: "");
             }
 
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = CSharpCompile(currentDirectory, libDirectory, commandLineArguments, output, cancellationToken);
+            bool utf8output;
+            int returnCode = CSharpCompile(
+                currentDirectory,
+                libDirectory,
+                commandLineArguments,
+                output,
+                cancellationToken,
+                out utf8output);
 
-            return new CompletedBuildResponse(returnCode, output.ToString(), "");
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
         }
 
         /// <summary>
         /// Invoke the C# compiler with the given arguments and current directory, and send output and error
         /// to the given TextWriters.
         /// </summary>
-        private int CSharpCompile(string currentDirectory, string libDirectory, string[] commandLineArguments, TextWriter output, CancellationToken cancellationToken)
+        private int CSharpCompile(
+            string currentDirectory,
+            string libDirectory,
+            string[] commandLineArguments,
+            TextWriter output,
+            CancellationToken cancellationToken,
+            out bool utf8output)
         {
             CompilerServerLogger.Log("CurrentDirectory = '{0}'", currentDirectory);
             CompilerServerLogger.Log("LIB = '{0}'", libDirectory);
@@ -126,7 +145,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.Log("Argument[{0}] = '{1}'", i, commandLineArguments[i]);
             }
 
-            return CSharpCompilerServer.RunCompiler(commandLineArguments, currentDirectory, libDirectory, output, cancellationToken);
+            return CSharpCompilerServer.RunCompiler(
+                commandLineArguments,
+                currentDirectory,
+                libDirectory,
+                output,
+                cancellationToken,
+                out utf8output);
         }
 
         /// <summary>
@@ -144,20 +169,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If we don't have a current directory, compilation can't proceed. This shouldn't ever happen,
                 // because our clients always send the current directory.
                 Debug.Assert(false, "Client did not send current directory; this is required.");
-                return new CompletedBuildResponse(-1, "", "");
+                return new CompletedBuildResponse(-1, utf8output: false, output:  "", errorOutput: "");
             }
 
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = BasicCompile(currentDirectory, libDirectory, commandLineArguments, output, cancellationToken);
+            bool utf8output;
+            int returnCode = BasicCompile(currentDirectory,
+                libDirectory,
+                commandLineArguments,
+                output,
+                cancellationToken,
+                out utf8output);
 
-            return new CompletedBuildResponse(returnCode, output.ToString(), "");
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
         }
 
         /// <summary>
         /// Invoke the VB compiler with the given arguments and current directory, and send output and error
         /// to the given TextWriters.
         /// </summary>
-        private int BasicCompile(string currentDirectory, string libDirectory, string[] commandLineArguments, TextWriter output, CancellationToken cancellationToken)
+        private int BasicCompile(
+            string currentDirectory,
+            string libDirectory,
+            string[] commandLineArguments,
+            TextWriter output,
+            CancellationToken cancellationToken,
+            out bool utf8output)
         {
             CompilerServerLogger.Log("CurrentDirectory = '{0}'", currentDirectory);
             CompilerServerLogger.Log("LIB = '{0}'", libDirectory);
@@ -166,7 +203,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.Log("Argument[{0}] = '{1}'", i, commandLineArguments[i]);
             }
 
-            return VisualBasicCompilerServer.RunCompiler(commandLineArguments, currentDirectory, libDirectory, output, cancellationToken);
+            return VisualBasicCompilerServer.RunCompiler(
+                commandLineArguments, 
+                currentDirectory, 
+                libDirectory, 
+                output, 
+                cancellationToken,
+                out utf8output);
         }
     }
 }

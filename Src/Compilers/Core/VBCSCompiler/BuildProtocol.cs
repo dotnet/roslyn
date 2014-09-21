@@ -281,7 +281,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected abstract void AddResponseBody(BinaryWriter writer);
 
-
         /// <summary>
         /// May throw exceptions if there are pipe problems.
         /// </summary>
@@ -338,12 +337,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal class CompletedBuildResponse : BuildResponse
     {
         public readonly int ReturnCode;
+        public readonly bool Utf8Output;
         public readonly string Output;
         public readonly string ErrorOutput;
 
-        public CompletedBuildResponse(int returnCode, string output, string errorOutput)
+        public CompletedBuildResponse(int returnCode,
+                                      bool utf8output,
+                                      string output,
+                                      string errorOutput)
         {
             this.ReturnCode = returnCode;
+            this.Utf8Output = utf8output;
             this.Output = output;
             this.ErrorOutput = errorOutput;
         }
@@ -353,15 +357,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public static CompletedBuildResponse Create(BinaryReader reader)
         {
             var returnCode = reader.ReadInt32();
+            var utf8Output = reader.ReadBoolean();
             var output = BuildProtocolConstants.ReadLengthPrefixedString(reader);
             var errorOutput = BuildProtocolConstants.ReadLengthPrefixedString(reader);
 
-            return new CompletedBuildResponse(returnCode, output, errorOutput);
+            return new CompletedBuildResponse(returnCode, utf8Output, output, errorOutput);
         }
 
         protected override void AddResponseBody(BinaryWriter writer)
         {
             writer.Write(this.ReturnCode);
+            writer.Write(this.Utf8Output);
             BuildProtocolConstants.WriteLengthPrefixedString(writer, this.Output);
             BuildProtocolConstants.WriteLengthPrefixedString(writer, this.ErrorOutput);
         }

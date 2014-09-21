@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <vector>
+#include <list>
 #include <string>
 #include "pipe_utils.h"
 
@@ -61,7 +62,6 @@ class Request
 public:
 	int ProtocolVersion;
 	RequestLanguage Language;
-	bool Utf8Output;
 
 	struct Argument {
 		ArgumentId id;
@@ -83,7 +83,6 @@ public:
 	Request(Request&& other);
 	Request(int version,
 		    RequestLanguage language,
-            bool utf8Output,
 			vector<Argument>&& arguments);
 	Request(RequestLanguage,
 			wstring&& currentDirectory);
@@ -92,7 +91,7 @@ public:
 
 	vector<Argument>& Arguments();
 
-	void AddCommandLineArguments(vector<wstring>& commandLineArgs);
+	void AddCommandLineArguments(list<wstring>& commandLineArgs);
 	void AddLibEnvVariable(wstring&& value);
 	void AddKeepAlive(wstring&& keepAlive);
 
@@ -130,14 +129,15 @@ public:
 class CompletedResponse : public Response
 {
 public:
-	int exitCode;
-	wstring output;
-	wstring errorOutput;
+	int ExitCode;
+	bool Utf8Output;
+	wstring Output;
+	wstring ErrorOutput;
 
 	virtual ResponseType GetResponseType() { return COMPLETED; }
 	CompletedResponse() = default;
 	CompletedResponse(CompletedResponse&& other);
-	CompletedResponse(int, wstring&&, wstring&&);
+	CompletedResponse(int, bool, wstring&&, wstring&&);
 
 	CompletedResponse& operator=(CompletedResponse&& other);
 };

@@ -38,23 +38,19 @@ namespace NativeClientTests
 		TEST_METHOD(SimpleRequestWithoutUtf8)
 		{
 			auto language = RequestLanguage::CSHARPCOMPILE;
-			vector<wstring> args = {
+			list<wstring> args = {
 				L"test.cs"
 			};
-			bool utf8output;
 			wstring keepAlive;
-			ParseAndValidateClientArguments(args, utf8output, keepAlive);
+			ParseAndValidateClientArguments(args, keepAlive);
 
-			Assert::IsFalse(utf8output);
 			Assert::IsTrue(keepAlive.empty());
 
 			auto request = Request(language, L"");
 			request.AddCommandLineArguments(args);
-			request.Utf8Output = utf8output;
 
 			Assert::AreEqual(PROTOCOL_VERSION, request.ProtocolVersion);
 			Assert::AreEqual(language, request.Language);
-			Assert::IsFalse(request.Utf8Output);
 
 			vector<Request::Argument> expectedArgs = {
 				Request::Argument(ArgumentId::CURRENTDIRECTORY, 0, L""),
@@ -89,24 +85,20 @@ namespace NativeClientTests
 		TEST_METHOD(SimpleRequestWithUtf8)
 		{
 			auto language = RequestLanguage::CSHARPCOMPILE;
-			vector<wstring> args = {
+			list<wstring> args = {
 				L"/utf8output",
 				L"test.cs"
 			};
-			bool utf8output;
 			wstring keepAlive;
-			ParseAndValidateClientArguments(args, utf8output, keepAlive);
+			ParseAndValidateClientArguments(args, keepAlive);
 
-			Assert::IsTrue(utf8output);
 			Assert::IsTrue(keepAlive.empty());
 
 			auto request = Request(language, L"");
 			request.AddCommandLineArguments(args);
-			request.Utf8Output = utf8output;
 
 			Assert::AreEqual(PROTOCOL_VERSION, request.ProtocolVersion);
 			Assert::AreEqual(language, request.Language);
-			Assert::IsTrue(request.Utf8Output);
 
 			vector<Request::Argument> expectedArgs = {
 				Request::Argument(ArgumentId::CURRENTDIRECTORY, 0, L""),
@@ -149,13 +141,11 @@ namespace NativeClientTests
 
 		TEST_METHOD(RequestsWithKeepAlive)
 		{
-			vector<wstring> args = { L"/keepalive:10" };
-			bool utf8output;
+			list<wstring> args = { L"/keepalive:10" };
 			wstring keepAlive;
-			ParseAndValidateClientArguments(args, utf8output, keepAlive);
+			ParseAndValidateClientArguments(args, keepAlive);
 
 			Assert::IsTrue(args.empty());
-			Assert::IsFalse(utf8output);
 			Assert::AreEqual(L"10", keepAlive.c_str());
 
 			auto language = RequestLanguage::CSHARPCOMPILE;
@@ -170,10 +160,9 @@ namespace NativeClientTests
 			Assert::AreEqual(expected, request.Arguments());
 
 			args = { L"/keepalive=10" };
-			ParseAndValidateClientArguments(args, utf8output, keepAlive);
+			ParseAndValidateClientArguments(args, keepAlive);
 
 			Assert::IsTrue(args.empty());
-			Assert::IsFalse(utf8output);
 			Assert::AreEqual(L"10", keepAlive.c_str());
 
 			request = Request(language, L"");
@@ -184,27 +173,24 @@ namespace NativeClientTests
 
 		TEST_METHOD(NegativeValidKeepAlive)
 		{
-			vector<wstring> args = { L"/keepalive:-1" };
-			bool utf8output;
+			list<wstring> args = { L"/keepalive:-1" };
 			wstring keepAlive;
-			ParseAndValidateClientArguments(args, utf8output, keepAlive);
+			ParseAndValidateClientArguments(args, keepAlive);
 
 			Assert::IsTrue(args.empty());
-			Assert::IsFalse(utf8output);
 			Assert::AreEqual(L"-1", keepAlive.c_str());
 		}
 
 		TEST_METHOD(ParseKeepAliveNoValue)
 		{
-			vector<wstring> args = {
+			list<wstring> args = {
 				L"/keepalive",
 			};
-			bool utf8output;
 			wstring keepAlive;
 
 			try
 			{
-				ParseAndValidateClientArguments(args, utf8output, keepAlive);
+				ParseAndValidateClientArguments(args, keepAlive);
 				Assert::Fail(L"Expected exception");
 			}
 			catch (FatalError& e)
@@ -217,15 +203,14 @@ namespace NativeClientTests
 
 		TEST_METHOD(ParseKeepAliveNoValue2)
 		{
-			vector<wstring> args = {
+			list<wstring> args = {
 				L"/keepalive:",
 			};
-			bool utf8output;
 			wstring keepAlive;
 
 			try
 			{
-				ParseAndValidateClientArguments(args, utf8output, keepAlive);
+				ParseAndValidateClientArguments(args, keepAlive);
 				Assert::Fail(L"Expected exception");
 			}
 			catch (FatalError& e)
@@ -238,15 +223,14 @@ namespace NativeClientTests
 		
 		TEST_METHOD(ParseKeepAliveBadInteger)
 		{
-			vector<wstring> args = {
+			list<wstring> args = {
 				L"/keepalive",
 			};
-			bool utf8output;
 			wstring keepAlive;
 
 			try
 			{
-				ParseAndValidateClientArguments(args, utf8output, keepAlive);
+				ParseAndValidateClientArguments(args, keepAlive);
 				Assert::Fail(L"Expected exception");
 			}
 			catch (FatalError& e)
@@ -259,15 +243,14 @@ namespace NativeClientTests
 
 		TEST_METHOD(ParseKeepAliveIntegerOutOfRange)
 		{
-			vector<wstring> args = {
+			list<wstring> args = {
 				L"/keepalive:-2",
 			};
-			bool utf8output;
 			wstring keepAlive;
 
 			try
 			{
-				ParseAndValidateClientArguments(args, utf8output, keepAlive);
+				ParseAndValidateClientArguments(args, keepAlive);
 				Assert::Fail(L"Expected exception");
 			}
 			catch (FatalError& e)

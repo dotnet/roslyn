@@ -83,8 +83,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                                                   new CompilerRequestHandler(),
                                                   dieTimeoutMs);
 
-            //Debugger.Launch();
-
             dispatcher.ListenAndDispatchConnections();
             return 0;
         }

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         #region Helpers
 
         private readonly TempDirectory tempDirectory;
-        private readonly TempDirectory compilerDirectory;
+        private readonly string compilerDirectory;
 
         private readonly string CSharpCompilerClientExecutable;
         private readonly string BasicCompilerClientExecutable;
@@ -119,16 +119,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             tempDirectory = Temp.CreateDirectory();
 
             // Copy the compiler files to a temporary directory
-            compilerDirectory = Temp.CreateDirectory();
+            compilerDirectory = Temp.CreateDirectory().Path;
             foreach (var path in AllCompilerFiles)
             {
                 var filename = Path.GetFileName(path);
-                File.Copy(path, Path.Combine(compilerDirectory.Path, filename));
+                File.Copy(path, Path.Combine(compilerDirectory, filename));
             }
 
-            CSharpCompilerClientExecutable = Path.Combine(compilerDirectory.Path, CSharpClientExeName);
-            BasicCompilerClientExecutable = Path.Combine(compilerDirectory.Path, BasicClientExeName);
-            CompilerServerExecutable = Path.Combine(compilerDirectory.Path, CompilerServerExeName);
+            CSharpCompilerClientExecutable = Path.Combine(compilerDirectory, CSharpClientExeName);
+            BasicCompilerClientExecutable = Path.Combine(compilerDirectory, BasicClientExeName);
+            CompilerServerExecutable = Path.Combine(compilerDirectory, CompilerServerExeName);
         }
 
         public override void Dispose()
@@ -964,7 +964,7 @@ EndGlobal
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + BuildTaskDllSrc + @""" />
   <PropertyGroup>
-    <CscToolPath>" + clientExecutableBasePath + @"</CscToolPath>
+    <CscToolPath>" + compilerDirectory + @"</CscToolPath>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -1049,7 +1049,7 @@ namespace HelloProj
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + BuildTaskDllSrc + @""" />
   <PropertyGroup>
-    <CscToolPath>" + clientExecutableBasePath + @"</CscToolPath>
+    <CscToolPath>" + compilerDirectory + @"</CscToolPath>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -1117,7 +1117,7 @@ namespace HelloLib
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + BuildTaskDllSrc + @""" />
   <PropertyGroup>
-    <VbcToolPath>" + clientExecutableBasePath + @"</VbcToolPath>
+    <VbcToolPath>" + compilerDirectory + @"</VbcToolPath>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
     <ProductVersion>
@@ -1551,7 +1551,10 @@ End Module
             var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C csc2.exe /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
+            var result = ProcessLauncher.Run("cmd",
+                string.Format("/C {0} /nologo /t:library {1} > {2}",
+                CSharpCompilerClientExecutable,
+                srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'".Trim(),
@@ -1567,7 +1570,9 @@ End Module
             var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C vbc2.exe /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
+            var result = ProcessLauncher.Run("cmd", string.Format("/C {0} /nologo /t:library {1} > {2}",
+                BasicCompilerClientExecutable,
+                srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
@@ -1587,7 +1592,9 @@ End Module
             var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C csc2.exe /utf8output /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
+            var result = ProcessLauncher.Run("cmd", string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
+                CSharpCompilerClientExecutable,
+                srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♕'".Trim(),
@@ -1603,7 +1610,9 @@ End Module
             var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C vbc2.exe /utf8output /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
+            var result = ProcessLauncher.Run("cmd", string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
+                BasicCompilerClientExecutable,
+                srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
@@ -1679,6 +1688,7 @@ class Program
 <Project ToolsVersion=""14.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + BuildTaskDllSrc + @""" />
   <PropertyGroup>
+    <CscToolPath>" + compilerDirectory + @"</CscToolPath>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
     <ProjectGuid>{6BD0BE3E-D565-42C2-A7DE-B7A2161BDBF8}</ProjectGuid>
@@ -1803,10 +1813,56 @@ class Hello
             Assert.False(firstBuildOutput.Equals(secondBuildOutput), assertMessage);
         }
 
+        [WorkItem(979588)]
+        [Fact]
+        public void Utf8OutputInRspFileCsc()
+        {
+            var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var tempOut = tempDirectory.CreateFile("output.txt");
+            var rspFile = tempDirectory.CreateFile("temp.rsp").WriteAllText(
+                string.Format("/utf8output /nologo /t:library {0}", srcFile));
+
+            var result = ProcessLauncher.Run("cmd",
+                string.Format(
+                    "/C {0} /noconfig @{1} > {2}",
+                    CSharpCompilerClientExecutable,
+                    rspFile,
+                    tempOut));
+
+            Assert.Equal("", result.Output.Trim());
+            Assert.Equal("src.cs(1,1): error CS1056: Unexpected character '♕'",
+                tempOut.ReadAllText().Trim().Replace(srcFile, "src.cs"));
+            Assert.Equal(1, result.ExitCode);
+        }
+
+        [WorkItem(979588)]
+        [Fact]
+        public void Utf8OutputInRspFileVbc()
+        {
+            var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var tempOut = tempDirectory.CreateFile("output.txt");
+            var rspFile = tempDirectory.CreateFile("temp.rsp").WriteAllText(
+                string.Format("/utf8output /nologo /t:library {0}", srcFile));
+
+            var result = ProcessLauncher.Run("cmd",
+                string.Format(
+                    "/C {0} /noconfig @{1} > {2}",
+                    BasicCompilerClientExecutable,
+                    rspFile,
+                    tempOut));
+
+            Assert.Equal("", result.Output.Trim());
+            Assert.Equal(@"src.vb(1) : error BC30037: Character is not valid.
+
+♕
+~", tempOut.ReadAllText().Trim().Replace(srcFile, "src.vb"));
+            Assert.Equal(1, result.ExitCode);
+        }
+
         [ConditionalFact(typeof(RunKeepAliveTests))]
         public async Task ServerRespectsAppConfig()
         {
-            var exeConfigPath = Path.Combine(compilerDirectory.Path, CompilerServerExeName + ".config");
+            var exeConfigPath = Path.Combine(compilerDirectory, CompilerServerExeName + ".config");
             var doc = new XmlDocument();
             doc.Load(exeConfigPath);
             var root = doc.DocumentElement;

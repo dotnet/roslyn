@@ -17,9 +17,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
         }
 
-        public static int RunCompiler(string[] args, string baseDirectory, string libDirectory, TextWriter output, CancellationToken cancellationToken)
+        public static int RunCompiler(
+            string[] args,
+            string baseDirectory,
+            string libDirectory,
+            TextWriter output,
+            CancellationToken cancellationToken,
+            out bool utf8output)
         {
             VisualBasicCompilerServer compiler = new VisualBasicCompilerServer(BasicResponseFileName, args, baseDirectory, libDirectory);
+            utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
         }
 
