@@ -143,6 +143,48 @@ new DayOfWeek() --> 0
         }
 
         [Fact]
+        public void ParameterlessCtorsInStructs()
+        {
+            var source = @"
+
+struct S1
+{
+
+}
+
+struct S2
+{
+    public S2()
+    {
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    static void Foo(S1 s = new S1())
+    {
+
+    }
+
+    static void Foo(S2 s = new S2())
+    {
+
+    }
+}
+";
+            var comp = CreateExperimentalCompilationWithMscorlib45(source);
+            comp.VerifyDiagnostics(
+    // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
+    //     static void Foo(S2 s = new S2())
+    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)
+);
+        }
+
+        [Fact]
         public void TestConstantInt32Comparisons()
         {
             var source =

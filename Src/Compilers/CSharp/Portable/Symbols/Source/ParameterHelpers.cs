@@ -187,10 +187,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // initializer regardless of whether T is a value type
             // reference type, type parameter type, and so on.
             // We should consider simply allowing this in the spec.
+            //
+            // Also when valuetype S has a parameterless constructor, 
+            // new S() is clearly not a constant expression and should produce an error
 
             bool isValidDefaultValue = (defaultExpression.ConstantValue != null) ||
-                (defaultExpression.Kind == BoundKind.ObjectCreationExpression && defaultExpression.Type.IsValueType && ((BoundObjectCreationExpression)defaultExpression).Arguments.Length == 0) ||
-                (defaultExpression.Kind == BoundKind.DefaultOperator);
+                                        (defaultExpression.Kind == BoundKind.DefaultOperator) ||
+                                        (defaultExpression.Kind == BoundKind.ObjectCreationExpression && 
+                                                ((BoundObjectCreationExpression)defaultExpression).Constructor.IsDefaultValueTypeConstructor());
 
             SyntaxToken outKeyword;
             SyntaxToken refKeyword;
