@@ -124,9 +124,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 (IEventSymbol @event) => @event.OverriddenEvent);
         }
 
+        private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
+        {
+            return classOrStructType.FindImplementationForInterfaceMember(member) != null;
+        }
+
         private static bool IsImplemented(
             this INamedTypeSymbol classOrStructType,
             ISymbol member,
+            Func<INamedTypeSymbol, ISymbol, bool> isValidImplementation,
             CancellationToken cancellationToken)
         {
             if (member.ContainingType.TypeKind == TypeKind.Interface)
@@ -137,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
-                    return classOrStructType.FindImplementationForInterfaceMember(member) != null;
+                    return isValidImplementation(classOrStructType, member);
                 }
             }
 
@@ -203,6 +209,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool IsExplicitlyImplemented(
             this INamedTypeSymbol classOrStructType,
             ISymbol member,
+            Func<INamedTypeSymbol, ISymbol, bool> isValid,
             CancellationToken cancellationToken)
         {
             var implementation = classOrStructType.FindImplementationForInterfaceMember(member);
@@ -220,8 +227,47 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return classOrStructType.GetAllUnimplementedMembers(
                 interfacesOrAbstractClasses,
                 IsImplemented,
+                ImplementationExists,
                 GetMembers,
-                cancellationToken);
+                allowReimplementation: false,
+                cancellationToken: cancellationToken);
+        }
+
+        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembersInThis(
+    this INamedTypeSymbol classOrStructType,
+    IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
+            CancellationToken cancellationToken)
+        {
+            return classOrStructType.GetAllUnimplementedMembers(
+                interfacesOrAbstractClasses,
+                IsImplemented,
+                (t, m) =>
+                {
+                    var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
+                    return implementation != null && implementation.ContainingType == classOrStructType;
+                },
+                GetMembers,
+                allowReimplementation: true,
+                cancellationToken: cancellationToken);
+        }
+
+        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembersInThis(
+            this INamedTypeSymbol classOrStructType,
+            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
+            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
+            CancellationToken cancellationToken)
+        {
+            return classOrStructType.GetAllUnimplementedMembers(
+                interfacesOrAbstractClasses,
+                IsImplemented,
+                (t, m) =>
+                {
+                    var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
+                    return implementation != null && implementation.ContainingType == classOrStructType;
+                },
+                interfaceMemberGetter,
+                allowReimplementation: true,
+                cancellationToken: cancellationToken);
         }
 
         public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembers(
@@ -233,8 +279,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return classOrStructType.GetAllUnimplementedMembers(
                 interfacesOrAbstractClasses,
                 IsImplemented,
+                ImplementationExists,
                 interfaceMemberGetter,
-                cancellationToken);
+                allowReimplementation: false,
+                cancellationToken: cancellationToken);
         }
 
         public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedExplicitMembers(
@@ -245,8 +293,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return classOrStructType.GetAllUnimplementedMembers(
                 interfaces,
                 IsExplicitlyImplemented,
+                ImplementationExists,
                 GetMembers,
-                cancellationToken);
+                allowReimplementation: false,
+                cancellationToken: cancellationToken);
         }
 
         public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedExplicitMembers(
@@ -258,15 +308,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return classOrStructType.GetAllUnimplementedMembers(
                 interfaces,
                 IsExplicitlyImplemented,
+                ImplementationExists,
                 interfaceMemberGetter,
-                cancellationToken);
+                allowReimplementation: false,
+                cancellationToken: cancellationToken);
         }
 
         private static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
-            Func<INamedTypeSymbol, ISymbol, CancellationToken, bool> isImplemented,
+            Func<INamedTypeSymbol, ISymbol, Func<INamedTypeSymbol, ISymbol, bool>, CancellationToken, bool> isImplemented,
+            Func<INamedTypeSymbol, ISymbol, bool> isValidImplementation,
             Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
+            bool allowReimplementation,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(classOrStructType);
@@ -289,8 +343,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return SpecializedCollections.EmptyList<Tuple<INamedTypeSymbol, IList<ISymbol>>>();
             }
 
-            var typesToImplement = GetTypesToImplement(classOrStructType, interfacesOrAbstractClasses, cancellationToken);
-            return typesToImplement.Select(s => Tuple.Create(s, GetUnimplementedMembers(classOrStructType, s, isImplemented, interfaceMemberGetter, cancellationToken)))
+            var typesToImplement = GetTypesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken);
+            return typesToImplement.Select(s => Tuple.Create(s, GetUnimplementedMembers(classOrStructType, s, isImplemented, isValidImplementation, interfaceMemberGetter, cancellationToken)))
                                         .Where(t => t.Item2.Count > 0)
                                         .ToList();
         }
@@ -298,10 +352,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static IList<INamedTypeSymbol> GetTypesToImplement(
             INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
+            bool allowReimplementation,
             CancellationToken cancellationToken)
         {
             return interfacesOrAbstractClasses.First().TypeKind == TypeKind.Interface
-                ? GetInterfacesToImplement(classOrStructType, interfacesOrAbstractClasses, cancellationToken)
+                ? GetInterfacesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken)
                 : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses, cancellationToken);
         }
 
@@ -318,6 +373,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static IList<INamedTypeSymbol> GetInterfacesToImplement(
             INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfaces,
+            bool allowReimplementation,
             CancellationToken cancellationToken)
         {
             // We need to not only implement the specified interface, but also everything it
@@ -329,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // However, there's no need to reimplement any interfaces that our base types already
             // implement.  By definition they must contain all the necessary methods.
             var baseType = classOrStructType.BaseType;
-            var alreadyImplementedInterfaces = baseType == null
+            var alreadyImplementedInterfaces = baseType == null || allowReimplementation
                 ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
                 : baseType.AllInterfaces;
 
@@ -341,7 +397,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static IList<ISymbol> GetUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
             INamedTypeSymbol interfaceType,
-            Func<INamedTypeSymbol, ISymbol, CancellationToken, bool> isImplemented,
+            Func<INamedTypeSymbol, ISymbol, Func<INamedTypeSymbol, ISymbol, bool>,  CancellationToken, bool> isImplemented,
+            Func<INamedTypeSymbol, ISymbol, bool> isValidImplementation,
             Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
             CancellationToken cancellationToken)
         {
@@ -350,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind == MethodKind.Ordinary
                     where m.Kind != SymbolKind.Property || ((IPropertySymbol)m).IsIndexer || ((IPropertySymbol)m).CanBeReferencedByName
                     where m.Kind != SymbolKind.Event || ((IEventSymbol)m).CanBeReferencedByName
-                    where !isImplemented(classOrStructType, m, cancellationToken)
+                    where !isImplemented(classOrStructType, m, isValidImplementation, cancellationToken)
                     select m;
 
             return q.ToList();
