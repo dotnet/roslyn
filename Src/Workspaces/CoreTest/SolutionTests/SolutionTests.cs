@@ -1311,12 +1311,15 @@ public class C : A {
 
             var solution = new CustomWorkspace().CurrentSolution
                 .AddProject(pid1, "FooA", "Foo.dll", LanguageNames.VisualBasic)
+                .WithProjectCompilationOptions(pid1, new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddDocument(did1, "A.vb", text1)
                 .AddMetadataReference(pid1, mscorlib)
                 .AddProject(pid2, "FooB", "Foo2.dll", LanguageNames.VisualBasic)
+                .WithProjectCompilationOptions(pid2, new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddDocument(did2, "B.vb", text2)
                 .AddMetadataReference(pid2, mscorlib)
                 .AddProject(pid3, "Bar", "Bar.dll", LanguageNames.CSharp)
+                .WithProjectCompilationOptions(pid3, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddDocument(did3, "C.cs", text3)
                 .AddMetadataReference(pid3, mscorlib)
                 .AddProjectReference(pid3, new ProjectReference(pid1))

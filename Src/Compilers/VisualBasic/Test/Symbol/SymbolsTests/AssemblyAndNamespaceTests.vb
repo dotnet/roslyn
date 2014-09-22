@@ -266,7 +266,7 @@ End Namespace
 Namespace C
 End Namespace
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar"))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
 

@@ -717,7 +717,7 @@ Imports DD=System.Console
 
         <Fact>
         Public Sub ImportAliasesAtProjectLevel()
-            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse(
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(
                     {"System.Collections",
                      "IO=System.IO",
                      "TZI=System.TimeZoneInfo",
@@ -1130,7 +1130,7 @@ BC32045: 'List(Of Object)' has no type parameters and so cannot have type argume
 
         <Fact>
         Public Sub ProjectAliasResolutionErrors()
-            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse(
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(
                     {"System.Collections",
                     "ArrayList=System.Collections.Generic.List(Of Object)",
                     "HT=System.Collections.HashTable"}))

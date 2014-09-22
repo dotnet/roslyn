@@ -2853,7 +2853,7 @@ public class C
                 var qualifiedName = type.ToTestDisplayString();
                 
                 var source = string.Format(sourceTemplate, qualifiedName);
-                var comp = CreateCompilationWithMscorlib45(source);
+                var comp = CreateCompilationWithMscorlib45(source, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
                 switch (st)
                 {

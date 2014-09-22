@@ -160,14 +160,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             root.Accept(compiler)
 
-            If tree Is Nothing Then
-                ' include entry point diagnostics if we are compiling the entire compilation, not just a single tree:
-                Dim entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken)
-                If entryPointAndDiagnostics IsNot Nothing Then
-                    diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics)
-                End If
-            End If
-
             compiler.WaitForWorkers()
         End Sub
 
@@ -275,8 +267,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken)
             Debug.Assert(entryPointAndDiagnostics IsNot Nothing)
             Debug.Assert(Not entryPointAndDiagnostics.Diagnostics.IsDefault)
-
-            diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics)
 
             If compilation.ScriptClass IsNot Nothing Then
                 Debug.Assert(entryPointAndDiagnostics.MethodSymbol Is Nothing)

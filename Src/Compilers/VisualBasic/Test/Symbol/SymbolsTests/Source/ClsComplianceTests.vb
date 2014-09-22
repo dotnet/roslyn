@@ -2545,7 +2545,7 @@ End Class
                 Dim qualifiedName = type.ToTestDisplayString()
 
                 Dim source = String.Format(sourceTemplate, qualifiedName)
-                Dim comp = CreateCompilationWithMscorlib({source}, Nothing)
+                Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
                 Select Case (st)
                     Case SpecialType.System_SByte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_UIntPtr, SpecialType.System_TypedReference

@@ -253,7 +253,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=TestOptions.ReleaseExe.WithCryptoKeyFile("foo").WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile("foo").WithStrongNameProvider(DefaultProvider))
 
         CompilationUtils.AssertTheseDeclarationDiagnostics(other,
             <errors>
@@ -332,7 +332,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithCryptoKeyContainer("foo").WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyContainer("foo").WithStrongNameProvider(DefaultProvider))
 
         CompilationUtils.AssertTheseDeclarationDiagnostics(other,
             <errors>

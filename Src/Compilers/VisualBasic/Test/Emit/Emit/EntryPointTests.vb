@@ -1577,5 +1577,108 @@ BC30420: 'Sub Main' was not found in '20781949-2709-424e-b174-dec81a202021'.
 </errors>)
         End Sub
 
+        <WorkItem(925931, "DevDiv")>
+        <Fact()>
+        Public Sub ErrorReportedOnlyInTheContainingSyntaxTree()
+            Dim source =
+<compilation>
+    <file name="M.vb">
+Module M
+End Module
+    </file>
+    <file name="Program.vb">
+Module Program
+    Async Sub Main()
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim application = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
+
+            Dim m = application.SyntaxTrees(0)
+            Dim program = application.SyntaxTrees(1)
+
+            Assert.Equal("M.vb", m.FilePath)
+            Assert.Equal("Program.vb", program.FilePath)
+
+            Dim sourceModule = DirectCast(application.Assembly.Modules(0), SourceModuleSymbol)
+            Dim identityFilter = Function(x As IEnumerable(Of Diagnostic), y As Object, z As Object) x
+
+            sourceModule.GetDeclarationErrorsInTree(m, Nothing, identityFilter, Nothing).Verify()
+            sourceModule.GetDeclarationErrorsInTree(program, Nothing, identityFilter, Nothing).Verify(
+                Diagnostic(ERRID.ERR_AsyncSubMain, "Main").WithLocation(2, 15))
+
+            application.GetSemanticModel(m).GetDeclarationDiagnostics().Verify()
+
+            application.GetSemanticModel(program).GetDeclarationDiagnostics().Verify(
+                Diagnostic(ERRID.ERR_AsyncSubMain, "Main").WithLocation(2, 15))
+
+            application.GetDeclarationDiagnostics().Verify(
+                Diagnostic(ERRID.ERR_AsyncSubMain, "Main").WithLocation(2, 15))
+        End Sub
+
+        <WorkItem(925931, "DevDiv")>
+        <Fact()>
+        Public Sub EntryPointMainCannotBeAsync()
+            Dim source =
+<compilation>
+    <file>
+Module Program
+    Async Sub Main()
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim application = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            Dim syntaxTree = application.SyntaxTrees(0)
+            Dim semanticModel = application.GetSemanticModel(syntaxTree)
+            semanticModel.GetDeclarationDiagnostics().Verify(
+                Diagnostic(ERRID.ERR_AsyncSubMain, "Main").WithLocation(2, 15))
+        End Sub
+
+        <WorkItem(925931, "DevDiv")>
+        <Fact()>
+        Public Sub MainInLibraryCanBeAsync()
+            Dim source =
+<compilation>
+    <file>
+Module Program
+    Async Sub Main(args As String())
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim library = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
+            Dim syntaxTree = library.SyntaxTrees(0)
+            Dim semanticModel = library.GetSemanticModel(syntaxTree)
+            semanticModel.GetDeclarationDiagnostics().Verify()
+        End Sub
+
+        <WorkItem(925931, "DevDiv")>
+        <Fact()>
+        Public Sub AmbiguousEntryPointMainCanBeAsync()
+            Dim source =
+<compilation>
+    <file>
+Module Program
+    Async Sub Main(args As String())
+    End Sub
+End Module
+
+Module M
+    Async Sub Main()
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim application = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugExe)
+            Dim syntaxTree = application.SyntaxTrees(0)
+            Dim semanticModel = application.GetSemanticModel(syntaxTree)
+            semanticModel.GetDeclarationDiagnostics().Verify()
+        End Sub
     End Class
 End Namespace
