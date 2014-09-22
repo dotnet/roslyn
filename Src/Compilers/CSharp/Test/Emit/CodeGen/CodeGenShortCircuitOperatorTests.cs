@@ -3981,5 +3981,147 @@ False");
 ");
         }
 
+        [Fact]
+        public void ConditionalMemberAccessOptimizedLocal001()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    class C1 : System.IDisposable
+    {
+        public bool disposed;
+        public void Dispose()
+        {
+            disposed = true;
+        }
+    }
+
+    static void Main()
+    {
+        Test1();
+        Test2<C1>();
+    }
+
+    static void Test1()
+    {
+        var c = new C1();
+        c?.Dispose();
+    }
+
+    static void Test2<T>() where T : IDisposable, new()
+    {
+        var c = new T();
+        c?.Dispose();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"");
+            comp.VerifyIL("Program.Test1()", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  newobj     ""Program.C1..ctor()""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  pop
+  IL_0009:  ret
+  IL_000a:  call       ""void Program.C1.Dispose()""
+  IL_000f:  ret
+}
+").VerifyIL("Program.Test2<T>()", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  .locals init (T V_0) //c
+  IL_0000:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  box        ""T""
+  IL_000c:  brfalse.s  IL_001b
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  constrained. ""T""
+  IL_0016:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_001b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessOptimizedLocal002()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    interface I1
+    {
+        void Foo(I1 arg);
+    }
+
+    class C1 : I1
+    {
+        public void Foo(I1 arg)
+        {
+        }
+    }
+
+    static void Main()
+    {
+        Test1();
+        Test2<C1>();
+    }
+
+    static void Test1()
+    {
+        var c = new C1();
+        c?.Foo(c);
+    }
+
+    static void Test2<T>() where T : I1, new()
+    {
+        var c = new T();
+        c?.Foo(c);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"");
+            comp.VerifyIL("Program.Test1()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (Program.C1 V_0) //c
+  IL_0000:  newobj     ""Program.C1..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  brfalse.s  IL_0010
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  call       ""void Program.C1.Foo(Program.I1)""
+  IL_0010:  ret
+}
+").VerifyIL("Program.Test2<T>()", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (T V_0) //c
+  IL_0000:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  box        ""T""
+  IL_000c:  brfalse.s  IL_0026
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  box        ""T""
+  IL_001b:  constrained. ""T""
+  IL_0021:  callvirt   ""void Program.I1.Foo(Program.I1)""
+  IL_0026:  ret
+}
+");
+        }
+
     }
 }
