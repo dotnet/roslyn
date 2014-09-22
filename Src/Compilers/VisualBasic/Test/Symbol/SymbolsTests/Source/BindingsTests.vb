@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestGetTypeFromDeclaration()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("Foo.Bar")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
       <compilation name="Compilation">

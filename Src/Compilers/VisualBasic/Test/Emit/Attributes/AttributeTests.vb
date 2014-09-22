@@ -1826,8 +1826,7 @@ End Class
         Public Sub AttributeArgumentAsEnumFromMetadata()
             Dim metadata1 = VisualBasicCompilation.Create("bar.dll",
                                                references:={MscorlibRef},
-                                               syntaxTrees:={Parse("Public Enum Bar : Baz : End Enum")},
-                                               options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).EmitToArray(metadataOnly:=True)
+                                               syntaxTrees:={Parse("Public Enum Bar : Baz : End Enum")}).EmitToArray(metadataOnly:=True)
 
             Dim ref1 = New MetadataImageReference(metadata1)
 
@@ -1842,8 +1841,7 @@ End Class
                                         End Class
                                         <Ca(Bar.Baz)>
                                         Public Class Foo
-                                        End Class]]>.Value)},
-                                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).EmitToArray(metadataOnly:=True)
+                                        End Class]]>.Value)}).EmitToArray(metadataOnly:=True)
 
             Dim ref2 = New MetadataImageReference(metadata2)
 

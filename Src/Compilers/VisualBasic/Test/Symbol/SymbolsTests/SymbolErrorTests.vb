@@ -5976,7 +5976,7 @@ End Class
 
         <Fact>
         Public Sub BC30561ERR_AmbiguousInImports2()
-            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"N1", "N2"}))
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"N1", "N2"}))
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="AmbiguousInImports2">
         <file name="a.vb"><![CDATA[
@@ -6006,7 +6006,7 @@ BC30561: 'I1' is ambiguous, imported from the namespaces or types 'N1, N2'.
 
         <Fact>
         Public Sub BC30562ERR_AmbiguousInModules2()
-            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"N1", "N2"}))
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"N1", "N2"}))
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="AmbiguousInModules2">
         <file name="a.vb"><![CDATA[
@@ -18979,7 +18979,7 @@ BC40035: 'Public Sub foo(Of t)(p1 As Integer()()()()())' is not CLS-compliant be
 
         <Fact>
         Public Sub BC40038WRN_RootNamespaceNotCLSCompliant1()
-            Dim opt = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("_CLS")
+            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("_CLS")
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="RootNamespaceNotCLSCompliant1">
         <file name="a.vb"><![CDATA[
@@ -18997,7 +18997,7 @@ BC40038: Root namespace '_CLS' is not CLS-compliant.
 
         <Fact>
         Public Sub BC40039WRN_RootNamespaceNotCLSCompliant2()
-            Dim opt = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("A._B")
+            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("A._B")
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="RootNamespaceNotCLSCompliant2">
         <file name="a.vb"><![CDATA[
@@ -19015,7 +19015,7 @@ BC40039: Name '_B' in the root namespace 'A._B' is not CLS-compliant.
 
         <Fact>
         Public Sub BC40041WRN_TypeNotCLSCompliant1()
-            Dim opt = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="TypeNotCLSCompliant1">
         <file name="a.vb"><![CDATA[
@@ -19038,7 +19038,7 @@ BC40041: Type 'UInteger' is not CLS-compliant.
 
         <Fact>
         Public Sub BC40042WRN_OptionalValueNotCLSCompliant1()
-            Dim opt = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="OptionalValueNotCLSCompliant1">
         <file name="a.vb"><![CDATA[
@@ -19496,7 +19496,7 @@ End Namespace
         <WorkItem(528713, "DevDiv")>
         <Fact>
         Public Sub BC40056WRN_UndefinedOrEmptyNamespaceOrClass1()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("BC40056WRN_UndefinedOrEmptyNamespaceOrClass1")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("BC40056WRN_UndefinedOrEmptyNamespaceOrClass1")
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="UndefinedOrEmptyNamespaceOrClass1">
         <file name="a.vb"><![CDATA[
@@ -19557,7 +19557,7 @@ BC40056: Namespace or type specified in the Imports 'Alias2' doesn't contain any
         <Fact>
         Public Sub BC40057WRN_UndefinedOrEmpyProjectNamespaceOrClass1()
             Dim globalImports = GlobalImport.Parse({"Alias2 = System", "N12 = Alias2"})
-            Dim options = TestOptions.ReleaseDll.WithGlobalImports(globalImports)
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(globalImports)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="UndefinedOrEmpyProjectNamespaceOrClass1">
         <file name="a.vb"><![CDATA[

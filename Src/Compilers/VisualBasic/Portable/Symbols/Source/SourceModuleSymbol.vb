@@ -569,21 +569,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End While
             End If
 
-            Dim entryPoint = Me.DeclaringCompilation.GetEntryPointAndDiagnostics(cancellationToken)
-            If entryPoint IsNot Nothing Then
-
-                If filterSpanWithinTree.HasValue Then
-                    builder.AddRange(locationFilter(entryPoint.Diagnostics, tree, filterSpanWithinTree))
-                Else
-                    For Each entryPointDiagnostic As Diagnostic In entryPoint.Diagnostics
-                        If entryPointDiagnostic.Location.SourceTree Is tree Then
-                            builder.Add(entryPointDiagnostic)
-                        End If
-                    Next
-                End If
-
-            End If
-
             ' Get all the errors that were generated. 
             Dim declarationDiagnostics = sourceFile.DeclarationErrors.AsEnumerable()
 
@@ -671,11 +656,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each tree In SyntaxTrees
                 builder.AddRange(GetSourceFile(tree).DeclarationErrors)
             Next
-
-            Dim entryPoint = Me.DeclaringCompilation.GetEntryPointAndDiagnostics(cancellationToken)
-            If entryPoint IsNot Nothing Then
-                builder.AddRange(entryPoint.Diagnostics)
-            End If
 
             Return builder.ToReadOnlyAndFree(Of Diagnostic)()
         End Function
