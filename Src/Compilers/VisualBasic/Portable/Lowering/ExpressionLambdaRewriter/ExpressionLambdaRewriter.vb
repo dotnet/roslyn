@@ -583,7 +583,10 @@ lSelect:
                 Return CreateLiteralExpression(node)
             End If
 
-            If node.ConstructorOpt Is Nothing OrElse node.Arguments.Length = 0 Then
+            If node.ConstructorOpt Is Nothing OrElse
+                (node.Arguments.Length = 0 AndAlso Not node.Type.IsStructureType() OrElse
+                node.ConstructorOpt.IsDefaultValueTypeConstructor()) Then
+
                 Return ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](node.Type))
             End If
 

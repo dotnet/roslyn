@@ -6563,6 +6563,31 @@ BC30629: Structures cannot declare a non-shared 'Sub New' with no parameters.
         End Sub
 
         <Fact>
+        Public Sub BC37240ERR_StructParameterlessInstanceCtorMustBePublic()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="NewInStruct">
+        <file name="a.vb"><![CDATA[
+            Module mod37240
+                Structure Struct1
+                    'COMPILEERROR:BC37240,"new"
+                    Private Sub New()
+                    End Sub
+                End Structure
+
+                sub Main
+                end sub
+            End Module
+        ]]></file>
+    </compilation>, options:=TestOptions.ExperimentalReleaseExe)
+            Dim expectedErrors1 = <errors><![CDATA[
+BC37241: Parameterless instance constructors in structures must be public.
+                    Private Sub New()
+                                ~~~
+                 ]]></errors>
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact>
         Public Sub BC30639ERR_BadPropertyFlags1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="BadPropertyFlags1">

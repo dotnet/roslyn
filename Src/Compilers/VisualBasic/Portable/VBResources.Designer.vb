@@ -9785,6 +9785,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Parameterless instance constructors in structures must be public..
+        '''</summary>
+        Friend ReadOnly Property ERR_StructParameterlessInstanceCtorMustBePublic() As String
+            Get
+                Return ResourceManager.GetString("ERR_StructParameterlessInstanceCtorMustBePublic", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Methods declared in structures cannot have &apos;Handles&apos; clauses..
         '''</summary>
         Friend ReadOnly Property ERR_StructsCannotHandleEvents() As String

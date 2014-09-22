@@ -125,6 +125,9 @@ Friend Module CompilationUtils
 
         If additionalRefs Is Nothing Then additionalRefs = {}
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
+        If parseOptions Is Nothing AndAlso options IsNot Nothing Then
+            parseOptions = options.ParseOptions
+        End If
 
         Return CreateCompilationWithReferences(sources, references, options, parseOptions:=parseOptions)
     End Function

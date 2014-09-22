@@ -492,19 +492,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim initializerOptRef = If(initializerSyntax Is Nothing, Nothing, binder.GetSyntaxReference(initializerSyntax))
 
-                ' instance members of a structure cannot have initializations (const values are implicitly shared)
+#If Not ALLOW_STRUCT_INST_INITIALIZERS Then
+                'instance members of a structure cannot have initializations (const values are implicitly shared)
                 If container.TypeKind = TypeKind.Structure AndAlso
                    (flags And SourceMemberFlags.Shared) = 0 Then
                     If initializerOpt IsNot Nothing Then
-                        binder.ReportDiagnostic(diagBag,
+                        Binder.ReportDiagnostic(diagBag,
                                                 If(declarator.Names.Count > 0,
                                                    declarator.Names.Last,
                                                    DirectCast(declarator, VisualBasicSyntaxNode)),
                                                 ERRID.ERR_InitializerInStruct)
                     ElseIf asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause Then
-                        binder.ReportDiagnostic(diagBag, DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.NewKeyword, ERRID.ERR_SharedStructMemberCannotSpecifyNew)
+                        Binder.ReportDiagnostic(diagBag, DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.NewKeyword, ERRID.ERR_SharedStructMemberCannotSpecifyNew)
                     End If
                 End If
+#End If
 
                 Dim nameCount = declarator.Names.Count
                 Dim fieldOrWithEventSymbols(nameCount - 1) As Symbol

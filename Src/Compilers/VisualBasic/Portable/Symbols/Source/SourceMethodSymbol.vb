@@ -400,9 +400,16 @@ lReportErrorOnTwoTokens:
             Dim methodSym As New SourceMemberMethodSymbol(container, name, flags, binder, syntax, arity:=0)
 
             If (flags And SourceMemberFlags.Shared) = 0 Then
-                If container.TypeKind = TYPEKIND.Structure AndAlso methodSym.ParameterCount = 0 Then
-                    ' Instance constructor must have parameters.
-                    binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
+                If container.TypeKind = TypeKind.Structure AndAlso methodSym.ParameterCount = 0 Then
+                    If binder.Compilation.LanguageVersion <> LanguageVersion.Experimental Then
+                        ' Instance constructor must have parameters.
+                        Binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
+                    Else
+                        If methodSym.DeclaredAccessibility <> Accessibility.Public Then
+                            ' Instance constructor must be public.
+                            Binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_StructParameterlessInstanceCtorMustBePublic)
+                        End If
+                    End If
                 End If
             End If
 

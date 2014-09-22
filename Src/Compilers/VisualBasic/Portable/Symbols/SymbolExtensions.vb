@@ -251,10 +251,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return symbol.Kind = SymbolKind.Property AndAlso Not DirectCast(symbol, PropertySymbol).IsWithEvents
         End Function
 
+        ''' <summary>
+        ''' default zero-init constructor symbol is added to a struct when it does not define 
+        ''' its own parameterless public constructor.
+        ''' We do not emit this constructor and do not call it 
+        ''' </summary>
         <Extension()>
-        Friend Function IsParameterlessStructConstructor(method As MethodSymbol, Optional requireSynthesized As Boolean = False) As Boolean
-            Return method.IsParameterlessConstructor() AndAlso method.ContainingType.IsValueType AndAlso
-                   (Not requireSynthesized OrElse method.IsImplicitlyDeclared)
+        Friend Function IsDefaultValueTypeConstructor(method As MethodSymbol) As Boolean
+            If Not method.ContainingType.IsValueType Then
+                Return False
+            End If
+
+            If Not method.IsParameterlessConstructor() OrElse Not method.IsImplicitlyDeclared Then
+                Return False
+            End If
+
+            Dim container As SourceNamedTypeSymbol = TryCast(method.ContainingType, SourceNamedTypeSymbol)
+            If container Is Nothing Then
+                ' synthesized ctor Not from source -> must be default
+                Return True
+            End If
+
+            ' if we are here we have a struct in source for which a parameterless ctor was not provided by the user.
+            ' So, are we ok with default behavior?
+            ' Returning false will result in a production of synthesized parameterless ctor 
+
+#If PRIMARY_STRUCT_CTORS Then
+            If method = container.PrimaryCtor Then
+                ' primary ctor is considered synthesized, but should always be emitted
+                Return False
+            End If
+
+            If container.PrimaryCtor IsNot Nothing Then
+                ' do not synthesize parameterless ctor if we have a primary one
+                Return True
+            End If
+#End If
+
+            ' we do not have a primary ctor
+            ' this ctor is not default if we have instance initializers
+            Return container.InstanceInitializers.IsDefaultOrEmpty
         End Function
 
         <Extension()>

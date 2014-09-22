@@ -508,7 +508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Dim method = DirectCast(member, MethodSymbol)
 
                     ' Don't emit the default value type constructor - the runtime handles that
-                    If Not method.IsParameterlessStructConstructor(requireSynthesized:=True) Then
+                    If Not method.IsDefaultValueTypeConstructor() Then
                         Yield method
                     End If
 
@@ -600,9 +600,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Case SymbolKind.Field
                         Return HandleComparer.Default.Compare(DirectCast(x, PEFieldSymbol).Handle, DirectCast(y, PEFieldSymbol).Handle)
                     Case SymbolKind.Method
-                        If DirectCast(x, MethodSymbol).IsParameterlessStructConstructor(requireSynthesized:=True) Then
+                        If DirectCast(x, MethodSymbol).IsDefaultValueTypeConstructor() Then
                             Return -1
-                        ElseIf DirectCast(y, MethodSymbol).IsParameterlessStructConstructor(requireSynthesized:=True) Then
+                        ElseIf DirectCast(y, MethodSymbol).IsDefaultValueTypeConstructor() Then
                             Return 1
                         End If
 

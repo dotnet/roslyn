@@ -997,7 +997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Synthesized struct constructors are not emitted.
-            If method.IsParameterlessStructConstructor(requireSynthesized:=True) Then
+            If method.IsDefaultValueTypeConstructor() Then
                 Return False
             End If
 
@@ -1240,7 +1240,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If method.MethodKind = MethodKind.Constructor OrElse method.MethodKind = MethodKind.SharedConstructor Then
                 ' Turns field initializers into bound assignment statements and top-level script statements into bound statements in the beginning the body. 
                 ' For submission constructor, the body only includes bound initializers and a return statement. The rest is filled in later.
-                body = InitializerRewriter.BuildConstructorBody(compilationState, method, If(method.IsSubmissionConstructor, Nothing, constructorInitializerOpt), processedInitializers, block)
+                body = InitializerRewriter.BuildConstructorBody(
+                    compilationState,
+                    method,
+                    If(method.IsSubmissionConstructor, Nothing, constructorInitializerOpt),
+                    processedInitializers,
+                    block)
             Else
                 body = block
             End If
@@ -1431,7 +1436,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '  Instance constructor should return the referenced constructor in 'referencedConstructor'
             If method.MethodKind = MethodKind.Constructor Then
 
-                injectDefaultConstructorCall = True
+                ' class constructors must inject call to the base
+                injectDefaultConstructorCall = Not method.ContainingType.IsValueType
 
                 ' Try find explicitly called constructor, it should be the first statement in the block
                 If body IsNot Nothing AndAlso body.Statements.Length > 0 Then
@@ -1508,6 +1514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(constructor.MethodKind = MethodKind.Constructor)
 
             Dim containingType As NamedTypeSymbol = constructor.ContainingType
+            Debug.Assert(Not containingType.IsValueType)
 
             If containingType.IsSubmissionClass Then
                 ' TODO (tomat): report errors if not available
@@ -1517,7 +1524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If the type is a structure, then invoke the default constructor on the current type.
             ' Otherwise, invoke the default constructor on the base type.
-            Dim defaultConstructorType As NamedTypeSymbol = If(containingType.IsStructureType(), containingType, containingType.BaseTypeNoUseSiteDiagnostics)
+            Dim defaultConstructorType As NamedTypeSymbol = containingType.BaseTypeNoUseSiteDiagnostics
             If defaultConstructorType Is Nothing OrElse defaultConstructorType.IsErrorType Then
                 ' possible if class System.Object in source doesn't have an explicit constructor
                 Return Nothing
@@ -1616,17 +1623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If candidate Is constructor Then
-                ' The container must be a structure.
-                Debug.Assert(containingType.IsValueType)
-
-                ' Never return the constructor itself as the candidate. This can happen for structures
-                ' if the user defines a parameterless constructor. In that case, there isn't
-                ' a synthesized default constructor to call. There is no need to report an error here.
-                ' The error for the parameterless constructor is reported in CreateConstructor in
-                ' SourceMethodSymbol.
-                candidate = Nothing
-            End If
+            Debug.Assert(candidate <> constructor)
 
             ' If the candidate is Obsolete then report diagnostics.
             If candidate IsNot Nothing Then

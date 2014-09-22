@@ -1130,7 +1130,7 @@ End Class
                                                            Assert.Equal("Test9.value__ As System.Int32", test9.GetMembers()(0).ToTestDisplayString())
                                                            Assert.Same(f1, test9.GetMembers()(1))
                                                            Assert.Same(f2, test9.GetMembers()(2))
-                                                           Assert.True(DirectCast(test9.GetMembers()(3), MethodSymbol).IsParameterlessStructConstructor(requireSynthesized:=True))
+                                                           Assert.True(DirectCast(test9.GetMembers()(3), MethodSymbol).IsDefaultValueTypeConstructor())
 
                                                            Dim test10 = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("Test10")
                                                            Assert.Equal(TypeKind.Structure, test10.TypeKind)
@@ -1154,7 +1154,7 @@ End Class
                                                            Assert.Equal(System.Runtime.InteropServices.UnmanagedType.U4, f4.MarshallingType)
                                                            Assert.False(f4.IsNotSerialized)
 
-                                                           Assert.True(DirectCast(test10.GetMembers()(2), MethodSymbol).IsParameterlessStructConstructor(requireSynthesized:=True))
+                                                           Assert.True(DirectCast(test10.GetMembers()(2), MethodSymbol).IsDefaultValueTypeConstructor())
 
                                                            Dim test11 = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("Test11")
                                                            Assert.Equal(TypeKind.Delegate, test11.TypeKind)

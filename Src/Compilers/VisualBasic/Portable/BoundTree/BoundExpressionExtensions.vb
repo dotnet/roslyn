@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.ObjectCreationExpression
                     Dim ctor = DirectCast(node, BoundObjectCreationExpression).ConstructorOpt
-                    Return ctor Is Nothing OrElse ctor.IsParameterlessStructConstructor(requireSynthesized:=True)
+                    Return ctor Is Nothing OrElse ctor.IsDefaultValueTypeConstructor()
 
             End Select
 

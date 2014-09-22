@@ -35,7 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             block As BoundBlock) As BoundBlock
 
             Dim hasMyBaseConstructorCall As Boolean = False
-            If HasExplicitMeConstructorCall(block, constructorMethod.ContainingType, hasMyBaseConstructorCall) AndAlso Not hasMyBaseConstructorCall Then
+            Dim containingType = constructorMethod.ContainingType
+
+            If HasExplicitMeConstructorCall(block, containingType, hasMyBaseConstructorCall) AndAlso Not hasMyBaseConstructorCall Then
                 Return block
             End If
 
@@ -58,10 +60,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf hasMyBaseConstructorCall Then
                 ' Using existing constructor call -- it must be the first statement in the block
                 boundStatements.Add(blockStatements(0))
+
+            ElseIf Not constructorMethod.IsShared AndAlso containingType.IsValueType Then
+                ' TODO: this can be skipped if we have equal number of initializers and fields
+                ' assign all fields
+                ' Me = Nothing
+                Dim syntax = block.Syntax
+                boundStatements.Add(
+                    New BoundExpressionStatement(
+                    syntax,
+                    New BoundAssignmentOperator(
+                                    syntax,
+                                    New BoundValueTypeMeReference(syntax, containingType),
+                                    New BoundConversion(
+                                        syntax,
+                                        New BoundLiteral(syntax, ConstantValue.Null, Nothing),
+                                        ConversionKind.WideningNothingLiteral,
+                                        checked:=False,
+                                        explicitCastInCode:=False,
+                                        type:=containingType),
+                                    suppressObjectClone:=True,
+                                    type:=containingType)))
             End If
 
             ' add hookups for Handles if needed
-            For Each member In constructorMethod.ContainingType.GetMembers()
+            For Each member In containingType.GetMembers()
                 If member.Kind = SymbolKind.Method Then
                     Dim methodMember = DirectCast(member, MethodSymbol)
                     Dim handledEvents = methodMember.HandledEvents
@@ -95,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim receiver As BoundExpression = Nothing
                             If Not addHandlerMethod.IsShared Then
                                 Dim meParam = constructorMethod.MeParameter
-                                If addHandlerMethod.ContainingType = constructorMethod.ContainingType Then
+                                If addHandlerMethod.ContainingType = containingType Then
                                     receiver = New BoundMeReference(syntax, meParam.Type).MakeCompilerGenerated()
                                 Else
                                     'Dev10 always performs base call if event is in the base class. 

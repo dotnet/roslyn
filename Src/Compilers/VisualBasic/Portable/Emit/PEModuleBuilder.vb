@@ -44,7 +44,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        metadataOnly,
                        New ModuleCompilationState())
 
-            m_MetadataName = If(outputName, sourceModule.MetadataName)
+            Dim specifiedName = sourceModule.MetadataName
+
+            m_MetadataName = If(specifiedName <> Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName,
+                                specifiedName,
+                                If(outputName, specifiedName))
+
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, Me)
 
             If sourceModule.AnyReferencedAssembliesAreLinked Then
@@ -213,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                                     Case SymbolKind.Method
                                         Dim method = DirectCast(member, MethodSymbol)
-                                        If Not method.IsParameterlessStructConstructor(True) Then
+                                        If Not method.IsDefaultValueTypeConstructor() Then
                                             AddSymbolLocation(result, member)
                                         End If
 

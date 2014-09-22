@@ -80,6 +80,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(expression.Type.IsValueType, "only valuetypes may need a ref to Me/MyClass")
                     _builder.EmitOpCode(ILOpCode.Ldarg_0)
 
+                Case BoundKind.ValueTypeMeReference
+                    _builder.EmitOpCode(ILOpCode.Ldarg_0)
+
                 Case BoundKind.MyBaseReference
                     Debug.Assert(False, "base is always a reference type, why one may need a reference to it?")
 
@@ -216,6 +219,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' For a dupped locals we assume that if the dup 
                     ' is created for byref local it does have home
                     Return DirectCast(expression, BoundDup).IsReference
+
+                Case BoundKind.ValueTypeMeReference
+                    Return True
+
             End Select
 
             Return False

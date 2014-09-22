@@ -124,7 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitReferenceAssignment(DirectCast(expression, BoundReferenceAssignment), used)
 
                 Case BoundKind.ValueTypeMeReference
-                    ' For explanation see comments inside EmitArguments(...) 
+                    ' We want to restrict the usage of BoundValueTypeMeReference to the very minimum possible,
+                    ' which is to be able to pass Me reference of value type as ByRef argument in compiler
+                    ' generated code, this is why we specifically prohibit emitting this as value
                     Throw ExceptionUtilities.UnexpectedValue(expression.Kind)
                 Case Else
                     ' Code gen should not be invoked if there are errors.
@@ -262,16 +264,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim argument = arguments(i)
                 Dim parameter = parameters(i)
                 If parameter.IsByRef Then
-                    If argument.Kind = BoundKind.ValueTypeMeReference Then
-                        ' We want to restrict the usage of BoundValueTypeMeReference to the very minimum possible,
-                        ' which is to be able to pass Me reference of value type as ByRef argument in compiler
-                        ' generated code, this is why we specifically handle this bound node kind here
-                        _builder.EmitOpCode(ILOpCode.Ldarg_0)
-
-                    Else
-                        Dim temp = EmitAddress(argument, AddressKind.Writeable)
-                        Debug.Assert(temp Is Nothing, "passing args byref should not clone them into temps. That should be done in rewriter.")
-                    End If
+                    Dim temp = EmitAddress(argument, AddressKind.Writeable)
+                    Debug.Assert(temp Is Nothing, "passing args byref should not clone them into temps. That should be done in rewriter.")
                 Else
                     EmitExpression(argument, True)
                 End If
@@ -681,12 +675,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Debug.Assert([call].MethodGroupOpt Is Nothing)
             Debug.Assert(Not method.CallsAreOmitted([call].Syntax, [call].SyntaxTree))
 
-            ' is this a call to a parameterless constructor?
-            ' this happens in struct non-parameterless constructors.
-            ' the ctor is always defined in the source (and therefore empty)
-            ' so we will do initobj regardless if it is synthetic or not.
-            If method.IsParameterlessStructConstructor() Then
-                Debug.Assert(method.IsFromCompilation(Me._module.Compilation), "should not explicitly call ctors not from source")
+            ' is this a call to a default struct constructor?
+            ' this happens in struct non-parameterless constructors calling
+            ' Me.New()
+            If method.IsDefaultValueTypeConstructor() Then
                 EmitInitObjOnTarget(receiver)
                 Return
             End If
@@ -1244,7 +1236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                 used As Boolean,
                                 syntaxNode As VisualBasicSyntaxNode)
 
-            Debug.Assert(Not constructor.IsParameterlessStructConstructor(requireSynthesized:=True),
+            Debug.Assert(Not constructor.IsDefaultValueTypeConstructor(),
                          "do not call synthesized struct constructors, they do not exist")
 
             EmitArguments(arguments, constructor.Parameters)
@@ -1262,7 +1254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                                                   used As Boolean,
                                                                   syntaxNode As VisualBasicSyntaxNode)
 
-            If constructor.IsParameterlessStructConstructor(requireSynthesized:=True) Then
+            If constructor.IsDefaultValueTypeConstructor() Then
                 EmitInitObj(constructor.ContainingType, used, syntaxNode)
             Else
                 EmitNewObj(constructor, ImmutableArray(Of BoundExpression).Empty, used, syntaxNode)
@@ -1516,7 +1508,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.ReferenceAssignment
                     Return False
-
             End Select
             Return False
         End Function

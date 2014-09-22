@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             var method = (MethodSymbol)members[i];
 
-                            if (method.IsParameterlessValueTypeConstructor())
+                            if (method.IsParameterlessConstructor())
                             {
                                 haveParameterlessConstructor = true;
                                 break;

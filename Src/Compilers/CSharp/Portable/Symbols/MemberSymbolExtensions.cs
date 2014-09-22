@@ -350,11 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// every struct has a public parameterless constructor either used-defined or default one
+        /// NOTE: every struct has a public parameterless constructor either used-defined or default one
         /// </summary>
-        internal static bool IsParameterlessValueTypeConstructor(this MethodSymbol method)
+        internal static bool IsParameterlessConstructor(this MethodSymbol method)
         {
-            return method.MethodKind == MethodKind.Constructor && method.ParameterCount == 0 && method.ContainingType.IsValueType;
+            return method.MethodKind == MethodKind.Constructor && method.ParameterCount == 0;
         }
 
         /// <summary>
@@ -364,7 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method)
         {
-            if (!method.IsParameterlessValueTypeConstructor() || !method.IsImplicitlyDeclared)
+            if (!method.ContainingType.IsValueType)
+            {
+                return false;
+            }
+
+            if (!method.IsParameterlessConstructor() || !method.IsImplicitlyDeclared)
             {
                 return false;
             }

@@ -4678,4 +4678,7 @@
   <data name="ERR_NullPropagatingOpInExpressionTree" xml:space="preserve">
     <value>A null propagating operator cannot be converted into an expression tree.</value>
   </data>
+  <data name="ERR_StructParameterlessInstanceCtorMustBePublic" xml:space="preserve">
+    <value>Parameterless instance constructors in structures must be public.</value>
+  </data>
 </root>

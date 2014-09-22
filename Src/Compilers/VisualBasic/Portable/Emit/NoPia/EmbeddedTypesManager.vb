@@ -349,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         ) As EmbeddedMethod
 
             Debug.Assert(method.IsDefinition)
-            Debug.Assert(Not method.IsParameterlessStructConstructor(requireSynthesized:=True))
+            Debug.Assert(Not method.IsDefaultValueTypeConstructor())
 
             Dim embedded = New EmbeddedMethod(type, method)
             Dim cached = EmbeddedMethodsMap.GetOrAdd(method, embedded)

@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Don't emit:
                     '  (a) Partial methods without an implementation part
                     '  (b) The default value type constructor - the runtime handles that
-                    If Not method.IsPartialWithoutImplementation() AndAlso Not method.IsParameterlessStructConstructor(requireSynthesized:=True) Then
+                    If Not method.IsPartialWithoutImplementation() AndAlso Not method.IsDefaultValueTypeConstructor() Then
                         Yield method
                     End If
                 End If
