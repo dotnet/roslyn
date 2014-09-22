@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -199,6 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,46): error CS7059: Executables cannot be satellite assemblies; culture should always be empty
                 // [assembly: System.Reflection.AssemblyCulture("pt-BR")] public class C {  static void Main() { }  }
                 Diagnostic(ErrorCode.ERR_InvalidAssemblyCultureForExe, @"""pt-BR""").WithLocation(1, 46));
+        }
+
+        [Fact(Skip = "1032718"), WorkItem(1032718)]
+        public void MismatchedSurrogateInAssemblyCultureAttribute()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            comp.Emit(Stream.Null);
         }
 
         [Fact]
