@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -803,6 +802,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // case where there isn't enough information to determine which the user wanted,
                         // i'm just defaulting to bool based on personal preference.
                         return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                }
+
+                if (binop is AssignmentExpressionSyntax)
+                {
+                    return SpecializedCollections.SingletonEnumerable(semanticModel.GetTypeInfo(((AssignmentExpressionSyntax)binop).Right).Type);
+                }
+
+                if (binop is BinaryExpressionSyntax)
+                {
+                    return SpecializedCollections.SingletonEnumerable(semanticModel.GetTypeInfo(((BinaryExpressionSyntax)binop).Right).Type);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();

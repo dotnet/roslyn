@@ -3,8 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -772,7 +770,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
-                Return SpecializedCollections.SingletonEnumerable(_semanticModel.GetTypeInfo(initializer.Name).Type)
+                Dim right = _semanticModel.GetTypeInfo(initializer.Name).Type
+                If right IsNot Nothing AndAlso TypeOf right IsNot IErrorTypeSymbol Then
+                    Return SpecializedCollections.SingletonEnumerable(right)
+                End If
+
+                Return SpecializedCollections.SingletonEnumerable(_semanticModel.GetTypeInfo(initializer.Expression).Type)
             End Function
 
             Public Function InferTypeInCaseStatement(caseStatement As CaseStatementSyntax) As IEnumerable(Of ITypeSymbol)
