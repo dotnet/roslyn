@@ -235,24 +235,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     public enum LabelPositionOptions
     {
         /// Placed in the Zeroth column of the text editor
-        LeftMost,
+        LeftMost = 0,
 
         /// Placed at one less indent to the current context
-        OneLess,
+        OneLess = 1,
 
         /// Placed at the same indent as the current context
-        NoIndent
+        NoIndent = 2
     }
 
     public enum BinaryOperatorSpacingOptions
     {
         /// Single Spacing
-        Single,
+        Single = 0,
 
         /// Ignore Formatting
-        Ignore,
+        Ignore = 1,
 
         /// Remove Spacing
-        Remove
+        Remove = 2
     }
 }

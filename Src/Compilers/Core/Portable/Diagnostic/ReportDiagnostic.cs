@@ -10,31 +10,31 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Report a diagnostic by default.
         /// </summary>
-        Default,
+        Default = 0,
 
         /// <summary>
         /// Report a diagnostic as an error.  
         /// </summary>
-        Error,
+        Error = 1,
 
         /// <summary>
         /// Report a diagnostic as a warning even though /warnaserror is specified.
         /// </summary>
-        Warn,
+        Warn = 2,
 
         /// <summary>
         /// Report a diagnostic as an info.
         /// </summary>
-        Info,
+        Info = 3,
 
         /// <summary>
         /// Report a diagnostic as hidden.
         /// </summary>
-        Hidden,
+        Hidden = 4,
 
         /// <summary>
         /// Suppress a diagnostic.
         /// </summary>
-        Suppress
+        Suppress = 5
     }
 }

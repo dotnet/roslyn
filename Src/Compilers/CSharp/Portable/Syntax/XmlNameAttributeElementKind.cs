@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public enum XmlNameAttributeElementKind : byte
     {
-        Parameter,
-        ParameterReference,
-        TypeParameter,
-        TypeParameterReference,
+        Parameter = 0,
+        ParameterReference = 1,
+        TypeParameter = 2,
+        TypeParameterReference = 3,
     }
 }

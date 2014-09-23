@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     public enum NamespaceKind
     {
         Module = 1,
-        Assembly,
-        Compilation
+        Assembly = 2,
+        Compilation = 3
     }
 }

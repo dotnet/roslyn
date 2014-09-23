@@ -8,65 +8,65 @@ namespace Microsoft.CodeAnalysis
     public enum SymbolDisplayPartKind
     {
         /// <summary>The name of an alias.</summary>
-        AliasName,
+        AliasName = 0,
         /// <summary>The name of an assembly.</summary>
-        AssemblyName,
+        AssemblyName = 1,
         /// <summary>The name of a class.</summary>
-        ClassName,
+        ClassName = 2,
         /// <summary>The name of a delegate.</summary>
-        DelegateName,
+        DelegateName = 3,
         /// <summary>The name of an enum.</summary>
-        EnumName,
+        EnumName = 4,
         /// <summary>The name of an error type.</summary>
         /// <seealso cref="IErrorTypeSymbol"/>
-        ErrorTypeName,
+        ErrorTypeName = 5,
         /// <summary>The name of an event.</summary>
-        EventName,
+        EventName = 6,
         /// <summary>The name of a field.</summary>
-        FieldName,
+        FieldName = 7,
         /// <summary>The name of an interface.</summary>
-        InterfaceName,
+        InterfaceName = 8,
         /// <summary>A language keyword.</summary>
-        Keyword,
+        Keyword = 9,
         /// <summary>The name of a label.</summary>
-        LabelName,
+        LabelName = 10,
         /// <summary>A line-break (i.e. whitespace).</summary>
-        LineBreak,
+        LineBreak = 11,
         /// <summary>A numeric literal.</summary>
         /// <remarks>Typically for the default values of parameters and the constant values of fields.</remarks>
-        NumericLiteral,
+        NumericLiteral = 12,
         /// <summary>A string literal.</summary>
         /// <remarks>Typically for the default values of parameters and the constant values of fields.</remarks>
-        StringLiteral,
+        StringLiteral = 13,
         /// <summary>The name of a local.</summary>
-        LocalName,
+        LocalName = 14,
         /// <summary>The name of a method.</summary>
-        MethodName,
+        MethodName = 15,
         /// <summary>The name of a module.</summary>
-        ModuleName,
+        ModuleName = 16,
         /// <summary>The name of a namespace.</summary>
-        NamespaceName,
+        NamespaceName = 17,
         /// <summary>The symbol of an operator (e.g. "+").</summary>
-        Operator,
+        Operator = 18,
         /// <summary>The name of a parameter.</summary>
-        ParameterName,
+        ParameterName = 19,
         /// <summary>The name of a property.</summary>
-        PropertyName,
+        PropertyName = 20,
         /// <summary>A punctuation character (e.g. "(", ".", ",") other than an <see cref="Operator"/>.</summary>
-        Punctuation,
+        Punctuation = 21,
         /// <summary>A single space character.</summary>
-        Space,
+        Space = 22,
         /// <summary>The name of a struct (structure in Visual Basic).</summary>
-        StructName,
+        StructName = 23,
         /// <summary>A keyword-like part for anonymous types (not actually a keyword).</summary>
-        AnonymousTypeIndicator,
+        AnonymousTypeIndicator = 24,
         /// <summary>An unclassified part.</summary>
         /// <remarks>Never returned - only set in user-constructed parts.</remarks>
-        Text,
+        Text = 25,
         /// <summary>The name of a type parameter.</summary>
-        TypeParameterName,
+        TypeParameterName = 26,
         /// <summary>The name of a query range variable..</summary>
-        RangeVariableName
+        RangeVariableName = 27
     }
 
     internal static class InternalSymbolDisplayPartKind

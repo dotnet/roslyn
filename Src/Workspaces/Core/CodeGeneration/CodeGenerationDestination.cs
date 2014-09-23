@@ -4,13 +4,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     public enum CodeGenerationDestination
     {
-        Unspecified,
-        CompilationUnit,
-        Namespace,
-        ClassType,
-        EnumType,
-        InterfaceType,
-        ModuleType,
-        StructType,
+        Unspecified = 0,
+        CompilationUnit = 1,
+        Namespace = 2,
+        ClassType = 3,
+        EnumType = 4,
+        InterfaceType = 5,
+        ModuleType = 6,
+        StructType = 7,
     }
 }

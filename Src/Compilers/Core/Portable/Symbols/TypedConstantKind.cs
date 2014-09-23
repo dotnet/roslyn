@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis
     public enum TypedConstantKind
     {
         Error = 0, // error should be the default so that default(TypedConstant) is internally consistent
-        Primitive,
-        Enum,
-        Type,
-        Array
+        Primitive = 1,
+        Enum = 2,
+        Type = 3,
+        Array = 4
     }
 }

@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis
 {
     public enum WorkspaceDiagnosticKind
     {
-        Failure,
-        Warning
+        Failure = 0,
+        Warning = 1
     }
 }

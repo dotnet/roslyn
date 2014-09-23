@@ -11,17 +11,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Indicates a "value" parameter.
         /// </summary>
-        None,
+        None = 0,
 
         /// <summary>
         /// Indicates a "ref" parameter.
         /// </summary>
-        Ref,
+        Ref = 1,
 
         /// <summary>
         /// Indicates an "out" parameter.
         /// </summary>
-        Out
+        Out = 2
     }
 
     internal static class RefKindExtensions

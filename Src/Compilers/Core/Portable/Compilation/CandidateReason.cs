@@ -12,47 +12,44 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public enum CandidateReason
     {
-        // Implementation note. Values in this enumeration should generally be kept in sync with the
-        // language-specific LookupResultKind enumeration.
-
         /// <summary>
         /// No CandidateSymbols.
         /// </summary>
-        None,
+        None = 0,
 
         /// <summary>
         /// Only a type or namespace was valid in the given location, but the candidate symbols was
         /// of the wrong kind.
         /// </summary>
-        NotATypeOrNamespace,
+        NotATypeOrNamespace = 1,
 
         /// <summary>
         /// Only an event was valid in the given location, but the candidate symbols was
         /// of the wrong kind.
         /// </summary>
-        NotAnEvent,
+        NotAnEvent = 2,
 
         /// <summary>
         /// The candidate symbol must be a WithEvents member, but it was not. 
         /// </summary>
-        NotAWithEventsMember,
+        NotAWithEventsMember = 3,
 
         /// <summary>
         /// Only an attribute type was valid in the given location, but the candidate symbol was
         /// of the wrong kind.
         /// </summary>
-        NotAnAttributeType,
+        NotAnAttributeType = 4,
 
         /// <summary>
         /// The candidate symbol takes a different number of type parameters that was required.
         /// </summary>
-        WrongArity,
+        WrongArity = 5,
 
         /// <summary>
         /// The candidate symbol existed, but was not allowed to be created in a new expression. 
         /// For example, interfaces, static classes, and unconstrained type parameters.
         /// </summary>
-        NotCreatable,
+        NotCreatable = 6,
 
         /// <summary>
         /// The candidate symbol existed, but was not allowed to be referenced. For example, the
@@ -61,51 +58,51 @@ namespace Microsoft.CodeAnalysis
         /// Also occurs if "this" is used in a context (static method or field initializer)
         /// where "this" is not available.
         /// </summary>
-        NotReferencable,
+        NotReferencable = 7,
 
         /// <summary>
         /// The candidate symbol had an accessibility modifier (private, protected, ...) that made
         /// it inaccessible.
         /// </summary>
-        Inaccessible,
+        Inaccessible = 8,
 
         /// <summary>
         /// The candidate symbol was in a place where a value was required, but was not a value
         /// (e.g., was a type or namespace).
         /// </summary>
-        NotAValue,
+        NotAValue = 9,
 
         /// <summary>
         /// The candidate symbol was in a place where a variable (or sometimes, a property) was
         /// required, but was not allowed there because it isn't a symbol that can be assigned to. 
         /// For example, the left hand side of an assignment, or a ref or out parameter.
         /// </summary>
-        NotAVariable,
+        NotAVariable = 10,
 
         /// <summary>
         /// The candidate symbol was used in a way that an invocable member (method, or variable of
         /// delegate type) was required, but the candidate symbol was not invocable.
         /// </summary>
-        NotInvocable,
+        NotInvocable = 11,
 
         /// <summary>
         /// The candidate symbol must be an instance variable, but was used as static, or the
         /// reverse. 
         /// </summary>
-        StaticInstanceMismatch,
+        StaticInstanceMismatch = 12,
 
         /// <summary>
         /// Overload resolution did not choose a method. The candidate symbols are the methods there
         /// were considered during overload resolution (which may or may not be applicable methods). 
         /// </summary>
-        OverloadResolutionFailure,
+        OverloadResolutionFailure = 13,
 
         /// <summary>
         /// Method could not be selected statically.
         /// The candidate symbols are the methods there were considered during overload resolution 
         /// (which may or may not be applicable methods). 
         /// </summary>
-        LateBound,
+        LateBound = 14,
 
         /// <summary>
         /// Multiple ambiguous symbols were available with the same name. This can occur if "using"
@@ -113,6 +110,6 @@ namespace Microsoft.CodeAnalysis
         /// multiple. This can also occur if multiple properties of the same name are available in a
         /// multiple interface inheritance situation.
         /// </summary>
-        Ambiguous,
+        Ambiguous = 15,
     }
 }

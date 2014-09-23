@@ -11,26 +11,26 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Unspecified location.
         /// </summary>
-        None,
+        None = 0,
 
         /// <summary>
         /// The location represents a position in a source file.
         /// </summary>
-        SourceFile,
+        SourceFile = 1,
 
         /// <summary>
         /// The location represents a metadata file.
         /// </summary>
-        MetadataFile,
+        MetadataFile = 2,
 
         /// <summary>
         /// The location represents a position in an XML file.
         /// </summary>
-        XmlFile,
+        XmlFile = 3,
 
         /// <summary>
         /// The location in some external file.
         /// </summary>
-        ExternalFile,
+        ExternalFile = 4,
     }
 }

@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public enum IndentStyle
         {
-            None,
-            Block,
-            Smart
+            None = 0,
+            Block = 1,
+            Smart = 2
         }
     }
 }

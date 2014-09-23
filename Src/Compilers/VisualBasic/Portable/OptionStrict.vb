@@ -15,18 +15,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Option Strict is Off. No Option Strict checks are in effect.
         ''' </summary>
-        Off
+        Off = 0
 
         ''' <summary>
         ''' The Option Strict checks generate warnings. (Note that other
         ''' compile options may hide these warnings, or turn them into errors.)
         ''' </summary>
-        Custom
+        Custom = 1
 
         ''' <summary>
         ''' Option Strict is On. All Option Strict checks are in effect and produce errors.
         ''' </summary>
-        [On]
+        [On] = 2
     End Enum
 
     Friend Module OptionStrictEnumBounds

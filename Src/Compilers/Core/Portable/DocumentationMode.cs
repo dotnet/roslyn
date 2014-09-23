@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Parses documentation comments as structured trivia, but do not report any diagnostics.
         /// </summary>
-        Parse,
+        Parse = 1,
 
         /// <summary>
         /// Parses documentation comments as structured trivia and report diagnostics.
         /// </summary>
-        Diagnose,
+        Diagnose = 2,
     }
 
     internal static partial class DocumentationModeEnumBounds

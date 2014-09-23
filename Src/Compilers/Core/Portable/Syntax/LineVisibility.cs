@@ -12,17 +12,17 @@ namespace Microsoft.CodeAnalysis
         /// This enum value is used for C# only to enable the consumer to define how to interpret the lines before the first
         /// line directive. 
         /// </summary>
-        BeforeFirstLineDirective,
+        BeforeFirstLineDirective = 0,
 
         /// <summary>
         /// The line is following a #line hidden directive.
         /// </summary>
-        Hidden,
+        Hidden = 1,
 
         /// <summary>
         /// The line is following a #line default directive or a #line directive with at least a line number.
         /// If there is no line directive at all, Visible is returned for all lines.
         /// </summary>
-        Visible
+        Visible = 2
     }
 }

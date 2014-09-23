@@ -32,8 +32,10 @@ Class RedNodeWriter
             _writer.WriteLine()
         End If
 
-        GenerateKindEnum()
-        _writer.WriteLine()
+        ' We no longer generate SyntaxKind. Instead we write it by hand to ensure we do
+        ' so while maintaining compatibility (i.e. never change the numbering)
+        ''GenerateKindEnum()
+        ''_writer.WriteLine()
 
         If Not String.IsNullOrEmpty(_parseTree.VisitorName) Then
             GenerateVisitorClass(True)

@@ -12,22 +12,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The candidate member was accepted.
         /// </summary>
-        Applicable,
+        Applicable = 0,
 
         /// <summary>
         /// The candidate member was rejected because it is not supported by the language or cannot
         /// be used given the current set of assembly references.
         /// </summary>
-        UseSiteError,
+        UseSiteError = 1,
 
         /// <summary>
         /// The candidate member was rejected because type inference failed.
         /// </summary>
-        TypeInferenceFailed,
+        TypeInferenceFailed = 2,
 
         /// <summary>
         /// The candidate member was rejected because it was considered worse that another member.
         /// </summary>
-        Worse,
+        Worse = 3,
     }
 }

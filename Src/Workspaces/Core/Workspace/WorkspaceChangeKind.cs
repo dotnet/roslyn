@@ -8,86 +8,86 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The current solution changed for an unspecified reason.
         /// </summary>
-        SolutionChanged,
+        SolutionChanged = 0,
 
         /// <summary>
         /// A solution was added to the workspace.
         /// </summary>
-        SolutionAdded,
+        SolutionAdded = 1,
 
         /// <summary>
         /// The current solution was removed from the workspace.
         /// </summary>
-        SolutionRemoved,
+        SolutionRemoved = 2,
 
         /// <summary>
         /// The current solution was cleared of all projects and documents.
         /// </summary>
-        SolutionCleared,
+        SolutionCleared = 3,
 
         /// <summary>
         /// The current solution was reloaded.
         /// </summary>
-        SolutionReloaded,
+        SolutionReloaded = 4,
 
         /// <summary>
         /// A project was added to the current solution.
         /// </summary>
-        ProjectAdded,
+        ProjectAdded = 5,
 
         /// <summary>
         /// A project was removed from the current solution.
         /// </summary>
-        ProjectRemoved,
+        ProjectRemoved = 6,
 
         /// <summary>
         /// A project in the current solution was changed.
         /// </summary>
-        ProjectChanged,
+        ProjectChanged = 7,
 
         /// <summary>
         /// A project in the current solution was reloaded.
         /// </summary>
-        ProjectReloaded,
+        ProjectReloaded = 8,
 
         /// <summary>
         /// A document was added to the current solution.
         /// </summary>
-        DocumentAdded,
+        DocumentAdded = 9,
 
         /// <summary>
         /// A document was removed from the current solution.
         /// </summary>
-        DocumentRemoved,
+        DocumentRemoved = 10,
 
         /// <summary>
         /// A document in the current solution was reloaded.
         /// </summary>
-        DocumentReloaded,
+        DocumentReloaded = 11,
 
         /// <summary>
         /// A document in the current solution was changed.
         /// </summary>
-        DocumentChanged,
+        DocumentChanged = 12,
 
         /// <summary>
         /// An additional document was added to the current solution.
         /// </summary>
-        AdditionalDocumentAdded,
+        AdditionalDocumentAdded = 13,
 
         /// <summary>
         /// An additional document was removed from the current solution.
         /// </summary>
-        AdditionalDocumentRemoved,
+        AdditionalDocumentRemoved = 14,
 
         /// <summary>
         /// An additional document in the current solution was reloaded.
         /// </summary>
-        AdditionalDocumentReloaded,
+        AdditionalDocumentReloaded = 15,
 
         /// <summary>
         /// An additional document in the current solution was changed.
         /// </summary>
-        AdditionalDocumentChanged
+        AdditionalDocumentChanged = 16
     }
 }

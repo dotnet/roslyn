@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
         /// Shows only the names of properties.
         /// <seealso cref="SymbolDisplayMemberOptions"/>
         /// </summary>
-        NameOnly,
+        NameOnly = 0,
 
         /// <summary>
         /// Indicates whether the property is readable and/or writable.
@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis
         /// In Visual Basic, this is accomplished by including the <c>ReadOnly</c> or <c>WriteOnly</c>
         /// keyword, as appropriate.
         /// </summary>
-        ShowReadWriteDescriptor,
+        ShowReadWriteDescriptor = 1,
     }
 }

@@ -5,14 +5,14 @@ namespace Microsoft.CodeAnalysis
 {
     public enum ApplyChangesKind
     {
-        AddProject,
-        RemoveProject,
-        AddProjectReference,
-        RemoveProjectReference,
-        AddMetadataReference,
-        RemoveMetadataReference,
-        AddDocument,
-        RemoveDocument,
-        ChangeDocument
+        AddProject = 0,
+        RemoveProject = 1,
+        AddProjectReference = 2,
+        RemoveProjectReference = 3,
+        AddMetadataReference = 4,
+        RemoveMetadataReference = 5,
+        AddDocument = 6,
+        RemoveDocument = 7,
+        ChangeDocument = 8
     }
 }

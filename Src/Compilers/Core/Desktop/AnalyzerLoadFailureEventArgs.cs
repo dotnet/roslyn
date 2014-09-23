@@ -8,10 +8,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public enum FailureErrorCode
         {
-            None,
-            UnableToLoadAnalyzer,
-            UnableToCreateAnalyzer,
-            NoAnalyzers
+            None = 0,
+            UnableToLoadAnalyzer = 1,
+            UnableToCreateAnalyzer = 2,
+            NoAnalyzers = 3
         }
 
         public readonly string TypeName;

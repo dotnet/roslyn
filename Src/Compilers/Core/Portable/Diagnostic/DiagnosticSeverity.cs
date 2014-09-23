@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Information that does not indicate a problem (i.e. not proscriptive).
         /// </summary>
-        Info,
+        Info = 1,
 
         /// <summary>
         /// Something suspicious but allowed.
         /// </summary>
-        Warning,
+        Warning = 2,
 
         /// <summary>
         /// Something not allowed by the rules of the language or other authority.
         /// </summary>
-        Error
+        Error = 3
     }
 
     /// <summary>

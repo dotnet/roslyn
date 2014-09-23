@@ -96,22 +96,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Handles Me.Event1
         ''' </summary>
-        [Me]
+        [Me] = 0
 
         ''' <summary>
         ''' Handles MyClass.Event1
         ''' </summary>
-        [MyClass]
+        [MyClass] = 1
 
         ''' <summary>
         ''' Handles MyBase.Event1
         ''' </summary>
-        [MyBase]
+        [MyBase] = 2
 
         ''' <summary>
         ''' Handles SomeWithEventsVariable.Event1
         ''' </summary>
-        [WithEvents]
+        [WithEvents] = 3
     End Enum
 
 End Namespace
