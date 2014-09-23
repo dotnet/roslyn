@@ -348,6 +348,7 @@
     <Compile Include="Log\LogAggregator.cs" />
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
+    <Compile Include="Shared\Extensions\ITypeSymbolExtensions.ReplaceTypeParameterBasedOnTypeConstraintVisitor.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
     <Compile Include="Simplification\SimplifyTypeNameFixAllCodeAction.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />

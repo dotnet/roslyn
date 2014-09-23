@@ -361,6 +361,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : type.Accept(new AnonymousTypeRemover(compilation));
         }
 
+        public static ITypeSymbol ReplaceTypeParametersBasedOnTypeConstraints(
+            this ITypeSymbol type,
+            Compilation compilation,
+            IEnumerable<ITypeParameterSymbol> availableTypeParameters,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            return type == null
+                ? null
+                : type.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken));
+        }
+
         public static ITypeSymbol RemoveUnnamedErrorTypes(
             this ITypeSymbol type,
             Compilation compilation)
