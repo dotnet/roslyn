@@ -65,6 +65,7 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(OutDir)' == ''">

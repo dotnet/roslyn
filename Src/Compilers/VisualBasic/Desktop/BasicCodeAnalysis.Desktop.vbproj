@@ -49,7 +49,6 @@
     <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Desktop.xml</DocumentationFile>
     <NoWarn>42014</NoWarn>
-    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
@@ -59,7 +58,6 @@
     <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Desktop.xml</DocumentationFile>
     <NoWarn>42014</NoWarn>
-    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
