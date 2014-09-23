@@ -1104,22 +1104,20 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                // Microsoft_CSharp_RuntimeHelpers_SessionHelpers__GetSubmission
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.Microsoft_CSharp_RuntimeHelpers_SessionHelpers,                                         // DeclaringTypeId
+                // Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission
+                (byte)(MemberFlags.Method),                                                                                 // Flags
+                (byte)WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState,                                                  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission
+                (byte)(MemberFlags.Method),                                                                                 // Flags
+                (byte)WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState,                                                  // DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-
-                // Microsoft_CSharp_RuntimeHelpers_SessionHelpers__SetSubmission
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.Microsoft_CSharp_RuntimeHelpers_SessionHelpers,                                         // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    3,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 

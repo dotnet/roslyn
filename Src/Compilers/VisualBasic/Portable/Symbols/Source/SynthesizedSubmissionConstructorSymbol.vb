@@ -34,15 +34,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' from which it can retrieve references to previous submissions.
             Dim compilation = container.DeclaringCompilation
 
-            Dim interactiveSessionType = binder.GetWellKnownType(WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session, syntaxNode, diagnostics)
+            Dim executionStateType = binder.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState, syntaxNode, diagnostics)
 
             ' resolve return type:
             ' TODO(tomat): compilation.GetTypeByReflectionType(compilation.SubmissionReturnType, diagnostics)
             Dim returnType As TypeSymbol = compilation.GetSpecialType(SpecialType.System_Object)
 
             _parameters = ImmutableArray.Create(Of ParameterSymbol)(
-                New SynthesizedParameterSymbol(Me, interactiveSessionType, 0, isByRef:=False, Name:="session"),
-                New SynthesizedParameterSymbol(Me, returnType, 1, isByRef:=True, Name:="submissionResult"))
+                New SynthesizedParameterSymbol(Me, executionStateType, 0, isByRef:=False, name:="executionState"),
+                New SynthesizedParameterSymbol(Me, returnType, 1, isByRef:=True, name:="submissionResult"))
         End Sub
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
@@ -69,13 +69,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(constructor.ParameterCount = 2)
             Dim result = New BoundStatement(1 + synthesizedFields.Count - 1) {}
 
-            Dim sessionReference = New BoundParameter(syntax, constructor.Parameters(0), isLValue:=False, type:=constructor.Parameters(0).Type)
+            Dim executionStateReference = New BoundParameter(syntax, constructor.Parameters(0), isLValue:=False, type:=constructor.Parameters(0).Type)
 
-            Dim submissionGetter = DirectCast(compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__GetSubmission), MethodSymbol)
-            Dim submissionAdder = DirectCast(compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__SetSubmission), MethodSymbol)
+            Dim executionStateType = compilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState)
+            Dim submissionGetter = DirectCast(compilation.GetWellKnownTypeMember(WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission), MethodSymbol)
+            Dim submissionSetter = DirectCast(compilation.GetWellKnownTypeMember(WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission), MethodSymbol)
 
             ' TODO: report erroneous adder/getter
-            Debug.Assert(submissionAdder IsNot Nothing AndAlso submissionGetter IsNot Nothing)
+            Debug.Assert(submissionSetter IsNot Nothing AndAlso submissionGetter IsNot Nothing)
 
             ' TODO: report erroneous Int32
             Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
@@ -83,23 +84,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim i As Integer = 0
 
-            ' hostObject = DirectCast(SessionHelpers.SetSubmission(<session>, <slot index>, this), THostObject)
+            ' hostObject = DirectCast(<execution_state>.SetSubmission(<slot index>, this), THostObject)
             Dim slotIndex = compilation.GetSubmissionSlotIndex()
             Debug.Assert(slotIndex >= 0)
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
             Dim setSubmission As BoundExpression = New BoundCall(syntax,
-                method:=submissionAdder,
+                method:=submissionSetter,
                 methodGroup:=Nothing,
-                receiver:=Nothing,
+                receiver:=executionStateReference,
                 arguments:=ImmutableArray.Create(Of BoundExpression)(
-                    sessionReference,
                     New BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType),
                     New BoundDirectCast(meReference.Syntax, meReference,
-                                        Conversions.ClassifyDirectCastConversion(meReference.Type, submissionAdder.Parameters(2).Type, useSiteDiagnostics),
-                                        submissionAdder.Parameters(2).Type)),
+                                        Conversions.ClassifyDirectCastConversion(meReference.Type, submissionSetter.Parameters(1).Type, useSiteDiagnostics),
+                                        submissionSetter.Parameters(1).Type)),
                 constantValueOpt:=Nothing,
-                Type:=submissionAdder.ReturnType).MakeCompilerGenerated()
+                type:=submissionSetter.ReturnType).MakeCompilerGenerated()
 
             diagnostics.Add(syntax, useSiteDiagnostics)
 
@@ -107,10 +107,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If hostObjectField IsNot Nothing Then
                 setSubmission = New BoundAssignmentOperator(
                     syntax,
-                    New BoundFieldAccess(syntax, meReference, hostObjectField, isLValue:=True, Type:=hostObjectField.Type),
-                    New BoundDirectCast(syntax, setSubmission, ConversionKind.Reference, Type:=hostObjectField.Type),
+                    New BoundFieldAccess(syntax, meReference, hostObjectField, isLValue:=True, type:=hostObjectField.Type),
+                    New BoundDirectCast(syntax, setSubmission, ConversionKind.Reference, type:=hostObjectField.Type),
                     suppressObjectClone:=True,
-                    Type:=hostObjectField.Type).MakeCompilerGenerated()
+                    type:=hostObjectField.Type).MakeCompilerGenerated()
             End If
 
             result(i) = New BoundExpressionStatement(syntax, setSubmission)
@@ -121,28 +121,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim targetSubmissionId = targetScriptClass.DeclaringCompilation.GetSubmissionSlotIndex()
                 Debug.Assert(targetSubmissionId >= 0)
 
-                ' constructor.<field> = DirectCast(SessionHelpers.GetSubmission(<session>, <i>), <FieldType>);
+                ' constructor.<field> = DirectCast(<execution_state>.GetSubmission(<i>), <FieldType>);
                 result(i) = New BoundExpressionStatement(syntax,
                     New BoundAssignmentOperator(syntax,
                         New BoundFieldAccess(syntax,
                             receiverOpt:=meReference,
-                            FieldSymbol:=field,
+                            fieldSymbol:=field,
                             isLValue:=True,
-                            Type:=targetScriptClass),
+                            type:=targetScriptClass),
                         New BoundDirectCast(syntax,
                             New BoundCall(syntax,
                                     method:=submissionGetter,
                                     methodGroup:=Nothing,
-                                    receiver:=Nothing,
+                                    receiver:=executionStateReference,
                                     arguments:=ImmutableArray.Create(Of BoundExpression)(
-                                        sessionReference,
                                         New BoundLiteral(syntax, ConstantValue.Create(targetSubmissionId), intType)),
                                     constantValueOpt:=Nothing,
-                                    Type:=submissionGetter.ReturnType),
+                                    type:=submissionGetter.ReturnType),
                             ConversionKind.Reference,
-                            Type:=targetScriptClass),
+                            type:=targetScriptClass),
                         suppressObjectClone:=True,
-                        Type:=targetScriptClass)).MakeCompilerGenerated()
+                        type:=targetScriptClass)).MakeCompilerGenerated()
 
                 i = i + 1
             Next
@@ -150,7 +149,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(i = result.Length)
             Return result.AsImmutableOrNull()
         End Function
-
 
     End Class
 End Namespace

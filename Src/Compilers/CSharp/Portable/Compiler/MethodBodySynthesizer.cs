@@ -81,30 +81,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement[] result = new BoundStatement[1 + synthesizedFields.Count];
 
-            var sessionReference = new BoundParameter(syntax, submissionConstructor.Parameters[0]) { WasCompilerGenerated = true };
-            var submissionGetter = (MethodSymbol)compilation.GetWellKnownTypeMember(
-                WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__GetSubmission
-            );
-            var submissionAdder = (MethodSymbol)compilation.GetWellKnownTypeMember(
-                WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__SetSubmission
-            );
+            var executionStateReference = new BoundParameter(syntax, submissionConstructor.Parameters[0]) { WasCompilerGenerated = true };
+
+            var executionStateType = compilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState);
+            var submissionGetter = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission);
+            var submissionSetter = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission);
 
             // TODO: report missing adder/getter
-            Debug.Assert((object)submissionAdder != null && (object)submissionGetter != null);
+            Debug.Assert((object)submissionSetter != null && (object)submissionGetter != null);
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
             var thisReference = new BoundThisReference(syntax, submissionConstructor.ContainingType) { WasCompilerGenerated = true };
 
             int i = 0;
 
-            // hostObject = (THostObject)SessionHelpers.SetSubmission(<session>, <slot index>, this);
+            // hostObject = (THostObject)<execution_state>.SetSubmission(<slot index>, this);
             var slotIndex = compilation.GetSubmissionSlotIndex();
             Debug.Assert(slotIndex >= 0);
 
             BoundExpression setSubmission = BoundCall.Synthesized(syntax,
-                null,
-                submissionAdder,
-                ImmutableArray.Create<BoundExpression>(sessionReference, new BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType) { WasCompilerGenerated = true }, thisReference)
+                executionStateReference,
+                submissionSetter,
+                ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType) { WasCompilerGenerated = true }, thisReference)
             );
 
             var hostObjectField = synthesizedFields.GetHostObjectField();
@@ -133,16 +131,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var targetSubmissionId = targetScriptClass.DeclaringCompilation.GetSubmissionSlotIndex();
                 Debug.Assert(targetSubmissionId >= 0);
 
-                // this.<field> = (<FieldType>)SessionHelpers.GetSubmission(<session>, <i>);
+                // this.<field> = (<FieldType>)<execution_state>.GetSubmission(<i>);
                 result[i++] =
                     new BoundExpressionStatement(syntax,
                         new BoundAssignmentOperator(syntax,
                             new BoundFieldAccess(syntax, thisReference, field, ConstantValue.NotAvailable) { WasCompilerGenerated = true },
                             BoundConversion.Synthesized(syntax,
                                 BoundCall.Synthesized(syntax,
-                                    null,
+                                    executionStateReference,
                                     submissionGetter,
-                                    sessionReference,
                                     new BoundLiteral(syntax, ConstantValue.Create(targetSubmissionId), intType) { WasCompilerGenerated = true }),
                                 Conversion.ExplicitReference,
                                 false,

@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Interlocked,
         System_Threading_Monitor,
         System_Threading_Thread,
-        Microsoft_CSharp_RuntimeHelpers_Session,
-        Microsoft_CSharp_RuntimeHelpers_SessionHelpers,
+        Roslyn_Scripting_Runtime_ScriptExecutionState,
         Microsoft_CSharp_RuntimeBinder_Binder,
         Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfo,
         Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfoFlags,
@@ -313,8 +312,7 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Interlocked",
             "System.Threading.Monitor",
             "System.Threading.Thread",
-            "Roslyn.Scripting.Session",
-            "Microsoft.CSharp.RuntimeHelpers.SessionHelpers",
+            "Roslyn.Scripting.Runtime.ScriptExecutionState",
             "Microsoft.CSharp.RuntimeBinder.Binder",
             "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo",
             "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags",
@@ -492,7 +490,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var name = metadataNames[i];
                 var typeId = (WellKnownType)(i + WellKnownType.First);
-                Debug.Assert(name == "Roslyn.Scripting.Session"
+                Debug.Assert(name == "Roslyn.Scripting.Runtime.ScriptExecutionState"
                           || name == "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl"
                           || name.IndexOf('`') > 0 // a generic type
                           || name == (typeId.ToString() == "First" ? "System.Math" : typeId.ToString().Replace("__", "+").Replace('_', '.')));

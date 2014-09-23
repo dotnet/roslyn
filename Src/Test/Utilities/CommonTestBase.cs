@@ -690,30 +690,12 @@ Example app.config:
                 {
                     scriptingRef = CSharp.CSharpCompilation.Create("Roslyn.Scripting",                                       
                                        new[] { CSharp.CSharpSyntaxTree.ParseText(@"
-                                           using System;
-
-                                           namespace Roslyn.Scripting
+                                           namespace Roslyn.Scripting.Runtime
                                            { 
-                                               public class Session
+                                               public class ScriptExecutionState
                                                {
-                                               }
-                                           }
-
-                                           namespace Microsoft.CSharp.RuntimeHelpers
-                                           {
-                                               using Roslyn.Scripting;
-
-                                               public static class SessionHelpers
-                                               {
-                                                   public static object GetSubmission(Session session, int id)
-                                                   {
-                                                       throw new NotImplementedException();
-                                                   }
-
-                                                   public static object SetSubmission(Session session, int slotIndex, object submission)
-                                                   {
-                                                       throw new NotImplementedException();
-                                                   }
+                                                    public object GetSubmission(int index) { return null; }
+                                                    public object SetSubmission(int index, object submission) { return null; }
                                                }
                                            }")
                                        } ,

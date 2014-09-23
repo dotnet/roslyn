@@ -27,12 +27,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _containingType = containingType
             If containingType.ContainingAssembly.IsInteractive Then
                 ' TODO: report error if the type doesn't exist
-                Dim interactiveSessionType = DeclaringCompilation.GetWellKnownType(WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session)
-                _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(Me, interactiveSessionType, ordinal:=0, isByRef:=False, Name:="session"))
+                Dim executionStateType = DeclaringCompilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState)
+                _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(Me, executionStateType, ordinal:=0, isByRef:=False, name:="executionState"))
                 _name = "<Factory>"
             Else
                 _parameters = ImmutableArray(Of ParameterSymbol).Empty
                 _name = "<Main>"
+            End If
+
+            If Me.DeclaringCompilation.IsSubmission Then
+                returnType = Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Object)
             End If
 
             _returnType = returnType
@@ -66,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Generates:
         ' 
-        ' private static T {Factory}(InteractiveSession session) 
+        ' private static object {Factory}(InteractiveSession session) 
         ' {
         '    T submissionResult;
         '    new {ThisScriptClass}(session, out submissionResult);
@@ -83,18 +87,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(ctor.ParameterCount = 2)
 
             Dim submissionResultType = ctor.Parameters(1).Type
-            Dim submissionResult = New BoundLocal(syntax,
-                                                  localSymbol:=New SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.None),
-                                                  isLValue:=True,
-                                                  type:=submissionResultType)
+            Dim resultLocal = New SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.None)
+            Dim localReference = New BoundLocal(syntax, localSymbol:=resultLocal, isLValue:=True, type:=submissionResultType)
+
+            Dim submissionResult As BoundExpression = localReference
+            If submissionResultType.IsStructureType() AndAlso Me._returnType.SpecialType = SpecialType.System_Object Then
+                submissionResult = New BoundConversion(syntax, submissionResult, ConversionKind.Widening, False, True, Me._returnType)
+            End If
 
             Return New BoundBlock(syntax, Nothing,
-                ImmutableArray.Create(Of LocalSymbol)(submissionResult.LocalSymbol),
+                ImmutableArray.Create(Of LocalSymbol)(resultLocal),
                 ImmutableArray.Create(Of BoundStatement)(
                     New BoundExpressionStatement(syntax,
                         New BoundObjectCreationExpression(syntax,
                             ctor,
-                            ImmutableArray.Create(Of BoundExpression)(interactiveSessionParam, submissionResult),
+                            ImmutableArray.Create(Of BoundExpression)(interactiveSessionParam, localReference),
                             Nothing,
                             _containingType)),
                     New BoundReturnStatement(syntax, submissionResult.MakeRValue(), Nothing, Nothing)))

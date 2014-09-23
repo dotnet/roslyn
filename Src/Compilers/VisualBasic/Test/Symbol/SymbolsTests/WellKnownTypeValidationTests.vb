@@ -495,8 +495,7 @@ End Namespace
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For wkt = WellKnownType.First To WellKnownType.Last
                 Select Case wkt
-                    Case WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session,
-                         WellKnownType.Microsoft_CSharp_RuntimeHelpers_SessionHelpers
+                    Case WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState
                         ' These types haven't been published yet, so there's no canonical reference we can add.
                         ' We own them though, so we can be reasonably confident that they're public and, therefore, validate.
                         Continue For
@@ -513,8 +512,7 @@ End Namespace
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             For wkt = WellKnownType.First To WellKnownType.Last
                 Select Case wkt
-                    Case WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session,
-                         WellKnownType.Microsoft_CSharp_RuntimeHelpers_SessionHelpers
+                    Case WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState
                         ' These types haven't been published yet, so there's no canonical reference we can add.
                         ' We own them though, so we can be reasonably confident that they're public and, therefore, validate.
                         Continue For
@@ -558,8 +556,8 @@ End Namespace
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))
                 Select Case wkm
-                    Case WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__GetSubmission,
-                         WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__SetSubmission
+                    Case WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission,
+                         WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission
                         ' These members haven't been published yet, so there's no canonical reference we can add.
                         ' We own them though, so we can be reasonably confident that they're public and, therefore, validate.
                         Continue For
@@ -581,8 +579,8 @@ End Namespace
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))
                 Select Case wkm
-                    Case WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__GetSubmission,
-                         WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__SetSubmission
+                    Case WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission,
+                         WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission
                         ' These members haven't been published yet, so there's no canonical reference we can add.
                         ' We own them though, so we can be reasonably confident that they're public and, therefore, validate.
                         Continue For

@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = containingType.DeclaringCompilation;
 
-            var interactiveSessionType = compilation.GetWellKnownType(WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session);
-            var useSiteError = interactiveSessionType.GetUseSiteDiagnostic();
+            var executionStateType = compilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState);
+            var useSiteError = executionStateType.GetUseSiteDiagnostic();
             if (useSiteError != null)
             {
                 diagnostics.Add(useSiteError, NoLocation.Singleton);
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnType = compilation.GetTypeByReflectionType(compilation.SubmissionReturnType, diagnostics);
 
             this.parameters = ImmutableArray.Create<ParameterSymbol>(
-                new SynthesizedParameterSymbol(this, interactiveSessionType, 0, RefKind.None, "session"),
+                new SynthesizedParameterSymbol(this, executionStateType, 0, RefKind.None, "executionState"),
                 new SynthesizedParameterSymbol(this, returnType, 1, RefKind.Ref, "submissionResult")
             );
         }

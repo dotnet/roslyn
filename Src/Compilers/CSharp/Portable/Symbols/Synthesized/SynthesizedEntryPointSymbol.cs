@@ -28,20 +28,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType.ContainingAssembly.IsInteractive)
             {
-                var interactiveSessionType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session);
-                var useSiteDiagnostic = interactiveSessionType.GetUseSiteDiagnostic();
+                var executionStateType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState);
+                var useSiteDiagnostic = executionStateType.GetUseSiteDiagnostic();
                 if (useSiteDiagnostic != null)
                 {
                     Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, NoLocation.Singleton);
                 }
 
-                this.parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, interactiveSessionType, 0, RefKind.None, "session"));
+                this.parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, executionStateType, 0, RefKind.None, "executionState"));
                 this.name = "<Factory>";
             }
             else
             {
                 this.parameters = ImmutableArray<ParameterSymbol>.Empty;
                 this.name = "<Main>";
+            }
+
+            if (this.DeclaringCompilation.IsSubmission)
+            {
+                returnType = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object);
             }
 
             this.returnType = returnType;
@@ -105,18 +110,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ctor.ParameterCount == 2);
 
             var submissionResultType = ctor.Parameters[1].Type;
-            var submissionResult = new BoundLocal(syntax, new SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.LoweringTemp), null, submissionResultType) { WasCompilerGenerated = true };
+
+            var resultLocal = new SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.LoweringTemp);
+            var localReference = new BoundLocal(syntax, resultLocal, null, submissionResultType) { WasCompilerGenerated = true };
+
+            BoundExpression submissionResult = localReference;
+            if (submissionResultType.IsStructType() && this.returnType.SpecialType == SpecialType.System_Object)
+            {
+                submissionResult = new BoundConversion(syntax, submissionResult, Conversion.Boxing, false, true, ConstantValue.NotAvailable, this.returnType)
+                                        { WasCompilerGenerated = true };
+            }
 
             return new BoundBlock(syntax,
                 // T submissionResult;
-                ImmutableArray.Create<LocalSymbol>(submissionResult.LocalSymbol),
+                ImmutableArray.Create<LocalSymbol>(resultLocal),
                 ImmutableArray.Create<BoundStatement>(
                     // new Submission(interactiveSession, out submissionResult);
                     new BoundExpressionStatement(syntax,
                         new BoundObjectCreationExpression(
                             syntax,
                             ctor,
-                            ImmutableArray.Create<BoundExpression>(interactiveSessionParam, submissionResult),
+                            ImmutableArray.Create<BoundExpression>(interactiveSessionParam, localReference),
                             ImmutableArray<string>.Empty,
                             ImmutableArray.Create<RefKind>(RefKind.None, RefKind.Ref),
                             false,
