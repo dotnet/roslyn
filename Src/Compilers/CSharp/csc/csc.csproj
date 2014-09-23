@@ -46,9 +46,11 @@
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

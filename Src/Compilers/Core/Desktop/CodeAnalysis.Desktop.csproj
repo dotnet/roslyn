@@ -28,17 +28,11 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;COMPILERCORE</DefineConstants>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineConstants>TRACE;COMPILERCORE</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
-    <DefineConstants>TRACE;DEBUG;COMPILERCORE</DefineConstants>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
-    <DefineConstants>TRACE;COMPILERCORE</DefineConstants>
-    <PlatformTarget>ARM</PlatformTarget>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdditionalFileStream.cs" />

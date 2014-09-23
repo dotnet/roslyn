@@ -44,15 +44,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
-    <PlatformTarget>ARM</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
