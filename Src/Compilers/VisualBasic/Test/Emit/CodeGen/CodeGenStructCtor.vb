@@ -52,7 +52,7 @@ expectedOutput:=<![CDATA[
 0
 0
 0
-]]>, options:=TestOptions.ExperimentalReleaseExe).VerifyIL("S1..ctor()",
+]]>).VerifyIL("S1..ctor()",
             <![CDATA[
 {
   // Code size       16 (0x10)
@@ -120,7 +120,7 @@ expectedOutput:=<![CDATA[
 0
 42
 0
-]]>, options:=TestOptions.ExperimentalReleaseExe).VerifyIL("S1..ctor()",
+]]>).VerifyIL("S1..ctor()",
             <![CDATA[
 {
   // Code size       16 (0x10)
@@ -186,7 +186,7 @@ expectedOutput:=<![CDATA[
 0
 3
 4
-]]>, options:=TestOptions.ExperimentalReleaseExe).VerifyIL("S1..ctor(Integer)",
+]]>).VerifyIL("S1..ctor(Integer)",
             <![CDATA[
 {
   // Code size       29 (0x1d)
@@ -234,7 +234,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ExperimentalReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, <![CDATA[42]]>)
 

@@ -7549,7 +7549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Structures cannot declare a non-shared &apos;Sub New&apos; with no parameters..
+        '''  Looks up a localized string similar to The feature &apos;Parameterless Instance Constructors in Structures&apos; requires language version 14 or above..
         '''</summary>
         Friend ReadOnly Property ERR_NewInStruct() As String
             Get

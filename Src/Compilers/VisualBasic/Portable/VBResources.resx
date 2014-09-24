@@ -1335,7 +1335,7 @@
     <value>Structures cannot have 'Inherits' statements.</value>
   </data>
   <data name="ERR_NewInStruct" xml:space="preserve">
-    <value>Structures cannot declare a non-shared 'Sub New' with no parameters.</value>
+    <value>The feature 'Parameterless Instance Constructors in Structures' requires language version 14 or above.</value>
   </data>
   <data name="ERR_InvalidEndGet" xml:space="preserve">
     <value>'End Get' must be preceded by a matching 'Get'.</value>

@@ -11,14 +11,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic10 = 10
         VisualBasic11 = 11
         VisualBasic12 = 12
+        VisualBasic14 = 14
         Experimental = Integer.MaxValue
     End Enum
 
     Friend Module LanguageVersionEnumBounds
         <Extension>
         Friend Function IsValid(value As LanguageVersion) As Boolean
-            Return (value >= LanguageVersion.VisualBasic9 AndAlso value <= LanguageVersion.VisualBasic12) OrElse
-                   value = LanguageVersion.Experimental
+
+            Select Case value
+                Case LanguageVersion.VisualBasic9,
+                    LanguageVersion.VisualBasic10,
+                    LanguageVersion.VisualBasic11,
+                    LanguageVersion.VisualBasic12,
+                    LanguageVersion.VisualBasic14,
+                    LanguageVersion.Experimental
+
+                    Return True
+            End Select
+
+            Return False
         End Function
     End Module
 End Namespace

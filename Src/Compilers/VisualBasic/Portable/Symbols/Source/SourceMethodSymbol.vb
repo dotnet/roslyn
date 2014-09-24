@@ -401,7 +401,7 @@ lReportErrorOnTwoTokens:
 
             If (flags And SourceMemberFlags.Shared) = 0 Then
                 If container.TypeKind = TypeKind.Structure AndAlso methodSym.ParameterCount = 0 Then
-                    If binder.Compilation.LanguageVersion <> LanguageVersion.Experimental Then
+                    If binder.Compilation.LanguageVersion < LanguageVersion.VisualBasic14 Then
                         ' Instance constructor must have parameters.
                         Binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
                     Else
