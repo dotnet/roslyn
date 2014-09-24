@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis
         {
             root = null;
             SyntaxTree tree;
-            return this.TryGetSyntaxTree(out tree) && tree.TryGetRoot(out root);
+            return this.TryGetSyntaxTree(out tree) && tree.TryGetRoot(out root) && root != null;
         }
 
         /// <summary>
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetSemanticModel(out SemanticModel semanticModel)
         {
             semanticModel = null;
-            return this.model != null && this.model.TryGetTarget(out semanticModel);
+            return this.model != null && this.model.TryGetTarget(out semanticModel) && semanticModel != null;
         }
 
         /// <summary>
@@ -253,6 +253,7 @@ namespace Microsoft.CodeAnalysis
                 var compilation = await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var result = compilation.GetSemanticModel(syntaxTree);
+                Contract.ThrowIfNull(result);
 
                 // first try set the cache if it has not been set
                 var original = Interlocked.CompareExchange(ref this.model, new WeakReference<SemanticModel>(result), null);
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // it looks like someone has set it. try to reuse same semantic model
-                if (original.TryGetTarget(out semanticModel))
+                if (original.TryGetTarget(out semanticModel) && semanticModel != null)
                 {
                     return semanticModel;
                 }
