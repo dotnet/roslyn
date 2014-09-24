@@ -38,6 +38,10 @@ Class CodeFixProvider
         Return {DiagnosticAnalyzer.MakeConstDiagnosticId}
     End Function
 
+    Public Function GetFixAllProvider() As FixAllProvider Implements ICodeFixProvider.GetFixAllProvider
+        Return Nothing
+    End Function
+
     Public Async Function GetFixesAsync(document As Document, span As TextSpan, diagnostics As IEnumerable(Of Diagnostic), cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction)) Implements ICodeFixProvider.GetFixesAsync
         Dim diagnosticSpan = diagnostics.First().Location.SourceSpan
         Dim root = Await document.GetSyntaxRootAsync(cancellationToken)

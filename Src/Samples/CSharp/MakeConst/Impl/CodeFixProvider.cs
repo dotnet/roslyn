@@ -20,6 +20,7 @@
 //
 // *********************************************************
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -41,6 +42,11 @@ namespace MakeConstCS
         public IEnumerable<string> GetFixableDiagnosticIds()
         {
             return new[] { DiagnosticAnalyzer.MakeConstDiagnosticId };
+        }
+
+        public FixAllProvider GetFixAllProvider()
+        {
+            return null;
         }
 
         public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)

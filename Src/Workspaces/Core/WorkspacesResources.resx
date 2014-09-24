@@ -339,6 +339,18 @@
   <data name="AddedHeader" xml:space="preserve">
     <value>Added:</value>
   </data>
+  <data name="FixAllOccurrences" xml:space="preserve">
+    <value>Fix all occurrences</value>
+  </data>
+  <data name="FixAllOccurrencesOfDiagnostic" xml:space="preserve">
+    <value>Fix all '{0}'</value>
+  </data>
+  <data name="FixAllOccurrencesOfDiagnosticInScope" xml:space="preserve">
+    <value>Fix all '{0}' in '{1}'</value>
+  </data>
+  <data name="FixAllOccurrencesOfDiagnosticInSolution" xml:space="preserve">
+    <value>Fix all '{0}' in Solution</value>
+  </data>
   <data name="AfterHeader" xml:space="preserve">
     <value>After:</value>
   </data>

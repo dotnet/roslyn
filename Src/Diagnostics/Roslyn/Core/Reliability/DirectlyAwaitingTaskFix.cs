@@ -55,6 +55,11 @@ namespace Roslyn.Diagnostics.CodeFixes
             return Simplifier.ReduceAsync(fixedDocument, fixedExpression.FullSpan, cancellationToken: cancellationToken);
         }
 
+        public FixAllProvider GetFixAllProvider()
+        {
+            return WellKnownFixAllProviders.BatchFixer;
+        }
+
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :

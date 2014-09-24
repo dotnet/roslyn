@@ -8,25 +8,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
-    internal class SimplifyTypeNameCodeAction : CodeAction
+    internal class SimplifyTypeNameCodeAction : CodeAction.DocumentChangeAction
     {
-        private readonly string title;
-        private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
-
-        public SimplifyTypeNameCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+        public SimplifyTypeNameCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
+            : base(title, createChangedDocument, id)
         {
-            this.title = title;
-            this.createChangedDocument = createChangedDocument;
-        }
-
-        public override string Title
-        {
-            get { return this.title; }
-        }
-
-        protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-        {
-            return this.createChangedDocument(cancellationToken);
         }
     }
 }

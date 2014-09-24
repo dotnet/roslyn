@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -42,6 +43,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
             }
 
             return actions;
+        }
+
+        public virtual FixAllProvider GetFixAllProvider()
+        {
+            return null;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

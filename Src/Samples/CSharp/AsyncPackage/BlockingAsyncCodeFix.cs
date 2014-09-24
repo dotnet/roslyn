@@ -139,7 +139,7 @@ namespace AsyncPackage
             {
                 oldExpression = invocation.Parent.FirstAncestorOrSelf<MemberAccessExpressionSyntax>();
                 newExpression = SyntaxFactory.PrefixUnaryExpression(
-                    SyntaxKind.AwaitExpression,
+                    SyntaxKind.AwaitExpression, 
                     invocation).WithAdditionalAnnotations(Formatter.Annotation);
             }
 
@@ -168,6 +168,11 @@ namespace AsyncPackage
             var newDocument = document.WithSyntaxRoot(newroot);
 
             return newDocument;
+        }
+
+        public FixAllProvider GetFixAllProvider()
+        {
+            return null;
         }
 
         private class CodeActionToDelayWhenAnyWhenAllAsync : CodeAction

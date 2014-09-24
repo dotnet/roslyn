@@ -100,6 +100,11 @@ namespace AsyncPackage
             return false;
         }
 
+        public FixAllProvider GetFixAllProvider()
+        {
+            return null;
+        }
+
         private class RenameAsyncCodeAction : CodeAction
         {
             private Func<CancellationToken, Task<Solution>> generateSolution;

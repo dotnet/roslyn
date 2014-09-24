@@ -27,6 +27,11 @@ namespace AsyncPackage
             return new[] { AsyncLambdaAnalyzer.AsyncLambdaId1 };
         }
 
+        public FixAllProvider GetFixAllProvider()
+        {
+            return null;
+        }
+
         public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
