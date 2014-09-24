@@ -45,7 +45,7 @@ namespace ImplementNotifyPropertyChangedCS
             var properties = ExpansionChecker.GetExpandableProperties(span, root, model);
 
             return properties.Any()
-                ? new[] { CodeAction.Create("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)) }
+                ? new[] { new ImplementNotifyPropertyChangedCodeAction("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)) }
                 : null;
         }
 
@@ -55,6 +55,25 @@ namespace ImplementNotifyPropertyChangedCS
             document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             return document;
+        }
+
+        private class ImplementNotifyPropertyChangedCodeAction : CodeAction
+        {
+            private Func<CancellationToken, Task<Document>> createDocument;
+            private string title;
+
+            public ImplementNotifyPropertyChangedCodeAction(string title, Func<CancellationToken, Task<Document>> createDocument)
+            {
+                this.title = title;
+                this.createDocument = createDocument;
+            }
+
+            public override string Title { get { return title; } }
+
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return this.createDocument(cancellationToken);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -46,13 +47,13 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Return a code action that will invoke the fix.
-                    return new[] { CodeAction.Create("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitAsync(document, invocation, c, name)) };
+                    return new[] { new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitAsync(document, invocation, c, name)) };
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("GetAwaiter"))
                 {
                     // Return a code action that will invoke the fix.
-                    return new[] { CodeAction.Create("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitGetAwaiterAsync(document, invocation, c)) };
+                    return new[] { new CodeActionChangetoAwaitGetAwaiterAsync("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitGetAwaiterAsync(document, invocation, c)) };
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("Result"))
@@ -60,7 +61,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Return a code action that will invoke the fix.
-                    return new[] { CodeAction.Create("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitAsync(document, invocation, c, name)) };
+                    return new[] { new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitAsync(document, invocation, c, name)) };
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("WaitAny"))
@@ -68,7 +69,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Return a code action that will invoke the fix.
-                    return new[] { CodeAction.Create("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(document, invocation, c, name)) };
+                    return new[] { new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(document, invocation, c, name)) };
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("WaitAll"))
@@ -76,7 +77,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Return a code action that will invoke the fix.
-                    return new[] { CodeAction.Create("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(document, invocation, c, name)) };
+                    return new[] { new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(document, invocation, c, name)) };
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("Sleep"))
@@ -84,7 +85,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Return a code action that will invoke the fix.
-                    return new[] { CodeAction.Create("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(document, invocation, c, name)) };
+                    return new[] { new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(document, invocation, c, name)) };
                 }
             }
 
@@ -138,7 +139,7 @@ namespace AsyncPackage
             {
                 oldExpression = invocation.Parent.FirstAncestorOrSelf<MemberAccessExpressionSyntax>();
                 newExpression = SyntaxFactory.PrefixUnaryExpression(
-                    SyntaxKind.AwaitExpression, 
+                    SyntaxKind.AwaitExpression,
                     invocation).WithAdditionalAnnotations(Formatter.Annotation);
             }
 
@@ -167,6 +168,63 @@ namespace AsyncPackage
             var newDocument = document.WithSyntaxRoot(newroot);
 
             return newDocument;
+        }
+
+        private class CodeActionToDelayWhenAnyWhenAllAsync : CodeAction
+        {
+            private Func<CancellationToken, Task<Document>> generateDocument;
+            private string title;
+
+            public CodeActionToDelayWhenAnyWhenAllAsync(string title, Func<CancellationToken, Task<Document>> generateDocument)
+            {
+                this.title = title;
+                this.generateDocument = generateDocument;
+            }
+
+            public override string Title { get { return title; } }
+
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return this.generateDocument(cancellationToken);
+            }
+        }
+
+        private class CodeActionChangetoAwaitAsync : CodeAction
+        {
+            private Func<CancellationToken, Task<Document>> generateDocument;
+            private string title;
+
+            public CodeActionChangetoAwaitAsync(string title, Func<CancellationToken, Task<Document>> generateDocument)
+            {
+                this.title = title;
+                this.generateDocument = generateDocument;
+            }
+
+            public override string Title { get { return title; } }
+
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return this.generateDocument(cancellationToken);
+            }
+        }
+
+        private class CodeActionChangetoAwaitGetAwaiterAsync : CodeAction
+        {
+            private Func<CancellationToken, Task<Document>> generateDocument;
+            private string title;
+
+            public CodeActionChangetoAwaitGetAwaiterAsync(string title, Func<CancellationToken, Task<Document>> generateDocument)
+            {
+                this.title = title;
+                this.generateDocument = generateDocument;
+            }
+
+            public override string Title { get { return title; } }
+
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return this.generateDocument(cancellationToken);
+            }
         }
     }
 }

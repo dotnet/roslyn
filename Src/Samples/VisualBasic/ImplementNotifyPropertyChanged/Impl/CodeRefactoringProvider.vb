@@ -40,14 +40,36 @@ Friend Class CodeRefactoringProvider
         Dim properties = ExpansionChecker.GetExpandableProperties(span, root, model)
 
         Return If(properties.Any(),
-            {CodeAction.Create("Apply INotifyPropertyChanged pattern", Function(c) ImplementNotifyPropertyChangedAsync(document, root, model, properties, c))},
+            {New ImplementNotifyPropertyChangedCodeAction("Apply INotifyPropertyChanged pattern", Function(c) ImplementNotifyPropertyChangedAsync(document, root, model, properties, c))},
             Nothing)
     End Function
 
     Private Async Function ImplementNotifyPropertyChangedAsync(document As Document, root As CompilationUnitSyntax, model As SemanticModel, properties As IEnumerable(Of ExpandablePropertyInfo), cancellationToken As CancellationToken) As Task(Of Document)
-        document = Document.WithSyntaxRoot(CodeGeneration.ImplementINotifyPropertyChanged(root, model, properties, document.Project.Solution.Workspace))
+        document = document.WithSyntaxRoot(CodeGeneration.ImplementINotifyPropertyChanged(root, model, properties, document.Project.Solution.Workspace))
         document = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken:=cancellationToken).ConfigureAwait(False)
         document = Await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken:=cancellationToken).ConfigureAwait(False)
         Return document
     End Function
+
+    Private Class ImplementNotifyPropertyChangedCodeAction
+        Inherits CodeAction
+
+        Private createDocument As Func(Of CancellationToken, Task(Of Document))
+        Private _title As String
+
+        Public Sub New(title As String, createDocument As Func(Of CancellationToken, Task(Of Document)))
+            Me._title = title
+            Me.createDocument = createDocument
+        End Sub
+
+        Public Overrides ReadOnly Property Title As String
+            Get
+                Return _title
+            End Get
+        End Property
+
+        Protected Overrides Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
+            Return Me.createDocument(cancellationToken)
+        End Function
+    End Class
 End Class

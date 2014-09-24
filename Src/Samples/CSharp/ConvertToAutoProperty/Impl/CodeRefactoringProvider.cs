@@ -20,6 +20,7 @@
 //
 // *********************************************************
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -55,7 +56,7 @@ namespace ConvertToAutoPropertyCS
                 return null;
             }
 
-            return new[] { CodeAction.Create("Convert to auto property", (c) => ConvertToAutoPropertyAsync(document, propertyDeclaration, c)) };
+            return new[] { new ConvertToAutoPropertyCodeAction("Convert to auto property", (c) => ConvertToAutoPropertyAsync(document, propertyDeclaration, c)) };
         }
 
         /// <summary>
@@ -118,6 +119,25 @@ namespace ConvertToAutoPropertyCS
             }
 
             return null;
+        }
+
+        private class ConvertToAutoPropertyCodeAction : CodeAction
+        {
+            private Func<CancellationToken, Task<Document>> generateDocument;
+            private string title;
+
+            public ConvertToAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Document>> generateDocument)
+            {
+                this.title = title;
+                this.generateDocument = generateDocument;
+            }
+
+            public override string Title { get { return title; } }
+
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return this.generateDocument(cancellationToken);
+            }
         }
     }
 }

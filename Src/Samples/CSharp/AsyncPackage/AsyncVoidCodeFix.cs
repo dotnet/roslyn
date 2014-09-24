@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ namespace AsyncPackage
             var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
             // Return a code action that will invoke the fix.
-            return new[] { CodeAction.Create("Async methods should not return void", c => VoidToTaskAsync(document, methodDeclaration, c)) };
+            return new[] { new AsyncVoidCodeAction("Async methods should not return void", c => VoidToTaskAsync(document, methodDeclaration, c)) };
         }
 
         private async Task<Document> VoidToTaskAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
@@ -49,6 +50,25 @@ namespace AsyncPackage
 
             // Return document with transformed tree.
             return newDocument;
+        }
+
+        private class AsyncVoidCodeAction : CodeAction
+        {
+            private Func<CancellationToken, Task<Document>> createDocument;
+            private string title;
+
+            public AsyncVoidCodeAction(string title, Func<CancellationToken, Task<Document>> createDocument)
+            {
+                this.title = title;
+                this.createDocument = createDocument;
+            }
+
+            public override string Title { get { return title; } }
+
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return this.createDocument(cancellationToken);
+            }
         }
     }
 }

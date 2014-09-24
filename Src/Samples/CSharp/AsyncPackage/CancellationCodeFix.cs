@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace AsyncPackage
             var invocation = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<InvocationExpressionSyntax>();
 
             // Return a code action that will invoke the fix.
-            return new[] { CodeAction.Create("Propagate CancellationTokens when possible", c => AddCancellationTokenAsync(document, invocation, c)) };
+            return new[] { new CancellationCodeAction("Propagate CancellationTokens when possible", c => AddCancellationTokenAsync(document, invocation, c)) };
         }
 
         private async Task<Document> AddCancellationTokenAsync(Document document, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
@@ -84,6 +85,25 @@ namespace AsyncPackage
 
             // Return document with transformed tree.
             return newDocument;
+        }
+
+        private class CancellationCodeAction : CodeAction
+        {
+            private Func<CancellationToken, Task<Document>> createDocument;
+            private string title;
+
+            public CancellationCodeAction(string title, Func<CancellationToken, Task<Document>> createDocument)
+            {
+                this.title = title;
+                this.createDocument = createDocument;
+            }
+
+            public override string Title { get { return title; } }
+
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return this.createDocument(cancellationToken);
+            }
         }
     }
 }

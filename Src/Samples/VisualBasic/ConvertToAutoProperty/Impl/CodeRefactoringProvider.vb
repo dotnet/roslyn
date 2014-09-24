@@ -52,7 +52,7 @@ Class CodeRefactoringProvider
         ' It should be a simple property with a getter and setter that simply retrieves
         ' and assigns a backing field. In addition, the backing field should be private.
 
-        Return {CodeAction.Create("Convert to auto property", Function(c) ConvertToAutoAsync(document, propertyBlock, c))}
+        Return {New ConvertToAutopropertyCodeAction("Convert to auto property", Function(c) ConvertToAutoAsync(document, propertyBlock, c))}
     End Function
 
     ''' <summary> 
@@ -131,7 +131,7 @@ Class CodeRefactoringProvider
         Dim oldRoot = DirectCast(Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False), SyntaxNode)
         Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-        Dim referenceRewriter = New referenceRewriter(propertyName, backingField, semanticModel)
+        Dim referenceRewriter = New ReferenceRewriter(propertyName, backingField, semanticModel)
         Dim newRoot = referenceRewriter.Visit(oldRoot)
 
         Return document.WithSyntaxRoot(newRoot)
@@ -178,4 +178,26 @@ Class CodeRefactoringProvider
 
         Return document.WithSyntaxRoot(newRoot)
     End Function
+
+    Private Class ConvertToAutopropertyCodeAction
+        Inherits CodeAction
+
+        Private generateDocument As Func(Of CancellationToken, Task(Of Document))
+        Private _title As String
+
+        Public Overrides ReadOnly Property Title As String
+            Get
+                Return _title
+            End Get
+        End Property
+
+        Public Sub New(title As String, generateDocument As Func(Of CancellationToken, Task(Of Document)))
+            Me._title = title
+            Me.generateDocument = generateDocument
+        End Sub
+
+        Protected Overrides Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
+            Return Me.generateDocument(cancellationToken)
+        End Function
+    End Class
 End Class

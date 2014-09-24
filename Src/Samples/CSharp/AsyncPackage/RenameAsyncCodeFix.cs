@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ namespace AsyncPackage
             var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
             // Return a code action that will invoke the fix. (The name is intentional; that's my sense of humor)
-            return new[] { CodeAction.Create("Add Async to the end of the method name", c => RenameMethodAsync(document, methodDeclaration, c)) };
+            return new[] { new RenameAsyncCodeAction("Add Async to the end of the method name", c => RenameMethodAsync(document, methodDeclaration, c)) };
         }
 
         private async Task<Solution> RenameMethodAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
@@ -97,6 +98,25 @@ namespace AsyncPackage
             }
 
             return false;
+        }
+
+        private class RenameAsyncCodeAction : CodeAction
+        {
+            private Func<CancellationToken, Task<Solution>> generateSolution;
+            private string title;
+
+            public RenameAsyncCodeAction(string title, Func<CancellationToken, Task<Solution>> generateSolution)
+            {
+                this.title = title;
+                this.generateSolution = generateSolution;
+            }
+
+            public override string Title { get { return title; } }
+
+            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            {
+                return base.GetChangedSolutionAsync(cancellationToken);
+            }
         }
     }
 }
