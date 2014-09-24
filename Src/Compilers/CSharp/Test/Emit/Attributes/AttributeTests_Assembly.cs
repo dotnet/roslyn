@@ -200,12 +200,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidAssemblyCultureForExe, @"""pt-BR""").WithLocation(1, 46));
         }
 
-        [Fact(Skip = "1032718"), WorkItem(1032718)]
+        [Fact(Skip = "Bug 1032718"), WorkItem(1032718)]
         public void MismatchedSurrogateInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
             comp.Emit(Stream.Null);
+        }
+
+        [Fact(Skip = "Bug 1034455"), WorkItem(1034455)]
+        public void NullCharInAssemblyCultureAttribute()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\0"")]";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            comp.GetDiagnostics();
         }
 
         [Fact]
