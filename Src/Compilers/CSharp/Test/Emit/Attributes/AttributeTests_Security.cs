@@ -1509,5 +1509,29 @@ public class MyClass
         }
 
         #endregion
+
+        [Fact(Skip = "Bug 1034429")]
+        [WorkItem(1034429)]
+        public void CrashOnParamsInSecurityAttribute()
+        {
+            string source = @"
+using System.Security.Permissions;
+
+class Program
+{
+    [A(SecurityAction.Assert)]
+    static void Main()
+    {
+    }
+}
+
+public class A : CodeAccessSecurityAttribute
+{
+    public A(params SecurityAction a)
+    {
+    }
+}";
+            CreateCompilationWithMscorlib(source).GetDiagnostics();
+        }
     }
 }
