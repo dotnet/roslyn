@@ -88,16 +88,16 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 return ScheduleTaskWorker<Task>(
                     taskName, cancellationToken,
-                    () => Task.Factory.SafeStartNew(
-                        taskFunc, cancellationToken, this.taskScheduler).Unwrap());
+                    () => Task.Factory.SafeStartNewFromAsync(
+                        taskFunc, cancellationToken, this.taskScheduler));
             }
 
             public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
             {
                 return ScheduleTaskWorker<Task<T>>(
                     taskName, cancellationToken,
-                    () => Task.Factory.SafeStartNew(
-                        taskFunc, cancellationToken, this.taskScheduler).Unwrap());
+                    () => Task.Factory.SafeStartNewFromAsync(
+                        taskFunc, cancellationToken, this.taskScheduler));
             }
         }
     }

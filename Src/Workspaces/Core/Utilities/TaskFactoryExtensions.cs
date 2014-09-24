@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -75,6 +76,64 @@ namespace Roslyn.Utilities
 
             // The one and only place we can call StartNew<>().
             return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
+        }
+
+        public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, TaskScheduler scheduler)
+        {
+            return factory.SafeStartNewFromAsync(actionAsync, CancellationToken.None, scheduler);
+        }
+
+        public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
+        {
+            return factory.SafeStartNewFromAsync(actionAsync, cancellationToken, TaskCreationOptions.None, scheduler);
+        }
+
+        public static Task SafeStartNewFromAsync(
+            this TaskFactory factory,
+            Func<Task> actionAsync,
+            CancellationToken cancellationToken,
+            TaskCreationOptions creationOptions,
+            TaskScheduler scheduler)
+        {
+            // The one and only place we can call StartNew<>().
+            var task = factory.StartNew(actionAsync, cancellationToken, creationOptions, scheduler).Unwrap();
+
+            // make it crash if exception has thrown
+            task.SafeContinueWith(t => FailFast.OnFatalException(t.Exception),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            return task;
+        }
+
+        public static Task<TResult> SafeStartNewFromAsync<TResult>(this TaskFactory factory, Func<Task<TResult>> funcAsync, TaskScheduler scheduler)
+        {
+            return factory.SafeStartNewFromAsync(funcAsync, CancellationToken.None, scheduler);
+        }
+
+        public static Task<TResult> SafeStartNewFromAsync<TResult>(this TaskFactory factory, Func<Task<TResult>> funcAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
+        {
+            return factory.SafeStartNewFromAsync(funcAsync, cancellationToken, TaskCreationOptions.None, scheduler);
+        }
+
+        public static Task<TResult> SafeStartNewFromAsync<TResult>(
+            this TaskFactory factory,
+            Func<Task<TResult>> funcAsync,
+            CancellationToken cancellationToken,
+            TaskCreationOptions creationOptions,
+            TaskScheduler scheduler)
+        {
+            // The one and only place we can call StartNew<>().
+            var task = factory.StartNew(funcAsync, cancellationToken, creationOptions, scheduler).Unwrap();
+
+            // make it crash if exception has thrown
+            task.SafeContinueWith(t => FailFast.OnFatalException(t.Exception),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            return task;
         }
     }
 }
