@@ -75,8 +75,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             expected As String,
             Optional debugMode As Boolean = False,
             Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
-            Optional testWithTransformation As Boolean = False)
-            AssertFormat(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation)
+            Optional testWithTransformation As Boolean = False,
+            Optional experimental As Boolean = False)
+            AssertFormat(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, experimental:=experimental)
         End Sub
 
         Protected Overloads Sub AssertFormat(
@@ -85,9 +86,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             spans As IEnumerable(Of TextSpan),
             Optional debugMode As Boolean = False,
             Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
-            Optional testWithTransformation As Boolean = False)
+            Optional testWithTransformation As Boolean = False,
+            Optional experimental As Boolean = False)
 
-            AssertFormat(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation)
+            Dim parseOptions = New VisualBasicParseOptions()
+            If (experimental) Then
+                parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.Experimental)
+            End If
+
+            AssertFormat(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation, parseOptions)
         End Sub
 
         Private Function StringFromLines(ParamArray lines As String()) As String

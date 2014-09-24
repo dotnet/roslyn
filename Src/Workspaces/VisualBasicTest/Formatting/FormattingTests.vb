@@ -3978,5 +3978,38 @@ End Class
 
             AssertFormatLf2CrLf(text.Value, expected.Value)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub ConditionalAccessFormatting()
+            Dim text = <Code>
+Module Module1
+    Class G
+        Public t As String
+    End Class
+
+    Sub Main()
+        Dim x = New G()
+        Dim q = x ? . t ? ( 0 )
+    End Sub
+End Module
+
+</Code>
+
+            Dim expected = <Code>
+Module Module1
+    Class G
+        Public t As String
+    End Class
+
+    Sub Main()
+        Dim x = New G()
+        Dim q = x?.t?(0)
+    End Sub
+End Module
+
+</Code>
+
+            AssertFormat(text.Value, expected.Value, experimental:=True)
+        End Sub
     End Class
 End Namespace

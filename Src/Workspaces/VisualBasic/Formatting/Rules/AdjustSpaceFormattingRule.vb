@@ -200,6 +200,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
+
+            ' ? . [conditional access operator]
+            If previousToken.VisualBasicKind = SyntaxKind.QuestionToken AndAlso currentToken.VisualBasicKind = SyntaxKind.DotToken AndAlso
+                previousToken.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+            End If
+
+            ' identifier ? [conditional access operator]
+            If previousToken.VisualBasicKind = SyntaxKind.IdentifierToken AndAlso currentToken.VisualBasicKind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.VisualBasicKind = SyntaxKind.ConditionalAccessExpression Then
+
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+            End If
+
+            ' ) ? [conditional access off invocation]
+            If previousToken.VisualBasicKind = SyntaxKind.CloseParenToken AndAlso currentToken.VisualBasicKind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.VisualBasicKind = SyntaxKind.ConditionalAccessExpression Then
+
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+            End If
+
+
             ' * [member access dot without expression]
             If previousToken.VisualBasicKind <> SyntaxKind.OpenParenToken AndAlso FormattingHelpers.IsMemberAccessDotWithoutExpression(currentToken) Then
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
@@ -299,6 +321,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                currentToken.VisualBasicKind = SyntaxKind.ColonToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
+
+
             Return nextFunc.Invoke()
         End Function
     End Class

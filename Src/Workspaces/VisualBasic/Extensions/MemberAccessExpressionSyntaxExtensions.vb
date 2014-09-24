@@ -97,6 +97,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ElseIf TypeOf current Is ObjectMemberInitializerSyntax AndAlso
                        TypeOf current.Parent Is ObjectCreationExpressionSyntax Then
                     Return DirectCast(current.Parent, ExpressionSyntax)
+                ElseIf current.IsKind(SyntaxKind.InvocationExpression) AndAlso
+                       current.IsParentKind(SyntaxKind.ConditionalAccessExpression) Then
+                    Return DirectCast(current.Parent, ConditionalAccessExpressionSyntax).Expression
+                ElseIf current.IsKind(SyntaxKind.ConditionalAccessExpression) Then
+                    Return DirectCast(current, ConditionalAccessExpressionSyntax).Expression
                 End If
 
                 current = current.Parent
