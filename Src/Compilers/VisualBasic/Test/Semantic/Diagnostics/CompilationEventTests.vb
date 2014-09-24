@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Dim actual = ArrayBuilder(Of CompilationEvent).GetInstance()
             While queue.Count > 0 OrElse Not queue.IsCompleted
-                Dim te = queue.DequeueAsync()
+                Dim te = queue.DequeueAsync(CancellationToken.None)
                 Assert.True(te.IsCompleted)
                 actual.Add(te.Result)
             End While
@@ -85,7 +85,7 @@ End Namespace
         </file>
     </compilation>
 
-            Dim q = New AsyncQueue(Of CompilationEvent)()
+            Dim q = New AsyncQueue(Of CompilationEvent)(CancellationToken.None)
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
             VerifyEvents(q,
                 "CompilationStartedEvent",

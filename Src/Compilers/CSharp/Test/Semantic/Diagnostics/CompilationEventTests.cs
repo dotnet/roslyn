@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actual = ArrayBuilder<CompilationEvent>.GetInstance();
             while (queue.Count > 0 || !queue.IsCompleted)
             {
-                var te = queue.DequeueAsync();
+                var te = queue.DequeueAsync(CancellationToken.None);
                 Assert.True(te.IsCompleted);
                 actual.Add(te.Result);
             }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     partial void M(int x2) {}
   }
 }";
-            var q = new AsyncQueue<CompilationEvent>();
+            var q = new AsyncQueue<CompilationEvent>(CancellationToken.None);
             CreateCompilationWithMscorlib45(source)
                 .WithEventQueue(q)
                 .VerifyDiagnostics()  // force diagnostics twice

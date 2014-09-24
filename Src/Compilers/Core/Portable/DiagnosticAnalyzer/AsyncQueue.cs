@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// A thread-safe, asynchronously dequeuable queue.
     /// </summary>
     /// <typeparam name="TElement">The type of values kept by the queue.</typeparam>
-    public sealed class AsyncQueue<TElement>
+    public sealed partial class AsyncQueue<TElement>
     {
         private readonly object syncObject = new object();
         private readonly Queue<TElement> data = new Queue<TElement>();
-        private readonly Queue<TaskCompletionSource<TElement>> waiters = new Queue<TaskCompletionSource<TElement>>();
+        private readonly Queue<TaskCompletionSourceWithCancellation<TElement>> waiters = new Queue<TaskCompletionSourceWithCancellation<TElement>>();
         private bool completed = false;
-        private readonly TaskCompletionSource<bool> whenCompleted = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSourceWithCancellation<bool> whenCompleted;
         private Exception thrown = null;
 
         /// <summary>
@@ -42,8 +39,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Initializes a new instance of the <see cref="AsyncQueue{TElement}"/> class.
         /// </summary>
-        public AsyncQueue()
+        /// <param name="cancellationToken">Cancellation token for <see cref="WhenCompletedAsync"/> task.</param>
+        public AsyncQueue(CancellationToken cancellationToken)
         {
+            var whenCompleted = new TaskCompletionSourceWithCancellation<bool>();
+            whenCompleted.RegisterForCancellation(cancellationToken);
+            this.whenCompleted = whenCompleted;
         }
 
         /// <summary>
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void SetException(Exception exception)
         {
             if (exception == null) throw new ArgumentNullException("exception");
-            ImmutableArray<TaskCompletionSource<TElement>> waitersArray;
+            ImmutableArray<TaskCompletionSourceWithCancellation<TElement>> waitersArray;
             lock (syncObject)
             {
                 if (completed)
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public void Complete()
         {
-            ImmutableArray<TaskCompletionSource<TElement>> waitersArray;
+            ImmutableArray<TaskCompletionSourceWithCancellation<TElement>> waitersArray;
             lock(syncObject)
             {
                 if (completed)
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets a task that transitions to a completed state when <see cref="Complete"/> is called.
         /// </summary>
-        public Task WhenCompleted
+        public Task WhenCompletedAsync
         {
             get
             {
@@ -195,9 +196,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <see cref="SetException"/> is called before an element becomes available, the
         /// returned task throws that exception.
         /// </summary>
-        public Task<TElement> DequeueAsync()
+        public Task<TElement> DequeueAsync(CancellationToken cancellationToken)
         {
-            // TODO: should this method accept a cancellation token?
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return new Task<TElement>(() => default(TElement), cancellationToken);
+            }
+
+            TaskCompletionSourceWithCancellation<TElement> waiter0;
+
             lock(syncObject)
             {
                 if (thrown != null)
@@ -221,10 +228,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return waiter.Task;
                 }
 
-                var waiter0 = new TaskCompletionSource<TElement>();
+                waiter0 = new TaskCompletionSourceWithCancellation<TElement>();
                 waiters.Enqueue(waiter0);
-                return waiter0.Task;
             }
+
+            // Register for cancellation outside the lock, as our registration may immediately fire and we want to avoid the reentrancy.
+            waiter0.RegisterForCancellation(cancellationToken);
+            return waiter0.Task;
         }
 
         public override string ToString()

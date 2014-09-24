@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
-            this.CompilationEventQueue = new AsyncQueue<CompilationEvent>();
-            this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
+            this.CompilationEventQueue = new AsyncQueue<CompilationEvent>(cancellationToken);
+            this.DiagnosticQueue = new AsyncQueue<Diagnostic>(cancellationToken);
             this.addDiagnostic = GetDiagnosticSinkWithSuppression();
             this.analyzerOptions = options;
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var allDiagnostics = DiagnosticBag.GetInstance();
             if (CompilationEventQueue.IsCompleted)
             {
-                await DiagnosticQueue.WhenCompleted.ConfigureAwait(false);
+                await DiagnosticQueue.WhenCompletedAsync.ConfigureAwait(false);
             }
 
             Diagnostic d;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task WhenCompletedAsync()
         {
-            await Task.WhenAll(SpecializedCollections.SingletonEnumerable(CompilationEventQueue.WhenCompleted)
+            await Task.WhenAll(SpecializedCollections.SingletonEnumerable(CompilationEventQueue.WhenCompletedAsync)
                 .Concat(workers))
                 .ConfigureAwait(false);
         }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task InitialWorkerAsync(ImmutableArray<DiagnosticAnalyzer> initialAnalyzers, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken)
         {
             // Pull out the first event, which should be the "start compilation" event.
-            var firstEvent = await CompilationEventQueue.DequeueAsync(/*cancellationToken*/).ConfigureAwait(false);
+            var firstEvent = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
             var startCompilation = firstEvent as CompilationStartedEvent;
             if (startCompilation == null)
             {
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 try
                 {
-                    var e = await CompilationEventQueue.DequeueAsync(/*cancellationToken*/).ConfigureAwait(false);
+                    var e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
                     await ProcessEventAsync(e, cancellationToken).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException)
