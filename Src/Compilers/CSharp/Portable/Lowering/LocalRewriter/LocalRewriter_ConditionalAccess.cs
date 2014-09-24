@@ -47,7 +47,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isAsync = this.factory.CurrentMethod.IsAsync;
 
             ConditionalAccessLoweringKind loweringKind;
-            var needTemp = NeedsTemp(loweredReceiver, localsMayBeAssigned: false);
+            // CONSIDER: If we knew that loweredReceiver is not a captured local
+            //       we could pass "false" for localsMayBeAssignedOrCaptured
+            //       otherwise not capturing receiver into a temp
+            //       could introduce additional races into the code if receiver is captured
+            //       into a closure and is modified between null check of the receiver 
+            //       and the actual access.
+            //
+            //       Nullable is special since we are not going to read any part of it twice
+            //       we will read "HasValue" and then, conditionally will read "ValueOrDefault"
+            //       that is no different than just reading both values unconditionally.
+            //       As a result in the case of nullable, not reading captured local through a temp 
+            //       does not introduce any additional races so it is irrelevant whether 
+            //       the local is captured or not.
+            var localsMayBeAssignedOrCaptured = !receiverType.IsNullableType();
+            var needTemp = IntroducingReadCanBeObservable(loweredReceiver, localsMayBeAssignedOrCaptured);
 
             if (!isAsync && !node.Type.IsDynamic() && rewrittenWhenNull == null &&
                 (receiverType.IsReferenceType || receiverType.IsTypeParameter() && needTemp))

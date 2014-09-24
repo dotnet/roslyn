@@ -74,7 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var rightAlwaysHasValue = NullableAlwaysHasValue(VisitExpression(right));
 
-                    if (rightAlwaysHasValue != null && !NeedsTemp(rightAlwaysHasValue))
+                    // reading rightAlwaysHasValue should not have sideeffects here
+                    // otherwise we would need to read it even when we knew that LHS is null
+                    if (rightAlwaysHasValue != null && !IntroducingReadCanBeObservable(rightAlwaysHasValue))
                     {
                         BoundExpression accessExpression = conditionalAccess.AccessExpression;
                         accessExpression = node.Update(unliftedOperatorKind, accessExpression, rightAlwaysHasValue, null, node.MethodOpt, node.ResultKind, node.Type);

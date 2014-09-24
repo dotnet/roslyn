@@ -964,29 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // assume we will need an address (that will prevent scheduling of receiver).
             if (!node.Method.IsStatic)
             {
-                var receiverType = receiver.Type;
-                ExprContext context;
-
-                if (receiverType.IsReferenceType)
-                {
-                    if (receiverType.IsTypeParameter())
-                    {
-                        // type param receiver that we statically know is a reference will be boxed
-                        context = ExprContext.Box;
-                    }
-                    else
-                    {
-                        // reference receivers will be used as values
-                        context = ExprContext.Value;
-                    }
-                }
-                else
-                {
-                    // everything else will get an address taken
-                    context = ExprContext.Address;
-                }
-
-                receiver = VisitExpression(receiver, context);
+                receiver = VisitCallReceiver(receiver);
             }
             else
             {
@@ -1000,6 +978,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var rewrittenArguments = VisitArguments(node.Arguments, method.Parameters);
 
             return node.Update(receiver, method, rewrittenArguments);
+        }
+
+        private BoundExpression VisitCallReceiver(BoundExpression receiver)
+        {
+            var receiverType = receiver.Type;
+            ExprContext context;
+
+            if (receiverType.IsReferenceType)
+            {
+                if (receiverType.IsTypeParameter())
+                {
+                    // type param receiver that we statically know is a reference will be boxed
+                    context = ExprContext.Box;
+                }
+                else
+                {
+                    // reference receivers will be used as values
+                    context = ExprContext.Value;
+                }
+            }
+            else
+            {
+                // everything else will get an address taken
+                context = ExprContext.Address;
+            }
+
+            receiver = VisitExpression(receiver, context);
+            return receiver;
         }
 
         private ImmutableArray<BoundExpression> VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters)
@@ -1207,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
         {
             var origStack = this.evalStack;
-            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression receiver = VisitCallReceiver(node.Receiver);
 
             var cookie = GetStackStateCookie();     // implicit branch here
 

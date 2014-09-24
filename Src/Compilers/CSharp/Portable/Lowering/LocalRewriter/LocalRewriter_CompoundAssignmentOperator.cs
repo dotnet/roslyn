@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (binaryOperator == BinaryOperatorKind.Addition || binaryOperator == BinaryOperatorKind.Subtraction);
 
             // save RHS to a temp, we need to use it twice:
-            if (isPossibleEventHandlerOperation && NeedsTemp(loweredRight, localsMayBeAssigned: false))
+            if (isPossibleEventHandlerOperation && IntroducingReadCanBeObservable(loweredRight))
             {
                 BoundAssignmentOperator assignmentToTemp;
                 var temp = this.factory.StoreToTemp(loweredRight, out assignmentToTemp);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var prop = (BoundPropertyAccess)originalLHS;
 
                         // If the property is static or if the receiver is of kind "Base" or "this", then we can just generate prop = prop + value
-                        if (prop.ReceiverOpt == null || prop.PropertySymbol.IsStatic || !NeedsTemp(prop.ReceiverOpt))
+                        if (prop.ReceiverOpt == null || prop.PropertySymbol.IsStatic || !IntroducingReadCanBeObservable(prop.ReceiverOpt))
                         {
                             return prop;
                         }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DynamicMemberAccess:
                     {
                         var memberAccess = (BoundDynamicMemberAccess)originalLHS;
-                        if (!NeedsTemp(memberAccess.Receiver))
+                        if (!IntroducingReadCanBeObservable(memberAccess.Receiver))
                         {
                             return memberAccess;
                         }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiverOpt != null);
 
                         BoundExpression transformedReceiver;
-                        if (NeedsTemp(receiverOpt))
+                        if (IntroducingReadCanBeObservable(receiverOpt))
                         {
                             BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
 
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression receiverOpt = fieldAccess.ReceiverOpt;
 
                         //If the receiver is static or is the receiver is of kind "Base" or "this", then we can just generate field = field + value
-                        if (fieldAccess.FieldSymbol.IsStatic || !NeedsTemp(receiverOpt))
+                        if (fieldAccess.FieldSymbol.IsStatic || !IntroducingReadCanBeObservable(receiverOpt))
                         {
                             return fieldAccess;
                         }
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerAccess = (BoundDynamicIndexerAccess)originalLHS;
 
                         BoundExpression loweredReceiver;
-                        if (NeedsTemp(indexerAccess.ReceiverOpt))
+                        if (IntroducingReadCanBeObservable(indexerAccess.ReceiverOpt))
                         {
                             BoundAssignmentOperator assignmentToTemp;
                             var temp = this.factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp);
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         for (int i = 0; i < arguments.Length; i++)
                         {
-                            if (NeedsTemp(arguments[i]))
+                            if (IntroducingReadCanBeObservable(arguments[i]))
                             {
                                 BoundAssignmentOperator assignmentToTemp;
                                 var temp = this.factory.StoreToTemp(VisitExpression(arguments[i]), out assignmentToTemp, refKind: indexerAccess.ArgumentRefKindsOpt.RefKinds(i));
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundTempIndices = new BoundExpression[loweredIndices.Length];
             for (int i = 0; i < boundTempIndices.Length; i++)
             {
-                if (NeedsTemp(loweredIndices[i]))
+                if (IntroducingReadCanBeObservable(loweredIndices[i]))
                 {
                     BoundAssignmentOperator assignmentToTemp;
                     var temp = this.factory.StoreToTemp(loweredIndices[i], out assignmentToTemp);
@@ -596,15 +596,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Values local to current frame do not need temps when accessed multiple times
-        /// as long as there is no code that may write to locals in between accesses.
+        /// Variables local to current frame do not need temps when re-read multiple times
+        /// as long as there is no code that may write to locals in between accesses and they
+        /// are not captured.
+        /// 
         /// Example:
         ///        l += foo(ref l);
         /// 
         /// even though l is a local, we must access it via a temp since "foo(ref l)" may change it
         /// on between accesses. 
         /// </summary>
-        internal static bool NeedsTemp(BoundExpression expression, bool localsMayBeAssigned = true)
+        internal static bool IntroducingReadCanBeObservable(BoundExpression expression, bool localsMayBeAssignedOrCaptured = true)
         {
             switch (expression.Kind)
             {
@@ -621,10 +623,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         !type.IsEnumType();
 
                 case BoundKind.Parameter:
-                    return localsMayBeAssigned || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
+                    return localsMayBeAssignedOrCaptured || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
 
                 case BoundKind.Local:
-                    return localsMayBeAssigned || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
+                    return localsMayBeAssignedOrCaptured || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
 
                 default:
                     return true;

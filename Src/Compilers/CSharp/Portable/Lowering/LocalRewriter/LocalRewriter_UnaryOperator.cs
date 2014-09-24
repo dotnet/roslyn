@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // To avoid this issue, in a case of ByRef operand, we perform a "nested sequence" rewrite.
             //
             // Ex: 
-            //    Seq{..., operand = Seq{temp = operand + 1), temp}, ...}       
+            //    Seq{..., operand = Seq{temp = operand + 1, temp}, ...}       
             //  instead of 
             //    Seq{.... temp = operand + 1, operand = temp, ...}              
             //
