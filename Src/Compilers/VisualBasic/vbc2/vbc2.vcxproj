@@ -97,6 +97,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Core\NativeClient\UIStrings.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +107,9 @@
     <ProjectReference Include="..\..\Core\NativeClient\NativeClient.vcxproj">
       <Project>{d8befb58-c728-4c48-ad22-77edbe334a8e}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\Core\NativeClient\UIStrings.rc" />
   </ItemGroup>
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
   <ImportGroup Label="Targets">

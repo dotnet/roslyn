@@ -18,6 +18,21 @@ bool HaveLogFile()
 	return logFile != nullptr;
 }
 
+wstring GetResourceString(UINT loadResource)
+{
+	extern HINSTANCE g_hinstMessages;
+	LPWSTR tempStr;
+	int result = LoadString(g_hinstMessages, loadResource, (LPWSTR)&tempStr, 0);
+
+	if (result > 0)
+	{
+		return wstring(tempStr);
+	}
+
+	return wstring(L"");
+}
+
+
 bool GetEnvVar(LPCWSTR name, wstring &value)
 {
 	auto sizeNeeded = GetEnvironmentVariableW(name, nullptr, 0);

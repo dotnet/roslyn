@@ -17,6 +17,7 @@ public:
 };
 
 bool HaveLogFile();
+std::wstring GetResourceString(UINT);
 bool GetEnvVar(LPCWSTR name, std::wstring &value);
 void InitializeLogging();
 void Log(LPCWSTR message);

@@ -97,20 +97,28 @@
     <ClInclude Include="native_client.h" />
     <ClInclude Include="pipe_utils.h" />
     <ClInclude Include="protocol.h" />
+    <ClInclude Include="satellite.h" />
     <ClInclude Include="smart_resources.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="UIStrings.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="logging.cpp" />
     <ClCompile Include="native_client.cpp" />
     <ClCompile Include="pipe_utils.cpp" />
     <ClCompile Include="protocol.cpp" />
+    <ClCompile Include="satellite.cpp" />
     <ClCompile Include="smart_resources.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="UIStrings.rc">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ResourceCompile>
   </ItemGroup>
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
   <ImportGroup Label="Targets">

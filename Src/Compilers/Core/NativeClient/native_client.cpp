@@ -7,6 +7,8 @@
 #include "native_client.h"
 #include "pipe_utils.h"
 #include "smart_resources.h"
+#include "satellite.h"
+#include "UIStrings.h"
 
 // This is small, native code executable which opens a named pipe 
 // to the compiler server to do the actual compilation. It is a native code
@@ -27,6 +29,9 @@ const wchar_t * const SERVERNAME = L"VBCSCompiler.exe";
 
 // The name of the named pipe. A process id is appended to the end.
 const wchar_t * const PIPENAME = L"VBCSCompiler";
+
+// Module to load resources from.
+HINSTANCE g_hinstMessages;
 
 wstring GetCurrentDirectory()
 {
@@ -461,7 +466,7 @@ void ParseAndValidateClientArguments(
 			if (arg.length() < prefixLen + 2 ||
 				(arg.at(prefixLen) != L':' && arg.at(prefixLen) != L'='))
 			{
-				throw FatalError(L"Missing argument for '/keepalive' option");
+				throw FatalError(GetResourceString(IDS_MissingKeepAlive));
 			}
 
 			auto value = arg.substr(prefixLen + 1);
@@ -469,7 +474,7 @@ void ParseAndValidateClientArguments(
 				auto intValue = stoi(value);
 
 				if (intValue < -1) {
-					throw FatalError(L"Arguments to '/keepalive' option below -1 are invalid");
+					throw FatalError(GetResourceString(IDS_KeepAliveIsTooSmall));
 				}
 
 				keepAliveValue = value;
@@ -477,10 +482,10 @@ void ParseAndValidateClientArguments(
 				continue;
 			}
 			catch (invalid_argument) {
-				throw FatalError(L"Argument to '/keepalive' option is not an integer");
+				throw FatalError(GetResourceString(IDS_KeepAliveIsNotAnInteger));
 			}
 			catch (out_of_range) {
-				throw FatalError(L"Argument to '/keepalive' is out of 32-bit integer range");
+				throw FatalError(GetResourceString(IDS_KeepAliveIsOutOfRange));
 			}
 		}
 
@@ -654,10 +659,162 @@ CompletedResponse Run(
 	return CompletedResponse();
 }
 
-int Run(RequestLanguage language)
+bool ProcessSlashes(WCHAR * & outBuffer, LPCWSTR * pszCur)
+{
+    // All this weird slash stuff follows the standard argument processing routines
+    size_t iSlash = 0;
+    LPCWSTR pCur = *pszCur;
+    bool fIsQuoted = false;
+
+    while (*pCur == L'\\')
+        iSlash++, pCur++;
+
+    if (*pCur == L'\"')
+    {
+        // Slashes followed by a quote character
+        // put one slash in the output for every 2 slashes in the input
+        for (; iSlash >= 2; iSlash -= 2)
+        {
+            *outBuffer = L'\\';
+            outBuffer++;
+        }
+
+        // If there's 1 remaining slash, it's escaping the quote
+        // so ignore the slash and keep the quote (as a normal character)
+        if (iSlash & 1)
+        { // Is it odd?
+            *outBuffer = *pCur++;
+            outBuffer++;
+        }
+        else
+        {
+            // A regular quote, so eat it and change the bQuoted
+            pCur++;
+            fIsQuoted = true;
+        }
+    }
+    else
+    {
+        // Slashs not followed by a quote are just slashes
+        for (; iSlash > 0; iSlash--)
+        {
+            *outBuffer = L'\\';
+            outBuffer++;
+        }
+    }
+
+    *pszCur = pCur;
+    return fIsQuoted;
+}
+
+// Remove quote marks from a string
+void RemoveQuotes(WCHAR * text)
+{
+    LPCWSTR pIn;
+    WCHAR ch;
+
+    pIn = text;
+    for (;;)
+    {
+        switch (ch = *pIn)
+        {
+        case L'\0':
+            // End of string. We're done.
+            *text = L'\0';
+            return;
+
+        case L'\\':
+            ProcessSlashes(text, &pIn);
+            // Not break because ProcessSlashes has already advanced pIn
+            continue;
+
+        case L'\"':
+            break;
+
+        default:
+            *text = ch;
+            text++;
+            break;
+        }
+
+        ++pIn;
+    }
+}
+
+
+typedef  BOOL(__stdcall * SET_PREFERRED_UI_LANGUAGES_PROTOTYPE) (DWORD, PCWSTR, PULONG);
+
+void SetPreferredUILangForMessages(LPCWSTR rawCommandLineArgs[], int argsCount, LPCWSTR uiDllname)
+{
+    list<wstring> commandLineArgs(rawCommandLineArgs, rawCommandLineArgs + argsCount);
+
+    // Loop through the arguments to find the preferreduilang switch.
+    for (auto iter = commandLineArgs.cbegin(); iter != commandLineArgs.cend(); iter++)
+    {
+        auto arg = *iter;
+
+        if (!(arg[0] == '-' || arg[0] == '/'))
+            continue;  // Not an option.
+
+        if (_wcsnicmp(arg.c_str() + 1, L"preferreduilang:", 16) == 0)
+        {
+            size_t langidLength = arg.length() - (1 + 16);
+            // The string will be terminated by two null chars - hence the +2.
+            WCHAR *langid = new WCHAR[langidLength + 2];
+
+            arg._Copy_s(langid, langidLength + 1, langidLength, 1 + 16);
+            langid[langidLength] = L'\0';
+
+            // remove quotes
+            RemoveQuotes(langid);
+
+            if (*langid != '\0')
+            {
+                HMODULE hKernel = GetModuleHandleA("kernel32.dll");
+                if (hKernel)
+                {
+                    // SetProcessPreferredUILangs expects a string that is double null terminated and has a list of ui langs
+                    // separated by a null character. So for en-us the string should be "en-us\0\0".
+                    langidLength = wcslen(langid);
+                    langid[langidLength + 1] = '\0';
+
+                    SET_PREFERRED_UI_LANGUAGES_PROTOTYPE pfnSetProcessPreferredUILanguages =
+                        (SET_PREFERRED_UI_LANGUAGES_PROTOTYPE)GetProcAddress(hKernel, "SetProcessPreferredUILanguages");
+                    if (pfnSetProcessPreferredUILanguages != NULL)
+                    {
+                        BOOL success = pfnSetProcessPreferredUILanguages(MUI_LANGUAGE_NAME, langid, NULL);
+                        if (success)
+                        {
+                            HINSTANCE hinstMessages = GetMessageDll(uiDllname);
+
+                            if (hinstMessages)
+                            {
+                                g_hinstMessages = hinstMessages;
+                            }
+                        }
+                    }
+                }
+            }
+
+            delete langid;
+        }
+        else
+            continue;       // Not a recognized argument.
+    }
+}
+
+int Run(RequestLanguage language, LPCWSTR uiDllname)
 {
     try
     {
+        g_hinstMessages = GetMessageDll(uiDllname);
+
+        if (!g_hinstMessages)
+        {
+            // Fall back to this module if none was found.
+            g_hinstMessages = GetModuleHandle(NULL);
+        }
+
         auto currentDirectory = GetCurrentDirectory();
         int argsCount;
         auto commandLineArgs = GetCommandLineArgs(argsCount);
@@ -667,6 +824,13 @@ int Run(RequestLanguage language)
         // has CR and LF in it. If we don't do this, we get CR CR LF at each newline.
         (void)_setmode(_fileno(stdout), _O_BINARY);
         (void)_setmode(_fileno(stderr), _O_BINARY);
+
+        // Process the /preferreduilang switch and refetch the resource dll
+        SetPreferredUILangForMessages(
+            // Don't include the name of the process
+            commandLineArgs.get() + 1,
+            argsCount - 1,
+            uiDllname);
 
         auto response = Run(
             language,
