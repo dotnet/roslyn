@@ -1169,9 +1169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Sub
 
             Private Shared Function CanScheduleToStack(local As LocalSymbol) As Boolean
-                ' cannot schedule constants and catch variables
-                ' in theory catch vars could be scheduled, but are not worth the trouble.
-                Return Not (local.IsConst OrElse local.IsCatch)
+                Return local.CanScheduleToStack
             End Function
 
             Private Sub DeclareLocals(locals As ImmutableArray(Of LocalSymbol), stack As Integer)

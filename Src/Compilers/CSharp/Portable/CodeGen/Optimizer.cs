@@ -1592,8 +1592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static bool CanScheduleToStack(LocalSymbol local)
         {
-            // cannot schedule constants and pinned locals
-            return !(local.IsConst || local.IsPinned);
+            return local.CanScheduleToStack;
         }
 
         private void DeclareLocals(ImmutableArray<LocalSymbol> locals, int stack)

@@ -248,6 +248,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overridable ReadOnly Property CanScheduleToStack As Boolean
+            Get
+                ' cannot schedule constants and catch variables
+                ' in theory catch vars could be scheduled, but are not worth the trouble.
+                Return Not IsConst AndAlso Not IsCatch
+            End Get
+        End Property
+
         Public ReadOnly Property IsStatic As Boolean
             Get
                 Return Me.DeclarationKind = LocalDeclarationKind.Static

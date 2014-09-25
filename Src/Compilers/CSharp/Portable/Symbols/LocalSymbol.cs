@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal virtual bool CanScheduleToStack
+        {
+            get { return !IsConst && !IsPinned; }
+        }
+
         internal abstract SyntaxToken IdentifierToken
         {
             get;
