@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(2, mdTestLib1.CachedSymbols.Count());
 
-            object assembly = mdTestLib1.Metadata.GetTarget().Assembly;
+            object assembly = mdTestLib1.Metadata.GetTarget().GetAssembly();
             Assert.NotNull(assembly);
             return new ObjectReference(assembly);
         }
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 Assert.Equal(mscorlibPath, MetadataCache.AssembliesFromFiles.Keys.Single().FullPath, StringComparer.OrdinalIgnoreCase);
 
-                var assembly = cachedAssembly.Metadata.GetTarget().Assembly;
+                var assembly = cachedAssembly.Metadata.GetTarget().GetAssembly();
                 Assert.NotNull(assembly);
 
                 Assert.Equal("mscorlib", assembly.Identity.Name);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var mscorlibAsm = (PEAssemblySymbol)cachedAssembly.CachedSymbols.First();
 
                 Assert.NotNull(mscorlibAsm);
-                Assert.Same(mscorlibAsm.Assembly, cachedAssembly.Metadata.GetTarget().Assembly);
+                Assert.Same(mscorlibAsm.Assembly, cachedAssembly.Metadata.GetTarget().GetAssembly());
                 Assert.Equal("mscorlib", mscorlibAsm.Identity.Name);
                 Assert.Equal("mscorlib", mscorlibAsm.Name);
                 Assert.Equal(1, mscorlibAsm.Modules.Length);
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Same(mscorlibInfo.CachedSymbols.First(), mscorlibAsm);
 
                 var varMTTestLib1Info = MetadataCache.AssembliesFromFiles[FileKey.Create(varMTTestLib1Path)];
-                var assembly = varMTTestLib1Info.Metadata.GetTarget().Assembly;
+                var assembly = varMTTestLib1Info.Metadata.GetTarget().GetAssembly();
                 Assert.NotNull(assembly);
                 Assert.Equal(1, varMTTestLib1Info.CachedSymbols.Count());
 
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 var fileInfo = MetadataCache.AssembliesFromFiles[FileKey.Create(multimoduleRef.FilePath)];
 
-                var assembly = fileInfo.Metadata.GetTarget().Assembly;
+                var assembly = fileInfo.Metadata.GetTarget().GetAssembly();
 
                 // tc1 compilation is holding on the Assembly:
                 Assert.NotNull(assembly);
@@ -1336,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             lock (MetadataCache.Guard)
             {
                 Assert.Equal(1, mdTestLib1.CachedSymbols.Count());
-                Assert.NotNull(mdTestLib1.Metadata.GetTarget().Assembly);
+                Assert.NotNull(mdTestLib1.Metadata.GetTarget().GetAssembly());
                 Assert.False(mdTestLib1.CachedSymbols.GetWeakReference(0).IsNull());
                 Assert.Same(mdTestLib1.Metadata, MetadataCache.AssembliesFromFiles[fileKey].Metadata);
 

@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                                     metadata1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.NoPia.LocalTypes1),
                                     metadata2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.NoPia.LocalTypes2))
             {
-                var pia1 = piaMetadata.Assembly.Modules[0];
-                var localTypes1 = metadata1.Assembly.Modules[0];
-                var localTypes2 = metadata2.Assembly.Modules[0];
+                var pia1 = piaMetadata.GetAssembly().Modules[0];
+                var localTypes1 = metadata1.GetAssembly().Modules[0];
+                var localTypes2 = metadata2.GetAssembly().Modules[0];
 
                 Assert.False(pia1.ContainsNoPiaLocalTypes());
                 Assert.False(pia1.ContainsNoPiaLocalTypes());

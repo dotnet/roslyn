@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var fileReference in availableReferences)
                 {
-                    var identity = ((AssemblyMetadata)fileReference.GetMetadata()).Assembly.Identity;
+                    var identity = ((AssemblyMetadata)fileReference.GetMetadata()).GetAssembly().Identity;
                     if (assemblyIdentityComparer.ReferenceMatchesDefinition(displayName, identity))
                     {
                         return fileReference.FilePath;

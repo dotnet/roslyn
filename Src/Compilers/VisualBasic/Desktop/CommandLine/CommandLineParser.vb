@@ -1180,7 +1180,7 @@ lVbRuntimePlus:
                     ' Prefer 'System.Runtime.dll' if it does not have any references
                     If systemRuntimeMetadata.Kind = MetadataImageKind.Assembly Then
                         Dim assemblyMetadata = DirectCast(systemRuntimeMetadata, AssemblyMetadata)
-                        If assemblyMetadata.ManifestModule.Module.IsLinkedModule AndAlso assemblyMetadata.Assembly.AssemblyReferences.Length = 0 Then
+                        If assemblyMetadata.GetModules()(0).Module.IsLinkedModule AndAlso assemblyMetadata.GetAssembly.AssemblyReferences.Length = 0 Then
                             Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly))
                         End If
                     End If

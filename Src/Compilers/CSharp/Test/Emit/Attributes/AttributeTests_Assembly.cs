@@ -947,7 +947,7 @@ public class C {}
 
             var exeMetadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray());
 
-            peModule = exeMetadata.Assembly.ManifestModule; 
+            peModule = exeMetadata.GetAssembly().ManifestModule; 
             metadataReader = peModule.GetMetadataReader();
 
             Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef));

@@ -23,7 +23,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class PEModule : IDisposable
     {
+        // Either we have PEReader or we have pointer and size of the metadata blob:
         private readonly PEReader peReaderOpt;
+        private readonly IntPtr metadataPointerOpt;
+        private readonly int metadataSizeOpt;
+
         private MetadataReader lazyMetadataReader;
 
         private ImmutableArray<AssemblyIdentity> lazyAssemblyReferences;
@@ -71,14 +75,16 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> AttributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> AttributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
 
-        internal PEModule(PEReader peReader, MetadataReader metadataReader)
+        internal PEModule(PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt)
         {
             // shall not throw
 
-            Debug.Assert((peReader == null) ^ (metadataReader == null));
+            Debug.Assert((peReader == null) ^ (metadataOpt == IntPtr.Zero && metadataSizeOpt == 0));
+            Debug.Assert(metadataOpt == IntPtr.Zero || metadataSizeOpt > 0);
 
             this.peReaderOpt = peReader;
-            this.lazyMetadataReader = metadataReader;
+            this.metadataPointerOpt = metadataOpt;
+            this.metadataSizeOpt = metadataSizeOpt;
             this.lazyTypeNameCollection = new Lazy<IdentifierCollection>(ComputeTypeNameCollection);
             this.lazyNamespaceNameCollection = new Lazy<IdentifierCollection>(ComputeNamespaceNameCollection);
             this.hashesOpt = (peReader != null) ? new PEHashProvider(peReader) : null;
@@ -141,14 +147,24 @@ namespace Microsoft.CodeAnalysis
             {
                 if (lazyMetadataReader == null)
                 {
-                    // PEModule is either created with metadata reader or PE reader.
-                    Debug.Assert(peReaderOpt != null);
-                    if (!peReaderOpt.HasMetadata)
+                    MetadataReader newReader;
+
+                    // PEModule is either created with metadata memory block or a PE reader.
+                    if (metadataPointerOpt != IntPtr.Zero)
                     {
-                        throw new BadImageFormatException(CodeAnalysisResources.PEImageDoesntContainManagedMetadata);
+                        newReader = new MetadataReader(metadataPointerOpt, metadataSizeOpt, MetadataReaderOptions.ApplyWindowsRuntimeProjections, stringInterner: StringTable.AddShared);
+                    }
+                    else
+                    {
+                        Debug.Assert(peReaderOpt != null);
+                        if (!peReaderOpt.HasMetadata)
+                        {
+                            throw new BadImageFormatException(CodeAnalysisResources.PEImageDoesntContainManagedMetadata);
+                        }
+
+                        newReader = peReaderOpt.GetMetadataReader(MetadataReaderOptions.ApplyWindowsRuntimeProjections, stringInterner: StringTable.AddShared);
                     }
 
-                    var newReader = peReaderOpt.GetMetadataReader(MetadataReaderOptions.ApplyWindowsRuntimeProjections, stringInterner: StringTable.AddShared);
                     Interlocked.CompareExchange(ref lazyMetadataReader, newReader, null);
                 }
 

@@ -245,7 +245,7 @@ public class Test : Class2
             context.Diagnostics.Verify();
 
             // check that there are no duplicate rows in AssemblyRef table:
-            PEAssembly emittedAssembly = AssemblyMetadata.CreateFromImage(image).Assembly;
+            PEAssembly emittedAssembly = AssemblyMetadata.CreateFromImage(image).GetAssembly();
             var emittedReferences = emittedAssembly.Modules[0].ReferencedAssemblies;
             Assert.Equal(1, emittedReferences.Length);
             Assert.Equal("foo", emittedReferences[0].Name);

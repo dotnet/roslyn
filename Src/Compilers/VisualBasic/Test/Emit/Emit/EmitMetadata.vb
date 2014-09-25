@@ -216,7 +216,7 @@ End Class
             Dim dllImage = CompileAndVerify(c1).EmittedAssemblyData
 
             Using metadata = AssemblyMetadata.CreateFromImage(dllImage)
-                Dim emitAssemblyRefs As PEAssembly = metadata.Assembly
+                Dim emitAssemblyRefs As PEAssembly = metadata.GetAssembly
 
                 Dim refs = emitAssemblyRefs.Modules(0).ReferencedAssemblies.AsEnumerable().OrderBy(Function(r) r.Name).ToArray()
 
@@ -241,7 +241,7 @@ End Class
             dllImage = CompileAndVerify(c2).EmittedAssemblyData
 
             Using metadata = AssemblyMetadata.CreateFromImage(dllImage)
-                Dim emitAssemblyRefs2 As PEAssembly = metadata.Assembly
+                Dim emitAssemblyRefs2 As PEAssembly = metadata.GetAssembly
                 Dim refs2 = emitAssemblyRefs2.Modules(0).ReferencedAssemblies.AsEnumerable().OrderBy(Function(r) r.Name).ToArray()
 
                 Assert.Equal(2, refs2.Count)
@@ -279,7 +279,7 @@ End Class
             Dim manifestModule = CompileAndVerify(c1).EmittedAssemblyData
 
             Using metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(manifestModule), netModule1, netModule2)
-                Dim emitAddModule As PEAssembly = metadata.Assembly
+                Dim emitAddModule As PEAssembly = metadata.GetAssembly
 
                 Assert.Equal(3, emitAddModule.Modules.Length)
 

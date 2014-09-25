@@ -79,33 +79,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' CommonReferenceManager<TCompilation, TAssemblySymbol>.IndexOfCorLibrary
                         ' should be equivalent.
                         If Not refProps.EmbedInteropTypes AndAlso refProps.Kind = MetadataImageKind.Assembly Then
-                            Dim metadata As Metadata
-
                             Try
-                                metadata = DirectCast(reference, PortableExecutableReference).GetMetadata()
-                            Catch
-                                ' Failed to get metadata, there will be some errors reported later.
+                                Dim assemblyMetadata = TryCast(DirectCast(reference, PortableExecutableReference).GetMetadata(), AssemblyMetadata)
+
+                                If assemblyMetadata Is Nothing OrElse Not assemblyMetadata.IsValidAssembly() Then
+                                    ' There will be some errors reported later.
+                                    Return True
+                                End If
+
+                                Dim assembly As PEAssembly = assemblyMetadata.GetAssembly()
+
+                                If assembly.AssemblyReferences.Length = 0 AndAlso Not assembly.ContainsNoPiaLocalTypes AndAlso assembly.DeclaresTheObjectClass Then
+                                    ' This reference looks like a valid Cor library candidate, bail out.
+                                    Return True
+                                End If
+
+                            Catch e As BadImageFormatException
+                                ' error reported later
+                                Return True
+                            Catch e As IOException
+                                ' error reported later
                                 Return True
                             End Try
-
-                            If metadata Is Nothing Then
-                                ' Failed to get metadata, there will be some errors reported later.
-                                Return True
-                            End If
-
-                            Dim assemblyMetadata = DirectCast(metadata, AssemblyMetadata)
-
-                            If Not assemblyMetadata.IsValidAssembly Then
-                                ' There will be some errors reported later.
-                                Return True
-                            End If
-
-                            Dim assembly As PEAssembly = assemblyMetadata.Assembly
-
-                            If assembly.AssemblyReferences.Length = 0 AndAlso Not assembly.ContainsNoPiaLocalTypes AndAlso assembly.DeclaresTheObjectClass Then
-                                ' This reference looks like a valid Cor library candidate, bail out.
-                                Return True
-                            End If
                         End If
                     Next
 

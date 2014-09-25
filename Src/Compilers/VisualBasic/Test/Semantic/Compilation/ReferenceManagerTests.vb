@@ -1472,7 +1472,7 @@ End Class
             Assert.Equal(comp1.Assembly, moduleSymbol1.ContainingAssembly)
 
             Dim moduleReferences1 = moduleSymbol1.GetReferencedAssemblies()
-            Assert.Contains(assemblyMd.Assembly.Identity, moduleReferences1.AsEnumerable())
+            Assert.Contains(assemblyMd.GetAssembly.Identity, moduleReferences1.AsEnumerable())
 
             Dim moduleTypeSymbol1 = comp1.GlobalNamespace.GetMember(Of NamedTypeSymbol)("TypeFromModule")
             Assert.Equal(moduleSymbol1, moduleTypeSymbol1.ContainingModule)
@@ -1612,7 +1612,7 @@ End Class
 
             Dim CopyRefMetaData = refmetadata.Copy
             Assert.NotEqual(refmetadata, CopyRefMetaData)
-            Assert.Equal(refmetadata.Assembly.ToString, CopyRefMetaData.Assembly.ToString)
+            Assert.Equal(refmetadata.GetAssembly.ToString, CopyRefMetaData.GetAssembly.ToString)
 
             Dim mca1 As Metadata = refa.GetMetadata()
             Dim Copymca1 = mca1.Copy()

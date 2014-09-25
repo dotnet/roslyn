@@ -1144,7 +1144,7 @@ End Class
             End Select
         Next
 
-        metadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray()).Assembly.ManifestModule
+        metadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray()).GetAssembly.ManifestModule
         metadataReader = metadata.GetMetadataReader()
 
         Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef))

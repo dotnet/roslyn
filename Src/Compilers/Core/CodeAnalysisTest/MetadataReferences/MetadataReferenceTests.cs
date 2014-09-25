@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             r = new MetadataImageReference(new MemoryStream(TestResources.SymbolsTests.General.C1, writable: false));
             Assert.Equal("<in-memory assembly>".NeedsLocalization(), r.Display);
 
-            Assert.Equal("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", ((AssemblyMetadata)r.GetMetadata()).Assembly.Identity.GetDisplayName());
+            Assert.Equal("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", ((AssemblyMetadata)r.GetMetadata()).GetAssembly().Identity.GetDisplayName());
         }
 
     }

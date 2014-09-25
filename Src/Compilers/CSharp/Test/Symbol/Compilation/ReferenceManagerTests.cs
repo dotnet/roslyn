@@ -1683,7 +1683,7 @@ namespace System.Printing
             AssemblyIdentity actualIdentity = method.ReturnType.ContainingAssembly.Identity;
 
             // Even though the compilation has the correct version number, the referenced binary is preferred.
-            Assert.Equal(oldMetadata.Assembly.Identity, actualIdentity);
+            Assert.Equal(oldMetadata.GetAssembly().Identity, actualIdentity);
             Assert.NotEqual(comp.Assembly.Identity, actualIdentity);
         }
 
@@ -1802,7 +1802,7 @@ class D
             Assert.Equal(comp1.Assembly, moduleSymbol1.ContainingAssembly);
 
             var moduleReferences1 = moduleSymbol1.GetReferencedAssemblies();
-            Assert.Contains(assemblyMetadata.Assembly.Identity, moduleReferences1);
+            Assert.Contains(assemblyMetadata.GetAssembly().Identity, moduleReferences1);
 
             var moduleTypeSymbol1 = comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("TypeFromModule");
             Assert.Equal(moduleSymbol1, moduleTypeSymbol1.ContainingModule);

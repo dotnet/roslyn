@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public static partial class MetadataFileFactory
+    public static partial class MetadataFileFactory // TODO: split to AssemblyMetadataFactory and ModuleMetadataFactory
     {
         /// <summary>
         /// Finds all modules of an assembly on a specified path and builds an instance of <see cref="AssemblyMetadata"/> that represents them.
@@ -18,33 +18,15 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException">Error reading file <paramref name="fullPath"/>. See <see cref="Exception.InnerException"/> for details.</exception>
         public static AssemblyMetadata CreateAssembly(string fullPath)
         {
-            CompilerPathUtilities.RequireAbsolutePath(fullPath, "fullPath");
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
-            return new AssemblyMetadata(CreateModulesFromFile(fullPath));
+            return new AssemblyMetadata(CreateModule(fullPath), moduleName => CreateModuleFromFile(fullPath, moduleName));
         }
 
-        private static ImmutableArray<ModuleMetadata> CreateModulesFromFile(string fullPath)
+        /// <exception cref="IOException">Error reading file <paramref name="fullPath"/>. See <see cref="Exception.InnerException"/> for details.</exception>
+        private static ModuleMetadata CreateModuleFromFile(string fullPath, string moduleName)
         {
-            ArrayBuilder<ModuleMetadata> moduleBuilder = null;
-
-            // if the file isn't an assembly manifest module an error will be reported later
-            ModuleMetadata manifestModule = CreateModule(fullPath);
-
-            string assemblyDir = null;
-            foreach (string moduleName in manifestModule.GetModuleNames())
-            {
-                if (moduleBuilder == null)
-                {
-                    moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
-                    moduleBuilder.Add(manifestModule);
-                    assemblyDir = Path.GetDirectoryName(fullPath);
-                }
-
-                var module = CreateModule(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
-                moduleBuilder.Add(module);
-            }
-
-            return (moduleBuilder != null) ? moduleBuilder.ToImmutableAndFree() : ImmutableArray.Create(manifestModule);
+            return CreateModule(PathUtilities.CombineAbsoluteAndRelativePaths(Path.GetDirectoryName(fullPath), moduleName));
         }
     }
 }

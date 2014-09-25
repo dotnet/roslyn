@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var a = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModule))
             {
                 // even though the image refers to other modules only the manifest module is loaded:
-                Assert.Equal(1, a.Modules.Length);
-                Assert.Equal("MultiModule.dll", a.Modules[0].Name);
+                Assert.Equal(1, a.GetModules().Length);
+                Assert.Equal("MultiModule.dll", a.GetModules()[0].Name);
             }
         }
 
@@ -57,10 +57,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using (var a = MetadataFileFactory.CreateAssembly(mm))
             {
-                Assert.Equal(3, a.Modules.Length);
-                Assert.Equal("MultiModule.dll", a.Modules[0].Name);
-                Assert.Equal("mod2.netmodule", a.Modules[1].Name);
-                Assert.Equal("mod3.netmodule", a.Modules[2].Name);
+                Assert.Equal(3, a.GetModules().Length);
+                Assert.Equal("MultiModule.dll", a.GetModules()[0].Name);
+                Assert.Equal("mod2.netmodule", a.GetModules()[1].Name);
+                Assert.Equal("mod3.netmodule", a.GetModules()[2].Name);
             }
         }
         
@@ -96,54 +96,53 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var copy1 = a.Copy();
             Assert.False(copy1.IsImageOwner, "Assembly should not own the image");
-            Assert.False(copy1.Modules[0].IsImageOwner, "Module should not own the image");
-            Assert.False(copy1.Modules[1].IsImageOwner, "Module should not own the image");
-            Assert.False(copy1.Modules[2].IsImageOwner, "Module should not own the image");
+            Assert.False(copy1.GetModules()[0].IsImageOwner, "Module should not own the image");
+            Assert.False(copy1.GetModules()[1].IsImageOwner, "Module should not own the image");
+            Assert.False(copy1.GetModules()[2].IsImageOwner, "Module should not own the image");
 
-            Assert.Equal(m1.Module, copy1.Modules[0].Module);
-            Assert.Equal(m2.Module, copy1.Modules[1].Module);
-            Assert.Equal(m3.Module, copy1.Modules[2].Module);
+            Assert.Equal(m1.Module, copy1.GetModules()[0].Module);
+            Assert.Equal(m2.Module, copy1.GetModules()[1].Module);
+            Assert.Equal(m3.Module, copy1.GetModules()[2].Module);
 
             var copy2 = copy1.Copy();
             Assert.False(copy2.IsImageOwner, "Assembly should not own the image");
-            Assert.False(copy2.Modules[0].IsImageOwner, "Module should not own the image");
-            Assert.False(copy2.Modules[1].IsImageOwner, "Module should not own the image");
-            Assert.False(copy2.Modules[2].IsImageOwner, "Module should not own the image");
+            Assert.False(copy2.GetModules()[0].IsImageOwner, "Module should not own the image");
+            Assert.False(copy2.GetModules()[1].IsImageOwner, "Module should not own the image");
+            Assert.False(copy2.GetModules()[2].IsImageOwner, "Module should not own the image");
 
-            Assert.Equal(m1.Module, copy2.Modules[0].Module);
-            Assert.Equal(m2.Module, copy2.Modules[1].Module);
-            Assert.Equal(m3.Module, copy2.Modules[2].Module);
+            Assert.Equal(m1.Module, copy2.GetModules()[0].Module);
+            Assert.Equal(m2.Module, copy2.GetModules()[1].Module);
+            Assert.Equal(m3.Module, copy2.GetModules()[2].Module);
 
             copy1.Dispose();
-            Assert.Throws<ObjectDisposedException>(() => copy1.Modules[0].Module);
-            Assert.Throws<ObjectDisposedException>(() => copy1.Modules[1].Module);
-            Assert.Throws<ObjectDisposedException>(() => copy1.Modules[2].Module);
+            Assert.Throws<ObjectDisposedException>(() => copy1.GetModules()[0].Module);
+            Assert.Throws<ObjectDisposedException>(() => copy1.GetModules()[1].Module);
+            Assert.Throws<ObjectDisposedException>(() => copy1.GetModules()[2].Module);
 
-            Assert.NotNull(a.Modules[0].Module);
-            Assert.NotNull(a.Modules[1].Module);
-            Assert.NotNull(a.Modules[2].Module);
+            Assert.NotNull(a.GetModules()[0].Module);
+            Assert.NotNull(a.GetModules()[1].Module);
+            Assert.NotNull(a.GetModules()[2].Module);
 
             a.Dispose();
 
-            Assert.Throws<ObjectDisposedException>(() => a.Modules[0].Module);
-            Assert.Throws<ObjectDisposedException>(() => a.Modules[1].Module);
-            Assert.Throws<ObjectDisposedException>(() => a.Modules[2].Module);
+            Assert.Throws<ObjectDisposedException>(() => a.GetModules()[0].Module);
+            Assert.Throws<ObjectDisposedException>(() => a.GetModules()[1].Module);
+            Assert.Throws<ObjectDisposedException>(() => a.GetModules()[2].Module);
         }
 
         [Fact]
         public void BadImageFormat()
         {
             var invalidModuleName = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.Invalid.InvalidModuleName);
-            Assert.Throws<BadImageFormatException>(() => MetadataFileFactory.CreateAssembly(invalidModuleName.Path));
+            var metadata = MetadataFileFactory.CreateAssembly(invalidModuleName.Path);
+            Assert.Throws<BadImageFormatException>(() => metadata.GetModules());
         }
 
         [Fact, WorkItem(547015, "DevDiv")]
         public void IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
         {
-            Assert.Throws<BadImageFormatException>(() =>
-            {
-                AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.IncorrectCustomAssemblyTableSize_TooManyMethodSpecs);
-            });
+            var metadata = AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.IncorrectCustomAssemblyTableSize_TooManyMethodSpecs);
+            Assert.Throws<BadImageFormatException>(() => metadata.GetModules());
         }
     }
 }

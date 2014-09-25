@@ -10,8 +10,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class Metadata : IDisposable
     {
-        internal Metadata()
+        internal readonly bool IsImageOwner;
+
+        internal Metadata(bool isImageOwner)
         {
+            this.IsImageOwner = isImageOwner;
         }
 
         /// <summary>
@@ -33,8 +36,5 @@ namespace Microsoft.CodeAnalysis
         {
             return CommonCopy();
         }
-
-        // does this instance own the PE image?
-        internal abstract bool IsImageOwner { get; }
     }
 }

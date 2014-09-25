@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         /// <exception cref="ArgumentNullException"><paramref name="fullPath"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="fullPath"/> is not a valid absolute path.</exception>
-        /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
-        /// <exception cref="IOException">Error reading file <paramref name="fullPath"/>. See <see cref="Exception.InnerException"/> for details.</exception>
+        /// <exception cref="IOException">Error opening file <paramref name="fullPath"/>. See <see cref="Exception.InnerException"/> for details.</exception>
         /// <exception cref="FileNotFoundException">File <paramref name="fullPath"/> not found.</exception>
         public static ModuleMetadata CreateModule(string fullPath)
         {

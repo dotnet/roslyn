@@ -3934,7 +3934,7 @@ namespace M
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadata()).Modules[0];
+            var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadata()).GetModules()[0];
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var generation0 = EmitBaseline.CreateInitialBaseline(
             moduleMetadata0,
@@ -4623,7 +4623,7 @@ class B
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadata()).Modules[0];
+            var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadata()).GetModules()[0];
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 moduleMetadata0,

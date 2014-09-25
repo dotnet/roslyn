@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
 
                             if (assemblyMetadata.IsValidAssembly())
                             {
-                                PEAssembly assembly = assemblyMetadata.Assembly;
+                                PEAssembly assembly = assemblyMetadata.GetAssembly();
                                 existingReference = TryAddAssembly(
                                     assembly.Identity,
                                     peReference,

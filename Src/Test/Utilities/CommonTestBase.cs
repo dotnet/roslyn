@@ -356,7 +356,7 @@ Example app.config:
             {
                 using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
                 {
-                    assemblyValidator(emittedMetadata.Assembly, emitOptions);
+                    assemblyValidator(emittedMetadata.GetAssembly(), emitOptions);
                 }
             }
 

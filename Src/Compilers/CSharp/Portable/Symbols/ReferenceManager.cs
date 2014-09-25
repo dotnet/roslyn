@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     referencedAssembliesByIdentity.Add(symbol.Identity, symbol);
                 }
 
-                var assembly = metadata.Assembly;
+                var assembly = metadata.GetAssembly();
                 var peReferences = assembly.AssemblyReferences.SelectAsArray(MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity);
                 var assemblySymbol = new PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked: false, importOptions: importOptions);
 
