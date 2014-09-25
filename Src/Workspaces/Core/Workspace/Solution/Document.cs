@@ -246,6 +246,11 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
+                if (!this.SupportsSemanticModel)
+                {
+                    return null;
+                }
+
                 var semanticModel = await GetSemanticModelWorkerAsync(cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(semanticModel);
 
@@ -259,11 +264,6 @@ namespace Microsoft.CodeAnalysis
 
         private async Task<SemanticModel> GetSemanticModelWorkerAsync(CancellationToken cancellationToken)
         {
-            if (!this.SupportsSemanticModel)
-            {
-                return null;
-            }
-
             SemanticModel semanticModel;
             if (this.TryGetSemanticModel(out semanticModel))
             {
