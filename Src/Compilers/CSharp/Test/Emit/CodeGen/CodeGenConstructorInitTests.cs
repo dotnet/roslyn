@@ -323,7 +323,7 @@ class C
     }
 }
 ";
-            CompileAndVerifyExperimental(source, expectedOutput: "42").
+            CompileAndVerify(source, expectedOutput: "42").
                 VerifyIL("C.S1..ctor", @"
 {
   // Code size        9 (0x9)
@@ -337,482 +337,94 @@ class C
         }
 
         [Fact]
-        public void InstanceInitializerStruct001()
+        public void ParameterlessConstructorStruct002()
         {
             var source = @"
 class C
 {
     struct S1
     {
-        public readonly int x = 42;
+        public readonly int x;
         public S1()
         {
-        }
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        System.Console.WriteLine(s.x);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "42").
-                VerifyIL("C.S1..ctor", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   42
-  IL_0003:  stfld      ""int C.S1.x""
-  IL_0008:  ret
-}
-");
+            x = 42;
         }
 
-        [Fact]
-        public void InstanceInitializerStruct002()
-        {
-            var source = @"
-class C
-{
-    struct S1
-    {
-        public readonly int x = 42;
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        System.Console.WriteLine(s.x);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "42").
-                VerifyIL("C.S1..ctor", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  initobj    ""C.S1""
-  IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   42
-  IL_000a:  stfld      ""int C.S1.x""
-  IL_000f:  ret
-}
-");
-        }
-
-        [Fact]
-        public void InstanceInitializerStruct003()
-        {
-            var source = @"
-class C
-{
-    struct S1
-    {
-        public readonly int x = 42;
-        public S1(int x)
+        public S1(int a):this()
         {
         }
     }
 
     static void Main()
     {
-        var s = new S1(1);
+        var s = new S1(123);
         System.Console.WriteLine(s.x);
     }
 }
 ";
-            CompileAndVerifyExperimental(source, expectedOutput: "42").
+            CompileAndVerify(source, expectedOutput: "42").
                 VerifyIL("C.S1..ctor(int)", @"
 {
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   42
-  IL_0003:  stfld      ""int C.S1.x""
-  IL_0008:  ret
-}
-");
-        }
-
-        [Fact]
-        public void InstanceInitializerStruct004()
-        {
-            var source = @"
-class C
-{
-    struct S1
-    {
-        public readonly int x = 42;
-        public S1(int x)
-            :this()
-        {
-            this.x += x;
-        }
-    }
-
-    static void Main()
-    {
-        var s = new S1(1);
-        System.Console.WriteLine(s.x);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "43").
-                VerifyIL("C.S1..ctor(int)", @"
-{
-  // Code size       21 (0x15)
-  .maxstack  3
+  // Code size        7 (0x7)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  call       ""C.S1..ctor()""
-  IL_0006:  ldarg.0
-  IL_0007:  ldarg.0
-  IL_0008:  ldfld      ""int C.S1.x""
-  IL_000d:  ldarg.1
-  IL_000e:  add
-  IL_000f:  stfld      ""int C.S1.x""
-  IL_0014:  ret
+  IL_0006:  ret
 }
 ");
         }
 
         [Fact]
-        public void InstanceInitializerStruct005()
+        public void ParameterlessConstructorStruct003()
         {
             var source = @"
 class C
 {
     struct S1
     {
-        public readonly int x = 42;
-        public S1(int x)
+        public readonly int x;
+        public S1(): this(42)
         {
-            this.x += x;
+        }
+
+        public S1(int a)
+        {
+            x = a;
         }
     }
 
     static void Main()
     {
-        var s = new S1(1);
+        var s = new S1();
         System.Console.WriteLine(s.x);
     }
 }
 ";
-            CompileAndVerifyExperimental(source, expectedOutput: "43").
+            CompileAndVerify(source, expectedOutput: "42").
                 VerifyIL("C.S1..ctor(int)", @"
 {
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   42
-  IL_0003:  stfld      ""int C.S1.x""
-  IL_0008:  ldarg.0
-  IL_0009:  ldarg.0
-  IL_000a:  ldfld      ""int C.S1.x""
-  IL_000f:  ldarg.1
-  IL_0010:  add
-  IL_0011:  stfld      ""int C.S1.x""
-  IL_0016:  ret
-}
-");
-        }
-
-        [Fact]
-        public void InstanceInitializerStruct006()
-        {
-            var source = @"
-class C
-{
-    struct S1
-    {
-        public readonly int x = 42;
-        public string y;
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        s.y = ""JUNK"";
-
-        s = new S1();        
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "").
-                VerifyIL("C.S1..ctor()", @"
-{
-  // Code size       16 (0x10)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  initobj    ""C.S1""
-  IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   42
-  IL_000a:  stfld      ""int C.S1.x""
-  IL_000f:  ret
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.S1.x""
+  IL_0007:  ret
 }
-");
-        }
-
-        [Fact]
-        public void InstanceInitializerPrimaryStruct001()
-        {
-            var source = @"
-class C
+").
+VerifyIL("C.S1..ctor()", @"
 {
-    struct S1()
-    {
-        public readonly int x = 42;
-        public string y = null;
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        s.y = ""JUNK"";
-
-        s = new S1();        
-        System.Console.WriteLine(s.x);
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "42").
-                VerifyIL("C.S1..ctor()", @"
-{
-  // Code size       16 (0x10)
+  // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.s   42
-  IL_0003:  stfld      ""int C.S1.x""
-  IL_0008:  ldarg.0
-  IL_0009:  ldnull
-  IL_000a:  stfld      ""string C.S1.y""
-  IL_000f:  ret
+  IL_0003:  call       ""C.S1..ctor(int)""
+  IL_0008:  ret
 }
 ");
         }
 
         [Fact]
-        public void InstanceInitializerPrimaryStruct002()
-        {
-            var source = @"
-class C
-{
-    struct S1(int arg = 42)
-    {
-        public readonly int x = arg;
-        public string y = null;
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        s.y = ""JUNK"";
-
-        s = new S1();        
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "");
-        }
-
-        [Fact]
-        public void InstanceInitializerPrimaryStruct003()
-        {
-            var source = @"
-class C
-{
-    struct S1(int arg, string s = ""hi"")
-    {
-        public int x = arg;
-        public string y = s;
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        s.x = 333;
-        s.y = ""JUNK"";
-
-        s = new S1();        
-        System.Console.Write(s.x);
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "0");
-        }
-
-        [Fact]
-        public void InstanceInitializerPrimaryStruct004()
-        {
-            var source = @"
-class C
-{
-    struct S1(int arg, string s = ""hi"", __arglist)
-    {
-        public int x = arg;
-        public string y = s;
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        s.x = 333;
-        s.y = ""JUNK"";
-
-        s = new S1();        
-        System.Console.Write(s.x);
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "0");
-        }
-
-        [Fact]
-        public void InstanceInitializerPrimaryStruct004a()
-        {
-            var source = @"
-class C
-{
-    struct S1(int arg, string s = ""hi"", __arglist)
-    {
-        public int x = arg;
-        public string y = s;
-
-        public S1(): this(0, ""hello"", __arglist())
-        {
-        }
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        s.x = 333;
-        s.y = ""JUNK"";
-
-        s = new S1();        
-        System.Console.Write(s.x);
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "0hello").
-                VerifyIL("C.S1..ctor()", @"
-{
-  // Code size       13 (0xd)
-  .maxstack  3
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  ldstr      ""hello""
-  IL_0007:  call       ""C.S1..ctor(int, string, __arglist)""
-  IL_000c:  ret
-}
-");
-        }
-
-        [Fact]
-        public void InstanceInitializerPrimaryStruct005()
-        {
-            var source = @"
-class C
-{
-    struct S1(decimal s = 123, int? i = 5, System.DateTime d = default(System.DateTime))
-    {
-        public decimal x = s;
-        public int? y = i;
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        System.Console.Write(s.x);
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "0");
-        }
-
-        [Fact]
-        public void InstanceInitializerPrimaryStruct005a()
-        {
-            var source = @"
-class C
-{
-    struct S1(decimal s = 123, int? i = 5, System.DateTime d = default(System.DateTime))
-    {
-        public decimal x = s;
-        public int? y = i;
-
-        public S1(): this(0)
-        {
-        }
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        System.Console.Write(s.x);
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "05").
-                VerifyIL("C.S1..ctor()", @"
-{
-  // Code size       27 (0x1b)
-  .maxstack  4
-  .locals init (System.DateTime V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldsfld     ""decimal decimal.Zero""
-  IL_0006:  ldc.i4.5
-  IL_0007:  newobj     ""int?..ctor(int)""
-  IL_000c:  ldloca.s   V_0
-  IL_000e:  initobj    ""System.DateTime""
-  IL_0014:  ldloc.0
-  IL_0015:  call       ""C.S1..ctor(decimal, int?, System.DateTime)""
-  IL_001a:  ret
-}
-");
-        }
-
-        [Fact]
-        public void InstanceInitializerPrimaryStruct006()
-        {
-            var source = @"
-class C
-{
-    struct S1(decimal s = 123, int? i = 5, System.DateTime d = default(System.DateTime))
-    {
-        public decimal x;
-        public int? y;
-
-        {
-            x = s;
-            y = i;
-        }
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        System.Console.Write(s.x);
-        System.Console.WriteLine(s.y);
-    }
-}
-";
-            CompileAndVerifyExperimental(source, expectedOutput: "0");
-        }
-
-
-        [Fact]
-        public void InstanceInitializerStructInExprTree()
+        public void ParameterlessInstCtorInStructExprTree()
         {
             var source = @"
 
@@ -823,7 +435,11 @@ class C
 {
     struct S1
     {
-        public int x = 42;
+        public int x;
+        public S1()
+        {
+            x = 42;
+        }
     }
 
     static void Main()
@@ -833,7 +449,7 @@ class C
     }
 }
 ";
-            CompileAndVerifyExperimental(source, additionalRefs: new[] { ExpressionAssemblyRef }, expectedOutput: "42");
+            CompileAndVerify(source, additionalRefs: new[] { ExpressionAssemblyRef }, expectedOutput: "42");
         }
     }
 }

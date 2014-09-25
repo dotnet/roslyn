@@ -24,7 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public int P { get; } = i;
 }";
             CreateCompilationWithMscorlib(text, 
-               parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics();
+               parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
+    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     public int P { get; } = i;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(3, 16)
+);
         }
 
         [Fact]
@@ -48,9 +52,9 @@ struct S
     int a { get { return 1; } set {} }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (4,9): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    // (4,9): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     int a = 2;
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "a").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(4, 9),
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("S").WithLocation(4, 9),
     // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
     //     int a { get { return 1; } set {} }
     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
@@ -100,6 +104,12 @@ struct S
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
+    // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     public int P { get; set; } = 1;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(4, 16),
+    // (6,20): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     public decimal R { get; } = 300;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(6, 20)
                 );
         }
 
@@ -116,7 +126,14 @@ struct S
 }";
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     public int P { get; set; } = 1;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(3, 16),
+    // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     public decimal R { get; } = 300;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20)
+);
 
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");

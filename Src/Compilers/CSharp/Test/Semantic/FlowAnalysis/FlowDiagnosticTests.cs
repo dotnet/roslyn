@@ -922,9 +922,9 @@ public struct A
 }
 ";
             CreateCompilationWithMscorlib(program).VerifyDiagnostics(
-    // (4,7): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    // (4,7): error CS0573: 'A': cannot have instance property or field initializers in structs
     //     A a = new A(); // CS8036
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "a").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(4, 7),
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("A").WithLocation(4, 7),
     // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
     //     A a = new A(); // CS8036
     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
@@ -1266,7 +1266,14 @@ struct Program
 }";
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     public int P { get; set; } = 1;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(3, 16),
+    // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     public decimal R { get; } = 300;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20)
+);
         }
 
         [Fact]
@@ -1286,9 +1293,13 @@ struct Program
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
+    // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     public decimal R { get; } = 300;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20),
     // (9,9): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
     //         P = p;
-    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "P").WithArguments("this").WithLocation(9, 9));
+    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "P").WithArguments("this").WithLocation(9, 9)
+    );
         }
 
         [Fact]

@@ -10127,7 +10127,6 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureIsExperimental, Line = 5, Column = 16 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, Line = 9, Column = 13 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -10202,19 +10201,46 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-    // (12,13): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
     //         clx a = new clx();   // CS8036
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "a").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(12, 13),
-    // (13,13): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
+    // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
     //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "i").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(13, 13),
-    // (15,20): warning CS0414: The field 'x.cly.s' is assigned but its value is never used
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
+    // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+    //         int i = 7;           // CS8036
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+    // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
     //         static int s = 2;    // no error
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20),
-    // (13,13): warning CS0414: The field 'x.cly.i' is assigned but its value is never used
-    //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13)
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
     );
+        }
+
+        [Fact]
+        public void InstanceCtorInsTructPre60()
+        {
+            var text = @"namespace x
+{
+    public struct S1
+    {
+        public S1() {}
+
+        struct S2<T>
+        {
+            S2() { }
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
+            comp.VerifyDiagnostics(
+    // (5,16): error CS8026: Feature 'struct instance parameterless constructors' is not available in C# 5.  Please use language version 6 or greater.
+    //         public S1() {}
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S1").WithArguments("struct instance parameterless constructors", "6").WithLocation(5, 16),
+    // (9,13): error CS8075: Parameterless instance constructors in structs must be public
+    //             S2() { }
+    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "S2").WithLocation(9, 13)
+   );
         }
 
         [Fact]

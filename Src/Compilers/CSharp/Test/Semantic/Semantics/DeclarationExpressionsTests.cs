@@ -10738,6 +10738,12 @@ class Program
     // (16,23): error CS8036: Only one part of a partial type can declare primary constructor parameters.
     // partial struct Derived(int z)
     Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(int z)").WithLocation(16, 23),
+    // (4,17): error CS0573: 'Derived': cannot have instance property or field initializers in structs
+    //     private int a = int b = 11;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("Derived").WithLocation(4, 17),
+    // (18,17): error CS0573: 'Derived': cannot have instance property or field initializers in structs
+    //     private int c = int d = 11;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "c").WithArguments("Derived").WithLocation(18, 17),
     // (2,16): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'Derived'. To specify an ordering, all instance fields must be in the same declaration.
     // partial struct Derived(byte z)
     Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "Derived").WithArguments("Derived").WithLocation(2, 16),
@@ -10865,7 +10871,7 @@ class Program
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (11,5): error CS8040: Primary constructor already has a body.
+    // (11,5): error CS8041: Primary constructor already has a body.
     //     {
     Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, @"{
         System.Console.WriteLine(a);
@@ -10874,11 +10880,14 @@ class Program
     // (17,23): error CS8036: Only one part of a partial type can declare primary constructor parameters.
     // partial struct Derived(byte a) 
     Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(byte a)").WithLocation(17, 23),
-    // (23,5): error CS8040: Primary constructor already has a body.
+    // (23,5): error CS8041: Primary constructor already has a body.
     //     {
     Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, @"{
         System.Console.WriteLine(a);
-    }").WithLocation(23, 5)
+    }").WithLocation(23, 5),
+    // (4,17): error CS0573: 'Derived': cannot have instance property or field initializers in structs
+    //     private int x = int y = 10;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "x").WithArguments("Derived").WithLocation(4, 17)
                 );
 
             TestSemanticModelAPI(compilation, diagnostics);

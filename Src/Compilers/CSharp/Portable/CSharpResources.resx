@@ -1429,7 +1429,7 @@
     <value>'{0}': cannot reference a type through an expression; try '{1}' instead</value>
   </data>
   <data name="ERR_FieldInitializerInStruct" xml:space="preserve">
-    <value>'{0}': cannot have instance field initializers in structs</value>
+    <value>'{0}': cannot have instance property or field initializers in structs</value>
   </data>
   <data name="ERR_BadDestructorName" xml:space="preserve">
     <value>Name of destructor must match name of class</value>
@@ -3980,6 +3980,6 @@
     <value>dictionary initializer</value>
   </data>
   <data name="IDS_FeatureStructParameterlessConstructors" xml:space="preserve">
-    <value>struct instance member initializers and parameterless constructors</value>
+    <value>struct instance parameterless constructors</value>
   </data>
 </root>

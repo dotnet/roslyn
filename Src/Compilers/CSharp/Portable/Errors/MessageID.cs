@@ -143,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Experimental features.
                 case MessageID.IDS_FeatureDeclarationExpression:
                 case MessageID.IDS_FeaturePrimaryConstructor:
-                case MessageID.IDS_FeatureStructParameterlessConstructors:
                     return LanguageVersion.Experimental;
 
                 // C# 6 features.
@@ -155,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureExpressionBodiedIndexer:
                 case MessageID.IDS_FeatureNameof:
                 case MessageID.IDS_FeatureDictionaryInitializer:
+                case MessageID.IDS_FeatureStructParameterlessConstructors:
                     return LanguageVersion.CSharp6;
 
                 // C# 5 features.

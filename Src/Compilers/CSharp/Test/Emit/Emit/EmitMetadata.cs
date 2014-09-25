@@ -966,13 +966,16 @@ class C
 struct S
 {
     public readonly int P;
-    public string Q { get; set; } = ""test"";
-    public decimal R { get; } = 300;
+    public string Q { get; set; }
+    public decimal R { get; set; }
     public static char T { get; } = 'T';
 
     public S(int p)
+        :this()
     {
         P = p;
+        Q = ""test"";
+        R = 300;
     }
 
     static void Main()
@@ -985,7 +988,7 @@ struct S
 
         s = new S();
         Console.Write(s.P);
-        Console.Write(s.Q);
+        Console.Write(s.Q ?? ""null"");
         Console.Write(s.R);
         Console.Write(S.T);
     }
@@ -1010,7 +1013,7 @@ struct S
 
                 var r = type.GetMember<SourcePropertySymbol>("R");
                 var rBack = r.BackingField;
-                Assert.True(rBack.IsReadOnly);
+                Assert.False(rBack.IsReadOnly);
                 Assert.False(rBack.IsStatic);
                 Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
 
@@ -1024,9 +1027,8 @@ struct S
             CompileAndVerify(
                 comp,
                 sourceSymbolValidator: validator,
-                expectedOutput: "1test300T0test300T");
+                expectedOutput: "1test300T0null0T");
         }
-
 
         /// <summary>
         /// Private accessors of a virtual property should not be virtual.

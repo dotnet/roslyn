@@ -26,9 +26,9 @@ public struct A
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (4,7): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    // (4,7): error CS0573: 'A': cannot have instance property or field initializers in structs
     //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "a").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(4, 7),
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("A").WithLocation(4, 7),
     // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
     //     A a = new A();   // CS8036
     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),

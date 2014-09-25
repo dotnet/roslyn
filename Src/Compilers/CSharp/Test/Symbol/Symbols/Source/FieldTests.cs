@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (3,16): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "I").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(3, 16)
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
 );
         }
 
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-    // (3,16): error CS8058: Feature 'struct instance member initializers and parameterless constructors' is only available in 'experimental' language version.
+    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "I").WithArguments("struct instance member initializers and parameterless constructors").WithLocation(3, 16)
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
 );
         }
 

@@ -84,16 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsVolatile && !type.IsValidVolatileFieldType())
             {
-                if (ContainingType.TypeKind == TypeKind.Struct && !IsStatic && !IsConst)
-                {
-                    var initializerOpt = declarator.Initializer;
-                    if (initializerOpt != null)
-                    {
-                        // '{0}': cannot have instance field initializers in structs
-                        diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, this.ErrorLocation, this);
-                    }
-                }
-
                 // '{0}': a volatile field cannot be of the type '{1}'
                 diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.ErrorLocation, this, type);
             }

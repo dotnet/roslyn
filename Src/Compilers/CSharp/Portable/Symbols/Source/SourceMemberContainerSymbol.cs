@@ -2639,14 +2639,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (p != null && !p.IsStatic && p.IsAutoProperty
                         && p.BackingField.HasInitializer)
                     {
-                        Binder.CheckFeatureAvailability(p.Locations[0], MessageID.IDS_FeatureStructParameterlessConstructors, diagnostics);
+                        // '{0}': cannot have instance field initializers in structs
+                        diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, p.Locations[0], this);
                     }
                     else
                     {
                         var f = s as SourceMemberFieldSymbol;
                         if (f != null && !f.IsStatic && f.HasInitializer)
                         {
-                            Binder.CheckFeatureAvailability(f.Locations[0], MessageID.IDS_FeatureStructParameterlessConstructors, diagnostics);
+                            // '{0}': cannot have instance field initializers in structs
+                            diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, f.Locations[0], this);
                         }
                     }
                 }

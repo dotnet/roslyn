@@ -1348,6 +1348,9 @@ struct Derived(int p1, int p2 = Base.f0, int p3 = 0, int p4 = 0, int p5 = 0, int
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
+    // (22,17): error CS0573: 'Derived': cannot have instance property or field initializers in structs
+    //     private int x = p4;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "x").WithArguments("Derived").WithLocation(22, 17),
     // (61,24): error CS0103: The name 'p12' does not exist in the current context
     //     void Test2(int x = p12)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "p12").WithArguments("p12").WithLocation(61, 24),
@@ -1833,6 +1836,9 @@ struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref i
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
+    // (14,17): error CS0573: 'Derived': cannot have instance property or field initializers in structs
+    //     private int x = p4;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "x").WithArguments("Derived").WithLocation(14, 17),
     // (53,24): error CS0103: The name 'p12' does not exist in the current context
     //     void Test2(int x = p12)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "p12").WithArguments("p12").WithLocation(53, 24),
@@ -2509,71 +2515,6 @@ class Program
     Diagnostic(ErrorCode.ERR_NameNotInContext, "w").WithArguments("w").WithLocation(40, 13)
 
                 );
-        }
-
-        [Fact]
-        public void Emit_02()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-struct Derived(int x, int y, int z, int u, int v, int w)
-{
-    private int v = v;
-    private int w = w;
-
-    public int V()
-    {
-        return v;
-    }
-
-    public int W
-    {
-        get 
-        {
-            return w;
-        }
-        set
-        {
-            w = value;
-        }
-    }
-}
-
-class Program
-{
-    public static void Main()
-    {
-        var d = new Derived(1,2,3,4,5,6);
-
-        System.Console.WriteLine(d.V());
-        System.Console.WriteLine(d.W);
-        d.W=60;
-        System.Console.WriteLine(d.W);
-    }
-}
-", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
-            {
-                var derived = m.GlobalNamespace.GetTypeMember("Derived");
-
-                foreach (var name in new[] { "x", "y", "z", "u" })
-                {
-                    Assert.Equal(0, derived.GetMembers(name).Length);
-                }
-
-                foreach (var name in new[] { "v", "w" })
-                {
-                    var f = derived.GetMember<FieldSymbol>(name);
-                    Assert.False(f.IsStatic);
-                    Assert.False(f.IsReadOnly);
-                    Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
-                }
-            };
-
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"5
-6
-60", sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
