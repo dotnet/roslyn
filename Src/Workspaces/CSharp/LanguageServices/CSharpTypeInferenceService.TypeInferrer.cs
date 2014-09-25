@@ -804,16 +804,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
 
-                if (binop is AssignmentExpressionSyntax)
-                {
-                    return SpecializedCollections.SingletonEnumerable(semanticModel.GetTypeInfo(((AssignmentExpressionSyntax)binop).Right).Type);
-                }
-
-                if (binop is BinaryExpressionSyntax)
-                {
-                    return SpecializedCollections.SingletonEnumerable(semanticModel.GetTypeInfo(((BinaryExpressionSyntax)binop).Right).Type);
-                }
-
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
