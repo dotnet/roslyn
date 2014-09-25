@@ -3613,7 +3613,7 @@ _Default:
                      SyntaxKind.ConstructorBlock
                     Dim t = CType(node, MethodBlockBaseSyntax)
                     Dim paramInitializers = GetParameterInitializers(t.Begin.ParameterList)
-                    Dim codeBlocks = paramInitializers.Concat(t.Statements)
+                    Dim codeBlocks = paramInitializers.Concat(t.Statements).Concat(t.End)
                     builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks))
                     Return
                 Case SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement

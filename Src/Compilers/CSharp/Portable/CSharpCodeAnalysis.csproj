@@ -798,6 +798,7 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.cs" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.cs" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
+    <Compile Include="Syntax\TypeDeclarationSyntaxExtensions.cs" />
     <Compile Include="Syntax\TypeDeclarationSyntax.cs" />
     <Compile Include="Syntax\TypeSyntax.cs" />
     <Compile Include="Syntax\XmlNameAttributeElementKind.cs" />

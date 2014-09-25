@@ -665,6 +665,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 case SymbolKind.Method:
                 case SymbolKind.Event:
                 case SymbolKind.Property:
+                case SymbolKind.NamedType:
                     return true;
 
                 case SymbolKind.Field:
@@ -715,9 +716,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    ExecuteCodeBlockAnalyzers(this.compilationAnalysisScope,
-                        syntax, symbol, executableCodeBlocks, this.analyzerOptions,
-                        semanticModel, reportDiagnostic, this.continueOnAnalyzerException, this.GetKind, cancellationToken);
+                    if (executableCodeBlocks.Any())
+                    {
+                        ExecuteCodeBlockAnalyzers(this.compilationAnalysisScope,
+                            syntax, symbol, executableCodeBlocks, this.analyzerOptions,
+                            semanticModel, reportDiagnostic, this.continueOnAnalyzerException, this.GetKind, cancellationToken);
+                    }
                 }
             }
         }
@@ -830,7 +834,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var declaredSymbol = declInfo.DeclaredSymbol;
                 var executableCodeBlocks = declInfo.ExecutableCodeBlocks;
 
-                if (declaredSymbol != null && CanHaveExecutableCodeBlock(declaredSymbol))
+                if (declaredSymbol != null && declInfo.ExecutableCodeBlocks.Any())
                 {
                     ExecuteCodeBlockAnalyzers(codeBlockStartedAnalyzers, codeBlockEndedAnalyzers, declaredNode, declaredSymbol,
                         executableCodeBlocks, analyzerOptions, semanticModel, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken, getAnalyzerKindsOfInterest);
@@ -856,6 +860,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(declaredSymbol != null);
             Debug.Assert(CanHaveExecutableCodeBlock(declaredSymbol));
             Debug.Assert(codeBlockStartedAnalyzers.Any() || codeBlockEndedAnalyzers.Any());
+            Debug.Assert(executableCodeBlocks.Any());
 
             // Compute the sets of code block end and stateful syntax node actions.
             var endedAnalyzers = PooledHashSet<CodeBlockEndAnalyzerAction<TSyntaxKind>>.GetInstance();

@@ -20,19 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void DiagnosticAnalyzerAllInOne()
         {
             var source = TestResource.AllInOneCSharpCode;
+
+            // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
+            var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
+            symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
+            symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
-            analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
-
-            analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyCSharpAnalyzerDiagnostics(new[] { analyzer });
-            analyzer.VerifyAllAnalyzerMembersWereCalled();
-            analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
-            analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
+            analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }
 
         [WorkItem(896075, "DevDiv")]

@@ -4575,6 +4575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (symbol.Kind)
             {
+                case SymbolKind.Event:  // for field-like events
                 case SymbolKind.Field:
                     var fieldDecl = declaringSyntax.FirstAncestorOrSelf<BaseFieldDeclarationSyntax>();
                     if (fieldDecl != null)
@@ -4628,7 +4629,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var t = (TypeDeclarationSyntax)node;
                         foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
+                        var parameterList = t.GetParameterList();
+                        var parameterInitializers = parameterList != null ? parameterList.Parameters.Select(p => p.Default) : null;
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, parameterInitializers));
                         return;
                     }
 
@@ -4714,6 +4717,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var t = (BaseMethodDeclarationSyntax)node;
                         var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
                         codeBlocks = codeBlocks.Concat(t.Body);
+
+                        var ctorDecl = t as ConstructorDeclarationSyntax;
+                        if (ctorDecl != null && ctorDecl.Initializer != null)
+                        {
+                            codeBlocks = codeBlocks.Concat(ctorDecl.Initializer);
+                        }
+
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks));
                         return;
                     }

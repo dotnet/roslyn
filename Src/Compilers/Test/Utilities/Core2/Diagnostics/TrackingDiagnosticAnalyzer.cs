@@ -97,12 +97,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return true;
         }
 
-        public void VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(bool allowUnexpectedCalls = false)
+        public void VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(HashSet<SymbolKind> symbolKindsWithNoCodeBlocks = null, bool allowUnexpectedCalls = false)
         {
             const MethodKind InvalidMethodKind = (MethodKind)(-1);
             var expectedArguments = new[]
             {
-                new { SymbolKind = SymbolKind.Event,  MethodKind = InvalidMethodKind, ReturnsVoid = false },
+                new { SymbolKind = SymbolKind.Event,  MethodKind = InvalidMethodKind, ReturnsVoid = false }, // C# only
                 new { SymbolKind = SymbolKind.Field,  MethodKind = InvalidMethodKind, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.Constructor, ReturnsVoid = true },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.Conversion, ReturnsVoid = false },
@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.UserDefinedOperator, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Property, MethodKind = InvalidMethodKind, ReturnsVoid = false },
             }.AsEnumerable();
+
+            if (symbolKindsWithNoCodeBlocks != null)
+            {
+                expectedArguments = expectedArguments.Where(a => !symbolKindsWithNoCodeBlocks.Contains(a.SymbolKind));
+            }
 
             expectedArguments = expectedArguments.Where(a => IsOnCodeBlockSupported(a.SymbolKind, a.MethodKind, a.ReturnsVoid));
 

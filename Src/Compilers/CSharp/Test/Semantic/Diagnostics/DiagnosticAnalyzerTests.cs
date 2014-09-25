@@ -615,5 +615,106 @@ public class C { }").WithWarningAsError(true)); // class declaration
             Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
             Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
+
+        private class CodeBlockAnalyzer : DiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor Desciptor1 = new TriggerDiagnosticDescriptor("CodeBlockDiagnostic");
+            public static DiagnosticDescriptor Desciptor2 = new TriggerDiagnosticDescriptor("EqualsValueDiagnostic");
+            public static DiagnosticDescriptor Desciptor3 = new TriggerDiagnosticDescriptor("ConstructorInitializerDiagnostic");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(Desciptor1, Desciptor2, Desciptor3);
+                }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockStartAction<SyntaxKind>(new NodeAnalyzer().Initialize);
+                context.RegisterCodeBlockEndAction<SyntaxKind>(OnCodeBlockEnded);
+            }
+
+            public static void OnCodeBlockEnded(CodeBlockEndAnalysisContext context)
+            {
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, Location.None));
+            }
+
+            protected class NodeAnalyzer
+            {
+                public void Initialize(CodeBlockStartAnalysisContext<CSharp.SyntaxKind> analysisContext)
+                {
+                    analysisContext.RegisterSyntaxNodeAction(
+                        (context) =>
+                        {
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, Location.None));
+                        },
+                        CSharp.SyntaxKind.EqualsValueClause);
+
+                    analysisContext.RegisterSyntaxNodeAction(
+                        (context) =>
+                        {
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, Location.None));
+                        },
+                        CSharp.SyntaxKind.BaseConstructorInitializer);
+                }
+            }
+        }
+
+        [Fact, WorkItem(1008059)]
+        void TestCodeBlockAnalyzersForNoExecutableCode()
+        {
+            string noExecutableCodeSource = @"
+public abstract class C
+{
+    public int P { get; set; }
+    public int field;
+    public abstract int Method();
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockAnalyzer() };
+
+            CreateCompilationWithMscorlib45(noExecutableCodeSource)
+                .VerifyDiagnostics()
+                .VerifyCSharpAnalyzerDiagnostics(analyzers);
+        }
+
+        [Fact, WorkItem(1008059)]
+        void TestCodeBlockAnalyzersForBaseConstructorInitializer()
+        {
+            string baseCtorSource = @"
+public class B
+{
+    public B(int x) {}
+}
+
+public class C : B
+{
+    public C() : base(x: 10) {}
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockAnalyzer() };
+
+            CreateCompilationWithMscorlib45(baseCtorSource)
+                .VerifyDiagnostics()
+                .VerifyCSharpAnalyzerDiagnostics(analyzers, null, null,
+                    Diagnostic("ConstructorInitializerDiagnostic"),
+                    Diagnostic("CodeBlockDiagnostic"),
+                    Diagnostic("CodeBlockDiagnostic"));
+        }
+
+        [Fact, WorkItem(1008059)]
+        void TestCodeBlockAnalyzersForPrimaryConstructor()
+        {
+            string primaryCtorSource = @"
+public class C(int a = 10)
+{ }";
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockAnalyzer() };
+
+            CreateCompilationWithMscorlib45(primaryCtorSource, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental))
+                .VerifyDiagnostics()
+                .VerifyCSharpAnalyzerDiagnostics(analyzers, null, null,
+                    Diagnostic("EqualsValueDiagnostic"),
+                    Diagnostic("CodeBlockDiagnostic"));
+        }
     }
 }

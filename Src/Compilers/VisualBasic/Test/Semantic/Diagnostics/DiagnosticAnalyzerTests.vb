@@ -538,5 +538,70 @@ End Namespace
                                            AnalyzerDiagnostic("XX001", <![CDATA[N]]>),
                                            AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
+
+        Private Class CodeBlockAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Private Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("CodeBlockDiagnostic")
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Descriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterCodeBlockEndAction(Of SyntaxKind)(AddressOf OnCodeBlock)
+            End Sub
+
+            Private Shared Sub OnCodeBlock(context As CodeBlockEndAnalysisContext)
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, context.OwningSymbol.DeclaringSyntaxReferences.First.GetLocation))
+            End Sub
+        End Class
+
+        <Fact, WorkItem(1008059)>
+        Sub TestCodeBlockAnalyzersForNoExecutableCode()
+            Dim analyzer = New CodeBlockAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Public MustInherit Class C
+    Public Property P() As Integer
+    Public field As Integer
+    Public MustOverride Sub Method()
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                references:={SystemCoreRef, MsvbRef},
+                options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer})
+        End Sub
+
+        <Fact, WorkItem(1008059)>
+        Sub TestCodeBlockAnalyzersForEmptyMethodBody()
+            Dim analyzer = New CodeBlockAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Public Class C
+    Public Sub Method()
+    End Sub
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                references:={SystemCoreRef, MsvbRef},
+                options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
+        End Sub
     End Class
 End Namespace
