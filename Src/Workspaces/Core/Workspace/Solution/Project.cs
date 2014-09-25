@@ -95,7 +95,11 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.LanguageServices.GetService<ICompilationFactoryService>() != null;
+                var result = this.LanguageServices.GetService<ICompilationFactoryService>() != null;
+
+                Contract.ThrowIfFalse((this.Language != LanguageNames.CSharp && this.Language != LanguageNames.VisualBasic) || result);
+
+                return result;
             }
         }
 
