@@ -2395,7 +2395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseObjectCollectionInitializer(fromKeyword As KeywordSyntax) As ObjectCollectionInitializerSyntax
             Debug.Assert(fromKeyword IsNot Nothing)
 
-            AssertLanguageFeature(ERRID.FEATUREID_CollectionInitializers, fromKeyword)
+            fromKeyword = AssertLanguageFeature(ERRID.FEATUREID_CollectionInitializers, fromKeyword)
 
             ' Allow implicit line continuation after FROM (dev10_508839) but only if followed by "{". 
             ' This is to avoid reporting an error at the beginning of then next line and then skipping the next statement.
@@ -4061,7 +4061,7 @@ checkNullable:
 
                 If CurrentToken.Kind = SyntaxKind.InKeyword Then
                     optionalVarianceModifier = DirectCast(CurrentToken, KeywordSyntax)
-                    AssertLanguageFeature(ERRID.FEATUREID_CoContraVariance, CurrentToken)
+                    optionalVarianceModifier = AssertLanguageFeature(ERRID.FEATUREID_CoContraVariance, optionalVarianceModifier)
                     GetNextToken()
 
                 Else
@@ -4079,7 +4079,7 @@ checkNullable:
                             name = id
                             optionalVarianceModifier = Nothing
                         Else
-                            AssertLanguageFeature(ERRID.FEATUREID_CoContraVariance, CurrentToken)
+                            outKeyword = AssertLanguageFeature(ERRID.FEATUREID_CoContraVariance, outKeyword)
                             optionalVarianceModifier = outKeyword
                         End If
                     End If
@@ -5790,15 +5790,28 @@ checkNullable:
             _currentToken = Nothing
         End Sub
 
-        ' .Parser::AssertLanguageFeature( [ unsigned feature ] [ _Inout_ Token* ErrorLocationToken ] )
+        ''' <summary>
+        ''' returns true if feature is available
+        ''' </summary>
         Private Function AssertLanguageFeature(
-            feature As ERRID,
-            ErrorLocationToken As SyntaxToken
+            feature As ERRID
         ) As Boolean
+
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Attaches an error to the node if feature is not available
+        ''' </summary>
+        Private Function AssertLanguageFeature(Of T As VisualBasicSyntaxNode)(
+            feature As ERRID,
+            node As T
+        ) As T
 
             ' If we are targeting the latest version of the compiler, all features are fair game
 
-            Return True
+            Return node
+
 #If MUSTCONVERT Then
      If m_CompilingLanguageVersion = LANGUAGE_CURRENT Then
                 Return True
@@ -5819,7 +5832,6 @@ checkNullable:
                 ReportSyntaxErrorForLanguageFeature(ERRID.ERR_LanguageVersion, ErrorLocationToken, feature, wszVersion)
             End If
 #End If
-            Return False
         End Function
 
         '============ Methods to test properties of NodeKind. ====================
