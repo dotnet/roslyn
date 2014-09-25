@@ -38,7 +38,7 @@ wstring GetCurrentDirectory()
     int sizeNeeded = GetCurrentDirectory(0, nullptr);
     if (0 == sizeNeeded) 
     {
-        FailWithGetLastError(L"GetCurrentDirectory failed");
+        FailWithGetLastError(IDS_GetCurrentDirectoryFailed);
     }
 
     wstring result;
@@ -47,7 +47,7 @@ wstring GetCurrentDirectory()
     auto written = (int)GetCurrentDirectory(sizeNeeded, &result[0]);
     if (written == 0 || written > sizeNeeded)
     {
-        FailWithGetLastError(L"GetCurrentDirectory failed");
+        FailWithGetLastError(IDS_GetCurrentDirectoryFailed);
     }
 
 	result.resize(written);
@@ -61,7 +61,7 @@ std::unique_ptr<LPCWSTR, decltype(&::LocalFree)> GetCommandLineArgs(int &argsCou
     auto args = const_cast<LPCWSTR*>(CommandLineToArgvW(GetCommandLine(), &argsCount));
     if (args == nullptr) 
     {
-        FailWithGetLastError(L"CommandLineToArgvW failed");
+        FailWithGetLastError(IDS_CommandLineToArgvWFailed);
     }
     return unique_ptr<LPCWSTR, decltype(&::LocalFree)>(args, ::LocalFree);
 }
@@ -154,11 +154,11 @@ HANDLE ConnectToProcess(DWORD processID, int timeoutMs)
     HANDLE pipeHandle = OpenPipe(szPipeName, timeoutMs);
     if (pipeHandle != INVALID_HANDLE_VALUE)
     {
-        Log(L"Sucessfully opened pipe");
+        Log(IDS_SucessfullyOpenedPipe);
         return pipeHandle;
     }
 
-    Log(L"Failed to open pipe - can try another server process.");
+    Log(IDS_FailedToOpenPipe);
     return NULL;
 }
 
@@ -189,17 +189,17 @@ bool TryCompile(HANDLE pipeHandle,
     RealPipe wrapper(pipeHandle);
     if (!request.WriteToPipe(wrapper)) 
     {
-        Log(L"Failed to write request - can try another server process.");
+        Log(IDS_FailedToWriteRequest);
         return false;
     }
 
-    Log(L"Successfully wrote request.");
+    Log(IDS_SuccessfullyWroteRequest);
 
     // We should expect a completed response since
     // the only other option is a an erroroneous response
     // which will generate an exception.
     response = ReadResponse(wrapper);
-    Log(L"Successfully read response.");
+    Log(IDS_SuccessfullyReadResponse);
 
     // We got a response.
     return true;
@@ -208,7 +208,7 @@ bool TryCompile(HANDLE pipeHandle,
 // Get the process ids of all processes on the system.
 bool GetAllProcessIds(vector<DWORD> &processes)
 {
-    Log(L"Enumerating all process IDs");
+    Log(IDS_EnumeratingProcessIDs);
 
     processes.resize(64);
     DWORD bytesWritten;
@@ -273,7 +273,7 @@ DWORD CreateNewServerProcess(LPCWSTR executablePath)
     PROCESS_INFORMATION processInfo;
     BOOL success;
 
-    LogFormatted(L"Attempting to create process '%ws'", executablePath);
+    LogFormatted(IDS_AttemptingToCreateProcess, executablePath);
 
     memset(&startupInfo, 0, sizeof(startupInfo));
     startupInfo.cb = sizeof(startupInfo);
@@ -298,7 +298,7 @@ DWORD CreateNewServerProcess(LPCWSTR executablePath)
                              nullptr, 0,
                              nullptr, 0)))
     {
-        FailFormatted(L"Couldn't split the process executable path: %d", err);
+        FailFormatted(IDS_SplitProcessPathError, err);
     }
 
     auto createPath = make_unique<wchar_t[]>(MAX_PATH);
@@ -309,7 +309,7 @@ DWORD CreateNewServerProcess(LPCWSTR executablePath)
                             nullptr,
                             nullptr)))
     {
-        FailFormatted(L"Couldn't make the new process path: %d", err);
+        FailFormatted(IDS_MakeNewProcessPathError, err);
     }
 
     success = CreateProcess(executablePath, 
@@ -326,14 +326,14 @@ DWORD CreateNewServerProcess(LPCWSTR executablePath)
     if (success) 
     {
         // We don't need the process and thread handles.
-        LogFormatted(L"Successfully created process with process id %d", processInfo.dwProcessId);
+        LogFormatted(IDS_CreatedProcess, processInfo.dwProcessId);
         CloseHandle(processInfo.hProcess);
         CloseHandle(processInfo.hThread);
         return processInfo.dwProcessId;
     }
     else 
     {
-        LogWin32Error(L"Creating process");
+        LogWin32Error(IDS_CreatingProcess);
         return 0;
     }
 }
@@ -404,19 +404,19 @@ HANDLE TryExistingProcesses(LPCWSTR expectedProcessName)
     HANDLE tempHandle;
     if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &tempHandle))
     {
-        FailWithGetLastError(L"Couldn't get current process token:");
+        FailWithGetLastError(IDS_GetCurrentProcessTokenFailed);
     }
 
     SmartHandle tokenHandle(tempHandle);
     if (!GetTokenUserAndElevation(tokenHandle.get(), userInfo, elevationInfo))
     {
-        FailWithGetLastError(L"Couldn't get user token information:");
+        FailWithGetLastError(IDS_GetUserTokenFailed);
     }
 
     vector<DWORD> processes;
     if (GetAllProcessIds(processes))
     {
-        LogFormatted(L"Found %d processes", processes.size());
+        LogFormatted(IDS_FoundProcesses, processes.size());
 
         // Check each process to find one with the right name and user
         for (auto processId : processes)
@@ -431,7 +431,7 @@ HANDLE TryExistingProcesses(LPCWSTR expectedProcessName)
                     // Check if the process is owned by the same user
                     && ProcessHasSameUserAndElevation(processHandle.get(), userInfo.get(), elevationInfo.get()))
                 {
-                    LogFormatted(L"Found process with id %d", processId);
+                    LogFormatted(IDS_FoundProcess, processId);
                     HANDLE pipeHandle = ConnectToProcess(processId, TimeOutMsExistingProcess);
                     if (pipeHandle != NULL)
                     {
@@ -515,14 +515,14 @@ CompletedResponse Run(
 
     if (!GetExpectedProcessPath(expectedProcessPath, MAX_PATH))
     {
-        FailWithGetLastError(L"GetExpectedProcessPath failed");
+        FailWithGetLastError(IDS_GetExpectedProcessPathFailed);
     }
 
     // First attempt to grab the mutex
     wstring mutexName(expectedProcessPath);
 	replace(mutexName.begin(), mutexName.end(), L'\\', L'/');
 
-    Log(L"Creating mutex.");
+    Log(IDS_CreatingMutex);
 
     SmartMutex createProcessMutex(mutexName.c_str());
 
@@ -539,13 +539,13 @@ CompletedResponse Run(
     if (createProcessMutex.HoldsMutex())
     {
         // Check for already running processes in case someone came in before us
-        Log(L"Trying existing processes.");
+        Log(IDS_TryingExistingProcesses);
         pipeHandle.reset(TryExistingProcesses(expectedProcessPath));
         if (pipeHandle != nullptr)
         {
-            Log(L"Connected, releasing mutex.");
+            Log(IDS_Connected);
             createProcessMutex.release();
-            Log(L"Compiling.");
+            Log(IDS_Compiling);
 
             CompletedResponse response;
             if (TryCompile(pipeHandle.get(),
@@ -559,22 +559,22 @@ CompletedResponse Run(
                 return response;
             }
 
-            Log(L"Compilation failed with existing process, retrying once.");
+            Log(IDS_ExistingProcessFailedRetrying);
         }
         else
         {
-            Log(L"No success with existing processes - try creating a new one.");
+            Log(IDS_CreatingNewProcess);
             processId = CreateNewServerProcess(expectedProcessPath);
             if (processId != 0)
             {
-                LogFormatted(L"Connecting to newly created process id %d", processId);
+                LogFormatted(IDS_ConnectingToNewProcess, processId);
                 pipeHandle.reset(ConnectToProcess(processId, TimeOutMsNewProcess));
                 if (pipeHandle != nullptr)
                 {
                     // Let everyone else access our process
-                    Log(L"Connected, releasing mutex.");
+                    Log(IDS_Connected);
                     createProcessMutex.release();
-                    Log(L"Compiling.");
+                    Log(IDS_Compiling);
                     CompletedResponse response;
                     if (TryCompile(pipeHandle.get(),
                                    language,
@@ -589,7 +589,7 @@ CompletedResponse Run(
                 }
             }
 
-            Log(L"No success with created process, retrying once.");
+            Log(IDS_CreatedProcessFailedRetrying);
         }
 
         createProcessMutex.release();
@@ -600,16 +600,16 @@ CompletedResponse Run(
     }
 
     // Try one time without a mutex
-    Log(L"Trying without mutex");
+    Log(IDS_TryingWithoutMutex);
     processId = CreateNewServerProcess(expectedProcessPath);
     if (processId != 0)
     {
-        LogFormatted(L"Connecting to newly created process id %d", processId);
+        LogFormatted(IDS_ConnectingToNewProcess, processId);
         pipeHandle.reset(ConnectToProcess(processId, TimeOutMsNewProcess));
         if (pipeHandle != nullptr)
         {
             // Let everyone else access our process
-            Log(L"Connected to new process.");
+            Log(IDS_ConnectedNewProcess);
             CompletedResponse response;
             if (TryCompile(pipeHandle.get(),
                            language,
@@ -632,27 +632,27 @@ CompletedResponse Run(
     // pipe
     if (pipeHandle == nullptr)
     {
-        FailFormatted(L"Could not connect to server pipe");
+        FailFormatted(IDS_ConnectToServerPipeFailed);
     }
     else if (processId != 0)
     {
         SmartHandle process(OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId));
         if (process == NULL)
         {
-            FailFormatted(L"Could not find server process -- compiler may have disconnected or crashed due to error.");
+            FailFormatted(IDS_ServerIsLost);
         }
         else
         {
             DWORD exitCode;
             if (GetExitCodeProcess(process.get(), &exitCode))
             {
-                FailFormatted(L"Server process has crashed with error code: %d\n", exitCode);
+                FailFormatted(IDS_ServerCrashed, exitCode);
             }
         }
     }
     else
     {
-        FailWithGetLastError(L"Unknown failure");
+        FailWithGetLastError(IDS_UnknownFailure);
     }
 
     // Unreachable

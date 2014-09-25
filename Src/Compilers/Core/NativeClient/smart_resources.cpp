@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "smart_resources.h"
+#include "UIStrings.h"
 
 void SmartHandle::close(HANDLE handle)
 {
@@ -52,7 +53,7 @@ SmartMutex::SmartMutex(LPCWSTR mutexName)
     // related. We can only log the error and continue without it.
     if (this->handle == nullptr)
     {
-        LogWin32Error(L"Failure to create mutex");
+        LogWin32Error(IDS_CreateMutexFailed);
     }
 
 	this->holdsMutex = this->handle != nullptr && GetLastError() == ERROR_SUCCESS;
@@ -65,27 +66,27 @@ bool SmartMutex::HoldsMutex()
 
 bool SmartMutex::Wait(const int waitTime)
 {
-    Log(L"Waiting for mutex.");
+    Log(IDS_WaitingForMutex);
 	auto mutexError = WaitForSingleObject(this->handle, waitTime);
 	this->holdsMutex = false;
     switch (mutexError)
     {
     case WAIT_ABANDONED:
-        Log(L"Acquired mutex, but mutex was previously abandoned");
+        Log(IDS_AcquiredAbandonedMutex);
         this->holdsMutex = true;
         break;
     case WAIT_OBJECT_0:
-        Log(L"Acquired mutex.");
+        Log(IDS_AcquiredMutex);
         this->holdsMutex = true;
         break;
     case WAIT_TIMEOUT:
-        Log(L"Waiting for mutex timed out");
+        Log(IDS_WaitingMutexTimeout);
         break;
     case WAIT_FAILED:
-        LogWin32Error(L"Waiting on the mutex failed");
+        LogWin32Error(IDS_WaitingMutexFailed);
         break;
     default:
-        LogFormatted(L"Unknown WaitForSingleObject mutex failure %d, return code not documented\n", mutexError);
+        LogFormatted(IDS_WaitingMutexUnknownFailure, mutexError);
         break;
     }
 	return this->holdsMutex;
@@ -100,22 +101,22 @@ void SmartMutex::release()
 {
     if (handle != nullptr && holdsMutex)
     {
-		if (!ReleaseMutex(handle))
-		{
-			Log(L"Error releasing mutex");
-		}
-		else
-		{
-			holdsMutex = false;
-		}
+        if (!ReleaseMutex(handle))
+        {
+            Log(IDS_ReleaseMutexFailed);
+        }
+        else
+        {
+            holdsMutex = false;
+        }
     }
 }
 
 SmartMutex::~SmartMutex()
 {
-	release();
-	if (handle != nullptr)
-	{
-		CloseHandle(handle);
-	}
+    release();
+    if (handle != nullptr)
+    {
+        CloseHandle(handle);
+    }
 }
