@@ -124,6 +124,69 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Design.
+        /// </summary>
+        internal static string CategoryDesign {
+            get {
+                return ResourceManager.GetString("CategoryDesign", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Globalization.
+        /// </summary>
+        internal static string CategoryGlobalization {
+            get {
+                return ResourceManager.GetString("CategoryGlobalization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interoperability.
+        /// </summary>
+        internal static string CategoryInteroperability {
+            get {
+                return ResourceManager.GetString("CategoryInteroperability", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming.
+        /// </summary>
+        internal static string CategoryNaming {
+            get {
+                return ResourceManager.GetString("CategoryNaming", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Performance.
+        /// </summary>
+        internal static string CategoryPerformance {
+            get {
+                return ResourceManager.GetString("CategoryPerformance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reliability.
+        /// </summary>
+        internal static string CategoryReliability {
+            get {
+                return ResourceManager.GetString("CategoryReliability", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Usage.
+        /// </summary>
+        internal static string CategoryUsage {
+            get {
+                return ResourceManager.GetString("CategoryUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change &apos;{0}&apos; to a property if appropriate..
         /// </summary>
         internal static string ChangeToAPropertyIfAppropriate {

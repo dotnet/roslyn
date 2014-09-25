@@ -342,4 +342,25 @@
   <data name="StringComparisonShouldBeOrdinalDescription" xml:space="preserve">
     <value>For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture.</value>
   </data>
+  <data name="CategoryDesign" xml:space="preserve">
+    <value>Design</value>
+  </data>
+  <data name="CategoryGlobalization" xml:space="preserve">
+    <value>Globalization</value>
+  </data>
+  <data name="CategoryInteroperability" xml:space="preserve">
+    <value>Interoperability</value>
+  </data>
+  <data name="CategoryNaming" xml:space="preserve">
+    <value>Naming</value>
+  </data>
+  <data name="CategoryPerformance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="CategoryReliability" xml:space="preserve">
+    <value>Reliability</value>
+  </data>
+  <data name="CategoryUsage" xml:space="preserve">
+    <value>Usage</value>
+  </data>
 </root>

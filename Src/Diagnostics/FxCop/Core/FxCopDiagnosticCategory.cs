@@ -4,12 +4,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
 {
     internal class FxCopDiagnosticCategory
     {
-        public const string Design = "Microsoft.Design";
-        public const string Globalization = "Microsoft.Globalization";
-        public const string Interoperability = "Microsoft.Interoperability";
-        public const string Performance = "Microsoft.Performance";
-        public const string Reliability = "Microsoft.Reliability";
-        public const string Usage = "Microsoft.Usage";
-        public const string Naming = "Microsoft.Naming";
+        public static readonly string Design = FxCopRulesResources.CategoryDesign;
+        public static readonly string Globalization = FxCopRulesResources.CategoryGlobalization;
+        public static readonly string Interoperability = FxCopRulesResources.CategoryInteroperability;
+        public static readonly string Performance = FxCopRulesResources.CategoryPerformance;
+        public static readonly string Reliability = FxCopRulesResources.CategoryReliability;
+        public static readonly string Usage = FxCopRulesResources.CategoryUsage;
+        public static readonly string Naming = FxCopRulesResources.CategoryNaming;
     }
 }
