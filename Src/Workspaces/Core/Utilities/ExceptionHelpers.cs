@@ -10,6 +10,10 @@ namespace Roslyn.Utilities
     internal static partial class ExceptionHelpers
     {
         private const string SuppressFailFastKey = "Roslyn.Utilities.SuppressFailFast";
+
+        private static Exception lastException;
+        private static string lastExceptionMessage;
+
         private static readonly object boxedTrue = true;
 
         public static FailFastReset SuppressFailFast()
@@ -36,6 +40,10 @@ namespace Roslyn.Utilities
         {
             if (!IsFailFastSuppressed())
             {
+                // hold onto last exception to make investigation easier
+                lastException = e;
+                lastExceptionMessage = e.ToString();
+
                 FailFast.OnFatalException(e);
             }
 
@@ -50,6 +58,10 @@ namespace Roslyn.Utilities
             {
                 return false;
             }
+
+            // hold onto last exception to make investigation easier
+            lastException = e;
+            lastExceptionMessage = e.ToString();
 
             FailFast.OnFatalException(e);
             return false;

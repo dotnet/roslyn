@@ -12,11 +12,6 @@ namespace Roslyn.Utilities
 #endif
     internal static partial class TaskFactoryExtensions
     {
-        public static Task SafeStartNew(this TaskFactory factory, Action action, TaskScheduler scheduler)
-        {
-            return factory.SafeStartNew(action, CancellationToken.None, scheduler);
-        }
-
         public static Task SafeStartNew(this TaskFactory factory, Action action, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
             return factory.SafeStartNew(action, cancellationToken, TaskCreationOptions.None, scheduler);
@@ -43,11 +38,6 @@ namespace Roslyn.Utilities
 
             // The one and only place we can call StartNew().
             return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
-        }
-
-        public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, TaskScheduler scheduler)
-        {
-            return factory.SafeStartNew(func, CancellationToken.None, scheduler);
         }
 
         public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, CancellationToken cancellationToken, TaskScheduler scheduler)
@@ -78,11 +68,6 @@ namespace Roslyn.Utilities
             return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
         }
 
-        public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, TaskScheduler scheduler)
-        {
-            return factory.SafeStartNewFromAsync(actionAsync, CancellationToken.None, scheduler);
-        }
-
         public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
             return factory.SafeStartNewFromAsync(actionAsync, cancellationToken, TaskCreationOptions.None, scheduler);
@@ -99,17 +84,12 @@ namespace Roslyn.Utilities
             var task = factory.StartNew(actionAsync, cancellationToken, creationOptions, scheduler).Unwrap();
 
             // make it crash if exception has thrown
-            task.SafeContinueWith(t => FailFast.OnFatalException(t.Exception),
+            task.SafeContinueWith(t => ExceptionHelpers.Crash(t.Exception),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);
 
             return task;
-        }
-
-        public static Task<TResult> SafeStartNewFromAsync<TResult>(this TaskFactory factory, Func<Task<TResult>> funcAsync, TaskScheduler scheduler)
-        {
-            return factory.SafeStartNewFromAsync(funcAsync, CancellationToken.None, scheduler);
         }
 
         public static Task<TResult> SafeStartNewFromAsync<TResult>(this TaskFactory factory, Func<Task<TResult>> funcAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
@@ -128,7 +108,7 @@ namespace Roslyn.Utilities
             var task = factory.StartNew(funcAsync, cancellationToken, creationOptions, scheduler).Unwrap();
 
             // make it crash if exception has thrown
-            task.SafeContinueWith(t => FailFast.OnFatalException(t.Exception),
+            task.SafeContinueWith(t => ExceptionHelpers.Crash(t.Exception),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);
