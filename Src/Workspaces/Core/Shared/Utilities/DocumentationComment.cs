@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private DocumentationComment()
         {
-            ParameterNames = ImmutableArray.Create<string>();
-            TypeParameterNames = ImmutableArray.Create<string>();
-            ExceptionTypes = ImmutableArray.Create<string>();
+            ParameterNames = ImmutableArray<string>.Empty;
+            TypeParameterNames = ImmutableArray<string>.Empty;
+            ExceptionTypes = ImmutableArray<string>.Empty;
         }
 
         /// <summary>
@@ -79,126 +79,150 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <returns>A DocumentationComment instance.</returns>
         public static DocumentationComment FromXmlFragment(string xml)
         {
-            try
+            return CommentBuilder.Parse(xml);
+        }
+
+        /// <summary>
+        /// Helper class for parsing XML doc comments. Encapsulates the state required during parsing.
+        /// </summary>
+        private class CommentBuilder
+        {
+            private readonly DocumentationComment comment;
+            private ImmutableArray<string>.Builder parameterNamesBuilder = null;
+            private ImmutableArray<string>.Builder typeParameterNamesBuilder = null;
+            private ImmutableArray<string>.Builder exceptionTypesBuilder = null;
+            private Dictionary<string, ImmutableArray<string>.Builder> exceptionTextBuilders = null;
+
+            /// <summary>
+            /// Parse and construct a <see cref="DocumentationComment" /> from the given fragment of XML.
+            /// </summary>
+            /// <param name="xml">The fragment of XML to parse.</param>
+            /// <returns>A DocumentationComment instance.</returns>
+            public static DocumentationComment Parse(string xml)
             {
-                // TODO: probably want to preserve whitespace (DevDiv #13045).
-                XmlReader reader = XmlReader.Create(new StringReader(xml), new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment });
-
-                DocumentationComment comment = new DocumentationComment();
-                comment.FullXmlFragment = xml;
-
-                List<string> parameterNamesBuilder = new List<string>();
-                List<string> typeParameterNamesBuilder = new List<string>();
-                List<string> exceptionTypesBuilder = new List<string>();
-
                 try
                 {
-                    Dictionary<string, List<string>> exceptionTextBuilders = new Dictionary<string, List<string>>();
+                    return new CommentBuilder(xml).ParseInternal(xml);
+                }
+                catch (Exception)
+                {
+                    // It would be nice if we only had to catch XmlException to handle invalid XML
+                    // while parsing doc comments. Unfortunately, other exceptions can also occur,
+                    // so we just catch them all. See Dev12 Bug 612456 for an example.
+                    return new DocumentationComment { FullXmlFragment = xml, HadXmlParseError = true };
+                }
+            }
 
-                    while (!reader.EOF)
-                    {
-                        if (reader.IsStartElement())
-                        {
-                            string localName = reader.LocalName;
-                            if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName) && comment.ExampleText == null)
-                            {
-                                comment.ExampleText = reader.ReadInnerXml().Trim(); // TODO: trim each line
-                            }
-                            else if (XmlNames.ElementEquals(localName, XmlNames.SummaryElementName) && comment.SummaryText == null)
-                            {
-                                comment.SummaryText = reader.ReadInnerXml().Trim(); // TODO: trim each line
-                            }
-                            else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && comment.ReturnsText == null)
-                            {
-                                comment.ReturnsText = reader.ReadInnerXml().Trim(); // TODO: trim each line
-                            }
-                            else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && comment.RemarksText == null)
-                            {
-                                comment.RemarksText = reader.ReadInnerXml().Trim(); // TODO: trim each line
-                            }
-                            else if (XmlNames.ElementEquals(localName, XmlNames.ParameterElementName))
-                            {
-                                string name = reader.GetAttribute(XmlNames.NameAttributeName);
-                                string paramText = reader.ReadInnerXml();
+            private CommentBuilder(string xml)
+            {
+                comment = new DocumentationComment() { FullXmlFragment = xml };
+            }
 
-                                if (!string.IsNullOrWhiteSpace(name) && !comment.parameterTexts.ContainsKey(name))
-                                {
-                                    parameterNamesBuilder.Add(name);
-                                    comment.parameterTexts.Add(name, paramText.Trim()); // TODO: trim each line
-                                }
-                            }
-                            else if (XmlNames.ElementEquals(localName, XmlNames.TypeParameterElementName))
-                            {
-                                string name = reader.GetAttribute(XmlNames.NameAttributeName);
-                                string typeParamText = reader.ReadInnerXml();
+            private DocumentationComment ParseInternal(string xml)
+            {
+                XmlFragmentParser.ParseFragment(xml, ParseCallback, this);
 
-                                if (!string.IsNullOrWhiteSpace(name) && !comment.typeParameterTexts.ContainsKey(name))
-                                {
-                                    typeParameterNamesBuilder.Add(name);
-                                    comment.typeParameterTexts.Add(name, typeParamText.Trim()); // TODO: trim each line
-                                }
-                            }
-                            else if (XmlNames.ElementEquals(localName, XmlNames.ExceptionElementName))
-                            {
-                                string type = reader.GetAttribute(XmlNames.CrefAttributeName);
-                                string exceptionText = reader.ReadInnerXml();
-
-                                if (!string.IsNullOrWhiteSpace(type))
-                                {
-                                    if (!exceptionTextBuilders.ContainsKey(type))
-                                    {
-                                        exceptionTypesBuilder.Add(type);
-                                        exceptionTextBuilders.Add(type, new List<string>());
-                                    }
-
-                                    exceptionTextBuilders[type].Add(exceptionText);
-                                }
-                            }
-                            else if (XmlNames.ElementEquals(localName, XmlNames.CompletionListElementName))
-                            {
-                                string cref = reader.GetAttribute(XmlNames.CrefAttributeName);
-                                if (!string.IsNullOrWhiteSpace(cref))
-                                {
-                                    comment.CompletionListCref = cref;
-                                }
-
-                                reader.ReadInnerXml();
-                            }
-                            else
-                            {
-                                // This is an element we don't handle. Skip it.
-                                reader.Read();
-                            }
-                        }
-                        else
-                        {
-                            // We came across something that isn't a start element, like a block of text.
-                            // Skip it.
-                            reader.Read();
-                        }
-                    }
-
+                if (exceptionTextBuilders != null)
+                {
                     foreach (var typeAndBuilderPair in exceptionTextBuilders)
                     {
-                        comment.exceptionTexts.Add(typeAndBuilderPair.Key,
-typeAndBuilderPair.Value.AsImmutable());
+                        comment.exceptionTexts.Add(typeAndBuilderPair.Key, typeAndBuilderPair.Value.AsImmutable());
                     }
                 }
-                finally
-                {
-                    comment.ParameterNames = parameterNamesBuilder.AsImmutable();
-                    comment.TypeParameterNames = typeParameterNamesBuilder.AsImmutable();
-                    comment.ExceptionTypes = exceptionTypesBuilder.AsImmutable();
-                }
+
+                comment.ParameterNames = parameterNamesBuilder == null ? ImmutableArray<string>.Empty : parameterNamesBuilder.ToImmutable();
+                comment.TypeParameterNames = typeParameterNamesBuilder == null ? ImmutableArray<string>.Empty : typeParameterNamesBuilder.ToImmutable();
+                comment.ExceptionTypes = exceptionTypesBuilder == null ? ImmutableArray<string>.Empty : exceptionTypesBuilder.ToImmutable();
 
                 return comment;
             }
-            catch (Exception)
+
+            private static void ParseCallback(XmlReader reader, CommentBuilder builder)
             {
-                // It would be nice if we only had to catch XmlException to handle invalid XML
-                // while parsing doc comments. Unfortunately, other exceptions can also occur,
-                // so we just catch them all. See Dev12 Bug 612456 for an example.
-                return new DocumentationComment { FullXmlFragment = xml, HadXmlParseError = true };
+                builder.ParseCallback(reader);
+            }
+
+            private void ParseCallback(XmlReader reader)
+            {
+                if (reader.NodeType == XmlNodeType.Element)
+                {
+                    string localName = reader.LocalName;
+                    if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName) && comment.ExampleText == null)
+                    {
+                        comment.ExampleText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.SummaryElementName) && comment.SummaryText == null)
+                    {
+                        comment.SummaryText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && comment.ReturnsText == null)
+                    {
+                        comment.ReturnsText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && comment.RemarksText == null)
+                    {
+                        comment.RemarksText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.ParameterElementName))
+                    {
+                        string name = reader.GetAttribute(XmlNames.NameAttributeName);
+                        string paramText = reader.ReadInnerXml();
+
+                        if (!string.IsNullOrWhiteSpace(name) && !comment.parameterTexts.ContainsKey(name))
+                        {
+                            (parameterNamesBuilder ?? (parameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
+                            comment.parameterTexts.Add(name, paramText.Trim()); // TODO: trim each line
+                        }
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.TypeParameterElementName))
+                    {
+                        string name = reader.GetAttribute(XmlNames.NameAttributeName);
+                        string typeParamText = reader.ReadInnerXml();
+
+                        if (!string.IsNullOrWhiteSpace(name) && !comment.typeParameterTexts.ContainsKey(name))
+                        {
+                            (typeParameterNamesBuilder ?? (typeParameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
+                            comment.typeParameterTexts.Add(name, typeParamText.Trim()); // TODO: trim each line
+                        }
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.ExceptionElementName))
+                    {
+                        string type = reader.GetAttribute(XmlNames.CrefAttributeName);
+                        string exceptionText = reader.ReadInnerXml();
+
+                        if (!string.IsNullOrWhiteSpace(type))
+                        {
+                            if (exceptionTextBuilders == null || !exceptionTextBuilders.ContainsKey(type))
+                            {
+                                (exceptionTypesBuilder ?? (exceptionTypesBuilder = ImmutableArray.CreateBuilder<string>())).Add(type);
+                                (exceptionTextBuilders ?? (exceptionTextBuilders = new Dictionary<string, ImmutableArray<string>.Builder>())).Add(type, ImmutableArray.CreateBuilder<string>());
+                            }
+
+                            exceptionTextBuilders[type].Add(exceptionText);
+                        }
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.CompletionListElementName))
+                    {
+                        string cref = reader.GetAttribute(XmlNames.CrefAttributeName);
+                        if (!string.IsNullOrWhiteSpace(cref))
+                        {
+                            comment.CompletionListCref = cref;
+                        }
+
+                        reader.ReadInnerXml();
+                    }
+                    else
+                    {
+                        // This is an element we don't handle. Skip it.
+                        reader.Read();
+                    }
+                }
+                else
+                {
+                    // We came across something that isn't a start element, like a block of text.
+                    // Skip it.
+                    reader.Read();
+                }
             }
         }
 
