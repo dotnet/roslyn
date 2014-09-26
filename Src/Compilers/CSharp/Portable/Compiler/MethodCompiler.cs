@@ -772,7 +772,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool includeInitializersInBody;
-                bool isPrimaryCtor = false;
                 BoundBlock body;
 
                 // if synthesized method returns its body in lowered form
@@ -813,42 +812,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Do not emit initializers if we are invoking another constructor of this class.
 
-                    // Also, in presence of primary constructor, do not process initializers for a non-primary instance constructor.
-                    // Even when non-primary instance constructor doesn't invoke another constructor of this class, this is an error
-                    // condition which is reported elsewhere. 
                     SourceMemberContainerTypeSymbol container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
-                    isPrimaryCtor = ((object)container != null && (object)container.PrimaryCtor == (object)methodSymbol);
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty && 
-                                                !HasThisConstructorInitializer(methodSymbol) &&
-                                                (methodSymbol.IsStatic || 
-                                                 isPrimaryCtor || (object)container == null || (object)container.PrimaryCtor == null);
+                                                !HasThisConstructorInitializer(methodSymbol);
 
-                    Debug.Assert(!(includeInitializersInBody && isPrimaryCtor) || processedInitializers.LoweredInitializers == null);
-
-                    var initializationScopeLocals = ImmutableArray<LocalSymbol>.Empty;
-                    int initializationScopeStatements = 0;
-
-                    if (includeInitializersInBody && isPrimaryCtor)
-                    {
-                        // See if there are any locals in intialization scope
-                        Debug.Assert((object)methodSymbol == sourceMethod);
-                        Debug.Assert(sourceMethod.SyntaxNode.Kind == SyntaxKind.ParameterList);
-
-                        var correspondingTypeDeclaration = (TypeDeclarationSyntax)sourceMethod.SyntaxNode.Parent;
-
-                        foreach (var initializer in processedInitializers.BoundInitializers)
-                        {
-                            if (initializer.Kind == BoundKind.InitializationScope && initializer.Syntax == correspondingTypeDeclaration)
-                            {
-                                var initializationScope = (BoundInitializationScope)initializer;
-                                initializationScopeLocals = initializationScope.Locals;
-                                initializationScopeStatements = initializationScope.Initializers.Length;
-                                break;
-                            }
-                        }
-                    }
-
-                    body = BindMethodBody(methodSymbol, initializationScopeLocals, compilationState, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
+                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
@@ -859,59 +827,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.Rewrite(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        if (body != null && 
-                            (isPrimaryCtor || 
-                             (container.IsStructType() && !methodSymbol.IsImplicitConstructor )))
+                        if (body != null && container.IsStructType() && !methodSymbol.IsImplicitConstructor)
                         {
-
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
-                            // We will not be repeating this analysis for other constructors.
-
-                            if (initializationScopeLocals.IsDefaultOrEmpty)
-                            {
-                                body = body.Update(body.Locals, body.Statements.Insert(0, analyzedInitializers));
-                            }
-                            else
-                            {
-                                Debug.Assert(isPrimaryCtor);
-
-                                // This gets tricky, we need to make sure that the initializers declaring initializationScopeLocals 
-                                // and the body are in the same block with Locals == initializationScopeLocals. At the same time,
-                                // we cannot just inject the body at the end of existing initialization block because it can be 
-                                // followed by other initializers, and all of them should be executed before the body.
-                                // What we will do instead, we will put all initializers inside that block, preserving their order,
-                                // and will append body at the end. 
-                                var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance(analyzedInitializers.Statements.Length + initializationScopeStatements);
-                                BoundBlock blockToUpdate = null;
-                                
-                                foreach (var initializer in analyzedInitializers.Statements)
-                                {
-                                    if (initializer.Kind == BoundKind.Block)
-                                    {
-                                        var block = (BoundBlock)initializer;
-
-                                        if (block.Locals == initializationScopeLocals)
-                                        {
-                                            if (blockToUpdate != null)
-                                            {
-                                                throw ExceptionUtilities.Unreachable;
-                                            }
-
-                                            blockToUpdate = block;
-                                            blockBuilder.AddRange(block.Statements);
-                                            continue;
-                                        }
-                                    }
-
-                                    blockBuilder.Add(initializer);
-                                }
-
-                                blockBuilder.Add(body);
-
-                                Debug.Assert(blockBuilder.Count == analyzedInitializers.Statements.Length + initializationScopeStatements);
-                                body = blockToUpdate.Update(blockToUpdate.Locals, blockBuilder.ToImmutableAndFree());
-                            }
-
+                            body = body.Update(body.Locals, body.Statements.Insert(0, analyzedInitializers));
                             includeInitializersInBody = false;
                             analyzedInitializers = null;
                         }
@@ -1083,13 +1002,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // generated struct constructors should either chain to primary
-                    // or ensure that all fields are assigned (even those that do not have initializers)
+                    // generated struct constructors should ensure that all fields are assigned (even those that do not have initializers)
                     var container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
                     if (container != null &&
                         container.IsStructType() &&
-                        methodSymbol.IsImplicitInstanceConstructor &&
-                        !isPrimaryCtor)
+                        methodSymbol.IsImplicitInstanceConstructor)
                     {
                         var chain = ChainImplicitStructConstructor(methodSymbol, container);
                         chain = LowerBodyOrInitializer(
@@ -1136,7 +1053,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement ChainImplicitStructConstructor(MethodSymbol methodSymbol, SourceMemberContainerTypeSymbol containingType)
         {
             CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
-            Debug.Assert(containingType.PrimaryCtor == null);
 
             // TODO: can we skip this if we have as many initializers as instance fields?
             //       there could be an observable difference if initializer crashes 
@@ -1356,11 +1272,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             ConsList<Imports> unused;
-            return BindMethodBody(method, ImmutableArray<LocalSymbol>.Empty, compilationState, diagnostics, false, out unused);
+            return BindMethodBody(method, compilationState, diagnostics, false, out unused);
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(MethodSymbol method, ImmutableArray<LocalSymbol> initializationScopeLocals, TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo, out ConsList<Imports> debugImports)
+        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo, out ConsList<Imports> debugImports)
         {
             debugImports = null;
 
@@ -1371,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // delegates have constructors but not constructor initializers
             if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType())
             {
-                var initializerInvocation = BindConstructorInitializer(method, initializationScopeLocals, diagnostics, compilation, out localsDeclaredInInitializer);
+                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation, out localsDeclaredInInitializer);
 
                 if (initializerInvocation != null)
                 {
@@ -1409,17 +1325,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
 
                 var blockSyntax = sourceMethod.BodySyntax as BlockSyntax;
-                Debug.Assert(initializationScopeLocals.IsDefaultOrEmpty || sourceMethod.IsPrimaryCtor);
 
                 if (blockSyntax != null)
                 {
                     var inMethodBinder = factory.GetBinder(blockSyntax);
-
-                    if (sourceMethod.IsPrimaryCtor && !initializationScopeLocals.IsDefaultOrEmpty)
-                    {
-                        // Locals declared in field initializers should be in scope.
-                        inMethodBinder = new SimpleLocalScopeBinder(initializationScopeLocals, inMethodBinder);
-                    }
 
                     // Bring locals declared in initializer in scope, they should be visible within the block.
                     if (!localsDeclaredInInitializer.IsDefaultOrEmpty)
@@ -1470,10 +1379,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Add locals
                     binder = new ScopedExpressionBinder(binder, arrowExpression.Expression);
                     return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
-                }
-                else if (sourceMethod.IsPrimaryCtor)
-                {
-                    body = null;
                 }
                 else
                 {
@@ -1533,12 +1438,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind the (implicit or explicit) constructor initializer of a constructor symbol.
         /// </summary>
         /// <param name="constructor">Constructor method.</param>
-        /// <param name="initializationScopeLocals">Locals declared within an initialization scope.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. access "this" in constructor initializer).</param>
         /// <param name="compilation">Used to retrieve binder.</param>
         /// <param name="localsDeclaredInInitializer">Locals declared in the initializer are returned through this parameter.</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
-        internal static BoundExpression BindConstructorInitializer(MethodSymbol constructor, ImmutableArray<LocalSymbol> initializationScopeLocals, DiagnosticBag diagnostics, CSharpCompilation compilation, out ImmutableArray<LocalSymbol> localsDeclaredInInitializer)
+        internal static BoundExpression BindConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation, out ImmutableArray<LocalSymbol> localsDeclaredInInitializer)
         {
             localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
 
@@ -1546,73 +1450,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMethodSymbol sourceConstructor = constructor as SourceMethodSymbol;
-            CSharpSyntaxNode syntax = null;
+            ConstructorDeclarationSyntax constructorSyntax = null;
             ArgumentListSyntax initializerArgumentListOpt = null;
             if ((object)sourceConstructor != null)
             {
-                syntax = sourceConstructor.SyntaxNode;
-
-                if (syntax.Kind == SyntaxKind.ConstructorDeclaration)
+                constructorSyntax = (ConstructorDeclarationSyntax)sourceConstructor.SyntaxNode;
+                if (constructorSyntax.Initializer != null)
                 {
-                    var constructorSyntax = (ConstructorDeclarationSyntax)syntax;
-                    if (constructorSyntax.Initializer != null)
-                    {
-                        initializerArgumentListOpt = constructorSyntax.Initializer.ArgumentList;
-                    }
-
-                    ErrorCode reportIfHavePrimaryCtor = ErrorCode.Void;
-
-                    if (initializerArgumentListOpt == null || initializerArgumentListOpt.Parent.Kind != SyntaxKind.ThisConstructorInitializer)
-                    {
-                        reportIfHavePrimaryCtor = ErrorCode.ERR_InstanceCtorMustHaveThisInitializer;
-                    }
-                    else if (initializerArgumentListOpt.Arguments.Count == 0 && constructor.ContainingType.TypeKind == TypeKind.Struct)
-                    {
-                        // Based on C# Design Notes for Oct 21, 2013:
-                        reportIfHavePrimaryCtor = ErrorCode.ERR_InstanceCtorCannotHaveDefaultThisInitializer;
-                    }
-
-                    if (reportIfHavePrimaryCtor != ErrorCode.Void)
-                    {
-                        var container = constructor.ContainingType as SourceMemberContainerTypeSymbol;
-
-                        if ((object)container != null && (object)container.PrimaryCtor != null)
-                        {
-                            diagnostics.Add(reportIfHavePrimaryCtor, constructor.Locations[0]);
-                        }
-                    }
-                }
-                else
-                {
-                    // Primary constuctor case.
-                    Debug.Assert(syntax.Kind == SyntaxKind.ParameterList);
-                    if (syntax.Parent.Kind == SyntaxKind.ClassDeclaration)
-                    {
-                        var classDecl = (ClassDeclarationSyntax)syntax.Parent;
-
-                        if (classDecl.BaseList != null && classDecl.BaseList.Types.Count > 0)
-                        {
-                            TypeSyntax baseTypeSyntax = classDecl.BaseList.Types[0];
-                            if (baseTypeSyntax.Kind == SyntaxKind.BaseClassWithArguments)
-                            {
-                                var baseBinder = compilation.GetBinder(classDecl.BaseList);
-                                baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, constructor.ContainingType);
-
-                                var baseClassWithArguments = (BaseClassWithArgumentsSyntax)baseTypeSyntax;
-                                TypeSymbol targetType = baseBinder.BindType(baseClassWithArguments.BaseClass, new DiagnosticBag());
-
-                                // If types are different, an error has been reported elsewhere.
-                                if (!targetType.IsErrorType() && baseType == targetType)
-                                {
-                                    initializerArgumentListOpt = baseClassWithArguments.ArgumentList;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Debug.Assert(syntax.Parent.Kind == SyntaxKind.StructDeclaration);
-                    }
+                    initializerArgumentListOpt = constructorSyntax.Initializer.ArgumentList;
                 }
             }
 
@@ -1710,19 +1555,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list
                 // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
 
-                outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(syntax.Kind == SyntaxKind.ParameterList ?
-                                                                                                        syntax :
-                                                                                                        ((ConstructorDeclarationSyntax)syntax).ParameterList);
+                outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(constructorSyntax.ParameterList);
             }
             else
             {
                 outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(initializerArgumentListOpt);
-            }
-
-            if (!initializationScopeLocals.IsDefaultOrEmpty)
-            {
-                Debug.Assert(syntax != null && syntax.Kind == SyntaxKind.ParameterList);
-                outerBinder = new SimpleLocalScopeBinder(initializationScopeLocals, outerBinder);
             }
 
             //wrap in ConstructorInitializerBinder for appropriate errors
@@ -1730,16 +1567,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializerArgumentListOpt != null)
             {
-                if (syntax.Kind == SyntaxKind.ParameterList)
-                {
-                    initializerBinder = new WithConstructorInitializerLocalsBinder(initializerBinder, initializerArgumentListOpt);
-                    localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(initializerArgumentListOpt);
-                }
-                else
-                {
-                    initializerBinder = new WithConstructorInitializerLocalsBinder(initializerBinder, (ConstructorDeclarationSyntax)syntax);
-                    localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(syntax);
-                }
+                initializerBinder = new WithConstructorInitializerLocalsBinder(initializerBinder, constructorSyntax);
+                localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(constructorSyntax);
             }
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);

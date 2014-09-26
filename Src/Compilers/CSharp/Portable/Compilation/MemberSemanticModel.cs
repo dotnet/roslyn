@@ -464,12 +464,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override IMethodSymbol GetDeclaredConstructorSymbol(TypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            // Can't define type inside a member.
-            return null;
-        }
-
         public override ISymbol GetDeclaredSymbol(BasePropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define property inside member.
@@ -1692,18 +1686,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Already bound. Return the top-most bound node associated with the statement. 
                     return (BoundStatement)boundNodes[0];
                 }
-            }
-
-            internal override Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType)
-            {
-                Binder result = base.WithPrimaryConstructorParametersIfNecessary(containingType);
-
-                if (result != this)
-                {
-                    result = new IncrementalBinder(this.semanticModel, result);
-                }
-
-                return result;
             }
         }
     }

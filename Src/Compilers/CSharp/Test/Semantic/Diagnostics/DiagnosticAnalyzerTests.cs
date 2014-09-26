@@ -701,20 +701,5 @@ public class C : B
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"));
         }
-
-        [Fact, WorkItem(1008059)]
-        void TestCodeBlockAnalyzersForPrimaryConstructor()
-        {
-            string primaryCtorSource = @"
-public class C(int a = 10)
-{ }";
-            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockAnalyzer() };
-
-            CreateCompilationWithMscorlib45(primaryCtorSource, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental))
-                .VerifyDiagnostics()
-                .VerifyCSharpAnalyzerDiagnostics(analyzers, null, null,
-                    Diagnostic("EqualsValueDiagnostic"),
-                    Diagnostic("CodeBlockDiagnostic"));
-        }
     }
 }

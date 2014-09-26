@@ -186,7 +186,6 @@
     <Compile Include="Binder\WithLambdaParametersBinder.cs" />
     <Compile Include="Binder\WithMethodTypeParametersBinder.cs" />
     <Compile Include="Binder\WithParametersBinder.cs" />
-    <Compile Include="Binder\WithPrimaryConstructorParametersBinder.cs" />
     <Compile Include="Binder\WithTypeParametersBinder.cs" />
     <Compile Include="BoundTree\BoundExpression.cs" />
     <Compile Include="BoundTree\BoundExpressionExtensions.cs" />
@@ -708,7 +707,6 @@
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />
     <Compile Include="Syntax\BaseSyntaxNodeExtensions.cs" />
-    <Compile Include="Syntax\ClassDeclarationSyntax.cs" />
     <Compile Include="Syntax\CompilationUnitSyntax.cs" />
     <Compile Include="Syntax\CSharpLineDirectiveMap.cs" />
     <Compile Include="Syntax\CSharpPragmaWarningStateMap.cs" />
@@ -770,7 +768,6 @@
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SimpleNameSyntax.cs" />
     <Compile Include="Syntax\SimpleSyntaxReference.cs" />
-    <Compile Include="Syntax\StructDeclarationSyntax.cs" />
     <Compile Include="Syntax\StructuredTriviaSyntax.cs" />
     <Compile Include="Syntax\SyntaxEquivalence.cs" />
     <Compile Include="Syntax\SyntaxExtensions.cs" />
@@ -798,7 +795,6 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.cs" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.cs" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
-    <Compile Include="Syntax\TypeDeclarationSyntaxExtensions.cs" />
     <Compile Include="Syntax\TypeDeclarationSyntax.cs" />
     <Compile Include="Syntax\TypeSyntax.cs" />
     <Compile Include="Syntax\XmlNameAttributeElementKind.cs" />

@@ -276,19 +276,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' So, are we ok with default behavior?
             ' Returning false will result in a production of synthesized parameterless ctor 
 
-#If PRIMARY_STRUCT_CTORS Then
-            If method = container.PrimaryCtor Then
-                ' primary ctor is considered synthesized, but should always be emitted
-                Return False
-            End If
-
-            If container.PrimaryCtor IsNot Nothing Then
-                ' do not synthesize parameterless ctor if we have a primary one
-                Return True
-            End If
-#End If
-
-            ' we do not have a primary ctor
             ' this ctor is not default if we have instance initializers
             Return container.InstanceInitializers.IsDefaultOrEmpty
         End Function

@@ -385,19 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // So, are we ok with default behavior?
             // Returning false will result in a production of synthesized parameterless ctor 
 
-            if(method == container.PrimaryCtor)
-            {
-                // primary ctor is considered synthesized, but should always be emitted
-                return false;
-            }
-
-            if ((object)container.PrimaryCtor != null)
-            {
-                // do not synthesize parameterless ctor if we have a primary one
-                return true;
-            }
-
-            // we do not have a primary ctor
             // this ctor is not default if we have instance initializers
             return container.InstanceInitializers.IsDefaultOrEmpty;
         }

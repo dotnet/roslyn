@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Virtual = 1 << 16, // used for method binding
         Override = 1 << 17, // "
 
-        Indexer = 1 << 18, // not a real modifier, but used to record that indexer syntax was used. Sharing this bit with PrimaryCtor.
-        PrimaryCtor = 1 << 18, // not a real modifier, but used to record that this is a primary constructor. Sharing this bit with Indexer.
+        Indexer = 1 << 18, // not a real modifier, but used to record that indexer syntax was used. 
 
         Async = 1 << 19,
 

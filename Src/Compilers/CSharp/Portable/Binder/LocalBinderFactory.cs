@@ -82,11 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitBlock(node.Body);
         }
 
-        public override void VisitPrimaryConstructorBody(PrimaryConstructorBodySyntax node)
-        {
-            VisitBlock(node.Body);
-        }
-
         public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
         {
             VisitBlock(node.Body);

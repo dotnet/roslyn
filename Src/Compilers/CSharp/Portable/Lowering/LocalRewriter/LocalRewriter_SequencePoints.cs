@@ -41,15 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(usingSyntax, rewrittenStatement, span);
         }
 
-        internal static BoundStatement AddSequencePoint(BlockSyntax blockSyntax, BoundStatement rewrittenStatement, bool isPrimaryCtor)
+        internal static BoundStatement AddSequencePoint(BlockSyntax blockSyntax, BoundStatement rewrittenStatement)
         {
             TextSpan span;
-
-            if (isPrimaryCtor)
-            {
-                // For a primary constructor block: ... [|{|] ... }
-                return new BoundSequencePointWithSpan(blockSyntax, rewrittenStatement, blockSyntax.OpenBraceToken.Span);
-            }
 
             var parent = blockSyntax.Parent as ConstructorDeclarationSyntax;
             if (parent != null)

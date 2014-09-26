@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Text = MessageBase + 12687,
 
         IDS_FeatureDeclarationExpression = MessageBase + 12688,
-        IDS_FeaturePrimaryConstructor = MessageBase + 12689,
+
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
         IDS_FeatureExpressionBodiedMethod = MessageBase + 12691,
         IDS_FeatureExpressionBodiedProperty = MessageBase + 12692,
@@ -142,7 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Experimental features.
                 case MessageID.IDS_FeatureDeclarationExpression:
-                case MessageID.IDS_FeaturePrimaryConstructor:
                     return LanguageVersion.Experimental;
 
                 // C# 6 features.

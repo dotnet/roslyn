@@ -154,11 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol);
 
-                    if (!fieldSymbol.IsConst && !fieldSymbol.IsStatic)
-                    {
-                        parentBinder = parentBinder.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType);
-                    }
-
                     infos.Add(new FieldInitializerInfo(initializer, parentBinder, initializerNode));
                 }
             }

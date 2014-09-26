@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
-        /// property or a field-like event or a Primary Constructor parameter, returns that 
-        /// property/event/parameter. Otherwise returns null.
+        /// property or a field-like event, returns that 
+        /// property/event. Otherwise returns null.
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
         /// </summary>

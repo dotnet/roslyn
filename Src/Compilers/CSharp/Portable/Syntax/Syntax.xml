@@ -239,15 +239,6 @@
       <summary>Creates an NullableTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="BaseClassWithArgumentsSyntax" Base="TypeSyntax">
-    <Kind Name="BaseClassWithArguments"/>
-    <Field Name="BaseClass" Type="TypeSyntax"/>
-    <Field Name="ArgumentList" Type="ArgumentListSyntax">
-      <PropertyComment>
-        <summary>ArgumentListSyntax node representing the list of arguments acting as arguments to the base call of the primary constructor.</summary>
-      </PropertyComment>
-    </Field>
-  </Node>
   <Node Name="OmittedTypeArgumentSyntax" Base="TypeSyntax">
     <Kind Name="OmittedTypeArgument"/>
     <Field Name="OmittedTypeArgumentToken" Type="SyntaxToken">
@@ -2438,7 +2429,6 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
-    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true"/>
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
@@ -2469,7 +2459,6 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
-    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true"/>
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
@@ -3873,19 +3862,6 @@
       <Kind Name="EndOfDirectiveToken"/>
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
-  </Node>
-  <Node Name="PrimaryConstructorBodySyntax" Base="MemberDeclarationSyntax">
-    <TypeComment>
-      <summary>Syntax for Primary Constructor body.</summary>
-    </TypeComment>
-    <Kind Name="PrimaryConstructorBody"/>
-    <Field Name="Body" Type="BlockSyntax" Optional="false"/>
-    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
-      <PropertyComment>
-        <summary>Gets the optional semicolon token.</summary>
-      </PropertyComment>
-      <Kind Name="SemicolonToken"/>
-    </Field>
   </Node>
   <Node Name="NameOfExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="NameOfExpression"/>

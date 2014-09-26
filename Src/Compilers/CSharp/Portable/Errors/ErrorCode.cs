@@ -1257,16 +1257,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnableToLoadAnalyzer = 8034,
         ERR_CantReadRulesetFile = 8035,
 
-        ERR_SeveralPartialsDeclarePrimaryCtor = 8036,
-        ERR_InstanceCtorMustHaveThisInitializer = 8037,
-        ERR_PrimaryCtorParameterSameNameAsTypeParam = 8038,
-        ERR_PrimaryCtorParameterSameNameAsContainingType = 8039,
+        // available
 
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
 
-        ERR_DuplicatePrimaryCtorBody = 8041,
-        // available = 8042
-        ERR_InstanceCtorCannotHaveDefaultThisInitializer = 8043,
+        // available = 8041, 8042, 8043
 
         // available = 8044,
         // available = 8045,

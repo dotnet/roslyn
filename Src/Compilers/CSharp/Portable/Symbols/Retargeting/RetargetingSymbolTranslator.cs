@@ -646,13 +646,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
             }
 
-            public ParameterSymbol Retarget(ParameterSymbol parameter)
-            {
-                Debug.Assert(ReferenceEquals(parameter.ContainingModule, retargetingModule.UnderlyingModule));
-                // At the moment only Primary Constructor parameters can be retargeted.
-                return Retarget((MethodSymbol)parameter.ContainingSymbol).Parameters[parameter.Ordinal];
-            }
-
             public virtual TypeParameterSymbol Retarget(TypeParameterSymbol typeParameter)
             {
                 return (TypeParameterSymbol)this.SymbolMap.GetOrAdd(typeParameter, retargetingModule.createRetargetingTypeParameter);
@@ -1253,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public override Symbol VisitParameter(ParameterSymbol symbol, RetargetOptions options)
             {
-                return Retarget(symbol);
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override Symbol VisitField(FieldSymbol symbol, RetargetOptions options)

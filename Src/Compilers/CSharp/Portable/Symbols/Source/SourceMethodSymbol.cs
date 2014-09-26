@@ -168,7 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExtensionMethod,
             bool isMetadataVirtualIgnoringModifiers = false)
         {
-            Debug.Assert((declarationModifiers & DeclarationModifiers.PrimaryCtor) == 0 || methodKind == MethodKind.Constructor);
             bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
 
             int methodKindInt = ((int)methodKind << MethodKindOffset) & MethodKindMask;
@@ -400,22 +399,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return (this.DeclarationModifiers & DeclarationModifiers.Extern) != 0;
-            }
-        }
-
-        /// <summary>
-        /// Is this a declaration of a Primary constructor?
-        /// Note, more than one constructor in a type can return true for this property.
-        /// This happens for an error situation when more than one partial declaration declares Primary
-        /// Constructor. We will create a constructor symbol for each of them and all of them will have
-        /// IsPrimaryCtor == true. However, The first one that we create will be the "main" Primary Constructor,
-        /// SourceMemberContainerTypeSymbol.PrimaryCtor property returns it.
-        /// </summary>
-        public bool IsPrimaryCtor
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.PrimaryCtor) != 0;
             }
         }
 

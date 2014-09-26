@@ -15084,58 +15084,6 @@ public class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [Fact]
-        public void AutoPropertyInitializerInClassPrimaryConstructor()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-
-class Program(int i)
-{
-    public int P { get; } = /*<bind>*/i/*</bind>*/;
-}", parseOptions: TestOptions.ExperimentalParseOptions);
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
-
-            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
-            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
-            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Equal("int", semanticInfo.Symbol.ToDisplayString());
-            Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
-        }
-
-        [Fact]
-        public void AutoPropertyInitializerInStructPrimaryConstructor()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-struct Program(int i)
-{
-    public int P { get; } = /*<bind>*/i/*</bind>*/;
-}
-", parseOptions: TestOptions.ExperimentalParseOptions);
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
-
-            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
-            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
-            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Equal("int", semanticInfo.Symbol.ToDisplayString());
-            Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
-        }
-
         [Fact, WorkItem(998050, "DevDiv")]
         public void Bug998050()
         {

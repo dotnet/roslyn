@@ -3365,15 +3365,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Primary constructor already has a body..
-        /// </summary>
-        internal static string ERR_DuplicatePrimaryCtorBody {
-            get {
-                return ResourceManager.GetString("ERR_DuplicatePrimaryCtorBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot specify accessibility modifiers for both accessors of the property or indexer &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_DuplicatePropertyAccessMods {
@@ -4783,24 +4774,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InitializerOnNonAutoProperty {
             get {
                 return ResourceManager.GetString("ERR_InitializerOnNonAutoProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Since this struct type has a primary constructor, an instance constructor declaration cannot specify a constructor initializer that invokes default constructor..
-        /// </summary>
-        internal static string ERR_InstanceCtorCannotHaveDefaultThisInitializer {
-            get {
-                return ResourceManager.GetString("ERR_InstanceCtorCannotHaveDefaultThisInitializer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Since this type has a primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list])..
-        /// </summary>
-        internal static string ERR_InstanceCtorMustHaveThisInitializer {
-            get {
-                return ResourceManager.GetString("ERR_InstanceCtorMustHaveThisInitializer", resourceCulture);
             }
         }
         
@@ -6938,24 +6911,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: a parameter of a primary constructor cannot have the same name as containing type..
-        /// </summary>
-        internal static string ERR_PrimaryCtorParameterSameNameAsContainingType {
-            get {
-                return ResourceManager.GetString("ERR_PrimaryCtorParameterSameNameAsContainingType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: a parameter of a primary constructor cannot have the same name as a type&apos;s type parameter &apos;{1}&apos;..
-        /// </summary>
-        internal static string ERR_PrimaryCtorParameterSameNameAsTypeParam {
-            get {
-                return ResourceManager.GetString("ERR_PrimaryCtorParameterSameNameAsTypeParam", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for PrincipalPermission attribute.
         /// </summary>
         internal static string ERR_PrincipalPermissionInvalidAction {
@@ -7591,15 +7546,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SemiOrLBraceExpected {
             get {
                 return ResourceManager.GetString("ERR_SemiOrLBraceExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Only one part of a partial type can declare primary constructor parameters..
-        /// </summary>
-        internal static string ERR_SeveralPartialsDeclarePrimaryCtor {
-            get {
-                return ResourceManager.GetString("ERR_SeveralPartialsDeclarePrimaryCtor", resourceCulture);
             }
         }
         
@@ -8915,15 +8861,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeaturePragma {
             get {
                 return ResourceManager.GetString("IDS_FeaturePragma", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to primary constructor.
-        /// </summary>
-        internal static string IDS_FeaturePrimaryConstructor {
-            get {
-                return ResourceManager.GetString("IDS_FeaturePrimaryConstructor", resourceCulture);
             }
         }
         

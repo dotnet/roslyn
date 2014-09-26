@@ -711,17 +711,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        internal virtual Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType)
-        {
-            var container = containingType as SourceMemberContainerTypeSymbol;
-
-            if ((object)container != null && container.PrimaryCtor != null && container.PrimaryCtor.ParameterCount > 0)
-            {
-                return new WithPrimaryConstructorParametersBinder(container.PrimaryCtor, this);
-            }
-
-            return this;
-        }
-
     }
 }

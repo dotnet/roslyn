@@ -152,24 +152,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var b in bases.Types)
                     {
                         var tmpDiag = DiagnosticBag.GetInstance();
-
-                        TypeSyntax typeToBind;
-
-                        if (b.Kind == SyntaxKind.BaseClassWithArguments)
-                        {
-                            typeToBind = ((BaseClassWithArgumentsSyntax)b).BaseClass;
-                        }
-                        else
-                        {
-                            typeToBind = b;
-                        }
-
-                        var curBaseSym = baseBinder.BindType(typeToBind, tmpDiag);
+                        var curBaseSym = baseBinder.BindType(b, tmpDiag);
                         tmpDiag.Free();
 
                         if (baseSym.Equals(curBaseSym))
                         {
-                            return new SourceLocation(typeToBind);
+                            return new SourceLocation(b);
                         }
                     }
                 }
@@ -349,21 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (i == 0 && TypeKind == TypeKind.Class) // allow class in the first position
                 {
-                    if (typeSyntax.Kind == SyntaxKind.BaseClassWithArguments)
-                    {
-                        TypeSyntax baseClass = ((BaseClassWithArgumentsSyntax)typeSyntax).BaseClass;
-                        location = new SourceLocation(baseClass);
-                        baseType = baseBinder.BindType(baseClass, diagnostics, newBasesBeingResolved);
-
-                        if (baseType.TypeKind == TypeKind.Interface)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ImplementedInterfaceWithArguments, ((BaseClassWithArgumentsSyntax)typeSyntax).ArgumentList.GetLocation());
-                        }
-                    }
-                    else
-                    {
-                        baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved);
-                    }
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved);
 
                     SpecialType baseSpecialType = baseType.SpecialType;
                     if (IsRestrictedBaseType(baseSpecialType))

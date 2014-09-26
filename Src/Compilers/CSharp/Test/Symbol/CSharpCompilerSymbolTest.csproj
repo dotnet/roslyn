@@ -201,7 +201,6 @@
     <Compile Include="Symbols\Source\LocationTests.cs" />
     <Compile Include="Symbols\Source\MethodTests.cs" />
     <Compile Include="Symbols\Source\ModifierTests.cs" />
-    <Compile Include="Symbols\Source\PrimaryConstructors.cs" />
     <Compile Include="Symbols\Source\PropertyTests.cs" />
     <Compile Include="Symbols\Source\ExpressionBodiedPropertyTests.cs" />
     <Compile Include="Symbols\Source\SourcePlusMetadataTests.cs" />

@@ -177,7 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Ctors cannot be generic
                             //TODO: the error should be given in a different place, but should we ignore or consider the type args?
                             Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
-                            Debug.Assert(!method.IsPrimaryCtor);
 
                             resultBinder = new InMethodBinder(method, resultBinder);
                         }
@@ -189,106 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return resultBinder;
-            }
-
-            public override Binder VisitBaseClassWithArguments(BaseClassWithArgumentsSyntax node)
-            {
-                if (LookupPosition.IsBetweenTokens(position, node.ArgumentList.OpenParenToken, node.ArgumentList.CloseParenToken))
-                {
-                    // This is a base initializer for the primary constructor.
-                    Binder resultBinder;
-                    var key = CreateBinderCacheKey(node, NodeUsage.ConstructorBodyOrInitializer);
-
-                    if (!binderCache.TryGetValue(key, out resultBinder))
-                    {
-                        resultBinder = base.VisitBaseClassWithArguments(node);
-                        var parent = node.Parent;
-
-                        if (parent != null && parent.Kind == SyntaxKind.BaseList && node == ((BaseListSyntax)parent).Types.FirstOrDefault())
-                        {
-                            parent = parent.Parent;
-                            if (parent != null && parent.Kind == SyntaxKind.ClassDeclaration)
-                            {
-                                var classDecl = (ClassDeclarationSyntax)parent;
-                                var container = ((NamespaceOrTypeSymbol)resultBinder.ContainingMemberOrLambda).GetSourceTypeMember(classDecl) as SourceMemberContainerTypeSymbol;
-
-                                if ((object)container != null)
-                                {
-                                    ParameterListSyntax parameters = classDecl.ParameterList;
-
-                                    if (parameters != null)
-                                    {
-                                        var method = (SourceMethodSymbol)GetMemberSymbol(WellKnownMemberNames.InstanceConstructorName, parameters.FullSpan, container, SymbolKind.Method);
-                                        if ((object)method != null)
-                                        {
-                                            Debug.Assert(method.IsPrimaryCtor);
-                                            // Ctors cannot be generic
-                                            Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
-
-                                            resultBinder = new InMethodBinder(method, resultBinder);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        binderCache.TryAdd(key, resultBinder);
-                    }
-
-                    return resultBinder;
-                }
-
-                return base.VisitBaseClassWithArguments(node);
-            }
-
-            public override Binder VisitPrimaryConstructorBody(PrimaryConstructorBodySyntax node)
-            {
-                if (node.Parent != null && LookupPosition.IsInBlock(position, node.Body))
-                {
-                    ParameterListSyntax parameters = null;
-
-                    switch (node.Parent.Kind)
-                    {
-                        case SyntaxKind.ClassDeclaration:
-                            parameters = ((ClassDeclarationSyntax)node.Parent).ParameterList;
-                            break;
-                        case SyntaxKind.StructDeclaration:
-                            parameters = ((StructDeclarationSyntax)node.Parent).ParameterList;
-                            break;
-                    }
-
-                    if (parameters != null)
-                    {
-                        // This is a body for a primary constructor.
-                        Binder resultBinder;
-                        var key = CreateBinderCacheKey(node, NodeUsage.ConstructorBodyOrInitializer);
-
-                        if (!binderCache.TryGetValue(key, out resultBinder))
-                        {
-                            resultBinder = base.VisitPrimaryConstructorBody(node);
-                            var container = resultBinder.ContainingMemberOrLambda as SourceMemberContainerTypeSymbol;
-
-                            if ((object)container != null)
-                            {
-                                var method = (SourceMethodSymbol)GetMemberSymbol(WellKnownMemberNames.InstanceConstructorName, parameters.FullSpan, container, SymbolKind.Method);
-                                if ((object)method != null)
-                                {
-                                    Debug.Assert(method.IsPrimaryCtor);
-                                    // Ctors cannot be generic
-                                    Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
-
-                                    resultBinder = new InMethodBinder(method, resultBinder);
-                                }
-                            }
-
-                            binderCache.TryAdd(key, resultBinder);
-                        }
-
-                        return resultBinder;
-                    }
-                }
-
-                return base.VisitPrimaryConstructorBody(node);
             }
 
             public override Binder VisitDestructorDeclaration(DestructorDeclarationSyntax parent)

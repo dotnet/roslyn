@@ -27,26 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, diagnostics);
         }
 
-        public static SourceConstructorSymbol CreatePrimaryConstructorSymbol(
-            SourceMemberContainerTypeSymbol containingType,
-            ParameterListSyntax syntax,
-            DiagnosticBag diagnostics)
-        {
-            return new SourceConstructorSymbol(containingType, syntax.GetLocation(), syntax, diagnostics);
-        }
-
-        private SourceConstructorSymbol(
-            SourceMemberContainerTypeSymbol containingType,
-            Location location,
-            ParameterListSyntax syntax,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), GetPrimaryConstructorBlockSyntaxReferenceOrNull(syntax), ImmutableArray.Create(location))
-        {
-            var declarationModifiers = (containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public) | DeclarationModifiers.PrimaryCtor;
-            this.flags = MakeFlags(MethodKind.Constructor, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
-            this.CheckModifiers(MethodKind.Constructor, location, diagnostics);
-        }
-
         private SourceConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             Location location,
@@ -80,34 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static SyntaxReference GetPrimaryConstructorBlockSyntaxReferenceOrNull(ParameterListSyntax syntax)
-        {
-            foreach (var m in ((TypeDeclarationSyntax)syntax.Parent).Members)
-            {
-                if (m.Kind == SyntaxKind.PrimaryConstructorBody)
-                {
-                    return ((PrimaryConstructorBodySyntax)m).Body.GetReference();
-                }
-            }
-
-            return null;
-        }
-
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
-            var syntax = (CSharpSyntaxNode)syntaxReference.GetSyntax();
+            var syntax = (ConstructorDeclarationSyntax)syntaxReference.GetSyntax();
             var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntaxReference.SyntaxTree);
-            ParameterListSyntax parameterList;
-
-            if (syntax.Kind == SyntaxKind.ParameterList)
-            {
-                // Primary constructor case
-                parameterList = (ParameterListSyntax)syntax;
-            }
-            else
-            {
-                parameterList = ((ConstructorDeclarationSyntax)syntax).ParameterList;
-            }
+            ParameterListSyntax parameterList = syntax.ParameterList;
 
             // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
             // we might still be constructing the member list of the containing type.  However, getting the binder
@@ -130,20 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, Locations[0]);
             }
-
-            if (this.IsPrimaryCtor)
-            {
-                string typeName = ContainingType.Name;
-
-                foreach (var p in this.lazyParameters)
-                {
-                    if (typeName.Equals(p.Name))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PrimaryCtorParameterSameNameAsContainingType, p.Locations[0], ContainingType);
-                        break;
-                    }
-                }
-            }
         }
 
         public override bool IsVararg
@@ -159,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return IsPrimaryCtor ? true : base.IsImplicitlyDeclared;
+                return base.IsImplicitlyDeclared;
             }
         }
 
@@ -172,15 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.lazyParameters.Length;
                 }
 
-                var syntax = (CSharpSyntaxNode)syntaxReference.GetSyntax();
-
-                if (syntax.Kind == SyntaxKind.ParameterList)
-                {
-                    // Primary constructor
-                    return ((ParameterListSyntax)syntax).ParameterCount;
-                }
-
-                return ((ConstructorDeclarationSyntax)syntax).ParameterList.ParameterCount;
+                var syntax = (ConstructorDeclarationSyntax)syntaxReference.GetSyntax();
+                return syntax.ParameterList.ParameterCount;
             }
         }
 
@@ -239,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckModifiers(MethodKind methodKind, Location location, DiagnosticBag diagnostics)
         {
-            if (bodySyntaxReference == null && !IsExtern && !IsPrimaryCtor)
+            if (bodySyntaxReference == null && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -256,18 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            if (this.IsPrimaryCtor)
-            {
-                if ((object)((SourceNamedTypeSymbol)ContainingType).PrimaryCtor == (object)this)
-                {
-                    // Main Primary Constructor gets its attributes from attributes on the type.
-                    return OneOrMany.Create(((SourceNamedTypeSymbol)ContainingType).GetAttributeDeclarations());
-                }
-
-                // Non-Main Primary constructor doesn't have attributes.
-                return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
-            }
-
             return OneOrMany.Create(((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists);
         }
 
@@ -281,12 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.IsPrimaryCtor && (object)((SourceNamedTypeSymbol)ContainingType).PrimaryCtor == (object)this)
-                {
-                    // Main Primary Constructor gets its attributes from attributes on the type.
-                    return (SourceNamedTypeSymbol)ContainingType;
-                }
-
                 return base.AttributeOwner;
             }
         }

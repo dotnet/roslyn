@@ -338,18 +338,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (variable.Kind)
             {
-                case SymbolKind.Parameter:
-                    // Parameters of a primary constructor are never captured, they are similar to fields.
-                    var container = variable.ContainingSymbol as SourceMethodSymbol;
-                    if ((object)container != null && container.IsPrimaryCtor)
-                    {
-                        break;
-                    }
-
-                    goto case SymbolKind.RangeVariable;
                 case SymbolKind.Local:
                     if (((LocalSymbol)variable).IsConst) break;
                     goto case SymbolKind.RangeVariable;
+                case SymbolKind.Parameter:
                 case SymbolKind.RangeVariable:
                     if (currentMethodOrLambda != variable.ContainingSymbol)
                     {

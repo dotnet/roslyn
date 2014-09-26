@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var sourceMethod = method as SourceMethodSymbol;
 
-                if ((method.IsImplicitlyDeclared && 
-                     !((object)sourceMethod != null && sourceMethod.IsPrimaryCtor && (object)((SourceMemberContainerTypeSymbol)sourceMethod.ContainingType).PrimaryCtor == (object)sourceMethod)) || 
-                    Analyze(compilation, method, block, diagnostics))
+                if (method.IsImplicitlyDeclared || Analyze(compilation, method, block, diagnostics))
                 {
                     // we don't analyze synthesized void methods.
                     block = AppendImplicitReturn(block, method, ((object)sourceMethod != null) ? sourceMethod.BodySyntax as BlockSyntax : null);

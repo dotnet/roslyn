@@ -3950,8 +3950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol initializerType = containingType;
 
                 bool isBaseConstructorInitializer = initializerArgumentListOpt == null ||
-                                                    initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseConstructorInitializer ||
-                                                    initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseClassWithArguments;
+                                                    initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseConstructorInitializer;
 
                 if (isBaseConstructorInitializer)
                 {
@@ -3999,10 +3998,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerArgumentListOpt != null && analyzedArguments.HasDynamicArgument)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor,
-                                    initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseClassWithArguments ?
-                                        initializerArgumentListOpt.GetLocation() :
-                                        ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, 
+                                    ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation());
+
                     return new BoundBadExpression(
                             syntax: initializerArgumentListOpt.Parent,
                             resultKind: LookupResultKind.Empty,
@@ -4015,16 +4013,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Location errorLocation;
                 if (initializerArgumentListOpt != null)
                 {
-                    if (initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseClassWithArguments)
-                    {
-                        nonNullSyntax = initializerArgumentListOpt;
-                        errorLocation = initializerArgumentListOpt.GetLocation();
-                    }
-                    else
-                    {
-                        nonNullSyntax = initializerArgumentListOpt.Parent;
-                        errorLocation = ((ConstructorInitializerSyntax)nonNullSyntax).ThisOrBaseKeyword.GetLocation();
-                    }
+                    nonNullSyntax = initializerArgumentListOpt.Parent;
+                    errorLocation = ((ConstructorInitializerSyntax)nonNullSyntax).ThisOrBaseKeyword.GetLocation();
                 }
                 else
                 {
@@ -4034,30 +4024,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundExpression receiver = ThisReference(nonNullSyntax, initializerType, wasCompilerGenerated: true);
-
-                if (initializerType.IsErrorType())
-                {
-                    var sourceMethod = constructor as SourceMethodSymbol;
-                    if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor)
-                    {
-                        // Do not perform overload resolution on erroneous base for primary constructor.
-                        // The errors could be confusing because the type associated with the error type symbol
-                        // might be different from the one the arguments are applied to (base type mismatch across 
-                        // partial declarations, etc). 
-                        var result = CreateBadCall(
-                            node: nonNullSyntax,
-                            name: WellKnownMemberNames.InstanceConstructorName,
-                            receiver: receiver,
-                            methods: ImmutableArray<MethodSymbol>.Empty,
-                            resultKind: LookupResultKind.OverloadResolutionFailure,
-                            typeArguments: ImmutableArray<TypeSymbol>.Empty,
-                            analyzedArguments: analyzedArguments,
-                            invokedAsExtensionMethod: false,
-                            isDelegate: false);
-                        result.WasCompilerGenerated = initializerArgumentListOpt == null;
-                        return result;
-                    }
-                }
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;
                 ImmutableArray<MethodSymbol> candidateConstructors;
@@ -4081,10 +4047,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(initializerType.IsErrorType() ||
                             (initializerArgumentListOpt != null && initializerArgumentListOpt.Parent.Kind == SyntaxKind.ThisConstructorInitializer));
                         diagnostics.Add(ErrorCode.ERR_RecursiveConstructorCall,
-                            initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseClassWithArguments ?
-                                initializerArgumentListOpt.GetLocation() :
-                                ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation(),
-                            constructor);
+                                        ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation(),
+                                        constructor);
+
                         hasErrors = true; //will prevent recursive constructor from being emitted
                     }
                     else if (resultMember.HasUnsafeParameter())

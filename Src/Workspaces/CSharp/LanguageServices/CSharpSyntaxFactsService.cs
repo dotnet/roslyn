@@ -917,14 +917,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = parent as NameSyntax;
                 if (name == null)
                 {
-                    // If we are on a base class name in a base class initializer,
-                    // ascend to the initializer.
-                    var baseWithArgs = parent as BaseClassWithArgumentsSyntax;
-                    if (baseWithArgs != null)
-                    {
-                        node = parent;
-                    } 
-
                     break;
                 }
 

@@ -4743,7 +4743,7 @@ class C
         public void CSharp6Features()
         {
             var source =
-@"class Foo(int z) // primary constructor
+@"class Foo
 {
     int L { get; } = 12; // auto property initializer
 
@@ -4768,15 +4768,9 @@ class C
 }";
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Experimental)).GetDiagnostics().Verify();
 
-            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify(
-                // (1,10): error CS8058: Feature 'primary constructor' is only available in 'experimental' language version.
-                // class Foo(int z) // primary constructor
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int z)").WithArguments("primary constructor").WithLocation(1, 10));
+            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify();
 
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify(
-                // (1,10): error CS8058: Feature 'primary constructor' is only available in 'experimental' language version.
-                // class Foo(int z) // primary constructor
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int z)").WithArguments("primary constructor").WithLocation(1, 10),
                 // (3,20): error CS8026: Feature 'auto property initializer' is not available in C# 5.  Please use language version 6 or greater.
                 //     int L { get; } = 12; // auto property initializer
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "= 12").WithArguments("auto property initializer", "6").WithLocation(3, 20),

@@ -56,23 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (TypeSyntax t in inheritedTypeDecls)
                 {
-                    TypeSyntax typeToBind;
-
-                    if (t.Kind == SyntaxKind.BaseClassWithArguments)
-                    {
-                        typeToBind = ((BaseClassWithArgumentsSyntax)t).BaseClass;
-                    }
-                    else
-                    {
-                        typeToBind = t;
-                    }
-
-                    TypeSymbol bt = baseBinder.BindType(typeToBind, unusedDiagnostics);
+                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics);
                    
                     if (bt == @base)
                     {
                         unusedDiagnostics.Free();
-                        return typeToBind.GetLocation();
+                        return t.GetLocation();
                     }
                 }
             }
@@ -425,12 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.Struct:
                     case TypeKind.Class:
-                        if ((object)this.PrimaryCtor != null)
-                        {
-                            // Primary Constructor attributes go on the type.
-                            return AttributeLocation.Type | AttributeLocation.Method;
-                        }
-
                         return AttributeLocation.Type;
 
                     default:

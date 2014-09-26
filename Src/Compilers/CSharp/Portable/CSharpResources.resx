@@ -3549,9 +3549,6 @@
   <data name="IDS_FeatureDeclarationExpression" xml:space="preserve">
     <value>declaration expression</value>
   </data>
-  <data name="IDS_FeaturePrimaryConstructor" xml:space="preserve">
-    <value>primary constructor</value>
-  </data>
   <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
     <value>null propagating operator</value>
   </data>
@@ -3912,24 +3909,6 @@
   </data>
   <data name="WRN_IdentifierOrNumericLiteralExpected" xml:space="preserve">
     <value>Expected identifier or numeric literal.</value>
-  </data>
-  <data name="ERR_SeveralPartialsDeclarePrimaryCtor" xml:space="preserve">
-    <value>Only one part of a partial type can declare primary constructor parameters.</value>
-  </data>
-  <data name="ERR_InstanceCtorMustHaveThisInitializer" xml:space="preserve">
-    <value>Since this type has a primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list]).</value>
-  </data>
-  <data name="ERR_PrimaryCtorParameterSameNameAsTypeParam" xml:space="preserve">
-    <value>'{0}': a parameter of a primary constructor cannot have the same name as a type's type parameter '{1}'.</value>
-  </data>
-  <data name="ERR_PrimaryCtorParameterSameNameAsContainingType" xml:space="preserve">
-    <value>'{0}': a parameter of a primary constructor cannot have the same name as containing type.</value>
-  </data>
-  <data name="ERR_DuplicatePrimaryCtorBody" xml:space="preserve">
-    <value>Primary constructor already has a body.</value>
-  </data>
-  <data name="ERR_InstanceCtorCannotHaveDefaultThisInitializer" xml:space="preserve">
-    <value>Since this struct type has a primary constructor, an instance constructor declaration cannot specify a constructor initializer that invokes default constructor.</value>
   </data>
   <data name="ERR_ImplementedInterfaceWithArguments" xml:space="preserve">
     <value>Implemented interface cannot have arguments.</value>

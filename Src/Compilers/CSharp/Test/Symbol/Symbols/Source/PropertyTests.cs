@@ -17,32 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public class PropertyTests : CSharpTestBase
     {
         [Fact]
-        public void AutoWithInitializerInStructPrimaryConstructor()
-        {
-            var text = @"struct S(int i)
-{
-    public int P { get; } = i;
-}";
-            CreateCompilationWithMscorlib(text, 
-               parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
-    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int P { get; } = i;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(3, 16)
-);
-        }
-
-        [Fact]
-        public void AutoWithInitializerInClassPrimaryConstructor()
-        {
-            var text = @"class C(int a)
-{
-    public int P { get; } = a;
-}";
-            CreateCompilationWithMscorlib(text,
-                parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics();
-        }
-
-        [Fact]
         public void StructWithSameNameFieldAndProperty()
         {
             var text = @"

@@ -20,47 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private const char KeyPositionMarker = '`';
 
-        [Fact(Skip = "951522")]
-        public void PrimaryConstructorParameterScopeInInitializers()
-        {
-            var text = @"
-class C(int i)
-`{
-    int F =` i`;
-    int P { get; } =` i`;
-`}";
-            var expectedNames = MakeExpectedSymbols(
-                Add( //Global
-                    "System",
-                    "Microsoft",
-                    "C"),
-                Add( //C
-                    "System.Int32 C.x",
-                    "System.Int32 C.P { get; }",
-                    "void C.M()",
-                    "System.Boolean System.Object.Equals(System.Object obj)",
-                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
-                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
-                    "System.Int32 System.Object.GetHashCode()",
-                    "System.Object System.Object.MemberwiseClone()",
-                    "void System.Object.Finalize()",
-                    "System.String System.Object.ToString()",
-                    "System.Type System.Object.GetType()"),
-                Add( //C.F
-                    "System.Int32 i"),
-                Pop,
-                Add( //C.P
-                    "System.Int32 i"),
-                Pop,
-                Pop);
-            TestLookupNames(text, expectedNames, experimental: true);
-        }
-
         [Fact]
         public void ExpressionBodiedProp()
         {
             var text = @"
-class C(int i)
+class C
 `{
     int P => 10;
     void M() { }

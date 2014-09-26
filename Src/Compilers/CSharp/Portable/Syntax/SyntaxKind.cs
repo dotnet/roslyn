@@ -292,7 +292,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         PointerType = 8450,
         NullableType = 8451,
         OmittedTypeArgument = 8452,
-        BaseClassWithArguments = 8453,
 
         // expressions
         ParenthesizedExpression = 8454,
@@ -495,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperatorDeclaration = 8622,
         ConversionOperatorDeclaration = 8623,
         ConstructorDeclaration = 8624,
-        PrimaryConstructorBody = 8625,
+
         BaseConstructorInitializer = 8626,
         ThisConstructorInitializer = 8627,
         DestructorDeclaration = 8628,

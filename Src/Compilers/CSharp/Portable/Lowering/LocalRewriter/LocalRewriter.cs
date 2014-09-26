@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var syntax = asSourceMethod.BodySyntax as BlockSyntax;
                         if (syntax != null)
                         {
-                            return AddSequencePoint(syntax, body, asSourceMethod.IsPrimaryCtor);
+                            return AddSequencePoint(syntax, body);
                         }
                     }
                 }

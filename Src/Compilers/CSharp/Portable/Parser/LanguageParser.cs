@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             break;
                         case TerminatorState.IsPossibleMemberStartOrStop:
-                            if (this.IsPossibleMemberStartOrStop(allowPrimaryConstructorBody: false))
+                            if (this.IsPossibleMemberStartOrStop())
                             {
                                 return true;
                             }
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             goto default;
 
                         default:
-                            var memberOrStatement = this.ParseMemberDeclarationOrStatement(parentKind, allowPrimaryConstructorBody: false);
+                            var memberOrStatement = this.ParseMemberDeclarationOrStatement(parentKind);
                             if (memberOrStatement == null)
                             {
                                 // incomplete members must be processed before we add any nodes to the body:
@@ -1562,19 +1562,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList(allowVariance: classOrStructOrInterface.Kind == SyntaxKind.InterfaceKeyword);
 
-            // Primary constructor parameters
-            ParameterListSyntax parameterList = null;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken &&
-                (classOrStructOrInterface.Kind == SyntaxKind.ClassKeyword || classOrStructOrInterface.Kind == SyntaxKind.StructKeyword))
-            {
-                parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
-                parameterList = CheckFeatureAvailability(parameterList, MessageID.IDS_FeaturePrimaryConstructor);
-            }
-
             this.termState = saveTerm;
             bool hasTypeParams = typeParameters != null;
-            var baseList = this.ParseBaseList(allowArguments: classOrStructOrInterface.Kind == SyntaxKind.ClassKeyword && parameterList != null);
-            bool allowPrimaryConstructorBody = parameterList != null;
+            var baseList = this.ParseBaseList();
 
             // Parse class body
             bool parseMembers = true;
@@ -1606,13 +1596,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         SyntaxKind kind = this.CurrentToken.Kind;
 
-                        if (CanStartMember(kind, allowPrimaryConstructorBody))
+                        if (CanStartMember(kind))
                         {
                             // This token can start a member -- go parse it
                             var saveTerm2 = this.termState;
                             this.termState |= TerminatorState.IsPossibleMemberStartOrStop;
 
-                            var memberOrStatement = this.ParseMemberDeclarationOrStatement(kind, allowPrimaryConstructorBody, name.ValueText);
+                            var memberOrStatement = this.ParseMemberDeclarationOrStatement(kind, name.ValueText);
                             if (memberOrStatement != null)
                             {
                                 // statements are accepted here, a semantic error will be reported later
@@ -1621,7 +1611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else
                             {
                                 // we get here if we couldn't parse the lookahead as a statement or a declaration (we haven't consumed any tokens):
-                                this.SkipBadMemberListTokens(ref openBrace, members, allowPrimaryConstructorBody);
+                                this.SkipBadMemberListTokens(ref openBrace, members);
                             }
 
                             this.termState = saveTerm2;
@@ -1634,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         else
                         {
                             // Error -- try to sync up with intended reality
-                            this.SkipBadMemberListTokens(ref openBrace, members, allowPrimaryConstructorBody);
+                            this.SkipBadMemberListTokens(ref openBrace, members);
                         }
                     }
                 }
@@ -1665,7 +1655,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             classOrStructOrInterface,
                             name,
                             typeParameters,
-                            parameterList,
                             baseList,
                             constraints,
                             openBrace,
@@ -1680,7 +1669,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             classOrStructOrInterface,
                             name,
                             typeParameters,
-                            parameterList,
                             baseList,
                             constraints,
                             openBrace,
@@ -1720,23 +1708,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void SkipBadMemberListTokens(ref SyntaxToken openBrace, SyntaxListBuilder members, bool allowPrimaryConstructorBody)
+        private void SkipBadMemberListTokens(ref SyntaxToken openBrace, SyntaxListBuilder members)
         {
             if (members.Count > 0)
             {
                 CSharpSyntaxNode tmp = members[members.Count - 1];
-                this.SkipBadMemberListTokens(ref tmp, allowPrimaryConstructorBody);
+                this.SkipBadMemberListTokens(ref tmp);
                 members[members.Count - 1] = tmp;
             }
             else
             {
                 CSharpSyntaxNode tmp = openBrace;
-                this.SkipBadMemberListTokens(ref tmp, allowPrimaryConstructorBody);
+                this.SkipBadMemberListTokens(ref tmp);
                 openBrace = (SyntaxToken)tmp;
             }
         }
 
-        private void SkipBadMemberListTokens(ref CSharpSyntaxNode previousNode, bool allowPrimaryConstructorBody)
+        private void SkipBadMemberListTokens(ref CSharpSyntaxNode previousNode)
         {
             int curlyCount = 0;
             var tokens = this.pool.Allocate();
@@ -1749,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxKind kind = this.CurrentToken.Kind;
 
                     // If this token can start a member, we're done
-                    if (CanStartMember(kind, allowPrimaryConstructorBody) &&
+                    if (CanStartMember(kind) &&
                         !(kind == SyntaxKind.DelegateKeyword && (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken || this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)))
                     {
                         done = true;
@@ -1801,9 +1789,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool IsPossibleMemberStartOrStop(bool allowPrimaryConstructorBody)
+        private bool IsPossibleMemberStartOrStop()
         {
-            return this.IsPossibleMemberStart(allowPrimaryConstructorBody) || this.CurrentToken.Kind == SyntaxKind.CloseBraceToken;
+            return this.IsPossibleMemberStart() || this.CurrentToken.Kind == SyntaxKind.CloseBraceToken;
         }
 
         private bool IsPossibleAggregateClauseStartOrStop()
@@ -1813,7 +1801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
-        private BaseListSyntax ParseBaseList(bool allowArguments)
+        private BaseListSyntax ParseBaseList()
         {
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
             {
@@ -1832,11 +1820,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else
                 {
                     TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false, parentIsParameter: false);
-
-                    if (allowArguments && this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
-                    {
-                        firstType = syntaxFactory.BaseClassWithArguments(firstType, this.ParseParenthesizedArgumentList());
-                    }
 
                     list.Add(firstType);
 
@@ -2046,12 +2029,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return type;
         }
 
-        private bool IsPossibleMemberStart(bool allowPrimaryConstructorBody)
+        private bool IsPossibleMemberStart()
         {
-            return CanStartMember(this.CurrentToken.Kind, allowPrimaryConstructorBody);
+            return CanStartMember(this.CurrentToken.Kind);
         }
 
-        private static bool CanStartMember(SyntaxKind kind, bool allowPrimaryConstructorBody)
+        private static bool CanStartMember(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -2099,9 +2082,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ImplicitKeyword:
                 case SyntaxKind.ExplicitKeyword:
                     return true;
-
-                case SyntaxKind.OpenBraceToken:
-                    return allowPrimaryConstructorBody;
 
                 default:
                     return false;
@@ -2176,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Returns null if we can't parse anything (even partially).
-        private MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind, bool allowPrimaryConstructorBody, string typeName = null)
+        private MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind, string typeName = null)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -2381,12 +2361,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         return syntaxFactory.GlobalStatement(statement);
                     }
-                }
-
-                // Check if it looks like a primary constructor body
-                if (allowPrimaryConstructorBody && attributes.Count == 0 && modifiers.Count == 0 && this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    return ParsePrimaryConstructorBody();
                 }
 
                 // Everything that's left -- methods, fields, properties, 
@@ -2876,20 +2850,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool IsEndOfNameInExplicitInterface()
         {
             return this.CurrentToken.Kind == SyntaxKind.DotToken || this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
-        }
-
-        private PrimaryConstructorBodySyntax ParsePrimaryConstructorBody()
-        {
-            BlockSyntax body = this.ParseBlock(isMethodBody: true);
-
-            SyntaxToken semicolon = null;
-            if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-            {
-                semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
-            }
-
-            var result = syntaxFactory.PrimaryConstructorBody(body, semicolon);
-            return CheckFeatureAvailability(result, MessageID.IDS_FeaturePrimaryConstructor);
         }
 
         private MethodDeclarationSyntax ParseMethodDeclaration(

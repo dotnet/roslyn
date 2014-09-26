@@ -77,30 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.TypeDeclaration(kind, SyntaxFactory.Identifier(identifier));
         }
 
-        /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
-        public static ClassDeclarationSyntax ClassDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
-        {
-            return SyntaxFactory.ClassDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-        }
-
-        /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
-        public static ClassDeclarationSyntax ClassDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return SyntaxFactory.ClassDeclaration(attributeLists, modifiers, identifier, typeParameterList, null, baseList, constraintClauses, members);
-        }
-
-        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
-        public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
-        {
-            return SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-        }
-
-        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
-        public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return SyntaxFactory.StructDeclaration(attributeLists, modifiers, identifier, typeParameterList, null, baseList, constraintClauses, members);
-        }
-
         public static TypeDeclarationSyntax TypeDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
             switch (kind)

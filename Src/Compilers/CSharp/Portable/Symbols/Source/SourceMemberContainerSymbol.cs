@@ -799,14 +799,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private sealed class MembersAndInitializers
         {
-            internal readonly SourceConstructorSymbol PrimaryCtor;
             internal readonly ImmutableArray<Symbol> NonTypeNonIndexerMembers;
             internal readonly ImmutableArray<FieldInitializers> StaticInitializers;
             internal readonly ImmutableArray<FieldInitializers> InstanceInitializers;
             internal readonly ImmutableArray<SyntaxReference> IndexerDeclarations;
 
             public MembersAndInitializers(
-                SourceConstructorSymbol primaryCtor,
                 ImmutableArray<Symbol> nonTypeNonIndexerMembers,
                 ImmutableArray<FieldInitializers> staticInitializers,
                 ImmutableArray<FieldInitializers> instanceInitializers,
@@ -817,12 +815,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!instanceInitializers.IsDefault);
                 Debug.Assert(!indexerDeclarations.IsDefault);
 
-                Debug.Assert((object)primaryCtor == null || nonTypeNonIndexerMembers.Any(s => (object)primaryCtor == (object)s));
                 Debug.Assert(!nonTypeNonIndexerMembers.Any(s => s is TypeSymbol));
                 Debug.Assert(!nonTypeNonIndexerMembers.Any(s => s.IsIndexer()));
                 Debug.Assert(!nonTypeNonIndexerMembers.Any(s => s.IsAccessor() && ((MethodSymbol)s).AssociatedSymbol.IsIndexer()));
 
-                this.PrimaryCtor = primaryCtor;
                 this.NonTypeNonIndexerMembers = nonTypeNonIndexerMembers;
                 this.StaticInitializers = staticInitializers;
                 this.InstanceInitializers = instanceInitializers;
@@ -838,33 +834,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ImmutableArray<FieldInitializers> InstanceInitializers
         {
             get { return GetMembersAndInitializers().InstanceInitializers; }
-        }
-
-        /// <summary>
-        /// Returns the "main" Primary Constructor. If more than one partial declaration declares a 
-        /// Primary Constructor, we will have several distinct Primary Constructor symbols.
-        /// This property returns the first one we encounter, it's parameters will be in scope within
-        /// type members and initializers.
-        /// </summary>
-        internal SourceConstructorSymbol PrimaryCtor
-        {
-            get
-            {
-                if (this.lazyMembersAndInitializers == null)
-                {
-                    foreach (var decl in this.declaration.Declarations)
-                    {
-                        if (decl.HasPrimaryCtor)
-                        {
-                            return GetMembersAndInitializers().PrimaryCtor;
-                        }
-                    }
-
-                    return null;
-                }
-
-                return this.lazyMembersAndInitializers.PrimaryCtor;
-            }
         }
 
         public override IEnumerable<string> MemberNames
@@ -1424,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Type '{1}' already defines a member called '{0}' with the same parameter types
                 diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], "~" + this.Name, this);
             }
-            else if(!method1.IsPrimaryCtor || !method2.IsPrimaryCtor)
+            else 
             {
                 // Type '{1}' already defines a member called '{0}' with the same parameter types
                 diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], method1.Name, this);
@@ -1556,22 +1525,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (Locations.Length == 1 || IsPartial)
             {
-                var primaryCtor = this.PrimaryCtor;
-
                 foreach (var tp in TypeParameters)
                 {
-                    if ((object)primaryCtor != null)
-                    {
-                        foreach (var dup in primaryCtor.Parameters)
-                        {
-                            if (dup.Name.Equals(tp.Name))
-                            {
-                                diagnostics.Add(ErrorCode.ERR_PrimaryCtorParameterSameNameAsTypeParam, dup.Locations[0], this, tp.Name);
-                                break;
-                            }
-                        }
-                    }
-
                     foreach (var dup in GetMembers(tp.Name))
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, tp.Name);
@@ -2092,7 +2047,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class MembersAndInitializersBuilder
         {
-            public SourceConstructorSymbol PrimaryCtor;
             public ArrayBuilder<Symbol> NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance();
             public ArrayBuilder<FieldInitializers> StaticInitializers = ArrayBuilder<FieldInitializers>.GetInstance();
             public ArrayBuilder<FieldInitializers> InstanceInitializers = ArrayBuilder<FieldInitializers>.GetInstance();
@@ -2101,7 +2055,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public MembersAndInitializers ToReadOnlyAndFree()
             {
                 return new MembersAndInitializers(
-                    PrimaryCtor,
                     NonTypeNonIndexerMembers.ToImmutableAndFree(),
                     StaticInitializers.ToImmutableAndFree(),
                     InstanceInitializers.ToImmutableAndFree(),
@@ -2169,25 +2122,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.NamespaceDeclaration:
                         // The members of a global anonymous type is in a syntax tree of a namespace declaration or a compilation unit.
-                        AddNonTypeMembers(builder, null, null, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, null, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.CompilationUnit:
-                        AddNonTypeMembers(builder, null, null, ((CompilationUnitSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, null, ((CompilationUnitSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.ClassDeclaration:
                         var classDecl = (ClassDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder, classDecl, classDecl.ParameterList, classDecl.Members, diagnostics);
+                        AddNonTypeMembers(builder, classDecl, classDecl.Members, diagnostics);
                         break;
 
                     case SyntaxKind.InterfaceDeclaration:
-                        AddNonTypeMembers(builder, (InterfaceDeclarationSyntax)syntax, null, ((InterfaceDeclarationSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, (InterfaceDeclarationSyntax)syntax, ((InterfaceDeclarationSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.StructDeclaration:
                         var structDecl = (StructDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder, structDecl, structDecl.ParameterList, structDecl.Members, diagnostics);
+                        AddNonTypeMembers(builder, structDecl, structDecl.Members, diagnostics);
                         break;
 
                     default:
@@ -2737,28 +2690,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void AddNonTypeMembers(
             MembersAndInitializersBuilder result,
             TypeDeclarationSyntax typeDeclaration,
-            ParameterListSyntax primaryCtorParameterList,
             SyntaxList<MemberDeclarationSyntax> members,
             DiagnosticBag diagnostics)
         {
-            bool havePrimaryCtor = false;
-
-            if (primaryCtorParameterList != null)
-            {
-                havePrimaryCtor = true;
-                var constructor = SourceConstructorSymbol.CreatePrimaryConstructorSymbol(this, primaryCtorParameterList, diagnostics);
-                result.NonTypeNonIndexerMembers.Add(constructor);
-
-                if ((object)result.PrimaryCtor == null)
-                {
-                    result.PrimaryCtor = constructor;
-                }
-                else
-                {
-                    diagnostics.Add(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, new SourceLocation(primaryCtorParameterList));
-                }
-            }
-
             if (members.Count == 0)
             {
                 return;
@@ -2767,7 +2701,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var firstMember = members[0];
             var bodyBinder = this.GetBinder(firstMember);
             bool globalCodeAllowed = IsGlobalCodeAllowed(firstMember.Parent);
-            bool havePrimaryCtorBody = false;
 
             ArrayBuilder<FieldInitializer> staticInitializers = null;
             ArrayBuilder<FieldInitializer> instanceInitializers = null;
@@ -3011,20 +2944,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             result.NonTypeNonIndexerMembers.Add(method);
                         }
 
-                        break;
-
-                    case SyntaxKind.PrimaryConstructorBody:
-                        if (havePrimaryCtor)
-                        {
-                            if (havePrimaryCtorBody)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicatePrimaryCtorBody, new SourceLocation(((PrimaryConstructorBodySyntax)m).Body));
-                            }
-                            else
-                            {
-                                havePrimaryCtorBody = true;
-                            }
-                        }
                         break;
 
                     case SyntaxKind.GlobalStatement:
