@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using PEParameterSymbol = Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEParameterSymbol;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -69,16 +71,16 @@ class C
                 // get expected attr symbol
                 var interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
 
-                var guidSym = (NamedTypeSymbol)interopNS.GetTypeMember("GuidAttribute");
-                var ciSym = (NamedTypeSymbol)interopNS.GetTypeMember("ComImportAttribute");
-                var iTypeSym = (NamedTypeSymbol)interopNS.GetTypeMember("InterfaceTypeAttribute");
+                var guidSym = interopNS.GetTypeMember("GuidAttribute");
+                var ciSym = interopNS.GetTypeMember("ComImportAttribute");
+                var iTypeSym = interopNS.GetTypeMember("InterfaceTypeAttribute");
                 var itCtor = iTypeSym.Constructors.First();
-                var tLibSym = (NamedTypeSymbol)interopNS.GetTypeMember("TypeLibImportClassAttribute");
-                var tLTypeSym = (NamedTypeSymbol)interopNS.GetTypeMember("TypeLibTypeAttribute");
-                var bfmSym = (NamedTypeSymbol)interopNS.GetTypeMember("BestFitMappingAttribute");
+                var tLibSym = interopNS.GetTypeMember("TypeLibImportClassAttribute");
+                var tLTypeSym = interopNS.GetTypeMember("TypeLibTypeAttribute");
+                var bfmSym = interopNS.GetTypeMember("BestFitMappingAttribute");
 
                 // IFoo
-                var ifoo = (NamedTypeSymbol)m.GlobalNamespace.GetTypeMember("IFoo");
+                var ifoo = m.GlobalNamespace.GetTypeMember("IFoo");
                 Assert.Equal(6, ifoo.GetAttributes().Length);
 
                 // get attr by NamedTypeSymbol
@@ -94,7 +96,7 @@ class C
                 attrSym.VerifyValue(0, TypedConstantKind.Enum, (int)ComInterfaceType.InterfaceIsIUnknown);
 
                 attrSym = ifoo.GetAttribute(tLibSym);
-                attrSym.VerifyValue(0, TypedConstantKind.Type, typeof(Object));
+                attrSym.VerifyValue(0, TypedConstantKind.Type, typeof(object));
 
                 attrSym = ifoo.GetAttribute(tLTypeSym);
                 attrSym.VerifyValue(0, TypedConstantKind.Enum, (int)TypeLibTypeFlags.FAggregatable);
@@ -175,18 +177,18 @@ class C
                 // get expected attr symbol
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
 
-                var comvSym = (NamedTypeSymbol)interopNS.GetTypeMember("ComVisibleAttribute");
-                var ufPtrSym = (NamedTypeSymbol)interopNS.GetTypeMember("UnmanagedFunctionPointerAttribute");
-                var comdSym = (NamedTypeSymbol)interopNS.GetTypeMember("ComDefaultInterfaceAttribute");
-                var pgidSym = (NamedTypeSymbol)interopNS.GetTypeMember("ProgIdAttribute");
-                var tidSym = (NamedTypeSymbol)interopNS.GetTypeMember("TypeIdentifierAttribute");
-                var dispSym = (NamedTypeSymbol)interopNS.GetTypeMember("DispIdAttribute");
-                var lcidSym = (NamedTypeSymbol)interopNS.GetTypeMember("LCIDConversionAttribute");
-                var comcSym = (NamedTypeSymbol)interopNS.GetTypeMember("ComConversionLossAttribute");
+                var comvSym = interopNS.GetTypeMember("ComVisibleAttribute");
+                var ufPtrSym = interopNS.GetTypeMember("UnmanagedFunctionPointerAttribute");
+                var comdSym = interopNS.GetTypeMember("ComDefaultInterfaceAttribute");
+                var pgidSym = interopNS.GetTypeMember("ProgIdAttribute");
+                var tidSym = interopNS.GetTypeMember("TypeIdentifierAttribute");
+                var dispSym = interopNS.GetTypeMember("DispIdAttribute");
+                var lcidSym = interopNS.GetTypeMember("LCIDConversionAttribute");
+                var comcSym = interopNS.GetTypeMember("ComConversionLossAttribute");
 
                 var globalNS = m.GlobalNamespace;
                 // delegate DFoo
-                var type1 = (NamedTypeSymbol)globalNS.GetTypeMember("DFoo");
+                var type1 = globalNS.GetTypeMember("DFoo");
                 Assert.Equal(2, type1.GetAttributes().Length);
 
                 var attrSym = type1.GetAttribute(comvSym);
@@ -202,7 +204,7 @@ class C
                 attrSym.VerifyNamedArgumentValue(3, "ThrowOnUnmappableChar", TypedConstantKind.Primitive, true);
 
                 // class CFoo
-                var type2 = (NamedTypeSymbol)globalNS.GetTypeMember("CFoo");
+                var type2 = globalNS.GetTypeMember("CFoo");
                 Assert.Equal(2, type2.GetAttributes().Length);
 
                 attrSym = type2.GetAttribute(comdSym);
@@ -226,7 +228,7 @@ class C
                 if (sourceAssembly != null)
                 {
                     // Because this is a nopia local type it is only visible from the source assembly.
-                    var type3 = (NamedTypeSymbol)globalNS.GetTypeMember("EFoo");
+                    var type3 = globalNS.GetTypeMember("EFoo");
                     Assert.Equal(2, type3.GetAttributes().Length);
 
                     attrSym = type3.GetAttribute(comvSym);
@@ -388,7 +390,7 @@ class C
                 Assert.Equal(0, attrSym.CommonConstructorArguments.Length);
 
                 // class CBar
-                var type2 = (NamedTypeSymbol)globalNS.GetTypeMember("CBar");
+                var type2 = globalNS.GetTypeMember("CBar");
                 Assert.Equal(2, type2.GetAttributes().Length);
 
                 attrSym = type2.GetAttribute(serSym);
@@ -518,16 +520,16 @@ public class C
                 //EDMAURER the language doesn't believe the parameter is optional and 
                 //doesn't import the default parameter.
                 Assert.False(ps[0].HasExplicitDefaultValue);
-                Assert.Throws<System.InvalidOperationException>(() => ps[0].ExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => ps[0].ExplicitDefaultValue);
 
-                var theParameter = (Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEParameterSymbol)(ps[0]);
+                var theParameter = (PEParameterSymbol)ps[0];
                 object value = theParameter.ImportConstantValue().Value;
 
                 // Ref.Emit doesn't allow to emit short value for int parameter:
                 if (isRefEmit)
                 {
                     Assert.True(value is int, "Expected value to be Int32");
-                    Assert.Equal((int)1, value);
+                    Assert.Equal(1, value);
                 }
                 else
                 {
@@ -562,7 +564,7 @@ public class C
                 var m = (MethodSymbol)c.GetMember("M");
                 var ps = m.GetParameters();
 
-                var theParameter = (Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEParameterSymbol)(ps[0]);
+                var theParameter = (PEParameterSymbol)ps[0];
                 Assert.Equal("default str", theParameter.ImportConstantValue().StringValue);
 
                 Assert.False(ps[0].IsOptional);
@@ -1493,6 +1495,29 @@ class C
                 // (156,2): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 // [MyPermission6(null)]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission6"));
+        }
+
+        [Fact(Skip = "Bug 1036356")]
+        [WorkItem(1036356, "DevDiv")]
+        public void EnumDefaultParameterValue()
+        {
+            const string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+class Program
+{
+    static void Foo([Optional][DefaultParameterValue(DayOfWeek.Monday)] Enum x) 
+    {
+    }
+
+    static void Main()
+    {
+        Foo();
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
+            comp.Emit(Stream.Null);
         }
 
         #endregion
@@ -3220,9 +3245,9 @@ public class MainClass
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol m) =>
             {
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
-                var guidType = (NamedTypeSymbol)interopNS.GetTypeMember("GuidAttribute");
-                var comImportType = (NamedTypeSymbol)interopNS.GetTypeMember("ComImportAttribute");
-                var coClassType = (NamedTypeSymbol)interopNS.GetTypeMember("CoClassAttribute");
+                var guidType = interopNS.GetTypeMember("GuidAttribute");
+                var comImportType = interopNS.GetTypeMember("ComImportAttribute");
+                var coClassType = interopNS.GetTypeMember("CoClassAttribute");
 
                 var worksheetInterface = m.GlobalNamespace.GetTypeMember("IWorksheet");
 
@@ -3352,9 +3377,9 @@ public class MainClass
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol m) =>
             {
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
-                var guidType = (NamedTypeSymbol)interopNS.GetTypeMember("GuidAttribute");
-                var comImportType = (NamedTypeSymbol)interopNS.GetTypeMember("ComImportAttribute");
-                var coClassType = (NamedTypeSymbol)interopNS.GetTypeMember("CoClassAttribute");
+                var guidType = interopNS.GetTypeMember("GuidAttribute");
+                var comImportType = interopNS.GetTypeMember("ComImportAttribute");
+                var coClassType = interopNS.GetTypeMember("CoClassAttribute");
 
                 var worksheetInterface = m.GlobalNamespace.GetTypeMember("IWorksheet");
 
@@ -4590,12 +4615,12 @@ public class Child2: Child
             var opt = TestOptions.ReleaseDll;
             var comp1 = CreateCompilationWithMscorlib(text1, options: opt);
             var compref1 = new CSharpCompilationReference(comp1);
-            var comp2 = CreateCompilationWithMscorlib(text2, references: new MetadataReference[] { compref1 }, options: opt, assemblyName: "Child");
-            var comp3 = CreateCompilationWithMscorlib(text3, references: new MetadataReference[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
+            var comp2 = CreateCompilationWithMscorlib(text2, references: new[] { compref1 }, options: opt, assemblyName: "Child");
+            var comp3 = CreateCompilationWithMscorlib(text3, references: new[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
             // OK
             comp3.VerifyDiagnostics();
 
-            comp3 = CreateCompilationWithMscorlib(text3, references: new MetadataReference[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
+            comp3 = CreateCompilationWithMscorlib(text3, references: new[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
             comp3.VerifyDiagnostics();
         }
 
@@ -5851,7 +5876,7 @@ public class A
     }
 }
 ";
-            CreateCompilationWithMscorlib(s, new MetadataReference[] { new CSharpCompilationReference(other) }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(s, new[] { new CSharpCompilationReference(other) }).VerifyDiagnostics(
                 // (3,17): warning CS0612: 'C' is obsolete
                 //     protected A(C o)
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C"),
