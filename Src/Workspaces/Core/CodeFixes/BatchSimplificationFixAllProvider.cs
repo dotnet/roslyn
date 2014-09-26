@@ -31,18 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Get node on which to add simplifier and formatter annotation for fixing the given diagnostic.
         /// </summary>
-        protected virtual SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken)
+        protected virtual SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Workspace workspace, out string codeActionId, CancellationToken cancellationToken)
         {
+            codeActionId = null;
             var span = diagnostic.Location.SourceSpan;
             return root.FindNode(diagnostic.Location.SourceSpan, findInsideTrivia: true);
-        }
-
-        /// <summary>
-        /// Get code action Id for the original code action that fixes this diagnostic.
-        /// </summary>
-        protected virtual string GetCodeActionId(Diagnostic diagnostic, SyntaxNode nodeToSimplify, SyntaxNode root, SemanticModel model)
-        {
-            return null;
         }
 
         private async Task<Document> AddSimplifierAnnotationsAsync(Document document, IEnumerable<Diagnostic> diagnostics, FixAllContext fixAllContext)
@@ -55,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var nodesToSimplify = new List<SyntaxNode>();
             foreach (var diagnostic in diagnostics)
             {
-                var node = GetNodeToSimplify(root, model, diagnostic, fixAllContext.Solution.Workspace, cancellationToken);
-                if (node != null && 
-                    fixAllContext.CodeActionId == GetCodeActionId(diagnostic, node, root, model))
+                string codeActionId;
+                var node = GetNodeToSimplify(root, model, diagnostic, fixAllContext.Solution.Workspace, out codeActionId, cancellationToken);
+                if (node != null && fixAllContext.CodeActionId == codeActionId)
                 {
                     nodesToSimplify.Add(node);
                 }
