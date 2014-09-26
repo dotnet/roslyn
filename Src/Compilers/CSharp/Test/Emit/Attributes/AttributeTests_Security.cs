@@ -1514,7 +1514,7 @@ public class MyClass
         [WorkItem(1034429)]
         public void CrashOnParamsInSecurityAttribute()
         {
-            string source = @"
+            const string source = @"
 using System.Security.Permissions;
 
 class Program
@@ -1528,6 +1528,23 @@ class Program
 public class A : CodeAccessSecurityAttribute
 {
     public A(params SecurityAction a)
+    {
+    }
+}";
+            CreateCompilationWithMscorlib(source).GetDiagnostics();
+        }
+
+        [Fact(Skip = "Bug 1036339")]
+        [WorkItem(1036339)]
+        public void CrashOnOptionalParameterInSecurityAttribute()
+        {
+            const string source = @"
+using System.Security.Permissions;
+
+[A]
+class A : CodeAccessSecurityAttribute
+{
+    public A(SecurityAction a = 0) : base(a)
     {
     }
 }";
