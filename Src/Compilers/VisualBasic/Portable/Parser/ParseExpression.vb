@@ -453,6 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' This looks like ?. ?! or ?(
 
                     Dim qToken = DirectCast([Next], PunctuationSyntax)
+                    qToken = AssertLanguageFeature(ERRID.FEATUREID_NullPropagatingOperator, qToken)
 
                     GetNextToken()
 
