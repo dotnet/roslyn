@@ -1054,20 +1054,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 expression = sequencePointExpression.Expression;
             }
 
-            if (expression.Kind == BoundKind.Local && ((BoundLocal)expression).LocalSymbol.RefKind == RefKind.None)
+            switch (expression.Kind)
             {
-                key = this.GetLocal((BoundLocal)expression);
-            }
-            else if (expression.Kind == BoundKind.Parameter && ((BoundParameter)expression).ParameterSymbol.RefKind == RefKind.None)
-            {
-                key = ParameterSlot((BoundParameter)expression);
-            }
-            else
-            {
-                EmitExpression(expression, true);
-                temp = AllocateTemp(expression.Type, expression.Syntax);
-                builder.EmitLocalStore(temp);
-                key = temp;
+                case BoundKind.Local:
+                    var local = ((BoundLocal)expression).LocalSymbol;
+                    if (local.RefKind == RefKind.None && !IsStackLocal(local))
+                    {
+                        key = this.GetLocal(local);
+                        break;
+                    }
+                    goto default;
+
+                case BoundKind.Parameter:
+                    var parameter = (BoundParameter)expression;
+                    if (parameter.ParameterSymbol.RefKind == RefKind.None)
+                    {
+                        key = ParameterSlot(parameter);
+                        break;
+                    }
+                    goto default;
+
+                default:
+                    EmitExpression(expression, true);
+                    temp = AllocateTemp(expression.Type, expression.Syntax);
+                    builder.EmitLocalStore(temp);
+                    key = temp;
+                    break;
             }
 
             // Emit switch jump table            

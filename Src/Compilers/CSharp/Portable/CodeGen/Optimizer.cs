@@ -1253,10 +1253,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var origStack = this.evalStack;
 
-            // switch expects that key local stays local
-            EnsureOnlyEvalStack();
+            // switch needs a byval local or a parameter as a key.
+            // if this is already a fitting local, let's keep it that way
+            BoundExpression boundExpression = node.BoundExpression;
+            if (boundExpression.Kind == BoundKind.Local)
+            {
+                var localSym = ((BoundLocal)boundExpression).LocalSymbol;
+                if (localSym.RefKind == RefKind.None)
+                {
+                    locals[localSym].ShouldNotSchedule();
+                }
+            }
 
-            BoundExpression boundExpression = (BoundExpression)this.Visit(node.BoundExpression);
+            boundExpression = (BoundExpression)this.Visit(boundExpression);
 
             // expression value is consumed by the switch
             this.evalStack = origStack;

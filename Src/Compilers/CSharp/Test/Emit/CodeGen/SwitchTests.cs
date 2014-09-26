@@ -6634,6 +6634,116 @@ class Program {
 "
             );
         }
+        
+        [WorkItem(1035228, "DevDiv")]
+        [Fact]
+        public void Regress1035228()
+        {
+            var text = @"
+using System;
+
+class Program {
+    static bool boo(int i) {
+        var ii = i;
+        switch (++ii) {
+            case 42:
+                var x = ""foo"";
+                if (x != ""bar"")
+                {
+                    return false;
+                }
+             break;
+        }
+        return true;
+    }
+    static void Main()
+    {
+        boo(42);
+    }
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "");
+            compVerifier.VerifyIL("Program.boo",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.s   42
+  IL_0007:  bne.un.s   IL_001c
+  IL_0009:  ldstr      ""foo""
+  IL_000e:  ldstr      ""bar""
+  IL_0013:  call       ""bool string.op_Inequality(string, string)""
+  IL_0018:  brfalse.s  IL_001c
+  IL_001a:  ldc.i4.0
+  IL_001b:  ret
+  IL_001c:  ldc.i4.1
+  IL_001d:  ret
+}
+"
+            );
+        }
+
+        [WorkItem(1035228, "DevDiv")]
+        [Fact]
+        public void Regress1035228a()
+        {
+            var text = @"
+using System;
+
+class Program {
+    static bool boo(int i) {
+        var ii = i;
+        switch (ii++) {
+            case 42:
+                var x = ""foo"";
+                if (x != ""bar"")
+                {
+                    return false;
+                }
+             break;
+        }
+        return true;
+    }
+    static void Main()
+    {
+        boo(42);
+    }
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "");
+            compVerifier.VerifyIL("Program.boo",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.s   42
+  IL_0005:  bne.un.s   IL_001a
+  IL_0007:  ldstr      ""foo""
+  IL_000c:  ldstr      ""bar""
+  IL_0011:  call       ""bool string.op_Inequality(string, string)""
+  IL_0016:  brfalse.s  IL_001a
+  IL_0018:  ldc.i4.0
+  IL_0019:  ret
+  IL_001a:  ldc.i4.1
+  IL_001b:  ret
+}
+"
+            );
+        }
+
+
 
         #endregion
     }
