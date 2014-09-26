@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         // generate a conditional (ie, boolean) expression...
         // this will leave a value on the stack which conforms to sense, ie:(condition == sense)
-        private ConstResKind EmitCondExpr(BoundExpression condition, bool sense)
+        private void EmitCondExpr(BoundExpression condition, bool sense)
         {
             while (condition.Kind == BoundKind.UnaryOperator)
             {
@@ -400,23 +400,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
                 var constant = constantValue.BooleanValue;
                 builder.EmitBoolConstant(constant == sense);
-                return (constant == sense ? ConstResKind.ConstTrue : ConstResKind.ConstFalse);
+                return;
             }
-
+            
             if (condition.Kind == BoundKind.BinaryOperator)
             {
                 var binOp = (BoundBinaryOperator)condition;
                 if (IsConditional(binOp.OperatorKind))
                 {
                     EmitBinaryCondOperator(binOp, sense);
-                    return ConstResKind.NotAConst;
+                    return;
                 }
             }
 
             EmitExpression(condition, true);
             EmitIsSense(sense);
 
-            return ConstResKind.NotAConst;
+            return;
         }
 
         private void EmitUnaryCheckedOperatorExpression(BoundUnaryOperator expression, bool used)

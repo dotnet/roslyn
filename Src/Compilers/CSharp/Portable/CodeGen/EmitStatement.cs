@@ -161,14 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             builder.EmitThrow(isRethrow: expr == null);
         }
 
-        // specifies whether emitted conditional expression was a constant true/false or not a constant
-        private enum ConstResKind
-        {
-            ConstFalse,
-            ConstTrue,
-            NotAConst,
-        }
-
         private void EmitConditionalGoto(BoundConditionalGoto boundConditionalGoto)
         {
             object label = boundConditionalGoto.Label;
@@ -431,6 +423,53 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // none of above. 
                     // then it is regular binary expression - Or, And, Xor ...
                     goto default;
+
+                case BoundKind.ConditionalAccess:
+                    {
+                        var ca = (BoundConditionalAccess)condition;
+                        var receiver = ca.Receiver;
+                        var receiverType = receiver.Type;
+
+                        // we need a copy if we deal with nonlocal value (to capture the value)
+                        // or if we deal with stack local (reads are destructive)
+                        var complexCase = !receiverType.IsReferenceType ||
+                                          LocalRewriter.IntroducingReadCanBeObservable(receiver, localsMayBeAssignedOrCaptured: false) ||
+                                          (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
+
+                        if (complexCase)
+                        {
+                            goto default;
+                        }
+
+                        if (sense)
+                        {
+                            // gotoif(receiver != null) fallThrough
+                            // gotoif(receiver.Access) dest
+                            // fallThrough:
+
+                            object fallThrough = null;
+
+                            EmitCondBranch(receiver, ref fallThrough, sense: false);
+                            EmitReceiverRef(receiver, isAccessConstrained: false);
+                            EmitCondBranch(ca.AccessExpression, ref dest, sense: true);
+
+                            if (fallThrough != null)
+                            {
+                                builder.MarkLabel(fallThrough);
+                            }
+                        }
+                        else
+                        {
+                            // gotoif(receiver == null) labDest
+                            // gotoif(!receiver.Access) labDest
+                            EmitCondBranch(receiver, ref dest, sense: false);
+                            EmitReceiverRef(receiver, isAccessConstrained: false);
+                            condition = ca.AccessExpression;
+                            goto oneMoreTime;
+                        }
+
+                    }
+                    return;
 
                 case BoundKind.UnaryOperator:
                     var unOp = (BoundUnaryOperator)condition;

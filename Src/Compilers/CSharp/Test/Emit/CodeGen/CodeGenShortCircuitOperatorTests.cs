@@ -3714,20 +3714,17 @@ False");
 }
 ").VerifyIL("Program.Test2(Program.C1)", @"
 {
-  // Code size       16 (0x10)
+  // Code size       14 (0xe)
   .maxstack  1
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0007
-  IL_0005:  ldc.i4.0
-  IL_0006:  ret
-  IL_0007:  ldloc.0
-  IL_0008:  callvirt   ""int Program.C1.x.get""
-  IL_000d:  pop
-  IL_000e:  ldc.i4.1
-  IL_000f:  ret
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int Program.C1.x.get""
+  IL_000b:  pop
+  IL_000c:  ldc.i4.1
+  IL_000d:  ret
 }
 ").VerifyIL("Program.Test3(Program.C1)", @"
 {
@@ -3799,20 +3796,17 @@ True
 False");
             comp.VerifyIL("Program.Test1(Program.C1)", @"
 {
-  // Code size       17 (0x11)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0007
-  IL_0005:  ldc.i4.0
-  IL_0006:  ret
-  IL_0007:  ldloc.0
-  IL_0008:  callvirt   ""N Program.C1.x.get""
-  IL_000d:  ldc.i4.0
-  IL_000e:  ceq
-  IL_0010:  ret
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""N Program.C1.x.get""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ceq
+  IL_000e:  ret
 }
 ").VerifyIL("Program.Test2(Program.C1)", @"
 {
@@ -3835,20 +3829,17 @@ False");
 }
 ").VerifyIL("Program.Test3(Program.C1)", @"
 {
-  // Code size       17 (0x11)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0007
-  IL_0005:  ldc.i4.0
-  IL_0006:  ret
-  IL_0007:  ldloc.0
-  IL_0008:  callvirt   ""N Program.C1.x.get""
-  IL_000d:  ldc.i4.m1
-  IL_000e:  cgt
-  IL_0010:  ret
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""N Program.C1.x.get""
+  IL_000b:  ldc.i4.m1
+  IL_000c:  cgt
+  IL_000e:  ret
 }
 ");
         }
@@ -3939,73 +3930,63 @@ True
 False");
             comp.VerifyIL("Program.Test1(Program.C1)", @"
 {
-  // Code size       20 (0x14)
+  // Code size       18 (0x12)
   .maxstack  2
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0007
-  IL_0005:  ldc.i4.0
-  IL_0006:  ret
-  IL_0007:  ldloc.0
-  IL_0008:  callvirt   ""Program.C1.S1 Program.C1.x.get""
-  IL_000d:  ldc.i4.m1
-  IL_000e:  call       ""bool Program.C1.S1.op_GreaterThan(Program.C1.S1, int)""
-  IL_0013:  ret
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""Program.C1.S1 Program.C1.x.get""
+  IL_000b:  ldc.i4.m1
+  IL_000c:  call       ""bool Program.C1.S1.op_GreaterThan(Program.C1.S1, int)""
+  IL_0011:  ret
 }
 ").VerifyIL("Program.Test2(ref Program.C1)", @"
 {
-  // Code size       21 (0x15)
+  // Code size       20 (0x14)
   .maxstack  2
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldind.ref
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  brtrue.s   IL_0008
+  IL_0002:  dup
+  IL_0003:  brtrue.s   IL_0008
+  IL_0005:  pop
   IL_0006:  ldc.i4.0
   IL_0007:  ret
-  IL_0008:  ldloc.0
-  IL_0009:  callvirt   ""Program.C1.S1 Program.C1.x.get""
-  IL_000e:  ldc.i4.m1
-  IL_000f:  call       ""bool Program.C1.S1.op_LessThan(Program.C1.S1, int)""
-  IL_0014:  ret
+  IL_0008:  call       ""Program.C1.S1 Program.C1.x.get""
+  IL_000d:  ldc.i4.m1
+  IL_000e:  call       ""bool Program.C1.S1.op_LessThan(Program.C1.S1, int)""
+  IL_0013:  ret
 }
 ").VerifyIL("Program.Test3(Program.C1)", @"
 {
-  // Code size       20 (0x14)
+  // Code size       18 (0x12)
   .maxstack  2
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0007
-  IL_0005:  ldc.i4.0
-  IL_0006:  ret
-  IL_0007:  ldloc.0
-  IL_0008:  call       ""Program.C1.S1 ext.y(Program.C1)""
-  IL_000d:  ldc.i4.m1
-  IL_000e:  call       ""bool Program.C1.S1.op_GreaterThan(Program.C1.S1, int)""
-  IL_0013:  ret
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""Program.C1.S1 ext.y(Program.C1)""
+  IL_000b:  ldc.i4.m1
+  IL_000c:  call       ""bool Program.C1.S1.op_GreaterThan(Program.C1.S1, int)""
+  IL_0011:  ret
 }
 ").VerifyIL("Program.Test4(ref Program.C1)", @"
 {
-  // Code size       21 (0x15)
+  // Code size       20 (0x14)
   .maxstack  2
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldind.ref
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  brtrue.s   IL_0008
+  IL_0002:  dup
+  IL_0003:  brtrue.s   IL_0008
+  IL_0005:  pop
   IL_0006:  ldc.i4.0
   IL_0007:  ret
-  IL_0008:  ldloc.0
-  IL_0009:  call       ""Program.C1.S1 ext.y(Program.C1)""
-  IL_000e:  ldc.i4.m1
-  IL_000f:  call       ""bool Program.C1.S1.op_LessThan(Program.C1.S1, int)""
-  IL_0014:  ret
+  IL_0008:  call       ""Program.C1.S1 ext.y(Program.C1)""
+  IL_000d:  ldc.i4.m1
+  IL_000e:  call       ""bool Program.C1.S1.op_LessThan(Program.C1.S1, int)""
+  IL_0013:  ret
 }
 ");
         }
@@ -4278,5 +4259,238 @@ class Program
             var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
 
+
+        [Fact]
+        public void ConditionalMemberAccessConditional001()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Test1<string>(null);
+        Test2<string>(null);
+    }
+
+    static string Test1<T>(T[] arr)
+    {
+        if (arr != null && arr.Length > 0)
+        {
+            return arr[0].ToString();
+        }
+
+        return ""none"";
+    }
+
+    static string Test2<T>(T[] arr)
+    {
+        if (arr?.Length > 0)
+        {
+            return arr[0].ToString();
+        }
+
+        return ""none"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"");
+            comp.VerifyIL("Program.Test1<T>(T[])", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001c
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  brfalse.s  IL_001c
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  readonly.
+  IL_000b:  ldelema    ""T""
+  IL_0010:  constrained. ""T""
+  IL_0016:  callvirt   ""string object.ToString()""
+  IL_001b:  ret
+  IL_001c:  ldstr      ""none""
+  IL_0021:  ret
+}
+").VerifyIL("Program.Test2<T>(T[])", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001c
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  brfalse.s  IL_001c
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  readonly.
+  IL_000b:  ldelema    ""T""
+  IL_0010:  constrained. ""T""
+  IL_0016:  callvirt   ""string object.ToString()""
+  IL_001b:  ret
+  IL_001c:  ldstr      ""none""
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessConditional002()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Test1<string>(null);
+        Test2<string>(null);
+    }
+
+    static string Test1<T>(T[] arr)
+    {
+        if (!(arr != null && arr.Length > 0))
+        {
+            return ""none"";
+        }
+
+        return arr[0].ToString();
+    }
+
+    static string Test2<T>(T[] arr)
+    {
+        if (!(arr?.Length > 0))
+        {
+            return ""none"";
+        }
+
+        return arr[0].ToString();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"");
+            comp.VerifyIL("Program.Test1<T>(T[])", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  brtrue.s   IL_000d
+  IL_0007:  ldstr      ""none""
+  IL_000c:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  readonly.
+  IL_0011:  ldelema    ""T""
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  ret
+}
+").VerifyIL("Program.Test2<T>(T[])", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  brtrue.s   IL_000d
+  IL_0007:  ldstr      ""none""
+  IL_000c:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  readonly.
+  IL_0011:  ldelema    ""T""
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessConditional003()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Test1<string>(null);
+        Test2<string>(null);
+    }
+
+    static string Test1<T>(T[] arr1)
+    {
+        var arr = arr1;
+        if (arr == null || arr.Length == 0)
+        {
+            return ""empty"";
+        }
+
+        return ""not empty"";
+    }
+
+    static string Test2<T>(T[] arr1)
+    {
+        var arr = arr1;
+        if (!(arr?.Length != 0))
+        {
+            return ""empty"";
+        }
+
+        return ""not empty"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"");
+            comp.VerifyIL("Program.Test1<T>(T[])", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (T[] V_0) //arr
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0009
+  IL_0005:  ldloc.0
+  IL_0006:  ldlen
+  IL_0007:  brtrue.s   IL_000f
+  IL_0009:  ldstr      ""empty""
+  IL_000e:  ret
+  IL_000f:  ldstr      ""not empty""
+  IL_0014:  ret
+}
+").VerifyIL("Program.Test2<T>(T[])", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (T[] V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_0008
+  IL_0005:  ldc.i4.1
+  IL_0006:  br.s       IL_000d
+  IL_0008:  ldloc.0
+  IL_0009:  ldlen
+  IL_000a:  ldc.i4.0
+  IL_000b:  cgt.un
+  IL_000d:  brtrue.s   IL_0015
+  IL_000f:  ldstr      ""empty""
+  IL_0014:  ret
+  IL_0015:  ldstr      ""not empty""
+  IL_001a:  ret
+}
+");
+        }
     }
 }

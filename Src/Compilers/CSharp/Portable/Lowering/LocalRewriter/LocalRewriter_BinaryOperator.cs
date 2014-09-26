@@ -57,11 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (TryGetOptimizableNullableConditionalAccess(maybeNull, out conditionalAccess))
                         {
                             BoundExpression accessExpression = conditionalAccess.AccessExpression;
-                            BoundExpression whenNull;
-
                             accessExpression = factory.Sequence(accessExpression, MakeBooleanConstant(syntax, operatorKind == BinaryOperatorKind.NullableNullNotEqual));
                             conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, accessExpression, accessExpression.Type);
-                            whenNull = MakeBooleanConstant(syntax, operatorKind == BinaryOperatorKind.NullableNullEqual);
+                            var whenNull = operatorKind == BinaryOperatorKind.NullableNullEqual ? MakeBooleanConstant(syntax, true) : null;
                             return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
                         }
                     }
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression accessExpression = conditionalAccess.AccessExpression;
                         accessExpression = node.Update(unliftedOperatorKind, accessExpression, rightAlwaysHasValue, null, node.MethodOpt, node.ResultKind, node.Type);
                         conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, accessExpression, accessExpression.Type);
-                        var whenNull = MakeBooleanConstant(syntax, unliftedOperatorKind.Operator() == BinaryOperatorKind.NotEqual);
+                        var whenNull = unliftedOperatorKind.Operator() == BinaryOperatorKind.NotEqual ? MakeBooleanConstant(syntax, true) : null;
                         return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
                     }
                 }
