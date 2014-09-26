@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = containingType.DeclaringCompilation;
 
-            var executionStateType = compilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState);
-            var useSiteError = executionStateType.GetUseSiteDiagnostic();
+            var submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
+            var useSiteError = submissionArrayType.GetUseSiteDiagnostic();
             if (useSiteError != null)
             {
                 diagnostics.Add(useSiteError, NoLocation.Singleton);
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnType = compilation.GetTypeByReflectionType(compilation.SubmissionReturnType, diagnostics);
 
             this.parameters = ImmutableArray.Create<ParameterSymbol>(
-                new SynthesizedParameterSymbol(this, executionStateType, 0, RefKind.None, "executionState"),
+                new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"),
                 new SynthesizedParameterSymbol(this, returnType, 1, RefKind.Ref, "submissionResult")
             );
         }

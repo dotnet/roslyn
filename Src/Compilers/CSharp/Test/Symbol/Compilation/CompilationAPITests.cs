@@ -1341,7 +1341,7 @@ class A
 }
 ";
             var compilation = CSharpCompilation.CreateSubmission("sub",
-                references: new[] { MscorlibRef, MockScriptingRef },
+                references: new[] { MscorlibRef },
                 syntaxTree: Parse(source, options: TestOptions.Interactive));
 
             compilation.VerifyDiagnostics();

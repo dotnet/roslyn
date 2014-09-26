@@ -165,9 +165,6 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Thread__CurrentThread,
         System_Threading_Thread__ManagedThreadId,
 
-        Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission,
-        Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission,
-
         Microsoft_CSharp_RuntimeBinder_Binder__BinaryOperation,
         Microsoft_CSharp_RuntimeBinder_Binder__Convert,
         Microsoft_CSharp_RuntimeBinder_Binder__GetIndex,

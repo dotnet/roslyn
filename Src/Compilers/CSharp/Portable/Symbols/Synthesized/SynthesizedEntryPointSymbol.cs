@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType.ContainingAssembly.IsInteractive)
             {
-                var executionStateType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState);
-                var useSiteDiagnostic = executionStateType.GetUseSiteDiagnostic();
+                var submissionArrayType = this.DeclaringCompilation.CreateArrayTypeSymbol(this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object));
+                var useSiteDiagnostic = submissionArrayType.GetUseSiteDiagnostic();
                 if (useSiteDiagnostic != null)
                 {
                     Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, NoLocation.Singleton);
                 }
 
-                this.parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, executionStateType, 0, RefKind.None, "executionState"));
+                this.parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
                 this.name = "<Factory>";
             }
             else

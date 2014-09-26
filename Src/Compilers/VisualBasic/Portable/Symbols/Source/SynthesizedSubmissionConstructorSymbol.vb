@@ -34,14 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' from which it can retrieve references to previous submissions.
             Dim compilation = container.DeclaringCompilation
 
-            Dim executionStateType = binder.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState, syntaxNode, diagnostics)
+            Dim submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object))
 
             ' resolve return type:
             ' TODO(tomat): compilation.GetTypeByReflectionType(compilation.SubmissionReturnType, diagnostics)
             Dim returnType As TypeSymbol = compilation.GetSpecialType(SpecialType.System_Object)
 
             _parameters = ImmutableArray.Create(Of ParameterSymbol)(
-                New SynthesizedParameterSymbol(Me, executionStateType, 0, isByRef:=False, name:="executionState"),
+                New SynthesizedParameterSymbol(Me, submissionArrayType, 0, isByRef:=False, name:="executionState"),
                 New SynthesizedParameterSymbol(Me, returnType, 1, isByRef:=True, name:="submissionResult"))
         End Sub
 
@@ -67,86 +67,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnostics As DiagnosticBag) As ImmutableArray(Of BoundStatement)
 
             Debug.Assert(constructor.ParameterCount = 2)
-            Dim result = New BoundStatement(1 + synthesizedFields.Count - 1) {}
+            Dim result = New List(Of BoundStatement)()
 
-            Dim executionStateReference = New BoundParameter(syntax, constructor.Parameters(0), isLValue:=False, type:=constructor.Parameters(0).Type)
-
-            Dim executionStateType = compilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState)
-            Dim submissionGetter = DirectCast(compilation.GetWellKnownTypeMember(WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission), MethodSymbol)
-            Dim submissionSetter = DirectCast(compilation.GetWellKnownTypeMember(WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission), MethodSymbol)
-
-            ' TODO: report erroneous adder/getter
-            Debug.Assert(submissionSetter IsNot Nothing AndAlso submissionGetter IsNot Nothing)
+            Dim submissionArrayReference = New BoundParameter(syntax, constructor.Parameters(0), isLValue:=False, type:=constructor.Parameters(0).Type)
+            Dim submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object))
 
             ' TODO: report erroneous Int32
             Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim objectType = compilation.GetSpecialType(SpecialType.System_Object)
             Dim meReference = New BoundMeReference(syntax, constructor.ContainingType)
 
-            Dim i As Integer = 0
-
-            ' hostObject = DirectCast(<execution_state>.SetSubmission(<slot index>, this), THostObject)
+            ' <submission_array>(<slot_index>) = Me
             Dim slotIndex = compilation.GetSubmissionSlotIndex()
             Debug.Assert(slotIndex >= 0)
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim setSubmission As BoundExpression = New BoundCall(syntax,
-                method:=submissionSetter,
-                methodGroup:=Nothing,
-                receiver:=executionStateReference,
-                arguments:=ImmutableArray.Create(Of BoundExpression)(
-                    New BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType),
-                    New BoundDirectCast(meReference.Syntax, meReference,
-                                        Conversions.ClassifyDirectCastConversion(meReference.Type, submissionSetter.Parameters(1).Type, useSiteDiagnostics),
-                                        submissionSetter.Parameters(1).Type)),
-                constantValueOpt:=Nothing,
-                type:=submissionSetter.ReturnType).MakeCompilerGenerated()
+            result.Add(
+                New BoundExpressionStatement(syntax,
+                    New BoundAssignmentOperator(syntax,
+                        New BoundArrayAccess(syntax, submissionArrayReference, ImmutableArray.Create(Of BoundExpression)(New BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType)), isLValue:=True, type:=objectType),
+                        New BoundDirectCast(syntax, meReference, ConversionKind.Reference, type:=objectType),
+                        suppressObjectClone:=True,
+                        type:=objectType)).MakeCompilerGenerated())
 
-            diagnostics.Add(syntax, useSiteDiagnostics)
-
+            ' hostObject = DirectCast(<submission_array>(0), <THostObject>)
             Dim hostObjectField = synthesizedFields.GetHostObjectField()
             If hostObjectField IsNot Nothing Then
-                setSubmission = New BoundAssignmentOperator(
-                    syntax,
-                    New BoundFieldAccess(syntax, meReference, hostObjectField, isLValue:=True, type:=hostObjectField.Type),
-                    New BoundDirectCast(syntax, setSubmission, ConversionKind.Reference, type:=hostObjectField.Type),
-                    suppressObjectClone:=True,
-                    type:=hostObjectField.Type).MakeCompilerGenerated()
+                result.Add(
+                    New BoundExpressionStatement(syntax,
+                        New BoundAssignmentOperator(
+                            syntax,
+                            New BoundFieldAccess(syntax, meReference, hostObjectField, isLValue:=True, type:=hostObjectField.Type),
+                            New BoundDirectCast(syntax,
+                                New BoundArrayAccess(syntax, submissionArrayReference, ImmutableArray.Create(Of BoundExpression)(New BoundLiteral(syntax, ConstantValue.Create(0), intType)), isLValue:=False, type:=objectType),
+                                ConversionKind.Reference, type:=hostObjectField.Type),
+                            suppressObjectClone:=True,
+                            type:=hostObjectField.Type).MakeCompilerGenerated()))
             End If
 
-            result(i) = New BoundExpressionStatement(syntax, setSubmission)
-            i = i + 1
-
             For Each field In synthesizedFields.FieldSymbols
-                Dim targetScriptClass = DirectCast(field.Type, ImplicitNamedTypeSymbol)
-                Dim targetSubmissionId = targetScriptClass.DeclaringCompilation.GetSubmissionSlotIndex()
+                Dim targetScriptType = DirectCast(field.Type, ImplicitNamedTypeSymbol)
+                Dim targetSubmissionId = targetScriptType.DeclaringCompilation.GetSubmissionSlotIndex()
                 Debug.Assert(targetSubmissionId >= 0)
 
-                ' constructor.<field> = DirectCast(<execution_state>.GetSubmission(<i>), <FieldType>);
-                result(i) = New BoundExpressionStatement(syntax,
+                ' constructor.<field> = DirectCast(<submission_array>(<i>), <FieldType>);
+                result.Add(New BoundExpressionStatement(syntax,
                     New BoundAssignmentOperator(syntax,
                         New BoundFieldAccess(syntax,
                             receiverOpt:=meReference,
                             fieldSymbol:=field,
                             isLValue:=True,
-                            type:=targetScriptClass),
+                            type:=targetScriptType),
                         New BoundDirectCast(syntax,
-                            New BoundCall(syntax,
-                                    method:=submissionGetter,
-                                    methodGroup:=Nothing,
-                                    receiver:=executionStateReference,
-                                    arguments:=ImmutableArray.Create(Of BoundExpression)(
-                                        New BoundLiteral(syntax, ConstantValue.Create(targetSubmissionId), intType)),
-                                    constantValueOpt:=Nothing,
-                                    type:=submissionGetter.ReturnType),
+                            New BoundArrayAccess(syntax, submissionArrayReference, ImmutableArray.Create(Of BoundExpression)(New BoundLiteral(syntax, ConstantValue.Create(targetSubmissionId), intType)), isLValue:=False, type:=objectType),
                             ConversionKind.Reference,
-                            type:=targetScriptClass),
+                            type:=targetScriptType),
                         suppressObjectClone:=True,
-                        type:=targetScriptClass)).MakeCompilerGenerated()
-
-                i = i + 1
+                        type:=targetScriptType)).MakeCompilerGenerated())
             Next
 
-            Debug.Assert(i = result.Length)
             Return result.AsImmutableOrNull()
         End Function
 

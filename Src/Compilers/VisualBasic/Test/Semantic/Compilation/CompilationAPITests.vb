@@ -1314,7 +1314,7 @@ End Class
     ]]>
             Dim compilation = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateSubmission(
                 "sub",
-                references:={MscorlibRef, MockScriptingRef},
+                references:={MscorlibRef},
                 syntaxTree:=Parse(source.Value, options:=TestOptions.Interactive))
             compilation.VerifyDiagnostics()
 

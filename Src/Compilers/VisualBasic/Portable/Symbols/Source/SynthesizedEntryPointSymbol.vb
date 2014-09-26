@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _containingType = containingType
             If containingType.ContainingAssembly.IsInteractive Then
                 ' TODO: report error if the type doesn't exist
-                Dim executionStateType = DeclaringCompilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState)
-                _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(Me, executionStateType, ordinal:=0, isByRef:=False, name:="executionState"))
+                Dim submissionArrayType = Me.DeclaringCompilation.CreateArrayTypeSymbol(Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Object))
+                _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(Me, submissionArrayType, ordinal:=0, isByRef:=False, name:="submissionArray"))
                 _name = "<Factory>"
             Else
                 _parameters = ImmutableArray(Of ParameterSymbol).Empty

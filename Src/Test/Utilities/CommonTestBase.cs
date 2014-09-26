@@ -680,31 +680,5 @@ Example app.config:
                 subsystemVersion: default(SubsystemVersion));
         }
         #endregion
-
-        private static MetadataReference scriptingRef = null;      
-        protected static MetadataReference MockScriptingRef
-        {
-            get
-            {
-                if (scriptingRef == null)
-                {
-                    scriptingRef = CSharp.CSharpCompilation.Create("Roslyn.Scripting",                                       
-                                       new[] { CSharp.CSharpSyntaxTree.ParseText(@"
-                                           namespace Roslyn.Scripting.Runtime
-                                           { 
-                                               public class ScriptExecutionState
-                                               {
-                                                    public object GetSubmission(int index) { return null; }
-                                                    public object SetSubmission(int index, object submission) { return null; }
-                                               }
-                                           }")
-                                       } ,
-                                       new[] { MscorlibRef },
-                                       new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).EmitToImageReference();
-                }
-
-                return scriptingRef;
-            }
-        }
     }
 }

@@ -1104,23 +1104,6 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                // Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission
-                (byte)(MemberFlags.Method),                                                                                 // Flags
-                (byte)WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState,                                                  // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-
-                // Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission
-                (byte)(MemberFlags.Method),                                                                                 // Flags
-                (byte)WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState,                                                  // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    2,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-
                 // Microsoft_CSharp_RuntimeBinder_Binder__BinaryOperation
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.Microsoft_CSharp_RuntimeBinder_Binder,                                                  // DeclaringTypeId
@@ -2677,8 +2660,6 @@ namespace Microsoft.CodeAnalysis
                 "Exit",                                     // System_Threading_Monitor__Exit
                 "CurrentThread",                            // System_Threading_Thread__CurrentThread
                 "ManagedThreadId",                          // System_Threading_Thread__ManagedThreadId
-                "GetSubmission",                            // Microsoft_CSharp_RuntimeHelpers_SessionHelpers__GetSubmission
-                "SetSubmission",                            // Microsoft_CSharp_RuntimeHelpers_SessionHelpers__SetSubmission
                 "BinaryOperation",                          // Microsoft_CSharp_RuntimeBinder_Binder__BinaryOperation
                 "Convert",                                  // Microsoft_CSharp_RuntimeBinder_Binder__Convert
                 "GetIndex",                                 // Microsoft_CSharp_RuntimeBinder_Binder__GetIndex

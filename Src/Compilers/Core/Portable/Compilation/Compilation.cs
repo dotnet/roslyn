@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
             if (lazySubmissionSlotIndex == SubmissionSlotIndexToBeAllocated)
             {
                 // TODO (tomat): remove recursion
-                int lastSlotIndex = (PreviousSubmission != null) ? PreviousSubmission.GetSubmissionSlotIndex() : -1;
+                int lastSlotIndex = (PreviousSubmission != null) ? PreviousSubmission.GetSubmissionSlotIndex() : 0;
                 lazySubmissionSlotIndex = HasCodeToEmit() ? lastSlotIndex + 1 : lastSlotIndex;
             }
 

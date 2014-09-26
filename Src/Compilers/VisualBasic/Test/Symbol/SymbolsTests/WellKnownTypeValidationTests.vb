@@ -495,10 +495,6 @@ End Namespace
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For wkt = WellKnownType.First To WellKnownType.Last
                 Select Case wkt
-                    Case WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState
-                        ' These types haven't been published yet, so there's no canonical reference we can add.
-                        ' We own them though, so we can be reasonably confident that they're public and, therefore, validate.
-                        Continue For
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
                         ' Only present when embedding VB Core.
                         Continue For
@@ -512,10 +508,6 @@ End Namespace
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             For wkt = WellKnownType.First To WellKnownType.Last
                 Select Case wkt
-                    Case WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState
-                        ' These types haven't been published yet, so there's no canonical reference we can add.
-                        ' We own them though, so we can be reasonably confident that they're public and, therefore, validate.
-                        Continue For
                     Case WellKnownType.Microsoft_VisualBasic_CallType,
                          WellKnownType.Microsoft_VisualBasic_CompilerServices_Operators,
                          WellKnownType.Microsoft_VisualBasic_CompilerServices_NewLateBinding,
@@ -556,11 +548,6 @@ End Namespace
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))
                 Select Case wkm
-                    Case WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission,
-                         WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission
-                        ' These members haven't been published yet, so there's no canonical reference we can add.
-                        ' We own them though, so we can be reasonably confident that they're public and, therefore, validate.
-                        Continue For
                     Case WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean
                         ' Only present when embedding VB Core.
                         Continue For
@@ -579,11 +566,6 @@ End Namespace
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))
                 Select Case wkm
-                    Case WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission,
-                         WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission
-                        ' These members haven't been published yet, so there's no canonical reference we can add.
-                        ' We own them though, so we can be reasonably confident that they're public and, therefore, validate.
-                        Continue For
                     Case WellKnownMember.Count
                         ' Not a real value.
                         Continue For

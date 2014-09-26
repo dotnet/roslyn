@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -79,83 +80,85 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(submissionConstructor.ParameterCount == 2);
 
-            BoundStatement[] result = new BoundStatement[1 + synthesizedFields.Count];
+            var statements = new List<BoundStatement>(2 + synthesizedFields.Count);
 
-            var executionStateReference = new BoundParameter(syntax, submissionConstructor.Parameters[0]) { WasCompilerGenerated = true };
-
-            var executionStateType = compilation.GetWellKnownType(WellKnownType.Roslyn_Scripting_Runtime_ScriptExecutionState);
-            var submissionGetter = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__GetSubmission);
-            var submissionSetter = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.Roslyn_Scripting_Runtime_ScriptExecutionState__SetSubmission);
-
-            // TODO: report missing adder/getter
-            Debug.Assert((object)submissionSetter != null && (object)submissionGetter != null);
+            var submissionArrayReference = new BoundParameter(syntax, submissionConstructor.Parameters[0]) { WasCompilerGenerated = true };
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             var thisReference = new BoundThisReference(syntax, submissionConstructor.ContainingType) { WasCompilerGenerated = true };
 
-            int i = 0;
-
-            // hostObject = (THostObject)<execution_state>.SetSubmission(<slot index>, this);
             var slotIndex = compilation.GetSubmissionSlotIndex();
             Debug.Assert(slotIndex >= 0);
 
-            BoundExpression setSubmission = BoundCall.Synthesized(syntax,
-                executionStateReference,
-                submissionSetter,
-                ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType) { WasCompilerGenerated = true }, thisReference)
-            );
+            // <submission_array>[<slot_index] = this;
+            statements.Add(new BoundExpressionStatement(syntax,
+                new BoundAssignmentOperator(syntax,
+                    new BoundArrayAccess(syntax,
+                        submissionArrayReference,
+                        ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(slotIndex), intType) { WasCompilerGenerated = true }),
+                        objectType)
+                    { WasCompilerGenerated = true },
+                    thisReference,
+                    RefKind.None,
+                    thisReference.Type)
+                { WasCompilerGenerated = true })
+            { WasCompilerGenerated = true });
 
             var hostObjectField = synthesizedFields.GetHostObjectField();
             if ((object)hostObjectField != null)
             {
-                setSubmission = new BoundAssignmentOperator(syntax,
-                    new BoundFieldAccess(syntax, thisReference, hostObjectField, ConstantValue.NotAvailable) { WasCompilerGenerated = true },
-                    BoundConversion.Synthesized(syntax,
-                        setSubmission,
-                        Conversion.ExplicitReference,
-                        false,
-                        true,
-                        ConstantValue.NotAvailable,
-                        hostObjectField.Type
-                    ),
-                    hostObjectField.Type
-                )
-                { WasCompilerGenerated = true };
-            }
-
-            result[i++] = new BoundExpressionStatement(syntax, setSubmission) { WasCompilerGenerated = true };
-
-            foreach (var field in synthesizedFields.FieldSymbols)
-            {
-                var targetScriptClass = (ImplicitNamedTypeSymbol)field.Type;
-                var targetSubmissionId = targetScriptClass.DeclaringCompilation.GetSubmissionSlotIndex();
-                Debug.Assert(targetSubmissionId >= 0);
-
-                // this.<field> = (<FieldType>)<execution_state>.GetSubmission(<i>);
-                result[i++] =
+                // <host_object> = (<host_object_type>)<submission_array>[0]
+                statements.Add(
                     new BoundExpressionStatement(syntax,
                         new BoundAssignmentOperator(syntax,
-                            new BoundFieldAccess(syntax, thisReference, field, ConstantValue.NotAvailable) { WasCompilerGenerated = true },
+                            new BoundFieldAccess(syntax, thisReference, hostObjectField, ConstantValue.NotAvailable) { WasCompilerGenerated = true },
                             BoundConversion.Synthesized(syntax,
-                                BoundCall.Synthesized(syntax,
-                                    executionStateReference,
-                                    submissionGetter,
-                                    new BoundLiteral(syntax, ConstantValue.Create(targetSubmissionId), intType) { WasCompilerGenerated = true }),
+                                new BoundArrayAccess(syntax,
+                                    submissionArrayReference,
+                                    ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(0), intType) { WasCompilerGenerated = true } ),
+                                    objectType),
                                 Conversion.ExplicitReference,
                                 false,
                                 true,
                                 ConstantValue.NotAvailable,
-                                targetScriptClass
+                                hostObjectField.Type
                             ),
-                            targetScriptClass
-                        )
-                { WasCompilerGenerated = true })
-                { WasCompilerGenerated = true };
+                            hostObjectField.Type)
+                        { WasCompilerGenerated = true })
+                    { WasCompilerGenerated = true });
             }
 
-            Debug.Assert(i == result.Length);
+            foreach (var field in synthesizedFields.FieldSymbols)
+            {
+                var targetScriptType = (ImplicitNamedTypeSymbol)field.Type;
+                var targetSubmissionIndex = targetScriptType.DeclaringCompilation.GetSubmissionSlotIndex();
+                Debug.Assert(targetSubmissionIndex >= 0);
 
-            return result.AsImmutableOrNull();
+                // this.<field> = (<target_script_type>)<submission_array>[<target_submission_index>];
+                statements.Add(
+                    new BoundExpressionStatement(syntax,
+                        new BoundAssignmentOperator(syntax,
+                            new BoundFieldAccess(syntax, thisReference, field, ConstantValue.NotAvailable) { WasCompilerGenerated = true },
+                            BoundConversion.Synthesized(syntax,
+                                new BoundArrayAccess(syntax,
+                                    submissionArrayReference,
+                                    ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(targetSubmissionIndex), intType) { WasCompilerGenerated = true }),
+                                    objectType)
+                                { WasCompilerGenerated = true },
+                                Conversion.ExplicitReference,
+                                false,
+                                true,
+                                ConstantValue.NotAvailable,
+                                targetScriptType
+                            ),
+                            targetScriptType
+                        )
+                        { WasCompilerGenerated = true })
+                    { WasCompilerGenerated = true });
+            }
+
+            return statements.AsImmutableOrNull();
         }
 
         /// <summary>

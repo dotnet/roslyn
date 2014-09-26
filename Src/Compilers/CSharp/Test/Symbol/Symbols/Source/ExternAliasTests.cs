@@ -106,7 +106,7 @@ Bar::NS.Foo d = new Bar::NS.Foo();
             var comp = CSharpCompilation.CreateSubmission(
                 GetUniqueName(),
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(src, options: TestOptions.Script),
-                references: new MetadataReference[] { MscorlibRef, MockScriptingRef, ExternAliasTests.Foo1, ExternAliasTests.Foo2 });
+                references: new MetadataReference[] { MscorlibRef, ExternAliasTests.Foo1, ExternAliasTests.Foo2 });
 
             comp.VerifyDiagnostics(
                 // (1,1): error CS7015: 'extern alias' is not valid in this context
