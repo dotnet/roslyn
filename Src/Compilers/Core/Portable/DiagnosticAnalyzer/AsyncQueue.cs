@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="value">The value to add.</param>
         public void Enqueue(TElement value)
         {
-            TaskCompletionSource<TElement> waiter;
+            TaskCompletionSourceWithCancellation<TElement> waiter;
             lock(syncObject)
             {
                 if (completed)
@@ -76,7 +76,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 waiter = waiters.Dequeue();
             }
 
-            Task.Run(() => waiter.SetResult(value));
+            var arguments = new WaiterTaskArguments(waiter, value, this);
+            Task.Factory.StartNew(WaiterTaskArguments.TrySetResultOrEnqueue, arguments);
+        }
+
+        private class WaiterTaskArguments
+        {
+            private readonly TaskCompletionSourceWithCancellation<TElement> waiter;
+            private readonly TElement value;
+            private readonly AsyncQueue<TElement> @this;
+
+            public WaiterTaskArguments(TaskCompletionSourceWithCancellation<TElement> waiter, TElement value, AsyncQueue<TElement> @this)
+            {
+                this.waiter = waiter;
+                this.value = value;
+                this.@this = @this;
+            }
+
+            public static void TrySetResultOrEnqueue(object arguments)
+            {
+                ((WaiterTaskArguments)arguments).TrySetResultOrEnqueue();
+            }
+
+            private void TrySetResultOrEnqueue()
+            {
+                if (!this.waiter.TrySetResult(this.value))
+                {
+                    // Waiter got cancelled, so try to enqueue again.
+                    @this.Enqueue(this.value);
+                }
+            }
         }
 
         /// <summary>
