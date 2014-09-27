@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     generalDiagnosticOption = ReportDiagnostic.Error;
 
-                                    // Clear scpecific warnaserror options (since last /warnaserror flag on the command line always wins).
+                                    // Clear specific warnaserror options (since last /warnaserror flag on the command line always wins).
                                     warnAsErrors.Clear();
 
                                     continue;
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     generalDiagnosticOption = ReportDiagnostic.Default;
 
-                                    // Clear scpecific warnaserror options (since last /warnaserror flag on the command line always wins).
+                                    // Clear specific warnaserror options (since last /warnaserror flag on the command line always wins).
                                     warnAsErrors.Clear();
 
                                     continue;
