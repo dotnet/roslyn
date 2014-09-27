@@ -142,9 +142,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
+            if (IsInsideInterpolation(oldTree, start))
+            {
+                // If the changed range starts inside an interpolated string, we
+                // move the start of the change range to the beginning of the line so that any
+                // interpolated string literal in the changed range will be scanned in its entirety.
+                var column = oldTree.SyntaxTree.GetLineSpan(new TextSpan(start, 0)).Span.Start.Character;
+                start = Math.Max(start - column, 0);
+            }
+
             var finalSpan = TextSpan.FromBounds(start, changeRange.Span.End);
             var finalLength = changeRange.NewLength + (changeRange.Span.Start - start);
             return new TextChangeRange(finalSpan, finalLength);
+        }
+
+        private static bool IsInsideInterpolation(CSharp.CSharpSyntaxNode oldTree, int start)
+        {
+            var token = oldTree.FindToken(start, findInsideTrivia: false);
+            for (var parent = token.Parent; // for each parent
+                parent != null;
+                parent = parent.Parent)
+            {
+                if (parent.CSharpKind() == SyntaxKind.InterpolatedString)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public BlendedNode ReadNode(LexerMode mode)

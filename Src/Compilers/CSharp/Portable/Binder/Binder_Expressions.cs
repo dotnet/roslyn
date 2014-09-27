@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -580,6 +580,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.DeclarationExpression:
                     return BindDeclarationExpression((DeclarationExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.InterpolatedString:
+                    return BindInterpolatedString((InterpolatedStringSyntax)node, diagnostics);
 
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable

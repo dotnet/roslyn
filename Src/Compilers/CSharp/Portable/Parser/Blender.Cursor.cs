@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -112,6 +113,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // just to make sure that this is not a problem, we verify that the slotcount of the
                 // node is greater than 0.
                 var node = CurrentNodeOrToken.AsNode();
+
+                // Interpolated strings cannot be scanned or parsed incrementally. Instead they must be
+                // turned into and then reparsed from the single InterpolatedStringToken.  We therefore
+                // do not break interpolated string nodes down into their constituent tokens, but
+                // instead replace the whole parsed interpolated string expression with its pre-parsed
+                // interpolated string token.
+                if (node.CSharpKind() == SyntaxKind.InterpolatedString)
+                {
+                    var greenToken = Lexer.RescanInterpolatedString((InterpolatedStringSyntax)node.Green);
+                    var redToken = new CodeAnalysis.SyntaxToken(node.Parent, greenToken, node.Position, this.indexInParent);
+                    return new Cursor(redToken, this.indexInParent);
+                }
+
                 if (node.SlotCount > 0)
                 {
                     var child = Microsoft.CodeAnalysis.ChildSyntaxList.ItemInternal(node, 0);

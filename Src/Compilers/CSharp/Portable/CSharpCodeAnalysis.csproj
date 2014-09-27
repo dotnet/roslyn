@@ -82,6 +82,7 @@
     <Compile Include="Binder\Binder_Expressions.cs" />
     <Compile Include="Binder\Binder_Flags.cs" />
     <Compile Include="Binder\Binder_Initializers.cs" />
+    <Compile Include="Binder\Binder_InterpolatedString.cs" />
     <Compile Include="Binder\Binder_Lambda.cs" />
     <Compile Include="Binder\Binder_Lookup.cs" />
     <Compile Include="Binder\Binder_NameConflicts.cs" />
@@ -425,6 +426,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SequencePoints.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StackAlloc.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringConcat.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringInterpolation.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SwitchStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ThrowStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_TryStatement.cs" />
@@ -459,8 +461,10 @@
     <Compile Include="Parser\DocumentationCommentParser.cs" />
     <Compile Include="Parser\DocumentationCommentXmlTokens.cs" />
     <Compile Include="Parser\LanguageParser.cs" />
+    <Compile Include="Parser\LanguageParser_InterpolatedString.cs" />
     <Compile Include="Parser\Lexer.cs" />
     <Compile Include="Parser\LexerCache.cs" />
+    <Compile Include="Parser\Lexer_InterpolatedStringLiteral.cs" />
     <Compile Include="Parser\QuickScanner.cs" />
     <Compile Include="Parser\SlidingTextWindow.cs" />
     <Compile Include="Parser\SyntaxFactoryContext.cs" />
@@ -755,7 +759,7 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.SyntaxLiteral.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.SyntaxLiteralWithTrivia.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.SyntaxTokenWithTrivia.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxTokenReplacer.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxFirstTokenReplacer.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxTrivia.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxVisitor.cs" />
     <Compile Include="Syntax\MethodDeclarationSyntax.cs" />

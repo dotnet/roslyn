@@ -3961,4 +3961,10 @@
   <data name="IDS_FeatureStructParameterlessConstructors" xml:space="preserve">
     <value>struct instance parameterless constructors</value>
   </data>
+  <data name="ERR_UnclosedExpressionHole" xml:space="preserve">
+    <value>Missing close delimiter '}' for interpolated expression started with \{.</value>
+  </data>
+  <data name="ERR_SingleLineCommentInExpressionHole" xml:space="preserve">
+    <value>A single-line comment may not be used in an interpolated string.</value>
+  </data>
 </root>

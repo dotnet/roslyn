@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal class LanguageParser : SyntaxParser
+    internal partial class LanguageParser : SyntaxParser
     {
         // list pools - allocators for lists that are used to build sequences of nodes. The lists
         // can be reused (hence pooled) since the syntax factory methods don't keep references to
@@ -6003,6 +6003,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.EqualsGreaterThanToken:
+                case SyntaxKind.InterpolatedStringToken:
+                case SyntaxKind.InterpolatedStringStartToken:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
@@ -7980,6 +7982,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.InterpolatedStringStartToken:
+                case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.DelegateKeyword:
@@ -8175,6 +8179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.TrueKeyword:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.InterpolatedStringStartToken:
+                    case SyntaxKind.InterpolatedStringToken:
                     case SyntaxKind.NumericLiteralToken:
                     case SyntaxKind.NullKeyword:
                     case SyntaxKind.CharacterLiteralToken:
@@ -8447,6 +8453,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.StringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                     expr = syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
+                    break;
+                case SyntaxKind.InterpolatedStringStartToken:
+                    expr = this.ParseInterpolatedString();
+                    // throw new NotImplementedException(); // this should not occur one we fix up the incremental scanner
+                    break;
+                case SyntaxKind.InterpolatedStringToken:
+                    expr = this.ParseInterpolatedStringToken();
                     break;
                 case SyntaxKind.OpenParenToken:
                     expr = this.ParseCastOrParenExpressionOrLambda(precedence, contextRequiresVariable: contextRequiresVariable);
@@ -10513,7 +10526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxParser.ResetPoint resetPoint,
                 TerminatorState terminatorState,
                 bool isInTry, 
-                bool isInAsync, 
+                bool isInAsync,
                 int queryDepth)
             {
                 this.BaseResetPoint = resetPoint;

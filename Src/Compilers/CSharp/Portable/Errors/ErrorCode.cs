@@ -1295,5 +1295,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
         ERR_ParameterlessStructCtorsMustBePublic = 8075,
+
+        // errors for interpolated strings
+        ERR_UnclosedExpressionHole = 8076,
+        ERR_SingleLineCommentInExpressionHole = 8077,
     }
 }

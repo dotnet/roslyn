@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (leftFlattened.Count)
             {
                 case 0:
-                    result = factory.StringLiteral(ConstantValue.Create(""));
+                    result = factory.StringLiteral(string.Empty);
                     break;
 
                 case 1:

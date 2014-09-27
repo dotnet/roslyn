@@ -3895,4 +3895,34 @@
       <summary>Creates an NameOfExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="InterpolatedStringSyntax" Base="ExpressionSyntax">
+    <Kind Name="InterpolatedString" />
+    <Field Name="StringStart" Type="SyntaxToken">
+      <Kind Name="InterpolatedStringStartToken" />
+      <PropertyComment>
+        <summary>The first part of an interpolated string, from the open quote to the open curly</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="InterpolatedInserts" Type="SeparatedSyntaxList&lt;InterpolatedStringInsertSyntax&gt;">
+      <PropertyComment>
+        <summary>List of inserted expressions, separated by InterpolatedStringMid tokens for additional }...{ string literal parts.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="StringEnd" Type="SyntaxToken">
+      <Kind Name="InterpolatedStringEndToken" />
+      <PropertyComment>
+        <summary>The last part of an interpolated string, from the close curly to the close quote</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="InterpolatedStringInsertSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="InterpolatedStringInsert" />
+    <Field Name="Expression" Type="ExpressionSyntax" />
+    <!-- The following are optional format specifiers as per String.Format -->
+    <!-- TODO: Add "summary" documentation comments to these. -->
+    <Field Name="Comma" Type="SyntaxToken" Optional="true" />
+    <Field Name="Alignment" Type="ExpressionSyntax" Optional="true" />
+    <Field Name="Colon" Type="SyntaxToken" Optional="true" />
+    <Field Name="Format" Type="SyntaxToken" Optional="true" />
+  </Node>
 </Tree>

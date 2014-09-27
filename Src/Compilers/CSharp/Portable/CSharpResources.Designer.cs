@@ -7559,6 +7559,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A single-line comment may not be used in an interpolated string..
+        /// </summary>
+        internal static string ERR_SingleLineCommentInExpressionHole {
+            get {
+                return ResourceManager.GetString("ERR_SingleLineCommentInExpressionHole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type or namespace name &apos;{0}&apos; could not be found (are you missing a using directive or an assembly reference?).
         /// </summary>
         internal static string ERR_SingleTypeNameNotFound {
@@ -8005,6 +8014,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_UnboxNotLValue {
             get {
                 return ResourceManager.GetString("ERR_UnboxNotLValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing close delimiter &apos;}&apos; for interpolated expression started with \{..
+        /// </summary>
+        internal static string ERR_UnclosedExpressionHole {
+            get {
+                return ResourceManager.GetString("ERR_UnclosedExpressionHole", resourceCulture);
             }
         }
         

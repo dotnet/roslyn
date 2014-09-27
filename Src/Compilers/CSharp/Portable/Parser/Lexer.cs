@@ -224,17 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case LexerMode.Syntax:
                 case LexerMode.DebuggerSyntax:
-#if true
-                    var result = this.QuickScanSyntaxToken();
-                    if (result == null)
-                    {
-                        result = this.LexSyntaxToken();
-                    }
-
-                    return result;
-#else
-                    return this.LexSyntaxToken();
-#endif
+                    return this.QuickScanSyntaxToken() ?? this.LexSyntaxToken();
                 case LexerMode.Directive:
                     return this.LexDirectiveToken();
             }
@@ -353,8 +343,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                         break;
+                    case SyntaxKind.InterpolatedStringToken:
+                        // we do not record a separate "value" for an interpolated string token, as it must be rescanned during parsing.
+                        token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.Text, trailingNode);
+                        break;
                     case SyntaxKind.StringLiteralToken:
-                        token = SyntaxFactory.Literal(leadingNode, info.Text, info.StringValue, trailingNode);
+                        token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.StringValue, trailingNode);
                         break;
                     case SyntaxKind.CharacterLiteralToken:
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.CharValue, trailingNode);
@@ -1273,30 +1267,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ch = TextWindow.NextChar();
             switch (ch)
             {
+                // escaped characters that translate to themselves
                 case '\'':
                 case '\"':
                 case '\\':
                     break;
+                // translate escapes as per C# spec 2.4.4.4
+                case '0':
+                    ch = '\u0000';
+                    break;
                 case 'a':
-                    ch = '\a';
+                    ch = '\u0007';
                     break;
                 case 'b':
-                    ch = '\b';
+                    ch = '\u0008';
                     break;
                 case 'f':
-                    ch = '\f';
+                    ch = '\u000c';
                     break;
                 case 'n':
-                    ch = '\n';
+                    ch = '\u000a';
                     break;
                 case 'r':
-                    ch = '\r';
+                    ch = '\u000d';
                     break;
                 case 't':
-                    ch = '\t';
+                    ch = '\u0009';
                     break;
                 case 'v':
-                    ch = '\v';
+                    ch = '\u000b';
                     break;
                 case 'x':
                 case 'u':
@@ -1306,9 +1305,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ch = TextWindow.NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
                     AddError(error);
                     break;
-                case '0':
-                    ch = '\0';
-                    break;
                 default:
                     this.AddError(start, TextWindow.Position - start, ErrorCode.ERR_IllegalEscape);
                     break;
@@ -1317,8 +1313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        private bool ScanStringLiteral(ref TokenInfo info, bool allowEscapes = true)
+        internal void ScanStringLiteral(ref TokenInfo info, bool allowEscapes = true)
         {
+            var start = TextWindow.Position;
             var quoteCharacter = TextWindow.PeekChar();
             if (quoteCharacter == '\'' || quoteCharacter == '"')
             {
@@ -1329,6 +1326,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     char ch;
                     if ((ch = TextWindow.PeekChar()) == '\\' && allowEscapes)
                     {
+                        // We support string interpolation starting in language version 6.
+                        if (TextWindow.PeekChar(1) == '{' && quoteCharacter == '"' && options.LanguageVersion >= LanguageVersion.CSharp6)
+                        {
+                            // An interpolated string literal.
+                            TextWindow.Reset(start);
+                            ScanInterpolatedStringLiteral(ref info);
+                            return;
+                        }
+
                         // normal string & char constants can have escapes
                         char c2;
                         ch = this.ScanEscapeSequence(out c2);
@@ -1394,18 +1400,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         info.StringValue = string.Empty;
                     }
                 }
-
-                return true;
             }
             else
             {
                 info.Kind = SyntaxKind.None;
                 info.Text = null;
-                return false;
             }
         }
 
-        private bool ScanVerbatimStringLiteral(ref TokenInfo info)
+        private void ScanVerbatimStringLiteral(ref TokenInfo info)
         {
             this.builder.Length = 0;
 
@@ -1456,14 +1459,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 info.Kind = SyntaxKind.StringLiteralToken;
                 info.Text = TextWindow.GetText(false);
                 info.StringValue = this.builder.ToString();
-                return true;
             }
             else
             {
                 info.Kind = SyntaxKind.None;
                 info.Text = null;
                 info.StringValue = null;
-                return false;
             }
         }
 

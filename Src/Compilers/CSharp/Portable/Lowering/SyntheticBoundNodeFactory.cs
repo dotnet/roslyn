@@ -826,6 +826,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLiteral(Syntax, stringConst, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String)) { WasCompilerGenerated = true };
         }
 
+        public BoundLiteral StringLiteral(String stringValue)
+        {
+            return StringLiteral(ConstantValue.Create(stringValue));
+        }
+
         public BoundArrayLength ArrayLength(BoundExpression array)
         {
             Debug.Assert((object)array.Type != null && array.Type.IsArray());

@@ -898,6 +898,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+        {
+            foreach (var expr in node.Parts)
+            {
+                VisitRvalue(expr);
+            }
+            return null;
+        }
+
+        public override BoundNode VisitStringInsert(BoundStringInsert node)
+        {
+            VisitRvalue(node.Value);
+            if (node.Alignment != null) VisitRvalue(node.Alignment);
+            if (node.Format != null) VisitRvalue(node.Format);
+            return null;
+        }
+
         public override BoundNode VisitArgList(BoundArgList node)
         {
             // The "__arglist" expression that is legal inside a varargs method has no 

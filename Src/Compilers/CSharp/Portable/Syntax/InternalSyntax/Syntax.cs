@@ -174,6 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxToken.WithValue(SyntaxKind.StringLiteralToken, leading, text, value, trailing);
         }
 
+        internal static SyntaxToken Literal(CSharpSyntaxNode leading, string text, SyntaxKind kind, string value, CSharpSyntaxNode trailing)
+        {
+            return SyntaxToken.WithValue(kind, leading, text, value, trailing);
+        }
+
         internal static SyntaxToken Literal(CSharpSyntaxNode leading, string text, char value, CSharpSyntaxNode trailing)
         {
             return SyntaxToken.WithValue(SyntaxKind.CharacterLiteralToken, leading, text, value, trailing);

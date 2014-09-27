@@ -91,6 +91,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static SyntaxToken Create(SyntaxKind kind)
         {
+            if (kind > LastTokenWithWellKnownText)
+            {
+                if (!SyntaxFacts.IsAnyToken(kind))
+                {
+                    throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), "kind");
+                }
+
+                return CreateMissing(kind, null, null);
+            }
+
             return TokensWithNoTrivia[(int)kind].Value;
         }
 

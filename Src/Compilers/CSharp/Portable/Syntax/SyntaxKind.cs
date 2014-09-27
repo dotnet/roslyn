@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -516,6 +516,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ArrowExpressionClause = 8653,
 
         // expression
-        ImplicitElementAccess = 8654
+        ImplicitElementAccess = 8654,
+
+        // Added to support string interpolation
+        InterpolatedString = 8655, // nonterminal for the whole interpolated string
+        InterpolatedStringToken = 8656, // terminal for the whole interpolated string
+        InterpolatedStringInsert = 8657, // nonterminal for the contents of an expression hole
+        InterpolatedStringStartToken = 8658, // "...\{
+        InterpolatedStringMidToken = 8659,   // }...\{
+        InterpolatedStringEndToken = 8660,   // }..."
     }
 }
