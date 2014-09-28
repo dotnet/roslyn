@@ -946,6 +946,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to algorithm &apos;{0}&apos; is not supported.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadChecksumAlgorithm() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadChecksumAlgorithm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Classes cannot be declared &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_BadClassFlags1() As String

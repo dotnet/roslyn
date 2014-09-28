@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class EncodedStringTextTests : TestBase
     {
-        private static EncodedStringText CreateMemoryStreamBasedEncodedText(string text, Encoding writeEncoding, Encoding readEncodingOpt)
+        private static EncodedStringText CreateMemoryStreamBasedEncodedText(string text, Encoding writeEncoding, Encoding readEncodingOpt, SourceHashAlgorithm algorithm = SourceHashAlgorithm.Sha1)
         {
             byte[] bytes = writeEncoding.GetBytesWithPreamble(text);
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using (var stream = new MemoryStream(buffer, 0, bytes.Length, writable: true, publiclyVisible: true))
             {
-                return EncodedStringText.Create(stream, readEncodingOpt);
+                return EncodedStringText.Create(stream, readEncodingOpt, algorithm);
             }
         }
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.ASCII, readEncodingOpt: null);
 
             // this is known to be "2fd4e1c6 7a2d28fc ed849ee1 bb76e739 1b93eb12", see http://en.wikipedia.org/wiki/SHA-1
-            var checksum = data.GetSha1Checksum();
+            var checksum = data.GetChecksum();
             Assert.Equal("2fd4e1c6 7a2d28fc ed849ee1 bb76e739 1b93eb12", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.Unicode, readEncodingOpt: null);
 
-            var checksum = data.GetSha1Checksum();
+            var checksum = data.GetChecksum();
             Assert.Equal("9d0047c0 8c84a7ef a55a955e aa3b4aae f62c9c39", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.BigEndianUnicode, readEncodingOpt: null);
 
-            var checksum = data.GetSha1Checksum();
+            var checksum = data.GetChecksum();
             Assert.Equal("72b2beae c76188ac 5b38c16c 4f9d518a 2be0a34c", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var data = CreateMemoryStreamBasedEncodedText("", Encoding.ASCII, readEncodingOpt: null);
 
             // this is known to be "da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709", see http://en.wikipedia.org/wiki/SHA-1
-            var checksum = data.GetSha1Checksum();
+            var checksum = data.GetChecksum();
             Assert.Equal("da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var data = CreateMemoryStreamBasedEncodedText("", Encoding.Unicode, readEncodingOpt: null);
 
-            var checksum = data.GetSha1Checksum();
+            var checksum = data.GetChecksum();
             Assert.Equal("d62636d8 caec13f0 4e28442a 0a6fa1af eb024bbb", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
@@ -80,8 +80,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var data = CreateMemoryStreamBasedEncodedText("", Encoding.BigEndianUnicode, readEncodingOpt: null);
 
-            var checksum = data.GetSha1Checksum();
+            var checksum = data.GetChecksum();
             Assert.Equal("26237800 2c95ae7e 29535cb9 f438db21 9adf98f5", StringTextTest.ChecksumToHexQuads(checksum));
+        }
+
+        [Fact]
+        public void CheckSum_SHA256()
+        {
+            var data = CreateMemoryStreamBasedEncodedText("", Encoding.UTF8, readEncodingOpt: null, algorithm: SourceHashAlgorithm.Sha256);
+
+            var checksum = data.GetChecksum();
+            Assert.Equal("f1945cd6 c19e56b3 c1c78943 ef5ec181 16907a4c a1efc40a 57d48ab1 db7adfc5", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
         [Fact]

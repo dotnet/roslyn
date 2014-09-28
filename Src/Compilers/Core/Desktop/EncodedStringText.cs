@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         private readonly Encoding encoding;
 
-        private EncodedStringText(string source, Encoding encoding)
+        private EncodedStringText(string source, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+            : base(checksumAlgorithm: checksumAlgorithm)
         {
             Debug.Assert(source != null);
             Debug.Assert(encoding != null);
@@ -40,12 +41,13 @@ namespace Microsoft.CodeAnalysis.Text
         /// If not specified auto-detect heristics are used to determine the encoding. If these heristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
         /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
         /// </param>
+        /// <param name="checksumAlgorithm">Hash algorithm used to calculate document checksum.</param>
         /// <exception cref="InvalidDataException">
         /// The stream content can't be decoded using the specified <paramref name="defaultEncoding"/>, or
         /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
         /// </exception>
         /// <exception cref="IOException">An IO error occured while reading from the stream.</exception>
-        internal static EncodedStringText Create(Stream stream, Encoding defaultEncoding = null)
+        internal static EncodedStringText Create(Stream stream, Encoding defaultEncoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanRead && stream.CanSeek);
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Text
                         // If we successfully decode the content of the stream as UTF8 it is likely not binary,
                         // so we don't need to check that.
                         text = Decode(stream, utf8NoBom, out actualEncoding);
-                        return new EncodedStringText(text, actualEncoding);
+                        return new EncodedStringText(text, actualEncoding, checksumAlgorithm);
                     }
                     catch (DecoderFallbackException)
                     {
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new InvalidDataException();
             }
 
-            return new EncodedStringText(text, actualEncoding);
+            return new EncodedStringText(text, actualEncoding, checksumAlgorithm);
         }
 
         public override Encoding Encoding

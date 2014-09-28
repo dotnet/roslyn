@@ -2856,6 +2856,9 @@
   <data name="FTL_BadCodepage" xml:space="preserve">
     <value>Code page '{0}' is invalid or not installed</value>
   </data>
+  <data name="FTL_BadChecksumAlgorithm" xml:space="preserve">
+    <value>Algorithm '{0}' is not supported</value>
+  </data>
   <data name="ERR_NoMainOnDLL" xml:space="preserve">
     <value>Cannot specify /main if building a module or library</value>
   </data>

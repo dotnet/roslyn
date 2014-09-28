@@ -15,13 +15,14 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly ImmutableArray<TextChangeRange> changes;
 
         public ChangedText(SourceText oldText, ImmutableArray<TextChangeRange> changeRanges, ImmutableArray<SourceText> segments)
+            : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
         {
             Debug.Assert(oldText != null);
             Debug.Assert(!changeRanges.IsDefault);
             Debug.Assert(!segments.IsDefault);
 
             this.oldText = oldText;
-            this.newText = segments.IsEmpty ? new StringText("", oldText.Encoding) : (SourceText)new CompositeText(segments);
+            this.newText = segments.IsEmpty ? new StringText("", oldText.Encoding, checksumAlgorithm: oldText.ChecksumAlgorithm) : (SourceText)new CompositeText(segments);
             this.changes = changeRanges;
         }
 

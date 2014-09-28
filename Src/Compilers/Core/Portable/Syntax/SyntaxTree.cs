@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +18,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class SyntaxTree
     {
-        private ImmutableArray<byte> lazySha1Checksum;
+        private ImmutableArray<byte> lazyChecksum;
+        private SourceHashAlgorithm lazyHashAlgorithm;
 
         /// <summary>
         /// The path of the source document file.
@@ -308,19 +311,23 @@ namespace Microsoft.CodeAnalysis
         /// this tree.</remarks>
         public abstract IList<TextChange> GetChanges(SyntaxTree oldTree);
 
-        internal ImmutableArray<byte> GetSha1Checksum()
+        internal ValueTuple<ImmutableArray<byte>, Guid> GetChecksumAndAlgorithm()
         {
-            ImmutableArray<byte> checksum = this.lazySha1Checksum;
-
-            if (checksum.IsDefault)
+            if (lazyChecksum.IsDefault)
             {
                 var text = this.GetText();
-                checksum = text.GetSha1Checksum();
-                this.lazySha1Checksum = checksum;
+                this.lazyChecksum = text.GetChecksum();
+                this.lazyHashAlgorithm = text.ChecksumAlgorithm;
             }
 
-            Debug.Assert(!checksum.IsDefault);
-            return checksum;
+            Debug.Assert(!lazyChecksum.IsDefault);
+            Guid guid;
+            if (!Cci.DebugSourceDocument.TryGetAlgorithmGuid(lazyHashAlgorithm, out guid))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            return ValueTuple.Create(lazyChecksum, guid);
         }
 
         /// <summary>

@@ -8414,6 +8414,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Algorithm &apos;{0}&apos; is not supported.
+        /// </summary>
+        internal static string FTL_BadChecksumAlgorithm {
+            get {
+                return ResourceManager.GetString("FTL_BadChecksumAlgorithm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code page &apos;{0}&apos; is invalid or not installed.
         /// </summary>
         internal static string FTL_BadCodepage {

@@ -309,8 +309,11 @@
   <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
     <value>Stream must support read and seek operations.</value>
   </data>
-  <data name="InvalidSHA1Hash" xml:space="preserve">
-    <value>Invalid SHA1 hash.</value>
+  <data name="InvalidHash" xml:space="preserve">
+    <value>Invalid hash.</value>
+  </data>
+  <data name="UnsupportedHashAlgorithm" xml:space="preserve">
+    <value>Unsupported hash algorithm.</value>
   </data>
   <data name="CoffResourceInvalidRelocation" xml:space="preserve">
     <value>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</value>

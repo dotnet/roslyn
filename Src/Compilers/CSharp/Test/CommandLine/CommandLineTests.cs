@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -3085,6 +3086,44 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/codepage+", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/codepage+"));
+        }
+
+        [Fact]
+        public void ChecksumAlgorithm()
+        {
+            CSharpCommandLineArguments parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm:sHa1", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm:sha256", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm);
+
+            //  error
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm:256", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.FTL_BadChecksumAlgorithm).WithArguments("256"));
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm:sha-1", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.FTL_BadChecksumAlgorithm).WithArguments("sha-1"));
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm:sha", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.FTL_BadChecksumAlgorithm).WithArguments("sha"));
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm: ", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "checksumalgorithm"));
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm:", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "checksumalgorithm"));
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "checksumalgorithm"));
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/checksumAlgorithm+", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/checksumAlgorithm+"));
         }
 
         [Fact]

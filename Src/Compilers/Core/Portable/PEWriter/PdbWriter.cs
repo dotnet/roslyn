@@ -387,13 +387,12 @@ namespace Microsoft.Cci
 
                 this.documentMap.Add(document, writer);
 
-                var checkSum = document.SourceHash;
-                if (!checkSum.IsDefault)
+                var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
+                if (!checksumAndAlgorithm.Item1.IsDefault)
                 {
-                    Guid algoId = document.SourceHashKind;
                     try
                     {
-                        writer.SetCheckSum(algoId, (uint)checkSum.Length, checkSum.ToArray());
+                        writer.SetCheckSum(checksumAndAlgorithm.Item2, (uint)checksumAndAlgorithm.Item1.Length, checksumAndAlgorithm.Item1.ToArray());
                     }
                     catch (Exception ex)
                     {

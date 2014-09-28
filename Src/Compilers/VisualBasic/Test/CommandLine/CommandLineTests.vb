@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
@@ -1316,6 +1317,45 @@ a.vb
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/codepage", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
+        End Sub
+
+        <Fact>
+        Public Sub ChecksumAlgorithm()
+            Dim parsedArgs As VisualBasicCommandLineArguments
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:sHa1", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+
+            ' error
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:256", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("256"))
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:sha-1", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("sha-1"))
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:sha", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("sha"))
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm: ", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm+", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/checksumAlgorithm+"))
         End Sub
 
         <Fact>

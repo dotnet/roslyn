@@ -302,6 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ParsedSyntaxTree(
                 textOpt: null,
                 encodingOpt: encoding,
+                checksumAlgorithm: SourceHashAlgorithm.Sha1,
                 path: path,
                 options: options ?? CSharpParseOptions.Default,
                 root: root,
@@ -317,7 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new ParsedSyntaxTree(
                 textOpt: text,
-                encodingOpt: null,
+                encodingOpt: text.Encoding,
+                checksumAlgorithm: text.ChecksumAlgorithm,
                 path: "",
                 options: CSharpParseOptions.Default,
                 root: root,
@@ -339,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ParsedSyntaxTree(
                 textOpt: null,
                 encodingOpt: null,
+                checksumAlgorithm: SourceHashAlgorithm.Sha1,
                 path: "",
                 options: CSharpParseOptions.Default,
                 root: root, 
@@ -387,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, cancellationToken: cancellationToken))
                     {
                         var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                        var tree = new ParsedSyntaxTree(text, text.Encoding, path, options, compilationUnit, parser.Directives);
+                        var tree = new ParsedSyntaxTree(text, text.Encoding, text.ChecksumAlgorithm, path, options, compilationUnit, parser.Directives);
                         tree.VerifySource();
                         return tree;
                     }
@@ -451,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree?.GetRoot(), changes))
             {
                 var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                var tree = new ParsedSyntaxTree(newText, newText.Encoding, this.FilePath, this.Options, compilationUnit, parser.Directives);
+                var tree = new ParsedSyntaxTree(newText, newText.Encoding, newText.ChecksumAlgorithm, this.FilePath, this.Options, compilationUnit, parser.Directives);
                 tree.VerifySource(changes);
                 return tree;
             }

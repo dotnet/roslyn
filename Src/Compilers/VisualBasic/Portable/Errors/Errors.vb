@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_VBCoreNetModuleConflict = 2042
         ERR_InvalidFormatForGuidForOption = 2043
         ERR_MissingGuidForOption = 2044
+        ERR_BadChecksumAlgorithm = 2045
 
         '// The naming convention is that if your error requires arguments, to append
         '// the number of args taken, e.g. AmbiguousName2

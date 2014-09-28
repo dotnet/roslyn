@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    file As CommandLineSourceFile) As SyntaxTree
 
             Dim fileReadDiagnostics As New List(Of DiagnosticInfo)()
-            Dim content = ReadFileContent(file, fileReadDiagnostics, Arguments.Encoding)
+            Dim content = ReadFileContent(file, fileReadDiagnostics, Arguments.Encoding, Arguments.ChecksumAlgorithm)
 
             If content Is Nothing Then
                 PrintErrors(fileReadDiagnostics, consoleOutput)

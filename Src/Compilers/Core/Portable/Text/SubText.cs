@@ -14,10 +14,11 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly TextSpan span;
 
         public SubText(SourceText text, TextSpan span)
+            : base(checksumAlgorithm: text.ChecksumAlgorithm)
         {
             if (text == null)
             {
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             }
 
             if (span.Start < 0
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Text
                 || span.End < 0
                 || span.End > text.Length)
             {
-                throw new ArgumentException("span");
+                throw new ArgumentException(nameof(span));
             }
 
             this.text = text;

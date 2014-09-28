@@ -18,17 +18,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly CSharpSyntaxNode root;
             private readonly bool hasCompilationUnitRoot;
             private readonly Encoding encodingOpt;
+            private readonly SourceHashAlgorithm checksumAlgorithm;
             private SourceText lazyText;
 
-            internal ParsedSyntaxTree(SourceText textOpt, Encoding encodingOpt, string path, CSharpParseOptions options, CSharpSyntaxNode root, Syntax.InternalSyntax.DirectiveStack directives, bool cloneRoot = true)
+            internal ParsedSyntaxTree(SourceText textOpt, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm, string path, CSharpParseOptions options, CSharpSyntaxNode root, Syntax.InternalSyntax.DirectiveStack directives, bool cloneRoot = true)
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
                 Debug.Assert(path != null);
-                Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt);
+                Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt && textOpt.ChecksumAlgorithm == checksumAlgorithm);
 
                 this.lazyText = textOpt;
                 this.encodingOpt = encodingOpt;
+                this.checksumAlgorithm = checksumAlgorithm;
                 this.options = options;
                 this.path = path;
                 this.root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     using (Logger.LogBlock(FunctionId.CSharp_SyntaxTree_GetText, message: this.FilePath, cancellationToken: cancellationToken))
                     {
-                        Interlocked.CompareExchange(ref this.lazyText, this.GetRoot(cancellationToken).GetText(encodingOpt), null);
+                        Interlocked.CompareExchange(ref this.lazyText, this.GetRoot(cancellationToken).GetText(encodingOpt, checksumAlgorithm), null);
                     }
                 }
 
@@ -112,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ParsedSyntaxTree(
                     null,
                     this.encodingOpt,
+                    this.checksumAlgorithm,
                     this.path,
                     (CSharpParseOptions)options,
                     (CSharpSyntaxNode)root,
@@ -128,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ParsedSyntaxTree(
                     this.lazyText,
                     this.encodingOpt,
+                    this.checksumAlgorithm,
                     path,
                     this.options,
                     this.root,

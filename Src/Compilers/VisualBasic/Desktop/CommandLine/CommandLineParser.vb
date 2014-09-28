@@ -3,9 +3,11 @@
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.IO
+Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Instrumentation
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Utilities
@@ -108,6 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim additionalFiles = New List(Of AdditionalStream)()
                 Dim additionalOptions = New Dictionary(Of String, String)()
                 Dim codepage As Encoding = Nothing
+                Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
                 Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
                 Dim metadataReferences = New List(Of CommandLineReference)()
                 Dim analyzers = New List(Of CommandLineAnalyzerReference)()
@@ -291,13 +294,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            Dim encoding = ParseCodepage(value)
+                            Dim encoding = TryParseEncodingName(value)
                             If encoding Is Nothing Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_BadCodepage, value)
                                 Continue For
                             End If
 
                             codepage = encoding
+                            Continue For
+
+                        Case "checksumalgorithm"
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "checksumalgorithm", ":<algorithm>")
+                                Continue For
+                            End If
+
+                            Dim newChecksumAlgorithm = TryParseHashAlgorithmName(value)
+                            If newChecksumAlgorithm = SourceHashAlgorithm.None Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_BadChecksumAlgorithm, value)
+                                Continue For
+                            End If
+
+                            checksumAlgorithm = newChecksumAlgorithm
                             Continue For
 
                         Case "removeintchecks", "removeintchecks+"
@@ -1128,6 +1146,7 @@ lVbRuntimePlus:
                     .DocumentationPath = documentationPath,
                     .SourceFiles = sourceFiles.AsImmutable(),
                     .Encoding = codepage,
+                    .ChecksumAlgorithm = checksumAlgorithm,
                     .MetadataReferences = metadataReferences.AsImmutable(),
                     .AnalyzerReferences = analyzers.AsImmutable(),
                     .AdditionalStreams = additionalFiles.AsImmutable(),

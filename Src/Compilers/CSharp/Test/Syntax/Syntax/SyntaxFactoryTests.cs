@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
@@ -14,16 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SyntaxFactoryTests
     {
         [Fact]
-        public void SyntaxTreeFactory()
+        public void SyntaxTree()
         {
-            var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding: null);
-            Assert.Null(tree.GetText().Encoding);
+            var text = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding: null).GetText();
+            Assert.Null(text.Encoding);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
         }
 
         [Fact]
         public void SyntaxTreeFromNode()
         {
-            Assert.Null(SyntaxFactory.CompilationUnit().SyntaxTree.GetText().Encoding);
+            var text = SyntaxFactory.CompilationUnit().SyntaxTree.GetText();
+            Assert.Null(text.Encoding);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
         }
 
         [Fact]

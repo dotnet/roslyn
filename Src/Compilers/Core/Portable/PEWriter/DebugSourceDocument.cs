@@ -3,6 +3,10 @@
 using System.Collections.Immutable;
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Reflection;
+using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Cci
 {
@@ -12,14 +16,12 @@ namespace Microsoft.Cci
         internal static readonly Guid CorSymLanguageTypeBasic = new Guid("{3a12d0b8-c26c-11d0-b442-00a0244a1dd2}");
         private static readonly Guid CorSymLanguageVendorMicrosoft = new Guid("{994b45c4-e6e9-11d2-903f-00c04fa302a1}");
         private static readonly Guid CorSymDocumentTypeText = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
-        private static readonly Guid CorSym_SourceHash_SHA1 = new Guid("{ff1816ec-aa5e-4d10-87f7-6f4963833460}");
 
         private string location;
         private Guid language;
         private bool isComputedChecksum;
 
-        private Task<ImmutableArray<byte>> checkSum;
-        private Guid checkSumAlgorithmId;
+        private Task<ValueTuple<ImmutableArray<byte>, Guid>> checksumAndAlgorithm;
 
         public DebugSourceDocument(string location, Guid language)
         {
@@ -30,22 +32,51 @@ namespace Microsoft.Cci
         /// <summary>
         /// Use to create a document when checksum is computed based on actual source stream.
         /// </summary>
-        public DebugSourceDocument(string location, Guid language, Func<ImmutableArray<byte>> checkSumSha1)
+        public DebugSourceDocument(string location, Guid language, Func<ValueTuple<ImmutableArray<byte>, Guid>> checksumAndAlgorithm)
             : this(location, language)
         {
-            this.checkSum = Task.Run(checkSumSha1);
-            this.checkSumAlgorithmId = CorSym_SourceHash_SHA1;
+            this.checksumAndAlgorithm = Task.Run(checksumAndAlgorithm);
             this.isComputedChecksum = true;
         }
 
         /// <summary>
         /// Use to create a document when checksum is suggested via external checksum pragma/directive
         /// </summary>
-        public DebugSourceDocument(string location, Guid language, ImmutableArray<byte> checkSum, Guid checkSumAlgorithmId)
+        public DebugSourceDocument(string location, Guid language, ImmutableArray<byte> checksum, Guid algorithm)
             : this(location, language)
         {
-            this.checkSum = Task<ImmutableArray<byte>>.FromResult(checkSum);
-            this.checkSumAlgorithmId = checkSumAlgorithmId;
+            this.checksumAndAlgorithm = Task.FromResult(ValueTuple.Create(checksum, algorithm));
+        }
+
+        internal static bool IsSupportedAlgorithm(SourceHashAlgorithm algorithm)
+        {
+            Guid guid;
+            return TryGetAlgorithmGuid(algorithm, out guid);
+        }
+
+        internal static bool TryGetAlgorithmGuid(SourceHashAlgorithm algorithm, out Guid guid)
+        {
+            // Dev12 debugger supports MD5, SHA1.
+            // Dev14 debugger supports MD5, SHA1, SHA256.
+            // MD5 is obsolete.
+
+            unchecked
+            {
+                switch (algorithm)
+                {
+                    case SourceHashAlgorithm.Sha1:
+                        guid = new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60);
+                        return true;
+
+                    case SourceHashAlgorithm.Sha256:
+                        guid = new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16);
+                        return true;
+
+                    default:
+                        guid = default(Guid);
+                        return false;
+                }
+            }
         }
 
         public Guid DocumentType
@@ -68,14 +99,12 @@ namespace Microsoft.Cci
             get { return this.location; }
         }
 
-        public Guid SourceHashKind
+        public ValueTuple<ImmutableArray<byte>, Guid> ChecksumAndAlgorithm
         {
-            get { return checkSumAlgorithmId; }
-        }
-
-        public ImmutableArray<byte> SourceHash
-        {
-            get { return checkSum == null ? default(ImmutableArray<byte>) : checkSum.Result; }
+            get
+            {
+                return (checksumAndAlgorithm == null) ? default(ValueTuple<ImmutableArray<byte>, Guid>) : checksumAndAlgorithm.Result;
+            }
         }
 
         /// <summary>

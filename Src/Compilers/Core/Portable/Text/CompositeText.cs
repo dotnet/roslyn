@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly int length;
 
         public CompositeText(ImmutableArray<SourceText> texts)
+            : base(checksumAlgorithm: texts[0].ChecksumAlgorithm)
         {
             Debug.Assert(!texts.IsDefaultOrEmpty);
-            Debug.Assert(texts.All(t => texts.First().Encoding == t.Encoding));
+            Debug.Assert(texts.All(t => texts.First().Encoding == t.Encoding && texts.First().ChecksumAlgorithm == t.ChecksumAlgorithm));
 
             this.texts = texts;
             int len = 0;
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (newTexts.Count == 0)
             {
                 newTexts.Free();
-                return SourceText.From(string.Empty, this.Encoding);
+                return SourceText.From(string.Empty, this.Encoding, this.ChecksumAlgorithm);
             }
             else if (newTexts.Count == 1)
             {

@@ -124,11 +124,12 @@ namespace Microsoft.CodeAnalysis
         /// <param name="file">Source file information.</param>
         /// <param name="diagnostics">Storage for diagnostics.</param>
         /// <param name="encoding">Encoding to use or 'null' for autodetect/default</param>
+        /// <param name="checksumAlgorithm">Hash algorithm used to calculate file checksum.</param>
         /// <returns>File content or null on failure.</returns>
-        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding)
+        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
         {
             string discarded;
-            return ReadFileContent(file, diagnostics, encoding, out discarded);
+            return ReadFileContent(file, diagnostics, encoding, checksumAlgorithm, out discarded);
         }
 
         /// <summary>
@@ -137,16 +138,17 @@ namespace Microsoft.CodeAnalysis
         /// <param name="file">Source file information.</param>
         /// <param name="diagnostics">Storage for diagnostics.</param>
         /// <param name="encoding">Encoding to use or 'null' for autodetect/default</param>
+        /// <param name="checksumAlgorithm">Hash algorithm used to calculate file checksum.</param>
         /// <param name="normalizedFilePath">If given <paramref name="file"/> opens successfully, set to normalized absolute path of the file, null otherwise.</param>
         /// <returns>File content or null on failure.</returns>
-        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, out string normalizedFilePath)
+        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, out string normalizedFilePath)
         {
             try
             {
                 using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     normalizedFilePath = data.Name;
-                    return EncodedStringText.Create(data, encoding);
+                    return EncodedStringText.Create(data, encoding, checksumAlgorithm);
                 }
             }
             catch (Exception e)

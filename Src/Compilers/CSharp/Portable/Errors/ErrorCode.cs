@@ -1070,6 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CLS_BadTypeVar = 3024,
         WRN_CLS_VolatileField = 3026,
         WRN_CLS_BadInterface = 3027,
+        FTL_BadChecksumAlgorithm = 3028,
 
         // Errors introduced in C# 5 are in the range 4000-4999
         // 4000 unused

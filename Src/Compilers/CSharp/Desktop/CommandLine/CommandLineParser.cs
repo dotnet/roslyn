@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Instrumentation;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool sourceFilesSpecified = false;
                 bool resourcesOrModulesSpecified = false;
                 Encoding codepage = null;
+                var checksumAlgorithm = SourceHashAlgorithm.Sha1;
                 var defines = ArrayBuilder<string>.GetInstance();
                 List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
                 List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            var encoding = ParseCodepage(value);
+                            var encoding = TryParseEncodingName(value);
                             if (encoding == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.FTL_BadCodepage, value);
@@ -179,6 +181,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             codepage = encoding;
+                            continue;
+
+                        case "checksumalgorithm":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
+                                continue;
+                            }
+
+                            var newChecksumAlgorithm = TryParseHashAlgorithmName(value);
+                            if (newChecksumAlgorithm == SourceHashAlgorithm.None)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.FTL_BadChecksumAlgorithm, value);
+                                continue;
+                            }
+
+                            checksumAlgorithm = newChecksumAlgorithm;
                             continue;
 
                         case "checked":
@@ -1042,6 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AppConfigPath = appConfigPath,
                     SourceFiles = sourceFiles.AsImmutable(),
                     Encoding = codepage,
+                    ChecksumAlgorithm = checksumAlgorithm,
                     MetadataReferences = metadataReferences.AsImmutable(),
                     AnalyzerReferences = analyzers.AsImmutable(),
                     AdditionalStreams = additionalFiles.AsImmutable(),

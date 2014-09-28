@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,6 +19,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 new[] { Parse(source, filePath) },
                 new[] { MscorlibRef },
                 TestOptions.DebugDll.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray.Create<string>(), baseDirectory)));
+        }
+
+        [Fact]
+        public void ChecksumAlgorithms()
+        {
+            var source1 = "public class C1 { public C1() { } }";
+            var source256 = "public class C256 { public C256() { } }";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs"); 
+            var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs"); 
+
+            var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { tree1, tree256 });
+
+            string actual = GetPdbXml(compilation);
+
+            string expected = @"
+<symbols>
+  <files>
+    <file id=""1"" name=""sha1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""8E, 37, F3, 94, ED, 18, 24, 3F, 35, EC, 1B, 70, 25, 29, 42, 1C, B0, 84, 9B, C8, "" />
+    <file id=""2"" name=""sha256.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""8829d00f-11b8-4213-878b-770e8597ac16"" checkSum=""83, 31, 5B, 52,  8, 2D, 68, 54, 14, 88,  E, E3, 3A, 5E, B7, 83, 86, 53, 83, B4, 5A, 3F, 36, 9E, 5F, 1B, 60, 33, 27,  A, 8A, EC, "" />
+  </files>
+  <methods>
+    <method containingType=""C1"" name="".ctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""1"" start_column=""19"" end_row=""1"" end_column=""30"" file_ref=""1"" />
+        <entry il_offset=""0x6"" start_row=""1"" start_column=""33"" end_row=""1"" end_column=""34"" file_ref=""1"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C256"" name="".ctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C1"" methodName="".ctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""1"" start_column=""21"" end_row=""1"" end_column=""34"" file_ref=""2"" />
+        <entry il_offset=""0x6"" start_row=""1"" start_column=""37"" end_row=""1"" end_column=""38"" file_ref=""2"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
         }
 
         [Fact]

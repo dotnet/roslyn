@@ -6,9 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Instrumentation;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -152,6 +154,11 @@ namespace Microsoft.CodeAnalysis
         /// Encoding to be used for source files or 'null' for autodetect/default.
         /// </summary>
         public Encoding Encoding { get; internal set; }
+
+        /// <summary>
+        /// Hash algorithm to use to calculate source file debug checksums.
+        /// </summary>
+        public SourceHashAlgorithm ChecksumAlgorithm { get; internal set; }
 
         /// <summary>
         /// Arguments following script argument separator "--" or null if <see cref="IsInteractive"/> is false.

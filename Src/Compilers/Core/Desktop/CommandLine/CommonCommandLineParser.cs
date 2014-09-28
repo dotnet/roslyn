@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -665,7 +666,7 @@ namespace Microsoft.CodeAnalysis
             return ExpandFileNamePattern(arg, baseDirectory, SearchOption.AllDirectories, errors);
         }
 
-        internal Encoding ParseCodepage(string arg)
+        internal Encoding TryParseEncodingName(string arg)
         {
             long codepage;
             if (!string.IsNullOrWhiteSpace(arg)
@@ -681,7 +682,25 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
             }
+
             return null;
+        }
+
+        internal SourceHashAlgorithm TryParseHashAlgorithmName(string arg)
+        {
+            if (string.Equals("sha1", arg, StringComparison.OrdinalIgnoreCase))
+            {
+                return SourceHashAlgorithm.Sha1;
+            }
+
+            if (string.Equals("sha256", arg, StringComparison.OrdinalIgnoreCase))
+            {
+                return SourceHashAlgorithm.Sha256;
+            }
+
+            // MD5 is legacy, not supported
+
+            return SourceHashAlgorithm.None;
         }
 
         private IEnumerable<CommandLineSourceFile> ExpandFileNamePattern(string path, string baseDirectory, SearchOption searchOption, IList<Diagnostic> errors)

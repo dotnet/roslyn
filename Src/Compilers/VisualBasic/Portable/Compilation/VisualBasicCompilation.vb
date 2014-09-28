@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -2346,10 +2346,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                               Not d.ContainsDiagnostics)
 
             For Each directive In checksumDirectives
-                Dim checkSumDirective As ExternalChecksumDirectiveTriviaSyntax = DirectCast(directive, ExternalChecksumDirectiveTriviaSyntax)
-                Dim path = checkSumDirective.ExternalSource.ValueText
+                Dim checksumDirective As ExternalChecksumDirectiveTriviaSyntax = DirectCast(directive, ExternalChecksumDirectiveTriviaSyntax)
+                Dim path = checksumDirective.ExternalSource.ValueText
 
-                Dim checkSumText = checkSumDirective.Checksum.ValueText
+                Dim checkSumText = checksumDirective.Checksum.ValueText
                 Dim normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(path, basePath:=tree.FilePath)
                 Dim existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath)
 
@@ -2362,9 +2362,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
                     End If
 
-                    If CheckSumMatches(checkSumText, existingDoc.SourceHash) Then
-                        Dim guid As Guid = Guid.Parse(checkSumDirective.Guid.ValueText)
-                        If guid = existingDoc.SourceHashKind Then
+                    If CheckSumMatches(checkSumText, existingDoc.ChecksumAndAlgorithm.Item1) Then
+                        Dim guid As Guid = Guid.Parse(checksumDirective.Guid.ValueText)
+                        If guid = existingDoc.ChecksumAndAlgorithm.Item2 Then
                             ' all parts match, nothing to do
                             Continue For
                         End If
@@ -2372,14 +2372,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' did not match to an existing document
                     ' produce a warning and ignore the directive
-                    diagnosticBag.Add(ERRID.WRN_MultipleDeclFileExtChecksum, New SourceLocation(checkSumDirective), path)
+                    diagnosticBag.Add(ERRID.WRN_MultipleDeclFileExtChecksum, New SourceLocation(checksumDirective), path)
 
                 Else
                     Dim newDocument = New DebugSourceDocument(
                         normalizedPath,
                         DebugSourceDocument.CorSymLanguageTypeBasic,
-                        MakeCheckSumBytes(checkSumDirective.Checksum.ValueText),
-                        Guid.Parse(checkSumDirective.Guid.ValueText))
+                        MakeCheckSumBytes(checksumDirective.Checksum.ValueText),
+                        Guid.Parse(checksumDirective.Guid.ValueText))
 
                     moduleBeingBuilt.AddDebugDocument(newDocument)
                 End If
@@ -2419,8 +2419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function MakeDebugSourceDocumentForTree(normalizedPath As String, tree As SyntaxTree) As DebugSourceDocument
-            Dim checkSumSha1 As Func(Of ImmutableArray(Of Byte)) = Function() tree.GetSha1Checksum()
-            Return New DebugSourceDocument(normalizedPath, DebugSourceDocument.CorSymLanguageTypeBasic, checkSumSha1)
+            Return New DebugSourceDocument(normalizedPath, DebugSourceDocument.CorSymLanguageTypeBasic, Function() tree.GetChecksumAndAlgorithm())
         End Function
 
         Private Sub SetupWin32Resources(moduleBeingBuilt As PEModuleBuilder, win32Resources As Stream, diagnostics As DiagnosticBag)

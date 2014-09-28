@@ -532,6 +532,7 @@
     <Compile Include="Text\CompositeText.cs" />
     <Compile Include="Text\LinePosition.cs" />
     <Compile Include="Text\LinePositionSpan.cs" />
+    <Compile Include="Text\SourceHashAlgorithm.cs" />
     <Compile Include="Text\SourceText.cs" />
     <Compile Include="Text\SourceTextContainer.cs" />
     <Compile Include="Text\StringBuilderText.cs" />

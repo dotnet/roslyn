@@ -4054,7 +4054,7 @@ class C
         #endregion
 
         [Fact, WorkItem(846584, "DevDiv")]
-        public void RelativePathForExternalSource()
+        public void RelativePathForExternalSource_Sha1()
         {
             var text1 = @"
 #pragma checksum ""..\Test2.cs"" ""{406ea660-64cf-4c82-b6f0-42d48172a799}"" ""BA8CBEA9C2EFABD90D53B616FB80A081""

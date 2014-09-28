@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Roslyn.Utilities;
@@ -22,19 +23,31 @@ namespace Microsoft.CodeAnalysis.Text
 
         private static readonly ObjectPool<char[]> CharArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
 
+        private readonly SourceHashAlgorithm checksumAlgorithm;
         private SourceTextContainer lazyContainer;
         private LineInfo lazyLineInfo;
-        private ImmutableArray<byte> lazySha1Checksum;
+        private ImmutableArray<byte> lazyChecksum;
 
-        protected SourceText(ImmutableArray<byte> sha1Checksum = default(ImmutableArray<byte>), SourceTextContainer container = null)
+        protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer container = null)
         {
-            if (!sha1Checksum.IsDefault && sha1Checksum.Length != CryptographicHashProvider.Sha1HashSize)
+            ValidateChecksumAlgorithm(checksumAlgorithm);
+
+            if (!checksum.IsDefault && checksum.Length != CryptographicHashProvider.GetHashSize(checksumAlgorithm))
             {
-                throw new ArgumentException(CodeAnalysisResources.InvalidSHA1Hash, "sha1Checksum");
+                throw new ArgumentException(CodeAnalysisResources.InvalidHash, nameof(checksum));
             }
 
-            this.lazySha1Checksum = sha1Checksum;
+            this.checksumAlgorithm = checksumAlgorithm;
+            this.lazyChecksum = checksum;
             this.lazyContainer = container;
+        }
+
+        internal static void ValidateChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+        {
+            if (!Cci.DebugSourceDocument.IsSupportedAlgorithm(checksumAlgorithm))
+            {
+                throw new ArgumentException(CodeAnalysisResources.UnsupportedHashAlgorithm, nameof(checksumAlgorithm));
+            }
         }
 
         /// <summary>
@@ -47,15 +60,19 @@ namespace Microsoft.CodeAnalysis.Text
         /// If the encoding is not specified the resulting <see cref="SourceText"/> isn't debuggable.
         /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
         /// </param>
+        /// <param name="checksumAlgorithm">
+        /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
+        /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="text"/> is null.</exception>
-        public static SourceText From(string text, Encoding encoding = null)
+        /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
+        public static SourceText From(string text, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             if (text == null)
             {
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             }
 
-            return new StringText(text, encoding);
+            return new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm);
         }
 
         /// <summary>
@@ -66,21 +83,29 @@ namespace Microsoft.CodeAnalysis.Text
         /// Data encoding to use if the stream doesn't start with Byte Order Mark specifying the encoding.
         /// <see cref="Encoding.UTF8"/> if not specified.
         /// </param>
+        /// <param name="checksumAlgorithm">
+        /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
+        /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="stream"/> doesn't support reading or seeking.</exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="stream"/> doesn't support reading or seeking.
+        /// <paramref name="checksumAlgorithm"/> is not supported.
+        /// </exception>
         /// <exception cref="IOException">An I/O error occurs.</exception>
         /// <remarks>Reads from the beginning of the stream. Leaves the stream open.</remarks>
-        public static SourceText From(Stream stream, Encoding encoding = null)
+        public static SourceText From(Stream stream, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             if (stream == null)
             {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             if (!stream.CanRead || !stream.CanSeek)
             {
-                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, "stream");
+                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(stream));
             }
+
+            ValidateChecksumAlgorithm(checksumAlgorithm);
 
             encoding = encoding ?? Encoding.UTF8;
 
@@ -93,7 +118,15 @@ namespace Microsoft.CodeAnalysis.Text
                 text = reader.ReadToEnd();
             }
 
-            return new StringText(text, encoding, CryptographicHashProvider.ComputeSha1(stream));
+            return new StringText(text, encoding, CalculateChecksum(stream, checksumAlgorithm), checksumAlgorithm);
+        }
+
+        /// <summary>
+        /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
+        /// </summary>
+        public SourceHashAlgorithm ChecksumAlgorithm
+        {
+            get { return checksumAlgorithm; }
         }
 
         /// <summary>
@@ -159,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Text
             int spanLength = span.Length;
             if (spanLength == 0)
             {
-                return SourceText.From(string.Empty, this.Encoding);
+                return SourceText.From(string.Empty, this.Encoding, this.ChecksumAlgorithm);
             }
             else if (spanLength == this.Length && span.Start == 0)
             {
@@ -227,9 +260,9 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal ImmutableArray<byte> GetSha1Checksum()
+        internal ImmutableArray<byte> GetChecksum()
         {
-            if (this.lazySha1Checksum.IsDefault)
+            if (this.lazyChecksum.IsDefault)
             {
                 // we shouldn't be asking for a checksum of encoding-less source text:
                 Debug.Assert(this.Encoding != null);
@@ -239,12 +272,21 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     this.Write(writer);
                     writer.Flush();
-                    stream.Seek(0, SeekOrigin.Begin);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref lazySha1Checksum, CryptographicHashProvider.ComputeSha1(stream), default(ImmutableArray<byte>));
+                    ImmutableInterlocked.InterlockedInitialize(ref lazyChecksum, CalculateChecksum(stream, checksumAlgorithm));
                 }
             }
 
-            return this.lazySha1Checksum;
+            return this.lazyChecksum;
+        }
+
+        private static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
+        {
+            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            {
+                Debug.Assert(algorithm != null);
+                stream.Seek(0, SeekOrigin.Begin);
+                return ImmutableArray.Create(algorithm.ComputeHash(stream));
+            }
         }
 
         /// <summary>
@@ -291,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (changes == null)
             {
-                throw new ArgumentNullException("changes");
+                throw new ArgumentNullException(nameof(changes));
             }
 
             if (!changes.Any())
@@ -308,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // there can be no overlapping changes
                 if (change.Span.Start < position)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.ChangesMustBeOrderedAndNotOverlapping, "changes");
+                    throw new ArgumentException(CodeAnalysisResources.ChangesMustBeOrderedAndNotOverlapping, nameof(changes));
                 }
 
                 // if we've skipped a range, add
@@ -320,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 if (!string.IsNullOrEmpty(change.NewText))
                 {
-                    var segment = SourceText.From(change.NewText, this.Encoding);
+                    var segment = SourceText.From(change.NewText, this.Encoding, this.ChecksumAlgorithm);
                     CompositeText.AddSegments(segments, segment);
                 }
 
@@ -596,10 +638,10 @@ namespace Microsoft.CodeAnalysis.Text
                 return true;
             }
 
-            // Checksum may be provided by a subclass, which is thus responsible for passing us a true SHA1 hash.
-            ImmutableArray<byte> leftChecksum = this.lazySha1Checksum;
-            ImmutableArray<byte> rightChecksum = other.lazySha1Checksum;
-            if (!leftChecksum.IsDefault && !rightChecksum.IsDefault && this.Encoding == other.Encoding)
+            // Checksum may be provided by a subclass, which is thus responsible for passing us a true hash.
+            ImmutableArray<byte> leftChecksum = this.lazyChecksum;
+            ImmutableArray<byte> rightChecksum = other.lazyChecksum;
+            if (!leftChecksum.IsDefault && !rightChecksum.IsDefault && this.Encoding == other.Encoding && this.ChecksumAlgorithm == other.ChecksumAlgorithm)
             {
                 return leftChecksum.SequenceEqual(rightChecksum);
             }

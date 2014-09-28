@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out string normalizedFilePath)
         {
             var fileReadDiagnostics = new List<DiagnosticInfo>();
-            var content = ReadFileContent(file, fileReadDiagnostics, Arguments.Encoding, out normalizedFilePath);
+            var content = ReadFileContent(file, fileReadDiagnostics, Arguments.Encoding, Arguments.ChecksumAlgorithm, out normalizedFilePath);
 
             if (content == null)
             {

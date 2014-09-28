@@ -17,6 +17,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         }
 
         [Fact]
+        public void ChecksumAlgorithm1()
+        {
+            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From("foo").ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From("foo", checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From("foo", checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
+
+            var stream = new MemoryStream(Encoding.Unicode.GetBytes("foo"));
+
+            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(stream).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(stream, checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From(stream, checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
+        }
+
+        [Fact]
         public void ContentEquals()
         {
             var f = SourceText.From("foo", Encoding.UTF8);

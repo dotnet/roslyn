@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
-            Dim tree = New ParsedSyntaxTree(newText, newText.Encoding, Me.FilePath, Options, root, isMyTemplate:=False)
+            Dim tree = New ParsedSyntaxTree(newText, newText.Encoding, newText.ChecksumAlgorithm, Me.FilePath, Options, root, isMyTemplate:=False)
 
             tree.VerifySource(changes)
             Return tree
@@ -155,6 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New ParsedSyntaxTree(
                 textOpt:=Nothing,
                 encodingOpt:=encoding,
+                checksumAlgorithm:=SourceHashAlgorithm.Sha1,
                 path:=path,
                 options:=If(options, VisualBasicParseOptions.Default),
                 syntaxRoot:=root,
@@ -176,6 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 textOpt:=Nothing,
                 path:="",
                 encodingOpt:=Nothing,
+                checksumAlgorithm:=SourceHashAlgorithm.Sha1,
                 options:=VisualBasicParseOptions.Default,
                 syntaxRoot:=root,
                 isMyTemplate:=False,
@@ -232,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Using
 
                 Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
-                Dim tree = New ParsedSyntaxTree(text, text.Encoding, path, options, root, isMyTemplate)
+                Dim tree = New ParsedSyntaxTree(text, text.Encoding, text.ChecksumAlgorithm, path, options, root, isMyTemplate)
 
                 tree.VerifySource()
                 Return tree

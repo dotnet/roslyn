@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         private readonly Encoding encodingOpt;
 
-        public StringBuilderText(StringBuilder builder, Encoding encodingOpt)
+        public StringBuilderText(StringBuilder builder, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
+             : base(checksumAlgorithm: checksumAlgorithm)
         {
             Debug.Assert(builder != null);
 

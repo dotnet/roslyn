@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -7,14 +8,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyntaxFactoryTests
 
         <Fact>
-        Public Sub SyntaxTreeFactory()
-            Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding:=Nothing)
-            Assert.Null(tree.GetText().Encoding)
+        Public Sub SyntaxTree()
+            Dim text = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding:=Nothing).GetText()
+            Assert.Null(text.Encoding)
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm)
         End Sub
 
         <Fact>
         Public Sub SyntaxTreeFromNode()
-            Assert.Null(SyntaxFactory.CompilationUnit().SyntaxTree.GetText().Encoding)
+            Dim text = SyntaxFactory.CompilationUnit().SyntaxTree.GetText()
+            Assert.Null(text.Encoding)
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm)
         End Sub
 
         <Fact>

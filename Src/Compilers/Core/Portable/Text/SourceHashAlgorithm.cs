@@ -1,0 +1,25 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+namespace Microsoft.CodeAnalysis.Text
+{
+    /// <summary>
+    /// Specifies a hash algorithms used for hashing source files.
+    /// </summary>
+    public enum SourceHashAlgorithm
+    {
+        /// <summary>
+        /// No algorithm specified.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Secure Hash Algorithm 1.
+        /// </summary>
+        Sha1 = 1,
+
+        /// <summary>
+        /// Secure Hash Algorithm 2 with a hash size of 256 bits.
+        /// </summary>
+        Sha256 = 2,
+    }
+}

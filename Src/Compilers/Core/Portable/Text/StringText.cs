@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Roslyn.Utilities;
@@ -18,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly string source;
         private readonly Encoding encodingOpt;
 
-        internal StringText(string source, Encoding encodingOpt, ImmutableArray<byte> sha1Checksum = default(ImmutableArray<byte>))
-            : base(sha1Checksum)
+        internal StringText(string source, Encoding encodingOpt, ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+            : base(checksum, checksumAlgorithm)
         {
             Debug.Assert(source != null);
 

@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -56,7 +58,37 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static HashAlgorithm TryGetAlgorithm(AssemblyHashAlgorithm algorithmId)
+        internal static int GetHashSize(SourceHashAlgorithm algorithmId)
+        {
+            switch (algorithmId)
+            {
+                case SourceHashAlgorithm.Sha1:
+                    return 160 / 8;
+
+                case SourceHashAlgorithm.Sha256:
+                    return 256 / 8;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(algorithmId);
+            }
+        }
+
+        internal static HashAlgorithm TryGetAlgorithm(SourceHashAlgorithm algorithmId)
+        {
+            switch (algorithmId)
+            {
+                case SourceHashAlgorithm.Sha1:
+                    return new SHA1CryptoServiceProvider();
+
+                case SourceHashAlgorithm.Sha256:
+                    return new SHA256CryptoServiceProvider();
+
+                default:
+                    return null;
+            }
+        }
+
+        internal static HashAlgorithm TryGetAlgorithm(AssemblyHashAlgorithm algorithmId)
         {
             switch (algorithmId)
             {
