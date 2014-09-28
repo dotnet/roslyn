@@ -4,9 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
-using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             private readonly string language;
             private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services;
 
-            private ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>> serviceMap 
+            private ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>> serviceMap
                 = ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>>.Empty;
 
             public MefLanguageServices(
@@ -274,24 +272,47 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 Lazy<ILanguageService, LanguageServiceMetadata> service;
                 if (TryGetService(typeof(TLanguageService), out service))
                 {
-                    return (TLanguageService)service.Value;
+                    var result = (TLanguageService)service.Value;
+                    Contract.ThrowIfTrue(EqualityComparer<TLanguageService>.Default.Equals(result, default(TLanguageService)));
+
+                    return result;
                 }
                 else
                 {
+                    Contract.ThrowIfTrue(typeof(TLanguageService) == typeof(ISyntaxTreeFactoryService));
                     return default(TLanguageService);
                 }
             }
 
             internal bool TryGetService(Type serviceType, out Lazy<ILanguageService, LanguageServiceMetadata> service)
-            { 
+            {
                 if (!this.serviceMap.TryGetValue(serviceType, out service))
                 {
                     service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, serviceType, svctype =>
                     {
-                        return PickLanguageService(this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName));
+                        var serviceTypes = this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName);
+                        Contract.ThrowIfFalse(serviceType != typeof(ISyntaxTreeFactoryService) || !serviceTypes.IsEmpty());
+
+                        var result = PickLanguageService(serviceTypes);
+
+                        if (serviceType == typeof(ISyntaxTreeFactoryService) && result == null)
+                        {
+                            var kind = this.workspaceServices.Workspace.Kind;
+                            var tempServices = this.services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata)).ToArray();
+                            var serviceMap = this.serviceMap.Select(kv => ValueTuple.Create(kv.Key, kv.Value.Value, kv.Value.Metadata)).ToArray();
+
+                            ExceptionHelpers.Crash(new Exception("Crash"));
+
+                            GC.KeepAlive(kind);
+                            GC.KeepAlive(tempServices);
+                            GC.KeepAlive(serviceMap);
+                        }
+
+                        return result;
                     });
                 }
 
+                Contract.ThrowIfFalse(serviceType != typeof(ISyntaxTreeFactoryService) || service != null);
                 return service != default(Lazy<ILanguageService, LanguageServiceMetadata>);
             }
 

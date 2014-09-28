@@ -134,11 +134,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                var result = this.Project.LanguageServices.SyntaxTreeFactory != null;
-
-                Contract.ThrowIfFalse((this.Project.Language != LanguageNames.CSharp && this.Project.Language != LanguageNames.VisualBasic) || result);
-
-                return result;
+                return this.Project.LanguageServices.SyntaxTreeFactory != null;
             }
         }
 
@@ -152,11 +148,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                var result = this.SupportsSyntaxTree && this.Project.SupportsCompilation;
-
-                Contract.ThrowIfFalse((this.Project.Language != LanguageNames.CSharp && this.Project.Language != LanguageNames.VisualBasic) || result);
-
-                return result;
+                return this.SupportsSyntaxTree && this.Project.SupportsCompilation;
             }
         }
 
@@ -236,7 +228,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetSemanticModel(out SemanticModel semanticModel)
         {
             semanticModel = null;
-            return this.model != null && this.model.TryGetTarget(out semanticModel) && semanticModel != null;
+            return this.model != null && this.model.TryGetTarget(out semanticModel);
         }
 
         /// <summary>
@@ -251,49 +243,41 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                var semanticModel = await GetSemanticModelWorkerAsync(cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(semanticModel);
+                SemanticModel semanticModel;
+                if (this.TryGetSemanticModel(out semanticModel))
+                {
+                    return semanticModel;
+                }
 
-                return semanticModel;
+                var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                var result = compilation.GetSemanticModel(syntaxTree);
+                Contract.ThrowIfNull(result);
+
+                // first try set the cache if it has not been set
+                var original = Interlocked.CompareExchange(ref this.model, new WeakReference<SemanticModel>(result), null);
+
+                // okay, it is first time.
+                if (original == null)
+                {
+                    return result;
+                }
+
+                // it looks like someone has set it. try to reuse same semantic model
+                if (original.TryGetTarget(out semanticModel))
+                {
+                    return semanticModel;
+                }
+
+                // it looks like cache is gone. reset the cache.
+                original.SetTarget(result);
+                return result;
             }
             catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private async Task<SemanticModel> GetSemanticModelWorkerAsync(CancellationToken cancellationToken)
-        {
-            SemanticModel semanticModel;
-            if (this.TryGetSemanticModel(out semanticModel))
-            {
-                return semanticModel;
-            }
-
-            var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            var result = compilation.GetSemanticModel(syntaxTree);
-            Contract.ThrowIfNull(result);
-
-            // first try set the cache if it has not been set
-            var original = Interlocked.CompareExchange(ref this.model, new WeakReference<SemanticModel>(result), null);
-
-            // okay, it is first time.
-            if (original == null)
-            {
-                return result;
-            }
-
-            // it looks like someone has set it. try to reuse same semantic model
-            if (original.TryGetTarget(out semanticModel) && semanticModel != null)
-            {
-                return semanticModel;
-            }
-
-            // it looks like cache is gone. reset the cache.
-            original.SetTarget(result);
-            return result;
         }
 
         /// <summary>
