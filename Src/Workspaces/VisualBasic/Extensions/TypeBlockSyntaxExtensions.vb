@@ -40,6 +40,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
+        Public Function AddMembers(node As TypeBlockSyntax, ParamArray members As StatementSyntax()) As TypeBlockSyntax
+            Select Case node.VisualBasicKind
+                Case SyntaxKind.ModuleBlock
+                    Return DirectCast(node, ModuleBlockSyntax).AddMembers(members)
+                Case SyntaxKind.InterfaceBlock
+                    Return DirectCast(node, InterfaceBlockSyntax).AddMembers(members)
+                Case SyntaxKind.StructureBlock
+                    Return DirectCast(node, StructureBlockSyntax).AddMembers(members)
+                Case SyntaxKind.ClassBlock
+                    Return DirectCast(node, ClassBlockSyntax).AddMembers(members)
+            End Select
+
+            Throw Contract.Unreachable
+        End Function
+
+        <Extension>
         Public Function WithMembers(node As TypeBlockSyntax, members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
             Select Case node.VisualBasicKind
                 Case SyntaxKind.ModuleBlock

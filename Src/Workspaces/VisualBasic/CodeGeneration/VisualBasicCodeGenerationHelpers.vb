@@ -236,17 +236,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declarationList.Count
         End Function
 
-        Public Function GetDestination(destination As TypeBlockSyntax) As CodeGenerationDestination
+        Public Function GetDestination(destination As SyntaxNode) As CodeGenerationDestination
             If destination IsNot Nothing Then
                 Select Case destination.VisualBasicKind
                     Case SyntaxKind.ClassBlock
                         Return CodeGenerationDestination.ClassType
+                    Case SyntaxKind.CompilationUnit
+                        Return CodeGenerationDestination.CompilationUnit
+                    Case SyntaxKind.EnumBlock
+                        Return CodeGenerationDestination.EnumType
                     Case SyntaxKind.InterfaceBlock
                         Return CodeGenerationDestination.InterfaceType
                     Case SyntaxKind.ModuleBlock
                         Return CodeGenerationDestination.ModuleType
+                    Case SyntaxKind.NamespaceBlock
+                        Return CodeGenerationDestination.Namespace
                     Case SyntaxKind.StructureBlock
                         Return CodeGenerationDestination.StructType
+                    Case Else
+                        Return CodeGenerationDestination.Unspecified
                 End Select
             End If
 

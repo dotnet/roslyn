@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected abstract TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, IList<bool> availableIndices) where TDeclarationNode : SyntaxNode;
         protected abstract TDeclarationNode AddNamedType<TDeclarationNode>(TDeclarationNode destination, INamedTypeSymbol namedType, CodeGenerationOptions options, IList<bool> availableIndices) where TDeclarationNode : SyntaxNode;
         protected abstract TDeclarationNode AddNamespace<TDeclarationNode>(TDeclarationNode destination, INamespaceSymbol @namespace, CodeGenerationOptions options, IList<bool> availableIndices) where TDeclarationNode : SyntaxNode;
+        protected abstract TDeclarationNode AddMembers<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> members) where TDeclarationNode : SyntaxNode;
 
         public abstract TDeclarationNode AddParameters<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<IParameterSymbol> parameters, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
         public abstract TDeclarationNode AddAttributes<TDeclarationNode>(TDeclarationNode destination, IEnumerable<AttributeData> attributes, SyntaxToken? target, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
         public abstract TDeclarationNode UpdateDeclarationMembers<TDeclarationNode>(TDeclarationNode declaration, IList<ISymbol> newMembers, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode;
 
+        public abstract CodeGenerationDestination GetDestination(SyntaxNode node);
         public abstract SyntaxNode CreateEventDeclaration(IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options);
         public abstract SyntaxNode CreateFieldDeclaration(IFieldSymbol field, CodeGenerationDestination destination, CodeGenerationOptions options);
         public abstract SyntaxNode CreateMethodDeclaration(IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options);
@@ -128,6 +130,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.InvalidDestinationNode3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name),
+                    "destination");
+            }
+        }
+
+        protected static void CheckDeclarationNode<TDeclarationNode1, TDeclarationNode2, TDeclarationNode3, TDeclarationNode4>(SyntaxNode destination)
+            where TDeclarationNode1 : SyntaxNode
+            where TDeclarationNode2 : SyntaxNode
+            where TDeclarationNode3 : SyntaxNode
+            where TDeclarationNode4 : SyntaxNode
+        {
+            if (!(destination is TDeclarationNode1) &&
+                !(destination is TDeclarationNode2) &&
+                !(destination is TDeclarationNode3) &&
+                !(destination is TDeclarationNode4))
+            {
+                throw new ArgumentException(
+                    string.Format(WorkspacesResources.InvalidDestinationNode3,
+                        typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4).Name),
                     "destination");
             }
         }
@@ -189,16 +209,42 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // not want an explicit declaration.
             var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared);
 
-            foreach (var member in filteredMembers)
+            if (options.AutoInsertionLocation)
             {
-                currentDestination = member.TypeSwitch(
-                    (IEventSymbol @event) => this.AddEvent(currentDestination, @event, options, availableIndices),
-                    (IFieldSymbol field) => this.AddField(currentDestination, field, options, availableIndices),
-                    (IPropertySymbol property) => this.AddProperty(currentDestination, property, options, availableIndices),
-                    (IMethodSymbol method) => this.AddMethod(currentDestination, method, options, availableIndices),
-                    (INamedTypeSymbol namedType) => this.AddNamedType(currentDestination, namedType, options, availableIndices),
-                    (INamespaceSymbol @namespace) => this.AddNamespace(currentDestination, @namespace, options, availableIndices),
-                    _ => currentDestination);
+                foreach (var member in filteredMembers)
+                {
+                    currentDestination = member.TypeSwitch(
+                        (IEventSymbol @event) => this.AddEvent(currentDestination, @event, options, availableIndices),
+                        (IFieldSymbol field) => this.AddField(currentDestination, field, options, availableIndices),
+                        (IPropertySymbol property) => this.AddProperty(currentDestination, property, options, availableIndices),
+                        (IMethodSymbol method) => this.AddMethod(currentDestination, method, options, availableIndices),
+                        (INamedTypeSymbol namedType) => this.AddNamedType(currentDestination, namedType, options, availableIndices),
+                        (INamespaceSymbol @namespace) => this.AddNamespace(currentDestination, @namespace, options, availableIndices),
+                        _ => currentDestination);
+                }
+            }
+            else
+            {
+                var newMembers = new List<SyntaxNode>();
+                var codeGenerationDestination = GetDestination(destination);
+                foreach (var member in filteredMembers)
+                {
+                    var newMember = member.TypeSwitch(
+                        (IEventSymbol @event) => this.CreateEventDeclaration(@event, codeGenerationDestination, options),
+                        (IFieldSymbol field) => this.CreateFieldDeclaration(field, codeGenerationDestination, options),
+                        (IPropertySymbol property) => this.CreatePropertyDeclaration(property, codeGenerationDestination, options),
+                        (IMethodSymbol method) => this.CreateMethodDeclaration(method, codeGenerationDestination, options),
+                        (INamedTypeSymbol namedType) => this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options),
+                        (INamespaceSymbol @namespace) => this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options),
+                        _ => null);
+
+                    if (newMember != null)
+                    {
+                        newMembers.Add(newMember);
+                    }
+                }
+
+                currentDestination = this.AddMembers(currentDestination, newMembers);
             }
 
             return currentDestination;

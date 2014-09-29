@@ -367,19 +367,18 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            var nodesToInsertWithSeparators = new List<SyntaxNodeOrToken>();
             foreach (var item in nodes)
             {
                 if (item != null)
                 {
                     // if item before insertion point is a node, add a separator
-                    if (insertionIndex > 0 && nodesWithSeps[insertionIndex - 1].IsNode)
+                    if (nodesToInsertWithSeparators.Count > 0 || (insertionIndex > 0 && nodesWithSeps[insertionIndex - 1].IsNode))
                     {
-                        nodesWithSeps = nodesWithSeps.Insert(insertionIndex, item.Green.CreateSeparator<TNode>(item)); // separator
-                        insertionIndex++;
+                        nodesToInsertWithSeparators.Add(item.Green.CreateSeparator<TNode>(item));
                     }
 
-                    nodesWithSeps = nodesWithSeps.Insert(insertionIndex, item);
-                    insertionIndex++;
+                    nodesToInsertWithSeparators.Add(item);
                 }
             }
 
@@ -387,10 +386,10 @@ namespace Microsoft.CodeAnalysis
             if (insertionIndex < nodesWithSeps.Count && nodesWithSeps[insertionIndex].IsNode)
             {
                 var node = nodesWithSeps[insertionIndex].AsNode();
-                nodesWithSeps = nodesWithSeps.Insert(insertionIndex, node.Green.CreateSeparator<TNode>(node)); // separator
+                nodesToInsertWithSeparators.Add(node.Green.CreateSeparator<TNode>(node)); // separator
             }
 
-            return new SeparatedSyntaxList<TNode>(nodesWithSeps);
+            return new SeparatedSyntaxList<TNode>(nodesWithSeps.InsertRange(insertionIndex, nodesToInsertWithSeparators));
         }
 
         private static bool KeepSeparatorWithPreviousNode(SyntaxToken separator)

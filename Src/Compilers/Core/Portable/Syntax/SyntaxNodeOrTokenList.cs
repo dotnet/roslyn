@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("nodeOrToken");
             }
 
-            return InsertRange(index, new[] { nodeOrToken });
+            return InsertRange(index, SpecializedCollections.SingletonEnumerable(nodeOrToken));
         }
 
         /// <summary>
@@ -315,22 +315,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("nodesAndTokens");
             }
 
-            var items = nodesAndTokens.ToList();
-            if (items.Count == 0)
+            if (nodesAndTokens.IsEmpty())
             {
                 return this;
             }
 
             var nodes = this.ToList();
             nodes.InsertRange(index, nodesAndTokens);
-            if (nodes.Count == 0)
-            {
-                return this;
-            }
-            else
-            {
-                return CreateList(nodes[0].UnderlyingNode, nodes);
-            }
+            return CreateList(nodes[0].UnderlyingNode, nodes);
         }
 
         private static SyntaxNodeOrTokenList CreateList(GreenNode creator, List<SyntaxNodeOrToken> items)

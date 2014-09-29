@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.ExplicitInterfaceSpecifier(name);
         }
 
-        public static CodeGenerationDestination GetDestination(TypeDeclarationSyntax destination)
+        public static CodeGenerationDestination GetDestination(SyntaxNode destination)
         {
             if (destination != null)
             {
@@ -337,10 +337,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     case SyntaxKind.ClassDeclaration:
                         return CodeGenerationDestination.ClassType;
+                    case SyntaxKind.CompilationUnit:
+                        return CodeGenerationDestination.CompilationUnit;
+                    case SyntaxKind.EnumDeclaration:
+                        return CodeGenerationDestination.EnumType;
                     case SyntaxKind.InterfaceDeclaration:
                         return CodeGenerationDestination.InterfaceType;
+                    case SyntaxKind.NamespaceDeclaration:
+                        return CodeGenerationDestination.Namespace;
                     case SyntaxKind.StructDeclaration:
                         return CodeGenerationDestination.StructType;
+                    default:
+                        return CodeGenerationDestination.Unspecified;
                 }
             }
 

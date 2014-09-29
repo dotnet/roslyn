@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
         End Sub
 
+        Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination
+            Return VisualBasicCodeGenerationHelpers.GetDestination(containerNode)
+        End Function
+
         Protected Overrides Function CreateImportsAdder(document As Document) As AbstractImportsAdder
             Return New ImportsStatementsAdder(document)
         End Function
@@ -202,6 +206,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Return destinationMember
+        End Function
+
+        Protected Overrides Function AddMembers(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, members As IEnumerable(Of SyntaxNode)) As TDeclarationNode
+            CheckDeclarationNode(Of EnumBlockSyntax, TypeBlockSyntax, NamespaceBlockSyntax, CompilationUnitSyntax)(destination)
+            If TypeOf destination Is EnumBlockSyntax Then
+                Return Cast(Of TDeclarationNode)(Cast(Of EnumBlockSyntax)(destination).AddMembers(members.Cast(Of EnumMemberDeclarationSyntax).ToArray()))
+            ElseIf TypeOf destination Is TypeBlockSyntax Then
+                Return Cast(Of TDeclarationNode)(Cast(Of TypeBlockSyntax)(destination).AddMembers(members.Cast(Of StatementSyntax).ToArray()))
+            ElseIf TypeOf destination Is NamespaceBlockSyntax Then
+                Return Cast(Of TDeclarationNode)(Cast(Of NamespaceBlockSyntax)(destination).AddMembers(members.Cast(Of StatementSyntax).ToArray()))
+            Else
+                Return Cast(Of TDeclarationNode)(Cast(Of CompilationUnitSyntax)(destination).AddMembers(members.Cast(Of StatementSyntax).ToArray()))
+            End If
         End Function
 
         Private Overloads Shared Function AddParametersToMethod(Of TDeclarationNode As SyntaxNode)(methodStatement As MethodBaseSyntax,

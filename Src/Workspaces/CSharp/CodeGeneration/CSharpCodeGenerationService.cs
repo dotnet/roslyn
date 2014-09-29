@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
         }
 
+        public override CodeGenerationDestination GetDestination(SyntaxNode node)
+        {
+            return CSharpCodeGenerationHelpers.GetDestination(node);
+        }
+
         protected override AbstractImportsAdder CreateImportsAdder(
             Document document)
         {
@@ -315,6 +320,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return destination;
+        }
+
+        protected override TDeclarationNode AddMembers<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> members)
+        {
+            CheckDeclarationNode<EnumDeclarationSyntax, TypeDeclarationSyntax, NamespaceDeclarationSyntax, CompilationUnitSyntax>(destination);
+
+            if (destination is EnumDeclarationSyntax)
+            {
+                return Cast<TDeclarationNode>(Cast<EnumDeclarationSyntax>(destination)
+                    .AddMembers(members.Cast<EnumMemberDeclarationSyntax>().ToArray()));
+            }
+            else if (destination is TypeDeclarationSyntax)
+            {
+                return Cast<TDeclarationNode>(Cast<TypeDeclarationSyntax>(destination)
+                    .AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            }
+            else if (destination is NamespaceDeclarationSyntax)
+            {
+                return Cast<TDeclarationNode>(Cast<NamespaceDeclarationSyntax>(destination)
+                    .AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            }
+            else
+            {
+                return Cast<TDeclarationNode>(Cast<CompilationUnitSyntax>(destination)
+                    .AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            }
         }
 
         public override TDeclarationNode RemoveAttribute<TDeclarationNode>(

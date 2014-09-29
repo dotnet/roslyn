@@ -13,15 +13,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             enumMember As IFieldSymbol,
             options As CodeGenerationOptions) As EnumBlockSyntax
 
-            ' We never generate the special enum backing field.
-            If enumMember.Name = WellKnownMemberNames.EnumBackingFieldName Then
+            Dim member = GenerateEnumMemberDeclaration(enumMember, destination, options)
+            If member Is Nothing Then
                 Return destination
             End If
 
             Dim members = New List(Of StatementSyntax)()
             members.AddRange(destination.Members)
-            Dim member = GenerateEnumMemberDeclaration(enumMember, destination, options)
-
             members.Add(member)
             Dim leadingTrivia = destination.EndEnumStatement.GetLeadingTrivia()
 
@@ -32,6 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GenerateEnumMemberDeclaration(enumMember As IFieldSymbol,
                                                              enumDeclarationOpt As EnumBlockSyntax,
                                                              options As CodeGenerationOptions) As EnumMemberDeclarationSyntax
+            ' We never generate the special enum backing field.
+            If enumMember.Name = WellKnownMemberNames.EnumBackingFieldName Then
+                Return Nothing
+            End If
+
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of EnumMemberDeclarationSyntax)(enumMember, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
