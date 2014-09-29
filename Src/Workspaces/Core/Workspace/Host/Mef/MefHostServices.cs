@@ -272,14 +272,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 Lazy<ILanguageService, LanguageServiceMetadata> service;
                 if (TryGetService(typeof(TLanguageService), out service))
                 {
-                    var result = (TLanguageService)service.Value;
-                    Contract.ThrowIfTrue(EqualityComparer<TLanguageService>.Default.Equals(result, default(TLanguageService)));
-
-                    return result;
+                    return (TLanguageService)service.Value;
                 }
                 else
                 {
-                    Contract.ThrowIfTrue(typeof(TLanguageService) == typeof(ISyntaxTreeFactoryService));
                     return default(TLanguageService);
                 }
             }
@@ -291,14 +287,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, serviceType, svctype =>
                     {
                         var serviceTypes = this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName);
-                        Contract.ThrowIfFalse(serviceType != typeof(ISyntaxTreeFactoryService) || !serviceTypes.IsEmpty());
-
-                        var result = PickLanguageService(serviceTypes);
-
-                        if (serviceType == typeof(ISyntaxTreeFactoryService) && result == null)
+                        if (serviceType == typeof(ISyntaxTreeFactoryService) && serviceTypes.IsEmpty())
                         {
+                            var assembly = svctype.AssemblyQualifiedName;
                             var kind = this.workspaceServices.Workspace.Kind;
-                            var tempServices = this.services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata)).ToArray();
+                            var tempServices = this.services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata, lz.Metadata.ServiceType)).ToArray();
                             var serviceMap = this.serviceMap.Select(kv => ValueTuple.Create(kv.Key, kv.Value.Value, kv.Value.Metadata)).ToArray();
 
                             ExceptionHelpers.Crash(new Exception("Crash"));
@@ -308,11 +301,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                             GC.KeepAlive(serviceMap);
                         }
 
-                        return result;
+                        return PickLanguageService(serviceTypes);
                     });
                 }
 
-                Contract.ThrowIfFalse(serviceType != typeof(ISyntaxTreeFactoryService) || service != null);
                 return service != default(Lazy<ILanguageService, LanguageServiceMetadata>);
             }
 
