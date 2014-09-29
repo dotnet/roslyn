@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     catch (FileNotFoundException)
                     { }
 
-                    lazyDisplayName = base.Display;
+                    lazyDisplayName = Path.GetFileName(this.FullPath);
                 }
 
                 return lazyDisplayName;

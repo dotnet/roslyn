@@ -199,6 +199,17 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, errors.First().ErrorCode);
         }
 
+        [Fact]
+        [WorkItem(1029928, "DevDiv")]
+        public void BadAnalyzerReference_DisplayName()
+        {
+            var directory = Temp.CreateDirectory();
+            var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
+            AnalyzerFileReference reference = new AnalyzerFileReference(textFile.Path);
+
+            Assert.Equal(expected: "Foo.txt", actual: reference.Display);
+        }
+
         [DiagnosticAnalyzer]
         public class TestAnalyzer : DiagnosticAnalyzer
         {
