@@ -287,7 +287,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, serviceType, svctype =>
                     {
                         var serviceTypes = this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName);
-                        if (serviceType == typeof(ISyntaxTreeFactoryService) && serviceTypes.IsEmpty())
+                        if ((this.language == LanguageNames.CSharp || this.language == LanguageNames.VisualBasic) &&
+                            serviceType == typeof(ISyntaxTreeFactoryService) && serviceTypes.IsEmpty())
                         {
                             var assembly = svctype.AssemblyQualifiedName;
                             var kind = this.workspaceServices.Workspace.Kind;
@@ -296,6 +297,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
                             ExceptionHelpers.Crash(new Exception("Crash"));
 
+                            GC.KeepAlive(assembly);
                             GC.KeepAlive(kind);
                             GC.KeepAlive(tempServices);
                             GC.KeepAlive(serviceMap);
