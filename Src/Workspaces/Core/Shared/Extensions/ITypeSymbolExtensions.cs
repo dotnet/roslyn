@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return null;
             }
 
-            // For t1 to be more specific than t2, it has to be not less specific in every memeber,
+            // For t1 to be more specific than t2, it has to be not less specific in every member,
             // and more specific in at least one.
 
             bool? result = null;
