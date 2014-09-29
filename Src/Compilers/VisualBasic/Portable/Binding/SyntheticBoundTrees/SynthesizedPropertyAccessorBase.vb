@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If accessor.MethodKind = MethodKind.PropertyGet Then
                 ' Declare local variable for function return.
-                Dim local = LocalSymbol.Create(accessor, Nothing, LocalDeclarationKind.FunctionValue, accessor.ReturnType)
+                Dim local = New SynthesizedLocal(accessor, accessor.ReturnType, SynthesizedLocalKind.LoweringTemp)
 
                 Dim returnValue As BoundExpression
                 If isOverride Then
@@ -79,9 +79,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     returnValue = fieldAccess.MakeRValue()
                 End If
 
-                statements.Add((New BoundReturnStatement(syntax, returnValue, local, exitLabel)).MakeCompilerGenerated())
+                statements.Add(New BoundReturnStatement(syntax, returnValue, local, exitLabel).MakeCompilerGenerated())
 
-                locals = ImmutableArray.Create(local)
+                locals = ImmutableArray.Create(Of LocalSymbol)(local)
                 returnLocal = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type)
             Else
                 Debug.Assert(accessor.MethodKind = MethodKind.PropertySet)

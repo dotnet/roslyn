@@ -432,16 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               newType)
                 Else
                     wasReplaced = True
-
-                    If originalLocal.IsByRef Then
-                        Debug.Assert(TypeOf originalLocal Is SynthesizedLocal)
-                        Return New SynthesizedLocal(Me.CurrentMethod, newType, SynthesizedLocalKind.LoweringTemp, isByRef:=True)
-                    End If
-
-                    Return LocalSymbol.Create(Me.CurrentMethod,
-                                              originalLocal.IdentifierToken.GetIdentifierText(),
-                                              originalLocal.DeclarationKind,
-                                              newType)
+                    Return LocalSymbol.Create(originalLocal, newType)
                 End If
             Else
                 wasReplaced = False

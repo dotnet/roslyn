@@ -1,9 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class DataFlowPass
@@ -17,20 +16,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected NotInheritable Class AmbiguousLocalsPseudoSymbol
             Inherits LocalSymbol
 
+            Public ReadOnly Locals As ImmutableArray(Of LocalSymbol)
+
             Private Sub New(container As Symbol, type As TypeSymbol, locals As ImmutableArray(Of LocalSymbol))
-                MyBase.New(container, LocalDeclarationKind.AmbiguousLocals, type)
+                MyBase.New(container, type)
 
                 Debug.Assert(type IsNot Nothing)
                 Me.Locals = locals
             End Sub
+
+            Friend Overrides ReadOnly Property DeclarationKind As LocalDeclarationKind
+                Get
+                    Return LocalDeclarationKind.AmbiguousLocals
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property SynthesizedLocalKind As SynthesizedLocalKind
+                Get
+                    Return SynthesizedLocalKind.None
+                End Get
+            End Property
 
             Friend Shared Shadows Function Create(locals As ImmutableArray(Of LocalSymbol)) As LocalSymbol
                 Debug.Assert(Not locals.IsDefault AndAlso locals.Length > 1)
                 Dim firstLocal As LocalSymbol = locals(0)
                 Return New AmbiguousLocalsPseudoSymbol(firstLocal.ContainingSymbol, firstLocal.Type, locals)
             End Function
-
-            Public ReadOnly Locals As ImmutableArray(Of LocalSymbol)
 
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get

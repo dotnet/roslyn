@@ -45,6 +45,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private int isSpecificallyNotPinned;
 
+        private SourceLocalSymbol(
+            Symbol containingSymbol,
+            Binder binder,
+            TypeSyntax typeSyntax,
+            SyntaxToken identifierToken,
+            LocalDeclarationKind declarationKind)
+        {
+            Debug.Assert(identifierToken.CSharpKind() != SyntaxKind.None);
+            Debug.Assert(declarationKind != LocalDeclarationKind.None);
+
+            this.binder = binder;
+            this.containingSymbol = containingSymbol;
+            this.identifierToken = identifierToken;
+            this.typeSyntax = typeSyntax;
+            this.declarationKind = declarationKind;
+
+            // create this eagerly as it will always be needed for the EnsureSingleDefinition
+            this.locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
+        }
+
         public static SourceLocalSymbol MakeForeachLocal(
             MethodSymbol containingMethod,
             ForEachLoopBinder binder,
@@ -88,26 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return new SourceLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind);
-        }
-
-        private SourceLocalSymbol(
-            Symbol containingSymbol,
-            Binder binder,
-            TypeSyntax typeSyntax,
-            SyntaxToken identifierToken,
-            LocalDeclarationKind declarationKind)
-        {
-            Debug.Assert(identifierToken.CSharpKind() != SyntaxKind.None);
-            Debug.Assert(declarationKind != LocalDeclarationKind.None);
-
-            this.binder = binder;
-            this.containingSymbol = containingSymbol;
-            this.identifierToken = identifierToken;
-            this.typeSyntax = typeSyntax;
-            this.declarationKind = declarationKind;
-
-            // create this eagerly as it will always be needed for the EnsureSingleDefinition
-            this.locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
         }
 
         internal override LocalDeclarationKind DeclarationKind

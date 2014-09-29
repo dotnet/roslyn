@@ -23,6 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.containingSymbol = containingSymbol;
         }
 
+        internal override LocalDeclarationKind DeclarationKind
+        {
+            get { return originalVariable.DeclarationKind; }
+        }
+
+        internal override SynthesizedLocalKind SynthesizedLocalKind
+        {
+            get { return originalVariable.SynthesizedLocalKind; }
+        }
+
         public override string Name
         {
             get { return originalVariable.Name; }
@@ -48,11 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return type; }
         }
 
-        internal override LocalDeclarationKind DeclarationKind
-        {
-            get { return originalVariable.DeclarationKind; }
-        }
-
         internal override SyntaxToken IdentifierToken
         {
             get { return originalVariable.IdentifierToken; }
@@ -71,11 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override RefKind RefKind
         {
             get { return originalVariable.RefKind; }
-        }
-
-        internal override SynthesizedLocalKind SynthesizedLocalKind
-        {
-            get { return originalVariable.SynthesizedLocalKind; }
         }
 
         internal override ConstantValue GetConstantValue(LocalSymbol inProgress)

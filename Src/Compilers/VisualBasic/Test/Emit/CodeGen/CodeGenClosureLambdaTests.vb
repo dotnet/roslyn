@@ -1229,7 +1229,7 @@ End Module
 
         <Fact>
         Public Sub SimpleGenericClosureWithParamsAndTemp()
-            CompileAndVerify(
+            Dim source =
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1263,13 +1263,15 @@ Module M1
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="42").
-    VerifyIL("M1.C1._Closure$__1(Of $CLS0)._Lambda$__2()",
-            <![CDATA[
+</compilation>
+
+            Dim c = CompileAndVerify(source, expectedOutput:="42")
+
+            c.VerifyIL("M1.C1._Closure$__1(Of $CLS0)._Lambda$__2()", <![CDATA[
 {
   // Code size       27 (0x1b)
   .maxstack  2
-  .locals init ($CLS0() V_0) //
+  .locals init ($CLS0() V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "Public $VB$Local_p As $CLS0()"
   IL_0006:  dup

@@ -4157,7 +4157,7 @@ End Interface
   .maxstack  3
   .locals init (Short? V_0,
                 Integer V_1,
-                SM$T V_2, //
+                SM$T V_2,
                 SM$T V_3,
                 Short? V_4,
                 System.Exception V_5)

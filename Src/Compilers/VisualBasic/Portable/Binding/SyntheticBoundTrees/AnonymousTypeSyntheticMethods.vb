@@ -193,8 +193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim booleanType As TypeSymbol = Me.AnonymousType.Manager.System_Boolean
 
                 ' Locals
-                Dim localMyFieldBoxed As LocalSymbol = LocalSymbol.Create(Me, Nothing, LocalDeclarationKind.Variable, objectType)
-                Dim localOtherFieldBoxed As LocalSymbol = LocalSymbol.Create(Me, Nothing, LocalDeclarationKind.Variable, objectType)
+                Dim localMyFieldBoxed As LocalSymbol = New SynthesizedLocal(Me, objectType, SynthesizedLocalKind.LoweringTemp)
+                Dim localOtherFieldBoxed As LocalSymbol = New SynthesizedLocal(Me, objectType, SynthesizedLocalKind.LoweringTemp)
 
                 ' 'Me' reference
                 Dim boundMeReference As BoundMeReference = New BoundMeReference(syntax, AnonymousType)
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Create a bound block 
                 Return New BoundBlock(syntax, Nothing,
-                                      ImmutableArray.Create(Of LocalSymbol)(localMyFieldBoxed, localOtherFieldBoxed),
+                                      ImmutableArray.Create(localMyFieldBoxed, localOtherFieldBoxed),
                                       ImmutableArray.Create(Of BoundStatement)(
                                           New BoundReturnStatement(syntax, finalEqualityCheck, Nothing, Nothing).MakeCompilerGenerated()))
             End Function

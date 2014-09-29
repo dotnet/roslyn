@@ -16,8 +16,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly m_isByRef As Boolean
         Private ReadOnly m_syntax As StatementSyntax
 
-        Friend Sub New(container As Symbol, type As TypeSymbol, kind As SynthesizedLocalKind, Optional syntax As StatementSyntax = Nothing, Optional isByRef As Boolean = False)
-            MyBase.New(container, LocalDeclarationKind.None, type)
+        Friend Sub New(container As Symbol,
+                       type As TypeSymbol,
+                       kind As SynthesizedLocalKind,
+                       Optional syntax As StatementSyntax = Nothing,
+                       Optional isByRef As Boolean = False)
+            MyBase.New(container, type)
 
             Me.m_kind = kind
             Me.m_syntax = syntax
@@ -63,6 +67,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property SynthesizedLocalKind As SynthesizedLocalKind
             Get
                 Return m_kind
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property DeclarationKind As LocalDeclarationKind
+            Get
+                Return LocalDeclarationKind.None
             End Get
         End Property
 
