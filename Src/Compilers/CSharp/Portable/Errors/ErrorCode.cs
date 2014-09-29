@@ -1300,5 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // errors for interpolated strings
         ERR_UnclosedExpressionHole = 8076,
         ERR_SingleLineCommentInExpressionHole = 8077,
+
+        ERR_InsufficientStack = 8078,
     }
 }

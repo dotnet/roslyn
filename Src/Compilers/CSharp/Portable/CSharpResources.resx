@@ -3970,4 +3970,7 @@
   <data name="ERR_SingleLineCommentInExpressionHole" xml:space="preserve">
     <value>A single-line comment may not be used in an interpolated string.</value>
   </data>
+  <data name="ERR_InsufficientStack" xml:space="preserve">
+    <value>An expression is too long or complex to compile</value>
+  </data>
 </root>

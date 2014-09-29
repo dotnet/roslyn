@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser : SyntaxParser
     {
+        // Keep this value in sync with Parser.vb
+        //
+        // This number is meant to represent the minimum depth which is necessary for a parser implementation
+        // to function.  Anything less than this represents an environment where a sufficiently complex C# 
+        // program could not be compiled.  The following factors went into choosing this number 
+        //
+        //  1. The Task<T> implementation has a similar problem with unbounded recursion and came to similar
+        //     conclusions on how to prevent such a problem (major difference is they use a hand rolled
+        //     implementation of ensureSufficientExecutionStack).  They settled on 20 as a minimum 
+        //     expectation 
+        //  2. A modified version of the parser was run on the Roslyn source base and the maximum depth 
+        //     discovered was 7.  Having 20 as a minimum seems reasonable in that context 
+        //
+        private const int _maxUncheckedRecursionDepth = 20;
+        private static Action ensureSufficientExecutionStack;
+
         // list pools - allocators for lists that are used to build sequences of nodes. The lists
         // can be reused (hence pooled) since the syntax factory methods don't keep references to
         // them
@@ -21,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly SyntaxFactoryContext syntaxFactoryContext; // Fields are resettable.
         private readonly ContextAwareSyntax syntaxFactory; // Has context, the fields of which are resettable.
 
+        private int _recursionDepth;
         private TerminatorState termState; // Resettable
         private bool isInTry; // Resettable
 
@@ -37,6 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             this.syntaxFactoryContext = new SyntaxFactoryContext();
             this.syntaxFactory = new ContextAwareSyntax(syntaxFactoryContext);
+
+            // TODO (DevDiv workitem 966425): Replace with the RuntimeHelpers.EnsureSufficientExecutionStack API when
+            // available.  
+            if (ensureSufficientExecutionStack == null)
+            {
+                var type = Type.GetType("System.Runtime.CompilerServices.RuntimeHelpers, mscorlib, Version=4.0.0.0, Culture = neutral, PublicKeyToken = b77a5c561934e089");
+                var methodInfo = System.Reflection.IntrospectionExtensions.GetTypeInfo(type).GetDeclaredMethod("EnsureSufficientExecutionStack");
+                if (methodInfo != null)
+                {
+                    ensureSufficientExecutionStack = (Action)methodInfo.CreateDelegate(typeof(Action));
+                }
+                else
+                {
+                    ensureSufficientExecutionStack = () => { };
+                }
+            }
         }
 
         // Special Name checks
@@ -356,9 +389,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var body = new NamespaceBodyBuilder(this.pool);
             try
             {
-                this.ParseNamespaceBody(ref tmp, ref body, ref initialBadNodes, SyntaxKind.CompilationUnit);
-                var eof = this.EatToken(SyntaxKind.EndOfFileToken);
-                var result = syntaxFactory.CompilationUnit(body.Externs, body.Usings, body.Attributes, body.Members, eof);
+                var hitStackBoundary = false;
+                var resetPoint = GetResetPoint();
+
+                // TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
+                // is available in the PCL
+                try
+                {
+                    this.ParseNamespaceBody(ref tmp, ref body, ref initialBadNodes, SyntaxKind.CompilationUnit);
+                }
+                catch (Exception ex) if (ex.GetType().Name == "InsufficientExecutionStackException")
+                {
+                    hitStackBoundary = true;
+                }
+
+                CompilationUnitSyntax result;
+                if (hitStackBoundary)
+                {
+                    result = CreateForInsufficientStack(ref resetPoint);
+                }
+                else
+                {
+                    Release(ref resetPoint);
+                    var eof = this.EatToken(SyntaxKind.EndOfFileToken);
+                    result = syntaxFactory.CompilationUnit(body.Externs, body.Usings, body.Attributes, body.Members, eof);
+                }
+
                 if (initialBadNodes != null)
                 {
                     // attach initial bad nodes as leading trivia on first token
@@ -372,6 +428,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 body.Free(this.pool);
             }
+        }
+
+        private CompilationUnitSyntax CreateForInsufficientStack(ref ResetPoint state)
+        {
+            var position = this.lexer.TextWindow.Position;
+            this.Reset(ref state);
+            var builder = new SyntaxListBuilder(4);
+            while (CurrentToken.Kind != SyntaxKind.EndOfFileToken)
+            {
+                builder.Add(this.EatToken());
+            }
+
+            var fileAsTrivia = this.syntaxFactory.SkippedTokensTrivia(builder.ToList<SyntaxToken>());
+            var result = this.syntaxFactory.CompilationUnit(
+                new SyntaxList<ExternAliasDirectiveSyntax>(),
+                new SyntaxList<UsingDirectiveSyntax>(),
+                new SyntaxList<AttributeListSyntax>(),
+                new SyntaxList<MemberDeclarationSyntax>(),
+                EatToken(SyntaxKind.EndOfFileToken));
+            result = AddLeadingSkippedSyntax(result, fileAsTrivia);
+            return AddError(result, position, 0, ErrorCode.ERR_InsufficientStack);
         }
 
         private NamespaceDeclarationSyntax ParseNamespaceDeclaration()
@@ -7957,7 +8034,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public ExpressionSyntax ParseExpression(bool allowDeclarationExpression = true)
         {
-            return this.ParseSubExpression(0, allowDeclarationExpression);
+            try
+            {
+                _recursionDepth++;
+                if (_recursionDepth > _maxUncheckedRecursionDepth)
+                {
+                    LanguageParser.ensureSufficientExecutionStack();
+                }
+
+                return this.ParseSubExpression(0, allowDeclarationExpression);
+            }
+            finally
+            {
+                _recursionDepth--;
+            }
         }
 
         private bool IsPossibleExpression()

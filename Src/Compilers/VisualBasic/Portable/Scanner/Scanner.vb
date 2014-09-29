@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared ReadOnly _scanNoTriviaFunc As ScanTriviaFunc = Function() Nothing
         Private ReadOnly _scanSingleLineTriviaFunc As ScanTriviaFunc = AddressOf ScanSingleLineTrivia
 
-        Protected _lineBufferOffset As Integer ' marks the next character to read from _LineBuffer
+        Protected _lineBufferOffset As Integer ' marks the next character to read from _buffer
         Private _endOfTerminatorTrivia As Integer ' marks how far scanner may have scanned ahead for terminator trivia. This may be greater than _lineBufferOffset
 
         Private ReadOnly _sbPooled As PooledStringBuilder = PooledStringBuilder.GetInstance

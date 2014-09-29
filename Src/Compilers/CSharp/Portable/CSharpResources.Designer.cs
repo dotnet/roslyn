@@ -4796,6 +4796,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression is too long or complex to compile.
+        /// </summary>
+        internal static string ERR_InsufficientStack {
+            get {
+                return ResourceManager.GetString("ERR_InsufficientStack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Division by constant zero.
         /// </summary>
         internal static string ERR_IntDivByZero {

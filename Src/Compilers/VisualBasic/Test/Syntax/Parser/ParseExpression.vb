@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
+Imports System.Text
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -2667,6 +2668,40 @@ End Module
                 <error id="30201" message="Expression expected."/>
                 <error id="30198" message="')' expected."/>
             </errors>)
+    End Sub
+
+    <Fact>
+    Public Sub TooDeepObjectInitializers()
+        Dim depth = 5000
+        Dim builder As New StringBuilder()
+        builder.AppendLine(<![CDATA[
+
+Module Module1
+     Class Customer
+         Public C As Customer
+         Public U As Integer
+     End Class
+
+     Sub Test()
+         Dim c = New Customer With { _]]>.Value)
+
+        For i = 0 To depth
+            builder.AppendLine(".C = New Customer With { _")
+        Next
+
+        builder.AppendLine(".C = Nothing, U = 0 }, _")
+
+        For i = 0 To depth - 1
+            builder.AppendLine(".U = 0}, _")
+        Next
+
+        builder.AppendLine(<![CDATA[}
+    End Sub
+End Module]]>.Value)
+
+        Dim tree = Parse(builder.ToString())
+        Dim diagnostic = tree.GetDiagnostics().Single()
+        Assert.Equal(CInt(ERRID.ERR_InsufficientStack), diagnostic.Code)
     End Sub
 
 End Class

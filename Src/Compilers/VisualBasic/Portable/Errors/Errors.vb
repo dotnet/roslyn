@@ -1659,6 +1659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_CannotBeMadeNullable1 = 37238
         ERR_BadConditionalWithRef = 37239
         ERR_NullPropagatingOpInExpressionTree = 37240
+        ERR_InsufficientStack = 37241
 
         ERR_StructParameterlessInstanceCtorMustBePublic = 37241
 

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal abstract partial class SyntaxParser : IDisposable
     {
-        private readonly Lexer lexer;
+        protected readonly Lexer lexer;
         private readonly bool isIncremental;
         private readonly bool allowModeReset;
         protected readonly CancellationToken cancellationToken;

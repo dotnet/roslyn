@@ -4681,4 +4681,7 @@
   <data name="ERR_StructParameterlessInstanceCtorMustBePublic" xml:space="preserve">
     <value>Parameterless instance constructors in structures must be public.</value>
   </data>
+  <data name="ERR_InsufficientStack" xml:space="preserve">
+    <value>An expression is too long or complex to compile</value>
+  </data>
 </root>

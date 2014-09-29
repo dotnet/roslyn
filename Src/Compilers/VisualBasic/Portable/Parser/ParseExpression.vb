@@ -36,118 +36,130 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Optional bailIfFirstTokenRejected As Boolean = False
         ) As ExpressionSyntax
 
-            '// Note: this function will only ever return NULL if the flag "BailIfFirstTokenIsRejected" is set,
-            '// and if the first token isn't a valid way to start an expression. In all other error scenarios
-            '// it returns a "bad expression".
-
-            Dim expression As ExpressionSyntax = Nothing
-            Dim startToken As SyntaxToken = CurrentToken
-
-            If m_EvaluatingConditionCompilationExpression AndAlso
-               Not StartsValidConditionalCompilationExpr(startToken) Then
-
-                If bailIfFirstTokenRejected Then
-                    Return Nothing
+            Try
+                _recursionDepth += 1
+                If _recursionDepth >= _maxUncheckedRecursionDepth Then
+                    _ensureSufficientExecutionStack()
                 End If
 
-                expression = InternalSyntaxFactory.MissingExpression().AddTrailingSyntax(startToken, ERRID.ERR_BadCCExpression)
+                '// Note: this function will only ever return NULL if the flag "BailIfFirstTokenIsRejected" is set,
+                '// and if the first token isn't a valid way to start an expression. In all other error scenarios
+                '// it returns a "bad expression".
 
-                GetNextToken()
+                Dim expression As ExpressionSyntax = Nothing
+                Dim startToken As SyntaxToken = CurrentToken
 
-                Return expression
-            End If
+                If m_EvaluatingConditionCompilationExpression AndAlso
+               Not StartsValidConditionalCompilationExpr(startToken) Then
 
-            ' Check for leading unary operators
-            Select Case (startToken.Kind)
-
-                Case SyntaxKind.MinusToken
-
-                    ' "-" unary minus
-                    GetNextToken()
-
-                    Dim Operand As ExpressionSyntax = ParseExpression(OperatorPrecedence.PrecedenceNegate)
-                    expression = SyntaxFactory.UnaryMinusExpression(startToken, Operand)
-
-                Case SyntaxKind.NotKeyword
-                    ' NOT expr
-                    GetNextToken()
-                    Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNot)
-                    expression = SyntaxFactory.NotExpression(startToken, Operand)
-
-                Case SyntaxKind.PlusToken
-                    ' "+" unary plus
-                    GetNextToken()
-
-                    ' unary "+" has the same precedence as unary "-"
-
-                    Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNegate)
-                    expression = SyntaxFactory.UnaryPlusExpression(startToken, Operand)
-
-                Case SyntaxKind.AddressOfKeyword
-                    GetNextToken()
-
-                    Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNegate)
-                    expression = SyntaxFactory.AddressOfExpression(startToken, Operand)
-
-                Case Else
-                    expression = ParseTerm(bailIfFirstTokenRejected)
-
-                    If expression Is Nothing Then
+                    If bailIfFirstTokenRejected Then
                         Return Nothing
                     End If
-            End Select
 
-            ' SHIQIC: I removed Expr->Opcode == ParseTree.Expression.Lambda, since we don't need to cast it to Lambda before test whether it is a statement lambda.
-            '         Expr.AsLambda().IsStatementLambda is changed to (Expr.Kind = NodeKind.MultiLineFunctionLambda OrElse Expr.Kind = NodeKind.MultiLineSubLambda)
+                    expression = InternalSyntaxFactory.MissingExpression().AddTrailingSyntax(startToken, ERRID.ERR_BadCCExpression)
 
-            If SyntaxKind.CollectionInitializer <> expression.Kind Then 'AndAlso
+                    GetNextToken()
+
+                    Return expression
+                End If
+
+                ' Check for leading unary operators
+                Select Case (startToken.Kind)
+
+                    Case SyntaxKind.MinusToken
+
+                        ' "-" unary minus
+                        GetNextToken()
+
+                        Dim Operand As ExpressionSyntax = ParseExpression(OperatorPrecedence.PrecedenceNegate)
+                        expression = SyntaxFactory.UnaryMinusExpression(startToken, Operand)
+
+                    Case SyntaxKind.NotKeyword
+                        ' NOT expr
+                        GetNextToken()
+                        Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNot)
+                        expression = SyntaxFactory.NotExpression(startToken, Operand)
+
+                    Case SyntaxKind.PlusToken
+                        ' "+" unary plus
+                        GetNextToken()
+
+                        ' unary "+" has the same precedence as unary "-"
+
+                        Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNegate)
+                        expression = SyntaxFactory.UnaryPlusExpression(startToken, Operand)
+
+                    Case SyntaxKind.AddressOfKeyword
+                        GetNextToken()
+
+                        Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNegate)
+                        expression = SyntaxFactory.AddressOfExpression(startToken, Operand)
+
+                    Case Else
+                        expression = ParseTerm(bailIfFirstTokenRejected)
+
+                        If expression Is Nothing Then
+                            Return Nothing
+                        End If
+                End Select
+
+                ' SHIQIC: I removed Expr->Opcode == ParseTree.Expression.Lambda, since we don't need to cast it to Lambda before test whether it is a statement lambda.
+                '         Expr.AsLambda().IsStatementLambda is changed to (Expr.Kind = NodeKind.MultiLineFunctionLambda OrElse Expr.Kind = NodeKind.MultiLineSubLambda)
+
+                If SyntaxKind.CollectionInitializer <> expression.Kind Then 'AndAlso
 
 #If UNDONE Then
                 Not ( (Expr.Kind = NodeKind.MultiLineFunctionLambda OrElse Expr.Kind = NodeKind.MultiLineSubLambda) AndAlso
                       Not DirectCast(Expr, Lambda).GetStatementLambdaBody().HasProperTermination ) Then ' Array initializer expressions NYI and we do not want to enter here if the expression is a multiline lambda without an end construct.
 #End If
-                ' Parse operators that follow the term according to precedence.
+                    ' Parse operators that follow the term according to precedence.
 
-                Do
+                    Do
 
-                    Dim precedence As OperatorPrecedence
+                        Dim precedence As OperatorPrecedence
 
-                    If Not CurrentToken.IsBinaryOperator Then
-                        Exit Do
-                    End If
+                        If Not CurrentToken.IsBinaryOperator Then
+                            Exit Do
+                        End If
 
-                    If m_EvaluatingConditionCompilationExpression AndAlso
+                        If m_EvaluatingConditionCompilationExpression AndAlso
                        Not IsValidOperatorForConditionalCompilationExpr(CurrentToken) Then
 
-                        ' Should current token be consumed here?
-                        expression = ReportSyntaxError(expression, ERRID.ERR_BadCCExpression)
-                        Exit Do
-                    End If
+                            ' Should current token be consumed here?
+                            expression = ReportSyntaxError(expression, ERRID.ERR_BadCCExpression)
+                            Exit Do
+                        End If
 
-                    precedence = KeywordTable.TokenOpPrec(CurrentToken.Kind)
+                        precedence = KeywordTable.TokenOpPrec(CurrentToken.Kind)
 
-                    Debug.Assert(precedence <> OperatorPrecedence.PrecedenceNone, "should have a non-zero precedence for operators.")
+                        Debug.Assert(precedence <> OperatorPrecedence.PrecedenceNone, "should have a non-zero precedence for operators.")
 
-                    ' Only continue parsing if precedence is high enough
+                        ' Only continue parsing if precedence is high enough
 
-                    If precedence <= pendingPrecedence Then
-                        Exit Do
-                    End If
+                        If precedence <= pendingPrecedence Then
+                            Exit Do
+                        End If
 
-                    Dim [operator] As SyntaxToken = ParseBinaryOperator()
+                        Dim [operator] As SyntaxToken = ParseBinaryOperator()
 
-                    'Dim Binary As ParseTree.BinaryExpression = New ParseTree.BinaryExpression
-                    'Binary.Opcode = Opcode
+                        'Dim Binary As ParseTree.BinaryExpression = New ParseTree.BinaryExpression
+                        'Binary.Opcode = Opcode
 
-                    'Binary.Left = Expr
-                    Dim rightOperand As ExpressionSyntax = ParseExpression(precedence)
+                        'Binary.Left = Expr
+                        Dim rightOperand As ExpressionSyntax = ParseExpression(precedence)
 
-                    expression = SyntaxFactory.BinaryExpression(GetBinaryOperatorHelper([operator]), expression, [operator], rightOperand)
+                        expression = SyntaxFactory.BinaryExpression(GetBinaryOperatorHelper([operator]), expression, [operator], rightOperand)
 
-                Loop
-            End If
+                    Loop
+                End If
 
-            Return expression
+                Return expression
+
+                ' TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
+                ' Is available in the PCL
+            Finally
+                _recursionDepth -= 1
+            End Try
         End Function
 
         Private Function ParseTerm(

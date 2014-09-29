@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -4795,6 +4796,51 @@ class C
                 // (21,17): error CS8026: Feature 'null propagating operator' is not available in C# 5.  Please use language version 6 or greater.
                 //         var s = o?.ToString(); // null propagating operator
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "o?.ToString()").WithArguments("null propagating operator", "6").WithLocation(21, 17));
+        }
+
+        [Fact]
+        public void TooDeepObjectInitializer()
+        {
+            var builder = new StringBuilder();
+            const int depth = 5000;
+            builder.Append(
+@"
+class C 
+{ 
+    public C c;
+    public ulong u;
+}
+
+class Test
+{
+    void M()
+    {
+        C ");
+
+            for (int i = 0; i < depth; i++)
+            {
+                builder.AppendLine("c = new C {");
+            }
+
+            builder.Append("c = new C(), u = 0");
+
+            for (int i = 0; i < depth - 1; i++)
+            {
+                builder.AppendLine("}, u = 0");
+            }
+
+            builder.Append(
+@"
+        };
+    }
+}
+
+");
+
+            var parsedTree = Parse(builder.ToString());
+            var actualErrors = parsedTree.GetDiagnostics().ToArray();
+            Assert.Equal(1, actualErrors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }
 
         #endregion
