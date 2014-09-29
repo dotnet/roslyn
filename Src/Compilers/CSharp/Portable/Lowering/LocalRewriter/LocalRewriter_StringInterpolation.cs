@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     formatString.Builder.Append("}");
-                    fillins.Add(fillin.Value);
+                    fillins.Add(VisitExpression(fillin.Value));
                 }
             }
 

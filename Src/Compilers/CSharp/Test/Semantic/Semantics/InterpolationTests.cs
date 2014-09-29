@@ -214,5 +214,25 @@ class Program {
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("", "").WithLocation(11, 76)
                 );
         }
+
+        [Fact]
+        public void LambdaInInterp()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        //Console.WriteLine(""jenny {0:(408) ###-####}"", new object[] { ((Func<int>)(() => { return number; })).Invoke() });
+        Console.WriteLine(""jenny \{ ((Func<int>)(() => { return number; })).Invoke() : ""(408) ###-####"" }"");
+    }
+
+        static int number = 8675309;
+    }
+";
+            string expectedOutput = @"jenny (408) 867-5309";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
     }
 }
