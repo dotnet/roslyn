@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return this.node != null ? this.node.GetHashCode() : 0;
+            return this.node?.GetHashCode() ?? 0;
         }
 
         public static implicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)

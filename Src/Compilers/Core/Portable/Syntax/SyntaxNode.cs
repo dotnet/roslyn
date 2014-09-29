@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         internal SyntaxNode(GreenNode green, SyntaxNode parent, int position)
         {
             Debug.Assert(position >= 0, "position cannot be negative");
-            Debug.Assert(parent == null || !parent.Green.IsList, "list cannot be a parent");
+            Debug.Assert(parent?.Green.IsList != true, "list cannot be a parent");
 
             this.position = position;
             this.green = green;
@@ -307,9 +307,8 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxNode GetWeakRedElement(ref WeakReference<SyntaxNode> slot, int index)
         {
-            SyntaxNode value;
-            WeakReference<SyntaxNode> weak = slot;
-            if (weak != null && weak.TryGetTarget(out value))
+            SyntaxNode value = null;
+            if (slot?.TryGetTarget(out value) == true) 
             {
                 return value;
             }
@@ -326,9 +325,9 @@ namespace Microsoft.CodeAnalysis
 
             while (true)
             {
-                SyntaxNode previousNode;
+                SyntaxNode previousNode = null;
                 WeakReference<SyntaxNode> previousWeakReference = slot;
-                if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousNode))
+                if (previousWeakReference?.TryGetTarget(out previousNode) == true)
                 {
                     return previousNode;
                 }
@@ -640,9 +639,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia = true)
         {
-            return this.Parent != null
-                ? this.Parent.AncestorsAndSelf(ascendOutOfTrivia)
-                : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return this.Parent ?
+                .AncestorsAndSelf(ascendOutOfTrivia) ??
+                SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
         /// <summary>
@@ -1098,12 +1097,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             var annotations = this.Green.GetAnnotations();
-            if (annotations == null || annotations.Length == 0)
+            if (annotations?.Length > 0)
             {
-                return node;
+                return (T)(node.Green.WithAdditionalAnnotationsGreen(annotations)).CreateRed();
             }
-
-            return (T)(node.Green.WithAdditionalAnnotationsGreen(annotations)).CreateRed();
+            return node;
         }
 
         #endregion

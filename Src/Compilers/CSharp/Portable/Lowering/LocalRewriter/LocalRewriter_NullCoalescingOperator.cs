@@ -19,11 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundConditionalAccess conditionalAccess;
             if (TryGetOptimizableNullableConditionalAccess(node.LeftOperand, out conditionalAccess))
             {
-                var type = node.RightOperand.Type;
-                conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.AccessExpression, type);
-
-                var whenNull = (BoundExpression)Visit(node.RightOperand);
-                return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
+                return FuseNodes(conditionalAccess, node);
             }
 
             BoundExpression rewrittenLeft = (BoundExpression)Visit(node.LeftOperand);
@@ -31,6 +27,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenResultType = VisitType(node.Type);
 
             return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftConversion, rewrittenResultType);
+        }
+
+        private BoundNode FuseNodes(BoundConditionalAccess conditionalAccess, BoundNullCoalescingOperator node)
+        {
+            var type = node.RightOperand.Type;
+            conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.AccessExpression, type);
+
+            var whenNull = (BoundExpression)Visit(node.RightOperand);
+            if (whenNull.IsDefaultValue())
+            {
+                whenNull = null;
+            }
+
+            return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
         }
 
         private bool TryGetOptimizableNullableConditionalAccess(BoundExpression operand, out BoundConditionalAccess conditionalAccess)

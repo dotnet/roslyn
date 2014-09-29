@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
             public void Dispose()
             {
                 // Return only reasonably-sized stacks to the pool.
-                if (stack != null && stack.Length < 256)
+                if (stack?.Length < 256)
                 {
                     Array.Clear(stack, 0, stack.Length);
                     StackPool.Free(stack);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
             public void Dispose()
             {
                 // Return only reasonably-sized stacks to the pool.
-                if (stack != null && stack.Length < 256)
+                if (stack?.Length < 256)
                 {
                     Array.Clear(stack, 0, stack.Length);
                     StackPool.Free(stack);
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool IsNotEmpty { get { return discriminatorStack != null && discriminatorStack.Count != 0; } }
+            public bool IsNotEmpty { get { return discriminatorStack?.Count > 0; } }
 
             public Which PeekNext()
             {
@@ -260,10 +260,7 @@ namespace Microsoft.CodeAnalysis
             {
                 this.nodeStack.Dispose();
                 this.triviaStack.Dispose();
-                if (this.discriminatorStack != null)
-                {
-                    this.discriminatorStack.Free();
-                }
+                this.discriminatorStack?.Free();
             }
         }
 
@@ -298,7 +295,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool IsNotEmpty { get { return discriminatorStack != null && discriminatorStack.Count > 0; } }
+            public bool IsNotEmpty { get { return discriminatorStack?.Count > 0; } }
 
             public Which PeekNext()
             {
@@ -364,15 +361,8 @@ namespace Microsoft.CodeAnalysis
             {
                 this.nodeStack.Dispose();
                 this.triviaStack.Dispose();
-                if (this.tokenStack != null)
-                {
-                    this.tokenStack.Free();
-                }
-
-                if (this.discriminatorStack != null)
-                {
-                    this.discriminatorStack.Free();
-                }
+                this.tokenStack?.Free();
+                this.discriminatorStack?.Free();
             }
         
         }

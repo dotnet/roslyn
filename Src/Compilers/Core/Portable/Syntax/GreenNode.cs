@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         {
             this.kind = kind;
             this.fullWidth = fullWidth;
-            if (diagnostics != null && diagnostics.Length > 0)
+            if (diagnostics?.Length > 0)
             {
                 this.flags |= NodeFlags.ContainsDiagnostics;
                 diagnosticsTable.Add(this, diagnostics);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics)
         {
             this.kind = kind;
-            if (diagnostics != null && diagnostics.Length > 0)
+            if (diagnostics?.Length > 0)
             {
                 this.flags |= NodeFlags.ContainsDiagnostics;
                 diagnosticsTable.Add(this, diagnostics);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
         protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations) :
             this(kind, diagnostics)
         {
-            if (annotations != null && annotations.Length > 0)
+            if (annotations?.Length > 0)
             {
                 foreach (var annotation in annotations)
                 {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
         protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, int fullWidth) :
             this(kind, diagnostics, fullWidth)
         {
-            if (annotations != null && annotations.Length > 0)
+            if (annotations?.Length > 0)
             {
                 foreach (var annotation in annotations)
                 {
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 node = firstChild;
-            } while (node != null && node.slotCount != 0);
+            } while (node?.slotCount > 0);
 
             return node;
         }
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 node = lastChild;
-            } while (node != null && node.slotCount != 0);
+            } while (node?.slotCount > 0);
 
             return node;
         }
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 node = nonmissingChild;
             }
-            while (node != null && node.slotCount != 0);
+            while (node?.slotCount > 0);
 
             return node;
         }

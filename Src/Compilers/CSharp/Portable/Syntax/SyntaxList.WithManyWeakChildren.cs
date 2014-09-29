@@ -48,14 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             internal override SyntaxNode GetCachedSlot(int index)
             {
                 SyntaxNode value = null;
-
-                var weak = this.children[index].Value;
-                if (weak != null)
-                {
-                    weak.TryGetTarget(out value);
-                }
-
-                return null;
+                this.children[index].Value?.TryGetTarget(out value);
+                return value;
             }
 
             public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)

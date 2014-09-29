@@ -4492,5 +4492,164 @@ class Program
 }
 ");
         }
+
+        [Fact]
+        public void ConditionalMemberAccessConditional004()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var w = new WeakReference<string>(null);
+        Test0(ref w);
+        Test1(ref w);
+        Test2(ref w);
+        Test3(ref w);
+    }
+
+    static string Test0(ref WeakReference<string> slot)
+    {
+        string value = null;
+        WeakReference<string> weak = slot;
+        if (weak != null && weak.TryGetTarget(out value)) 
+        {
+            return value;
+        }
+
+        return ""hello"";
+    }
+
+    static string Test1(ref WeakReference<string> slot)
+    {
+        string value = null;
+        WeakReference<string> weak = slot;
+        if (weak?.TryGetTarget(out value) == true) 
+        {
+            return value;
+        }
+
+        return ""hello"";
+    }
+
+    static string Test2(ref WeakReference<string> slot)
+    {
+
+        string value = null;
+        if (slot?.TryGetTarget(out value) == true) 
+        {
+            return value;
+        }
+
+        return ""hello"";
+    }
+
+    static string Test3(ref WeakReference<string> slot)
+    {
+
+        string value = null;
+        if (slot?.TryGetTarget(out value) ?? false) 
+        {
+            return value;
+        }
+
+        return ""hello"";
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source, options:  TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:"").
+                VerifyIL("Program.Test0(ref System.WeakReference<string>)", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (string V_0, //value
+                System.WeakReference<string> V_1) //weak
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  ldind.ref
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.1
+  IL_0006:  brfalse.s  IL_0014
+  IL_0008:  ldloc.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  callvirt   ""bool System.WeakReference<string>.TryGetTarget(out string)""
+  IL_0010:  brfalse.s  IL_0014
+  IL_0012:  ldloc.0
+  IL_0013:  ret
+  IL_0014:  ldstr      ""hello""
+  IL_0019:  ret
+}
+").VerifyIL("Program.Test1(ref System.WeakReference<string>)", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (string V_0) //value
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  ldind.ref
+  IL_0004:  dup
+  IL_0005:  brtrue.s   IL_000b
+  IL_0007:  pop
+  IL_0008:  ldc.i4.0
+  IL_0009:  br.s       IL_0012
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""bool System.WeakReference<string>.TryGetTarget(out string)""
+  IL_0012:  brfalse.s  IL_0016
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+  IL_0016:  ldstr      ""hello""
+  IL_001b:  ret
+}
+").VerifyIL("Program.Test2(ref System.WeakReference<string>)", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (string V_0) //value
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  ldind.ref
+  IL_0004:  dup
+  IL_0005:  brtrue.s   IL_000b
+  IL_0007:  pop
+  IL_0008:  ldc.i4.0
+  IL_0009:  br.s       IL_0012
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""bool System.WeakReference<string>.TryGetTarget(out string)""
+  IL_0012:  brfalse.s  IL_0016
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+  IL_0016:  ldstr      ""hello""
+  IL_001b:  ret
+}
+").VerifyIL("Program.Test3(ref System.WeakReference<string>)", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (string V_0) //value
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  ldind.ref
+  IL_0004:  dup
+  IL_0005:  brtrue.s   IL_000b
+  IL_0007:  pop
+  IL_0008:  ldc.i4.0
+  IL_0009:  br.s       IL_0012
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""bool System.WeakReference<string>.TryGetTarget(out string)""
+  IL_0012:  brfalse.s  IL_0016
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+  IL_0016:  ldstr      ""hello""
+  IL_001b:  ret
+}
+");
+        }
     }
 }
