@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public abstract class CodeFixTestBase : DiagnosticAnalyzerTestBase
     {
-        protected abstract ICodeFixProvider GetCSharpCodeFixProvider();
+        protected abstract CodeFixProvider GetCSharpCodeFixProvider();
 
-        protected abstract ICodeFixProvider GetBasicCodeFixProvider();
+        protected abstract CodeFixProvider GetBasicCodeFixProvider();
 
         protected void VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
         {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
         }
 
-        protected void VerifyFix(string language, DiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
+        protected void VerifyFix(string language, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
         {
             var document = CreateDocument(oldSource, language);
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyFix(document, analyzer, codeFixProvider, newSource, codeFixIndex, useCompilerAnalyzerDriver: false, allowNewCompilerDiagnostics: allowNewCompilerDiagnostics);
         }
 
-        private void VerifyFix(Document document, DiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string newSource, int? codeFixIndex, bool useCompilerAnalyzerDriver, bool allowNewCompilerDiagnostics)
+        private void VerifyFix(Document document, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string newSource, int? codeFixIndex, bool useCompilerAnalyzerDriver, bool allowNewCompilerDiagnostics)
         {
             var analyzerDiagnostics = GetSortedDiagnostics(analyzer, document, useCompilerAnalyzerDriver: useCompilerAnalyzerDriver);
             var compilerDiagnostics = document.GetSemanticModelAsync().Result.GetDiagnostics();

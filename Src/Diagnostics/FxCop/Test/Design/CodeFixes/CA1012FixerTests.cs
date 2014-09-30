@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new CA1012DiagnosticAnalyzer();
         }
 
-        protected override ICodeFixProvider GetBasicCodeFixProvider()
+        protected override CodeFixProvider GetBasicCodeFixProvider()
         {
             return new CA1012CodeFixProvider();
         }
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new CA1012DiagnosticAnalyzer();
         }
 
-        protected override ICodeFixProvider GetCSharpCodeFixProvider()
+        protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
             return new CA1012CodeFixProvider();
         }

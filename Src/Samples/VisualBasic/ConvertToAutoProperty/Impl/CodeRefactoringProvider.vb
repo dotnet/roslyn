@@ -33,10 +33,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 <ExportCodeRefactoringProvider("ConvertToAutoPropertyVB", LanguageNames.VisualBasic)>
-Class CodeRefactoringProvider
-    Implements ICodeRefactoringProvider
+Class ConvertToAutoPropertyCodeRefactoringProvider
+    Inherits CodeRefactoringProvider
 
-    Public Async Function GetRefactoringsAsync(document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction)) Implements ICodeRefactoringProvider.GetRefactoringsAsync
+    Public NotOverridable Overrides Async Function GetRefactoringsAsync(document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
         Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
         Dim token = root.FindToken(textSpan.Start)
         If token.Parent Is Nothing Then

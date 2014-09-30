@@ -5,14 +5,14 @@ using System.ComponentModel.Composition;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Use this attribute to declare a <see cref="ICodeFixProvider"/> implementation so that it can be discovered by the host.
+    /// Use this attribute to declare a <see cref="CodeFixProvider"/> implementation so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
     public class ExportCodeFixProviderAttribute : ExportAttribute
     {
         /// <summary>
-        /// The name of the <see cref="ICodeFixProvider"/>.  
+        /// The name of the <see cref="CodeFixProvider"/>.  
         /// </summary>
         public string Name { get; private set; }
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public ExportCodeFixProviderAttribute(
             string name,
             params string[] languages)
-            : base(typeof(ICodeFixProvider))
+            : base(typeof(CodeFixProvider))
         {
             if (name == null)
             {

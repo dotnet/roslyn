@@ -17,8 +17,8 @@ namespace TestTemplate
         /// <summary>
         /// Returns the codefix being tested (C#) - to be implemented in non-abstract class
         /// </summary>
-        /// <returns>The ICodeFixProvider to be used for CSharp code</returns>
-        protected virtual ICodeFixProvider GetCSharpCodeFixProvider()
+        /// <returns>The CodeFixProvider to be used for CSharp code</returns>
+        protected virtual CodeFixProvider GetCSharpCodeFixProvider()
         {
             return null;
         }
@@ -26,8 +26,8 @@ namespace TestTemplate
         /// <summary>
         /// Returns the codefix being tested (VB) - to be implemented in non-abstract class
         /// </summary>
-        /// <returns>The ICodeFixProvider to be used for VisualBasic code</returns>
-        protected virtual ICodeFixProvider GetBasicCodeFixProvider()
+        /// <returns>The CodeFixProvider to be used for VisualBasic code</returns>
+        protected virtual CodeFixProvider GetBasicCodeFixProvider()
         {
             return null;
         }
@@ -69,7 +69,7 @@ namespace TestTemplate
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple in the same location</param>
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-        private void VerifyFix(string language, DiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
+        private void VerifyFix(string language, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
         {
             var document = CreateDocument(oldSource, language);
             var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });

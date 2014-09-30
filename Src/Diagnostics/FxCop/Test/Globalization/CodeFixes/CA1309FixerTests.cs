@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Globalization
             return new BasicCA1309DiagnosticAnalyzer();
         }
 
-        protected override ICodeFixProvider GetCSharpCodeFixProvider()
+        protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
             return new CA1309CSharpCodeFixProvider();
         }
 
-        protected override ICodeFixProvider GetBasicCodeFixProvider()
+        protected override CodeFixProvider GetBasicCodeFixProvider()
         {
             return new CA1309BasicCodeFixProvider();
         }

@@ -20,19 +20,19 @@ namespace AsyncPackage
     /// Codefix that changes the type of a variable to be Func of Task instead of a void-returning delegate type.
     /// </summary>
     [ExportCodeFixProvider(AsyncLambdaAnalyzer.AsyncLambdaId1, LanguageNames.CSharp)]
-    public class AsyncLambdaVariableCodeFix : ICodeFixProvider
+    public class AsyncLambdaVariableCodeFix : CodeFixProvider
     {
-        public IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
         {
             return new[] { AsyncLambdaAnalyzer.AsyncLambdaId1 };
         }
 
-        public FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider GetFixAllProvider()
         {
             return null;
         }
 
-        public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

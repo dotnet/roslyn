@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Microsoft.CodeAnalysis.CodeActions
 {
     /// <summary>
-    /// An action produced by a <see cref="ICodeFixProvider"/> or a <see cref="ICodeRefactoringProvider"/>.
+    /// An action produced by a <see cref="CodeFixProvider"/> or a <see cref="CodeRefactoringProvider"/>.
     /// </summary>
     public abstract partial class CodeAction
     {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// An optional Id for the code action.
-        /// If non-null, then this Id must be unique amongst all the code actions produced by the corresponding <see cref="ICodeFixProvider"/> or <see cref="ICodeRefactoringProvider"/>.
+        /// If non-null, then this Id must be unique amongst all the code actions produced by the corresponding <see cref="CodeFixProvider"/> or <see cref="CodeRefactoringProvider"/>.
         /// </summary>
         public virtual string Id { get { return null; } }
 

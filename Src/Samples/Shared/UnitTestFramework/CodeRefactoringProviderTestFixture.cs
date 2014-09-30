@@ -88,6 +88,6 @@ namespace Roslyn.UnitTestFramework
             VerifyDocument(expected, compareTokens, edit.ChangedSolution.GetDocument(document.Id));
         }
 
-        protected abstract ICodeRefactoringProvider CreateCodeRefactoringProvider();
+        protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider();
     }
 }

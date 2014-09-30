@@ -46,8 +46,8 @@ Namespace ImplementNotifyPropertyChanged.UnitTests
                 Return LanguageNames.VisualBasic
             End Get
         End Property
-        Protected Overrides Function CreateCodeRefactoringProvider() As ICodeRefactoringProvider
-            Return New CodeRefactoringProvider()
+        Protected Overrides Function CreateCodeRefactoringProvider() As CodeRefactoringProvider
+            Return New ImplementNotifyPropertyChangedCodeRefactoringProvider()
         End Function
 
         <Fact()>

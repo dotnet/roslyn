@@ -19,14 +19,14 @@ namespace AsyncPackage
     /// Codefix changes the synchronous operations to it's asynchronous equivalent. 
     /// </summary>
     [ExportCodeFixProvider(BlockingAsyncAnalyzer.BlockingAsyncId, LanguageNames.CSharp)]
-    public class BlockingAsyncCodeFix : ICodeFixProvider
+    public class BlockingAsyncCodeFix : CodeFixProvider
     {
-        public IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
         {
             return new[] { BlockingAsyncAnalyzer.BlockingAsyncId };
         }
 
-        public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -170,7 +170,7 @@ namespace AsyncPackage
             return newDocument;
         }
 
-        public FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider GetFixAllProvider()
         {
             return null;
         }

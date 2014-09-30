@@ -31,10 +31,10 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 <ExportCodeRefactoringProvider("ImplementNotifyPropertyChangedVB", LanguageNames.VisualBasic)>
-Friend Class CodeRefactoringProvider
-    Implements ICodeRefactoringProvider
+Friend Class ImplementNotifyPropertyChangedCodeRefactoringProvider
+    Inherits CodeRefactoringProvider
 
-    Public Async Function GetRefactoringsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction)) Implements ICodeRefactoringProvider.GetRefactoringsAsync
+    Public NotOverridable Overrides Async Function GetRefactoringsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
         Dim root = DirectCast(Await document.GetSyntaxRootAsync().ConfigureAwait(False), CompilationUnitSyntax)
         Dim model = Await document.GetSemanticModelAsync().ConfigureAwait(False)
         Dim properties = ExpansionChecker.GetExpandableProperties(span, root, model)

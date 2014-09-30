@@ -36,9 +36,9 @@ using Microsoft.CodeAnalysis.Text;
 namespace ImplementNotifyPropertyChangedCS
 {
     [ExportCodeRefactoringProvider("ImplementNotifyPropertyChangedCS", LanguageNames.CSharp)]
-    internal partial class CodeRefactoringProvider : ICodeRefactoringProvider
+    internal partial class ImplementNotifyPropertyChangedCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public async Task<IEnumerable<CodeAction>> GetRefactoringsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetRefactoringsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

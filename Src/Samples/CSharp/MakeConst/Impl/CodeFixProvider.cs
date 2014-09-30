@@ -37,19 +37,19 @@ using Microsoft.CodeAnalysis.Text;
 namespace MakeConstCS
 {
     [ExportCodeFixProvider("MakeConstCS", LanguageNames.CSharp)]
-    internal class CodeFixProvider : ICodeFixProvider
+    internal class MakeConstCodeFixProvider : CodeFixProvider
     {
-        public IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
         {
             return new[] { DiagnosticAnalyzer.MakeConstDiagnosticId };
         }
 
-        public FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider GetFixAllProvider()
         {
             return null;
         }
 
-        public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken);
 

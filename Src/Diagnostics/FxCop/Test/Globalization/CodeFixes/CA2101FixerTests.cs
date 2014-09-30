@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interoperability
             return new PInvokeDiagnosticAnalyzer();
         }
 
-        protected override ICodeFixProvider GetBasicCodeFixProvider()
+        protected override CodeFixProvider GetBasicCodeFixProvider()
         {
             return new CA2101BasicCodeFixProvider();
         }
 
-        protected override ICodeFixProvider GetCSharpCodeFixProvider()
+        protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
             return new CA2101CSharpCodeFixProvider();
         }

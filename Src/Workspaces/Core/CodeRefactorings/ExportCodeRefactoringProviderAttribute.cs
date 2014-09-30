@@ -5,14 +5,14 @@ using System.ComponentModel.Composition;
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     /// <summary>
-    /// Use this attribute to declare a <see cref="ICodeRefactoringProvider"/> implementation so that it can be discovered by the host.
+    /// Use this attribute to declare a <see cref="CodeRefactoringProvider"/> implementation so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
     public class ExportCodeRefactoringProviderAttribute : ExportAttribute
     {
         /// <summary>
-        /// The name of the <see cref="ICodeRefactoringProvider"/>.  
+        /// The name of the <see cref="CodeRefactoringProvider"/>.  
         /// </summary>
         public string Name { get; private set; }
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public string Language { get; private set; }
 
         public ExportCodeRefactoringProviderAttribute(string name, string language)
-            : base(typeof(ICodeRefactoringProvider))
+            : base(typeof(CodeRefactoringProvider))
         {
             if (name == null)
             {

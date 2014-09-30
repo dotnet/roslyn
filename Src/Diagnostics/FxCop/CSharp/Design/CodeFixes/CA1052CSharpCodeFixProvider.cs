@@ -17,19 +17,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
 {
     [ExportCodeFixProvider(StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.CSharp)]
-    public class CA1052CSharpCodeFixProvider : ICodeFixProvider
+    public class CA1052CSharpCodeFixProvider : CodeFixProvider
     {
-        public IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
         {
             return SpecializedCollections.SingletonEnumerable(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId);
         }
 
-        public FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider GetFixAllProvider()
         {
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var root = await document.GetSyntaxRootAsync(cancellationToken);

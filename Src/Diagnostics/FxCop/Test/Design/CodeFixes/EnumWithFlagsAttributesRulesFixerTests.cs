@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class EnumWithFlagsAttributesRulesFixerTests : CodeFixTestBase
     {
-        protected override ICodeFixProvider GetBasicCodeFixProvider()
+        protected override CodeFixProvider GetBasicCodeFixProvider()
         {
             return new EnumWithFlagsBasicCodeFixProvider();
         }
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new BasicEnumWithFlagsDiagnosticAnalyzer();
         }
 
-        protected override ICodeFixProvider GetCSharpCodeFixProvider()
+        protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
             return new EnumWithFlagsCSharpCodeFixProvider();
         }

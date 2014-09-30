@@ -14,17 +14,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
 
     <ExportCodeFixProvider(StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.VisualBasic)>
     Public Class CA1052BasicCodeFixProvider
-        Implements ICodeFixProvider
+        Inherits CodeFixProvider
 
-        Public Function GetFixableDiagnosticIds() As IEnumerable(Of String) Implements ICodeFixProvider.GetFixableDiagnosticIds
+        Public NotOverridable Overrides Function GetFixableDiagnosticIds() As IEnumerable(Of String)
             Return {StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId}
         End Function
 
-        Public Function GetFixAllProvider() As FixAllProvider Implements ICodeFixProvider.GetFixAllProvider
+        Public NotOverridable Overrides Function GetFixAllProvider() As FixAllProvider
             Return WellKnownFixAllProviders.BatchFixer
         End Function
 
-        Public Async Function GetFixesAsync(document As Document, span As TextSpan, diagnostics As IEnumerable(Of Diagnostic), cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction)) Implements ICodeFixProvider.GetFixesAsync
+        Public NotOverridable Overrides Async Function GetFixesAsync(document As Document, span As TextSpan, diagnostics As IEnumerable(Of Diagnostic), cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
             cancellationToken.ThrowIfCancellationRequested()
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken)
             Dim classStatement = root.FindToken(span.Start).GetAncestor(Of ClassStatementSyntax)

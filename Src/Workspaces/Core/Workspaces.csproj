@@ -932,9 +932,9 @@
     <Compile Include="CodeActions\Operations\CodeActionOperation.cs" />
     <Compile Include="CodeActions\Operations\ApplyChangesOperation.cs" />
     <Compile Include="CodeActions\Operations\OpenDocumentOperation.cs" />
-    <Compile Include="CodeFixes\ICodeFixProvider.cs" />
+    <Compile Include="CodeFixes\CodeFixProvider.cs" />
     <Compile Include="CodeFixes\ExportCodeFixProviderAttribute.cs" />
-    <Compile Include="CodeRefactorings\ICodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\CodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExportCodeRefactoringProviderAttribute.cs" />
     <Compile Include="WorkspacesResources.Designer.cs">
       <AutoGen>True</AutoGen>

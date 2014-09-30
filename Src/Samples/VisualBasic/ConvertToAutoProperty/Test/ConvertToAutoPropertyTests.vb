@@ -31,8 +31,8 @@ Imports Xunit
 Public Class ConvertToAutoPropertyTests
     Inherits CodeRefactoringProviderTestFixture
 
-    Protected Overrides Function CreateCodeRefactoringProvider() As ICodeRefactoringProvider
-        Return New CodeRefactoringProvider()
+    Protected Overrides Function CreateCodeRefactoringProvider() As CodeRefactoringProvider
+        Return New ConvertToAutoPropertyCodeRefactoringProvider()
     End Function
 
     Protected Overrides ReadOnly Property LanguageName As String

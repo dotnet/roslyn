@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [WorkItem(858655)]
-        protected override ICodeFixProvider GetBasicCodeFixProvider()
+        protected override CodeFixProvider GetBasicCodeFixProvider()
         {
             return new CA2229CodeFixProvider();
         }
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new SerializationRulesDiagnosticAnalyzer();
         }
 
-        protected override ICodeFixProvider GetCSharpCodeFixProvider()
+        protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
             return new CA2229CodeFixProvider();
         }

@@ -31,18 +31,18 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 <ExportCodeFixProvider("MakeConstVB", LanguageNames.VisualBasic)>
-Class CodeFixProvider
-    Implements ICodeFixProvider
+Class MakeConstCodeFixProvider
+    Inherits CodeFixProvider
 
-    Public Function GetFixableDiagnosticIds() As IEnumerable(Of String) Implements ICodeFixProvider.GetFixableDiagnosticIds
+    Public NotOverridable Overrides Function GetFixableDiagnosticIds() As IEnumerable(Of String)
         Return {DiagnosticAnalyzer.MakeConstDiagnosticId}
     End Function
 
-    Public Function GetFixAllProvider() As FixAllProvider Implements ICodeFixProvider.GetFixAllProvider
+    Public NotOverridable Overrides Function GetFixAllProvider() As FixAllProvider
         Return Nothing
     End Function
 
-    Public Async Function GetFixesAsync(document As Document, span As TextSpan, diagnostics As IEnumerable(Of Diagnostic), cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction)) Implements ICodeFixProvider.GetFixesAsync
+    Public NotOverridable Overrides Async Function GetFixesAsync(document As Document, span As TextSpan, diagnostics As IEnumerable(Of Diagnostic), cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
         Dim diagnosticSpan = diagnostics.First().Location.SourceSpan
         Dim root = Await document.GetSyntaxRootAsync(cancellationToken)
 

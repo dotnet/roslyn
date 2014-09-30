@@ -17,14 +17,14 @@ namespace AsyncPackage
     /// This codefix adds "Async" to the end of the Method Identifier and does a basic spellcheck in case the user had already tried to type Async
     /// </summary>
     [ExportCodeFixProvider(RenameAsyncAnalyzer.RenameAsyncId, LanguageNames.CSharp)]
-    public class RenameAsyncCodeFix : ICodeFixProvider
+    public class RenameAsyncCodeFix : CodeFixProvider
     {
-        public IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
         {
             return new[] { RenameAsyncAnalyzer.RenameAsyncId };
         }
 
-        public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -100,7 +100,7 @@ namespace AsyncPackage
             return false;
         }
 
-        public FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider GetFixAllProvider()
         {
             return null;
         }

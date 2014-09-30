@@ -13,17 +13,17 @@ using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CodeFixes
 {
-    public abstract class DirectlyAwaitingTaskFix<TExpressionSyntax> : ICodeFixProvider where TExpressionSyntax : SyntaxNode
+    public abstract class DirectlyAwaitingTaskFix<TExpressionSyntax> : CodeFixProvider where TExpressionSyntax : SyntaxNode
     {
         protected abstract TExpressionSyntax FixExpression(TExpressionSyntax syntaxNode, CancellationToken cancellationToken);
         protected abstract string FalseLiteralString { get; }
 
-        public IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
         {
             return new[] { RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId };
         }
 
-        public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -55,7 +55,7 @@ namespace Roslyn.Diagnostics.CodeFixes
             return Simplifier.ReduceAsync(fixedDocument, fixedExpression.FullSpan, cancellationToken: cancellationToken);
         }
 
-        public FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider GetFixAllProvider()
         {
             return WellKnownFixAllProviders.BatchFixer;
         }

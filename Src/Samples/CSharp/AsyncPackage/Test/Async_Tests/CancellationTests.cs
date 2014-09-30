@@ -40,7 +40,7 @@ namespace ConsoleApplication1
             Locations = new[] { new DiagnosticResultLocation("Test0.cs", 10, 10) }
         };
 
-        protected override ICodeFixProvider GetCSharpCodeFixProvider()
+        protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
             return new CancellationCodeFix();
         }

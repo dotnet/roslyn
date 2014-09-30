@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public Document Document { get; private set; }
 
         /// <summary>
-        /// Underlying <see cref="ICodeFixProvider"/> which triggered this fix all.
+        /// Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.
         /// </summary>
-        public ICodeFixProvider CodeFixProvider { get; private set; }
+        public CodeFixProvider CodeFixProvider { get; private set; }
 
         /// <summary>
         /// FixAllScope to fix all occurrences.
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal FixAllContext(
             Document document,
-            ICodeFixProvider codeFixProvider, 
+            CodeFixProvider codeFixProvider, 
             FixAllScope scope,
             string codeActionId,
             IEnumerable<string> diagnosticIds,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal FixAllContext(
             Project project,
-            ICodeFixProvider codeFixProvider,
+            CodeFixProvider codeFixProvider,
             FixAllScope scope,
             string codeActionId,
             IEnumerable<string> diagnosticIds,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private FixAllContext(
             Document document,
             Project project,
-            ICodeFixProvider codeFixProvider,
+            CodeFixProvider codeFixProvider,
             FixAllScope scope,
             string codeActionId,
             IEnumerable<string> diagnosticIds,

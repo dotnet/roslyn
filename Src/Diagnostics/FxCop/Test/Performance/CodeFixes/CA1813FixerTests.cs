@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [WorkItem(858655)]
-        protected override ICodeFixProvider GetBasicCodeFixProvider()
+        protected override CodeFixProvider GetBasicCodeFixProvider()
         {
             return new CA1813BasicCodeFixProvider();
         }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [WorkItem(858655)]
-        protected override ICodeFixProvider GetCSharpCodeFixProvider()
+        protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
             return new CA1813CSharpCodeFixProvider();
         }

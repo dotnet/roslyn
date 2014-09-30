@@ -37,9 +37,9 @@ namespace ImplementNotifyPropertyChangedCS.UnitTests
             }
         }
 
-        protected override ICodeRefactoringProvider CreateCodeRefactoringProvider()
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider()
         {
-            return new CodeRefactoringProvider();
+            return new ImplementNotifyPropertyChangedCodeRefactoringProvider();
         }
 
         [Fact]
