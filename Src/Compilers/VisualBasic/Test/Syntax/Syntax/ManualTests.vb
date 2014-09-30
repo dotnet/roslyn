@@ -53,11 +53,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestMissingToken()
 
             For k = CInt(SyntaxKind.AddHandlerKeyword) To CInt(SyntaxKind.AggregateKeyword) - 1
+                If CType(k, SyntaxKind).ToString() = k.ToString Then Continue For ' Skip any "holes" in the SyntaxKind enum
                 Dim objUnderTest As SyntaxToken = SyntaxFactory.MissingToken(CType(k, SyntaxKind))
                 Assert.Equal(objUnderTest.VisualBasicKind, CType(k, SyntaxKind))
             Next k
 
             For k = CInt(SyntaxKind.CommaToken) To CInt(SyntaxKind.AtToken) - 1
+                If CType(k, SyntaxKind).ToString() = k.ToString Then Continue For ' Skip any "holes" in the SyntaxKind enum
                 Dim objUnderTest As SyntaxToken = SyntaxFactory.MissingToken(CType(k, SyntaxKind))
                 Assert.Equal(objUnderTest.VisualBasicKind, CType(k, SyntaxKind))
             Next k
