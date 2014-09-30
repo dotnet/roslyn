@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (previousToken.CSharpKind() == SyntaxKind.RegionKeyword && currentToken.CSharpKind() == SyntaxKind.EndOfDirectiveToken)
             {
-                return CreateAdjustSpacesOperation(space: 1, option: AdjustSpacesOption.PreserveSpaces);
+                return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces);
             }
 
             if (currentToken.CSharpKind() == SyntaxKind.EndOfDirectiveToken)
