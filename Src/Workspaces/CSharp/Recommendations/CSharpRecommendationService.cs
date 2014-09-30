@@ -274,15 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // need to speculate as to what 'i' meant if it wasn't part of a local declaration's
             // type.
 
-            // We have a similar situation with declaration expressions:
-            //
-            //     var x = Console.|
-            //     var y = 0;
-            // 
-            // Here, "Console.var" gets parsed as the type of a declaration expression.
-            // Again, we need to see if the left side of the name can be bound as an expression.
-            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
-                name.IsFoundUnder<DeclarationExpressionSyntax>(d => d.Type))
+            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type))
             {
                 var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
                 var container = context.SemanticModel.GetSpeculativeTypeInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;

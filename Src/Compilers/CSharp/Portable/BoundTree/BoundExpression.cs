@@ -108,14 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundDeclarationExpression
-    {
-        public override Symbol ExpressionSymbol
-        {
-            get { return this.LocalSymbol; }
-        }
-    }
-
     partial class BoundFieldAccess
     {
         public override ConstantValue ConstantValue

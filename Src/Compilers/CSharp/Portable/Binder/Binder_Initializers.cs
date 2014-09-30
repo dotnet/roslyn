@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void BindFieldInitializers(
             SourceMemberContainerTypeSymbol typeSymbol,
             MethodSymbol scriptCtor,
-            ImmutableArray<FieldInitializers> fieldInitializers,
+            ImmutableArray<ImmutableArray<FieldInitializer>> fieldInitializers,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
             ref ProcessedFieldInitializers processedInitializers) //by ref so that we can store the results of lowering
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<BoundInitializer> BindFieldInitializers(
             SourceMemberContainerTypeSymbol containingType,
             MethodSymbol scriptCtor,
-            ImmutableArray<FieldInitializers> initializers,
+            ImmutableArray<ImmutableArray<FieldInitializer>> initializers,
             DiagnosticBag diagnostics,
             bool generateDebugInfo,
             out ConsList<Imports> firstDebugImports)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static void BindRegularCSharpFieldInitializers(
             CSharpCompilation compilation,
-            ImmutableArray<FieldInitializers> initializers,
+            ImmutableArray<ImmutableArray<FieldInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
             DiagnosticBag diagnostics,
             bool generateDebugInfo,
@@ -88,135 +88,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             firstDebugImports = null;
 
-            foreach (FieldInitializers siblingInitializers in initializers)
+            foreach (ImmutableArray<FieldInitializer> siblingInitializers in initializers)
             {
-                var infos = ArrayBuilder<FieldInitializerInfo>.GetInstance(); // Exact size is not known up front.
-                var locals = GetFieldInitializerInfos(compilation, siblingInitializers, infos, generateDebugInfo, ref firstDebugImports);
+                // All sibling initializers share the same parent node and tree so we can reuse the binder 
+                // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because
+                // individual fields might have their own binders (e.g. because of being declared unsafe).
+                BinderFactory binderFactory = null;
 
-                ArrayBuilder<BoundInitializer> initializersBuilder = locals.IsDefaultOrEmpty ? boundInitializers : ArrayBuilder<BoundInitializer>.GetInstance(infos.Count);
-
-                foreach (var info in infos)
+                foreach (FieldInitializer initializer in siblingInitializers)
                 {
-                    BoundFieldInitializer boundInitializer = BindFieldInitializer(info.Binder, info.Initializer.Field, info.EqualsValue, diagnostics);
-                    initializersBuilder.Add(boundInitializer);
-                }
+                    FieldSymbol fieldSymbol = initializer.Field;
+                    Debug.Assert((object)fieldSymbol != null);
 
-                Debug.Assert(locals.IsDefaultOrEmpty == (initializersBuilder == boundInitializers));
-                if (!locals.IsDefaultOrEmpty)
-                {
-                    boundInitializers.Add(new BoundInitializationScope((CSharpSyntaxNode)siblingInitializers.TypeDeclarationSyntax.GetSyntax(),
-                                                                       locals, initializersBuilder.ToImmutableAndFree()));
-                }
-
-                infos.Free();
-            }
-        }
-
-        internal static ImmutableArray<LocalSymbol> GetFieldInitializerInfos(
-            CSharpCompilation compilation,
-            FieldInitializers siblingInitializers,
-            ArrayBuilder<FieldInitializerInfo> infos,
-            bool generateDebugInfo,
-            ref ConsList<Imports> firstDebugImports)
-        {
-            // All sibling initializers share the same parent node and tree so we can reuse the binder 
-            // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because
-            // individual fields might have their own binders (e.g. because of being declared unsafe).
-            BinderFactory binderFactory = null;
-
-            foreach (FieldInitializer initializer in siblingInitializers.Initializers)
-            {
-                FieldSymbol fieldSymbol = initializer.Field;
-                Debug.Assert((object)fieldSymbol != null);
-
-                // A constant field of type decimal needs a field initializer, so
-                // check if it is a metadata constant, not just a constant to exclude
-                // decimals. Other constants do not need field initializers.
-                if (!fieldSymbol.IsMetadataConstant)
-                {
-                    //Can't assert that this is a regular C# compilation, because we could be in a nested type of a script class.
-                    SyntaxReference syntaxRef = initializer.Syntax;
-                    var initializerNode = (EqualsValueClauseSyntax)syntaxRef.GetSyntax();
-
-                    if (binderFactory == null)
+                    // A constant field of type decimal needs a field initializer, so
+                    // check if it is a metadata constant, not just a constant to exclude
+                    // decimals. Other constants do not need field initializers.
+                    if (!fieldSymbol.IsMetadataConstant)
                     {
-                        binderFactory = compilation.GetBinderFactory(syntaxRef.SyntaxTree);
-                    }
+                        //Can't assert that this is a regular C# compilation, because we could be in a nested type of a script class.
+                        SyntaxReference syntaxRef = initializer.Syntax;
+                        var initializerNode = (EqualsValueClauseSyntax)syntaxRef.GetSyntax();
 
-                    Binder parentBinder = binderFactory.GetBinder(initializerNode);
-                    Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
-                            fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
-
-                    if (generateDebugInfo && firstDebugImports == null)
-                    {
-                        firstDebugImports = parentBinder.ImportsList;
-                    }
-
-                    parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol);
-
-                    infos.Add(new FieldInitializerInfo(initializer, parentBinder, initializerNode));
-                }
-            }
-
-            // See if there are locals that we need to bring into the scope.
-            var locals = default(ImmutableArray<LocalSymbol>);
-            if (siblingInitializers.TypeDeclarationSyntax != null)
-            {
-                locals = GetInitializationScopeLocals(infos);
-
-                if (!locals.IsDefaultOrEmpty)
-                {
-                    for (int i = 0; i < infos.Count; i++)
-                    {
-                        FieldInitializerInfo info = infos[i];
-
-                        // Constant initializers is not part of the initialization scope.
-                        if (!info.Initializer.Field.IsConst)
+                        if (binderFactory == null)
                         {
-                            infos[i] = new FieldInitializerInfo(info.Initializer,
-                                                                new SimpleLocalScopeBinder(locals, info.Binder),
-                                                                info.EqualsValue);
+                            binderFactory = compilation.GetBinderFactory(syntaxRef.SyntaxTree);
                         }
+
+                        Binder parentBinder = binderFactory.GetBinder(initializerNode);
+                        Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
+                                fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
+
+                        if (generateDebugInfo && firstDebugImports == null)
+                        {
+                            firstDebugImports = parentBinder.ImportsList;
+                        }
+
+                        parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol);
+
+                        BoundFieldInitializer boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
+                        boundInitializers.Add(boundInitializer);
                     }
                 }
             }
-
-            return locals;
-        }
-
-        private static ImmutableArray<LocalSymbol> GetInitializationScopeLocals(ArrayBuilder<FieldInitializerInfo> infos)
-        {
-            ArrayBuilder<LocalSymbol> localsBuilder = null;
-
-            foreach (var info in infos)
-            {
-                // Constant initializers do not contribute to the initialization scope.
-                if (!info.Initializer.Field.IsConst)
-                {
-                    var walker = new LocalScopeBinder.BuildLocalsFromDeclarationsWalker(info.Binder, info.EqualsValue.Value);
-                    walker.Visit(info.EqualsValue.Value);
-
-                    if (walker.Locals != null)
-                    {
-                        if (localsBuilder == null)
-                        {
-                            localsBuilder = walker.Locals;
-                        }
-                        else
-                        {
-                            localsBuilder.AddRange(walker.Locals);
-                            walker.Locals.Free();
-                        }
-                    }
-                }
-            }
-
-            if (localsBuilder != null)
-            {
-                return localsBuilder.ToImmutableAndFree();
-            }
-
-            return ImmutableArray<LocalSymbol>.Empty;
         }
 
         /// <summary>
@@ -224,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// statements.  There are no restrictions on accessing instance members.
         /// </summary>
         private static void BindScriptFieldInitializers(CSharpCompilation compilation, MethodSymbol scriptCtor,
-            ImmutableArray<FieldInitializers> initializers, ArrayBuilder<BoundInitializer> boundInitializers, DiagnosticBag diagnostics,
+            ImmutableArray<ImmutableArray<FieldInitializer>> initializers, ArrayBuilder<BoundInitializer> boundInitializers, DiagnosticBag diagnostics,
             bool generateDebugInfo, out ConsList<Imports> firstDebugImports)
         {
             Debug.Assert((object)scriptCtor != null);
@@ -233,17 +146,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < initializers.Length; i++)
             {
-                FieldInitializers siblingInitializers = initializers[i];
+                ImmutableArray<FieldInitializer> siblingInitializers = initializers[i];
 
                 // All sibling initializers share the same parent node and tree so we can reuse the binder 
                 // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because
                 // individual fields might have their own binders (e.g. because of being declared unsafe).
                 BinderFactory binderFactory = null;
 
-                for (int j = 0; j < siblingInitializers.Initializers.Length; j++)
+                for (int j = 0; j < siblingInitializers.Length; j++)
                 {
-                    Debug.Assert(siblingInitializers.TypeDeclarationSyntax == null);
-                    var initializer = siblingInitializers.Initializers[j];
+                    var initializer = siblingInitializers[j];
                     var fieldSymbol = initializer.Field;
 
                     if ((object)fieldSymbol != null && fieldSymbol.IsConst)
@@ -291,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var collisionDetector = new LocalScopeBinder(parentBinder);
                         boundInitializer = BindGlobalStatement(collisionDetector, (StatementSyntax)initializerNode, diagnostics,
-                            isLast: i == initializers.Length - 1 && j == siblingInitializers.Initializers.Length - 1);
+                            isLast: i == initializers.Length - 1 && j == siblingInitializers.Length - 1);
                     }
 
                     boundInitializers.Add(boundInitializer);

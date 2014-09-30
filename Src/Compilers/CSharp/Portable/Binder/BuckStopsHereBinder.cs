@@ -175,12 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundIfStatement BindIfParts(DiagnosticBag diagnostics, Binder originalBinder)
-        {
-            // There's supposed to be a IfBinder (or other overrider of this method) in the chain.
-            throw ExceptionUtilities.Unreachable;
-        }
-
         internal override ImmutableArray<LocalSymbol> Locals
         {
             get

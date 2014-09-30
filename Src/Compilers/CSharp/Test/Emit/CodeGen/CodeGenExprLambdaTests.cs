@@ -3808,43 +3808,7 @@ public class MemberInitializerTest
         };
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyDiagnostics(
-                // (9,108): error CS1001: Identifier expected
-                //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-                // (9,123): error CS1525: Invalid expression term '}'
-                //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"),
-                // (8,9): error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)
-                //         Foo f = new Foo {
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"),
-                // (8,21): error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)
-                //         Foo f = new Foo {
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"),
-                // (9,20): error CS0030: Cannot convert type 'method' to 'MemberInitializerTest.D<int>'
-                //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D<int>) GenericMethod").WithArguments("method", "MemberInitializerTest.D<int>"),
-                // (9,105): error CS0165: Use of unassigned local variable ''
-                //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int").WithArguments("").WithLocation(9, 105));
-        }
 
-        [WorkItem(545189, "DevDiv")]
-        [Fact]
-        public void ExprTreeInTypeArgument_NoDeclExpr()
-        {
-            string source = @"
-public class MemberInitializerTest
-{
-    delegate void D<T>();
-    public static void GenericMethod<T>() { }
-    public static void Run()
-    {
-        Foo f = new Foo {
-            genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-        };
-    }
-}";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
                 // (9,105): error CS1525: Invalid expression term 'int'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 

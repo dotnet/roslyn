@@ -113,8 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.Local:
                         return ((BoundLocal)expr).LocalSymbol;
-                    case BoundKind.DeclarationExpression:
-                        return ((BoundDeclarationExpression)expr).LocalSymbol;
                     case BoundKind.Parameter:
                         return ((BoundParameter)expr).ParameterSymbol;
                 }
@@ -588,16 +586,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitDynamicObjectCreationExpression(node);
-        }
-
-        public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
-        {
-            if (inExpressionLambda)
-            {
-                Error(ErrorCode.ERR_ExpressionTreeContainsDeclarationExpression, node);
-            }
-
-            return base.VisitDeclarationExpression(node);
         }
     }
 }

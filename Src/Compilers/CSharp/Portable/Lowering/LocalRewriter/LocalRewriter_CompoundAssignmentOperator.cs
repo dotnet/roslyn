@@ -388,29 +388,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // No temporaries are needed. Just generate local = local + value
                     return originalLHS;
 
-                case BoundKind.DeclarationExpression:
-                    var rewrittenDeclExpr = (BoundExpression)VisitDeclarationExpression((BoundDeclarationExpression)originalLHS);
-
-                    switch (rewrittenDeclExpr.Kind)
-                    {
-                        case BoundKind.Local:
-                            return rewrittenDeclExpr;
-
-                        case BoundKind.Sequence:
-                            var sequence = (BoundSequence)rewrittenDeclExpr;
-                            stores.AddRange(sequence.SideEffects);
-                            temps.AddRange(sequence.Locals);
-
-                            if (sequence.Value.Kind == BoundKind.Local)
-                            {
-                                return sequence.Value;
-                            }
-
-                            break;
-                    }
-
-                    throw ExceptionUtilities.Unreachable;
-                   
                 case BoundKind.FieldAccess:
                     {
                         // * If the field is static then no temporaries are needed. 

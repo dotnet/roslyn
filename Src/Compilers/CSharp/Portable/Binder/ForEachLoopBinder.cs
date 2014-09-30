@@ -56,22 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             BoundForEachStatement result = BindForEachPartsWorker(diagnostics, originalBinder);
-
-            var foreachExpressionBinder = (ScopedExpressionBinder)this.Next;
-            if (!foreachExpressionBinder.Locals.IsDefaultOrEmpty)
-            {
-                result = result.Update(foreachExpressionBinder.Locals, 
-                                       result.EnumeratorInfoOpt, 
-                                       result.ElementConversion, 
-                                       result.IterationVariableType, 
-                                       result.IterationVariable, 
-                                       result.Expression, 
-                                       result.Body, 
-                                       result.Checked, 
-                                       result.BreakLabel, 
-                                       result.ContinueLabel);
-            }
-
             return result;
         }
 
@@ -126,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundForEachStatement(
                     syntax,
-                    ImmutableArray<LocalSymbol>.Empty,
                     null, // can't be sure that it's complete
                     default(Conversion),
                     boundIterationVariableType,
@@ -217,7 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundForEachStatement(
                 syntax,
-                ImmutableArray<LocalSymbol>.Empty,
                 builder.Build(this.Flags),
                 elementConversion,
                 boundIterationVariableType,

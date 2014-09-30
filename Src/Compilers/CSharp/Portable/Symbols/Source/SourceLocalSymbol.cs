@@ -87,18 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
         }
 
-        public static SourceLocalSymbol MakePossibleOutVarLocalWithoutInitializer(
-            Symbol containingSymbol,
-            Binder binder,
-            TypeSyntax typeSyntax,
-            SyntaxToken identifierToken,
-            CSharpSyntaxNode scopeSegmentRoot,
-            LocalDeclarationKind declarationKind)
-        {
-            Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
-            return new PossibleOutVarLocalWithoutInitializer(containingSymbol, binder, typeSyntax, identifierToken, scopeSegmentRoot, declarationKind);
-        }
-
         public static SourceLocalSymbol MakeLocal(
             Symbol containingSymbol,
             Binder binder,
@@ -442,99 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Normally, it would not be safe to cast to a specific binder type.  However, we verified the type
                 // in the factory method call for this symbol.
                 return ((ForEachLoopBinder)this.binder).InferCollectionElementType(diagnostics, collection);
-            }
-        }
-
-        private class PossibleOutVarLocalWithoutInitializer : SourceLocalSymbol
-        {
-            private readonly CSharpSyntaxNode scopeSegmentRoot;
-
-            public PossibleOutVarLocalWithoutInitializer(
-                Symbol containingSymbol,
-                Binder binder,
-                TypeSyntax typeSyntax,
-                SyntaxToken identifierToken,
-                CSharpSyntaxNode scopeSegmentRoot,
-                LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, binder, typeSyntax, identifierToken, declarationKind)
-            {
-                Debug.Assert(identifierToken.Parent.CSharpKind() == SyntaxKind.VariableDeclarator && ((VariableDeclaratorSyntax)identifierToken.Parent).Identifier == identifierToken);
-                Debug.Assert(identifierToken.Parent.Parent.CSharpKind() == SyntaxKind.DeclarationExpression);
-
-                if (scopeSegmentRoot == null)
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-
-                this.scopeSegmentRoot = scopeSegmentRoot;
-            }
-
-            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
-            {
-                // Try binding immediately enclosing invocation expression, this should force the inference.
-                SyntaxNode node = identifierToken.Parent.Parent;
-                Debug.Assert(node.CSharpKind() == SyntaxKind.DeclarationExpression);
-
-                // Skip parenthesized and checked/unchecked expressions
-                while (node != scopeSegmentRoot && node.Parent != null)
-                {
-                    switch (node.Parent.CSharpKind())
-                    {
-                        case SyntaxKind.ParenthesizedExpression:
-                        case SyntaxKind.CheckedExpression:
-                        case SyntaxKind.UncheckedExpression:
-                            node = node.Parent;
-                            continue;
-                    }
-
-                    break;
-                }
-
-                if (node != scopeSegmentRoot && node.Parent != null && node.Parent.CSharpKind() == SyntaxKind.Argument)
-                {
-                    node = node.Parent;
-
-                    if (node != scopeSegmentRoot && node.Parent != null && node.Parent.CSharpKind() == SyntaxKind.ArgumentList)
-                    {
-                        node = node.Parent;
-
-                        if (node != scopeSegmentRoot)
-                        {
-                            if (node.Parent != null)
-                            {
-                                node = node.Parent;
-
-                                switch (node.CSharpKind())
-                                {
-                                    case SyntaxKind.InvocationExpression:
-                                    case SyntaxKind.ObjectCreationExpression:
-                                        this.binder.BindExpression((ExpressionSyntax)node, diagnostics);
-                                        var result = this.type;
-                                        Debug.Assert((object)result != null);
-                                        return result;
-                                }
-                            }
-                        }
-                        else if (node.Parent != null)
-                        {
-                            Debug.Assert(node.CSharpKind() == SyntaxKind.ArgumentList);
-                            Debug.Assert(node == scopeSegmentRoot);
-                            // This could be an argument list for a constructor initializer
-
-                            switch (node.Parent.CSharpKind())
-                            {
-                                case SyntaxKind.ThisConstructorInitializer:
-                                case SyntaxKind.BaseConstructorInitializer:
-                                    this.binder.BindConstructorInitializer((ArgumentListSyntax)node, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
-                                    var result = this.type;
-                                    Debug.Assert((object)result != null);
-                                    return result;
-                            }
-                        }
-                    }
-                }
-
-                return null;
             }
         }
     }

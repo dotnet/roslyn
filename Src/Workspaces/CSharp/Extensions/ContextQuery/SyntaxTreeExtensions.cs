@@ -2222,12 +2222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         return false;
                     }
-
-                    if (token.Parent.IsParentKind(SyntaxKind.DeclarationExpression) &&
-                        token.Parent.Parent.IsParentKind(SyntaxKind.Argument))
-                    {
-                        return false;
-                    }
                 }
 
                 // Now, make sure the name was actually in a location valid for

@@ -3211,12 +3211,6 @@
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </Node>
 
-  <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
-    <Kind Name="DeclarationExpression"/>
-    <Field Name="Type" Type="TypeSyntax"/>
-    <Field Name="Variable" Type="VariableDeclaratorSyntax"/>
-  </Node>
-  
   <Node Name="SkippedTokensTriviaSyntax" Base="StructuredTriviaSyntax">
     <Kind Name="SkippedTokensTrivia"/>
     <Field Name="Tokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>

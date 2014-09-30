@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // field or event field.
                         return
                             token.Parent is IdentifierNameSyntax &&
-                            (token.Parent.Parent is VariableDeclarationSyntax || token.Parent.Parent is DeclarationExpressionSyntax) &&
+                            token.Parent.Parent is VariableDeclarationSyntax &&
                             !(token.Parent.Parent.Parent is FieldDeclarationSyntax) &&
                             !(token.Parent.Parent.Parent is EventFieldDeclarationSyntax);
                 }

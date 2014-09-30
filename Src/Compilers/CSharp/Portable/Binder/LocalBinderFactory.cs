@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForStatement(ForStatementSyntax node)
         {
             Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
-            var binder = new ForLoopBinder(new ForLoopInitializationBinder(enclosing, node), node);
+            var binder = new ForLoopBinder(enclosing, node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachStatement(ForEachStatementSyntax node)
         {
             Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
-            var binder = new ForEachLoopBinder(new ScopedExpressionBinder(enclosing, node.Expression), node);
+            var binder = new ForEachLoopBinder(enclosing, node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
             Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
-            var switchBinder = new SwitchBinder(new ScopedExpressionBinder(enclosing, node.Expression), node);
+            var switchBinder = new SwitchBinder(enclosing, node);
             AddToMap(node, switchBinder);
 
             foreach (SwitchSectionSyntax section in node.Sections)
@@ -253,12 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
-            var ifBinder = new IfBinder(enclosing, node);
-            AddToMap(node, ifBinder);
-
-            VisitPossibleEmbeddedStatement(node.Statement, ifBinder);
-            Visit(node.Else, ifBinder);
+            VisitPossibleEmbeddedStatement(node.Statement, enclosing);
+            Visit(node.Else, enclosing);
         }
 
         public override void VisitElseClause(ElseClauseSyntax node)
@@ -394,10 +390,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        // Create a binder to introduce a scope for Declaration Expressions, if any.
-                        Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
-                        enclosing = new EmbeddedStatementBinder(enclosing, statement);
-                        AddToMap(statement, enclosing);
                         break;
 
                 }

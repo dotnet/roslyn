@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -62,26 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocalDeclaration(node);
         }
 
-        public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
-        {
-            if (IsInside)
-            {
-                variablesDeclared.Add(node.LocalSymbol);
-            }
-
-            return base.VisitDeclarationExpression(node);
-        }
-
-        protected override void VisitLvalueDeclarationExpression(BoundDeclarationExpression node)
-        {
-            if (IsInside)
-            {
-                variablesDeclared.Add(node.LocalSymbol);
-            }
-
-            base.VisitLvalueDeclarationExpression(node);
-        }
-
         public override BoundNode VisitLambda(BoundLambda node)
         {
             if (IsInside && !node.WasCompilerGenerated)
@@ -110,10 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                var local = catchBlock.Locals.FirstOrDefault();
+                var local = catchBlock.LocalOpt;
 
-                if ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
+                if ((object)local != null)
                 {
+                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CatchVariable);
                     variablesDeclared.Add(local);
                 }
             }

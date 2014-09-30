@@ -29,23 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 local = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable);
             }
 
-            if (syntax.Filter != null)
-            {
-                var walker = new BuildLocalsFromDeclarationsWalker(this.GetBinder(syntax.Filter), syntax.Filter);
-
-                walker.Visit(syntax.Filter);
-
-                if (walker.Locals != null)
-                {
-                    if ((object)local != null)
-                    {
-                        walker.Locals.Insert(0, local);
-                    }
-
-                    return walker.Locals.ToImmutableAndFree();
-                }
-            }
-
             if ((object)local != null)
             {
                 return ImmutableArray.Create<LocalSymbol>(local);

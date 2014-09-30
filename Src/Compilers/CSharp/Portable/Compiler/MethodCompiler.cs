@@ -1282,21 +1282,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilation = method.DeclaringCompilation;
             BoundStatement constructorInitializer = null;
-            var localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
 
             // delegates have constructors but not constructor initializers
             if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType())
             {
-                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation, out localsDeclaredInInitializer);
+                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation);
 
                 if (initializerInvocation != null)
                 {
                     constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
                     Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
-                }
-                else
-                {
-                    Debug.Assert(localsDeclaredInInitializer.IsEmpty);
                 }
             }
 
@@ -1329,12 +1324,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (blockSyntax != null)
                 {
                     var inMethodBinder = factory.GetBinder(blockSyntax);
-
-                    // Bring locals declared in initializer in scope, they should be visible within the block.
-                    if (!localsDeclaredInInitializer.IsDefaultOrEmpty)
-                    {
-                        inMethodBinder = new SimpleLocalScopeBinder(localsDeclaredInInitializer, inMethodBinder);
-                    }
 
                     Binder binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
                     body = binder.BindBlock(blockSyntax, diagnostics);
@@ -1377,7 +1366,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder binder = factory.GetBinder(arrowExpression);
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     // Add locals
-                    binder = new ScopedExpressionBinder(binder, arrowExpression.Expression);
                     return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
@@ -1412,23 +1400,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax = body != null ? body.Syntax : method.GetNonNullSyntaxNode();
             BoundBlock block;
 
-            if (localsDeclaredInInitializer.IsDefaultOrEmpty)
+            if (statements.Count == 1 && statements[0].Kind == ((body == null) ? BoundKind.Block : body.Kind))
             {
-                if (statements.Count == 1 && statements[0].Kind == ((body == null) ? BoundKind.Block : body.Kind))
-                {
-                    // most common case - we just have a single block for the body.
-                    block = (BoundBlock)statements[0];
-                    statements.Free();
-                }
-                else
-                {
-                    block = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
-                }
+                // most common case - we just have a single block for the body.
+                block = (BoundBlock)statements[0];
+                statements.Free();
             }
             else
             {
-                Debug.Assert(constructorInitializer != null);
-                block = new BoundBlock(constructorInitializer.Syntax.Parent, localsDeclaredInInitializer, statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                block = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
             }
 
             return method.MethodKind == MethodKind.Destructor ? MethodBodySynthesizer.ConstructDestructorBody(syntax, method, block) : block;
@@ -1440,12 +1420,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="constructor">Constructor method.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. access "this" in constructor initializer).</param>
         /// <param name="compilation">Used to retrieve binder.</param>
-        /// <param name="localsDeclaredInInitializer">Locals declared in the initializer are returned through this parameter.</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
-        internal static BoundExpression BindConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation, out ImmutableArray<LocalSymbol> localsDeclaredInInitializer)
+        internal static BoundExpression BindConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation)
         {
-            localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
-
             // Note that the base type can be null if we're compiling System.Object in source.
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
@@ -1564,12 +1541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //wrap in ConstructorInitializerBinder for appropriate errors
             Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
-
-            if (initializerArgumentListOpt != null)
-            {
-                initializerBinder = new WithConstructorInitializerLocalsBinder(initializerBinder, constructorSyntax);
-                localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(constructorSyntax);
-            }
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);
         }

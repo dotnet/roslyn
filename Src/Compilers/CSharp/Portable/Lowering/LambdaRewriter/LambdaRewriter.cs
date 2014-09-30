@@ -620,8 +620,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode RewriteCatch(BoundCatchBlock node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
         {
-            RewriteLocals(node.Locals, newLocals);
-            var rewrittenCatchLocals = newLocals.ToImmutableAndFree();
+            LocalSymbol newLocal;
+            if ((object)node.LocalOpt != null && TryRewriteLocal(node.LocalOpt, out newLocal))
+            {
+                newLocals.Add(newLocal);
+            }
+
+            LocalSymbol rewrittenCatchLocal;
+
+            if (newLocals.Count > 0)
+            {
+                // If the original LocalOpt was lifted into a closure,
+                // the newLocals will contain a frame reference. In this case, 
+                // instead of an actual local, catch will own the frame reference.
+
+                Debug.Assert((object)node.LocalOpt != null && newLocals.Count == 1);
+                rewrittenCatchLocal = newLocals[0];
+            }
+            else
+            {
+                Debug.Assert((object)node.LocalOpt == null);
+                rewrittenCatchLocal = null;
+            }
 
             // If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             // It needs to run before the exception variable is accessed.
@@ -653,6 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // done with this.
+            newLocals.Free();
             prologue.Free();
 
             // rewrite filter and body
@@ -661,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenBlock = (BoundBlock)this.Visit(node.Body);
 
             return node.Update(
-                rewrittenCatchLocals, 
+                rewrittenCatchLocal, 
                 rewrittenExceptionSource,
                 exceptionTypeOpt,
                 rewrittenFilter,

@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitCatchBlock(BoundCatchBlock node)
             {
-                AddVariables(node.Locals);
+                AddVariable(node.LocalOpt);
                 return base.VisitCatchBlock(node);
             }
 

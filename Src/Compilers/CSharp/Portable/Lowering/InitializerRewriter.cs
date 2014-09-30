@@ -27,18 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundStatements.Add(RewriteFieldInitializer((BoundFieldInitializer)init));
                         break;
 
-                    case BoundKind.InitializationScope:
-                        var scope = (BoundInitializationScope)init;
-                        var fieldInitializers = ArrayBuilder<BoundStatement>.GetInstance(scope.Initializers.Length);
-
-                        foreach (BoundFieldInitializer fieldInitializer in scope.Initializers)
-                        {
-                            fieldInitializers.Add(RewriteFieldInitializer(fieldInitializer));
-                        }
-
-                        boundStatements.Add(new BoundBlock(scope.Syntax, scope.Locals, fieldInitializers.ToImmutableAndFree()) { WasCompilerGenerated = true });
-                        break;
-
                     case BoundKind.GlobalStatementInitializer:
                         var stmtInit = (BoundGlobalStatementInitializer)init;
 

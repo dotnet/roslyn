@@ -184,7 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             return
                 name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
-                name.CheckParent<DeclarationExpressionSyntax>(v => v.Type == name) ||
                 name.CheckParent<ForEachStatementSyntax>(f => f.Type == name);
         }
 

@@ -19,18 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.syntax = syntax;
         }
 
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
-        {
-            return BuildLocals(syntax.Kind == SyntaxKind.WhileStatement ? ((WhileStatementSyntax)syntax).Condition : ((DoStatementSyntax)syntax).Condition);
-        }
-
         internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             var node = (WhileStatementSyntax)syntax;
 
             var condition = BindBooleanExpression(node.Condition, diagnostics);
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-            return new BoundWhileStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
+            Debug.Assert(this.Locals.IsDefaultOrEmpty);
+            return new BoundWhileStatement(node, condition, body, this.BreakLabel, this.ContinueLabel);
         }
 
         internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
@@ -39,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var condition = BindBooleanExpression(node.Condition, diagnostics);
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-            return new BoundDoStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
+            Debug.Assert(this.Locals.IsDefaultOrEmpty);
+            return new BoundDoStatement(node, condition, body, this.BreakLabel, this.ContinueLabel);
         }
     }
 }

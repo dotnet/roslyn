@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenConsequence = VisitStatement(node.Consequence);
             var rewrittenAlternative = VisitStatement(node.AlternativeOpt);
             var syntax = (IfStatementSyntax)node.Syntax;
-            var result = RewriteIfStatement(syntax, node.Locals, AddConditionSequencePoint(rewrittenCondition, node), rewrittenConsequence, rewrittenAlternative, node.HasErrors);
+            var result = RewriteIfStatement(syntax, AddConditionSequencePoint(rewrittenCondition, node), rewrittenConsequence, rewrittenAlternative, node.HasErrors);
 
             // add sequence point before the whole statement
             if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement RewriteIfStatement(
             CSharpSyntaxNode syntax,
-            ImmutableArray<LocalSymbol> locals,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenConsequence,
             BoundStatement rewrittenAlternativeOpt,
@@ -85,11 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             builder.Add(new BoundLabelStatement(syntax, afterif));
-
-            if (!locals.IsDefaultOrEmpty)
-            {
-                return new BoundBlock(syntax, locals, builder.ToImmutableAndFree(), hasErrors);
-            }
 
             return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
         }

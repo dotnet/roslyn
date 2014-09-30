@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      catchNo = X;
             //  }
             BoundCatchBlock catchAndPend;
-            ImmutableArray<LocalSymbol> handlerLocals;
+            var handlerLocals = ImmutableArray<LocalSymbol>.Empty;
 
             var filterOpt = node.ExceptionFilterOpt;
             if (filterOpt == null)
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // store pending exception 
                 // as the first statement in a catch
                 catchAndPend = node.Update(
-                    ImmutableArray.Create(catchTemp),
+                    catchTemp,
                     F.Local(catchTemp),
                     catchType,
                     exceptionFilterOpt: null,
@@ -544,16 +544,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         setPendingCatchNum));
 
                 // catch locals live on the synthetic catch handler block
-                handlerLocals = node.Locals;
+                if ((object)node.LocalOpt != null)
+                {
+                    handlerLocals = ImmutableArray.Create(node.LocalOpt);
+                }
             }
             else
             {
                 // catch locals move up into hoisted locals
                 // since we might need to access them from both the filter and the catch
-                handlerLocals = ImmutableArray<LocalSymbol>.Empty;
-                foreach (var local in node.Locals)
+                if ((object)node.LocalOpt != null)
                 {
-                    currentAwaitCatchFrame.HoistLocal(local, F);
+                    currentAwaitCatchFrame.HoistLocal(node.LocalOpt, F);
                 }
 
                 // store pending exception 
@@ -570,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     rewrittenFilter);
 
                 catchAndPend = node.Update(
-                    ImmutableArray.Create(catchTemp),
+                    catchTemp,
                     F.Local(catchTemp),
                     catchType,
                     exceptionFilterOpt: newFilter,

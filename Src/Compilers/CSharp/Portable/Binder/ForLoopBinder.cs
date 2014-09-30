@@ -22,44 +22,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var walker = new BuildLocalsFromDeclarationsWalker(this, null);
-
-            walker.ScopeSegmentRoot = syntax.Condition;
-            walker.Visit(syntax.Condition);
-
-            foreach (var incrementor in syntax.Incrementors)
+            var declaration = this.syntax.Declaration;
+            if (declaration == null)
             {
-                walker.ScopeSegmentRoot = incrementor;
-                walker.Visit(incrementor);
+                return ImmutableArray<LocalSymbol>.Empty;
             }
 
-            walker.ScopeSegmentRoot = null;
-
-            if (walker.Locals != null)
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+            foreach (var variable in declaration.Variables)
             {
-                return walker.Locals.ToImmutableAndFree();
+                var localSymbol = MakeLocal(declaration,
+                                            variable,
+                                            LocalDeclarationKind.ForInitializerVariable);
+                locals.Add(localSymbol);
             }
 
-            return ImmutableArray<LocalSymbol>.Empty;
+            return locals.ToImmutableAndFree();
         }
 
         internal override BoundForStatement BindForParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             BoundForStatement result = BindForParts(syntax, originalBinder, diagnostics);
-
-            var initializationBinder = (ForLoopInitializationBinder)this.Next;
-            if (!initializationBinder.Locals.IsDefaultOrEmpty)
-            {
-                result = result.Update(initializationBinder.Locals, 
-                                       result.Initializer,
-                                       result.InnerLocals,
-                                       result.Condition, 
-                                       result.Increment,
-                                       result.Body, 
-                                       result.BreakLabel, 
-                                       result.ContinueLabel);
-            }
-
             return result;
         }
 
@@ -70,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.Initializers.Count == 0);
                 ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = this.Next.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
+                initializer = this.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
             }
             else
             {
-                initializer = this.Next.BindStatementExpressionList(node.Initializers, diagnostics);
+                initializer = this.BindStatementExpressionList(node.Initializers, diagnostics);
             }
 
             var condition = (node.Condition != null) ? BindBooleanExpression(node.Condition, diagnostics) : null;
@@ -82,9 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             return new BoundForStatement(node,
-                                         ImmutableArray<LocalSymbol>.Empty,
-                                         initializer,
                                          this.Locals,
+                                         initializer,
                                          condition,
                                          increment,
                                          body,
@@ -92,39 +74,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          this.ContinueLabel);
         }
 
-    }
-
-    internal sealed class ForLoopInitializationBinder : LocalScopeBinder
-    {
-        private readonly ForStatementSyntax syntax;
-
-        public ForLoopInitializationBinder(Binder enclosing, ForStatementSyntax syntax)
-            : base(enclosing)
-        {
-            Debug.Assert(syntax != null);
-            this.syntax = syntax;
-        }
-
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
-        {
-            var walker = new BuildLocalsFromDeclarationsWalker(this, null);
-
-            walker.ScopeSegmentRoot = syntax.Declaration;
-            walker.Visit(syntax.Declaration);
-
-            foreach (var initializer in syntax.Initializers)
-            {
-                walker.ScopeSegmentRoot = initializer;
-                walker.Visit(initializer);
-            }
-
-            walker.ScopeSegmentRoot = null;
-            if (walker.Locals != null)
-            {
-                return walker.Locals.ToImmutableAndFree();
-            }
-
-            return ImmutableArray<LocalSymbol>.Empty;
-        }
     }
 }

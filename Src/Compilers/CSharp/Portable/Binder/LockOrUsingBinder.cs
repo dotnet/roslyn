@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // which is going to bind the expression, which is going to check LockedOrDisposedVariables, etc.
                         // Fortunately, SyntaxKind.IdentifierName includes local and parameter accesses, but no expressions
                         // that require lvalue checks.
-                        if (targetExpressionSyntax.Kind == SyntaxKind.IdentifierName || targetExpressionSyntax.Kind == SyntaxKind.DeclarationExpression)
+                        if (targetExpressionSyntax.Kind == SyntaxKind.IdentifierName)
                         {
                             BoundExpression expression = BindTargetExpression(diagnostics: null); // Diagnostics reported by BindUsingStatementParts.
                             switch (expression.Kind)
@@ -52,9 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundKind.Parameter:
                                     lockedOrDisposedVariables = lockedOrDisposedVariables.Add(((BoundParameter)expression).ParameterSymbol);
-                                    break;
-                                case BoundKind.DeclarationExpression:
-                                    lockedOrDisposedVariables = lockedOrDisposedVariables.Add(((BoundDeclarationExpression)expression).LocalSymbol);
                                     break;
                             }
                         }

@@ -131,11 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return ((BoundLocal)node).LocalSymbol;
                         }
 
-                    case BoundKind.DeclarationExpression:
-                        {
-                            return ((BoundDeclarationExpression)node).LocalSymbol;
-                        }
-
                     case BoundKind.Parameter:
                         {
                             return ((BoundParameter)node).ParameterSymbol;
@@ -143,8 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.CatchBlock:
                         {
-                            var local = ((BoundCatchBlock)node).Locals.FirstOrDefault();
-                            return (object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable ? local : null;
+                            var local = ((BoundCatchBlock)node).LocalOpt;
+                            Debug.Assert((object)local == null || local.DeclarationKind == LocalDeclarationKind.CatchVariable);
+                            return (object)local != null ? local : null;
                         }
 
                     case BoundKind.ForEachStatement:

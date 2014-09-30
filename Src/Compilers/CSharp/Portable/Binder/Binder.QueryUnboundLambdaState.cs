@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body, TypeSyntax castTypeSyntax, TypeSymbol castType)
                 : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                lambdaBodyBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
                 BoundExpression expression = lambdaBodyBinder.BindValue(body, diagnostics, BindValueKind.RValue);
                 Debug.Assert((object)castType != null);
                 Debug.Assert(castTypeSyntax != null);
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body)
                 : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                lambdaBodyBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
                 return lambdaBodyBinder.BindLambdaExpressionAsBlock(body, diagnostics);
             })
             { }

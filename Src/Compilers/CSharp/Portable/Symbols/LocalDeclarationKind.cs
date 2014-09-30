@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         None,
 
         /// <summary>
-        /// User defined local variable declared by <see cref="LocalDeclarationStatementSyntax"/> or <see cref="DeclarationExpressionSyntax"/>.
+        /// User defined local variable declared by <see cref="LocalDeclarationStatementSyntax"/>.
         /// </summary>
         RegularVariable,
 

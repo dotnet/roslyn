@@ -751,7 +751,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.IsExpressionLambda)
             {
                 var body = (ExpressionSyntax)this.Body;
-                lambdaBodyBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
                 return lambdaBodyBinder.BindLambdaExpressionAsBlock(body, diagnostics);
             }
             else

@@ -127,7 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             BoundStatement whileLoop = RewriteWhileStatement(
                 syntax: forEachSyntax,
-                innerLocals: ImmutableArray<LocalSymbol>.Empty,
                 rewrittenCondition: BoundCall.Synthesized(
                     syntax: forEachSyntax,
                     receiverOpt: boundEnumeratorVar,
@@ -186,7 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // if ((object)e != null) ((IDisposable)e).Dispose(); 
                         disposeStmt = RewriteIfStatement(
                             syntax: forEachSyntax,
-                            locals: ImmutableArray<LocalSymbol>.Empty,
                             rewrittenCondition: new BoundBinaryOperator(forEachSyntax,
                                 operatorKind: BinaryOperatorKind.NotEqual,
                                 left: MakeConversion(
@@ -238,7 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (d != null) d.Dispose();
                     BoundStatement ifStmt = RewriteIfStatement(
                         syntax: forEachSyntax,
-                        locals: ImmutableArray<LocalSymbol>.Empty,
                         rewrittenCondition: new BoundBinaryOperator(forEachSyntax,
                             operatorKind: BinaryOperatorKind.NotEqual, // reference equality
                             left: boundDisposableVar,
@@ -285,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     /* as above */
                 result = new BoundBlock(
                     syntax: forEachSyntax,
-                    locals: node.OuterLocals.Add(enumeratorVar),
+                    locals: ImmutableArray.Create(enumeratorVar),
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, tryFinally));
             }
             else
@@ -297,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 result = new BoundBlock(
                     syntax: forEachSyntax,
-                    locals: node.OuterLocals.Add(enumeratorVar),
+                    locals: ImmutableArray.Create(enumeratorVar),
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, whileLoop));
             }
 
@@ -471,9 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             BoundStatement result = RewriteForStatement(
                 syntax: forEachSyntax,
-                outerLocals: node.OuterLocals.AddRange(ImmutableArray.Create(stringVar, positionVar)),
+                outerLocals: ImmutableArray.Create(stringVar, positionVar),
                 rewrittenInitializer: initializer,
-                innerLocals: ImmutableArray<LocalSymbol>.Empty,
                 rewrittenCondition: exitCondition,
                 conditionSyntaxOpt: null,
                 conditionSpanOpt: forEachSyntax.InKeyword.Span,
@@ -597,9 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             BoundStatement result = RewriteForStatement(
                 syntax: node.Syntax,
-                outerLocals: node.OuterLocals.AddRange(ImmutableArray.Create<LocalSymbol>(arrayVar, positionVar)),
+                outerLocals: ImmutableArray.Create<LocalSymbol>(arrayVar, positionVar),
                 rewrittenInitializer: initializer,
-                innerLocals: ImmutableArray<LocalSymbol>.Empty,
                 rewrittenCondition: exitCondition,
                 conditionSyntaxOpt: null,
                 conditionSpanOpt: forEachSyntax.InKeyword.Span,
@@ -783,9 +778,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 forLoop = RewriteForStatement(
                     syntax: forEachSyntax,
-                    outerLocals: node.OuterLocals.Add(positionVar[dimension]),
+                    outerLocals: ImmutableArray.Create(positionVar[dimension]),
                     rewrittenInitializer: positionVarDecl,
-                    innerLocals: ImmutableArray<LocalSymbol>.Empty,
                     rewrittenCondition: exitCondition,
                     conditionSyntaxOpt: null,
                     conditionSpanOpt: forEachSyntax.InKeyword.Span,

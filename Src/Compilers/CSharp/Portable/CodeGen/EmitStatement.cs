@@ -851,11 +851,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 builder.MarkLabel(typeCheckPassedLabel);
             }
 
-            foreach (var local in catchBlock.Locals)
+            if ((object)catchBlock.LocalOpt != null)
             {
-                var declaringReferences = local.DeclaringSyntaxReferences;
+                var declaringReferences = catchBlock.LocalOpt.DeclaringSyntaxReferences;
                 var localSyntax = !declaringReferences.IsEmpty ? (CSharpSyntaxNode)declaringReferences[0].GetSyntax() : catchBlock.Syntax;
-                DefineLocal(local, localSyntax);
+                DefineLocal(catchBlock.LocalOpt, localSyntax);
             }
 
             var exceptionSourceOpt = catchBlock.ExceptionSourceOpt;
@@ -945,8 +945,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
         {
-            Debug.Assert(switchStatement.OuterLocals.IsEmpty);
-
             // Switch expression must have a valid switch governing type
             Debug.Assert((object)switchStatement.BoundExpression.Type != null);
             Debug.Assert(switchStatement.BoundExpression.Type.IsValidSwitchGoverningType());
@@ -1477,8 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // expressions do not contain labels or branches
                 BoundExpression boundExpression = node.BoundExpression;
                 ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-                Debug.Assert(node.OuterLocals.IsEmpty);
-                return node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, breakLabelClone, node.StringEquality);
+                return node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, breakLabelClone, node.StringEquality);
             }
 
             public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)

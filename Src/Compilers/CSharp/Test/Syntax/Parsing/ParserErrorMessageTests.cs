@@ -877,69 +877,11 @@ public class C
 }
 ";
 
-            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental),
-    // (11,36): error CS0743: Expected contextual keyword 'on'
-    //                 join y in array2 x equals y
-    Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordOn, "equals").WithLocation(11, 36),
-    // (11,36): error CS1525: Invalid expression term 'equals'
-    //                 join y in array2 x equals y
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "equals").WithArguments("equals").WithLocation(11, 36));
-        }
-
-        [Fact]
-        public void CS0743ERR_ExpectedContextualKeywordOn_NoDeclExpr()
-        {
-            var test = @"
-using System;
-using System.Linq;
-public class C
-{
-    public static int Main()
-    {
-        int[] array1 = { 1, 2, 3 ,4, 5, 6,};
-        int[] array2 = { 5, 6, 7, 8, 9 };
-        var c = from x in array1
-                join y in array2 x equals y
-                select x;
-        return 1;
-    }
-}
-";
-
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordOn, "x"));
         }
 
         [Fact]
         public void CS0744ERR_ExpectedContextualKeywordEquals()
-        {
-            var test = @"
-using System;
-using System.Linq;
-public class C
-{
-    public static int Main()
-    {
-        int[] array1 = { 1, 2, 3 ,4, 5, 6,};
-        int[] array2 = { 5, 6, 7, 8, 9 };
-        var c = from x in array1
-                join y in array2 on x y
-                select x;
-        return 1;
-    }
-}
-";
-
-            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental),
-    // (11,40): error CS0744: Expected contextual keyword 'equals'
-    //                 join y in array2 on x y
-    Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordEquals, "").WithLocation(11, 40),
-    // (11,40): error CS1525: Invalid expression term 'select'
-    //                 join y in array2 on x y
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("select").WithLocation(11, 40));
-        }
-
-        [Fact]
-        public void CS0744ERR_ExpectedContextualKeywordEquals_NoDeclExpr()
         {
             var test = @"
 using System;
@@ -964,36 +906,6 @@ public class C
         [WorkItem(862121, "DevDiv/Personal")]
         [Fact]
         public void CS0745ERR_ExpectedContextualKeywordBy()
-        {
-            var test = @"
-using System;
-using System.Linq;
-public class C
-{
-    public static int Main()
-    {
-        int[] array1 = { 1, 2, 3 ,4, 5, 6,};
-        int[] array2 = { 5, 6, 7, 8, 9 };
-        var c = from x in array1
-                join y in array2 on x equals y
-                group x y;
-        return 1;
-    }
-}
-";
-
-            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental),
-    // (12,26): error CS0745: Expected contextual keyword 'by'
-    //                 group x y;
-    Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordBy, ";").WithLocation(12, 26),
-    // (12,26): error CS1525: Invalid expression term ';'
-    //                 group x y;
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(12, 26));
-        }
-
-        [WorkItem(862121, "DevDiv/Personal")]
-        [Fact]
-        public void CS0745ERR_ExpectedContextualKeywordBy_NoDeclExpr()
         {
             var test = @"
 using System;

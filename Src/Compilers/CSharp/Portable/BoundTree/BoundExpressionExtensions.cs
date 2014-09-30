@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.Call:
                 case BoundKind.Local:
-                case BoundKind.DeclarationExpression:
                 case BoundKind.FieldAccess:
                 case BoundKind.PropertyAccess:
                 case BoundKind.IndexerAccess:

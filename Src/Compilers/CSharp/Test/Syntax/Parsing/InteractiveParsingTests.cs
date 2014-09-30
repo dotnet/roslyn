@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -4985,66 +4985,6 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression18()
         {
-            var tree = UsingTree(@"T ? m(c? a", TestOptions.Interactive.WithLanguageVersion(LanguageVersion.Experimental));
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.ConditionalExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.DeclarationExpression);
-                                        {
-                                            N(SyntaxKind.NullableType);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken);
-                                                }
-                                                N(SyntaxKind.QuestionToken);
-                                            }
-                                            N(SyntaxKind.VariableDeclarator);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                        }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-        }
-
-        [Fact]
-        public void Ternary_Expression18_NoDeclExpr()
-        {
             var tree = UsingTree(@"T ? m(c? a", TestOptions.Interactive);
             N(SyntaxKind.CompilationUnit);
             {
@@ -5106,74 +5046,6 @@ fixed int x[10];
 
         [Fact]
         public void Ternary_Expression19()
-        {
-            var tree = UsingTree(@"T ? m(c? a =", TestOptions.Interactive.WithLanguageVersion(LanguageVersion.Experimental));
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.ConditionalExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.DeclarationExpression);
-                                        {
-                                            N(SyntaxKind.NullableType);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken);
-                                                }
-                                                N(SyntaxKind.QuestionToken);
-                                            }
-                                            N(SyntaxKind.VariableDeclarator);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                                N(SyntaxKind.EqualsValueClause);
-                                                {
-                                                    N(SyntaxKind.EqualsToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                        }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-        }
-
-        [Fact]
-        public void Ternary_Expression19_NoDeclExpr()
         {
             var tree = UsingTree(@"T ? m(c? a =", TestOptions.Interactive);
             N(SyntaxKind.CompilationUnit);
@@ -5244,87 +5116,6 @@ fixed int x[10];
 
         [Fact]
         public void Ternary_Expression20()
-        {
-            var tree = UsingTree(@"T ? m(c? a = b ?", TestOptions.Interactive.WithLanguageVersion(LanguageVersion.Experimental));
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.ConditionalExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.DeclarationExpression);
-                                        {
-                                            N(SyntaxKind.NullableType);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken);
-                                                }
-                                                N(SyntaxKind.QuestionToken);
-                                            }
-                                            N(SyntaxKind.VariableDeclarator);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                                N(SyntaxKind.EqualsValueClause);
-                                                {
-                                                    N(SyntaxKind.EqualsToken);
-                                                    N(SyntaxKind.ConditionalExpression);
-                                                    {
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
-                                                        N(SyntaxKind.QuestionToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
-                                                        N(SyntaxKind.ColonToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                        }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-        }
-
-        [Fact]
-        public void Ternary_Expression20_NoDeclExpr()
         {
             var tree = UsingTree(@"T ? m(c? a = b ?", TestOptions.Interactive);
             N(SyntaxKind.CompilationUnit);
@@ -6789,74 +6580,6 @@ fixed int x[10];
 
         [Fact]
         public void Ternary_MethodDecl46()
-        {
-            var tree = UsingTree(@"T ? a(T ? a =", TestOptions.Interactive.WithLanguageVersion(LanguageVersion.Experimental));
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.ConditionalExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.DeclarationExpression);
-                                        {
-                                            N(SyntaxKind.NullableType);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken);
-                                                }
-                                                N(SyntaxKind.QuestionToken);
-                                            }
-                                            N(SyntaxKind.VariableDeclarator);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                                N(SyntaxKind.EqualsValueClause);
-                                                {
-                                                    N(SyntaxKind.EqualsToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                        }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-        }
-
-        [Fact]
-        public void Ternary_MethodDecl46_NoDeclExpr()
         {
             var tree = UsingTree(@"T ? a(T ? a =", TestOptions.Interactive);
             N(SyntaxKind.CompilationUnit);

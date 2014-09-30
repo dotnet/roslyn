@@ -48,11 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenStatement = MakeSwitchStatement(syntax, AddConditionSequencePoint(rewrittenExpression, node), rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.BreakLabel, node);
 
-            if (!node.OuterLocals.IsEmpty)
-            {
-                rewrittenStatement = new BoundBlock(syntax, node.OuterLocals, ImmutableArray.Create(rewrittenStatement));
-            }
-
             // Create the sequence point if generating debug info and
             // node is not compiler generated
             if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
@@ -113,7 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return oldNode.Update(
-                outerLocals: ImmutableArray<LocalSymbol>.Empty,
                 boundExpression: rewrittenExpression,
                 constantTargetOpt: constantTargetOpt,
                 innerLocals: locals,

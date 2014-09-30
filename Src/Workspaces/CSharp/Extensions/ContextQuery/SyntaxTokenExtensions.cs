@@ -271,26 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            // Check to see if the parser has treated this as a partially typed declaration expression.
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
-                token.Parent.IsKind(SyntaxKind.IdentifierName) &&
-                token.Parent.IsParentKind(SyntaxKind.DeclarationExpression))
-            {
-                var queryClause = token.Parent.FirstAncestorOrSelf<QueryClauseSyntax>();
-                if (queryClause == null)
-                {
-                    return false;
-                }
-
-                var declarationExpression = (DeclarationExpressionSyntax)token.Parent.Parent;
-                if (declarationExpression.Type == token.Parent &&
-                    declarationExpression.Variable != null &&
-                    declarationExpression.Variable.Initializer == null)
-                {
-                    return true;
-                }
-            }
-
             return false;
         }
 
@@ -364,14 +344,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // orderby a |
             // orderby a, b |
             var lastToken = ordering.Expression.GetLastToken(includeSkipped: true);
-
-            // In the following case, the parser may treat a partially typed keyword as part of a
-            // declaration expression:
-            //   orderby a a|
-            if (ordering.Expression.IsKind(SyntaxKind.DeclarationExpression))
-            {
-                lastToken = lastToken.GetPreviousToken(includeSkipped: true);
-            }
 
             if (targetToken == lastToken)
             {

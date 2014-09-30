@@ -23,7 +23,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(syntax.Declaration);
+            if (syntax.Declaration != null)
+            {
+                var locals = new ArrayBuilder<LocalSymbol>(syntax.Declaration.Variables.Count);
+                foreach (VariableDeclaratorSyntax declarator in syntax.Declaration.Variables)
+                {
+                    locals.Add(MakeLocal(syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
+                }
+
+                return locals.ToImmutable();
+            }
+
+            return ImmutableArray<LocalSymbol>.Empty;
         }
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)

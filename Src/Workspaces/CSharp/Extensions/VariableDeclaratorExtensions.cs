@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return variableDeclaration.Type;
             }
 
-            var declarationExpression = declarator.Parent as DeclarationExpressionSyntax;
-            if (declarationExpression != null)
-            {
-                return declarationExpression.Type;
-            }
-
             return null;
         }
 

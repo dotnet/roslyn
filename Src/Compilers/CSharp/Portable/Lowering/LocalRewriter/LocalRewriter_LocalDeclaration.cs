@@ -79,30 +79,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenLocalDeclaration;
         }
-
-        public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
-        {
-            var local = new BoundLocal(node.Syntax, node.LocalSymbol, null, node.LocalSymbol.Type);
-
-            if (node.InitializerOpt == null)
-            {
-                return local;
-            }
-
-            return new BoundSequence(node.Syntax, 
-                                     ImmutableArray<LocalSymbol>.Empty, 
-                                     ImmutableArray.Create<BoundExpression>(new BoundAssignmentOperator(
-                                                                                                        node.Syntax,
-                                                                                                        new BoundLocal(
-                                                                                                            local.Syntax,
-                                                                                                            local.LocalSymbol,
-                                                                                                            null,
-                                                                                                            local.Type
-                                                                                                        ),
-                                                                                                        VisitExpression(node.InitializerOpt),
-                                                                                                        local.Type)),
-                                     local,
-                                     local.Type);
-        }
     }
 }

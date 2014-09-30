@@ -282,7 +282,7 @@ class C
             }
         }
 
-        private static ImmutableArray<BoundInitializer> BindInitializersWithoutDiagnostics(SourceNamedTypeSymbol typeSymbol, ImmutableArray<FieldInitializers> initializers)
+        private static ImmutableArray<BoundInitializer> BindInitializersWithoutDiagnostics(SourceNamedTypeSymbol typeSymbol, ImmutableArray<ImmutableArray<FieldInitializer>> initializers)
         {
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             try

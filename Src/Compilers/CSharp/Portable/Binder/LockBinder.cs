@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -15,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(enclosing)
         {
             this.syntax = syntax;
-        }
-
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
-        {
-            return BuildLocals(syntax.Expression);
         }
 
         protected override ExpressionSyntax TargetExpressionSyntax
@@ -55,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
-            return new BoundLockStatement(syntax, this.Locals, expr, stmt, hasErrors);
+            Debug.Assert(this.Locals.IsDefaultOrEmpty);
+            return new BoundLockStatement(syntax, expr, stmt, hasErrors);
         }
     }
 }

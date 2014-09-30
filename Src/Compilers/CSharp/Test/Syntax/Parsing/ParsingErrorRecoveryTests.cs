@@ -176,21 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGlobalAttributeMissingCommaBetweenParameters()
         {
-            var text = "[assembly: a(b c d)";
-            var file = this.ParseTree(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Experimental));
-
-            Assert.NotNull(file);
-            Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.AttributeLists.Count);
-            Assert.Equal(0, file.Members.Count);
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
-        }
-
-        [Fact]
-        public void TestGlobalAttributeMissingCommaBetweenParameters_NoDeclExpr()
-        {
             var text = "[assembly: a(b c)";
             var file = this.ParseTree(text);
 

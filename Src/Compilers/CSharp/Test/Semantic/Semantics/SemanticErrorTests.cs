@@ -7414,36 +7414,6 @@ class Test
    }
 }
 ";
-            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyDiagnostics(
-                // (7,14): error CS0165: Use of unassigned local variable 'w'
-                //       using (StreamWriter w) // CS0210
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "StreamWriter w").WithArguments("w").WithLocation(7, 14),
-                // (12,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "x"),
-                // (12,30): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "y"));
-        }
-
-        [Fact]
-        public void CS0210ERR_FixedMustInit_NoDeclExpr()
-        {
-            var text = @"
-using System.IO;
-class Test 
-{
-   static void Main() 
-   {
-      using (StreamWriter w) // CS0210
-      {
-         w.WriteLine(""Hello there"");
-      }
-
-      using (StreamWriter x, y) // CS0210, CS0210
-      {
-      }
-   }
-}
-";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (7,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "w"),
@@ -12806,34 +12776,6 @@ public class A : Attribute
 
         [Fact]
         public void CS1525ERR_InvalidExprTerm()
-        {
-            CreateCompilationWithMscorlib(
-@"public class MyClass {
-
-    public static int Main() {
-        bool b = string is string;
-        return 1;
-    }
-
-}", parseOptions: Test.Utilities.TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental))
-                .VerifyDiagnostics(
-    // (4,25): error CS1001: Identifier expected
-    //         bool b = string is string;
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "is").WithLocation(4, 25),
-    // (4,25): error CS1002: ; expected
-    //         bool b = string is string;
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "is").WithLocation(4, 25),
-    // (4,25): error CS1525: Invalid expression term 'is'
-    //         bool b = string is string;
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(4, 25),
-    // (4,18): error CS0165: Use of unassigned local variable ''
-    //         bool b = string is string;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "string ").WithArguments("").WithLocation(4, 18)
-                );
-        }
-
-        [Fact]
-        public void CS1525ERR_InvalidExprTerm_NoDeclExpr()
         {
             CreateCompilationWithMscorlib(
 @"public class MyClass {

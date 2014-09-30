@@ -22,8 +22,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            Debug.Assert(syntax.Declaration == null || syntax.Expression == null);
-            return BuildLocals(syntax.Declaration ?? (CSharpSyntaxNode)syntax.Expression);
+            if (syntax.Declaration != null)
+            {
+                var locals = new ArrayBuilder<LocalSymbol>(syntax.Declaration.Variables.Count);
+                foreach (VariableDeclaratorSyntax declarator in syntax.Declaration.Variables)
+                {
+                    locals.Add(MakeLocal(syntax.Declaration, declarator, LocalDeclarationKind.UsingVariable));
+                }
+
+                return locals.ToImmutable();
+            }
+
+            return ImmutableArray<LocalSymbol>.Empty;
         }
 
         protected override ExpressionSyntax TargetExpressionSyntax

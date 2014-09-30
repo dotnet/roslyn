@@ -489,10 +489,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // no need for it to be previously assigned: it is on the left.
                     break;
 
-                case BoundKind.DeclarationExpression:
-                    VisitLvalueDeclarationExpression((BoundDeclarationExpression)node);
-                    break;
-
                 case BoundKind.FieldAccess:
                     {
                         BoundFieldAccess node1 = (BoundFieldAccess)node;
@@ -976,25 +972,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(node.InitializerOpt); // analyze the expression
             }
             return null;
-        }
-
-        public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
-        {
-            VisitDeclarationExpressionInitializer(node);
-            return null;
-        }
-
-        private void VisitDeclarationExpressionInitializer(BoundDeclarationExpression node)
-        {
-            if (node.InitializerOpt != null)
-            {
-                VisitRvalue(node.InitializerOpt); // analyze the expression
-            }
-        }
-
-        protected virtual void VisitLvalueDeclarationExpression(BoundDeclarationExpression node)
-        {
-            VisitDeclarationExpressionInitializer(node);
         }
 
         public override BoundNode VisitBlock(BoundBlock node)

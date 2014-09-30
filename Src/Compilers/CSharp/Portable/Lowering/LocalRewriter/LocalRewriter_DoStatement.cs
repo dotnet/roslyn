@@ -47,18 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // break:
 
-            if (!node.InnerLocals.IsDefaultOrEmpty)
-            {
-                return BoundStatementList.Synthesized(syntax, node.HasErrors,
-                    new BoundLabelStatement(syntax, startLabel),
-                    new BoundBlock(syntax,
-                                   node.InnerLocals,
-                                   ImmutableArray.Create<BoundStatement>(rewrittenBody,
-                                                                         new BoundLabelStatement(syntax, node.ContinueLabel),
-                                                                         ifConditionGotoStart)),
-                    new BoundLabelStatement(syntax, node.BreakLabel));
-            }
-
             return BoundStatementList.Synthesized(syntax, node.HasErrors,
                 new BoundLabelStatement(syntax, startLabel),
                 rewrittenBody,

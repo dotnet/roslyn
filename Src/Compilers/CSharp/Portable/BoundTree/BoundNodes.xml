@@ -38,11 +38,6 @@
     <Field Name="Statement" Type="BoundStatement"/>
   </Node>
 
-  <Node Name="BoundInitializationScope" Base="BoundInitializer">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" Null="disallow"/>
-    <Field Name="Initializers" Type="ImmutableArray&lt;BoundInitializer&gt;" Null="disallow"/>
-  </Node>
-	
   <AbstractNode Name="BoundExpression" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="allow"/>
   </AbstractNode>
@@ -639,8 +634,6 @@
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
-    <!-- Locals declared by the switch expression, should be moved into an outer block by the local rewriter. -->
-    <Field Name="OuterLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="BoundExpression" Type="BoundExpression"/>
     <Field Name="ConstantTargetOpt" Type="LabelSymbol" Null= "allow"/>
     
@@ -670,7 +663,6 @@
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundStatement"/>
     <Field Name="AlternativeOpt" Type="BoundStatement" Null="allow"/>
@@ -682,17 +674,11 @@
   </AbstractNode>
 
   <Node Name="BoundDoStatement" Base="BoundLoopStatement">
-    <!-- InnerLocals are the locals declared within Condition. 
-         They are in scope in the Body. -->
-    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
   <Node Name="BoundWhileStatement" Base="BoundLoopStatement">
-    <!-- InnerLocals are the locals declared within Condition. 
-         They are in scope in the Body. -->
-    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
@@ -701,18 +687,12 @@
     <!-- OuterLocals are the locals declared within the loop statement and are in scope throughout the whole loop statement, including the Initializer -->
     <Field Name="OuterLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Initializer" Type="BoundStatement" Null="allow"/>
-    <!-- InnerLocals are the locals declared within Condition and Increment. 
-         They are in scope in the Body, but not in a loop initialization. -->
-    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression" Null="allow"/>
     <Field Name="Increment" Type="BoundStatement" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
   <Node Name="BoundForEachStatement" Base="BoundLoopStatement">
-    <!-- OuterLocals are the locals declared within the loop statement and are in scope throughout the whole loop statement, including the Expression -->
-    <Field Name="OuterLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-
     <!-- Extracted information -->
     <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo" Null="allow"/>
     <Field Name="ElementConversion" Type="Conversion"/>
@@ -748,7 +728,6 @@
   </Node>
 
   <Node Name="BoundLockStatement" Base="BoundStatement">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Argument" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
@@ -790,12 +769,13 @@
 
   <Node Name="BoundCatchBlock" Base="BoundNode">
     <!-- 
-    Local symbols owned by the catch block. 
-    Exception variable (if present) and variables declared in filter via Declaration Expressions.
-    In the initial bound tree the exception variable (if present) is the first variable in the array.
-    After the node is lowered it might be another variable.
+    Local symbol owned by the catch block. 
+    Null if the catch syntax doesn't declare a local variable.
+    
+    In the initial bound tree this is the exception variable (if present).
+    After the node is lowered it might be another variable or null.
     -->
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="LocalOpt" Type="LocalSymbol" Null="allow"/>
 
     <!--
     Refers to the location where the exception object is stored. 
@@ -850,33 +830,6 @@
 
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
-  </Node>
-
-  <!--
-  Bound node that represents a single declaration expression:
-    int x = Foo()
-    
-  NOTE: The node does NOT introduce the referenced local into surrounding scope.
-        A local must be explicitly declared in a BoundBlock to be usable inside it.
-        
-  NOTE: In an error recovery scenario we might have a local declaration parsed as
-        int x[123] - This is an error commonly made by C++ developers who come to
-        C#. We will give a good error about it at parse time, but we should preserve
-        the semantic analysis of the argument list in the bound tree.
-  -->
-  <Node Name="BoundDeclarationExpression" Base="BoundExpression">
-    <Field Name="LocalSymbol" Type="LocalSymbol"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
-    <Field Name="InitializerOpt" Type="BoundExpression" Null="allow"/>
-    <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
-  </Node>
-
-  <!-- The node is transformed into BoundDeclarationExpression after successful inference -->
-  <Node Name="UninitializedVarDeclarationExpression" Base="BoundExpression">
-    <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-    <Field Name="LocalSymbol" Type="LocalSymbol"/>
-    <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
   </Node>
 
   <Node Name="BoundRangeVariable" Base="BoundExpression">

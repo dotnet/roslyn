@@ -236,14 +236,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitCatchBlock(BoundCatchBlock node)
             {
-                var locals = node.Locals;
+                var local = node.LocalOpt;
 
-                if (locals.IsDefaultOrEmpty)
+                if ((object)local == null)
                 {
                     return base.VisitCatchBlock(node);
                 }
 
-                var previousBlock = PushBlock(node, locals);
+                var previousBlock = PushBlock(node, ImmutableArray.Create(local));
                 var result = base.VisitCatchBlock(node);
                 PopBlock(previousBlock);
                 return node;
@@ -277,7 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
             {
-                Debug.Assert(node.OuterLocals.IsEmpty);
                 var locals = node.InnerLocals;
                 if (locals.IsEmpty)
                 {

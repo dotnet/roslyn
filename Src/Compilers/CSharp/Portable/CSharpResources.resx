@@ -3738,12 +3738,6 @@
   <data name="IDS_VersionExperimental" xml:space="preserve">
     <value>'experimental'</value>
   </data>
-  <data name="ERR_DeclarationExpressionOutOfContext" xml:space="preserve">
-    <value>A declaration expression is not permitted in this context.</value>
-  </data>
-  <data name="ERR_VariableUsedInTheSameArgumentList" xml:space="preserve">
-    <value>Reference to variable '{0}' is not permitted in this context.</value>
-  </data>
   <data name="PositionNotWithinTree" xml:space="preserve">
     <value>Position must be within span of the syntax tree.</value>
   </data>
@@ -3913,9 +3907,6 @@
   <data name="WRN_IdentifierOrNumericLiteralExpected" xml:space="preserve">
     <value>Expected identifier or numeric literal.</value>
   </data>
-  <data name="ERR_ImplementedInterfaceWithArguments" xml:space="preserve">
-    <value>Implemented interface cannot have arguments.</value>
-  </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
     <value>Only auto-implemented properties can have initializers.</value>
   </data>
@@ -3939,9 +3930,6 @@
   </data>
   <data name="ERR_BlockBodyAndExpressionBody" xml:space="preserve">
     <value>Methods cannot combine block bodies with expression bodies.</value>
-  </data>
-  <data name="ERR_ExpressionTreeContainsDeclarationExpression" xml:space="preserve">
-    <value>An expression tree may not contain a Declaration Expression.</value>
   </data>
   <data name="ERR_SwitchFallOut" xml:space="preserve">
     <value>Control cannot fall out of switch from final case label ('{0}')</value>

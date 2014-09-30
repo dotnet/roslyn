@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -320,9 +320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitArrayCreationExpression = 8652,
         StackAllocArrayCreationExpression = 8653,
         OmittedArraySizeExpression = 8654,
-        DeclarationExpression = 8655,
-        InterpolatedString = 8656,
-        ImplicitElementAccess = 8657,
+        InterpolatedString = 8655,
+        ImplicitElementAccess = 8656,
 
         // binary expressions
         AddExpression = 8668,

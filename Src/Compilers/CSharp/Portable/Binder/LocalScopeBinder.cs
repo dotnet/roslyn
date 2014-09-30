@@ -42,21 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        protected ImmutableArray<LocalSymbol> BuildLocals(CSharpSyntaxNode node)
-        {
-            Debug.Assert(node != null);
-            var walker = new BuildLocalsFromDeclarationsWalker(this, node);
-
-            walker.Visit(node);
-
-            if (walker.Locals != null)
-            {
-                return walker.Locals.ToImmutableAndFree();
-            }
-
-            return ImmutableArray<LocalSymbol>.Empty;
-        }
-
         internal sealed override ImmutableArray<LabelSymbol> Labels
         {
             get
@@ -122,313 +107,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements)
         {
-            var walker = new BuildLocalsFromDeclarationsWalker(this, null);
-
+            ArrayBuilder<LocalSymbol> locals = null;
             foreach (var statement in statements)
             {
-                walker.ScopeSegmentRoot = statement;
-                walker.Visit(statement);
+                var innerStatement = statement;
+
+                // drill into any LabeledStatements -- atomic LabelStatements have been bound into
+                // wrapped LabeledStatements by this point
+                while (innerStatement.Kind == SyntaxKind.LabeledStatement)
+                {
+                    innerStatement = ((LabeledStatementSyntax)innerStatement).Statement;
+                }
+
+                if (innerStatement.Kind == SyntaxKind.LocalDeclarationStatement)
+                {
+                    var decl = (LocalDeclarationStatementSyntax)innerStatement;
+                    if (locals == null)
+                    {
+                        locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                    }
+
+                    LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+
+                    foreach (var vdecl in decl.Declaration.Variables)
+                    {
+                        var localSymbol = MakeLocal(decl.Declaration, vdecl, kind);
+                        locals.Add(localSymbol);
+                    }
+                }
             }
 
-            walker.ScopeSegmentRoot = null;
-
-            if (walker.Locals != null)
+            if (locals != null)
             {
-                return walker.Locals.ToImmutableAndFree();
+                return locals.ToImmutableAndFree();
             }
 
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        public class BuildLocalsFromDeclarationsWalker : CSharpSyntaxWalker 
+        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
         {
-            public readonly Binder Binder;
-            public ArrayBuilder<LocalSymbol> Locals;
-
-            private CSharpSyntaxNode scopeSegmentRoot;
-
-            public BuildLocalsFromDeclarationsWalker(Binder binder, CSharpSyntaxNode scopeSegmentRoot)
+            SourceLocalSymbol localSymbol;
+            if (declarator.Initializer == null)
             {
-                Debug.Assert(binder != null);
-                this.Binder = binder;
-                this.scopeSegmentRoot = scopeSegmentRoot;
+                localSymbol = SourceLocalSymbol.MakeLocal(
+                                    this.ContainingMemberOrLambda,
+                                    this,
+                                    declaration.Type,
+                                    declarator.Identifier,
+                                    kind);
+            }
+            else
+            {
+                localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
+                                    this.ContainingMemberOrLambda,
+                                    this,
+                                    declaration.Type,
+                                    declarator.Identifier,
+                                    declarator.Initializer,
+                                    kind);
             }
 
-            public CSharpSyntaxNode ScopeSegmentRoot
-            {
-                get
-                {
-                    return scopeSegmentRoot;
-                }
-                set
-                {
-                    this.scopeSegmentRoot = value;
-                }
-            }
-
-            public override void VisitVariableDeclaration(VariableDeclarationSyntax node)
-            {
-                Debug.Assert(scopeSegmentRoot != null);
-
-                if (Locals == null)
-                {
-                    Locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                }
-
-                LocalDeclarationKind kind;
-
-                switch (node.Parent.CSharpKind())
-                {
-                    case SyntaxKind.LocalDeclarationStatement:
-                        var localDecl = (LocalDeclarationStatementSyntax)node.Parent;
-                        kind = localDecl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-                        break;
-
-                    case SyntaxKind.ForStatement:
-                        kind = LocalDeclarationKind.ForInitializerVariable;
-                        break;
-
-                    case SyntaxKind.UsingStatement:
-                        kind = LocalDeclarationKind.UsingVariable;
-                        break;
-
-                    case SyntaxKind.FixedStatement:
-                        kind = LocalDeclarationKind.FixedVariable;
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.Unreachable;
-                }
-
-                foreach (var vdecl in node.Variables)
-                {
-                    SourceLocalSymbol localSymbol;
-
-                    if (vdecl.Initializer == null)
-                    {
-                        localSymbol = SourceLocalSymbol.MakeLocal(
-                        Binder.ContainingMemberOrLambda,
-                        Binder,
-                        node.Type,
-                        vdecl.Identifier,
-                                            kind);
-                    }
-                    else
-                    {
-                        localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
-                                            Binder.ContainingMemberOrLambda,
-                                            Binder,
-                                            node.Type,
-                                            vdecl.Identifier,
-                        vdecl.Initializer,
-                        kind);
-                    }
-
-                    Locals.Add(localSymbol);
-
-                    Visit(vdecl.Initializer);
-                }
-            }
-
-            public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
-            {
-                Debug.Assert(scopeSegmentRoot != null);
-
-                if (Locals == null)
-                {
-                    Locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                }
-
-                SourceLocalSymbol localSymbol;
-
-                if (node.Variable.Initializer == null)
-                {
-                    if (node.Type.IsVar)
-                    {
-                        localSymbol = SourceLocalSymbol.MakePossibleOutVarLocalWithoutInitializer(
-                            Binder.ContainingMemberOrLambda,
-                            Binder,
-                            node.Type,
-                            node.Variable.Identifier,
-                            scopeSegmentRoot,
-                            LocalDeclarationKind.RegularVariable);
-                    }
-                    else
-                    {
-                        localSymbol = SourceLocalSymbol.MakeLocal(
-                            Binder.ContainingMemberOrLambda,
-                            Binder,
-                            node.Type,
-                            node.Variable.Identifier,
-                            LocalDeclarationKind.RegularVariable);
-                    }
-                }
-                else
-                {
-                    localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
-                    Binder.ContainingMemberOrLambda,
-                    Binder,
-                    node.Type,
-                    node.Variable.Identifier,
-                    node.Variable.Initializer,
-                    LocalDeclarationKind.RegularVariable);
-                }
-
-                Locals.Add(localSymbol);
-
-                Visit(node.Variable.Initializer);
-            }
-
-            public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
-            {
-                Debug.Assert(false);
-                base.VisitVariableDeclarator(node);
-            }
-
-            public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitFromClause(FromClauseSyntax node)
-            {
-                // Visit Expression only for a "from" clause that starts a query, it (the expression) doesn't become a body of a lambda.
-                var parent = node.Parent;
-
-                if (parent == null || (parent.Kind == SyntaxKind.QueryExpression && ((QueryExpressionSyntax)parent).FromClause == node))
-                {
-                    Visit(node.Expression);
-                }
-            }
-
-            public override void VisitLetClause(LetClauseSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitJoinClause(JoinClauseSyntax node)
-            {
-                Visit(node.InExpression);
-            }
-
-            public override void VisitWhereClause(WhereClauseSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitOrderByClause(OrderByClauseSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitSelectClause(SelectClauseSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitGroupClause(GroupClauseSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitBlock(BlockSyntax node)
-            {
-                    return;
-                }
-
-            public override void VisitForStatement(ForStatementSyntax node)
-            {
-                    return;
-                }
-
-            public override void VisitUsingStatement(UsingStatementSyntax node)
-            {
-                    return;
-                }
-
-            public override void VisitLockStatement(LockStatementSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitFixedStatement(FixedStatementSyntax node)
-            {
-                    return;
-                }
-
-            public override void VisitSwitchStatement(SwitchStatementSyntax node)
-            {
-                    return;
-                }
-
-            public override void VisitForEachStatement(ForEachStatementSyntax node)
-            {
-                    return;
-                }
-
-            public override void VisitWhileStatement(WhileStatementSyntax node)
-            {
-                    return;
-            }
-
-            public override void VisitDoStatement(DoStatementSyntax node)
-            {
-                    return;
-            }
-
-            public override void VisitCatchClause(CatchClauseSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitIfStatement(IfStatementSyntax node)
-            {
-                return;
-            }
-
-            public override void VisitBinaryExpression(BinaryExpressionSyntax node)
-            {
-                if (!IsSimpleBinaryOperator(node.Kind))
-                {
-                    base.VisitBinaryExpression(node);
-                    return;
-                }
-
-                // The simple binary operators are left-associative, and expressions of the form
-                // a + b + c + d .... are relatively common in machine-generated code. The parser can handle
-                // creating a deep-on-the-left syntax tree no problem, and then we promptly blow the stack during
-                // semantic analysis. Here we build an explicit stack to handle the left-hand recursion.
-
-                var operands = ArrayBuilder<ExpressionSyntax>.GetInstance();
-
-                ExpressionSyntax current = node;
-                do
-                {
-                    var binOp = (BinaryExpressionSyntax)current;
-                    operands.Push(binOp.Right);
-                    current = binOp.Left;
-                }
-                while (IsSimpleBinaryOperator(current.Kind));
-
-                Visit(current);
-
-                while (operands.Count > 0)
-                {
-                    Visit(operands.Pop());
-                }
-
-                operands.Free();
-            }
+            return localSymbol;
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)

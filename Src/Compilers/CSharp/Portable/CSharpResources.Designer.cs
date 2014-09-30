@@ -2951,15 +2951,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A declaration expression is not permitted in this context..
-        /// </summary>
-        internal static string ERR_DeclarationExpressionOutOfContext {
-            get {
-                return ResourceManager.GetString("ERR_DeclarationExpressionOutOfContext", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -3815,15 +3806,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a Declaration Expression..
-        /// </summary>
-        internal static string ERR_ExpressionTreeContainsDeclarationExpression {
-            get {
-                return ResourceManager.GetString("ERR_ExpressionTreeContainsDeclarationExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a dynamic operation.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsDynamicOperation {
@@ -4540,15 +4522,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ImplBadConstraints {
             get {
                 return ResourceManager.GetString("ERR_ImplBadConstraints", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Implemented interface cannot have arguments..
-        /// </summary>
-        internal static string ERR_ImplementedInterfaceWithArguments {
-            get {
-                return ResourceManager.GetString("ERR_ImplementedInterfaceWithArguments", resourceCulture);
             }
         }
         
@@ -8356,15 +8329,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_VariableUsedBeforeDeclarationAndHidesField {
             get {
                 return ResourceManager.GetString("ERR_VariableUsedBeforeDeclarationAndHidesField", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reference to variable &apos;{0}&apos; is not permitted in this context..
-        /// </summary>
-        internal static string ERR_VariableUsedInTheSameArgumentList {
-            get {
-                return ResourceManager.GetString("ERR_VariableUsedInTheSameArgumentList", resourceCulture);
             }
         }
         

@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
             // say that you can't convert "null" to "ref int".
-            if (!argument.HasExpressionType() && argument.Kind != BoundKind.UninitializedVarDeclarationExpression)
+            if (!argument.HasExpressionType())
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 if (argument.Kind == BoundKind.UnboundLambda)
@@ -921,10 +921,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         arg + 1,
                         refParm.ToDisplayString());
                 }
-            }
-            else if (argument.Kind == BoundKind.UninitializedVarDeclarationExpression)
-            {
-                Debug.Assert(false);
             }
             else
             {

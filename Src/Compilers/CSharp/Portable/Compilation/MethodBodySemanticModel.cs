@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static MethodBodySemanticModel Create(CSharpCompilation compilation, MethodSymbol owner, Binder rootBinder, ArrowExpressionClauseSyntax syntax)
         {
             Binder binder = new ExecutableCodeBinder(syntax, owner, rootBinder);
-            binder = new ScopedExpressionBinder(binder, syntax.Expression);
             return new MethodBodySemanticModel(compilation, owner, binder, syntax);
         }
 

@@ -173,12 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expr1.Kind != expr2.Kind)
             {
-                if ((expr1.Kind == BoundKind.Local && expr2.Kind == BoundKind.DeclarationExpression) ||
-                    (expr1.Kind == BoundKind.DeclarationExpression && expr2.Kind == BoundKind.Local))
-                {
-                    return expr1.ExpressionSymbol == expr2.ExpressionSymbol;
-                }
-
                 return false;
             }
 

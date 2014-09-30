@@ -308,26 +308,6 @@ class Res
 {
 }
 ";
-            CreateCompilationWithMscorlib(source, parseOptions: Test.Utilities.TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void ObjectDeclaredInLock_NoDeclExpr()
-        {
-            var source = @"
-class Test
-{
-    public static void Main()
-    {
-        lock (Res d = new Res ())// Invalid
-        {
-        }
-    }
-}
-class Res
-{
-}
-";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
                 //         lock (Res d = new Res ())// Invalid
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
