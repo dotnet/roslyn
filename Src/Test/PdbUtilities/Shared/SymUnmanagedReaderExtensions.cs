@@ -28,46 +28,14 @@ namespace Roslyn.Utilities.Pdb
             return method;
         }
 
-        /// <summary>
-        /// Returns local names indexed by slot.
-        /// </summary>
-        internal static ImmutableArray<string> GetLocalNames(this ISymUnmanagedReader symReader, int methodToken, int ilOffset, bool isScopeEndInclusive, uint? attributesToIgnore)
-        {
-            if (symReader == null)
-            {
-                return ImmutableArray<string>.Empty;
-            }
-            
-            var symMethod = symReader.GetBaselineMethod(methodToken);
-            return symMethod.GetLocalVariableSlots(ilOffset, isScopeEndInclusive, attributesToIgnore);
-        }
-
         internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method)
-        {
-            return GetLocalVariableSlots(method, offset: -1, isScopeEndInclusive: false, attributesToIgnoreOpt: null);
-        }
-
-        internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method, int offset, bool isScopeEndInclusive, uint? attributesToIgnoreOpt)
         {
             var builder = ImmutableArray.CreateBuilder<string>();
             ISymUnmanagedScope rootScope = method.GetRootScope();
-            bool haveAttributesToIgnore = attributesToIgnoreOpt.HasValue;
-            uint attributesToIgnore = attributesToIgnoreOpt.GetValueOrDefault();
 
-            ForEachLocalVariableRecursive(rootScope, offset, isScopeEndInclusive, local =>
+            ForEachLocalVariableRecursive(rootScope, offset: -1, isScopeEndInclusive: false, action: local =>
             {
-                if (haveAttributesToIgnore)
-                {
-                    uint attributes;
-                    local.GetAttributes(out attributes);
-                    if (attributes == attributesToIgnore)
-                    {
-                        return;
-                    }
-                }
-
-                int slot;
-                local.GetAddressField1(out slot);
+                var slot = local.GetSlot();
                 while (builder.Count <= slot)
                 {
                     builder.Add(null);
@@ -192,6 +160,13 @@ namespace Roslyn.Utilities.Pdb
             return locals;
         }
 
+        internal static int GetSlot(this ISymUnmanagedVariable local)
+        {
+            int slot;
+            local.GetAddressField1(out slot);
+            return slot;
+        }
+
         public static string GetName(this ISymUnmanagedVariable local)
         {
             int numAvailable;
@@ -274,8 +249,6 @@ namespace Roslyn.Utilities.Pdb
             variable.GetSignature(0, out n, null);
             var bytes = new byte[n];
             variable.GetSignature(n, out n, bytes);
-            int slot;
-            variable.GetAddressField1(out slot);
             return bytes;
         }
     }
