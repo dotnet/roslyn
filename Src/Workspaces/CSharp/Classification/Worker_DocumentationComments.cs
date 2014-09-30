@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
             // NOTE: the "EndOfComment" token is a special, zero width token.  However, if it's a multi-line xml doc comment
             // the final '*/" will be leading exterior trivia on it.
-            ClassifyExteriorTrivia(documentationComment.EndOfComment.LeadingTrivia);
+            ClassifyXmlTrivia(documentationComment.EndOfComment.LeadingTrivia);
         }
 
         private void ClassifyXmlNode(XmlNodeSyntax node)
@@ -59,14 +60,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyExteriorTrivia(SyntaxTriviaList triviaList)
+        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList, string whitespaceClassificationType = null)
         {
             foreach (var t in triviaList)
             {
-                if (t.CSharpKind() == SyntaxKind.DocumentationCommentExteriorTrivia)
+                switch (t.CSharpKind())
                 {
-                    AddClassification(t, ClassificationTypeNames.XmlDocCommentDelimiter);
+                    case SyntaxKind.DocumentationCommentExteriorTrivia:
+                        ClassifyExteriorTrivia(t);
+                        break;
+
+                    case SyntaxKind.WhitespaceTrivia:
+                        if (whitespaceClassificationType != null)
+                        {
+                            AddClassification(t, whitespaceClassificationType);
+                        }
+
+                        break;
                 }
+            }
+        }
+
+        private void ClassifyExteriorTrivia(SyntaxTrivia trivia)
+        {
+            // Note: The exterior trivia can contain whitespace (usually leading) and we want to avoid classifying it.
+            // However, meaningful exterior trivia can also have an undetermined length in the case of
+            // multiline doc comments.
+
+            // For example:
+            //
+            //     /**<summary>
+            //      ********* Foo
+            //      ******* </summary>*/
+
+            // PERFORMANCE:
+            // While the call to SyntaxTrivia.ToString() looks like an allocation, it isn't.
+            // The SyntaxTrivia green node holds the string text of the trivia in a field and ToString()
+            // just returns a reference to that.
+            var text = trivia.ToString();
+
+            int? spanStart = null;
+
+            for (var index = 0; index < text.Length; index++)
+            {
+                var ch = text[index];
+
+                if (spanStart != null && char.IsWhiteSpace(ch))
+                {
+                    var span = TextSpan.FromBounds(spanStart.Value, spanStart.Value + index);
+                    AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter);
+                    spanStart = null;
+                }
+                else if (spanStart == null && !char.IsWhiteSpace(ch))
+                {
+                    spanStart = trivia.Span.Start + index;
+                }
+            }
+
+            // Add a final classification if we hadn't encountered anymore whitespace at the end.
+            if (spanStart != null)
+            {
+                var span = TextSpan.FromBounds(spanStart.Value, trivia.Span.End);
+                AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter);
             }
         }
 
@@ -74,14 +129,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             if (token.HasLeadingTrivia)
             {
-                ClassifyExteriorTrivia(token.LeadingTrivia);
+                ClassifyXmlTrivia(token.LeadingTrivia, classificationType);
             }
 
             AddClassification(token, classificationType);
 
             if (token.HasTrailingTrivia)
             {
-                ClassifyExteriorTrivia(token.TrailingTrivia);
+                ClassifyXmlTrivia(token.TrailingTrivia, classificationType);
             }
         }
 
@@ -91,14 +146,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 if (token.HasLeadingTrivia)
                 {
-                    ClassifyExteriorTrivia(token.LeadingTrivia);
+                    ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
                 }
 
                 ClassifyXmlTextToken(token);
 
                 if (token.HasTrailingTrivia)
                 {
-                    ClassifyExteriorTrivia(token.TrailingTrivia);
+                    ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
                 }
             }
         }
@@ -109,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference);
             }
-            else if (!string.IsNullOrWhiteSpace(token.ToString()))
+            else if (token.CSharpKind() != SyntaxKind.XmlTextLiteralNewLineToken)
             {
                 switch (token.Parent.CSharpKind())
                 {

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
@@ -54,36 +55,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 End Select
             End Sub
 
-            Private Sub ClassifyExteriorTrivia(triviaList As SyntaxTriviaList)
-                For Each trivie In triviaList
-                    If trivie.VisualBasicKind = SyntaxKind.DocumentationCommentExteriorTrivia Then
-                        _worker.AddClassification(trivie, ClassificationTypeNames.XmlDocCommentDelimiter)
+            Private Sub ClassifyXmlTrivia(trivialList As SyntaxTriviaList, Optional whitespaceClassificationType As String = Nothing)
+                For Each t In trivialList
+                    Select Case t.VisualBasicKind()
+                        Case SyntaxKind.DocumentationCommentExteriorTrivia
+                            ClassifyExteriorTrivia(t)
+                        Case SyntaxKind.WhitespaceTrivia
+                            If whitespaceClassificationType IsNot Nothing Then
+                                _worker.AddClassification(t, whitespaceClassificationType)
+                            End If
+                    End Select
+                Next
+            End Sub
+
+            Private Sub ClassifyExteriorTrivia(trivia As SyntaxTrivia)
+                ' Note: The exterior trivia can contain whitespace (usually leading) and we want to avoid classifying it.
+
+                ' PERFORMANCE:
+                ' While the call to SyntaxTrivia.ToString() looks Like an allocation, it isn't.
+                ' The SyntaxTrivia green node holds the string text of the trivia in a field And ToString()
+                ' just returns a reference to that.
+                Dim text = trivia.ToString()
+
+                Dim spanStart As Integer? = Nothing
+
+                For index = 0 To text.Length - 1
+                    Dim ch = text(index)
+
+                    If spanStart IsNot Nothing AndAlso Char.IsWhiteSpace(ch) Then
+                        Dim span = TextSpan.FromBounds(spanStart.Value, spanStart.Value + index)
+                        _worker.AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter)
+                        spanStart = Nothing
+                    ElseIf spanStart Is Nothing AndAlso Not Char.IsWhiteSpace(ch) Then
+                        spanStart = trivia.Span.Start + index
                     End If
                 Next
+
+                ' Add a final classification if we hadn't encountered anymore whitespace at the end
+                If spanStart IsNot Nothing Then
+                    Dim span = TextSpan.FromBounds(spanStart.Value, trivia.Span.End)
+                    _worker.AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter)
+                End If
             End Sub
 
             Private Sub AddXmlClassification(token As SyntaxToken, classificationType As String)
                 If token.HasLeadingTrivia Then
-                    ClassifyExteriorTrivia(token.LeadingTrivia)
+                    ClassifyXmlTrivia(token.LeadingTrivia, classificationType)
                 End If
 
                 _worker.AddClassification(token, classificationType)
 
                 If token.HasTrailingTrivia Then
-                    ClassifyExteriorTrivia(token.TrailingTrivia)
+                    ClassifyXmlTrivia(token.TrailingTrivia, classificationType)
                 End If
             End Sub
 
             Private Sub ClassifyXmlTextTokens(textTokens As SyntaxTokenList)
                 For Each token In textTokens
                     If token.HasLeadingTrivia Then
-                        ClassifyExteriorTrivia(token.LeadingTrivia)
+                        ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType:=ClassificationTypeNames.XmlDocCommentText)
                     End If
 
                     ClassifyXmlTextToken(token)
 
                     If token.HasTrailingTrivia Then
-                        ClassifyExteriorTrivia(token.TrailingTrivia)
+                        ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType:=ClassificationTypeNames.XmlDocCommentText)
                     End If
                 Next token
             End Sub
@@ -91,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Private Sub ClassifyXmlTextToken(token As SyntaxToken)
                 If token.VisualBasicKind = SyntaxKind.XmlEntityLiteralToken Then
                     _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference)
-                ElseIf Not String.IsNullOrWhiteSpace(token.ToString()) Then
+                ElseIf token.VisualBasicKind() <> SyntaxKind.DocumentationCommentLineBreakToken Then
                     Select Case token.Parent.VisualBasicKind
                         Case SyntaxKind.XmlText
                             _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentText)
