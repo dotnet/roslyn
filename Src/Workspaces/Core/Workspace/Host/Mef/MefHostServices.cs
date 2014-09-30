@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                             var assembly = svctype.AssemblyQualifiedName;
                             var kind = this.workspaceServices.Workspace.Kind;
                             var tempServices = this.services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata, lz.Metadata.ServiceType)).ToArray();
-                            var serviceMap = this.serviceMap.Select(kv => ValueTuple.Create(kv.Key, kv.Value.Value, kv.Value.Metadata)).ToArray();
+                            var serviceMap = this.serviceMap.Select(kv => ValueTuple.Create(kv.Key, kv.Value == null ? null : kv.Value.Value, kv.Value == null ? null : kv.Value.Metadata)).ToArray();
 
                             ExceptionHelpers.Crash(new Exception("Crash"));
 
