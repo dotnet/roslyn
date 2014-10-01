@@ -112,20 +112,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             if (intersectingTypes.Any())
                             {
                                 var resultantIntersectingType = intersectingTypes.First();
-                                if (resultantIntersectingType.TypeArguments.Any(n => n is ITypeParameterSymbol))
+
+                                // If the resultant intersecting type contains any Type arguments that could be replaced 
+                                // using the type contraints then recursively update the type until all constraints are appropriately handled
+                                var typeConstraintConvertedType = resultantIntersectingType.Accept(this);
+                                var knownsimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, compilation, cancellationToken);
+                                if (knownsimilarTypesInCompilation.Any())
                                 {
-                                    // If the resultant intersecting type contains any Type arguments that could be replaced 
-                                    // using the type contraints then recursively update the type until all constraints are appropriately handled
-                                    var typeConstraintConvertedType = resultantIntersectingType.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameterNames, solution, cancellationToken));
-                                    var knownsimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, compilation, cancellationToken);
-                                    if (knownsimilarTypesInCompilation.Any())
-                                    {
-                                        return knownsimilarTypesInCompilation.First();
-                                    }
+                                    return knownsimilarTypesInCompilation.First();
                                 }
 
                                 var resultantSimilarKnownTypes = SymbolFinder.FindSimilarSymbols(resultantIntersectingType, compilation, cancellationToken);
-                                return resultantSimilarKnownTypes.Any() ? resultantSimilarKnownTypes.First() : (ITypeSymbol)symbol;
+                                return resultantSimilarKnownTypes.FirstOrDefault() ?? (ITypeSymbol)symbol;
                             }
                         }
 
