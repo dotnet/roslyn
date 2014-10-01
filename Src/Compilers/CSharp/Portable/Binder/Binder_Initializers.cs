@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void BindFieldInitializers(
             SourceMemberContainerTypeSymbol typeSymbol,
             MethodSymbol scriptCtor,
-            ImmutableArray<ImmutableArray<FieldInitializer>> fieldInitializers,
+            ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> fieldInitializers,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
             ref ProcessedFieldInitializers processedInitializers) //by ref so that we can store the results of lowering
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<BoundInitializer> BindFieldInitializers(
             SourceMemberContainerTypeSymbol containingType,
             MethodSymbol scriptCtor,
-            ImmutableArray<ImmutableArray<FieldInitializer>> initializers,
+            ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             DiagnosticBag diagnostics,
             bool generateDebugInfo,
             out ConsList<Imports> firstDebugImports)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static void BindRegularCSharpFieldInitializers(
             CSharpCompilation compilation,
-            ImmutableArray<ImmutableArray<FieldInitializer>> initializers,
+            ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
             DiagnosticBag diagnostics,
             bool generateDebugInfo,
@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             firstDebugImports = null;
 
-            foreach (ImmutableArray<FieldInitializer> siblingInitializers in initializers)
+            foreach (ImmutableArray<FieldOrPropertyInitializer> siblingInitializers in initializers)
             {
                 // All sibling initializers share the same parent node and tree so we can reuse the binder 
                 // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because
                 // individual fields might have their own binders (e.g. because of being declared unsafe).
                 BinderFactory binderFactory = null;
 
-                foreach (FieldInitializer initializer in siblingInitializers)
+                foreach (FieldOrPropertyInitializer initializer in siblingInitializers)
                 {
                     FieldSymbol fieldSymbol = initializer.Field;
                     Debug.Assert((object)fieldSymbol != null);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// statements.  There are no restrictions on accessing instance members.
         /// </summary>
         private static void BindScriptFieldInitializers(CSharpCompilation compilation, MethodSymbol scriptCtor,
-            ImmutableArray<ImmutableArray<FieldInitializer>> initializers, ArrayBuilder<BoundInitializer> boundInitializers, DiagnosticBag diagnostics,
+            ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers, ArrayBuilder<BoundInitializer> boundInitializers, DiagnosticBag diagnostics,
             bool generateDebugInfo, out ConsList<Imports> firstDebugImports)
         {
             Debug.Assert((object)scriptCtor != null);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < initializers.Length; i++)
             {
-                ImmutableArray<FieldInitializer> siblingInitializers = initializers[i];
+                ImmutableArray<FieldOrPropertyInitializer> siblingInitializers = initializers[i];
 
                 // All sibling initializers share the same parent node and tree so we can reuse the binder 
                 // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because

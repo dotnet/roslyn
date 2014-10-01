@@ -800,14 +800,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class MembersAndInitializers
         {
             internal readonly ImmutableArray<Symbol> NonTypeNonIndexerMembers;
-            internal readonly ImmutableArray<ImmutableArray<FieldInitializer>> StaticInitializers;
-            internal readonly ImmutableArray<ImmutableArray<FieldInitializer>> InstanceInitializers;
+            internal readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers;
+            internal readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers;
             internal readonly ImmutableArray<SyntaxReference> IndexerDeclarations;
 
             public MembersAndInitializers(
                 ImmutableArray<Symbol> nonTypeNonIndexerMembers,
-                ImmutableArray<ImmutableArray<FieldInitializer>> staticInitializers,
-                ImmutableArray<ImmutableArray<FieldInitializer>> instanceInitializers,
+                ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers,
+                ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> instanceInitializers,
                 ImmutableArray<SyntaxReference> indexerDeclarations)
             {
                 Debug.Assert(!nonTypeNonIndexerMembers.IsDefault);
@@ -826,12 +826,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<ImmutableArray<FieldInitializer>> StaticInitializers
+        internal ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers
         {
             get { return GetMembersAndInitializers().StaticInitializers; }
         }
 
-        internal ImmutableArray<ImmutableArray<FieldInitializer>> InstanceInitializers
+        internal ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers
         {
             get { return GetMembersAndInitializers().InstanceInitializers; }
         }
@@ -2048,8 +2048,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private class MembersAndInitializersBuilder
         {
             public ArrayBuilder<Symbol> NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance();
-            public ArrayBuilder<ImmutableArray<FieldInitializer>> StaticInitializers = ArrayBuilder<ImmutableArray<FieldInitializer>>.GetInstance();
-            public ArrayBuilder<ImmutableArray<FieldInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldInitializer>>.GetInstance();
+            public ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
+            public ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
             public ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
 
             public MembersAndInitializers ToReadOnlyAndFree()
@@ -2414,7 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
-            ArrayBuilder<FieldInitializer> initializers = null;
+            ArrayBuilder<FieldOrPropertyInitializer> initializers = null;
 
             // The previous enum constant used to calculate subsequent
             // implicit enum constants. (This is the most recent explicit
@@ -2469,23 +2469,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddInitializers(ref result.StaticInitializers, initializers);
         }
 
-        private static void AddInitializer(ref ArrayBuilder<FieldInitializer> initializers, FieldSymbol field, CSharpSyntaxNode node)
+        private static void AddInitializer(ref ArrayBuilder<FieldOrPropertyInitializer> initializers, FieldSymbol field, CSharpSyntaxNode node)
         {
             if (initializers == null)
             {
-                initializers = new ArrayBuilder<FieldInitializer>();
+                initializers = new ArrayBuilder<FieldOrPropertyInitializer>();
             }
 
-            initializers.Add(new FieldInitializer(field, node.GetReferenceOrNull()));
+            initializers.Add(new FieldOrPropertyInitializer(field, node.GetReferenceOrNull()));
         }
 
-        private static void AddInitializers(ref ArrayBuilder<ImmutableArray<FieldInitializer>> allInitializers, ArrayBuilder<FieldInitializer> siblings)
+        private static void AddInitializers(ref ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> allInitializers, ArrayBuilder<FieldOrPropertyInitializer> siblings)
         {
             if (siblings != null)
             {
                 if (allInitializers == null)
                 {
-                    allInitializers = new ArrayBuilder<ImmutableArray<FieldInitializer>>();
+                    allInitializers = new ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>();
                 }
 
                 allInitializers.Add(siblings.ToImmutableAndFree());
@@ -2608,7 +2608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldInitializer>> staticInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)
         {
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
@@ -2701,8 +2701,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var bodyBinder = this.GetBinder(firstMember);
             bool globalCodeAllowed = IsGlobalCodeAllowed(firstMember.Parent);
 
-            ArrayBuilder<FieldInitializer> staticInitializers = null;
-            ArrayBuilder<FieldInitializer> instanceInitializers = null;
+            ArrayBuilder<FieldOrPropertyInitializer> staticInitializers = null;
+            ArrayBuilder<FieldOrPropertyInitializer> instanceInitializers = null;
 
             foreach (var m in members)
             {

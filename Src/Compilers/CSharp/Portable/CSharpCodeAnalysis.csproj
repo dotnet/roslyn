@@ -521,7 +521,7 @@
     <Compile Include="Symbols\EventSymbol.cs" />
     <Compile Include="Symbols\EventSymbolExtensions.cs" />
     <Compile Include="Symbols\ExtendedErrorTypeSymbol.cs" />
-    <Compile Include="Symbols\FieldInitializer.cs" />
+    <Compile Include="Symbols\FieldOrPropertyInitializer.cs" />
     <Compile Include="Symbols\FieldSymbol.cs" />
     <Compile Include="Symbols\LabelSymbol.cs" />
     <Compile Include="Symbols\LexicalSortKey.cs" />
