@@ -64,9 +64,8 @@ namespace TestTemplate
             {
                 var compilation = project.GetCompilationAsync().GetAwaiter().GetResult();
 
-                var driver = GetAnalyzerDriver(analyzer, compilation.Language);
+                var driver = AnalyzerDriver.Create(compilation, ImmutableArray.Create(analyzer), null, out compilation, CancellationToken.None);
 
-                compilation = compilation.WithEventQueue(driver.CompilationEventQueue);
                 var discarded = compilation.GetDiagnostics();
                 var diags = driver.GetDiagnosticsAsync().GetAwaiter().GetResult();
                 foreach (var diag in diags)
@@ -93,20 +92,6 @@ namespace TestTemplate
             var results = SortDiagnostics(diagnostics);
             diagnostics.Clear();
             return results;
-        }
-
-        private static AnalyzerDriver GetAnalyzerDriver(DiagnosticAnalyzer analyzer, string language)
-        {
-            if (language == LanguageNames.CSharp)
-            {
-                return new AnalyzerDriver<CSharp.SyntaxKind>(ImmutableArray.Create(analyzer), n => n.CSharpKind(), null, CancellationToken.None);
-            }
-            else if (language == LanguageNames.VisualBasic)
-            {
-                return new AnalyzerDriver<VisualBasic.SyntaxKind>(ImmutableArray.Create(analyzer), n => n.VisualBasicKind(), null, CancellationToken.None);
-            }
-
-            return null;
         }
 
         /// <summary>

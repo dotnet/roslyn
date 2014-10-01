@@ -52,10 +52,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             get; private set;
         }
 
-        internal static Compilation AttachAnalyzerDriverToCompilation(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, out AnalyzerDriver analyzerDriver3, AnalyzerOptions options, CancellationToken cancellationToken)
+        /// <summary>
+        /// Create an <see cref="AnalyzerDriver"/> and attach it to the given compilation. 
+        /// </summary>
+        /// <param name="compilation">The compilation to which the new driver should be attached.</param>
+        /// <param name="analyzers">The set of analyzers to include in the analysis.</param>
+        /// <param name="options">Options that are passed to analyzers.</param>
+        /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
+        /// <param name="cancellationToken">a cancellation token that can be used to abort analysis</param>
+        /// <returns>A newly created analyzer driver</returns>
+        /// <remarks>
+        /// Note that since a compilation is immutable, the act of creating a driver and attaching it, produces
+        /// a new compilation. Any further actions on the compilation should use the new compilation.
+        /// </remarks>
+        public static AnalyzerDriver Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, out Compilation newCompilation, CancellationToken cancellationToken)
         {
-            analyzerDriver3 = compilation.AnalyzerForLanguage(analyzers, options, cancellationToken);
-            return compilation.WithEventQueue(analyzerDriver3.CompilationEventQueue);
+            AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, options, cancellationToken);
+            newCompilation = compilation.WithEventQueue(analyzerDriver.CompilationEventQueue);
+            return analyzerDriver;
         }
 
         /// <summary>
@@ -582,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static Diagnostic GetAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
+        protected static Diagnostic GetAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
         {
             return Diagnostic.Create(GetDiagnosticDescriptor(analyzer.GetType().ToString(), e.Message), Location.None);
         }
@@ -625,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Otherwise if it returns false, then the exception is not handled by the driver.
         /// If null, then the driver always handles the exception.
         /// </param>
-        public AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TSyntaxKind> getKind, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null) : base(analyzers, options, cancellationToken, continueOnAnalyzerException)
+        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TSyntaxKind> getKind, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null) : base(analyzers, options, cancellationToken, continueOnAnalyzerException)
         {
             GetKind = getKind;
         }
