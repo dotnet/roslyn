@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class CompilationErrorTests : CompilingTestBase
     {
-        #region "Symbol Error Tests"
+        #region Symbol Error Tests
 
         private static readonly ModuleMetadata mod1 = ModuleMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestMod01);
         private static readonly ModuleMetadata mod2 = ModuleMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestMod02);
@@ -13570,6 +13570,34 @@ namespace TestNamespace
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (9,20): error CS0842: 'TestNamespace.Str.Num': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)
                 Diagnostic(ErrorCode.ERR_ExplicitLayoutAndAutoImplementedProperty, "Num").WithArguments("TestNamespace.Str.Num"));
+        }
+
+        [Fact]
+        [WorkItem(1032724)]
+        public void CS0842ERR_ExplicitLayoutAndAutoImplementedProperty_Bug1032724()
+        {
+            var text = @"
+using System.Runtime.InteropServices;
+
+namespace TestNamespace
+{
+    [StructLayout(LayoutKind.Explicit)]
+    struct Str
+    {
+        public static int Num
+        {
+            get;
+            set;
+        }
+
+        static int Main()
+        {
+            return 1;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
         [Fact]

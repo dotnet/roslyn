@@ -1,17 +1,14 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbol lazyType;
 
         /// <summary>
-        /// Set in constructor, might be changed while decoding <see cref="System.Runtime.CompilerServices.IndexerNameAttribute"/>.
+        /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
         /// </summary>
         private string sourceName;
 
@@ -335,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.explicitInterfaceImplementations =
                 (object)explicitlyImplementedProperty == null ?
                     ImmutableArray<PropertySymbol>.Empty :
-                    ImmutableArray.Create<PropertySymbol>(explicitlyImplementedProperty);
+                    ImmutableArray.Create(explicitlyImplementedProperty);
         }
 
         internal bool IsExpressionBodied
@@ -477,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<SyntaxReference>(syntaxRef);
+                return ImmutableArray.Create(syntaxRef);
             }
         }
 
@@ -1082,8 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var lazyCustomAttributesBag = this.lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
-                    var data = (PropertyEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
-                    return data != null ? data.ObsoleteAttributeData : null;
+                    return ((PropertyEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData)?.ObsoleteAttributeData;
                 }
 
                 return ObsoleteAttributeData.Uninitialized;
@@ -1092,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            Debug.Assert(arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -1123,13 +1119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
-            if (this.IsAutoProperty)
+            if (this.IsAutoProperty && !this.IsStatic && this.ContainingType.Layout.Kind == LayoutKind.Explicit)
             {
-                if (this.ContainingType.Layout.Kind == LayoutKind.Explicit)
-                {
-                    // error CS0842: '<property>': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)
-                    diagnostics.Add(ErrorCode.ERR_ExplicitLayoutAndAutoImplementedProperty, this.Location, this);
-                }
+                // error CS0842: '<property>': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)
+                diagnostics.Add(ErrorCode.ERR_ExplicitLayoutAndAutoImplementedProperty, this.Location, this);
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
