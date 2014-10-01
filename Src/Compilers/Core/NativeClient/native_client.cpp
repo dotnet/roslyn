@@ -56,7 +56,7 @@ wstring GetCurrentDirectory()
 
 // Returns the arguments passed to the executable (including
 // the executable name)
-std::unique_ptr<LPCWSTR, decltype(&::LocalFree)> GetCommandLineArgs(int &argsCount)
+std::unique_ptr<LPCWSTR, decltype(&::LocalFree)> GetCommandLineArgs(_Out_ int& argsCount)
 {
     auto args = const_cast<LPCWSTR*>(CommandLineToArgvW(GetCommandLine(), &argsCount));
     if (args == nullptr) 
@@ -93,7 +93,7 @@ bool IsConsole(FILE *fd)
 
 // Output a unicode string, taking into account console code pages 
 // and possible /utf8output options.
-void OutputWideString(FILE * outputFile, wstring str, bool utf8Output)
+void OutputWideString(_In_ FILE * outputFile, _In_ const wstring str, bool utf8Output)
 {
     UINT cp;
 
@@ -115,7 +115,7 @@ void OutputWideString(FILE * outputFile, wstring str, bool utf8Output)
 }
 
 // Output the response we got back from the server onto our stdout and stderr.
-void OutputResponse(const CompletedResponse &response)
+void OutputResponse(_In_ const CompletedResponse& response)
 {
 	auto utf8output = response.Utf8Output;
     OutputWideString(stdout, response.Output, utf8output);
@@ -126,7 +126,7 @@ void OutputResponse(const CompletedResponse &response)
 // will be in the same directory as the client EXE. This allows us to support
 // side-by-side install of different compilers. We only connect to servers that
 // have the expected full process path.
-bool GetExpectedProcessPath(LPWSTR szProcessName, int cch)
+bool GetExpectedProcessPath(_Out_writes_z_(cch) LPWSTR szProcessName, int cch)
 {
     if (GetModuleFileNameW(NULL, szProcessName, cch) != 0)
     {
@@ -169,13 +169,14 @@ HANDLE ConnectToProcess(DWORD processID, int timeoutMs)
 /// <param name='keepAlive'>
 /// Set to the empty string if no keepAlive should be used
 /// </param>
+_Success_(return != false)
 bool TryCompile(HANDLE pipeHandle,
-                RequestLanguage language,
-                LPCWSTR currentDirectory,
-				list<wstring>& commandLineArgs,
-                LPCWSTR libEnvVariable,
-				wstring& keepAlive,
-                CompletedResponse &response)
+				RequestLanguage language,
+                _In_z_ LPCWSTR currentDirectory,
+				_In_ const list<wstring>& commandLineArgs,
+                _In_opt_z_ LPCWSTR libEnvVariable,
+				_In_ const wstring& keepAlive,
+                _Out_ CompletedResponse& response)
 {
 	auto request = Request(language, currentDirectory);
 	request.AddCommandLineArguments(commandLineArgs);
@@ -206,10 +207,11 @@ bool TryCompile(HANDLE pipeHandle,
 }
 
 // Get the process ids of all processes on the system.
-bool GetAllProcessIds(vector<DWORD> &processes)
+bool GetAllProcessIds(_Out_ vector<DWORD>& processes)
 {
     Log(IDS_EnumeratingProcessIDs);
 
+	processes.clear();
     processes.resize(64);
     DWORD bytesWritten;
 
@@ -267,7 +269,7 @@ void SetupDevDivEnvironment()
 // Start a new server process with the given executable name,
 // and return the process id of the process. On error, return
 // zero.
-DWORD CreateNewServerProcess(LPCWSTR executablePath)
+DWORD CreateNewServerProcess(_In_z_ LPCWSTR executablePath)
 {
     STARTUPINFO startupInfo;
     PROCESS_INFORMATION processInfo;
@@ -339,7 +341,7 @@ DWORD CreateNewServerProcess(LPCWSTR executablePath)
 }
 
 // Get the full name of a process.
-bool ProcessHasSameName(HANDLE processHandle, LPCWSTR expectedName)
+bool ProcessHasSameName(HANDLE processHandle, _In_z_ LPCWSTR expectedName)
 {
     // Get the process name.
 	WCHAR buffer[MAX_PATH] = {};
@@ -353,8 +355,8 @@ bool ProcessHasSameName(HANDLE processHandle, LPCWSTR expectedName)
 }
 
 BOOL GetTokenUserAndElevation(HANDLE tokenHandle,
-                              unique_ptr<TOKEN_USER> &userInfo,
-                              unique_ptr<TOKEN_ELEVATION> &userElevation)
+                              _Out_ unique_ptr<TOKEN_USER>& userInfo,
+                              _Out_ unique_ptr<TOKEN_ELEVATION>& userElevation)
 {
     DWORD requiredLength;
     GetTokenInformation(tokenHandle, TokenUser, NULL, 0, &requiredLength);
@@ -370,8 +372,8 @@ BOOL GetTokenUserAndElevation(HANDLE tokenHandle,
 }
 
 bool ProcessHasSameUserAndElevation(HANDLE processHandle,
-                                    TOKEN_USER const * firstInfo,
-                                    TOKEN_ELEVATION const * firstElevation)
+                                    _In_ TOKEN_USER const * firstInfo,
+                                    _In_ TOKEN_ELEVATION const * firstElevation)
 {
     HANDLE tokenHandle;
     if (OpenProcessToken(processHandle, TOKEN_QUERY, &tokenHandle))
@@ -396,7 +398,7 @@ bool ProcessHasSameUserAndElevation(HANDLE processHandle,
     return false;
 }
 
-HANDLE TryExistingProcesses(LPCWSTR expectedProcessName)
+HANDLE TryExistingProcesses(_In_z_ LPCWSTR expectedProcessName)
 {
     unique_ptr<TOKEN_USER> userInfo;
     unique_ptr<TOKEN_ELEVATION> elevationInfo;
@@ -452,9 +454,10 @@ HANDLE TryExistingProcesses(LPCWSTR expectedProcessName)
 // arguments in the response file, we would have to edit the response file to
 // remove the argument or mangle the command line given to the server.
 void ParseAndValidateClientArguments(
-	list<wstring>& arguments,
-	wstring& keepAliveValue)
+	_Inout_ list<wstring>& arguments,
+	_Out_ wstring& keepAliveValue)
 {
+	keepAliveValue.clear();
 	auto iter = arguments.cbegin();
 	while (iter != arguments.cend())
 	{
@@ -496,10 +499,10 @@ void ParseAndValidateClientArguments(
 
 CompletedResponse Run(
     RequestLanguage language,
-    LPCWSTR currentDirectory,
-	LPCWSTR rawCommandLineArgs[],
+    _In_z_ LPCWSTR currentDirectory,
+	_In_reads_(argsCount) LPCWSTR rawCommandLineArgs[],
 	int argsCount,
-    LPCWSTR libEnvVar)
+    _In_opt_z_ LPCWSTR libEnvVar)
 {
 	list<wstring> commandLineArgs(rawCommandLineArgs,
 		rawCommandLineArgs + argsCount);
@@ -659,7 +662,7 @@ CompletedResponse Run(
 	return CompletedResponse();
 }
 
-bool ProcessSlashes(WCHAR * & outBuffer, LPCWSTR * pszCur)
+bool ProcessSlashes(_Inout_ WCHAR * & outBuffer, _Inout_ LPCWSTR * pszCur)
 {
     // All this weird slash stuff follows the standard argument processing routines
     size_t iSlash = 0;
@@ -708,7 +711,7 @@ bool ProcessSlashes(WCHAR * & outBuffer, LPCWSTR * pszCur)
 }
 
 // Remove quote marks from a string
-void RemoveQuotes(WCHAR * text)
+void RemoveQuotes(_Inout_z_ WCHAR * text)
 {
     LPCWSTR pIn;
     WCHAR ch;
@@ -796,14 +799,14 @@ void SetPreferredUILangForMessages(LPCWSTR rawCommandLineArgs[], int argsCount, 
                 }
             }
 
-            delete langid;
+            delete[] langid;
         }
         else
             continue;       // Not a recognized argument.
     }
 }
 
-int Run(RequestLanguage language, LPCWSTR uiDllname)
+int Run(RequestLanguage language, _In_z_ LPCWSTR uiDllname)
 {
     try
     {

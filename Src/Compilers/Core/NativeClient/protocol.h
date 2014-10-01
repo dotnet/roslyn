@@ -68,7 +68,7 @@ public:
 		int index;
 		wstring value;
 
-		Argument(ArgumentId id, int index, wstring&& value)
+		Argument(ArgumentId id, int index, const wstring&& value)
 			: id(id), index(index), value(value)
 		{}
 
@@ -85,13 +85,13 @@ public:
 		    RequestLanguage language,
 			vector<Argument>&& arguments);
 	Request(RequestLanguage,
-			wstring&& currentDirectory);
+			const wstring&& currentDirectory);
 
 	Request& operator=(Request&& other);
 
 	vector<Argument>& Arguments();
 
-	void AddCommandLineArguments(list<wstring>& commandLineArgs);
+	void AddCommandLineArguments(_In_ const list<wstring>& commandLineArgs);
 	void AddLibEnvVariable(wstring&& value);
 	void AddKeepAlive(wstring&& keepAlive);
 

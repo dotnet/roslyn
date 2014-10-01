@@ -7,13 +7,13 @@
 
 CompletedResponse Run(
 	RequestLanguage language,
-	LPCWSTR currentDirectory,
-	LPCWSTR commandLineArgs[],
+	_In_z_ LPCWSTR currentDirectory,
+	_In_reads_(argsCount) LPCWSTR commandLineArgs[],
 	int argsCount,
-	LPCWSTR libEnvVar);
+	_In_opt_z_ LPCWSTR libEnvVar);
 
-int Run(RequestLanguage language, LPCWSTR uiDllname);
+int Run(RequestLanguage language, _In_z_ LPCWSTR uiDllname);
 
 void ParseAndValidateClientArguments(
-	list<wstring>& arguments,
-	wstring& keepAliveValue);
+	_Inout_ list<wstring>& arguments,
+	_Out_ wstring& keepAliveValue);

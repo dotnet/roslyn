@@ -8,7 +8,7 @@ class IPipe
 {
 public:
     // Returns true if the write succeeds, false otherwise.
-	virtual bool Write(LPCVOID data, unsigned size) = 0;
+	virtual bool Write(_In_ LPCVOID data, unsigned size) = 0;
     // Returns true if the read succeeds, false otherwise.
 	virtual bool Read(_Out_ LPVOID data, unsigned size) = 0;
 };
@@ -20,7 +20,7 @@ private:
 	HANDLE pipeHandle;
 public:
 	RealPipe(HANDLE pipeHandle);
-	virtual bool Write(LPCVOID, unsigned size);
+	virtual bool Write(_In_ LPCVOID, unsigned size);
 	virtual bool Read(_Out_ LPVOID, unsigned size);
 };
 

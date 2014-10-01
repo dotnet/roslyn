@@ -221,7 +221,7 @@ HINSTANCE FindMessageDllTryProcessPreferredUILangs(LANGID *langid, LPCWSTR messa
                     curLangId = nextLangId + 1;
                 }
             }
-            delete langids;
+            delete[] langids;
         }
     }
     return hModuleMessages;

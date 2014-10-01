@@ -25,7 +25,7 @@ private:
 	bool holdsMutex;
 
 public:
-	SmartMutex(LPCWSTR mutexName);
+	SmartMutex(_In_z_ LPCWSTR mutexName);
 	bool HoldsMutex();
 	bool Wait(const int waitTime);
 	HANDLE get();

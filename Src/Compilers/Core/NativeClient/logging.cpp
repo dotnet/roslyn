@@ -34,8 +34,9 @@ wstring GetResourceString(UINT loadResource)
 }
 
 
-bool GetEnvVar(LPCWSTR name, wstring &value)
+bool GetEnvVar(_In_z_ LPCWSTR name, _Out_ wstring &value)
 {
+	value.clear();
 	auto sizeNeeded = GetEnvironmentVariableW(name, nullptr, 0);
 	if (sizeNeeded != 0)
 	{
@@ -86,7 +87,7 @@ void Log(UINT loadResource)
     Log(GetResourceString(loadResource).c_str());
 }
 
-void Log(LPCWSTR message)
+void Log(_In_z_ LPCWSTR message)
 {
 	if (logFile != nullptr) 
 	{
@@ -97,7 +98,7 @@ void Log(LPCWSTR message)
 	}
 }
  
-static void vLogFormatted(LPCWSTR message, va_list varargs)
+static void vLogFormatted(_In_z_ LPCWSTR message, va_list varargs)
 {
 	if (logFile != nullptr)
 	{
@@ -116,7 +117,7 @@ void LogFormatted(UINT loadResource, ...)
     va_end(varargs);
 }
 
-void LogFormatted(LPCWSTR message, ...)
+void LogFormatted(_In_z_ LPCWSTR message, ...)
 {
 	if (logFile != nullptr) 
 	{
@@ -143,7 +144,7 @@ void LogWin32Error(UINT loadResource)
     LogFormatted(GetResourceString(loadResource).c_str());
 }
 
-void LogWin32Error(LPCWSTR message)
+void LogWin32Error(_In_z_ LPCWSTR message)
 {
     LogFormatted(IDS_LogWin32Error, GetLastError(), message);
 }
@@ -160,7 +161,7 @@ void FailWithGetLastError(UINT loadResource)
     FailWithGetLastError(GetResourceString(loadResource).c_str());
 }
 
-void FailWithGetLastError(LPCWSTR optionalPrefix)
+void FailWithGetLastError(_In_z_ LPCWSTR optionalPrefix)
 {
     LPWSTR errorMsg;
     if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER,
@@ -196,7 +197,7 @@ void FailFormatted(UINT loadResource, ...)
     va_end(varargs);
 }
 
-void FailFormatted(LPCWSTR message, ...)
+void FailFormatted(_In_z_ LPCWSTR message, ...)
 {
     va_list varargs;
     va_start(varargs, message);

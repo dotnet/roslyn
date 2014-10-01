@@ -37,7 +37,8 @@ Request& Request::operator=(Request&& other)
 
 Request::Request(
 	RequestLanguage language,
-	wstring&& currentDirectory)
+	const wstring&& currentDirectory)
+#pragma warning(suppress: 6011)
 	: Request(PROTOCOL_VERSION,
 			  language,
 		      { Request::Argument(
@@ -49,7 +50,7 @@ vector<Request::Argument>& Request::Arguments()
 	return this->arguments;
 }
 
-void Request::AddCommandLineArguments(list<wstring>& commandLineArgs)
+void Request::AddCommandLineArguments(_In_ const list<wstring>& commandLineArgs)
 {
 	size_t i;
 	list<wstring>::const_iterator iter;

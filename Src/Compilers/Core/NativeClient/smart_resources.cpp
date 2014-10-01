@@ -43,7 +43,7 @@ SmartHandle::~SmartHandle()
     close(this->handle);
 }
 
-SmartMutex::SmartMutex(LPCWSTR mutexName)
+SmartMutex::SmartMutex(_In_z_ LPCWSTR mutexName)
 {
 	this->handle = CreateMutexW(nullptr,
 		                        TRUE, /* initially owned */

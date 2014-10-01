@@ -10,7 +10,7 @@ RealPipe::RealPipe(HANDLE pipeHandle)
     this->pipeHandle = pipeHandle;
 }
 
-bool RealPipe::Write(LPCVOID data, unsigned toWrite)
+bool RealPipe::Write(_In_ LPCVOID data, unsigned toWrite)
 {
     DWORD written;
     BOOL success = WriteFile(this->pipeHandle, data, toWrite, &written, nullptr);
