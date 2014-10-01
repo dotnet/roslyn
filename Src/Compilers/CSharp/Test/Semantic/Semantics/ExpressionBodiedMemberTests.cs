@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
@@ -193,6 +194,30 @@ class Program
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        [WorkItem(1009638)]
+        public void ExprBodiedFunc02()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    public T M<T>(T t) where T : class => /*<bind>*/t/*</bind>*/;
+}");
+            comp.VerifyDiagnostics();
+
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
+
+            Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
+            Assert.Equal("T", semanticInfo.Type.Name);
+            Assert.Equal("t", semanticInfo.Symbol.Name);
+            var m = semanticInfo.Symbol.ContainingSymbol as SourceMemberMethodSymbol;
+            Assert.Equal(1, m.TypeParameters.Length);
+            Assert.Equal(m.TypeParameters[0], semanticInfo.Type);
+            Assert.Equal(m.TypeParameters[0], m.ReturnType);
+            Assert.Equal(m, semanticInfo.Type.ContainingSymbol);
+            Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
         }
 
         [Fact]

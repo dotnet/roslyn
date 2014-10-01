@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
@@ -99,6 +100,16 @@ abstract class C
     Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("C.M()").WithLocation(4, 17));
         }
 
+        [Fact]
+        [WorkItem(1009638)]
+        public void Syntax07()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+public class C {
+    public bool IsNull<T>(T t) where T : class => t != null;
+}");
+            comp.VerifyDiagnostics();
+        }
 
         [Fact]
         public void LambdaTest01()

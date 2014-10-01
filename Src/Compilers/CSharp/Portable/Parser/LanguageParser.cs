@@ -1995,6 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     while (true)
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                            || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                             || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                         {
                             break;
@@ -2656,9 +2657,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (kind)
             {
                 case SyntaxKind.DotToken:                   // Foo.     explicit
-                case SyntaxKind.ColonColonToken:    		// Foo::    explicit
-                case SyntaxKind.LessThanToken:      		// Foo<     explicit or generic method
-                case SyntaxKind.OpenBraceToken:     		// Foo {    property
+                case SyntaxKind.ColonColonToken:            // Foo::    explicit
+                case SyntaxKind.LessThanToken:            // Foo<     explicit or generic method
+                case SyntaxKind.OpenBraceToken:        // Foo {    property
                 case SyntaxKind.EqualsGreaterThanToken:     // Foo =>   property
                     return false;
                 case SyntaxKind.OpenParenToken:             // Foo(     method
