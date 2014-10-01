@@ -201,6 +201,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
+        private async Task WaitForProcessExitAsync(string path)
+        {
+            while (GetProcessesByFullPath(path).Any())
+            {
+                await Task.Yield();
+            }
+        }
+
         /// <summary>
         /// Get the file path of the executable that started this process.
         /// </summary>
@@ -1765,10 +1773,11 @@ class MyAnalyzer : DiagnosticAnalyzer
             };
         }
 
-        [Fact(Timeout = 2 * 60 * 1000)]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AnalyzerChangesOnDisk()
         {
+            var timeout = TimeSpan.FromMinutes(1);
             const string sourceText = @"using System;
 
 class Hello
@@ -1783,9 +1792,12 @@ class Hello
 
             // First, build the analyzer assembly
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 MyAnalyzer.csproj");
-            var result = RunCommandLineCompiler(MSBuildExecutable, arguments, directory, GetAnalyzerProjectFiles());
+            var resultTask = Task.Run(() => RunCommandLineCompiler(MSBuildExecutable, arguments, directory, GetAnalyzerProjectFiles()));
+            Assert.True(resultTask.Wait(timeout), string.Format("Compiler server {0} timed out after {1} seconds", MSBuildExecutable, timeout.TotalSeconds));
+            var result = resultTask.Result;
 
-            directory.CreateFile("hello.cs").WriteAllText(sourceText);
+            Assert.True(directory.CreateFile("hello.cs").WriteAllTextAsync(sourceText).Wait(timeout),
+                        string.Format("Took longer than {0} seconds to create files 'hello.cs' in {1}", timeout.TotalSeconds, directory.Path));
             var log = directory.CreateFile("Server.log");
 
             var environmentVars = new Dictionary<string, string>
@@ -1794,15 +1806,22 @@ class Hello
             };
 
             // Run a build using the analyzer
-            var firstBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars);
+            var firstBuildResultTask = Task.Run(() => RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars));
+            Assert.True(firstBuildResultTask.Wait(timeout), string.Format("Compiler server {0} timed out after {1} seconds", CSharpCompilerClientExecutable, timeout.TotalSeconds));
+            var firstBuildResult = firstBuildResultTask.Result;
 
             // Change the analyzer to cause it to be reloaded
             File.SetLastWriteTime(Path.Combine(directory.Path, "bin", "Debug", "MyAnalyzer.dll"), DateTime.Now);
 
-            WaitForProcessExit(CompilerServerExecutable, interval: TimeSpan.FromSeconds(1));
+            Assert.True(WaitForProcessExitAsync(CompilerServerExecutable).Wait(timeout),
+                string.Format("Compiler server did not exit after {0} seconds, number of vbcscompiler.exe proccesses found: {1}",
+                    timeout.Milliseconds / 1000,
+                    GetProcessesByFullPath(CompilerServerExecutable).Count));
 
             // Run another build using the analyzer
-            var secondBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars);
+            var secondBuildResultTask = Task.Run(() => RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars));
+            Assert.True(secondBuildResultTask.Wait(timeout), string.Format("Compiler server {0} timed out after {1} seconds", CSharpCompilerClientExecutable, timeout.TotalSeconds));
+            var secondBuildResult = secondBuildResultTask.Result;
 
             var firstBuildOutput = firstBuildResult.Output;
             var secondBuildOutput = secondBuildResult.Output;

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -72,6 +73,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             File.WriteAllText(path, content);
             return this;
+        }
+
+        public async Task<TempFile> WriteAllTextAsync(string content, Encoding encoding)
+        {
+            using (var sw = new StreamWriter(File.Create(path), encoding))
+            {
+                await sw.WriteAsync(content).ConfigureAwait(false);
+            }
+
+            return this;
+        }
+
+        public Task<TempFile> WriteAllTextAsync(string content)
+        {
+            return WriteAllTextAsync(content, Encoding.UTF8);
         }
 
         public TempFile WriteAllBytes(byte[] content)
