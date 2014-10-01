@@ -693,7 +693,7 @@ var a = new C2();
         [WorkItem(718500, "DevDiv")]
         [WorkItem(716762, "DevDiv")]
         [Fact]
-        public void MissedModuleB_NoErrorForUnmagagedModules()
+        public void MissedModuleB_NoErrorForUnmanagedModules()
         {
             var netModule1 = CreateCompilationWithMscorlib(
                 options: TestOptions.ReleaseModule,

@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
 using Roslyn.Utilities;
@@ -54,9 +52,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static XmlSchema CreateRuleSetSchema()
         {
-            Stream xsdStream = typeof(RuleSetProcessor).Assembly.GetManifestResourceStream(XsdResourceName);
-            XmlSchema xmlSchema = XmlSchema.Read(xsdStream, null);
-            return xmlSchema;
+            using (Stream xsdStream = typeof(RuleSetProcessor).Assembly.GetManifestResourceStream(XsdResourceName))
+            {
+                return XmlSchema.Read(xsdStream, null);
+            }
         }
 
         /// <summary>
@@ -154,11 +153,6 @@ namespace Microsoft.CodeAnalysis
                 else if (childNode.Name == IncludeAllNodeName)
                 {
                     generalOption = ReadIncludeAll(childNode);
-                }
-                else
-                {
-                    // we are not interested in this node.
-                    continue;
                 }
             }
 
@@ -289,7 +283,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the default settings to read the rulset xml file.
+        /// Gets the default settings to read the ruleset xml file.
         /// </summary>
         private static XmlReaderSettings GetDefaultXmlReaderSettings()
         {

@@ -16,7 +16,7 @@ namespace Roslyn.Utilities
     /// use Windows kernel synchronization primitives.
     /// </para>
     /// <para>
-    /// The implementation is distilled from the workings of <see cref="T:System.Threading.SemaphoreSlim"/>
+    /// The implementation is distilled from the workings of <see cref="SemaphoreSlim"/>
     /// The basic idea is that we use a regular sync object (Monitor.Enter/Exit) to guard the setting
     /// of an 'owning thread' field. If, during the Wait, we find the lock is held by someone else
     /// then we register a cancellation callback and enter a "Monitor.Wait" loop. If the cancellation
@@ -31,8 +31,8 @@ namespace Roslyn.Utilities
     internal sealed class NonReentrantLock
     {
         /// <summary>
-        /// A synchronization object to protect access to the <see cref="F:owningThread"/> field and to be pulsed
-        /// when <see cref="M:Release"/> is called and during cancellation.
+        /// A synchronization object to protect access to the <see cref="owningThread"/> field and to be pulsed
+        /// when <see cref="Release"/> is called and during cancellation.
         /// </summary>
         private readonly object syncLock;
 
@@ -62,17 +62,17 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Blocks the current thread until it can enter the <see cref="NonReentrantLock"/>, while observing a
-        /// <see cref="T:System.Threading.CancellationToken"/>.
+        /// <see cref="CancellationToken"/>.
         /// </summary>
         /// <remarks>
         /// Recursive locking is not supported. i.e. A thread may not call Wait successfully twice without an
         /// intervening <see cref="Release"/>.
         /// </remarks>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> token to
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> token to
         /// observe.</param>
-        /// <exception cref="T:System.OperationCanceledException"><paramref name="cancellationToken"/> was
+        /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was
         /// canceled.</exception>
-        /// <exception cref="T:System.LockRecursionException">The caller already holds the lock</exception>
+        /// <exception cref="LockRecursionException">The caller already holds the lock</exception>
         public void Wait(CancellationToken cancellationToken = default(CancellationToken))
         {
             if (this.IsOwnedByMe)
@@ -137,7 +137,7 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// The calling thread must currently hold the lock.
         /// </remarks>
-        /// <exception cref="T:Roslyn.Utilities.ContractFailureException">The lock is not currently held by the calling thread.</exception>
+        /// <exception cref="Contract.ContractFailureException">The lock is not currently held by the calling thread.</exception>
         public void Release()
         {
             AssertHasLock();
@@ -163,7 +163,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Throw an exception if the lock is not held by the calling thread.
         /// </summary>
-        /// <exception cref="T:Roslyn.Utilities.ContractFailureException">The lock is not currently held by the calling thread.</exception>
+        /// <exception cref="Contract.ContractFailureException">The lock is not currently held by the calling thread.</exception>
         public void AssertHasLock()
         {
             Contract.ThrowIfFalse(LockHeldByMe());
@@ -213,12 +213,12 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Action object passed to a cancellation token registration.
         /// </summary>
-        private static readonly Action<object> cancellationTokenCanceledEventHandler = new Action<object>(CancellationTokenCanceledEventHandler);
+        private static readonly Action<object> cancellationTokenCanceledEventHandler = CancellationTokenCanceledEventHandler;
 
         /// <summary>
         /// Callback executed when a cancellation token is canceled during a Wait.
         /// </summary>
-        /// <param name="obj">The syncLock that protects a <see cref="NonReentrantLock "/> instance.</param>
+        /// <param name="obj">The syncLock that protects a <see cref="NonReentrantLock"/> instance.</param>
         private static void CancellationTokenCanceledEventHandler(object obj)
         {
             lock (obj)

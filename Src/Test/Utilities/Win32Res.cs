@@ -8,8 +8,6 @@ using System.Xml;
 using System.IO;
 using System.Collections.Generic;
 
-using Microsoft.CodeAnalysis.Text;
-
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public class Win32Res
@@ -99,12 +97,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 xw.WriteEndElement();
                 xw.WriteEndDocument();
             }
-            var sw = new System.IO.StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+            var sw = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
             doc.Save(sw);
             return sw.ToString();
         }
 
-        private static string ReadString(System.IO.BinaryReader reader)
+        private static string ReadString(BinaryReader reader)
         {
             int i = 0;
             var cbuffer = new char[16];
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return new string(cbuffer).TrimEnd(new char[] { '\0' });
         }
 
-        private static void ReadVarFileInfo(System.IO.BinaryReader reader)
+        private static void ReadVarFileInfo(BinaryReader reader)
         {
             ushort us;
             string s;
@@ -132,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             us = reader.ReadUInt16();    //codepage; 1200 = CP_WINUNICODE
         }
 
-        public static IEnumerable<Tuple<string, string>> ReadStringFileInfo(System.IO.BinaryReader reader, int sizeTotalStringFileInfo)
+        public static IEnumerable<Tuple<string, string>> ReadStringFileInfo(BinaryReader reader, int sizeTotalStringFileInfo)
         {
             var result = new List<Tuple<string, string>>();
             int sizeConsumed = 2 + 2 + 2 + (16 * 2);
@@ -164,8 +162,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var entireResourceBytes = new byte[size];
             Marshal.Copy(versionRsrc, entireResourceBytes, 0, entireResourceBytes.Length);
 
-            var memoryStream = new System.IO.MemoryStream(entireResourceBytes);
-            var reader = new System.IO.BinaryReader(memoryStream, Encoding.Unicode);
+            var memoryStream = new MemoryStream(entireResourceBytes);
+            var reader = new BinaryReader(memoryStream, Encoding.Unicode);
 
             XmlDocument doc = new XmlDocument();
             using (XmlWriter xw = doc.CreateNavigator().AppendChild())
@@ -175,9 +173,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 xw.WriteAttributeString("Size", size.ToString());
 
                 //0x28 is the start of the VS_FIXEDFILEINFO
-                reader.BaseStream.Seek(0x28, System.IO.SeekOrigin.Begin);
+                reader.BaseStream.Seek(0x28, SeekOrigin.Begin);
                 //skip the first two dwords of VS_FIXEDFILEINFO.
-                reader.BaseStream.Seek(0x8, System.IO.SeekOrigin.Current);
+                reader.BaseStream.Seek(0x8, SeekOrigin.Current);
 
                 xw.WriteStartElement("VS_FIXEDFILEINFO");
                 xw.WriteAttributeString("FileVersionMS", String.Format("{0:x8}", reader.ReadUInt32()));
@@ -229,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 xw.WriteEndElement();
                 xw.WriteEndDocument();
             }
-            var sw = new System.IO.StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+            var sw = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
             doc.Save(sw);
             return sw.ToString();
         }

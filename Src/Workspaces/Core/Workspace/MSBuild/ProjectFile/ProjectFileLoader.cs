@@ -7,18 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal abstract class ProjectFileLoader : IProjectFileLoader
     {
-        public ProjectFileLoader()
-        {
-        }
-
         public abstract string Language { get; }
 
         protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject);
@@ -36,13 +32,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return this.CreateProjectFile(loadedProject);
         }
 
+        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        {
+            DtdProcessing = DtdProcessing.Prohibit,
+            XmlResolver = null
+        };
+
         private static async Task<MSB.Evaluation.Project> LoadProjectAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             var properties = new Dictionary<string, string>(globalProperties ?? ImmutableDictionary<string, string>.Empty);
             properties["DesignTimeBuild"] = "true"; // this will tell msbuild to not build the dependent projects
             properties["BuildingInsideVisualStudio"] = "true"; // this will force CoreCompile task to execute even if all inputs and outputs are up to date
 
-            var xmlReader = System.Xml.XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false));
+            var xmlReader = XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false), XmlSettings);
             var collection = new MSB.Evaluation.ProjectCollection();
             var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
 

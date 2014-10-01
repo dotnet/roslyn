@@ -3,9 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -447,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken startQuote;
             SyntaxToken endQuote;
             string attrNameText = attrName.LocalName.ValueText;
-            bool hasNoPrefix = (object)attrName.Prefix == null;
+            bool hasNoPrefix = attrName.Prefix == null;
             if (hasNoPrefix && DocumentationCommentXmlNames.AttributeEquals(attrNameText, DocumentationCommentXmlNames.CrefAttributeName) &&
                 !IsVerbatimCref())
             {
@@ -479,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static bool XmlElementSupportsNameAttribute(XmlNameSyntax elementName)
         {
-            if ((object)elementName.Prefix != null)
+            if (elementName.Prefix != null)
             {
                 return false;
             }
@@ -1358,8 +1355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Once the name part of a type (including type parameter/argument lists) is parsed,
         /// we need to consume ?, *, and rank specifiers.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
         private TypeSyntax ParseCrefTypeSuffix(TypeSyntax type)
         {
             if (CurrentToken.Kind == SyntaxKind.QuestionToken)

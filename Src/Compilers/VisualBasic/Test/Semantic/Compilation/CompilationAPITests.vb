@@ -687,7 +687,7 @@ BC37221: Reference to 'a1.netmodule' netmodule missing.
         <WorkItem(718500, "DevDiv")>
         <WorkItem(716762, "DevDiv")>
         <Fact()>
-        Public Sub MissedModuleB_NoErrorForUnmagagedModules()
+        Public Sub MissedModuleB_NoErrorForUnmanagedModules()
             Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="a1">
     <file name="a.vb">

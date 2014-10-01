@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override void DefaultVisit(SyntaxNode node)
             {
                 SyntaxKind nodeKind = node.CSharpKind();
-                bool diagnose = ((SyntaxTree)node.SyntaxTree).ReportDocumentationCommentDiagnostics();
+                bool diagnose = node.SyntaxTree.ReportDocumentationCommentDiagnostics();
 
                 if (nodeKind == SyntaxKind.XmlCrefAttribute)
                 {
@@ -103,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     crefDiagnostics.Free();
 
-                    if ((object)writer != null)
+                    if (writer != null)
                     {
                         Visit(crefAttr.Name);
                         VisitToken(crefAttr.EqualsToken);
@@ -124,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Don't descend - we've already written out everything necessary.
                     return;
                 }
-                else if (nodeKind == SyntaxKind.XmlNameAttribute && diagnose)
+                else if (diagnose && nodeKind == SyntaxKind.XmlNameAttribute)
                 {
                     XmlNameAttributeSyntax nameAttr = (XmlNameAttributeSyntax)node;
 
@@ -132,14 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder binder = factory.GetBinder(nameAttr, nameAttr.Identifier.SpanStart);
 
                     // Do this for diagnostics, even if we aren't writing.
-                    DocumentationCommentCompiler.BindName(nameAttr, binder, memberSymbol, ref documentedParameters, ref documentedTypeParameters, diagnostics);
+                    BindName(nameAttr, binder, memberSymbol, ref documentedParameters, ref documentedTypeParameters, diagnostics);
 
                     // Do descend - we still need to write out the tokens of the attribute.
                 }
 
                 // NOTE: if we're recording any include element nodes (i.e. if includeElementsNodes is non-null),
                 // then we want to record all of them, because we won't be able to distinguish in the XML DOM.
-                if ((object)includeElementNodes != null)
+                if (includeElementNodes != null)
                 {
                     XmlNameSyntax nameSyntax = null;
                     if (nodeKind == SyntaxKind.XmlEmptyElement)
@@ -151,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         nameSyntax = ((XmlElementStartTagSyntax)node).Name;
                     }
 
-                    if ((object)nameSyntax != null && (object)nameSyntax.Prefix == null &&
+                    if (nameSyntax != null && nameSyntax.Prefix == null &&
                         DocumentationCommentXmlNames.ElementEquals(nameSyntax.LocalName.ValueText, DocumentationCommentXmlNames.IncludeElementName))
                     {
                         includeElementNodes.Add((CSharpSyntaxNode)node);
@@ -163,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitToken(SyntaxToken token)
             {
-                if ((object)writer != null)
+                if (writer != null)
                 {
                     token.WriteTo(writer);
                 }

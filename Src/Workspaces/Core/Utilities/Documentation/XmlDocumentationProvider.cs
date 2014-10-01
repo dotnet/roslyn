@@ -3,12 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Xml;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -59,6 +56,12 @@ namespace Microsoft.CodeAnalysis
             return this.docComments.TryGetValue(documentationMemberID, out docComment) ? docComment : "";
         }
 
+        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        {
+            DtdProcessing = DtdProcessing.Prohibit,
+            XmlResolver = null
+        };
+
         private sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider
         {
             private readonly string filePath;
@@ -74,7 +77,11 @@ namespace Microsoft.CodeAnalysis
             protected override XmlDocument GetXmlDocument()
             {
                 var doc = new XmlDocument();
-                doc.Load(this.filePath);
+                using (XmlReader reader = XmlReader.Create(this.filePath, XmlSettings))
+                {
+                    doc.Load(reader);
+                }
+
                 return doc;
             }
 
@@ -104,9 +111,10 @@ namespace Microsoft.CodeAnalysis
             protected override XmlDocument GetXmlDocument()
             {
                 using (var stream = SerializableBytes.CreateReadableStream(this.xmlDocCommentBytes, CancellationToken.None))
+                using (var xmlReader = XmlReader.Create(stream, XmlSettings))
                 {
                     var doc = new XmlDocument();
-                    doc.Load(stream);
+                    doc.Load(xmlReader);
                     return doc;
                 }
             }
@@ -144,7 +152,7 @@ namespace Microsoft.CodeAnalysis
 
             public override int GetHashCode()
             {
-                return this.xmlDocCommentBytes.GetHashCode();
+                return Hash.CombineValues(this.xmlDocCommentBytes);
             }
         }
     }

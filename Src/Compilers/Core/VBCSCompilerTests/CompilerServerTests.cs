@@ -1864,7 +1864,10 @@ class Hello
         {
             var exeConfigPath = Path.Combine(compilerDirectory, CompilerServerExeName + ".config");
             var doc = new XmlDocument();
-            doc.Load(exeConfigPath);
+            using (XmlReader reader = XmlReader.Create(exeConfigPath, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }))
+            {
+                doc.Load(reader);
+            }
             var root = doc.DocumentElement;
 
             root.SelectSingleNode("appSettings/add/@value").Value = "1";

@@ -43,13 +43,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
+        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        {
+            DtdProcessing = DtdProcessing.Prohibit,
+            XmlResolver = null
+        };
+
         private void ParseInternal<TArg>(string text, Action<XmlReader, TArg> callback, TArg arg)
         {
             textReader.SetText(text);
 
             if (xmlReader == null)
             {
-                xmlReader = XmlReader.Create(textReader);
+                xmlReader = XmlReader.Create(textReader, XmlSettings);
             }
 
             try

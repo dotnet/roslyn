@@ -6,19 +6,16 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq; //In asserts.
 using System.Reflection;
 using System.Resources;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -346,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!documentedParameters.Contains(parameter))
                         {
                             Location location = parameter.Locations[0];
-                            Debug.Assert(((SyntaxTree)location.SourceTree).ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
+                            Debug.Assert(location.SourceTree.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
                                         
                             // NOTE: parameter name, since the parameter would be displayed as just its type.
                             diagnostics.Add(ErrorCode.WRN_MissingParamTag, location, parameter.Name, symbol);
@@ -361,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!documentedTypeParameters.Contains(typeParameter))
                         {
                             Location location = typeParameter.Locations[0];
-                            Debug.Assert(((SyntaxTree)location.SourceTree).ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
+                            Debug.Assert(location.SourceTree.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
 
                             diagnostics.Add(ErrorCode.WRN_MissingTypeParamTag, location, typeParameter, symbol);
                         }
@@ -497,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (Location location in symbol.Locations)
             {
-                if (((SyntaxTree)location.SourceTree).ReportDocumentationCommentDiagnostics())
+                if (location.SourceTree.ReportDocumentationCommentDiagnostics())
                 {
                     return location;
                 }
@@ -1141,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void WriteLine(string message)
         {
-            if (temporaryStringBuilders != null && temporaryStringBuilders.Count > 0)
+            if (temporaryStringBuilders?.Count > 0)
             {
                 StringBuilder builder = temporaryStringBuilders.Peek().Pooled.Builder;
                 builder.Append(MakeIndent(indentDepth));
@@ -1156,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void WriteSubStringLine(string message, int start, int length)
         {
-            if (temporaryStringBuilders != null && temporaryStringBuilders.Count > 0)
+            if (temporaryStringBuilders?.Count > 0)
             {
                 StringBuilder builder = temporaryStringBuilders.Peek().Pooled.Builder;
                 builder.Append(MakeIndent(indentDepth));

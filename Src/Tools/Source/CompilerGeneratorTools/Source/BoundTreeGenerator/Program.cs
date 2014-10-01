@@ -49,7 +49,7 @@ namespace BoundTreeGenerator
             serializer.UnreferencedObject += new UnreferencedObjectEventHandler(serializer_UnreferencedObject);
 
             Tree tree;
-            using (var reader = new XmlTextReader(infilename))
+            using (var reader = new XmlTextReader(infilename) { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null })
             {
                 tree = (Tree)serializer.Deserialize(reader);
             }

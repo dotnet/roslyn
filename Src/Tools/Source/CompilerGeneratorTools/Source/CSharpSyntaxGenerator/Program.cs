@@ -12,7 +12,6 @@ namespace CSharpSyntaxGenerator
 {
     internal static class Program
     {
-
         public static void Main(string[] args)
         {
             if (args.Length < 2 || args.Length > 3)
@@ -61,7 +60,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            var reader = new XmlTextReader(inputFile);
+            var reader = new XmlTextReader(inputFile) { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
             var serializer = new XmlSerializer(typeof(Tree));
             Tree tree = (Tree)serializer.Deserialize(reader);
 

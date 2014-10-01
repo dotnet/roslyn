@@ -645,7 +645,7 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <Fact()>
-        Public Sub EvnetPrivateAccessor()
+        Public Sub EventPrivateAccessor()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit ClassLibrary1.Class1
        extends [mscorlib]System.Object
@@ -783,7 +783,7 @@ BC30456: 'E1' is not a member of 'Class1'.
         End Sub
 
         <Fact(Skip:="behaves as in Dev10 - unverifiable code. Should we do something more useful?")>
-        Public Sub EvnetProtectedAccessor()
+        Public Sub EventProtectedAccessor()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit ClassLibrary1.Class1
        extends [mscorlib]System.Object

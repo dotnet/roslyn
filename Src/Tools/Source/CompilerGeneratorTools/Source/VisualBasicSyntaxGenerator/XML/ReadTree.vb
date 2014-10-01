@@ -70,6 +70,8 @@ Public Module ReadTree
         Using schemaReader = XmlReader.Create(Assembly.GetExecutingAssembly().GetManifestResourceStream("VBSyntaxModelSchema.xsd"))
 
             Dim readerSettings As New XmlReaderSettings()
+            readerSettings.DtdProcessing = DtdProcessing.Prohibit
+            readerSettings.XmlResolver = Nothing
             readerSettings.Schemas.Add(Nothing, schemaReader)
             readerSettings.ValidationType = ValidationType.Schema
             AddHandler readerSettings.ValidationEventHandler, AddressOf ValidationError

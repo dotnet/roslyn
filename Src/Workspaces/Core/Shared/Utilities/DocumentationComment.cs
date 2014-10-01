@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Xml;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 
@@ -243,8 +242,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Returns the text for a given type parameter, or null if no documentation was given for the type parameter.
         /// </summary>
-        /// <param name="typeParameterName"></param>
-        /// <returns></returns>
         public string GetTypeParameterText(string typeParameterName)
         {
             string text;

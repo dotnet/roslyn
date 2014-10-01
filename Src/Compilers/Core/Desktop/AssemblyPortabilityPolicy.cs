@@ -47,13 +47,19 @@ namespace Microsoft.CodeAnalysis
             return reader.ReadToDescendant(elementName, elementNamespace) && reader.Depth == depth;
         }
 
+        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        {
+            DtdProcessing = DtdProcessing.Prohibit,
+            XmlResolver = null
+        };
+
         internal static AssemblyPortabilityPolicy LoadFromXml(Stream input)
         {
             // Note: Unlike Fusion XML reader the XmlReader doesn't allow whitespace in front of <?xml version=""1.0"" encoding=""utf-8"" ?>
 
             const string ns = "urn:schemas-microsoft-com:asm.v1";
 
-            using (XmlReader xml = XmlReader.Create(input))
+            using (XmlReader xml = XmlReader.Create(input, XmlSettings))
             {
                 if (!ReadToChild(xml, 0, "configuration") ||
                     !ReadToChild(xml, 1, "runtime") ||

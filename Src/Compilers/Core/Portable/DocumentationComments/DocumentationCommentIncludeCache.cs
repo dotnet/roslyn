@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             return GetOrMakeValue(resolvedPath).Value;
         }
 
-        private static XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
         {
             // Dev12 prohibits DTD
             DtdProcessing = DtdProcessing.Prohibit
