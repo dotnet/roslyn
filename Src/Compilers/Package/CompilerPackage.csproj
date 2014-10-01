@@ -42,6 +42,10 @@
       <Name>CodeAnalysis.Desktop</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\Core\VBCSC2UI\VBCSC2UI.vcxproj">
+      <Project>{a99a42cf-f183-4e98-ae6e-f04314485928}</Project>
+      <Name>VBCSC2UI</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CSharp\csc2\csc2.vcxproj">
       <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
       <Name>csc2</Name>

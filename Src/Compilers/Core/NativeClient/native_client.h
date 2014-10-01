@@ -12,7 +12,7 @@ CompletedResponse Run(
 	int argsCount,
 	_In_opt_z_ LPCWSTR libEnvVar);
 
-int Run(RequestLanguage language, _In_z_ LPCWSTR uiDllname);
+int Run(RequestLanguage language);
 
 void ParseAndValidateClientArguments(
 	_Inout_ list<wstring>& arguments,

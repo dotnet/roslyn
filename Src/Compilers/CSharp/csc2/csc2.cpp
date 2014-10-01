@@ -5,5 +5,5 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	return Run(RequestLanguage::CSHARPCOMPILE, L"csc2.resources.dll");
+	return Run(RequestLanguage::CSHARPCOMPILE);
 }

@@ -36,7 +36,7 @@ HINSTANCE g_hinstMessages;
 wstring GetCurrentDirectory()
 {
     int sizeNeeded = GetCurrentDirectory(0, nullptr);
-    if (0 == sizeNeeded) 
+    if (0 == sizeNeeded)
     {
         FailWithGetLastError(IDS_GetCurrentDirectoryFailed);
     }
@@ -50,7 +50,7 @@ wstring GetCurrentDirectory()
         FailWithGetLastError(IDS_GetCurrentDirectoryFailed);
     }
 
-	result.resize(written);
+    result.resize(written);
     return result;
 }
 
@@ -59,7 +59,7 @@ wstring GetCurrentDirectory()
 std::unique_ptr<LPCWSTR, decltype(&::LocalFree)> GetCommandLineArgs(_Out_ int& argsCount)
 {
     auto args = const_cast<LPCWSTR*>(CommandLineToArgvW(GetCommandLine(), &argsCount));
-    if (args == nullptr) 
+    if (args == nullptr)
     {
         FailWithGetLastError(IDS_CommandLineToArgvWFailed);
     }
@@ -101,7 +101,7 @@ void OutputWideString(_In_ FILE * outputFile, _In_ const wstring str, bool utf8O
     {
         cp = CP_UTF8;
     }
-    else 
+    else
     {
         cp = GetConsoleOutputCP();
     }
@@ -117,7 +117,7 @@ void OutputWideString(_In_ FILE * outputFile, _In_ const wstring str, bool utf8O
 // Output the response we got back from the server onto our stdout and stderr.
 void OutputResponse(_In_ const CompletedResponse& response)
 {
-	auto utf8output = response.Utf8Output;
+    auto utf8output = response.Utf8Output;
     OutputWideString(stdout, response.Output, utf8output);
     OutputWideString(stderr, response.ErrorOutput, utf8output);
 }
@@ -131,7 +131,7 @@ bool GetExpectedProcessPath(_Out_writes_z_(cch) LPWSTR szProcessName, int cch)
     if (GetModuleFileNameW(NULL, szProcessName, cch) != 0)
     {
         LPWSTR lastBackslash = wcsrchr(szProcessName, '\\');
-        if (lastBackslash != NULL) 
+        if (lastBackslash != NULL)
         {
             *(lastBackslash + 1) = '\0';
             return SUCCEEDED(StringCchCatW(szProcessName, cch, SERVERNAME));
@@ -171,24 +171,24 @@ HANDLE ConnectToProcess(DWORD processID, int timeoutMs)
 /// </param>
 _Success_(return != false)
 bool TryCompile(HANDLE pipeHandle,
-				RequestLanguage language,
-                _In_z_ LPCWSTR currentDirectory,
-				_In_ const list<wstring>& commandLineArgs,
-                _In_opt_z_ LPCWSTR libEnvVariable,
-				_In_ const wstring& keepAlive,
-                _Out_ CompletedResponse& response)
+RequestLanguage language,
+_In_z_ LPCWSTR currentDirectory,
+_In_ const list<wstring>& commandLineArgs,
+_In_opt_z_ LPCWSTR libEnvVariable,
+_In_ const wstring& keepAlive,
+_Out_ CompletedResponse& response)
 {
-	auto request = Request(language, currentDirectory);
-	request.AddCommandLineArguments(commandLineArgs);
-	if (libEnvVariable != nullptr) {
-		request.AddLibEnvVariable(wstring(libEnvVariable));
-	}
-	if (!keepAlive.empty()) {
-		request.AddKeepAlive(wstring(keepAlive));
-	}
+    auto request = Request(language, currentDirectory);
+    request.AddCommandLineArguments(commandLineArgs);
+    if (libEnvVariable != nullptr) {
+        request.AddLibEnvVariable(wstring(libEnvVariable));
+    }
+    if (!keepAlive.empty()) {
+        request.AddKeepAlive(wstring(keepAlive));
+    }
 
     RealPipe wrapper(pipeHandle);
-    if (!request.WriteToPipe(wrapper)) 
+    if (!request.WriteToPipe(wrapper))
     {
         Log(IDS_FailedToWriteRequest);
         return false;
@@ -211,15 +211,15 @@ bool GetAllProcessIds(_Out_ vector<DWORD>& processes)
 {
     Log(IDS_EnumeratingProcessIDs);
 
-	processes.clear();
+    processes.clear();
     processes.resize(64);
     DWORD bytesWritten;
 
     for (;;)
     {
         if (EnumProcesses(processes.data(),
-                          static_cast<int>(processes.size()) * sizeof(DWORD),
-                          &bytesWritten))
+            static_cast<int>(processes.size()) * sizeof(DWORD),
+            &bytesWritten))
         {
             int writtenDwords = bytesWritten / sizeof(DWORD);
             if (writtenDwords != processes.size())
@@ -262,7 +262,7 @@ void SetupDevDivEnvironment()
 
     if (!SetEnvironmentVariable(installRoot, buffer.c_str()))
         FailWithGetLastError(L"SetEnvironmentVariable install root");
-    if (!SetEnvironmentVariable(L"COMPLUS_Version", L"v4.5")) 
+    if (!SetEnvironmentVariable(L"COMPLUS_Version", L"v4.5"))
         FailWithGetLastError(L"SetEnvironmentVariable version");
 }
 
@@ -295,26 +295,26 @@ DWORD CreateNewServerProcess(_In_z_ LPCWSTR executablePath)
 
     errno_t err;
     if ((err = _wsplitpath_s(executablePath,
-                             driveLetter.get(), _MAX_DRIVE,
-                             dirWithoutDrive.get(), _MAX_DIR,
-                             nullptr, 0,
-                             nullptr, 0)))
+        driveLetter.get(), _MAX_DRIVE,
+        dirWithoutDrive.get(), _MAX_DIR,
+        nullptr, 0,
+        nullptr, 0)))
     {
         FailFormatted(IDS_SplitProcessPathError, err);
     }
 
     auto createPath = make_unique<wchar_t[]>(MAX_PATH);
     if ((err = _wmakepath_s(createPath.get(),
-                            MAX_PATH,
-                            driveLetter.get(),
-                            dirWithoutDrive.get(),
-                            nullptr,
-                            nullptr)))
+        MAX_PATH,
+        driveLetter.get(),
+        dirWithoutDrive.get(),
+        nullptr,
+        nullptr)))
     {
         FailFormatted(IDS_MakeNewProcessPathError, err);
     }
 
-    success = CreateProcess(executablePath, 
+    success = CreateProcess(executablePath,
         NULL, // command line,
         NULL, // process attributes
         NULL, // thread attributes
@@ -325,7 +325,7 @@ DWORD CreateNewServerProcess(_In_z_ LPCWSTR executablePath)
         &startupInfo,
         &processInfo);
 
-    if (success) 
+    if (success)
     {
         // We don't need the process and thread handles.
         LogFormatted(IDS_CreatedProcess, processInfo.dwProcessId);
@@ -333,7 +333,7 @@ DWORD CreateNewServerProcess(_In_z_ LPCWSTR executablePath)
         CloseHandle(processInfo.hThread);
         return processInfo.dwProcessId;
     }
-    else 
+    else
     {
         LogWin32Error(IDS_CreatingProcess);
         return 0;
@@ -344,19 +344,19 @@ DWORD CreateNewServerProcess(_In_z_ LPCWSTR executablePath)
 bool ProcessHasSameName(HANDLE processHandle, _In_z_ LPCWSTR expectedName)
 {
     // Get the process name.
-	WCHAR buffer[MAX_PATH] = {};
+    WCHAR buffer[MAX_PATH] = {};
     DWORD length = _countof(buffer);
 #pragma warning(suppress: 6386)
-    return QueryFullProcessImageNameW(processHandle, 
-		                              0, /*dwFlags: 0 = Win32 format */
-									  buffer,
-									  &length)
+    return QueryFullProcessImageNameW(processHandle,
+        0, /*dwFlags: 0 = Win32 format */
+        buffer,
+        &length)
         && lstrcmpiW(buffer, expectedName) == 0;
 }
 
 BOOL GetTokenUserAndElevation(HANDLE tokenHandle,
-                              _Out_ unique_ptr<TOKEN_USER>& userInfo,
-                              _Out_ unique_ptr<TOKEN_ELEVATION>& userElevation)
+    _Out_ unique_ptr<TOKEN_USER>& userInfo,
+    _Out_ unique_ptr<TOKEN_ELEVATION>& userElevation)
 {
     DWORD requiredLength;
     GetTokenInformation(tokenHandle, TokenUser, NULL, 0, &requiredLength);
@@ -372,8 +372,8 @@ BOOL GetTokenUserAndElevation(HANDLE tokenHandle,
 }
 
 bool ProcessHasSameUserAndElevation(HANDLE processHandle,
-                                    _In_ TOKEN_USER const * firstInfo,
-                                    _In_ TOKEN_ELEVATION const * firstElevation)
+    _In_ TOKEN_USER const * firstInfo,
+    _In_ TOKEN_ELEVATION const * firstElevation)
 {
     HANDLE tokenHandle;
     if (OpenProcessToken(processHandle, TOKEN_QUERY, &tokenHandle))
@@ -454,61 +454,61 @@ HANDLE TryExistingProcesses(_In_z_ LPCWSTR expectedProcessName)
 // arguments in the response file, we would have to edit the response file to
 // remove the argument or mangle the command line given to the server.
 void ParseAndValidateClientArguments(
-	_Inout_ list<wstring>& arguments,
-	_Out_ wstring& keepAliveValue)
+    _Inout_ list<wstring>& arguments,
+    _Out_ wstring& keepAliveValue)
 {
-	keepAliveValue.clear();
-	auto iter = arguments.cbegin();
-	while (iter != arguments.cend())
-	{
-		auto arg = *iter;
-		if (arg.find(L"/keepalive") == 0)
-		{
-			auto prefixLen = wcslen(L"/keepalive");
+    keepAliveValue.clear();
+    auto iter = arguments.cbegin();
+    while (iter != arguments.cend())
+    {
+        auto arg = *iter;
+        if (arg.find(L"/keepalive") == 0)
+        {
+            auto prefixLen = wcslen(L"/keepalive");
 
-			if (arg.length() < prefixLen + 2 ||
-				(arg.at(prefixLen) != L':' && arg.at(prefixLen) != L'='))
-			{
-				throw FatalError(GetResourceString(IDS_MissingKeepAlive));
-			}
+            if (arg.length() < prefixLen + 2 ||
+                (arg.at(prefixLen) != L':' && arg.at(prefixLen) != L'='))
+            {
+                throw FatalError(GetResourceString(IDS_MissingKeepAlive));
+            }
 
-			auto value = arg.substr(prefixLen + 1);
-			try {
-				auto intValue = stoi(value);
+            auto value = arg.substr(prefixLen + 1);
+            try {
+                auto intValue = stoi(value);
 
-				if (intValue < -1) {
-					throw FatalError(GetResourceString(IDS_KeepAliveIsTooSmall));
-				}
+                if (intValue < -1) {
+                    throw FatalError(GetResourceString(IDS_KeepAliveIsTooSmall));
+                }
 
-				keepAliveValue = value;
-				iter = arguments.erase(iter);
-				continue;
-			}
-			catch (invalid_argument) {
-				throw FatalError(GetResourceString(IDS_KeepAliveIsNotAnInteger));
-			}
-			catch (out_of_range) {
-				throw FatalError(GetResourceString(IDS_KeepAliveIsOutOfRange));
-			}
-		}
+                keepAliveValue = value;
+                iter = arguments.erase(iter);
+                continue;
+            }
+            catch (invalid_argument) {
+                throw FatalError(GetResourceString(IDS_KeepAliveIsNotAnInteger));
+            }
+            catch (out_of_range) {
+                throw FatalError(GetResourceString(IDS_KeepAliveIsOutOfRange));
+            }
+        }
 
-		++iter;
-	}
+        ++iter;
+    }
 
 }
 
 CompletedResponse Run(
     RequestLanguage language,
     _In_z_ LPCWSTR currentDirectory,
-	_In_reads_(argsCount) LPCWSTR rawCommandLineArgs[],
-	int argsCount,
+    _In_reads_(argsCount) LPCWSTR rawCommandLineArgs[],
+    int argsCount,
     _In_opt_z_ LPCWSTR libEnvVar)
 {
-	list<wstring> commandLineArgs(rawCommandLineArgs,
-		rawCommandLineArgs + argsCount);
-	// Throws FatalError if there was a problem parsing a command line argument
-	wstring keepAlive;
-	ParseAndValidateClientArguments(commandLineArgs, keepAlive);
+    list<wstring> commandLineArgs(rawCommandLineArgs,
+        rawCommandLineArgs + argsCount);
+    // Throws FatalError if there was a problem parsing a command line argument
+    wstring keepAlive;
+    ParseAndValidateClientArguments(commandLineArgs, keepAlive);
 
     wchar_t expectedProcessPath[MAX_PATH];
 
@@ -523,7 +523,7 @@ CompletedResponse Run(
 
     // First attempt to grab the mutex
     wstring mutexName(expectedProcessPath);
-	replace(mutexName.begin(), mutexName.end(), L'\\', L'/');
+    replace(mutexName.begin(), mutexName.end(), L'\\', L'/');
 
     Log(IDS_CreatingMutex);
 
@@ -552,12 +552,12 @@ CompletedResponse Run(
 
             CompletedResponse response;
             if (TryCompile(pipeHandle.get(),
-                           language,
-                           currentDirectory,
-                           commandLineArgs,
-                           libEnvVar,
-						   keepAlive,
-                           response))
+                language,
+                currentDirectory,
+                commandLineArgs,
+                libEnvVar,
+                keepAlive,
+                response))
             {
                 return response;
             }
@@ -580,12 +580,12 @@ CompletedResponse Run(
                     Log(IDS_Compiling);
                     CompletedResponse response;
                     if (TryCompile(pipeHandle.get(),
-                                   language,
-                                   currentDirectory,
-                                   commandLineArgs,
-                                   libEnvVar,
-                                   keepAlive,
-                                   response))
+                        language,
+                        currentDirectory,
+                        commandLineArgs,
+                        libEnvVar,
+                        keepAlive,
+                        response))
                     {
                         return response;
                     }
@@ -615,12 +615,12 @@ CompletedResponse Run(
             Log(IDS_ConnectedNewProcess);
             CompletedResponse response;
             if (TryCompile(pipeHandle.get(),
-                           language,
-                           currentDirectory,
-                           commandLineArgs,
-                           libEnvVar,
-                           keepAlive,
-                           response))
+                language,
+                currentDirectory,
+                commandLineArgs,
+                libEnvVar,
+                keepAlive,
+                response))
             {
                 return response;
             }
@@ -659,7 +659,7 @@ CompletedResponse Run(
     }
 
     // Unreachable
-	return CompletedResponse();
+    return CompletedResponse();
 }
 
 bool ProcessSlashes(_Inout_ WCHAR * & outBuffer, _Inout_ LPCWSTR * pszCur)
@@ -806,10 +806,11 @@ void SetPreferredUILangForMessages(LPCWSTR rawCommandLineArgs[], int argsCount, 
     }
 }
 
-int Run(RequestLanguage language, _In_z_ LPCWSTR uiDllname)
+int Run(RequestLanguage language)
 {
     try
     {
+        LPCWSTR uiDllname = L"vbcsc2ui.dll";
         g_hinstMessages = GetMessageDll(uiDllname);
 
         if (!g_hinstMessages)
@@ -843,7 +844,7 @@ int Run(RequestLanguage language, _In_z_ LPCWSTR uiDllname)
             argsCount - 1,
             GetEnvVar(L"LIB", libEnvVariable) ? libEnvVariable.c_str() : nullptr);
 
-		OutputResponse(response);
+        OutputResponse(response);
         return response.ExitCode;
     }
     catch (FatalError &e)
