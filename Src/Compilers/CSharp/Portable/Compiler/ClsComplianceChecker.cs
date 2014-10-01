@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (TypeSymbol paramType in constructor.ParameterTypes) // Public caller would select type out of parameters.
                     {
-                        if (paramType.TypeKind == TypeKind.ArrayType ||
+                        if (paramType.TypeKind == TypeKind.Array ||
                             paramType.GetAttributeParameterTypedConstantKind(this.compilation) == TypedConstantKind.Error)
                         {
                             hasUnacceptableParameterType = true;
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (TypedConstant argument in attribute.ConstructorArguments)
                 {
-                    if (argument.Type.TypeKind == TypeKind.ArrayType)
+                    if (argument.Type.TypeKind == TypeKind.Array)
                     {
                         // TODO: it would be nice to report for each bad argument, but currently it's pointless since they
                         // would all have the same message and location.
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var pair in attribute.NamedArguments)
                 {
                     TypedConstant argument = pair.Value;
-                    if (argument.Type.TypeKind == TypeKind.ArrayType)
+                    if (argument.Type.TypeKind == TypeKind.Array)
                     {
                         // TODO: it would be nice to report for each bad argument, but currently it's pointless since they
                         // would all have the same message and location.
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var type in attribute.AttributeConstructor.ParameterTypes)
                     {
-                        if (type.TypeKind == TypeKind.ArrayType)
+                        if (type.TypeKind == TypeKind.Array)
                         {
                             // TODO: it would be nice to report for each bad argument, but currently it's pointless since they
                             // would all have the same message and location.
@@ -933,14 +933,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (type.TypeKind)
             {
-                case TypeKind.ArrayType:
+                case TypeKind.Array:
                     return IsCompliantType(((ArrayTypeSymbol)type).ElementType, context);
-                case TypeKind.DynamicType:
+                case TypeKind.Dynamic:
                     // NOTE: It would probably be most correct to return 
                     // IsCompliantType(this.compilation.GetSpecialType(SpecialType.System_Object), context)
                     // but that's way too much work in the 99.9% case.
                     return true;
-                case TypeKind.PointerType:
+                case TypeKind.Pointer:
                     return false;
                 case TypeKind.Error:
                 case TypeKind.TypeParameter:
@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (typeKind == TypeKind.ArrayType)
+                if (typeKind == TypeKind.Array)
                 {
                     ArrayTypeSymbol xArrayType = (ArrayTypeSymbol)xType;
                     ArrayTypeSymbol yArrayType = (ArrayTypeSymbol)yType;

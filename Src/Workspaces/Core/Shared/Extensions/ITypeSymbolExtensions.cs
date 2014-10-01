@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return typeSymbol.IsSealed ||
                    typeSymbol.IsValueType ||
-                   typeSymbol.TypeKind == TypeKind.ArrayType ||
+                   typeSymbol.TypeKind == TypeKind.Array ||
                    typeSymbol.TypeKind == TypeKind.Delegate ||
                    typeSymbol.SpecialType == SpecialType.System_Array ||
                    typeSymbol.SpecialType == SpecialType.System_Delegate ||

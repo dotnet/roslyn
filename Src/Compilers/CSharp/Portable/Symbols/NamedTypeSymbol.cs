@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // if ignoring dynamic, then treat dynamic the same as the type 'object'
             if (ignoreDynamic &&
-                t2.TypeKind == TypeKind.DynamicType &&
+                t2.TypeKind == TypeKind.Dynamic &&
                 this.SpecialType == SpecialType.System_Object)
             {
                 return true;

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     // Can't have a nullable of a pointer type.  i.e. "int*?" is illegal.
                     var innerType = symbol.TypeArguments.First();
-                    if (innerType.TypeKind != TypeKind.PointerType)
+                    if (innerType.TypeKind != TypeKind.Pointer)
                     {
                         return AddInformationTo(
                             SyntaxFactory.NullableType(innerType.Accept(this)), symbol);

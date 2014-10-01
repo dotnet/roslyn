@@ -10767,9 +10767,9 @@ class Program
             var semanticInfo = GetSemanticInfoForTest<ArrayCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("System.Int32[]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Int32[]", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -11667,9 +11667,9 @@ namespace Test
             var semanticInfo = GetSemanticInfoForTest<ImplicitArrayCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("System.Int32[]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Int32[]", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -11703,9 +11703,9 @@ namespace Test
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("System.Int32[]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Int32[]", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("System.Int32[] a", semanticInfo.Symbol.ToTestDisplayString());
@@ -11738,9 +11738,9 @@ namespace Test
             var semanticInfo = GetSemanticInfoForTest<ImplicitArrayCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("System.Int32[,,]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Int32[,,]", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -11773,9 +11773,9 @@ namespace Test
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("System.Int32[][,,]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Int32[][,,]", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("System.Int32[][,,] a3", semanticInfo.Symbol.ToTestDisplayString());
@@ -11809,9 +11809,9 @@ public class C
             var semanticInfo = GetSemanticInfoForTest<ImplicitArrayCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("?[]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("?[]", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -11845,9 +11845,9 @@ public class C
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("?[]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Int32[]", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("?[] array1", semanticInfo.Symbol.ToTestDisplayString());
@@ -11880,7 +11880,7 @@ namespace Test
             var semanticInfo = GetSemanticInfoForTest<ImplicitArrayCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("?[,,]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
@@ -11915,7 +11915,7 @@ namespace Test
             var semanticInfo = GetSemanticInfoForTest<ImplicitArrayCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("?[,,]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
@@ -11951,7 +11951,7 @@ public class C
             var semanticInfo = GetSemanticInfoForTest<ImplicitArrayCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("System.Int32[]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
@@ -13956,9 +13956,9 @@ public class Program
             var semanticInfo = GetSemanticInfoForTest<ArrayCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("InterfaceType[]", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
             Assert.Equal("InterfaceType[]", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -15132,9 +15132,9 @@ class Name
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("dynamic", semanticInfo.Type.ToDisplayString());
-            Assert.Equal(TypeKind.DynamicType, semanticInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Dynamic, semanticInfo.Type.TypeKind);
             Assert.Equal("dynamic", semanticInfo.ConvertedType.ToDisplayString());
-            Assert.Equal(TypeKind.DynamicType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Dynamic, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);

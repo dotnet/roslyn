@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(IsAccessibleOutsideAssembly(constructor), "Should be implied by IsAccessibleIfContainerIsAccessible")
                     Dim hasUnacceptableParameterType As Boolean = False
                     For Each paramType In GetParameterTypes(constructor)
-                        If paramType.TypeKind = TypeKind.ArrayType OrElse TypedConstant.GetTypedConstantKind(paramType, Me._compilation) = TypedConstantKind.Error Then
+                        If paramType.TypeKind = TypeKind.Array OrElse TypedConstant.GetTypedConstantKind(paramType, Me._compilation) = TypedConstantKind.Error Then
                             hasUnacceptableParameterType = True
                             Exit For
                         End If
@@ -535,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub ReportNonCompliantTypeArguments(type As TypeSymbol, context As NamedTypeSymbol, diagnosticSymbol As Symbol)
             Select Case type.TypeKind
-                Case TypeKind.ArrayType
+                Case TypeKind.Array
                     ReportNonCompliantTypeArguments((DirectCast(type, ArrayTypeSymbol)).ElementType, context, diagnosticSymbol)
                 Case TypeKind.Error, TypeKind.TypeParameter
                     Return
@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function IsCompliantType(type As TypeSymbol, context As NamedTypeSymbol) As Boolean
             Select Case type.TypeKind
-                Case TypeKind.ArrayType
+                Case TypeKind.Array
                     Return IsCompliantType((DirectCast(type, ArrayTypeSymbol)).ElementType, context)
                 Case TypeKind.Error, TypeKind.TypeParameter
                     Return True
@@ -848,7 +848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
-                If typeKind = TypeKind.ArrayType Then
+                If typeKind = TypeKind.Array Then
                     Dim xArrayType As ArrayTypeSymbol = DirectCast(xType, ArrayTypeSymbol)
                     Dim yArrayType As ArrayTypeSymbol = DirectCast(yType, ArrayTypeSymbol)
                     sawArrayRankDifference = sawArrayRankDifference OrElse xArrayType.Rank <> yArrayType.Rank

@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 // dynamic
-                if (methodSymbol.ReturnType.TypeKind == TypeKind.DynamicType &&
+                if (methodSymbol.ReturnType.TypeKind == TypeKind.Dynamic &&
                     methodSymbol.MethodKind != MethodKind.BuiltinOperator)
                 {
                     return true;

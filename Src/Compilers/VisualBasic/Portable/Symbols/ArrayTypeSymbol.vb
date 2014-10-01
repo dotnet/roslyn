@@ -213,10 +213,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns <see cref="TypeKind"/> of the symbol.
         ''' </summary>
-        ''' <returns><see cref="TypeKind.ArrayType"/></returns>
+        ''' <returns><see cref="TypeKind.Array"/></returns>
         Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return TypeKind.ArrayType
+                Return TypeKind.Array
             End Get
         End Property
 
@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim hashCode = 0
             Dim current As ITypeSymbol = Me
-            While (current.TypeKind = TypeKind.ArrayType)
+            While (current.TypeKind = TypeKind.Array)
                 Dim cur = DirectCast(current, ArrayTypeSymbol)
                 hashCode = Hash.Combine(cur.Rank, hashCode)
                 current = cur.ElementType

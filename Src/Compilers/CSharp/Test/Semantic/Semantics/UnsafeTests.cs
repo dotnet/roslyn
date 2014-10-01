@@ -3813,7 +3813,7 @@ unsafe class C
             Assert.NotNull(type);
             Assert.Same(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
-            Assert.Equal(TypeKind.PointerType, type.TypeKind);
+            Assert.Equal(TypeKind.Pointer, type.TypeKind);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
 
             var declaredSymbol = model.GetDeclaredSymbol(syntax.Ancestors().OfType<VariableDeclaratorSyntax>().First());
@@ -3882,7 +3882,7 @@ unsafe class C
             Assert.Equal(Conversion.Identity, conv);
 
             Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.PointerType, typeInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
             Assert.Equal(TypeKind.Error, ((PointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
@@ -3920,7 +3920,7 @@ unsafe class C
             Assert.Equal(Conversion.Identity, conv);
 
             Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.PointerType, typeInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
             Assert.Equal(TypeKind.Error, ((PointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
@@ -3957,7 +3957,7 @@ unsafe class C
             Assert.Equal(Conversion.Identity, conv);
 
             Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.PointerType, typeInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
             Assert.Equal(TypeKind.Error, ((PointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
@@ -4715,7 +4715,7 @@ unsafe struct S
                 var typeInfo = model.GetTypeInfo(node);
                 var conv = model.GetConversion(node);
                 Assert.Null(typeInfo.Type);
-                Assert.Equal(TypeKind.PointerType, typeInfo.ConvertedType.TypeKind);
+                Assert.Equal(TypeKind.Pointer, typeInfo.ConvertedType.TypeKind);
                 Assert.Equal(ConversionKind.NullToPointer, conv.Kind);
             }
         }
@@ -4751,11 +4751,11 @@ unsafe struct S
                 var typeInfo = model.GetTypeInfo(value);
 
                 var type = typeInfo.Type;
-                Assert.Equal(TypeKind.PointerType, type.TypeKind);
+                Assert.Equal(TypeKind.Pointer, type.TypeKind);
                 Assert.NotEqual(SpecialType.System_Void, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
 
                 var convertedType = typeInfo.ConvertedType;
-                Assert.Equal(TypeKind.PointerType, convertedType.TypeKind);
+                Assert.Equal(TypeKind.Pointer, convertedType.TypeKind);
                 Assert.Equal(SpecialType.System_Void, ((PointerTypeSymbol)convertedType).PointedAtType.SpecialType);
 
                 var conv = model.GetConversion(value);
@@ -5223,7 +5223,7 @@ unsafe class C
 
             var methodSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
             var pointerType = methodSymbol.Parameters[0].Type;
-            Assert.Equal(TypeKind.PointerType, pointerType.TypeKind);
+            Assert.Equal(TypeKind.Pointer, pointerType.TypeKind);
 
             foreach (var binOpSyntax in tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>())
             {
@@ -6436,7 +6436,7 @@ unsafe class C
                 Assert.NotNull(symbol);
                 Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
                 TypeSymbol type = symbol.Type;
-                Assert.Equal(TypeKind.PointerType, type.TypeKind);
+                Assert.Equal(TypeKind.Pointer, type.TypeKind);
                 Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
             }
         }

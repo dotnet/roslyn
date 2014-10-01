@@ -462,7 +462,7 @@ public partial class A { }
             Assert.True(field1.IsDefinition);
             Assert.True(field1.IsStatic);
             var elemType1 = (field1 as FieldSymbol).Type;
-            Assert.Equal(TypeKind.ArrayType, elemType1.TypeKind);
+            Assert.Equal(TypeKind.Array, elemType1.TypeKind);
             Assert.Equal("System.Int32[,]", elemType1.ToTestDisplayString());
 
             // ArrayType public API
@@ -476,7 +476,7 @@ public partial class A { }
             Assert.Equal(SymbolKind.Field, field1.Kind);
             Assert.True(field1.IsDefinition);
             var elemType2 = (field1 as FieldSymbol).Type;
-            Assert.Equal(TypeKind.ArrayType, elemType2.TypeKind);
+            Assert.Equal(TypeKind.Array, elemType2.TypeKind);
             // bug 2034
             Assert.Equal("System.UInt64[][,]", elemType2.ToTestDisplayString());
             Assert.Equal("Array", elemType2.BaseType.Name);
@@ -486,7 +486,7 @@ public partial class A { }
             Assert.Equal(SymbolKind.Method, method.Kind);
             Assert.True(method.IsDefinition);
             var retType = (method as MethodSymbol).ReturnType;
-            Assert.Equal(TypeKind.ArrayType, retType.TypeKind);
+            Assert.Equal(TypeKind.Array, retType.TypeKind);
 
             // ArrayType public API
             Assert.Equal(0, retType.GetAttributes().Length); // Enumerable.Empty<SymbolAttribute>()
@@ -507,7 +507,7 @@ public partial class A { }
             Assert.Equal(RefKind.Out, p2.RefKind);
             Assert.Equal("out System.Object[][][] outArray", p2.ToTestDisplayString());
             Assert.Equal(RefKind.None, p3.RefKind);
-            Assert.Equal(TypeKind.ArrayType, p3.Type.TypeKind);
+            Assert.Equal(TypeKind.Array, p3.Type.TypeKind);
             Assert.Equal("params System.Byte[] varArray", p3.ToTestDisplayString());
         }
 

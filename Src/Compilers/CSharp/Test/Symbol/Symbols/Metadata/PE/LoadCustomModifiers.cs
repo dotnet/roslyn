@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.True(propertyTypeCustomModifier.IsOptional);
 
             var propertyType = property.Type;
-            Assert.Equal(TypeKind.ArrayType, propertyType.TypeKind);
+            Assert.Equal(TypeKind.Array, propertyType.TypeKind);
 
             var arrayPropertyType = (ArrayTypeSymbol)propertyType;
             var arrayPropertyTypeCustomModifiers = arrayPropertyType.CustomModifiers.Single();

@@ -484,16 +484,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Encode transforms flag for this type and it's custom modifiers (if any).
                 switch (type.TypeKind)
                 {
-                    case TypeKind.DynamicType:
+                    case TypeKind.Dynamic:
                         transformFlagsBuilder.Add(true);
                         break;
 
-                    case TypeKind.ArrayType:
+                    case TypeKind.Array:
                         HandleCustomModifiers(((ArrayTypeSymbol)type).CustomModifiers.Length, transformFlagsBuilder);
                         transformFlagsBuilder.Add(false);
                         break;
 
-                    case TypeKind.PointerType:
+                    case TypeKind.Pointer:
                         HandleCustomModifiers(((PointerTypeSymbol)type).CustomModifiers.Length, transformFlagsBuilder);
                         transformFlagsBuilder.Add(false);
                         break;

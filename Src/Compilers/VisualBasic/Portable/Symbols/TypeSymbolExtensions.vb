@@ -367,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function IsNotInheritable(this As TypeSymbol) As Boolean
             Select Case this.TypeKind
-                Case TypeKind.ArrayType, TypeKind.Delegate, TypeKind.Enum, TypeKind.Structure, TypeKind.Module
+                Case TypeKind.Array, TypeKind.Delegate, TypeKind.Enum, TypeKind.Structure, TypeKind.Module
                     Return True
                 Case TypeKind.Interface, TypeKind.TypeParameter, TypeKind.Unknown
                     Return False
@@ -601,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             While (derivedType IsNot Nothing)
                 Select Case derivedType.TypeKind
-                    Case TypeKind.ArrayType
+                    Case TypeKind.Array
                         derivedType = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
                     Case TypeKind.TypeParameter
                         ' Use GetNonInterfaceConstraint rather than GetClassConstraint

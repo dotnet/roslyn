@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         localInterfaces.Add((NamedTypeSymbol)baseType);
                         continue;
 
-                    case TypeKind.DynamicType:
+                    case TypeKind.Dynamic:
                         diagnostics.Add(ErrorCode.ERR_DeriveFromDynamic, location, this);
                         continue;
 

@@ -48,8 +48,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return TypeKind.Struct
                 Case TypeKind.Module
                     Return TypeKind.Module
-                Case TypeKind.ArrayType
-                    Return TypeKind.ArrayType
+                Case TypeKind.Array
+                    Return TypeKind.Array
                 Case TypeKind.TypeParameter
                     Return TypeKind.TypeParameter
                 Case TypeKind.Submission

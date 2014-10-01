@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 return true;
                 // array type
             }
-            else if (typeSym.TypeKind == TypeKind.ArrayType)
+            else if (typeSym.TypeKind == TypeKind.Array)
             {
                 if (!expType.IsArray)
                 {

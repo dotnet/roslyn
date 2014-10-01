@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             if (argument != null && argument.Expression != null)
                             {
                                 var typeinfo = semanticModel.GetTypeInfo(argument.Expression);
-                                if (typeinfo.Type != null && typeinfo.Type.TypeKind == TypeKind.DynamicType)
+                                if (typeinfo.Type != null && typeinfo.Type.TypeKind == TypeKind.Dynamic)
                                 {
                                     return true;
                                 }

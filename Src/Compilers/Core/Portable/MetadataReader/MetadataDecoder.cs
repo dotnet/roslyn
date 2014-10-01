@@ -1957,7 +1957,7 @@ namespace Microsoft.CodeAnalysis
                 return new TypedConstant(type, TypedConstantKind.Error, null);
             }
 
-            Debug.Assert(type.TypeKind == TypeKind.ArrayType);
+            Debug.Assert(type.TypeKind == TypeKind.Array);
             return new TypedConstant(type, array);
         }
 

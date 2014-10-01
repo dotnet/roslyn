@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return TypeKind.PointerType;
+                return TypeKind.Pointer;
             }
         }
 

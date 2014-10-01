@@ -521,9 +521,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (type.TypeKind)
             {
-                case TypeKind.ArrayType:
+                case TypeKind.Array:
                     return ContainsNestedTypeOfUnconstructedGenericType(((ArrayTypeSymbol)type).ElementType);
-                case TypeKind.PointerType:
+                case TypeKind.Pointer:
                     return ContainsNestedTypeOfUnconstructedGenericType(((PointerTypeSymbol)type).PointedAtType);
                 case TypeKind.Delegate:
                 case TypeKind.Class:
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return false;
-                case TypeKind.DynamicType:
+                case TypeKind.Dynamic:
                 case TypeKind.TypeParameter:
                     return false;
                 default:

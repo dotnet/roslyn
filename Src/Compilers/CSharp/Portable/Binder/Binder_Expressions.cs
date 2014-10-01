@@ -3922,12 +3922,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // script class is synthesized and should not be used as a type of a new expression:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
 
-                case TypeKind.DynamicType:
+                case TypeKind.Dynamic:
                     // we didn't find any type called "dynamic" so we are using the builtin dynamic type, which has no constructors:
                     Error(diagnostics, ErrorCode.ERR_NoConstructors, node.Type, type);
                     return BadExpression(node, LookupResultKind.NotCreatable);
 
-                case TypeKind.PointerType:
+                case TypeKind.Pointer:
                     type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
                         diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
                     goto case TypeKind.Class;
@@ -6748,13 +6748,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var exprType = expr.Type;
             switch (exprType.TypeKind)
             {
-                case TypeKind.ArrayType:
+                case TypeKind.Array:
                     return BindArrayAccess(node, expr, arguments, diagnostics);
 
-                case TypeKind.DynamicType:
+                case TypeKind.Dynamic:
                     return BindDynamicIndexer(node, expr, arguments, ImmutableArray<PropertySymbol>.Empty, diagnostics);
 
-                case TypeKind.PointerType:
+                case TypeKind.Pointer:
                     return BindPointerElementAccess(node, expr, arguments, diagnostics);
 
                 case TypeKind.Class:

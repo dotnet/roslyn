@@ -1537,7 +1537,7 @@ End Module
 
             Assert.Equal("System.Int64()", semanticSummary.Type.ToTestDisplayString())
             Assert.Equal("System.Int64()", semanticSummary.ConvertedType.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticSummary.ConvertedType.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
@@ -1592,7 +1592,7 @@ End Module
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
 
             Assert.Equal("System.Int32()", semanticSummary.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticSummary.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticSummary.Type.TypeKind)
             Assert.Equal("m.C", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Widening Or ConversionKind.UserDefined, semanticSummary.ImplicitConversion.Kind)
@@ -1627,7 +1627,7 @@ End Module
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
 
             Assert.Equal("System.Char()", semanticSummary.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticSummary.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticSummary.Type.TypeKind)
             Assert.Equal("System.String", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningString, semanticSummary.ImplicitConversion.Kind)

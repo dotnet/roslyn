@@ -3312,7 +3312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
                     Select Case type.TypeKind
-                        Case TypeKind.ArrayType, TypeKind.Enum
+                        Case TypeKind.Array, TypeKind.Enum
                             ReportQualNotObjectRecord(left, diagnostics)
                         Case TypeKind.Class
                             If type.SpecialType = SpecialType.System_Array Then

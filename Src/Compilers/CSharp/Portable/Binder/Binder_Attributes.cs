@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         hasErrors = true;
                     }
-                    else if (reorderedArgument.Kind == TypedConstantKind.Array && parameter.Type.TypeKind == TypeKind.ArrayType && (TypeSymbol)reorderedArgument.Type != parameter.Type)
+                    else if (reorderedArgument.Kind == TypedConstantKind.Array && parameter.Type.TypeKind == TypeKind.Array && (TypeSymbol)reorderedArgument.Type != parameter.Type)
                     {
                         // NOTE: As in dev11, we don't allow array covariance conversions (presumably, we don't have a way to
                         // represent the conversion in metadata).

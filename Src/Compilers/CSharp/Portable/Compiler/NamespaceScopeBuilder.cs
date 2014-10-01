@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)symbol != null);
             Debug.Assert(!symbol.IsArray());
 
-            if (symbol.TypeKind == TypeKind.DynamicType)
+            if (symbol.TypeKind == TypeKind.Dynamic)
             {
                 return BuildTypeString(this.compilation.GetSpecialType(SpecialType.System_Object), out typeArgumentsOpt, out assemblyNameSuffix);
             }

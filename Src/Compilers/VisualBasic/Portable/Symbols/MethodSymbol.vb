@@ -479,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim firstType = Parameters(0).Type
-            If firstType.TypeKind <> TypeKind.ArrayType Then
+            If firstType.TypeKind <> TypeKind.Array Then
                 Return False
             End If
 

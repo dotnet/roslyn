@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return TypeKind.PointerType;
+                return TypeKind.Pointer;
             }
         }
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             int indirections = 0;
             TypeSymbol current = this;
-            while (current.TypeKind == TypeKind.PointerType)
+            while (current.TypeKind == TypeKind.Pointer)
             {
                 indirections += 1;
                 current = ((PointerTypeSymbol)current).PointedAtType;

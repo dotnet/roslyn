@@ -1618,16 +1618,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' CLI spec says "enums shall have a built-in integer type" (ECMA I $8.5.2) and gives
             ' a list of built-in types (ECMA I $8.2.2). The only built-in integer types are i8,ui8,i16,ui16,i32,ui32,i64,ui64
             If source.IsIntegralType() Then
-                If destination.TypeKind = TYPEKIND.Enum AndAlso
+                If destination.TypeKind = TypeKind.Enum AndAlso
                    DirectCast(destination, NamedTypeSymbol).EnumUnderlyingType.Equals(source) Then
                     Return ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions
                 End If
             ElseIf destination.IsIntegralType() Then
-                If source.TypeKind = TYPEKIND.Enum AndAlso
+                If source.TypeKind = TypeKind.Enum AndAlso
                    DirectCast(source, NamedTypeSymbol).EnumUnderlyingType.Equals(destination) Then
                     Return ConversionKind.WideningNumeric Or ConversionKind.InvolvesEnumTypeConversions
                 End If
-            ElseIf source.TypeKind = TYPEKIND.Enum AndAlso destination.TypeKind = TYPEKIND.Enum Then
+            ElseIf source.TypeKind = TypeKind.Enum AndAlso destination.TypeKind = TypeKind.Enum Then
                 Dim srcUnderlying = DirectCast(source, NamedTypeSymbol).EnumUnderlyingType
 
                 If srcUnderlying.IsIntegralType() AndAlso
@@ -1869,7 +1869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' partially handles cases: B.5 and B.6
                 '
                 If destinationKind = SymbolKind.TypeParameter AndAlso
-                   (src.TypeKind <> TYPEKIND.Class OrElse DirectCast(src, NamedTypeSymbol).IsNotInheritable) AndAlso
+                   (src.TypeKind <> TypeKind.Class OrElse DirectCast(src, NamedTypeSymbol).IsNotInheritable) AndAlso
                    Not ClassOrBasesSatisfyConstraints(src, DirectCast(destination, TypeParameterSymbol), useSiteDiagnostics) Then
                     Return Nothing 'ConversionKind.NoConversion
                 End If
@@ -1891,7 +1891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' partially handles cases: B.5 and B.6
                 '
                 If sourceKind = SymbolKind.TypeParameter AndAlso
-                   (dst.TypeKind <> TYPEKIND.Class OrElse DirectCast(dst, NamedTypeSymbol).IsNotInheritable) AndAlso
+                   (dst.TypeKind <> TypeKind.Class OrElse DirectCast(dst, NamedTypeSymbol).IsNotInheritable) AndAlso
                    Not ClassOrBasesSatisfyConstraints(dst, DirectCast(source, TypeParameterSymbol), useSiteDiagnostics) Then
                     Return Nothing 'ConversionKind.NoConversion
                 End If
@@ -2309,7 +2309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim base = source.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
 
             If base IsNot Nothing Then
-                If Not base.IsErrorType() AndAlso base.TypeKind = TYPEKIND.Class AndAlso
+                If Not base.IsErrorType() AndAlso base.TypeKind = TypeKind.Class AndAlso
                    IsWideningConversion(ClassifyDirectCastConversion(base, destination, useSiteDiagnostics)) Then
                     'From a reference type to an interface type, provided that the type implements the interface or a variant compatible interface.
                     Return ConversionKind.WideningReference
@@ -2724,26 +2724,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ByRef isArrayType As Boolean
         ) As Boolean
             Select Case candidate.TypeKind
-                Case TYPEKIND.Class,
-                     TYPEKIND.Module
+                Case TypeKind.Class,
+                     TypeKind.Module
                     isClassType = True
                     isDelegateType = False
                     isInterfaceType = False
                     isArrayType = False
 
-                Case TYPEKIND.Delegate
+                Case TypeKind.Delegate
                     isClassType = True
                     isDelegateType = True
                     isInterfaceType = False
                     isArrayType = False
 
-                Case TYPEKIND.Interface
+                Case TypeKind.Interface
                     isClassType = False
                     isDelegateType = False
                     isInterfaceType = True
                     isArrayType = False
 
-                Case TYPEKIND.ArrayType
+                Case TypeKind.Array
                     isClassType = False
                     isDelegateType = False
                     isInterfaceType = False
@@ -2762,20 +2762,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function IsClassType(type As TypeSymbol) As Boolean
             Dim typeKind = type.TypeKind
-            Return typeKind = typeKind.Class OrElse typeKind = typeKind.Module OrElse typeKind = typeKind.Delegate
+            Return typeKind = TypeKind.Class OrElse typeKind = TypeKind.Module OrElse typeKind = TypeKind.Delegate
         End Function
 
         Private Shared Function IsValueType(type As TypeSymbol) As Boolean
             Dim typeKind = type.TypeKind
-            Return typeKind = typeKind.Enum OrElse typeKind = typeKind.Structure
+            Return typeKind = TypeKind.Enum OrElse typeKind = TypeKind.Structure
         End Function
 
         Private Shared Function IsDelegateType(type As TypeSymbol) As Boolean
-            Return type.TypeKind = TYPEKIND.Delegate
+            Return type.TypeKind = TypeKind.Delegate
         End Function
 
         Private Shared Function IsArrayType(type As TypeSymbol) As Boolean
-            Return type.TypeKind = TYPEKIND.ArrayType
+            Return type.TypeKind = TypeKind.Array
         End Function
 
         Private Shared Function IsInterfaceType(type As TypeSymbol) As Boolean
@@ -3225,7 +3225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetNonErrorEnumUnderlyingType(type As TypeSymbol) As NamedTypeSymbol
-            If type.TypeKind = TYPEKIND.Enum Then
+            If type.TypeKind = TypeKind.Enum Then
                 Dim underlying = DirectCast(type, NamedTypeSymbol).EnumUnderlyingType
 
                 If underlying.Kind <> SymbolKind.ErrorType Then
@@ -3587,7 +3587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         'From a type parameter to a class constraint
                         'From a type parameter T to a type parameter constraint TX
                         Return ConversionKind.WideningTypeParameter
-                    ElseIf constraint.TypeKind = TYPEKIND.Enum AndAlso
+                    ElseIf constraint.TypeKind = TypeKind.Enum AndAlso
                        DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringCustomModifiers(destination) Then
                         ' !!! Spec doesn't mention this, but Dev10 allows conversion 
                         ' !!! to the underlying type of the enum
@@ -3751,7 +3751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         'From a class constraint to a type parameter.
                         'From a type parameter constraint TX to a type parameter T
                         Return ConversionKind.NarrowingTypeParameter
-                    ElseIf constraint.TypeKind = TYPEKIND.Enum AndAlso
+                    ElseIf constraint.TypeKind = TypeKind.Enum AndAlso
                        DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringCustomModifiers(source) Then
                         ' !!! Spec doesn't mention this, but Dev10 allows conversion 
                         ' !!! from the underlying type of the enum

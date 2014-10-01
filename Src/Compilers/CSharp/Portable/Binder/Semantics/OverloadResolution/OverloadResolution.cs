@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKind = parameter.RefKind;
 
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && parameter.Type.TypeKind == TypeKind.ArrayType)
+                parameter.IsParams && parameter.Type.TypeKind == TypeKind.Array)
             {
                 return ((ArrayTypeSymbol)parameter.Type).ElementType;
             }
@@ -1447,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC EXTENSION: We apply the same rule to pointer types. 
 
-            if (t1.TypeKind == TypeKind.PointerType)
+            if (t1.TypeKind == TypeKind.Pointer)
             {
                 var p1 = (PointerTypeSymbol)t1;
                 var p2 = (PointerTypeSymbol)t2;

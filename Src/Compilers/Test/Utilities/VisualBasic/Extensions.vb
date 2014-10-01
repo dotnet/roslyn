@@ -224,7 +224,7 @@ Module Extensions
             Next
             Return True
             ' array type
-        ElseIf typeSymTypeKind = TypeKind.ArrayType Then
+        ElseIf typeSymTypeKind = TypeKind.Array Then
             If Not expType.IsArray Then
                 Return False
             End If

@@ -172,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Struct:
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
-                case TypeKind.ArrayType:
-                case TypeKind.DynamicType:
+                case TypeKind.Array:
+                case TypeKind.Dynamic:
                     this.LookupMembersInClass(result, type, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
                     break;
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LookupMembersInErrorType(result, (ErrorTypeSymbol)type, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
                     break;
 
-                case TypeKind.PointerType:
+                case TypeKind.Pointer:
                     result.Clear();
                     break;
 
@@ -1422,8 +1422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Struct:
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
-                case TypeKind.ArrayType:
-                case TypeKind.DynamicType:
+                case TypeKind.Array:
+                case TypeKind.Dynamic:
                     this.AddMemberLookupSymbolsInfoInClass(result, type, options, originalBinder, type);
                     break;
 

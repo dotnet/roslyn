@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddNonNullConstantValue(type, constantValue, preferNumericValueOrExpandedFlagsForEnum);
             }
-            else if (type.IsReferenceType || type.TypeKind == TypeKind.PointerType || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            else if (type.IsReferenceType || type.TypeKind == TypeKind.Pointer || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 AddKeyword(SyntaxKind.NullKeyword);
             }

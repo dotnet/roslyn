@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (t0Type == SpecialType.System_IntPtr)
             {
-                if (source.TypeKind == TypeKind.PointerType)
+                if (source.TypeKind == TypeKind.Pointer)
                 {
                     return SpecialMember.System_IntPtr__op_Explicit_FromPointer;
                 }
@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (t0Type == SpecialType.System_UIntPtr)
             {
-                if (source.TypeKind == TypeKind.PointerType)
+                if (source.TypeKind == TypeKind.Pointer)
                 {
                     return SpecialMember.System_UIntPtr__op_Explicit_FromPointer;
                 }
@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (s0Type == SpecialType.System_IntPtr)
             {
-                if (target.TypeKind == TypeKind.PointerType)
+                if (target.TypeKind == TypeKind.Pointer)
                 {
                     return SpecialMember.System_IntPtr__op_Explicit_ToPointer;
                 }
@@ -1160,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (s0Type == SpecialType.System_UIntPtr)
             {
-                if (target.TypeKind == TypeKind.PointerType)
+                if (target.TypeKind == TypeKind.Pointer)
                 {
                     return SpecialMember.System_UIntPtr__op_Explicit_ToPointer;
                 }

@@ -214,7 +214,7 @@ End Class
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of MemberAccessExpressionSyntax)(compilation, "a.vb")
 
             Assert.Equal("System.Int32()", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind)
             Assert.Equal("System.Collections.IEnumerable", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Interface, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningReference, semanticInfo.ImplicitConversion.Kind)
@@ -2174,7 +2174,7 @@ End Module
 
             Assert.Equal("System.Int32()", semanticSummary.Type.ToTestDisplayString())
             Assert.Equal("System.Int32()", semanticSummary.ConvertedType.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticSummary.ConvertedType.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)

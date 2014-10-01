@@ -331,8 +331,8 @@ End Class
 
             Assert.Equal(1, type2.Rank)
             Assert.Equal(1, type3.Rank)
-            Assert.Equal(TypeKind.ArrayType, type2.TypeKind)
-            Assert.Equal(TypeKind.ArrayType, type3.TypeKind)
+            Assert.Equal(TypeKind.Array, type2.TypeKind)
+            Assert.Equal(TypeKind.Array, type3.TypeKind)
 
             Assert.Equal("EventData", type2.ElementType.Name)
             Assert.Equal("Array", type2.BaseType.Name)

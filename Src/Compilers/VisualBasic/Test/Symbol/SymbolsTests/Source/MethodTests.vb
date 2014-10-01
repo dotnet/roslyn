@@ -530,7 +530,7 @@ End Class
             Assert.False(m2p4.HasExplicitDefaultValue)
             Assert.False(m2p4.IsOptional)
             Assert.True(m2p4.IsParamArray)
-            Assert.Equal(TypeKind.ArrayType, m2p4.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, m2p4.Type.TypeKind)
             Assert.Equal("System.Object", DirectCast(m2p4.Type, ArrayTypeSymbol).ElementType.ToTestDisplayString())
             Assert.Equal("System.Object()", m2p4.Type.ToTestDisplayString())
 

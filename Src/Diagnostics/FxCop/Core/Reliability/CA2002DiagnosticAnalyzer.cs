@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
         {
             switch (type.TypeKind)
             {
-                case TypeKind.ArrayType:
+                case TypeKind.Array:
                     var arrayType = type as IArrayTypeSymbol;
                     return arrayType != null && arrayType.ElementType.IsPrimitiveType();
                 case TypeKind.Class:

@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim foundModifiers = CheckDeclarationModifiers(node, binder, diagBag, accessModifiers)
 
-            If TYPEKIND = TYPEKIND.Delegate Then
+            If TypeKind = TypeKind.Delegate Then
                 ' add implicit delegate members (invoke, .ctor, begininvoke and endinvoke)
                 If members.Members.Count = 0 Then
                     Dim ctor As MethodSymbol = Nothing
@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(members.Members.Count = 4)
                 End If
 
-            ElseIf TYPEKIND = TYPEKIND.Enum Then
+            ElseIf TypeKind = TypeKind.Enum Then
                 Dim enumBlock = DirectCast(node, EnumBlockSyntax)
                 AddEnumMembers(enumBlock, binder, diagBag, members, staticInitializers)
             Else
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Specified access '|1' for '|2' does not match the access '|3' specified on one of its other partial types.
                 If newModifiers <> 0 Then
-                    binder.ReportDiagnostic(diagBag,
+                    Binder.ReportDiagnostic(diagBag,
                                             id,
                                             ERRID.ERR_PartialTypeAccessMismatch3,
                                             newModifiers.ToAccessibility().ToDisplay(),
@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' Note: in case one partial declaration has both MustInherit & NotInheritable and other partial
                         ' declarations have MustInherit, #31408 will be generated for the first one and #30926 for all
                         ' others with MustInherit
-                        binder.ReportDiagnostic(diagBag, id, ERRID.ERR_PartialTypeBadMustInherit1, id.ToString())
+                        Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_PartialTypeBadMustInherit1, id.ToString())
                     End If
                 End If
 
@@ -367,11 +367,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
 
                 If (foundModifiers And DeclarationModifiers.Private) <> 0 Then
-                    binder.ReportDiagnostic(diagBag, id, ERRID.ERR_PrivateTypeOutsideType)
+                    Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_PrivateTypeOutsideType)
                 End If
 
                 If (foundModifiers And DeclarationModifiers.Shadows) <> 0 Then
-                    binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ShadowingTypeOutsideClass1, id.ToString())
+                    Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ShadowingTypeOutsideClass1, id.ToString())
                     foundModifiers = (foundModifiers And (Not DeclarationModifiers.Shadows))
                 End If
 
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Only nested type (not nested in a struct, nested in a class, etc. ) can be Protected.
             If (foundModifiers And DeclarationModifiers.Protected) <> 0 AndAlso
                 (Not isNested OrElse containingType.DeclarationKind <> VisualBasic.Symbols.DeclarationKind.Class) Then
-                binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ProtectedTypeOutsideClass)
+                Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ProtectedTypeOutsideClass)
                 foundModifiers = (foundModifiers And (Not DeclarationModifiers.Protected))
             End If
 
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Debug.Assert(Not thisTypeIsEmbedded)
 
                             ' This non-embedded type conflicts with an embedded type or namespace
-                            binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeClashesWithVbCoreType4,
+                            Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeClashesWithVbCoreType4,
                                                     Me.GetKindText(), id.ToString, _3rdArg, s.Name)
 
                         ElseIf thisTypeIsEmbedded Then
@@ -530,7 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Dim errorReported As Boolean = False
                                 For Each location In s.Locations
                                     If location.IsInSource AndAlso Not DirectCast(location.SourceTree, VisualBasicSyntaxTree).IsEmbeddedSyntaxTree Then
-                                        binder.ReportDiagnostic(diagBag, location, ERRID.ERR_TypeClashesWithVbCoreType4,
+                                        Binder.ReportDiagnostic(diagBag, location, ERRID.ERR_TypeClashesWithVbCoreType4,
                                                                 _3rdArg, s.Name, Me.GetKindText(), id.ToString)
                                         errorReported = True
                                         Exit For
@@ -549,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     container.Locations.Length = 1 OrElse
                                     Not (TypeOf container Is SourceMemberContainerTypeSymbol) OrElse
                                     CType(container, SourceMemberContainerTypeSymbol).IsPartial) Then
-                                binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeConflict6,
+                                Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeConflict6,
                                                         Me.GetKindText(), id.ToString, _3rdArg, s.Name,
                                                         container.GetKindText(), _6thArg)
                             End If
@@ -604,7 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Next
 
                         If collision IsNot Nothing Then
-                            binder.ReportDiagnostic(diagBag, id, ERRID.ERR_CollisionWithPublicTypeInModule, Me, collision.ContainingModule)
+                            Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_CollisionWithPublicTypeInModule, Me, collision.ContainingModule)
                         End If
                     End If
                 End If
@@ -614,7 +614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim containingSourceType = TryCast(container, SourceNamedTypeSymbol)
             If containingSourceType IsNot Nothing AndAlso containingSourceType.TypeParameters.MatchesAnyName(Me.Name) Then
                 ' "'|1' has the same name as a type parameter."
-                binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ShadowingGenericParamWithMember1, Me.Name)
+                Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ShadowingGenericParamWithMember1, Me.Name)
             End If
 
             ' Check the source symbol type parameters for duplicates and shadowing
@@ -633,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Set up a binder for this part of the type.
-            Dim binder As binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
 
             ' all type declarations are treated as possible partial types. Because these type have different base classes 
             ' we need to get the modifiers in different ways.
@@ -672,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim nodeKindText = Me.GetKindText()
 
-                binder.ReportDiagnostic(diagBag, id, If(foundPartial, ERRID.WRN_TypeConflictButMerged6, ERRID.ERR_TypeConflict6),
+                Binder.ReportDiagnostic(diagBag, id, If(foundPartial, ERRID.WRN_TypeConflictButMerged6, ERRID.ERR_TypeConflict6),
                                              nodeKindText, id.ToString,
                                              nodeKindText, identifier,
                                              Me.ContainingSymbol.GetKindText(),
@@ -822,7 +822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(typeParamListSyntax.Parameters.Count = Me.Arity) ' If this is false, something is really wrong with the declaration tree.
 
             ' Set up a binder for this part of the type.
-            Dim binder As binder = CreateLocationSpecificBinderForType(tree, BindingLocation.GenericConstraintsClause)
+            Dim binder As Binder = CreateLocationSpecificBinderForType(tree, BindingLocation.GenericConstraintsClause)
             Dim typeParamSyntax = typeParamListSyntax.Parameters(typeParameter.Ordinal)
 
             ' Handle type parameter identifier.
@@ -837,7 +837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If allowVarianceSpecifier Then
                     variance = binder.DecodeVariance(varianceKeyword)
                 Else
-                    binder.ReportDiagnostic(diagBag, varianceKeyword, ERRID.ERR_VarianceDisallowedHere)
+                    Binder.ReportDiagnostic(diagBag, varianceKeyword, ERRID.ERR_VarianceDisallowedHere)
                 End If
             End If
 
@@ -847,12 +847,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If info.Initialized Then
                 If Not IdentifierComparison.Equals(typeParameter.Name, name) Then
                     ' "Type parameter name '{0}' does not match the name '{1}' of the corresponding type parameter defined on one of the other partial types of '{2}'."
-                    binder.ReportDiagnostic(diagBag, identSymbol, ERRID.ERR_PartialTypeTypeParamNameMismatch3, name, typeParameter.Name, Me.Name)
+                    Binder.ReportDiagnostic(diagBag, identSymbol, ERRID.ERR_PartialTypeTypeParamNameMismatch3, name, typeParameter.Name, Me.Name)
                 End If
 
                 If Not HaveSameConstraints(info.Constraints, constraints) Then
                     ' "Constraints for this type parameter do not match the constraints on the corresponding type parameter defined on one of the other partial types of '{0}'."
-                    binder.ReportDiagnostic(diagBag, identSymbol, ERRID.ERR_PartialTypeConstraintMismatch1, Me.Name)
+                    Binder.ReportDiagnostic(diagBag, identSymbol, ERRID.ERR_PartialTypeConstraintMismatch1, Me.Name)
                 End If
             Else
                 info = New TypeParameterInfo(variance, constraints)
@@ -999,7 +999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                            diagBag As DiagnosticBag)
 
             ' Set up a binder for this part of the type.
-            Dim binder As binder = CreateLocationSpecificBinderForType(tree, BindingLocation.BaseTypes)
+            Dim binder As Binder = CreateLocationSpecificBinderForType(tree, BindingLocation.BaseTypes)
 
             Select Case syntaxNode.Kind
                 Case SyntaxKind.ClassBlock
@@ -1028,7 +1028,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 diagBag As DiagnosticBag)
 
             ' Set up a binder for this part of the type.
-            Dim binder As binder = CreateLocationSpecificBinderForType(tree, BindingLocation.BaseTypes)
+            Dim binder As Binder = CreateLocationSpecificBinderForType(tree, BindingLocation.BaseTypes)
 
             Select Case syntaxNode.Kind
                 Case SyntaxKind.ClassBlock
@@ -1090,7 +1090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If baseDeclaration.Kind = SyntaxKind.InheritsStatement Then
                     Dim inheritsDeclaration = DirectCast(baseDeclaration, InheritsStatementSyntax)
                     If baseClassSyntax IsNot Nothing OrElse inheritsDeclaration.Types.Count > 1 Then
-                        binder.ReportDiagnostic(diagBag, inheritsDeclaration, ERRID.ERR_MultipleExtends)
+                        Binder.ReportDiagnostic(diagBag, inheritsDeclaration, ERRID.ERR_MultipleExtends)
                     End If
                     If baseClassSyntax Is Nothing AndAlso inheritsDeclaration.Types.Count > 0 Then
                         baseClassSyntax = inheritsDeclaration.Types(0)
@@ -1111,18 +1111,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Check to make sure the base class is valid.
             Dim diagInfo As DiagnosticInfo = Nothing
             Select Case baseClassType.TypeKind
-                Case TYPEKIND.TypeParameter
-                    binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_GenericParamBase2, "Class", Me.Name)
+                Case TypeKind.TypeParameter
+                    Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_GenericParamBase2, "Class", Me.Name)
                     Return Nothing
 
-                Case TYPEKIND.Interface, TYPEKIND.Enum, TYPEKIND.Delegate, TYPEKIND.Structure, TYPEKIND.Module, TYPEKIND.ArrayType ' array can't really occur
-                    binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromNonClass)
+                Case TypeKind.Interface, TypeKind.Enum, TypeKind.Delegate, TypeKind.Structure, TypeKind.Module, TypeKind.Array ' array can't really occur
+                    Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromNonClass)
                     Return Nothing
 
-                Case TYPEKIND.Error, TYPEKIND.Unknown
+                Case TypeKind.Error, TypeKind.Unknown
                     Return DirectCast(baseClassType, NamedTypeSymbol)
 
-                Case TYPEKIND.Class
+                Case TypeKind.Class
                     If IsRestrictedBaseClass(baseClassType.SpecialType) Then
                         Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromRestrictedType1, baseClassType)
                         Return Nothing
@@ -1136,7 +1136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' The same base class can be declared in multiple partials, but not different ones
             If baseInOtherPartial IsNot Nothing Then
                 If Not baseClassType.Equals(baseInOtherPartial) Then
-                    binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_BaseMismatchForPartialClass3,
+                    Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_BaseMismatchForPartialClass3,
                                              baseClassType, Me.Name, baseInOtherPartial)
                     Return Nothing
                 End If
@@ -1178,7 +1178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim namedType = TryCast(typeSymbol, NamedTypeSymbol)
 
                     If namedType IsNot Nothing AndAlso interfacesInThisPartial.Contains(namedType) Then
-                        binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_DuplicateInInherits1, typeSymbol)
+                        Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_DuplicateInInherits1, typeSymbol)
                     Else
                         If namedType IsNot Nothing Then
                             interfacesInThisPartial.Add(namedType)
@@ -1186,14 +1186,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         ' Check to make sure the base interfaces are valid.
                         Select Case typeSymbol.TypeKind
-                            Case TYPEKIND.TypeParameter
-                                binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_GenericParamBase2, "Interface", Me.Name)
+                            Case TypeKind.TypeParameter
+                                Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_GenericParamBase2, "Interface", Me.Name)
                                 Continue For
 
-                            Case TYPEKIND.Unknown
+                            Case TypeKind.Unknown
                                 Continue For
 
-                            Case TYPEKIND.Interface, TYPEKIND.Error
+                            Case TypeKind.Interface, TypeKind.Error
                                 basesInOtherPartials.Add(namedType)
 
                                 If Not typeSymbol.IsErrorType() Then
@@ -1203,7 +1203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 End If
 
                             Case Else
-                                binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromNonInterface)
+                                Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromNonInterface)
                                 Continue For
                         End Select
                     End If
@@ -1232,24 +1232,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim typeSymbol = binder.BindTypeSyntax(baseClassSyntax, diagBag, suppressUseSiteError:=True)
 
                     If interfacesInThisPartial.Contains(typeSymbol) Then
-                        binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
+                        Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
                     Else
                         interfacesInThisPartial.Add(typeSymbol)
 
                         ' Check to make sure the base interfaces are valid.
                         Select Case typeSymbol.TypeKind
-                            Case TYPEKIND.TypeParameter
-                                binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_ImplementsGenericParam, "Interface", Me.Name)
+                            Case TypeKind.TypeParameter
+                                Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_ImplementsGenericParam, "Interface", Me.Name)
                                 Continue For
 
-                            Case TYPEKIND.Unknown
+                            Case TypeKind.Unknown
                                 Continue For
 
-                            Case TYPEKIND.Interface, TYPEKIND.Error
+                            Case TypeKind.Interface, TypeKind.Error
                                 basesInOtherPartials.Add(DirectCast(typeSymbol, NamedTypeSymbol))
 
                             Case Else
-                                binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_BadImplementsType)
+                                Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_BadImplementsType)
                                 Continue For
                         End Select
                     End If
@@ -1333,7 +1333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim inhDecl = If(getInherits,
                                    DirectCast(typeBlock.Inherits, IEnumerable(Of InheritsOrImplementsStatementSyntax)),
                                    DirectCast(typeBlock.Implements, IEnumerable(Of InheritsOrImplementsStatementSyntax)))
-                Dim binder As binder = CreateLocationSpecificBinderForType(part.SyntaxTree, BindingLocation.BaseTypes)
+                Dim binder As Binder = CreateLocationSpecificBinderForType(part.SyntaxTree, BindingLocation.BaseTypes)
 
                 Dim basesBeingResolved = ConsList(Of Symbol).Empty.Prepend(Me)
                 binder = New BasesBeingResolvedBinder(binder, basesBeingResolved)
@@ -1384,33 +1384,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Get the default base type if none was declared
             If declaredOrDefaultBase Is Nothing AndAlso Me.SpecialType <> Microsoft.CodeAnalysis.SpecialType.System_Object Then
 
-                Select Case TYPEKIND
-                    Case TYPEKIND.Submission
+                Select Case TypeKind
+                    Case TypeKind.Submission
                         ' check that System.Object is available. 
                         ' Although the submission semantically doesn't have a base class we need to emit one.
                         ReportUseSiteDiagnosticsForBaseType(Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Object), declaredBase, diagnostics)
                         declaredOrDefaultBase = Nothing
 
-                    Case TYPEKIND.Class
+                    Case TypeKind.Class
                         declaredOrDefaultBase = GetSpecialType(SpecialType.System_Object)
 
-                    Case TYPEKIND.Interface
+                    Case TypeKind.Interface
                         declaredOrDefaultBase = Nothing
 
-                    Case TYPEKIND.Enum
+                    Case TypeKind.Enum
                         declaredOrDefaultBase = GetSpecialType(SpecialType.System_Enum)
 
-                    Case TYPEKIND.Structure
+                    Case TypeKind.Structure
                         declaredOrDefaultBase = GetSpecialType(SpecialType.System_ValueType)
 
-                    Case TYPEKIND.Delegate
+                    Case TypeKind.Delegate
                         declaredOrDefaultBase = GetSpecialType(SpecialType.System_MulticastDelegate)
 
-                    Case TYPEKIND.Module
+                    Case TypeKind.Module
                         declaredOrDefaultBase = GetSpecialType(SpecialType.System_Object)
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(TYPEKIND)
+                        Throw ExceptionUtilities.UnexpectedValue(TypeKind)
 
                 End Select
             End If
@@ -1441,7 +1441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Loop While current IsNot Nothing
 
             If Not useSiteDiagnostics.IsNullOrEmpty Then
-                Dim location As location
+                Dim location As Location
 
                 If declaredBase Is baseType Then
                     location = GetInheritsLocation(baseType)
@@ -1504,12 +1504,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
-            Debug.Assert(Me.TypeKind <> TYPEKIND.Interface)
+            Debug.Assert(Me.TypeKind <> TypeKind.Interface)
 
-            If TYPEKIND = TYPEKIND.Enum Then
+            If TypeKind = TypeKind.Enum Then
                 ' Base type has the underlying type instead.
                 Return GetSpecialType(SpecialType.System_Enum)
-            ElseIf TYPEKIND = TYPEKIND.Delegate Then
+            ElseIf TypeKind = TypeKind.Delegate Then
                 ' Base type has the underlying type instead.
                 Return GetSpecialType(SpecialType.System_MulticastDelegate)
             Else
@@ -1761,7 +1761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim blockRef = SyntaxReferences(0)
                     Dim tree = blockRef.SyntaxTree
                     Dim syntax = DirectCast(blockRef.GetSyntax, EnumBlockSyntax)
-                    Dim binder As binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
+                    Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
                     underlyingType = BindEnumUnderlyingType(syntax, binder, tempDiags)
 
                     If Interlocked.CompareExchange(Me.m_lazyEnumUnderlyingType, underlyingType, Nothing) Is Nothing Then
@@ -2140,7 +2140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim decoded As Boolean = False
 
             Select Case Me.TypeKind
-                Case TYPEKIND.Class
+                Case TypeKind.Class
                     If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                         arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.Locations(0))
                         decoded = True
@@ -2167,7 +2167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     End If
 
-                Case TYPEKIND.Interface
+                Case TypeKind.Interface
                     If attrData.IsTargetAttribute(Me, AttributeDescription.CoClassAttribute) Then
                         Debug.Assert(Not attrData.CommonConstructorArguments.IsDefault AndAlso attrData.CommonConstructorArguments.Length = 1)
                         Dim argument As TypedConstant = attrData.CommonConstructorArguments(0)
@@ -2187,7 +2187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         decoded = True
                     End If
 
-                Case TYPEKIND.Module
+                Case TypeKind.Module
                     If ContainingSymbol.Kind = SymbolKind.Namespace AndAlso attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                         ' Already have an attribute, no need to add another one.
                         SuppressExtensionAttributeSynthesis()
@@ -2322,7 +2322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Roslyn now used the more general use site errors, which also reports diagnostics if the type or the constructor
             ' is missing.
 
-            If Me.TypeKind = TYPEKIND.Module Then
+            If Me.TypeKind = TypeKind.Module Then
                 Dim useSiteError As DiagnosticInfo = Nothing
 
                 Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.Microsoft_VisualBasic_CompilerServices_StandardModuleAttribute__ctor,
@@ -2353,7 +2353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return data.Layout
                 End If
 
-                If Me.TypeKind = TYPEKIND.Structure Then
+                If Me.TypeKind = TypeKind.Structure Then
                     ' CLI spec 22.37.16:
                     ' "A ValueType shall have a non-zero size - either by defining at least one field, or by providing a non-zero ClassSize"
                     ' 
@@ -2397,7 +2397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         New TypedConstant(stringType, TypedConstantKind.Primitive, DefaultPropertyName))))
             End If
 
-            If Me.TypeKind = TYPEKIND.Module Then
+            If Me.TypeKind = TypeKind.Module Then
                 'TODO check that there's not a user supplied instance already. This attribute is AllowMultiple:=False.
 
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
@@ -2470,7 +2470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Protected Overrides Sub AddEntryPointIfNeeded(membersBuilder As MembersAndInitializersBuilder)
-            If Me.TypeKind = TYPEKIND.Class AndAlso Not Me.IsGenericType Then
+            If Me.TypeKind = TypeKind.Class AndAlso Not Me.IsGenericType Then
                 Dim mainTypeName As String = DeclaringCompilation.Options.MainTypeName
 
                 If mainTypeName IsNot Nothing AndAlso
@@ -2521,7 +2521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If haveSuitableConstructor Then
                         Dim syntaxRef = SyntaxReferences.First() ' use arbitrary part
 
-                        Dim binder As binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, syntaxRef.SyntaxTree, Me)
+                        Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, syntaxRef.SyntaxTree, Me)
                         Dim entryPoint As New SynthesizedMainTypeEntryPoint(syntaxRef.GetVisualBasicSyntax(), Me)
                         AddMember(entryPoint, binder, membersBuilder, omitDiagnostics:=True)
                     End If

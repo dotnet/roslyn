@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     return ClassificationTypeNames.DelegateName;
                 case TypeKind.TypeParameter:
                     return ClassificationTypeNames.TypeParameterName;
-                case TypeKind.DynamicType:
+                case TypeKind.Dynamic:
                     return ClassificationTypeNames.Keyword;
                 default:
                     return null;

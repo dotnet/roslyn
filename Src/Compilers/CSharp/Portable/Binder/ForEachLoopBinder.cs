@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Struct:
                 case TypeKind.Interface:
                 case TypeKind.TypeParameter: // Not specifically mentioned in the spec, but consistent with Dev10.
-                case TypeKind.DynamicType: // Not specifically mentioned in the spec, but consistent with Dev10.
+                case TypeKind.Dynamic: // Not specifically mentioned in the spec, but consistent with Dev10.
                     break;
 
                 case TypeKind.Submission:

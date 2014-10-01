@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return TypeKind.ArrayType;
+                return TypeKind.Array;
             }
         }
 

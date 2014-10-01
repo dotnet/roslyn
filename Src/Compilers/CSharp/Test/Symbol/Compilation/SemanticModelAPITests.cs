@@ -1930,9 +1930,9 @@ unsafe class C
 
             var typeInfo = speculativeModel.GetTypeInfo(initializer);
             Assert.Equal("System.Int32*", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.PointerType, typeInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
             Assert.Equal("System.Int32*", typeInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.PointerType, typeInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Pointer, typeInfo.ConvertedType.TypeKind);
 
             var conv = speculativeModel.GetConversion(initializer);
             Assert.Equal(ConversionKind.Identity, conv.Kind);

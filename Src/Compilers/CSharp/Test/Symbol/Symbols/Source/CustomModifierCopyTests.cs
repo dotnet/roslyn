@@ -770,7 +770,7 @@ class C : I
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
 
             Assert.Equal(SpecialType.System_Object, interfaceMethod.ParameterTypes.Single().SpecialType);
-            Assert.Equal(TypeKind.DynamicType, classMethod.ParameterTypes.Single().TypeKind);
+            Assert.Equal(TypeKind.Dynamic, classMethod.ParameterTypes.Single().TypeKind);
 
             Assert.Equal("void C.I.M(dynamic modopt(System.Runtime.CompilerServices.IsLong) x)", classMethod.ToTestDisplayString());
         }
@@ -813,7 +813,7 @@ class C : I
             var interfaceMethod = global.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
 
-            Assert.Equal(TypeKind.DynamicType, interfaceMethod.ParameterTypes.Single().TypeKind);
+            Assert.Equal(TypeKind.Dynamic, interfaceMethod.ParameterTypes.Single().TypeKind);
             Assert.Equal(SpecialType.System_Object, classMethod.ParameterTypes.Single().SpecialType);
 
             Assert.Equal("void C.I.M(System.Object modopt(System.Runtime.CompilerServices.IsLong) x)", classMethod.ToTestDisplayString());
@@ -857,7 +857,7 @@ class C : I
             var interfaceMethod = global.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
 
-            Assert.Equal(TypeKind.DynamicType, interfaceMethod.ReturnType.TypeKind);
+            Assert.Equal(TypeKind.Dynamic, interfaceMethod.ReturnType.TypeKind);
             Assert.Equal(SpecialType.System_Object, classMethod.ReturnType.SpecialType);
 
             Assert.Equal("System.Object modopt(System.Int32) C.I.M()", classMethod.ToTestDisplayString());
@@ -898,7 +898,7 @@ class C : I
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
 
             Assert.Equal(SpecialType.System_Object, interfaceMethod.ReturnType.SpecialType);
-            Assert.Equal(TypeKind.DynamicType, classMethod.ReturnType.TypeKind);
+            Assert.Equal(TypeKind.Dynamic, classMethod.ReturnType.TypeKind);
 
             Assert.Equal("dynamic modopt(System.Int32) C.I.M()", classMethod.ToTestDisplayString());
         }

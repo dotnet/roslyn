@@ -1450,9 +1450,9 @@ End Module
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of CastExpressionSyntax)(compilation, "a.vb")
 
             Assert.Equal("System.Int32()", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind)
             Assert.Equal("System.Int32()", semanticInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
             Assert.Null(semanticInfo.Symbol)
@@ -2144,7 +2144,7 @@ End Module
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of ArrayCreationExpressionSyntax)(compilation, "a.vb")
 
             Assert.Equal("System.Object()()", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind)
             Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningReference, semanticInfo.ImplicitConversion.Kind)
@@ -3073,9 +3073,9 @@ End Module
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of ExpressionSyntax)(compilation, "a.vb")
 
             Assert.Equal("System.Int32[missing]()", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind)
             Assert.Equal("System.Int32[missing]()", semanticInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind)
         End Sub
 
         <Fact()>
@@ -3094,9 +3094,9 @@ End Class
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of ExpressionSyntax)(compilation, "a.vb")
             Assert.Equal("System.String()", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind)
             Assert.Equal("System.String()", semanticInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
         End Sub
 
@@ -3117,9 +3117,9 @@ End Class
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of ExpressionSyntax)(compilation, "a.vb")
             Assert.Equal("System.String()", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind)
             Assert.Equal("System.String()", semanticInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(TypeKind.ArrayType, semanticInfo.ConvertedType.TypeKind)
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
         End Sub
 

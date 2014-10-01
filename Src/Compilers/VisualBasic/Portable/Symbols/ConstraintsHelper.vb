@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Continue For
                                     End If
 
-                                Case TypeKind.ArrayType,
+                                Case TypeKind.Array,
                                     TypeKind.Delegate,
                                     TypeKind.Enum,
                                     TypeKind.Structure
@@ -690,7 +690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Select Case baseType.TypeKind
-                Case TypeKind.ArrayType,
+                Case TypeKind.Array,
                     TypeKind.Enum,
                     TypeKind.Structure
                     Return baseType.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)

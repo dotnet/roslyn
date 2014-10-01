@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim paramType = binder.DecodeModifiedIdentifierType(syntax.Identifier, syntax.AsClause, Nothing, getErrorInfo, diagnostics, ModifiedIdentifierTypeDecoderContext.ParameterType)
 
             If (flags And SourceParameterFlags.ParamArray) <> 0 AndAlso paramType.TypeKind <> TypeKind.Error Then
-                If paramType.TypeKind <> TypeKind.ArrayType Then
+                If paramType.TypeKind <> TypeKind.Array Then
                     ' ParamArray must be of array type.
                     Binder.ReportDiagnostic(diagnostics, syntax.Identifier, ERRID.ERR_ParamArrayNotArray)
                 Else

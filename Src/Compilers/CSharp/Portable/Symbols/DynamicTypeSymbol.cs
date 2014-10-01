@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return TypeKind.DynamicType;
+                return TypeKind.Dynamic;
             }
         }
 
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (ReferenceEquals(this, t2) || t2.TypeKind == TypeKind.DynamicType)
+            if (ReferenceEquals(this, t2) || t2.TypeKind == TypeKind.Dynamic)
             {
                 return true;
             }

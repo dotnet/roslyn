@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol otherType = (s0.SpecialType == SpecialType.System_UIntPtr || s0.SpecialType == SpecialType.System_IntPtr) ? t0 : s0;
 
-            if (otherType.TypeKind == TypeKind.PointerType)
+            if (otherType.TypeKind == TypeKind.Pointer)
             {
                 return true;
             }
@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case TypeKind.ArrayType:
+                case TypeKind.Array:
                     // SPEC: From an array-type S ... to an array-type T, provided ...
                     // SPEC: From any array-type to System.Array and the interfaces it implements.
                     // SPEC: From a single-dimensional array type S[] to IList<T>, provided ...

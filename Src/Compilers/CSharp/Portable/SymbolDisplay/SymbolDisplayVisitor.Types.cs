@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Can't have a type called "int*?".
                     var typeArg = symbol.TypeArguments[0];
-                    if (typeArg.TypeKind != TypeKind.PointerType)
+                    if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         symbol.TypeArguments[0].Accept(this.NotFirstVisitor);
                         AddPunctuation(SyntaxKind.QuestionToken);

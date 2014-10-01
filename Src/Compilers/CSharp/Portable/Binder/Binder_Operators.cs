@@ -2430,7 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var operandType = operand.Type;
-            if ((object)operandType != null && operandType.TypeKind == TypeKind.PointerType || targetTypeKind == TypeKind.PointerType)
+            if ((object)operandType != null && operandType.TypeKind == TypeKind.Pointer || targetTypeKind == TypeKind.Pointer)
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
@@ -2464,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 
-            if (targetTypeKind == TypeKind.DynamicType)
+            if (targetTypeKind == TypeKind.Dynamic)
             {
                 // warning for dynamic target type
                 Error(diagnostics, ErrorCode.WRN_IsDynamicIsConfusing,
@@ -2474,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert((object)operandType != null);
-            if (operandType.TypeKind == TypeKind.DynamicType)
+            if (operandType.TypeKind == TypeKind.Dynamic)
             {
                 // if operand has a dynamic type, we do the same thing as though it were an object
                 operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
@@ -2794,7 +2794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_AsWithTypeVar, node, targetType);
                 }
-                else if (targetTypeKind == TypeKind.PointerType)
+                else if (targetTypeKind == TypeKind.Pointer)
                 {
                     Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
                 }
@@ -2838,22 +2838,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)operandType != null);
             var operandTypeKind = operandType.TypeKind;
 
-            Debug.Assert(targetTypeKind != TypeKind.PointerType, "Should have been caught above");
-            if (operandTypeKind == TypeKind.PointerType)
+            Debug.Assert(targetTypeKind != TypeKind.Pointer, "Should have been caught above");
+            if (operandTypeKind == TypeKind.Pointer)
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
                 return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
-            if (operandTypeKind == TypeKind.DynamicType)
+            if (operandTypeKind == TypeKind.Dynamic)
             {
                 // if operand has a dynamic type, we do the same thing as though it were an object
                 operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
                 operandTypeKind = operandType.TypeKind;
             }
 
-            if (targetTypeKind == TypeKind.DynamicType)
+            if (targetTypeKind == TypeKind.Dynamic)
             {
                 // for "as dynamic", we do the same thing as though it were an "as object"
                 targetType = GetSpecialType(SpecialType.System_Object, diagnostics, node);

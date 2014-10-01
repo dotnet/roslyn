@@ -1580,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (type.TypeKind)
             {
-                case TypeKind.ArrayType:
+                case TypeKind.Array:
                     MarkFieldsUsed(((ArrayTypeSymbol)type).ElementType);
                     return;
 

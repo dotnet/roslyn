@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(lookupResult.IsClear)
 
                 Select Case type.TypeKind
-                    Case TypeKind.Class, TypeKind.Module, TypeKind.Structure, TypeKind.Delegate, TypeKind.ArrayType, TypeKind.Enum
+                    Case TypeKind.Class, TypeKind.Module, TypeKind.Structure, TypeKind.Delegate, TypeKind.Array, TypeKind.Enum
                         LookupInClass(lookupResult, type, name, arity, options, type, binder, useSiteDiagnostics)
 
                     Case TypeKind.Submission
@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      options As LookupOptions,
                                                      binder As Binder)
                 Select Case container.TypeKind
-                    Case TypeKind.Class, TypeKind.Structure, TypeKind.Delegate, TypeKind.ArrayType, TypeKind.Enum
+                    Case TypeKind.Class, TypeKind.Structure, TypeKind.Delegate, TypeKind.Array, TypeKind.Enum
                         AddLookupSymbolsInfoInClass(nameSet, container, options, binder)
 
                     Case TypeKind.Module

@@ -125,7 +125,7 @@ End Class
             Assert.Equal(Accessibility.ProtectedOrFriend, fieldU.DeclaredAccessibility)
             Assert.False(fieldU.IsShared)
             Assert.False(fieldU.IsReadOnly)
-            Assert.Equal(TypeKind.ArrayType, fieldU.Type.TypeKind)
+            Assert.Equal(TypeKind.Array, fieldU.Type.TypeKind)
             Assert.Same(sourceMod.GetCorLibType(SpecialType.System_Decimal), DirectCast(fieldU.Type, ArrayTypeSymbol).ElementType)
             Assert.Equal(1, DirectCast(fieldU.Type, ArrayTypeSymbol).Rank)
 
@@ -134,7 +134,7 @@ End Class
             Assert.Equal(Accessibility.Friend, fieldV.DeclaredAccessibility)
             Assert.True(fieldV.IsShared)
             Assert.False(fieldV.IsReadOnly)
-            Assert.Equal(TypeKind.ArrayType, fieldV.Type.TypeKind)  ' v is a 2d array of a 1d array.
+            Assert.Equal(TypeKind.Array, fieldV.Type.TypeKind)  ' v is a 2d array of a 1d array.
             Assert.Equal(2, DirectCast(fieldV.Type, ArrayTypeSymbol).Rank)
             Assert.Equal(1, DirectCast(DirectCast(fieldV.Type, ArrayTypeSymbol).ElementType, ArrayTypeSymbol).Rank)
 

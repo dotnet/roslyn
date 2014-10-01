@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return TypeKind.ArrayType;
+                return TypeKind.Array;
             }
         }
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             int hash = 0;
             TypeSymbol current = this;
-            while (current.TypeKind == TypeKind.ArrayType)
+            while (current.TypeKind == TypeKind.Array)
             {
                 var cur = (ArrayTypeSymbol)current;
                 hash = Hash.Combine(cur.Rank, hash);

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     switch (constraintType.TypeKind)
                     {
-                        case TypeKind.DynamicType:
+                        case TypeKind.Dynamic:
                             Debug.Assert(inherited || currentCompilation == null);
                             continue;
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             constraintDeducedBase = constraintType;
                             break;
 
-                        case TypeKind.ArrayType:
+                        case TypeKind.Array:
                             Debug.Assert(inherited || currentCompilation == null);
                             constraintEffectiveBase = corLibrary.GetSpecialType(SpecialType.System_Array);
                             constraintDeducedBase = constraintType;
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Struct:
                 case TypeKind.Enum:
-                case TypeKind.DynamicType:
+                case TypeKind.Dynamic:
                     return true;
 
                 case TypeKind.Class:
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (type.TypeKind)
             {
-                case TypeKind.ArrayType:
+                case TypeKind.Array:
                 case TypeKind.Class:
                 case TypeKind.Delegate:
                 case TypeKind.Enum:

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
                 default:
                     switch (type.TypeKind)
                     {
-                        case TypeKind.ArrayType:
+                        case TypeKind.Array:
                             return TypedConstantKind.Array;
                         case TypeKind.Enum:
                             return TypedConstantKind.Enum;

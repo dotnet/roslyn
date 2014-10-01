@@ -40,7 +40,7 @@ End Class
 
             Dim fieldA = DirectCast(membersOfC(1), FieldSymbol)
             Dim typeA = fieldA.Type
-            Assert.Equal(TypeKind.ArrayType, typeA.TypeKind)
+            Assert.Equal(TypeKind.Array, typeA.TypeKind)
             Dim arrayTypeA = DirectCast(typeA, ArrayTypeSymbol)
             Assert.Equal(1, arrayTypeA.Rank)
             Assert.Same(sourceMod.GetCorLibType(SpecialType.System_Int32), arrayTypeA.ElementType)
@@ -48,7 +48,7 @@ End Class
 
             Dim fieldB = DirectCast(membersOfC(2), FieldSymbol)
             Dim typeB = fieldB.Type
-            Assert.Equal(TypeKind.ArrayType, typeB.TypeKind)
+            Assert.Equal(TypeKind.Array, typeB.TypeKind)
             Dim arrayTypeB = DirectCast(typeB, ArrayTypeSymbol)
             Assert.Equal(1, arrayTypeB.Rank)
             Dim arrayTypeB2 = DirectCast(arrayTypeB.ElementType, ArrayTypeSymbol)
@@ -234,7 +234,7 @@ End Namespace
             Assert.Same(classQ, fieldF.Type)
             Assert.Equal("System.Environment", fieldG.Type.ToTestDisplayString())
             Dim typeH = fieldH.Type
-            Assert.Equal(TypeKind.ArrayType, typeH.TypeKind)
+            Assert.Equal(TypeKind.Array, typeH.TypeKind)
             Dim arrayTypeH = DirectCast(typeH, ArrayTypeSymbol)
             Assert.Equal(1, arrayTypeH.Rank)
             Assert.Same(classQ, arrayTypeH.ElementType)

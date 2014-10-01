@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' Note the same error of interfaces specified as CoClasses
                                 diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_CoClassMissing2, coClass, type0)
 
-                            Case TypeKind.ArrayType
+                            Case TypeKind.Array
                                 ' NOTE: In case of array type in CoClass Dev11 generates a call to 
                                 '       Array's element type constructor which does not make any 
                                 '       sense, we treat this case as a 'invalid-coclass' error
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     resultKind = LookupResultKind.NotCreatable
                     errorReported = True
 
-                Case TypeKind.ArrayType
+                Case TypeKind.Array
                     ' the diagnostic that AsNew cannot be used to init arrays has already been reported
                     ' so there is nothing to do here.
                     resultKind = LookupResultKind.NotCreatable

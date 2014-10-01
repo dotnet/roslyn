@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Interface:
                     break;
 
-                case TypeKind.DynamicType:
+                case TypeKind.Dynamic:
                     // "Constraint cannot be the dynamic type"
                     Error(diagnostics, ErrorCode.ERR_DynamicTypeAsBound, syntax);
                     return false;
@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadBoundType, syntax, type);
                     return false;
 
-                case TypeKind.ArrayType:
-                case TypeKind.PointerType:
+                case TypeKind.Array:
+                case TypeKind.Pointer:
                     // CS0706 already reported by parser.
                     return false;
 

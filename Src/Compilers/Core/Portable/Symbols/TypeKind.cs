@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -15,6 +18,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Type is an array type.
         /// </summary>
+        Array = 1,
+        [Obsolete("Use TypeKind.Array instead of TypeKind.ArrayType. The latter is going away.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         ArrayType = 1,
 
         /// <summary>
@@ -30,6 +36,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Type is dynamic.
         /// </summary>
+        Dynamic = 4,
+        [Obsolete("Use TypeKind.Dynamic instead of TypeKind.DynamicType. The latter is going away.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         DynamicType = 4,
 
         /// <summary>
@@ -55,6 +64,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Type is a pointer.
         /// </summary>
+        Pointer = 9,
+        [Obsolete("Use TypeKind.Pointer instead of TypeKind.PointerType. The latter is going away.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         PointerType = 9,
 
         /// <summary>

@@ -1709,7 +1709,7 @@ class Program
             Assert.Equal(CandidateReason.OverloadResolutionFailure, bindInfo.CandidateReason);
             var candidate = (MethodSymbol)bindInfo.CandidateSymbols.Single();
             Assert.Equal("void Test<System.Int32[]>.Method(params System.Int32[] arr)", candidate.ToTestDisplayString());
-            Assert.Equal(TypeKind.ArrayType, candidate.Parameters.Last().Type.TypeKind);
+            Assert.Equal(TypeKind.Array, candidate.Parameters.Last().Type.TypeKind);
             Assert.Equal(TypeKind.TypeParameter, ((MethodSymbol)candidate.OriginalDefinition).Parameters.Last().Type.TypeKind);
         }
 

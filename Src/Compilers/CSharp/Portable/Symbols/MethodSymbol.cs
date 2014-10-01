@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var firstType = Parameters[0].Type;
-            if (firstType.TypeKind != TypeKind.ArrayType)
+            if (firstType.TypeKind != TypeKind.Array)
             {
                 return false;
             }

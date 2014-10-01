@@ -1649,7 +1649,7 @@ class C
             Assert.Equal(ConversionKind.ExplicitDynamic, boundNode.ElementConversion.Kind);
             Assert.Equal("System.Int32 x", boundNode.IterationVariable.ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
-            Assert.Equal(TypeKind.DynamicType, ((BoundConversion)boundNode.Expression).Operand.Type.TypeKind);
+            Assert.Equal(TypeKind.Dynamic, ((BoundConversion)boundNode.Expression).Operand.Type.TypeKind);
         }
 
         [Fact]
@@ -1669,7 +1669,7 @@ class C
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal(SpecialType.System_Collections_IEnumerable, info.CollectionType.SpecialType);
-            Assert.Equal(TypeKind.DynamicType, info.ElementType.TypeKind); //NB: differs from explicit case
+            Assert.Equal(TypeKind.Dynamic, info.ElementType.TypeKind); //NB: differs from explicit case
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());

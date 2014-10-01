@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (type.TypeKind)
             {
-                case TypeKind.PointerType:
-                case TypeKind.DynamicType:
+                case TypeKind.Pointer:
+                case TypeKind.Dynamic:
                     return false;
                 default:
                     return true;
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsDynamic(this TypeSymbol type)
         {
-            return type.TypeKind == TypeKind.DynamicType;
+            return type.TypeKind == TypeKind.Dynamic;
         }
 
         public static bool IsTypeParameter(this TypeSymbol type)
@@ -262,13 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsArray(this TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            return type.TypeKind == TypeKind.ArrayType;
+            return type.TypeKind == TypeKind.Array;
         }
 
         public static bool IsSingleDimensionalArray(this TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            return type.TypeKind == TypeKind.ArrayType && ((ArrayTypeSymbol)type).Rank == 1;
+            return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).Rank == 1;
         }
 
         // If the type is a delegate type, it returns it. If the type is an
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (current.TypeKind)
                 {
                     case TypeKind.Error:
-                    case TypeKind.DynamicType:
+                    case TypeKind.Dynamic:
                     case TypeKind.TypeParameter:
                     case TypeKind.Submission:
                         return null;
@@ -519,11 +519,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         return null;
 
-                    case TypeKind.ArrayType:
+                    case TypeKind.Array:
                         current = ((ArrayTypeSymbol)current).ElementType;
                         continue;
 
-                    case TypeKind.PointerType:
+                    case TypeKind.Pointer:
                         current = ((PointerTypeSymbol)current).PointedAtType;
                         continue;
 
@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)result != null;
         }
 
-        private static readonly Func<TypeSymbol, object, bool, bool> ContainsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.DynamicType;
+        private static readonly Func<TypeSymbol, object, bool, bool> ContainsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -864,13 +864,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Struct:
                     return type.SpecialType.IsValidVolatileFieldType();
 
-                case TypeKind.ArrayType:
+                case TypeKind.Array:
                 case TypeKind.Class:
                 case TypeKind.Delegate:
-                case TypeKind.DynamicType:
+                case TypeKind.Dynamic:
                 case TypeKind.Error:
                 case TypeKind.Interface:
-                case TypeKind.PointerType:
+                case TypeKind.Pointer:
                     return true;
 
                 case TypeKind.Enum:
@@ -906,9 +906,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 switch (type.TypeKind)
                 {
-                    case TypeKind.PointerType:
+                    case TypeKind.Pointer:
                         return true;
-                    case TypeKind.ArrayType:
+                    case TypeKind.Array:
                         type = ((ArrayTypeSymbol)type).ElementType;
                         break;
                     default:
