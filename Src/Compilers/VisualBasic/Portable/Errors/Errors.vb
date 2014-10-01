@@ -1907,18 +1907,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATUREID_NullPropagatingOperator = 55007
         FEATUREID_Last = 55007
 
-        ' Adding diagnostic arguments from resx file, TO DO: ASSIGN IDS
-        IDS_ProjectSettingsLocationName
-        IDS_FunctionReturnType
-        IDS_TheSystemCannotFindThePathSpecified
-        IDS_UnrecognizedFileFormat
-        IDS_MSG_ADDMODULE
-        IDS_MSG_ADDLINKREFERENCE
-        IDS_MSG_ADDREFERENCE
-        IDS_LogoLine1
-        IDS_LogoLine2
-        IDS_VBCHelp
-        IDS_InvalidPreprocessorConstantType
+        ' Adding diagnostic arguments from resx file
+        IDS_ProjectSettingsLocationName = 56000
+        IDS_FunctionReturnType = 56001
+        IDS_TheSystemCannotFindThePathSpecified = 56002
+        IDS_UnrecognizedFileFormat = 56003
+        IDS_MSG_ADDMODULE = 56004
+        IDS_MSG_ADDLINKREFERENCE = 56005
+        IDS_MSG_ADDREFERENCE = 56006
+        IDS_LogoLine1 = 56007
+        IDS_LogoLine2 = 56008
+        IDS_VBCHelp = 56009
+        IDS_InvalidPreprocessorConstantType = 56010
 
     End Enum
 End Namespace

@@ -268,7 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
-                case ErrorCode.WRN_UnknownOption:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
                 case ErrorCode.WRN_AsyncLacksAwaits:

@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_GenericConstraintNotSatisfiedTyVar = 314, // Requires SymbolDistinguisher.
         ERR_GenericConstraintNotSatisfiedValType = 315, // Requires SymbolDistinguisher.
         ERR_DuplicateGeneratedName = 316,
+        // unused 317-399
         ERR_GlobalSingleTypeNameNotFound = 400,
         ERR_NewBoundMustBeLast = 401,
         WRN_MainCantBeGeneric = 402,
@@ -322,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_TypeArgsNotAllowedAmbig = 471,    no longer issued in Roslyn
         WRN_NubExprIsConstBool = 472,
         WRN_ExplicitImplCollision = 473,
+        // unused 474-499
         ERR_AbstractHasBody = 500,
         ERR_ConcreteMissingBody = 501,
         ERR_AbstractAndSealed = 502,
@@ -538,6 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInExpressionTree = 765,
         ERR_PartialMethodMustReturnVoid = 766,
         ERR_ExplicitImplCollisionOnRefOut = 767,
+        // unused 768-799
         //ERR_NoEmptyArrayRanges = 800,
         //ERR_IntegerSpecifierOnOneDimArrays = 801,
         //ERR_IntegerSpecifierMustBePositive = 802,
@@ -583,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IndexedPropertyRequiresParams = 856,
         ERR_IndexedPropertyMustHaveAllOptionalParams = 857,
         //ERR_FusionConfigFileNameTooLong = 858,    unused in Roslyn. We give ERR_CantReadConfigFile now.
+        // unused 859-1000
         ERR_IdentifierExpected = 1001,
         ERR_SemicolonExpected = 1002,
         ERR_SyntaxError = 1003,
@@ -641,6 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SingleTypeNameNotFoundFwd = 1070,
         //ERR_NoSuchMemberOnNoPIAType = 1071,   //EE
         WRN_IdentifierOrNumericLiteralExpected = 1072,
+        // unused 1073-1098
         // ERR_EOLExpected = 1099, // EE
         // ERR_NotSupportedinEE = 1100, // EE
         ERR_BadThisParam = 1100,
@@ -657,12 +662,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_ExtensionTypeParam = 1111,
         ERR_ExplicitExtension = 1112,
         ERR_ValueTypeExtDelegate = 1113,
+        // unused 1114-1199
         // Below five error codes are unused, but we still need to retain them to suppress CS1691 when "/nowarn:1200,1201,1202,1203,1204" is specified on the command line.
         WRN_FeatureDeprecated2 = 1200,
         WRN_FeatureDeprecated3 = 1201,
         WRN_FeatureDeprecated4 = 1202,
         WRN_FeatureDeprecated5 = 1203,
         WRN_OldWarning_FeatureDefaultDeprecated = 1204,
+        // unused 1205-1500
         ERR_BadArgCount = 1501,
         //ERR_BadArgTypes = 1502,
         ERR_BadArgType = 1503,
@@ -920,6 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_GenericsUsedInBaseTypeAcrossAssemblies = 1772,
         ERR_BadSubsystemVersion = 1773,
         ERR_InteropMethodWithBody = 1774,
+        // unused 1775-1899
         ERR_BadWarningLevel = 1900,
         ERR_BadDebugType = 1902,
         //ERR_UnknownTestSwitch = 1903,
@@ -1044,6 +1052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_BadUILang = 2038,
         ERR_InvalidFormatForGuidForOption = 2039,
         ERR_MissingGuidForOption = 2040,
+        // unused 2041-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
@@ -1071,6 +1080,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CLS_VolatileField = 3026,
         WRN_CLS_BadInterface = 3027,
         FTL_BadChecksumAlgorithm = 3028,
+
+        // unused 3029-3999
 
         // Errors introduced in C# 5 are in the range 4000-4999
         // 4000 unused
@@ -1111,12 +1122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // ERR_BadAwaitWithoutAsyncAnonMeth = 4035,         Merged with ERR_BadAwaitWithoutAsyncLambda in Roslyn
         ERR_NoSuchMemberOrExtensionNeedUsing = 4036,
 
+        // available 4037-4999
 
-        WRN_UnknownOption = 5000,   //unused in Roslyn
+        // WRN_UnknownOption = 5000,   //unused in Roslyn
         ERR_NoEntryPoint = 5001,
 
-        // There is space in the range of error codes from 7000-8999 that
-        // we can use for new errors in post-Dev10.
+        // available 5002-6999
 
         ERR_UnexpectedAliasedName = 7000,
         ERR_UnexpectedGenericName = 7002,
@@ -1214,6 +1225,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
         ERR_MetadataReferencesNotSupported = 7099,
 
+        // available 7100-8000
+
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,
         ERR_InvalidSignaturePublicKey = 8003,
@@ -1235,68 +1248,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         HDN_UnusedUsingDirective = 8019,
         HDN_UnusedExternAlias = 8020,
         WRN_NoRuntimeMetadataVersion = 8021,
-
-        // Note: one per version to make telemetry easier
-        ERR_FeatureNotAvailableInVersion1 = 8022,
+        ERR_FeatureNotAvailableInVersion1 = 8022,        // Note: one per version to make telemetry easier
         ERR_FeatureNotAvailableInVersion2 = 8023,
         ERR_FeatureNotAvailableInVersion3 = 8024,
         ERR_FeatureNotAvailableInVersion4 = 8025,
         ERR_FeatureNotAvailableInVersion5 = 8026,
         // ERR_FeatureNotAvailableInVersion6 is below
-
         ERR_FieldHasMultipleDistinctConstantValues = 8027,
-
         ERR_ComImportWithInitializers = 8028,
-
         WRN_PdbLocalNameTooLong = 8029,
-
         ERR_RetNoObjectRequiredLambda = 8030,
         ERR_TaskRetNoObjectRequiredLambda = 8031,
-
         WRN_AnalyzerCannotBeCreated = 8032,
         WRN_NoAnalyzerInAssembly = 8033,
         WRN_UnableToLoadAnalyzer = 8034,
         ERR_CantReadRulesetFile = 8035,
-
-        // available
-
+        // available 8036-8039
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
-
-        // available = 8041, 8042, 8043
-
-        // available = 8044,
-        // available = 8045,
-
-        // available
-
+        // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
         ERR_AutoPropertyMustHaveSetOrInitializer = 8051,
         ERR_AutoPropertyMustHaveGetAccessor = 8052,
         ERR_AutoPropertyInitializerInInterface = 8053,
-
         ERR_EnumsCantContainDefaultConstructor = 8054,
-
         ERR_EncodinglessSyntaxTree = 8055,
         ERR_AccessorListAndExpressionBody = 8056,
         ERR_BlockBodyAndExpressionBody = 8057,
-
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
-        // gap for future versions
-
+        // available 8060-8069
         ERR_SwitchFallOut = 8070,
-
-        // a specific nameof error
-        ERR_UnexpectedBoundGenericName = 8071,
+        ERR_UnexpectedBoundGenericName = 8071, // for nameof
         ERR_NullPropagatingOpInExpressionTree = 8072,
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
         ERR_ParameterlessStructCtorsMustBePublic = 8075,
-
-        // errors for interpolated strings
         ERR_UnclosedExpressionHole = 8076,
         ERR_SingleLineCommentInExpressionHole = 8077,
-
         ERR_InsufficientStack = 8078,
     }
 }
