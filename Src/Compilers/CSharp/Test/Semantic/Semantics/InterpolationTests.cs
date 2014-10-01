@@ -234,5 +234,23 @@ class Program
             string expectedOutput = @"jenny (408) 867-5309";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void TwoInserts()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine(""\{ hello }, \{ world }."");
+    }
+}";
+            string expectedOutput = @"Hello, world.";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
     }
 }

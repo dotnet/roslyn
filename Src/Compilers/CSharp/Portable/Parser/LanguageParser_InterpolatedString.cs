@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     CSharpSyntaxNode additionalTrivia;
-                    var interpText = originalText.Substring(interpolations[0].Start + 1, interpolations[0].End - interpolations[0].Start - 1);
+                    var interpText = originalText.Substring(interpolation.Start + 1, interpolation.End - interpolation.Start - 1);
                     using (var tempLexer = new Lexer(Text.SourceText.From(interpText), this.Options))
                     {
                         using (var tempParser = new LanguageParser(tempLexer, null, null))
