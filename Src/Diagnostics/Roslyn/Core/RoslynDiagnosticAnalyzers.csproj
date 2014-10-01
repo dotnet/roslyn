@@ -51,7 +51,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeFixProviderBase.cs" />
     <Compile Include="Performance\CodeActionCreateAnalyzer.cs" />
+    <Compile Include="Performance\EmptyArrayDiagnosticAnalyzer.cs" />
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzer.cs" />

@@ -7,5 +7,6 @@
         public const string DirectlyAwaitingTaskAnalyzerRuleId = "RS003";
         public const string UseSiteDiagnosticsCheckerRuleId = "RS004";
         public const string DontUseCodeActionCreateRuleId = "RS005";
+        public const string UseArrayEmptyRuleId = "RS0007";
     }
 }

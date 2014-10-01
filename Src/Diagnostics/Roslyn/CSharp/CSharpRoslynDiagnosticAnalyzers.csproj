@@ -56,6 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Performance\CSharpCodeActionCreateAnalyzer.cs" />
+    <Compile Include="Performance\CSharpEmptyArrayDiagnosticAnalyzer.cs" />
+    <Compile Include="Performance\CSharpEmptyArrayCodeFixProvider.cs" />
     <Compile Include="Performance\CSharpSpecializedEnumerableCreationAnalyzer.cs" />
     <Compile Include="Reliability\CSharpDirectlyAwaitingTaskAnalyzer.cs" />
     <Compile Include="Reliability\CSharpDirectlyAwaitingTaskFix.cs" />
