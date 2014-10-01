@@ -977,7 +977,7 @@ GetPdbXml(compilation, "Module1.F"))
             <locals>
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0xc0" attributes="0"/>
                 <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0xc0" attributes="0"/>
-                <local name="MoveNext" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
+                <local name="VB$FRV" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
                 <local name="$ex" il_index="7" il_start="0x83" il_end="0xa7" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xc0">
@@ -985,7 +985,7 @@ GetPdbXml(compilation, "Module1.F"))
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0xc0" attributes="0"/>
                 <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0xc0" attributes="0"/>
                 <scope startOffset="0xf" endOffset="0x82">
-                    <local name="MoveNext" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
+                    <local name="VB$FRV" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
                 </scope>
                 <scope startOffset="0x83" endOffset="0xa7">
                     <local name="$ex" il_index="7" il_start="0x83" il_end="0xa7" attributes="0"/>
@@ -1024,25 +1024,21 @@ GetPdbXml(compilation, "Module1.Test"))
                 <entry il_offset="0x1f9" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="0"/>
                 <entry il_offset="0x1fa" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="0"/>
                 <entry il_offset="0x375" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="0"/>
-                <entry il_offset="0x4f8" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="0"/>
-                <entry il_offset="0x4fa" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x502" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x51f" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="0"/>
-                <entry il_offset="0x529" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x4f5" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="0"/>
+                <entry il_offset="0x4f7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x4ff" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x51c" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="0"/>
+                <entry il_offset="0x526" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x536" attributes="0"/>
-                <local name="MoveNext" il_index="1" il_start="0x66" il_end="0x4f9" attributes="0"/>
-                <local name="$ex" il_index="14" il_start="0x4fa" il_end="0x51e" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x533" attributes="0"/>
+                <local name="$ex" il_index="13" il_start="0x4f7" il_end="0x51b" attributes="0"/>
             </locals>
-            <scope startOffset="0x0" endOffset="0x536">
+            <scope startOffset="0x0" endOffset="0x533">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x536" attributes="0"/>
-                <scope startOffset="0x66" endOffset="0x4f9">
-                    <local name="MoveNext" il_index="1" il_start="0x66" il_end="0x4f9" attributes="0"/>
-                </scope>
-                <scope startOffset="0x4fa" endOffset="0x51e">
-                    <local name="$ex" il_index="14" il_start="0x4fa" il_end="0x51e" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x533" attributes="0"/>
+                <scope startOffset="0x4f7" endOffset="0x51b">
+                    <local name="$ex" il_index="13" il_start="0x4f7" il_end="0x51b" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
@@ -1054,8 +1050,8 @@ GetPdbXml(compilation, "Module1.Test"))
                 <await yield="0x2a0" resume="0x2c0" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
                 <await yield="0x31d" resume="0x33d" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
                 <await yield="0x3a3" resume="0x3c3" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x429" resume="0x449" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x4ae" resume="0x4ca" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x428" resume="0x447" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x4ab" resume="0x4c7" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -2655,11 +2651,11 @@ End Module
                 <entry il_offset="0xa" start_row="14" start_column="9" end_row="14" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$op_Implicit" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
+                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                <local name="VB$op_Implicit" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
+                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
             </scope>
         </method>
         <method containingType="Module1+B2" name=".ctor" parameterNames="x">
@@ -2727,28 +2723,29 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             Dim actual As XElement = GetPdbXml(compilation, "Module1._Lambda$__1")
 
-            Dim expected = <symbols>
-                               <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
-                               <methods>
-                                   <method containingType="Module1" name="_Lambda$__1" parameterNames="">
-                                       <sequencepoints total="4">
-                                           <entry il_offset="0x0" start_row="5" start_column="17" end_row="5" end_column="27" file_ref="0"/>
-                                           <entry il_offset="0x1" start_row="6" start_column="25" end_row="6" end_column="31" file_ref="0"/>
-                                           <entry il_offset="0x4" start_row="7" start_column="21" end_row="7" end_column="29" file_ref="0"/>
-                                           <entry il_offset="0x8" start_row="8" start_column="12" end_row="8" end_column="24" file_ref="0"/>
-                                       </sequencepoints>
-                                       <locals>
-                                           <local name="_Lambda$__1" il_index="0" il_start="0x0" il_end="0xa" attributes="0"/>
-                                           <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
-                                       </locals>
-                                       <scope startOffset="0x0" endOffset="0xa">
-                                           <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                                           <local name="_Lambda$__1" il_index="0" il_start="0x0" il_end="0xa" attributes="0"/>
-                                           <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
-                                       </scope>
-                                   </method>
-                               </methods>
-                           </symbols>
+            Dim expected =
+                <symbols>
+                    <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
+                    <methods>
+                        <method containingType="Module1" name="_Lambda$__1" parameterNames="">
+                            <sequencepoints total="4">
+                                <entry il_offset="0x0" start_row="5" start_column="17" end_row="5" end_column="27" file_ref="0"/>
+                                <entry il_offset="0x1" start_row="6" start_column="25" end_row="6" end_column="31" file_ref="0"/>
+                                <entry il_offset="0x4" start_row="7" start_column="21" end_row="7" end_column="29" file_ref="0"/>
+                                <entry il_offset="0x8" start_row="8" start_column="12" end_row="8" end_column="24" file_ref="0"/>
+                            </sequencepoints>
+                            <locals>
+                                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0xa" attributes="0"/>
+                                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
+                            </locals>
+                            <scope startOffset="0x0" endOffset="0xa">
+                                <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
+                                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0xa" attributes="0"/>
+                                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
+                            </scope>
+                        </method>
+                    </methods>
+                </symbols>
 
             AssertXmlEqual(expected, actual)
         End Sub
@@ -3029,13 +3026,13 @@ End Module
                 <entry il_offset="0x53" start_row="7" start_column="9" end_row="7" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="_Lambda$__2" il_index="0" il_start="0x0" il_end="0x55" attributes="0"/>
+                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x55" attributes="0"/>
                 <local name="f" il_index="1" il_start="0x0" il_end="0x55" attributes="0"/>
                 <local name="g" il_index="2" il_start="0x0" il_end="0x55" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x55">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
-                <local name="_Lambda$__2" il_index="0" il_start="0x0" il_end="0x55" attributes="0"/>
+                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x55" attributes="0"/>
                 <local name="f" il_index="1" il_start="0x0" il_end="0x55" attributes="0"/>
                 <local name="g" il_index="2" il_start="0x0" il_end="0x55" attributes="0"/>
             </scope>
@@ -3046,11 +3043,11 @@ End Module
                 <entry il_offset="0x1" start_row="4" start_column="61" end_row="4" end_column="62" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="_Lambda$__3" il_index="0" il_start="0x0" il_end="0x7" attributes="0"/>
+                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x7" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
-                <local name="_Lambda$__3" il_index="0" il_start="0x0" il_end="0x7" attributes="0"/>
+                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x7" attributes="0"/>
             </scope>
         </method>
         <method containingType="M" name="_Lambda$__5" parameterNames="h">
@@ -3061,12 +3058,12 @@ End Module
             </sequencepoints>
             <locals>
                 <local name="$VB$Closure_1" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-                <local name="_Lambda$__5" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="VB$FRV" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
                 <local name="$VB$Closure_1" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-                <local name="_Lambda$__5" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="VB$FRV" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
             </scope>
         </method>
         <method containingType="M+_Closure$__1" name="_Lambda$__6" parameterNames="y">
@@ -3075,11 +3072,11 @@ End Module
                 <entry il_offset="0x1" start_row="5" start_column="108" end_row="5" end_column="112" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="_Lambda$__6" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
+                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x17">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
-                <local name="_Lambda$__6" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
+                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
             </scope>
         </method>
     </methods>
@@ -6678,38 +6675,36 @@ End Class
                 <entry il_offset="0x2a" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="0"/>
                 <entry il_offset="0x36" start_row="9" start_column="13" end_row="9" end_column="53" file_ref="0"/>
                 <entry il_offset="0x48" start_row="11" start_column="9" end_row="11" end_column="55" file_ref="0"/>
-                <entry il_offset="0xdb" start_row="12" start_column="9" end_row="12" end_column="21" file_ref="0"/>
-                <entry il_offset="0xec" start_row="13" start_column="9" end_row="13" end_column="21" file_ref="0"/>
-                <entry il_offset="0xfd" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
-                <entry il_offset="0xff" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x107" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x124" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
-                <entry il_offset="0x12e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xda" start_row="12" start_column="9" end_row="12" end_column="21" file_ref="0"/>
+                <entry il_offset="0xeb" start_row="13" start_column="9" end_row="13" end_column="21" file_ref="0"/>
+                <entry il_offset="0xfc" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
+                <entry il_offset="0xfe" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x106" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x123" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
+                <entry il_offset="0x12d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x13b" attributes="0"/>
-                <local name="MoveNext" il_index="1" il_start="0x12" il_end="0xfe" attributes="0"/>
-                <local name="a" il_index="2" il_start="0x12" il_end="0xfe" attributes="0"/>
-                <local name="$VB$ResumableLocal_$VB$Closure_2$1" il_index="0" il_start="0x12" il_end="0xfe" attributes="0" reusingslot="True"/>
-                <local name="$ex" il_index="7" il_start="0xff" il_end="0x123" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x13a" attributes="0"/>
+                <local name="a" il_index="1" il_start="0x12" il_end="0xfd" attributes="0"/>
+                <local name="$VB$ResumableLocal_$VB$Closure_2$1" il_index="0" il_start="0x12" il_end="0xfd" attributes="0" reusingslot="True"/>
+                <local name="$ex" il_index="6" il_start="0xfe" il_end="0x122" attributes="0"/>
             </locals>
-            <scope startOffset="0x0" endOffset="0x13b">
+            <scope startOffset="0x0" endOffset="0x13a">
                 <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x13b" attributes="0"/>
-                <scope startOffset="0x12" endOffset="0xfe">
-                    <local name="MoveNext" il_index="1" il_start="0x12" il_end="0xfe" attributes="0"/>
-                    <local name="a" il_index="2" il_start="0x12" il_end="0xfe" attributes="0"/>
-                    <scope startOffset="0x12" endOffset="0xfe">
-                        <local name="$VB$ResumableLocal_$VB$Closure_2$1" il_index="0" il_start="0x12" il_end="0xfe" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x13a" attributes="0"/>
+                <scope startOffset="0x12" endOffset="0xfd">
+                    <local name="a" il_index="1" il_start="0x12" il_end="0xfd" attributes="0"/>
+                    <scope startOffset="0x12" endOffset="0xfd">
+                        <local name="$VB$ResumableLocal_$VB$Closure_2$1" il_index="0" il_start="0x12" il_end="0xfd" attributes="0"/>
                     </scope>
                 </scope>
-                <scope startOffset="0xff" endOffset="0x123">
-                    <local name="$ex" il_index="7" il_start="0xff" il_end="0x123" attributes="0"/>
+                <scope startOffset="0xfe" endOffset="0x122">
+                    <local name="$ex" il_index="6" il_start="0xfe" il_end="0x122" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
                 <kickoff-method declaringType="C" methodName="Async_Lambda_Hoisted" parameterNames=""/>
-                <await yield="0x8f" resume="0xae" declaringType="C+VB$StateMachine_0_Async_Lambda_Hoisted" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x8e" resume="0xad" declaringType="C+VB$StateMachine_0_Async_Lambda_Hoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -6760,34 +6755,32 @@ End Class
                 <entry il_offset="0x1d" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="0"/>
                 <entry il_offset="0x24" start_row="9" start_column="13" end_row="9" end_column="53" file_ref="0"/>
                 <entry il_offset="0x31" start_row="11" start_column="9" end_row="11" end_column="55" file_ref="0"/>
-                <entry il_offset="0xba" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
-                <entry il_offset="0xbc" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0xc4" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0xe1" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
-                <entry il_offset="0xeb" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xb7" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
+                <entry il_offset="0xb9" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xc1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xde" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
+                <entry il_offset="0xe8" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xf8" attributes="0"/>
-                <local name="$VB$Closure_1" il_index="1" il_start="0xf" il_end="0xbb" attributes="0"/>
-                <local name="MoveNext" il_index="2" il_start="0xf" il_end="0xbb" attributes="0"/>
-                <local name="a" il_index="3" il_start="0xf" il_end="0xbb" attributes="0"/>
-                <local name="$ex" il_index="8" il_start="0xbc" il_end="0xe0" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xf5" attributes="0"/>
+                <local name="$VB$Closure_1" il_index="1" il_start="0xf" il_end="0xb8" attributes="0"/>
+                <local name="a" il_index="2" il_start="0xf" il_end="0xb8" attributes="0"/>
+                <local name="$ex" il_index="7" il_start="0xb9" il_end="0xdd" attributes="0"/>
             </locals>
-            <scope startOffset="0x0" endOffset="0xf8">
+            <scope startOffset="0x0" endOffset="0xf5">
                 <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xf8" attributes="0"/>
-                <scope startOffset="0xf" endOffset="0xbb">
-                    <local name="$VB$Closure_1" il_index="1" il_start="0xf" il_end="0xbb" attributes="0"/>
-                    <local name="MoveNext" il_index="2" il_start="0xf" il_end="0xbb" attributes="0"/>
-                    <local name="a" il_index="3" il_start="0xf" il_end="0xbb" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xf5" attributes="0"/>
+                <scope startOffset="0xf" endOffset="0xb8">
+                    <local name="$VB$Closure_1" il_index="1" il_start="0xf" il_end="0xb8" attributes="0"/>
+                    <local name="a" il_index="2" il_start="0xf" il_end="0xb8" attributes="0"/>
                 </scope>
-                <scope startOffset="0xbc" endOffset="0xe0">
-                    <local name="$ex" il_index="8" il_start="0xbc" il_end="0xe0" attributes="0"/>
+                <scope startOffset="0xb9" endOffset="0xdd">
+                    <local name="$ex" il_index="7" il_start="0xb9" il_end="0xdd" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
                 <kickoff-method declaringType="C" methodName="Async_Lambda_NotHoisted" parameterNames=""/>
-                <await yield="0x6f" resume="0x8c" declaringType="C+VB$StateMachine_0_Async_Lambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x6e" resume="0x8a" declaringType="C+VB$StateMachine_0_Async_Lambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -6836,40 +6829,36 @@ End Class
                 <entry il_offset="0x10" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
                 <entry il_offset="0x17" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="0"/>
                 <entry il_offset="0x1e" start_row="9" start_column="9" end_row="9" end_column="55" file_ref="0"/>
-                <entry il_offset="0xa6" start_row="10" start_column="9" end_row="10" end_column="21" file_ref="0"/>
-                <entry il_offset="0xb2" start_row="11" start_column="9" end_row="11" end_column="21" file_ref="0"/>
-                <entry il_offset="0xbe" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
-                <entry il_offset="0xc0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0xc8" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0xe5" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
-                <entry il_offset="0xef" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa4" start_row="10" start_column="9" end_row="10" end_column="21" file_ref="0"/>
+                <entry il_offset="0xb0" start_row="11" start_column="9" end_row="11" end_column="21" file_ref="0"/>
+                <entry il_offset="0xbc" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
+                <entry il_offset="0xbe" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xc6" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xe3" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
+                <entry il_offset="0xed" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xfc" attributes="0"/>
-                <local name="MoveNext" il_index="1" il_start="0xf" il_end="0xbf" attributes="0"/>
-                <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0xf" il_end="0xbf" attributes="0" reusingslot="True"/>
-                <local name="$VB$ResumableLocal_y$2" il_index="0" il_start="0xf" il_end="0xbf" attributes="0" reusingslot="True"/>
-                <local name="$ex" il_index="6" il_start="0xc0" il_end="0xe4" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xfa" attributes="0"/>
+                <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0xf" il_end="0xbd" attributes="0" reusingslot="True"/>
+                <local name="$VB$ResumableLocal_y$2" il_index="0" il_start="0xf" il_end="0xbd" attributes="0" reusingslot="True"/>
+                <local name="$ex" il_index="5" il_start="0xbe" il_end="0xe2" attributes="0"/>
             </locals>
-            <scope startOffset="0x0" endOffset="0xfc">
+            <scope startOffset="0x0" endOffset="0xfa">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xfc" attributes="0"/>
-                <scope startOffset="0xf" endOffset="0xbf">
-                    <local name="MoveNext" il_index="1" il_start="0xf" il_end="0xbf" attributes="0"/>
-                    <scope startOffset="0xf" endOffset="0xbf">
-                        <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0xf" il_end="0xbf" attributes="0"/>
-                        <local name="$VB$ResumableLocal_y$2" il_index="0" il_start="0xf" il_end="0xbf" attributes="0"/>
-                    </scope>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xfa" attributes="0"/>
+                <scope startOffset="0xf" endOffset="0xbd">
+                    <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
+                    <local name="$VB$ResumableLocal_y$2" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
                 </scope>
-                <scope startOffset="0xc0" endOffset="0xe4">
-                    <local name="$ex" il_index="6" il_start="0xc0" il_end="0xe4" attributes="0"/>
+                <scope startOffset="0xbe" endOffset="0xe2">
+                    <local name="$ex" il_index="5" il_start="0xbe" il_end="0xe2" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
                 <kickoff-method declaringType="C" methodName="Async_NoLambda_Hoisted" parameterNames=""/>
-                <await yield="0x5a" resume="0x79" declaringType="C+VB$StateMachine_0_Async_NoLambda_Hoisted" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x58" resume="0x77" declaringType="C+VB$StateMachine_0_Async_NoLambda_Hoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -6916,36 +6905,34 @@ End Class
                 <entry il_offset="0x10" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
                 <entry il_offset="0x12" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="0"/>
                 <entry il_offset="0x14" start_row="9" start_column="9" end_row="9" end_column="55" file_ref="0"/>
-                <entry il_offset="0x93" start_row="10" start_column="5" end_row="10" end_column="17" file_ref="0"/>
-                <entry il_offset="0x95" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x9d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0xba" start_row="10" start_column="5" end_row="10" end_column="17" file_ref="0"/>
-                <entry il_offset="0xc4" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x90" start_row="10" start_column="5" end_row="10" end_column="17" file_ref="0"/>
+                <entry il_offset="0x92" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x9a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xb7" start_row="10" start_column="5" end_row="10" end_column="17" file_ref="0"/>
+                <entry il_offset="0xc1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xd1" attributes="0"/>
-                <local name="MoveNext" il_index="1" il_start="0xf" il_end="0x94" attributes="0"/>
-                <local name="x" il_index="2" il_start="0xf" il_end="0x94" attributes="0"/>
-                <local name="y" il_index="3" il_start="0xf" il_end="0x94" attributes="0"/>
-                <local name="$ex" il_index="8" il_start="0x95" il_end="0xb9" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xce" attributes="0"/>
+                <local name="x" il_index="1" il_start="0xf" il_end="0x91" attributes="0"/>
+                <local name="y" il_index="2" il_start="0xf" il_end="0x91" attributes="0"/>
+                <local name="$ex" il_index="7" il_start="0x92" il_end="0xb6" attributes="0"/>
             </locals>
-            <scope startOffset="0x0" endOffset="0xd1">
+            <scope startOffset="0x0" endOffset="0xce">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xd1" attributes="0"/>
-                <scope startOffset="0xf" endOffset="0x94">
-                    <local name="MoveNext" il_index="1" il_start="0xf" il_end="0x94" attributes="0"/>
-                    <local name="x" il_index="2" il_start="0xf" il_end="0x94" attributes="0"/>
-                    <local name="y" il_index="3" il_start="0xf" il_end="0x94" attributes="0"/>
+                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xce" attributes="0"/>
+                <scope startOffset="0xf" endOffset="0x91">
+                    <local name="x" il_index="1" il_start="0xf" il_end="0x91" attributes="0"/>
+                    <local name="y" il_index="2" il_start="0xf" il_end="0x91" attributes="0"/>
                 </scope>
-                <scope startOffset="0x95" endOffset="0xb9">
-                    <local name="$ex" il_index="8" il_start="0x95" il_end="0xb9" attributes="0"/>
+                <scope startOffset="0x92" endOffset="0xb6">
+                    <local name="$ex" il_index="7" il_start="0x92" il_end="0xb6" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
                 <kickoff-method declaringType="C" methodName="Async_NoLambda_NotHoisted" parameterNames=""/>
-                <await yield="0x48" resume="0x65" declaringType="C+VB$StateMachine_0_Async_NoLambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x47" resume="0x63" declaringType="C+VB$StateMachine_0_Async_NoLambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>

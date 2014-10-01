@@ -57,41 +57,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FunctionBlock
                     Dim begin As MethodStatementSyntax = DirectCast(methodBlock, MethodBlockSyntax).Begin
 
+                    If methodSymbol.ReturnType.IsVoidType() Then
+                        Return Nothing
+                    End If
+
+                    Dim isAsync = methodSymbol.IsAsync
+                    If isAsync AndAlso methodSymbol.ReturnType.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)) Then
+                        Return Nothing
+                    End If
+
+                    If isAsync OrElse methodSymbol.IsIterator Then
+                        ' Function Return Value variable isn't accessible within a body of an async/iterator function
+                        Return New SynthesizedLocal(methodSymbol, methodSymbol.ReturnType, SynthesizedLocalKind.FunctionReturnValue, begin)
+                    End If
+
                     ' Note, it is an error if a parameter has the same name as the function.  
-                    Dim identifier = begin.Identifier
-                    Return LocalSymbol.Create(methodSymbol, Me, identifier, LocalDeclarationKind.FunctionValue,
-                                              If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
+                    Return LocalSymbol.Create(methodSymbol, Me, begin.Identifier, LocalDeclarationKind.FunctionValue, methodSymbol.ReturnType)
 
                 Case SyntaxKind.PropertyGetBlock
                     If methodBlock.Parent IsNot Nothing AndAlso
                        methodBlock.Parent.Kind = SyntaxKind.PropertyBlock Then
 
+                        Debug.Assert(Not methodSymbol.ReturnType.IsVoidType())
+
                         Dim propertySyntax As PropertyStatementSyntax = DirectCast(methodBlock.Parent, PropertyBlockSyntax).PropertyStatement
                         Dim identifier = propertySyntax.Identifier
-                        Return LocalSymbol.Create(methodSymbol, Me, identifier, LocalDeclarationKind.FunctionValue,
-                                                  If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
+                        Return LocalSymbol.Create(methodSymbol, Me, identifier, LocalDeclarationKind.FunctionValue, methodSymbol.ReturnType)
                     End If
 
                 Case SyntaxKind.OperatorBlock
-                    ' in case of an operator, we need to create a symbol that uses the identifier token for error messages, but also
-                    ' has an "alias" (the CLR operator name) which is used as the name of this local.
-                    Return LocalSymbol.Create(methodSymbol,
-                                              GeneratedNames.MakeOperatorLocalName(methodSymbol.Name),
-                                              DirectCast(methodBlock, OperatorBlockSyntax).Begin.OperatorToken,
-                                              LocalDeclarationKind.FunctionValue,
-                                              If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
+                    Debug.Assert(Not methodSymbol.ReturnType.IsVoidType())
+                    ' Function Return Value variable isn't accessible within an operator body
+                    Return New SynthesizedLocal(methodSymbol, methodSymbol.ReturnType, SynthesizedLocalKind.FunctionReturnValue, DirectCast(methodBlock, OperatorBlockSyntax).Begin)
 
                 Case SyntaxKind.AddHandlerBlock
                     If DirectCast(methodSymbol.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent AndAlso
                        methodBlock.Parent IsNot Nothing AndAlso
                        methodBlock.Parent.Kind = SyntaxKind.EventBlock Then
 
+                        Debug.Assert(Not methodSymbol.ReturnType.IsVoidType())
+
                         Dim eventSyntax As EventStatementSyntax = DirectCast(methodBlock.Parent, EventBlockSyntax).EventStatement
                         Dim identifier = eventSyntax.Identifier
                         ' NOTE: To avoid a breaking change, we reproduce the dev11 behavior - the name of the local is
                         ' taken from the name of the accessor, rather than the name of the event (as it would be for a property).
-                        Return LocalSymbol.Create(methodSymbol, methodSymbol.Name, identifier, LocalDeclarationKind.FunctionValue,
-                                                  If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
+                        Return LocalSymbol.Create(methodSymbol, Me, identifier, LocalDeclarationKind.FunctionValue, methodSymbol.ReturnType, methodSymbol.Name)
                     End If
 
                 Case Else

@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Else
                         ' need a local of a different type
-                        rewrittenCatchLocal = CreateReplacementLocalOrReturnSelf(origLocal, newType)
+                        rewrittenCatchLocal = LocalSymbol.Create(origLocal, newType)
                         Me.LocalMap.Add(origLocal, rewrittenCatchLocal)
                     End If
                 End If

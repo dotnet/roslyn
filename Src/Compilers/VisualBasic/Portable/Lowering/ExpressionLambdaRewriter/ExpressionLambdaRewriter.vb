@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The only local should be the Function Value. We'll ignore that.
             Debug.Assert(block.Locals.IsEmpty OrElse
-                         (block.Locals.Length = 1 AndAlso block.Locals(0).IsFunctionValue))
+                         (block.Locals.Length = 1 AndAlso (block.Locals(0).IsFunctionValue OrElse block.Locals(0).SynthesizedLocalKind = SynthesizedLocalKind.FunctionReturnValue)))
 
             ' We only need to generate expression tree for the first statement.
             Dim stmt = block.Statements(0)

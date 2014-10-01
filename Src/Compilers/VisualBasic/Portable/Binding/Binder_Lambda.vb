@@ -1082,18 +1082,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-
             Dim header As LambdaHeaderSyntax = DirectCast(lambdaSymbol.Syntax, LambdaExpressionSyntax).Begin
-
-            ' Create a local for the function return value.  Note, for lambdas that variable cannot be referred to in source.
-            ' We use an alias local to have the declaration identifier point to the function syntax token and a temporary name that
-            ' does not shadow a local declared by the user (and thus allowing a local named "[function]").
-            ' The lambda rewriter will have to give it a name that matches the emitted name of the lambda.
-            ' The local's type is the same as the lambdas's return type
-            Dim identifier = header.Keyword
-            Dim functionValue = LocalSymbol.Create(lambdaSymbol, GeneratedNames.MakeTempLambdaLocalName, identifier, LocalDeclarationKind.FunctionValue, lambdaSymbol.ReturnType)
-
-            Return functionValue
+            Return New SynthesizedLocal(lambdaSymbol, lambdaSymbol.ReturnType, SynthesizedLocalKind.FunctionReturnValue, header)
         End Function
 
         Public Overrides Function GetLocalForFunctionValue() As LocalSymbol

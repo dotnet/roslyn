@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly m_kind As SynthesizedLocalKind
         Private ReadOnly m_isByRef As Boolean
-        Private ReadOnly m_syntax As StatementSyntax
+        Private ReadOnly m_syntax As VisualBasicSyntaxNode
 
         Friend Sub New(container As Symbol,
                        type As TypeSymbol,
                        kind As SynthesizedLocalKind,
-                       Optional syntax As StatementSyntax = Nothing,
+                       Optional syntax As VisualBasicSyntaxNode = Nothing,
                        Optional isByRef As Boolean = False)
             MyBase.New(container, type)
 

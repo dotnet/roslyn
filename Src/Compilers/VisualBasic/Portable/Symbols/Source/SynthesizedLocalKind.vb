@@ -54,6 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         StateMachineCachedState
 
         LambdaDisplayClass ' Local variable that holds on the display class instance
+
+        ''' <summary>
+        ''' Return value variable of lambdas and operators, which can't be accessed from user code.
+        ''' </summary>
+        FunctionReturnValue
     End Enum
 
     Module SynthesizedLocalKindExtensions

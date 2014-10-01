@@ -1156,14 +1156,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not alreadyReported(SlotKind.FunctionValue) Then
 
                 Dim type As TypeSymbol = Nothing
+                Dim method = Me.MethodSymbol
 
-                type = MethodReturnType
+                type = method.ReturnType
                 If type IsNot Nothing AndAlso
-                   Not (MethodSymbol.IsIterator OrElse
-                        (MethodSymbol.IsAsync AndAlso type.Equals(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)))) Then
+                   Not (method.IsIterator OrElse
+                        (method.IsAsync AndAlso type.Equals(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)))) Then
 
                     Dim warning As ERRID = Nothing
-                    Dim localName As String = GetFunctionLocalName(MethodSymbol.MethodKind, local)
+                    Dim localName As String = GetFunctionLocalName(method, local)
 
                     type = type.GetEnumUnderlyingTypeOrSelf
 
@@ -1201,7 +1202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(type.IsValueType)
                         Select Case MethodSymbol.MethodKind
                             Case MethodKind.Conversion, MethodKind.UserDefinedOperator
-                                ' no warning is given in this case.
+                            ' no warning is given in this case.
                             Case MethodKind.PropertyGet
                                 warning = ERRID.WRN_DefAsgNoRetValPropRef1
                             Case MethodKind.EventAdd
@@ -1233,19 +1234,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Shared Function GetFunctionLocalName(methodKind As MethodKind, local As LocalSymbol) As String
-            Select Case methodKind
+        Private Shared Function GetFunctionLocalName(method As MethodSymbol, local As LocalSymbol) As String
+            Select Case method.MethodKind
                 Case MethodKind.LambdaMethod
                     Return StringConstants.AnonymousMethodName
 
                 Case MethodKind.Conversion, MethodKind.UserDefinedOperator
-                    ' the operator's function local is op_<something> and not
+                    ' The operator's function local is op_<something> and not
                     ' VB's operator name, so we need to take the identifier token
                     ' directly
-                    Return local.IdentifierToken.ToString
+                    Dim operatorBlock = DirectCast(DirectCast(local.ContainingSymbol, SourceMemberMethodSymbol).BlockSyntax, OperatorBlockSyntax)
+                    Return operatorBlock.Begin.OperatorToken.Text
 
                 Case Else
-                    Return local.Name
+                    Debug.Assert((local.Name Is Nothing) = (method.IsAsync OrElse method.IsIterator))
+                    Return If(local.Name, method.Name)
             End Select
         End Function
 

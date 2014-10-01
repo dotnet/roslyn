@@ -413,27 +413,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional onlyReplaceIfFunctionValue As Boolean = False,
             <Out()> Optional ByRef wasReplaced As Boolean = False
         ) As LocalSymbol
-            Dim originalIsFunctionValue = originalLocal.IsFunctionValue
 
-            If Not onlyReplaceIfFunctionValue OrElse originalIsFunctionValue Then
+            If Not onlyReplaceIfFunctionValue OrElse originalLocal.IsFunctionValue Then
 
-                ' when creating function value locals for lambdas, the resulting lambda method
-                ' does still not exist and they are created with temporary names of "Function" and "Sub".
-                ' When rewriting them here in the lambda rewriter, we can create locals with the correct name
-                ' because the method's name is known and the local has the same name as the method.
-                If originalIsFunctionValue Then
-                    Debug.Assert(Not originalLocal.IsByRef)
-
-                    wasReplaced = True
-                    Return LocalSymbol.Create(Me.CurrentMethod,
-                                              Me.CurrentMethod.Name,
-                                              originalLocal.IdentifierToken,
-                                              originalLocal.DeclarationKind,
-                                              newType)
-                Else
-                    wasReplaced = True
-                    Return LocalSymbol.Create(originalLocal, newType)
-                End If
+                wasReplaced = True
+                Return LocalSymbol.Create(originalLocal, newType)
             Else
                 wasReplaced = False
                 Return originalLocal

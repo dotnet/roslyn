@@ -55,14 +55,14 @@ End Module
             <locals>
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x6e" attributes="0"/>
                 <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x6e" attributes="0"/>
-                <local name="MoveNext" il_index="2" il_start="0x30" il_end="0x6d" attributes="0"/>
+                <local name="VB$FRV" il_index="2" il_start="0x30" il_end="0x6d" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x6e">
                 <importsforward declaringType="Program" methodName="Main" parameterNames="args"/>
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x6e" attributes="0"/>
                 <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x6e" attributes="0"/>
                 <scope startOffset="0x30" endOffset="0x6d">
-                    <local name="MoveNext" il_index="2" il_start="0x30" il_end="0x6d" attributes="0"/>
+                    <local name="VB$FRV" il_index="2" il_start="0x30" il_end="0x6d" attributes="0"/>
                 </scope>
             </scope>
         </method>
@@ -144,7 +144,7 @@ End Module
             <locals>
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x17b" attributes="0"/>
                 <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x17b" attributes="0"/>
-                <local name="MoveNext" il_index="2" il_start="0x44" il_end="0x17a" attributes="0"/>
+                <local name="VB$FRV" il_index="2" il_start="0x44" il_end="0x17a" attributes="0"/>
                 <local name="arr" il_index="3" il_start="0x44" il_end="0x17a" attributes="0"/>
                 <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0x61" il_end="0xc2" attributes="0" reusingslot="True"/>
                 <local name="$VB$ResumableLocal_x$2" il_index="0" il_start="0xed" il_end="0x15c" attributes="0" reusingslot="True"/>
@@ -154,7 +154,7 @@ End Module
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x17b" attributes="0"/>
                 <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x17b" attributes="0"/>
                 <scope startOffset="0x44" endOffset="0x17a">
-                    <local name="MoveNext" il_index="2" il_start="0x44" il_end="0x17a" attributes="0"/>
+                    <local name="VB$FRV" il_index="2" il_start="0x44" il_end="0x17a" attributes="0"/>
                     <local name="arr" il_index="3" il_start="0x44" il_end="0x17a" attributes="0"/>
                     <scope startOffset="0x61" endOffset="0xc2">
                         <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0x61" il_end="0xc2" attributes="0"/>
@@ -450,14 +450,14 @@ End Module
             <locals>
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x69" attributes="0"/>
                 <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x69" attributes="0"/>
-                <local name="MoveNext" il_index="2" il_start="0x30" il_end="0x68" attributes="0"/>
+                <local name="VB$FRV" il_index="2" il_start="0x30" il_end="0x68" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x69">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x69" attributes="0"/>
                 <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x69" attributes="0"/>
                 <scope startOffset="0x30" endOffset="0x68">
-                    <local name="MoveNext" il_index="2" il_start="0x30" il_end="0x68" attributes="0"/>
+                    <local name="VB$FRV" il_index="2" il_start="0x30" il_end="0x68" attributes="0"/>
                 </scope>
             </scope>
         </method>

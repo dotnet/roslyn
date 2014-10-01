@@ -1325,7 +1325,7 @@ End Class
 </compilation>
 
             Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
-            comp.VerifyDiagnostics()
+            Dim v = CompileAndVerify(comp)
 
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Test")
             Dim eventSymbol As EventSymbol = type.GetMember(Of EventSymbol)("E")
@@ -1339,6 +1339,18 @@ End Class
             Assert.Equal(SymbolKind.Local, symbol.Kind)
             Assert.Equal(eventSymbol.AddMethod.ReturnType, DirectCast(symbol, LocalSymbol).Type)
             Assert.Equal(eventSymbol.AddMethod.Name, symbol.Name)
+
+            v.VerifyIL("Test.add_E", "
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken V_0) //add_E
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken""
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+")
         End Sub
 
         <Fact>

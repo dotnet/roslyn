@@ -226,6 +226,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return StringConstants.OnErrorCurrentStatement
                 Case SynthesizedLocalKind.OnErrorCurrentLine
                     Return StringConstants.OnErrorCurrentLine
+                Case SynthesizedLocalKind.FunctionReturnValue
+                    ' TODO: temporarily assign a name
+                    Return "VB$FRV"
             End Select
 
             Throw ExceptionUtilities.UnexpectedValue(kind)
