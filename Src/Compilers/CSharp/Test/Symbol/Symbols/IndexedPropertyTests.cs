@@ -864,10 +864,10 @@ End Class";
                 Diagnostic(ErrorCode.ERR_BadArgCount, "a[7, 8]").WithArguments("this", "2").WithLocation(8, 9),
                 // (8,19): error CS1501: No overload for method 'this' takes 2 arguments
                 Diagnostic(ErrorCode.ERR_BadArgCount, "a[5, 6]").WithArguments("this", "2").WithLocation(8, 19),
-                // (9,11): error CS0571: 'A.IA.this[int].set': cannot explicitly call operator or accessor
-                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_P").WithArguments("A.IA.this[int].set").WithLocation(9, 11),
-                // (9,23): error CS0571: 'A.IA.this[int].get': cannot explicitly call operator or accessor
-                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_P").WithArguments("A.IA.this[int].get").WithLocation(9, 23));
+                // (9,11): error CS0571: 'A.this[int].set': cannot explicitly call operator or accessor
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_P").WithArguments("A.this[int].set").WithLocation(9, 11),
+                // (9,23): error CS0571: 'A.this[int].get': cannot explicitly call operator or accessor
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_P").WithArguments("A.this[int].get").WithLocation(9, 23));
             var source3 =
 @"class C
 {
@@ -1870,10 +1870,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NewRequired, "get_P").WithArguments("B2.get_P(int)", "A1.get_P(int)").WithLocation(13, 21),
                 // (14,19): warning CS0108: 'B2.set_P(int, object)' hides inherited member 'A1.set_P(int, object)'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "set_P").WithArguments("B2.set_P(int, object)", "A1.set_P(int, object)").WithLocation(14, 19),
-                // (25,12): error CS1545: Property, indexer, or event 'A1.I.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, object)'
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.I.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 12),
-                // (25,22): error CS1545: Property, indexer, or event 'A1.I.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, object)'
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.I.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 22));
+                // (25,12): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 12),
+                // (25,22): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 22));
         }
 
         [Fact]
@@ -2103,8 +2103,8 @@ class B
 }";
             var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
-                // (1,5): error CS1545: Property, indexer, or event 'A1.IA.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, int)'
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.IA.P[int]", "A1.get_P(int)", "A1.set_P(int, int)").WithLocation(1, 5));
+                // (1,5): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, int)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, int)").WithLocation(1, 5));
             var source3 =
 @"[A2(P = 1)] // ComImport
 class B

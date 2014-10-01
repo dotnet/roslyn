@@ -4019,5 +4019,181 @@ enum E2 // Identical to E1, but has [Flags]
 
             Assert.Equal("M(e1 = A, e2 = A)", method.ToDisplayString(memberFormat)); // Alphabetically first candidate chosen for both enums.
         }
+
+        [Fact, WorkItem(1028003, "DevDiv")]
+        public void UnconventionalExplicitInterfaceImplementation()
+        {
+            var il = @"
+.class public auto ansi sealed DTest
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(object 'object',
+                               native int 'method') runtime managed
+  {
+  } // end of method DTest::.ctor
+
+  .method public hidebysig newslot virtual 
+          instance void  Invoke() runtime managed
+  {
+  } // end of method DTest::Invoke
+
+  .method public hidebysig newslot virtual 
+          instance class [mscorlib]System.IAsyncResult 
+          BeginInvoke(class [mscorlib]System.AsyncCallback callback,
+                      object 'object') runtime managed
+  {
+  } // end of method DTest::BeginInvoke
+
+  .method public hidebysig newslot virtual 
+          instance void  EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+  } // end of method DTest::EndInvoke
+
+} // end of class DTest
+
+.class interface public abstract auto ansi ITest
+{
+  .method public hidebysig newslot abstract virtual 
+          instance void  M1() cil managed
+  {
+  } // end of method ITest::M1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P1() cil managed
+  {
+  } // end of method ITest::get_P1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_P1(int32 'value') cil managed
+  {
+  } // end of method ITest::set_P1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  add_E1(class DTest 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  } // end of method ITest::add_E1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  remove_E1(class DTest 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  } // end of method ITest::remove_E1
+
+  .event DTest E1
+  {
+    .addon instance void ITest::add_E1(class DTest)
+    .removeon instance void ITest::remove_E1(class DTest)
+  } // end of event ITest::E1
+  .property instance int32 P1()
+  {
+    .get instance int32 ITest::get_P1()
+    .set instance void ITest::set_P1(int32)
+  } // end of property ITest::P1
+} // end of class ITest
+
+.class public auto ansi beforefieldinit CTest
+       extends [mscorlib]System.Object
+       implements ITest
+{
+  .method public hidebysig newslot specialname virtual final 
+          instance int32  get_P1() cil managed
+  {
+    .override ITest::get_P1
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  newobj     instance void [mscorlib]System.NotImplementedException::.ctor()
+    IL_0006:  throw
+  } // end of method CTest::ITest.get_P1
+
+  .method public hidebysig newslot specialname virtual final 
+          instance void  set_P1(int32 'value') cil managed
+  {
+    .override ITest::set_P1
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  newobj     instance void [mscorlib]System.NotImplementedException::.ctor()
+    IL_0006:  throw
+  } // end of method CTest::ITest.set_P1
+
+  .method public hidebysig newslot specialname virtual final 
+          instance void  add_E1(class DTest 'value') cil managed
+  {
+    .override ITest::add_E1
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  newobj     instance void [mscorlib]System.NotImplementedException::.ctor()
+    IL_0006:  throw
+  } // end of method CTest::ITest.add_E1
+
+  .method public hidebysig newslot specialname virtual final 
+          instance void  remove_E1(class DTest 'value') cil managed
+  {
+    .override ITest::remove_E1
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  newobj     instance void [mscorlib]System.NotImplementedException::.ctor()
+    IL_0006:  throw
+  } // end of method CTest::ITest.remove_E1
+
+  .method public hidebysig newslot virtual final 
+          instance void  M1() cil managed
+  {
+    .override ITest::M1
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  newobj     instance void [mscorlib]System.NotImplementedException::.ctor()
+    IL_0006:  throw
+  } // end of method CTest::ITest.M1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method CTest::.ctor
+
+  .event DTest E1
+  {
+    .addon instance void CTest::add_E1(class DTest)
+    .removeon instance void CTest::remove_E1(class DTest)
+  } // end of event CTest::ITest.E1
+  .property instance int32 P1()
+  {
+    .get instance int32 CTest::get_P1()
+    .set instance void CTest::set_P1(int32)
+  } // end of property CTest::ITest.P1
+} // end of class CTest
+";
+
+            var text = @"";
+            var comp = CreateCompilationWithCustomILSource(text, il);
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface);
+
+            var cTest = comp.GetTypeByMetadataName("CTest");
+            var m1 = cTest.GetMember("M1");
+            Assert.Equal("M1", m1.Name);
+            Assert.Equal("M1", m1.ToDisplayString(format));
+
+            var p1 = cTest.GetMember("P1");
+            Assert.Equal("P1", p1.Name);
+            Assert.Equal("P1", p1.ToDisplayString(format));
+
+            var e1 = cTest.GetMember("E1");
+            Assert.Equal("E1", e1.Name);
+            Assert.Equal("E1", e1.ToDisplayString(format));
+        }
     }
 }

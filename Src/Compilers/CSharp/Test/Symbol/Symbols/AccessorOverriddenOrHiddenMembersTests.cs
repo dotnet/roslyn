@@ -798,12 +798,12 @@ public class CSIPropImpl : VBIPropImpl, IProp
                 // (27,9): error CS0550: 'CSIPropImpl.IProp.WriteOnlyProp.get' adds an accessor not found in interface member 'IProp.WriteOnlyProp'
                 //         get { return _str; }
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("CSIPropImpl.IProp.WriteOnlyProp.get", "IProp.WriteOnlyProp"),
-                // (11,9): error CS0546: 'CSIPropImpl.ReadOnlyProp.set': cannot override because 'VBIPropImpl.IProp.ReadOnlyProp' does not have an overridable set accessor
+                // (11,9): error CS0546: 'CSIPropImpl.ReadOnlyProp.set': cannot override because 'VBIPropImpl.ReadOnlyProp' does not have an overridable set accessor
                 //         set { _str = value; } // setter in ReadOnly
-                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("CSIPropImpl.ReadOnlyProp.set", "VBIPropImpl.IProp.ReadOnlyProp"),
-                // (16,9): error CS0545: 'CSIPropImpl.WriteOnlyProp.get': cannot override because 'VBIPropImpl.IProp.WriteOnlyProp' does not have an overridable get accessor
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("CSIPropImpl.ReadOnlyProp.set", "VBIPropImpl.ReadOnlyProp"),
+                // (16,9): error CS0545: 'CSIPropImpl.WriteOnlyProp.get': cannot override because 'VBIPropImpl.WriteOnlyProp' does not have an overridable get accessor
                 //         get { return _str; } // getter in WriteOnly
-                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("CSIPropImpl.WriteOnlyProp.get", "VBIPropImpl.IProp.WriteOnlyProp"),
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("CSIPropImpl.WriteOnlyProp.get", "VBIPropImpl.WriteOnlyProp"),
                 // (5,18): warning CS0414: The field 'CSIPropImpl._uint' is assigned but its value is never used
                 //     private uint _uint = 22;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_uint").WithArguments("CSIPropImpl._uint")

@@ -90,18 +90,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddPropertyNameAndParameters(IPropertySymbol symbol)
         {
-            AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
+            bool getMemberNameWithoutInterfaceName = symbol.Name.LastIndexOf('.') > 0;
+
+            if (getMemberNameWithoutInterfaceName)
+            {
+                AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
+            }
 
             if (symbol.IsIndexer)
             {
                 AddKeyword(SyntaxKind.ThisKeyword);
             }
-            else
+            else if (getMemberNameWithoutInterfaceName)
             {
                 this.builder.Add(CreatePart(SymbolDisplayPartKind.PropertyName, symbol,
                     ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(symbol.Name)));
             }
-
+            else
+            {
+                this.builder.Add(CreatePart(SymbolDisplayPartKind.PropertyName, symbol, symbol.Name));
+            }
+            
             if (this.format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeParameters) && symbol.Parameters.Any())
             {
                 AddPunctuation(SyntaxKind.OpenBracketToken);
@@ -139,10 +148,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddEventName(IEventSymbol symbol)
         {
-            AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
+            if (symbol.Name.LastIndexOf('.') > 0)
+            {
+                AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
 
-            this.builder.Add(CreatePart(SymbolDisplayPartKind.EventName, symbol,
-                ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(symbol.Name)));
+                this.builder.Add(CreatePart(SymbolDisplayPartKind.EventName, symbol,
+                    ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(symbol.Name)));
+            }
+            else
+            {
+                this.builder.Add(CreatePart(SymbolDisplayPartKind.EventName, symbol, symbol.Name));
+            }
         }
 
         public override void VisitMethod(IMethodSymbol symbol)
@@ -645,8 +661,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeExplicitInterface) && !implementedMethods.IsEmpty)
             {
-                Debug.Assert(implementedMethods.Length == 1);
-
                 var implementedMethod = implementedMethods[0];
                 Debug.Assert(implementedMethod.ContainingType != null);
 
