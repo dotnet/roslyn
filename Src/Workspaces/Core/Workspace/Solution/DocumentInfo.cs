@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// If these heristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
         /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
         /// </summary>
-        public Encoding DefaultEncoding { get; private set; }
+        internal Encoding DefaultEncoding { get; private set; }
 
         /// <summary>
         /// A loader that can retrieve the document text.
