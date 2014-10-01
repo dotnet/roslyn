@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Public ReadOnly Property ErrorArgs As Object()
             Get
-                Return If(_diagnosticArguments, New Object() {})
+                Return If(_diagnosticArguments, SpecializedCollections.EmptyObjects)
             End Get
         End Property
     End Class

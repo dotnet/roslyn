@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        return new object[0];
+                        return SpecializedCollections.EmptyObjects;
                     }
                 }
             }

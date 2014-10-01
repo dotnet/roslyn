@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal partial class DiagnosticInfo : IFormattable, IObjectWritable, IObjectReadable, IMessageSerializable
     {
-        private static readonly object[] NoArguments = new object[0];
-
         private readonly CommonMessageProvider messageProvider;
         private readonly int errorCode;
         private readonly bool isWarningAsError;
@@ -134,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             var count = (int)reader.ReadCompressedUInt();
             if (count == 0)
             {
-                this.arguments = NoArguments;
+                this.arguments = SpecializedCollections.EmptyObjects;
             }
             else if (count > 0)
             {

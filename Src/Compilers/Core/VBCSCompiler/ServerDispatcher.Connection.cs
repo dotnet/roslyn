@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // which serves to check the pipe for disconnection. 
             private async Task MonitorPipeForDisconnection()
             {
-                var buffer = new byte[0];
+                var buffer = SpecializedCollections.EmptyBytes;
 
                 while (!this.isFinished && pipeStream.IsConnected)
                 {

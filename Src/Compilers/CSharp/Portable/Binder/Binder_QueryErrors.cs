@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // CS1979: Query expressions over source type 'dynamic' or with a join sequence of type 'dynamic' are not allowed
                 diagnostics.Add(
-                    new DiagnosticInfoWithSymbols(ErrorCode.ERR_BadDynamicQuery, new object[] { }, symbols),
+                    new DiagnosticInfoWithSymbols(ErrorCode.ERR_BadDynamicQuery, SpecializedCollections.EmptyObjects, symbols),
                     new SourceLocation(queryClause));
             }
             else if (ImplementsStandardQueryInterface(instanceArgument.Type, name, ref useSiteDiagnostics))

@@ -1225,34 +1225,42 @@ namespace BoundTreeGenerator
                     {
                         WriteLine("public override TreeDumperNode Visit{0}({1} node, object arg)", StripBound(node.Name), node.Name);
                         Brace();
-                        WriteLine("return new TreeDumperNode(\"{0}\", null, new TreeDumperNode[]", ToCamelCase(StripBound(node.Name)));
-                        Brace();
+                        Write("return new TreeDumperNode(\"{0}\", null, ", ToCamelCase(StripBound(node.Name)));
                         var allFields = AllFields(node).ToArray();
-                        for (int i = 0; i < allFields.Length; ++i)
+                        if (allFields.Length > 0)
                         {
-                            Field field = allFields[i];
-                            if (IsDerivedType("BoundNode", field.Type))
-                                Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
-                            else if (IsListOfDerived("BoundNode", field.Type))
+                            WriteLine("new TreeDumperNode[]");
+                            Brace();
+                            for (int i = 0; i < allFields.Length; ++i)
                             {
-                                if (IsImmutableArray(field.Type) && field.Name.EndsWith("Opt"))
+                                Field field = allFields[i];
+                                if (IsDerivedType("BoundNode", field.Type))
+                                    Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
+                                else if (IsListOfDerived("BoundNode", field.Type))
                                 {
-                                    Write("new TreeDumperNode(\"{0}\", null, node.{1}.IsDefault ? new TreeDumperNode[0] : from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
+                                    if (IsImmutableArray(field.Type) && field.Name.EndsWith("Opt"))
+                                    {
+                                        Write("new TreeDumperNode(\"{0}\", null, node.{1}.IsDefault ? SpecializedCollections.EmptyArray<TreeDumperNode>() : from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
+                                    }
+                                    else
+                                    {
+                                        Write("new TreeDumperNode(\"{0}\", null, from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
+                                    }
                                 }
                                 else
-                                {
-                                    Write("new TreeDumperNode(\"{0}\", null, from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
-                                }
-                            }
-                            else
-                                Write("new TreeDumperNode(\"{0}\", node.{1}, null)", ToCamelCase(field.Name), field.Name);
+                                    Write("new TreeDumperNode(\"{0}\", node.{1}, null)", ToCamelCase(field.Name), field.Name);
 
-                            if (i == allFields.Length - 1)
-                                WriteLine("");
-                            else
-                                WriteLine(",");
+                                if (i == allFields.Length - 1)
+                                    WriteLine("");
+                                else
+                                    WriteLine(",");
+                            }
+                            Unbrace();
                         }
-                        Unbrace();
+                        else
+                        {
+                            WriteLine("SpecializedCollections.EmptyArray<TreeDumperNode>()");
+                        }
                         WriteLine(");");
                         Unbrace();
                     }
@@ -1279,26 +1287,34 @@ namespace BoundTreeGenerator
                     {
                         WriteLine("Public Overrides Function Visit{0}(node As {1}, arg As Object) As TreeDumperNode", StripBound(node.Name), node.Name);
                         Indent();
-                        WriteLine("Return New TreeDumperNode(\"{0}\", Nothing, New TreeDumperNode() {{", ToCamelCase(StripBound(node.Name)));
-                        Indent();
+                        Write("Return New TreeDumperNode(\"{0}\", Nothing, ", ToCamelCase(StripBound(node.Name)));
                         var allFields = AllFields(node).ToArray();
-                        for (int i = 0; i < allFields.Length; ++i)
+                        if (allFields.Length > 0)
                         {
-                            Field field = allFields[i];
-                            if (IsDerivedType("BoundNode", field.Type))
-                                Write("New TreeDumperNode(\"{0}\", Nothing, new TreeDumperNode() {{ Visit(node.{1}, Nothing) }})", ToCamelCase(field.Name), field.Name);
-                            else if (IsListOfDerived("BoundNode", field.Type))
-                                Write("New TreeDumperNode(\"{0}\", Nothing, From x In node.{1} Select Visit(x, Nothing))", ToCamelCase(field.Name), field.Name);
-                            else
-                                Write("New TreeDumperNode(\"{0}\", node.{1}, Nothing)", ToCamelCase(field.Name), field.Name);
+                            WriteLine("New TreeDumperNode() {{");
+                            Indent();
+                            for (int i = 0; i < allFields.Length; ++i)
+                            {
+                                Field field = allFields[i];
+                                if (IsDerivedType("BoundNode", field.Type))
+                                    Write("New TreeDumperNode(\"{0}\", Nothing, new TreeDumperNode() {{ Visit(node.{1}, Nothing) }})", ToCamelCase(field.Name), field.Name);
+                                else if (IsListOfDerived("BoundNode", field.Type))
+                                    Write("New TreeDumperNode(\"{0}\", Nothing, From x In node.{1} Select Visit(x, Nothing))", ToCamelCase(field.Name), field.Name);
+                                else
+                                    Write("New TreeDumperNode(\"{0}\", node.{1}, Nothing)", ToCamelCase(field.Name), field.Name);
 
-                            if (i == allFields.Length - 1)
-                                WriteLine("");
-                            else
-                                WriteLine(",");
+                                if (i == allFields.Length - 1)
+                                    WriteLine("");
+                                else
+                                    WriteLine(",");
+                            }
+                            Outdent();
+                            WriteLine("}})");
                         }
-                        Outdent();
-                        WriteLine("}})");
+                        else
+                        {
+                            WriteLine("SpecializedCollections.EmptyArray(Of TreeDumperNode)())");
+                        }
                         Outdent();
                         WriteLine("End Function");
                         Blank();

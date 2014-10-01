@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis
         private static bool IsDefaultImmutableArray(Object o)
         {
             var ti = o.GetType().GetTypeInfo();
-            return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) && (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, new object[0]);
+            return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) && (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, SpecializedCollections.EmptyObjects);
         }
 
         private string DumperString(object o)

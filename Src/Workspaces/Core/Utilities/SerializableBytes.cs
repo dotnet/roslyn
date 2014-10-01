@@ -306,7 +306,7 @@ namespace Roslyn.Utilities
             {
                 if (this.Length == 0)
                 {
-                    return new byte[0];
+                    return SpecializedCollections.EmptyBytes;
                 }
 
                 var array = new byte[this.Length];

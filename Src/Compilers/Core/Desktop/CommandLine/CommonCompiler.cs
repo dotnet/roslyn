@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis
 
             if (parameters.Length == 0)
             {
-                arguments = new object[0];
+                arguments = SpecializedCollections.EmptyObjects;
             }
             else
             {
