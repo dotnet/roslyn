@@ -3844,6 +3844,9 @@
                         - ADVANCED -
  /baseaddress:<address>        Base address for the library to be built
  /bugreport:<file>             Create a 'Bug Report' file
+ /checksumalgorithm:<alg>      Specify algorithm for calculating source file 
+                               checksum stored in PDB. Supported values are:
+                               SHA1 (default) or SHA256.
  /codepage:<n>                 Specify the codepage to use when opening source 
                                files
  /utf8output                   Output compiler messages in UTF-8 encoding

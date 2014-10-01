@@ -4584,6 +4584,9 @@
 /baseaddress:<number>             The base address for a library or module 
                                   (hex).
 /bugreport:<file>                 Create bug report file.
+/checksumalgorithm:<alg>          Specify algorithm for calculating source file 
+                                  checksum stored in PDB. Supported values are:
+                                  SHA1 (default) or SHA256.
 /codepage:<number>                Specifies the codepage to use when opening 
                                   source files.
 /delaysign[+|-]                   Delay-sign the assembly using only the public
