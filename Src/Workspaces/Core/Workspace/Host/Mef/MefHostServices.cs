@@ -246,21 +246,30 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 this.language = language;
                 var hostServices = (MefHostServices)workspaceServices.HostServices;
 
-                this.services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>()
-                        .Concat(hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
-                                            .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)))
-                        .Where(lz => lz.Metadata.Language == language).ToImmutableArray();
+                var languageServices = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>().ToArray();
+                var languageServiceFactories = hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
+                                                           .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)).ToArray();
+
+                var allServices = languageServices.Concat(languageServiceFactories).ToArray();
+                var allServicesForThisLanguage = allServices.Where(lz => lz.Metadata.Language == language).ToArray();
+
+                this.services = allServicesForThisLanguage.ToImmutableArray();
 
                 if ((this.language == LanguageNames.CSharp || this.language == LanguageNames.VisualBasic) &&
                      !this.services.Any(s => s.Metadata.ServiceType == typeof(ISyntaxTreeFactoryService).AssemblyQualifiedName))
                 {
-                    var kind = this.workspaceServices.Workspace.Kind;
                     var tempServices = this.services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata, lz.Metadata.ServiceType)).ToArray();
+                    var tempKind = this.workspaceServices.Workspace.Kind;
+                    var tempLanguage = this.language;
 
                     ExceptionHelpers.Crash(new Exception("Crash"));
 
-                    GC.KeepAlive(kind);
+                    GC.KeepAlive(tempKind);
                     GC.KeepAlive(tempServices);
+                    GC.KeepAlive(allServicesForThisLanguage);
+                    GC.KeepAlive(allServices);
+                    GC.KeepAlive(languageServiceFactories);
+                    GC.KeepAlive(languageServices);
                 }
             }
 
