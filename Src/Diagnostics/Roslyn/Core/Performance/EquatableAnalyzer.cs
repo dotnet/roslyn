@@ -32,7 +32,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             get
             {
-                return ImmutableArray.Create(ImplementIEquatableDescriptor);
+                return ImmutableArray.Create(ImplementIEquatableDescriptor, OverridesObjectEqualsDescriptor);
             }
         }
 
