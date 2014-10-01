@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -512,6 +513,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enumerator for lists of SyntaxNodeOrToken structs.
         /// </summary>
+        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
         public struct Enumerator : IEnumerator<SyntaxNodeOrToken>
         {
             private SyntaxNodeOrTokenList list;

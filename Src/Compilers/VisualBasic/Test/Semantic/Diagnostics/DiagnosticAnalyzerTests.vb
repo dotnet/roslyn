@@ -140,9 +140,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Return String.Format(m_message, m_arguments)
             End Function
 
-            Public Overrides Function Equals(obj As Diagnostic) As Boolean
-                If obj Is Nothing OrElse Me.GetType() <> obj.GetType() Then Return False
-                Dim other As TestDiagnostic = CType(obj, TestDiagnostic)
+            Public Overrides Function GetHashCode() As Integer
+                Return Hash.Combine(Me.m_id.GetHashCode(), Me.m_kind.GetHashCode())
+            End Function
+
+            Public Overloads Overrides Function Equals(obj As Object) As Boolean
+                Return Me.Equals(TryCast(obj, TestDiagnostic))
+            End Function
+
+            Public Overloads Overrides Function Equals(obj As Diagnostic) As Boolean
+                Return Me.Equals(TryCast(obj, TestDiagnostic))
+            End Function
+
+            Public Overloads Function Equals(other As TestDiagnostic) As Boolean
+                If other Is Nothing OrElse Me.GetType() <> other.GetType() Then Return False
                 Return Me.m_id = other.m_id AndAlso
                     Me.m_kind = other.m_kind AndAlso
                     Me.m_location = other.m_location AndAlso

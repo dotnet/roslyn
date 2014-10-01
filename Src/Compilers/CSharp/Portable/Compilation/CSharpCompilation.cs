@@ -1826,7 +1826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Add(new ImportInfo(syntax.SyntaxTree, syntax.Kind, syntax.Span));
         }
 
-        private struct ImportInfo
+        private struct ImportInfo : IEquatable<ImportInfo>
         {
             public readonly SyntaxTree Tree;
             public readonly SyntaxKind Kind;
@@ -1841,16 +1841,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool Equals(object obj)
             {
-                if (obj is ImportInfo)
-                {
-                    ImportInfo other = (ImportInfo)obj;
-                    return
-                        other.Kind == this.Kind &&
-                        other.Tree == this.Tree &&
-                        other.Span == this.Span;
-                }
+                return (obj is ImportInfo) && Equals((ImportInfo)obj);
+            }
 
-                return false;
+            public bool Equals(ImportInfo other)
+            {
+                return
+                    other.Kind == this.Kind &&
+                    other.Tree == this.Tree &&
+                    other.Span == this.Span;
             }
 
             public override int GetHashCode()

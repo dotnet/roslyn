@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal struct SeparatedSyntaxList<TNode> where TNode : CSharpSyntaxNode
+    internal struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>> where TNode : CSharpSyntaxNode
     {
         private readonly SyntaxList<CSharpSyntaxNode> list;
 

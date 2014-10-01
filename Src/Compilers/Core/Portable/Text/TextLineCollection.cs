@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Text
             return this.GetEnumerator();
         }
 
+        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
         public struct Enumerator : IEnumerator<TextLine>, IEnumerator
         {
             private readonly TextLineCollection lines;

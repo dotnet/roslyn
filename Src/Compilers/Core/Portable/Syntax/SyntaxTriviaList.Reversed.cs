@@ -48,6 +48,16 @@ namespace Microsoft.CodeAnalysis
                 return new ReversedEnumeratorImpl(ref list);
             }
 
+            public override int GetHashCode()
+            {
+                return list.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return (obj is Reversed) && Equals((Reversed)obj);
+            }
+
             public bool Equals(Reversed other)
             {
                 return this.list.Equals(other.list);

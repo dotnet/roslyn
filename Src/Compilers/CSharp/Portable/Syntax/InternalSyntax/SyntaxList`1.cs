@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal partial struct SyntaxList<TNode> where TNode : CSharpSyntaxNode
+    internal partial struct SyntaxList<TNode> :  IEquatable<SyntaxList<TNode>> where TNode : CSharpSyntaxNode
     {
         private CSharpSyntaxNode node;
 
@@ -118,14 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return left.node != right.node;
         }
 
+        public bool Equals(SyntaxList<TNode> other)
+        {
+            return node == other.node;
+        }
+
         public override bool Equals(object obj)
         {
-            if (obj is SyntaxList<TNode>)
-            {
-                return node == ((SyntaxList<TNode>)obj).node;
-            }
-
-            return false;
+            return (obj is SyntaxList<TNode>) && Equals((SyntaxList<TNode>)obj);
         }
 
         public override int GetHashCode()

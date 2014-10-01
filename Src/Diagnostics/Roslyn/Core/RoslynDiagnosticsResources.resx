@@ -135,6 +135,18 @@
   <data name="UseArrayEmptyMessage" xml:space="preserve">
     <value>Avoid unnecessary zero-length array allocations.  Use Array.Empty&lt;T&gt;() instead.</value>
   </data>
+  <data name="ImplementIEquatableDescription" xml:space="preserve">
+    <value>Implement IEquatable&lt;T&gt; when overriding Object.Equals</value>
+  </data>
+  <data name="ImplementIEquatableMessage" xml:space="preserve">
+    <value>Type {0} should implement IEquatable&lt;T&gt; because it overrides Equals</value>
+  </data>
+  <data name="OverrideObjectEqualsDescription" xml:space="preserve">
+    <value>Override Object.Equals(object) when implementing IEquatable&lt;T&gt; </value>
+  </data>
+  <data name="OverrideObjectEqualsMessage" xml:space="preserve">
+    <value>Type {0} should override Equals because it implements IEquatable&lt;T&gt;</value>
+  </data>
   <data name="UseEmptyEnumerableDescription" xml:space="preserve">
     <value>Use SpecializedCollections.EmptyEnumerable&lt;T&gt;()</value>
   </data>

@@ -66,10 +66,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override bool IsWarningAsError { get { return isWarningAsError; } }
 
+            public override int GetHashCode()
+            {
+                return Hash.Combine(this.id.GetHashCode(), this.kind.GetHashCode());
+            }
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as TestDiagnostic);
+            }
+
             public override bool Equals(Diagnostic obj)
             {
-                if (obj == null || this.GetType() != obj.GetType()) return false;
-                TestDiagnostic other = (TestDiagnostic)obj;
+                return Equals(obj as TestDiagnostic);
+            }
+
+            public bool Equals(TestDiagnostic other)
+            {
+                if (other == null || this.GetType() != other.GetType()) return false;
                 return
                     this.id == other.id &&
                     this.kind == other.kind &&

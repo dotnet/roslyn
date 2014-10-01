@@ -115,6 +115,42 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement IEquatable&lt;T&gt; when overriding Object.Equals.
+        /// </summary>
+        internal static string ImplementIEquatableDescription {
+            get {
+                return ResourceManager.GetString("ImplementIEquatableDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type {0} should implement IEquatable&lt;T&gt; because it overrides Equals.
+        /// </summary>
+        internal static string ImplementIEquatableMessage {
+            get {
+                return ResourceManager.GetString("ImplementIEquatableMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Override Object.Equals(object) when implementing IEquatable&lt;T&gt; .
+        /// </summary>
+        internal static string OverrideObjectEqualsDescription {
+            get {
+                return ResourceManager.GetString("OverrideObjectEqualsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type {0} should override Equals because it implements IEquatable&lt;T&gt;.
+        /// </summary>
+        internal static string OverrideObjectEqualsMessage {
+            get {
+                return ResourceManager.GetString("OverrideObjectEqualsMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use SpecializedCollections.EmptyEnumerable&lt;T&gt;().
         /// </summary>
         internal static string UseEmptyEnumerableDescription {

@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis
                 return list.GetHashCode();
             }
 
+            [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
             public struct Enumerator
             {
                 private readonly SyntaxNode parent;

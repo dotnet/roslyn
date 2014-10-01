@@ -49,6 +49,16 @@ namespace Microsoft.CodeAnalysis
                 return new EnumeratorImpl(this.node, this.count);
             }
 
+            public override int GetHashCode()
+            {
+                return node != null ? Hash.Combine(node.GetHashCode(), count) : 0;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return (obj is Reversed) && Equals((Reversed)obj);
+            }
+
             public bool Equals(Reversed other)
             {
                 return this.node == other.node

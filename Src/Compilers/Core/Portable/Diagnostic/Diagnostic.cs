@@ -213,6 +213,10 @@ namespace Microsoft.CodeAnalysis
             return DiagnosticFormatter.Instance.Format(this, CultureInfo.CurrentUICulture);
         }
 
+        public abstract override bool Equals(object obj);
+
+        public abstract override int GetHashCode();
+
         public abstract bool Equals(Diagnostic obj);
 
         private string GetDebuggerDisplay()

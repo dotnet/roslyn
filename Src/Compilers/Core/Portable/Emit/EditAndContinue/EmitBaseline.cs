@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly uint ImplementingMethod;
         internal readonly int Index;
 
+        public override bool Equals(object obj)
+        {
+            return obj is MethodImplKey && Equals((MethodImplKey)obj);
+        }
+
         public bool Equals(MethodImplKey other)
         {
             return this.ImplementingMethod == other.ImplementingMethod &&

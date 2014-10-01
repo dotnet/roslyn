@@ -752,6 +752,8 @@ enter:
     End Structure
 
     Friend Structure SyntaxList(Of TNode As VisualBasicSyntaxNode)
+        Implements IEquatable(Of SyntaxList(Of TNode))
+
         Private _node As GreenNode
 
         Friend Sub New(node As GreenNode)
@@ -835,7 +837,11 @@ enter:
         End Operator
 
         Public Overrides Function Equals(obj As Object) As Boolean
-            Return (TypeOf obj Is SyntaxList(Of TNode) AndAlso (Me._node Is DirectCast(obj, SyntaxList(Of TNode))._node))
+            Return (TypeOf obj Is SyntaxList(Of TNode) AndAlso Me.Equals(DirectCast(obj, SyntaxList(Of TNode))))
+        End Function
+
+        Public Overloads Function Equals(other As SyntaxList(Of TNode)) As Boolean Implements IEquatable(Of SyntaxList(Of TNode)).Equals
+            Return Me._node Is other._node
         End Function
 
         Public Overrides Function GetHashCode() As Integer

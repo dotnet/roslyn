@@ -2,10 +2,12 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
     internal struct MemberAnalysisResult
     {
         // put these first for better packing

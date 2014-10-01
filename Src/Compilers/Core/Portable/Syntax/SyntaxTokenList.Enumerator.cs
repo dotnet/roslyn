@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A structure for enumerating a <see cref="SyntaxTokenList"/>
         /// </summary>
+        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
         public struct Enumerator
         {
             // This enumerator allows us to enumerate through two types of lists.

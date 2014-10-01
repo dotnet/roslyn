@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct AttributeUsageInfo 
+    internal struct AttributeUsageInfo : IEquatable<AttributeUsageInfo>
     {
         [Flags()]
         enum PackedAttributeUsage 

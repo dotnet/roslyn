@@ -8,5 +8,7 @@
         public const string UseSiteDiagnosticsCheckerRuleId = "RS004";
         public const string DontUseCodeActionCreateRuleId = "RS005";
         public const string UseArrayEmptyRuleId = "RS0007";
+        public const string ImplementIEquatable = "RS0008";
+        public const string OverrideObjectEquals = "RS0009";
     }
 }

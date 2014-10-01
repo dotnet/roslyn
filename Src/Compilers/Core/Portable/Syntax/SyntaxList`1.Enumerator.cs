@@ -3,11 +3,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
     public partial struct SyntaxList<TNode>
     {
+        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
         public struct Enumerator
         {
             private SyntaxList<TNode> list;
