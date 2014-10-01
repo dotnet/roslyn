@@ -1140,29 +1140,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     While i < count
                         Dim containingType As NamedTypeSymbol = methods(i).ContainingType
 
-                        If Not seenContainingTypes.Add(containingType) OrElse
-                            Not AccessCheck.IsSymbolAccessible(containingType, binder.Compilation.Assembly, useSiteDiagnostics) Then
+                        If seenContainingTypes.Add(containingType) AndAlso
+                           ((options And LookupOptions.IgnoreAccessibility) <> 0 OrElse
+                            AccessCheck.IsSymbolAccessible(containingType, binder.Compilation.Assembly, useSiteDiagnostics)) Then
 
+                            ' Process all methods from the same type together.
+                            Do
+                                ' Try to reduce this method and merge with the current result
+                                Dim reduced As MethodSymbol = methods(i).ReduceExtensionMethod(container, proximity)
+
+                                If reduced IsNot Nothing Then
+                                    lookupResult.MergeOverloadedOrPrioritizedExtensionMethods(binder.CheckViability(reduced, arity, options, reduced.ContainingType, useSiteDiagnostics))
+                                End If
+
+                                i += 1
+                            Loop While i < count AndAlso containingType Is methods(i).ContainingSymbol
+                        Else
                             ' We already processed extension methods from this container before or the whole container is not accessible,
                             ' skip the whole group of methods from this containing type.
                             Do
                                 i += 1
                             Loop While i < count AndAlso containingType Is methods(i).ContainingSymbol
-
-                            Continue While
                         End If
-
-                        ' Process all methods from the same type together.
-                        Do
-                            ' Try to reduce this method and merge with the current result
-                            Dim reduced As MethodSymbol = methods(i).ReduceExtensionMethod(container, proximity)
-
-                            If reduced IsNot Nothing Then
-                                lookupResult.MergeOverloadedOrPrioritizedExtensionMethods(binder.CheckViability(reduced, arity, options, reduced.ContainingType, useSiteDiagnostics))
-                            End If
-
-                            i += 1
-                        Loop While i < count AndAlso containingType Is methods(i).ContainingSymbol
                     End While
 
                     ' Continue to containing binders.
@@ -1401,7 +1400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' If no viable or ambiguous results, look in Object.
                 If Not lookupResult.IsGoodOrAmbiguous AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0 Then
-                    Dim currentResult = lookupResult.GetInstance()
+                    Dim currentResult = LookupResult.GetInstance()
                     Dim obj As NamedTypeSymbol = binder.SourceModule.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
 
                     LookupInClass(currentResult,
@@ -1438,7 +1437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim isEventsOnlySpecified As Boolean = (options And LookupOptions.EventsOnly) <> 0
 
-                Dim currentResult = lookupResult.GetInstance()
+                Dim currentResult = LookupResult.GetInstance()
                 Do
                     Dim info As InterfaceInfo = lookIn.Dequeue()
                     Debug.Assert(processed.Contains(info))
@@ -1533,7 +1532,7 @@ ExitForFor:
                 Dim i As Integer = 0
                 Dim j As Integer = 0
                 While j < resultSymbols.Count
-                    Dim symbol As symbol = resultSymbols(j)
+                    Dim symbol As Symbol = resultSymbols(j)
                     If (symbol.Kind = kind) = leaveInsteadOfRemoving Then
                         resultSymbols(i) = resultSymbols(j)
                         i += 1
@@ -1635,7 +1634,7 @@ ExitForFor:
             )
                 For Each constraintType In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
                     Select Case constraintType.TypeKind
-                        Case TYPEKIND.Interface
+                        Case TypeKind.Interface
                             Dim newInfo As New InterfaceInfo(DirectCast(constraintType, NamedTypeSymbol), False)
 
                             If processedInterfaces Is Nothing OrElse Not processedInterfaces.Contains(newInfo) Then
@@ -1648,7 +1647,7 @@ ExitForFor:
                                 processedInterfaces.Add(newInfo)
                             End If
 
-                        Case TYPEKIND.TypeParameter
+                        Case TypeKind.TypeParameter
                             AddInterfaceConstraints(DirectCast(constraintType, TypeParameterSymbol), allInterfaces, processedInterfaces, useSiteDiagnostics)
                     End Select
                 Next
@@ -2033,7 +2032,7 @@ ExitForFor:
                     Dim imported As Boolean = container.ContainingModule IsNot binder.SourceModule
 
                     For Each sym In members
-                        lookupResult.MergeMembersOfTheSameType(Binder.CheckViability(sym, arity, options, accessThroughType, useSiteDiagnostics), imported)
+                        lookupResult.MergeMembersOfTheSameType(binder.CheckViability(sym, arity, options, accessThroughType, useSiteDiagnostics), imported)
                     Next
                 End If
             End Sub
