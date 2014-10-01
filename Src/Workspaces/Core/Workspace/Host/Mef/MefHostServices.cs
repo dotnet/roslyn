@@ -250,6 +250,18 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                         .Concat(hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
                                             .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)))
                         .Where(lz => lz.Metadata.Language == language).ToImmutableArray();
+
+                if ((this.language == LanguageNames.CSharp || this.language == LanguageNames.VisualBasic) &&
+                     !this.services.Any(s => s.Metadata.ServiceType == typeof(ISyntaxTreeFactoryService).AssemblyQualifiedName))
+                {
+                    var kind = this.workspaceServices.Workspace.Kind;
+                    var tempServices = this.services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata, lz.Metadata.ServiceType)).ToArray();
+
+                    ExceptionHelpers.Crash(new Exception("Crash"));
+
+                    GC.KeepAlive(kind);
+                    GC.KeepAlive(tempServices);
+                }
             }
 
             public override HostWorkspaceServices WorkspaceServices
@@ -286,24 +298,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 {
                     service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, serviceType, svctype =>
                     {
-                        var serviceTypes = this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName);
-                        if ((this.language == LanguageNames.CSharp || this.language == LanguageNames.VisualBasic) &&
-                            serviceType == typeof(ISyntaxTreeFactoryService) && serviceTypes.IsEmpty())
-                        {
-                            var assembly = svctype.AssemblyQualifiedName;
-                            var kind = this.workspaceServices.Workspace.Kind;
-                            var tempServices = this.services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata, lz.Metadata.ServiceType)).ToArray();
-                            var serviceMap = this.serviceMap.Select(kv => ValueTuple.Create(kv.Key, kv.Value == null ? null : kv.Value.Value, kv.Value == null ? null : kv.Value.Metadata)).ToArray();
-
-                            ExceptionHelpers.Crash(new Exception("Crash"));
-
-                            GC.KeepAlive(assembly);
-                            GC.KeepAlive(kind);
-                            GC.KeepAlive(tempServices);
-                            GC.KeepAlive(serviceMap);
-                        }
-
-                        return PickLanguageService(serviceTypes);
+                        return PickLanguageService(this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName));
                     });
                 }
 
@@ -360,11 +355,77 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, typeof(TMetadata).AssemblyQualifiedName);
             if (!this.exportsMap.TryGetValue(key, out exports))
             {
+                var count = 0;
+
                 exports = ImmutableInterlocked.GetOrAdd(ref this.exportsMap, key, _ =>
-                    this.exportProvider.GetExports<TExtension, TMetadata>().ToImmutableArray());
+                {
+                    var result = this.exportProvider.GetExports<TExtension, TMetadata>().ToImmutableArray();
+
+                    count++;
+                    CrashIfSyntaxTreeFactoryServiceDoesntExistForCSharpOrVB(result);
+
+                    return result;
+                });
             }
 
-            return (IEnumerable<Lazy<TExtension, TMetadata>>)exports;
+            var final = (IEnumerable<Lazy<TExtension, TMetadata>>)exports;
+            CrashIfSyntaxTreeFactoryServiceDoesntExistForCSharpOrVB(final);
+
+            return final;
+        }
+
+        /// <summary>
+        /// diagnostic instrument to find out race in MeftHostService
+        /// </summary>
+        private void CrashIfSyntaxTreeFactoryServiceDoesntExistForCSharpOrVB<TExtension, TMetadata>(IEnumerable<Lazy<TExtension, TMetadata>> services)
+        {
+            if (typeof(TExtension) != typeof(ILanguageServiceFactory))
+            {
+                return;
+            }
+
+            var hasLanguageService = false;
+            var hasService = false;
+
+            foreach (var lazy in services)
+            {
+                var metadata = lazy.Metadata as LanguageServiceMetadata;
+                if (metadata == null)
+                {
+                    continue;
+                }
+
+                if (metadata.Language != LanguageNames.CSharp && metadata.Language != LanguageNames.VisualBasic)
+                {
+                    continue;
+                }
+
+                hasLanguageService = true;
+
+                if (metadata.ServiceType != typeof(ISyntaxTreeFactoryService).AssemblyQualifiedName)
+                {
+                    continue;
+                }
+
+                hasService = true;
+                break;
+            }
+
+            if (!hasLanguageService || hasService)
+            {
+                return;
+            }
+
+            var tempLanguages = this.languages == null ? null : this.languages.ToArray();
+            var tempServices = services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata)).ToArray();
+            var tempExportMap = this.exportsMap.Select(kv => ValueTuple.Create(kv.Key, kv.Value == null ? null : kv.Value as IEnumerable<object>))
+                                               .Select(t => ValueTuple.Create(t.Item1, t.Item2 == null ? null : t.Item2.ToArray())).ToArray();
+
+            ExceptionHelpers.Crash(new Exception("Crash"));
+
+            GC.KeepAlive(tempLanguages);
+            GC.KeepAlive(tempServices);
+            GC.KeepAlive(tempExportMap);
         }
 
         /// <summary>
