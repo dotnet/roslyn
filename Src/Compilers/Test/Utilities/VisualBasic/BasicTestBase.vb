@@ -334,7 +334,7 @@ Public MustInherit Class BasicTestBase
 
         Dim reference As MetadataReference = Nothing
         Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-            reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+            reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
         End Using
 
         Dim compilation = CreateCompilationWithReferences(sources, {MscorlibRef, MsvbRef, reference}, options)

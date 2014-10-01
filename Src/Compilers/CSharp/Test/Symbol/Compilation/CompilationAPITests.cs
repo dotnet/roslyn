@@ -308,11 +308,9 @@ namespace A.B {
             var refcomp = CSharpCompilation.Create("DLL",
                 options: TestOptions.ReleaseDll,
                 syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree("public class C {}") },
-                references: new MetadataReference[] { MscorlibRef }
-                );
+                references: new MetadataReference[] { MscorlibRef });
             
-            var refdata = refcomp.EmitToArray();
-            var mtref = new MetadataImageReference(refdata, aliases: ImmutableArray.Create("a", "Alias(*#$@^%*&)"));
+            var mtref = refcomp.EmitToImageReference(aliases: ImmutableArray.Create("a", "Alias(*#$@^%*&)"));
 
             // not use exported type
             var comp = CSharpCompilation.Create("APP", 
@@ -912,7 +910,7 @@ var a = new C2();
             Assert.Equal(0, comp.ExternalReferences.Length);
 
             // Not Implemented
-            // var asmByteRef = new MetadataImageReference(new byte[5], embedInteropTypes: true);
+            // var asmByteRef = MetadataReference.CreateFromImage(new byte[5], embedInteropTypes: true);
             //var asmObjectRef = new AssemblyObjectReference(assembly: System.Reflection.Assembly.GetAssembly(typeof(object)),embedInteropTypes :true);
             //comp =comp.AddReferences(asmByteRef, asmObjectRef);
             //Assert.Equal(2, comp.References.Count);
@@ -1675,6 +1673,11 @@ class C { }", options: TestOptions.Script);
                 metadataSequence.MoveNext();
                 return metadataSequence.Current;
             }
+
+            protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [Fact]
@@ -1716,7 +1719,7 @@ class C { }", options: TestOptions.Script);
             {
                 using (var mdModule = ModuleMetadata.CreateFromMetadata((IntPtr)ptr, h.MetadataSize))
                 {
-                    var c = CSharpCompilation.Create("Foo", references: new[] { MscorlibRef, new MetadataImageReference(mdModule, display: "ModuleCS00") }, options: TestOptions.ReleaseDll);
+                    var c = CSharpCompilation.Create("Foo", references: new[] { MscorlibRef, mdModule.GetReference(display: "ModuleCS00") }, options: TestOptions.ReleaseDll);
                     c.VerifyDiagnostics(
                         // error CS7098: Linked netmodule metadata must provide a full PE image: 'ModuleCS00'.
                         Diagnostic(ErrorCode.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1));
@@ -1778,7 +1781,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             libComp.VerifyDiagnostics();
 
             var refData = libComp.EmitToArray();
-            var mdRef = new MetadataImageReference(refData);
+            var mdRef = MetadataReference.CreateFromImage(refData);
 
             var references = new[]
             {

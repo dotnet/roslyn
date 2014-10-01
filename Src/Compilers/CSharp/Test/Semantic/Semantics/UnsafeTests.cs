@@ -8342,7 +8342,7 @@ namespace ConsoleApplication30
             var comp2 = CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
                 emitOptions: EmitOptions.RefEmitBug,
-                additionalRefs: new MetadataReference[] { new MetadataImageReference(comp1.EmitToArray()) },
+                additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 
 
@@ -8395,7 +8395,7 @@ namespace ConsoleApplication30
             var comp3 = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll,
                 emitOptions: EmitOptions.RefEmitBug,
-                additionalRefs: new MetadataReference[] { new MetadataImageReference(comp1.EmitToArray()) }).Compilation;
+                additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
 
         }
 

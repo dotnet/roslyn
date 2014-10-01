@@ -449,7 +449,7 @@ class Program
 
             var csProject = CreateCompilationWithMscorlib(
                 Parse(csSource),
-                new[] { new MetadataImageReference(metadataStream.ToImmutable()) });
+                new[] { MetadataReference.CreateFromImage(metadataStream.ToImmutable()) });
 
             Assert.Equal(0, csProject.GetDiagnostics().Count());
         }
@@ -494,7 +494,7 @@ class Program
 }
 ";
             var vbMetadata = vbProject.EmitToArray(metadataOnly: true);
-            var csProject = CreateCompilationWithMscorlib(Parse(csSource), new[] { new MetadataImageReference(vbMetadata) });
+            var csProject = CreateCompilationWithMscorlib(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
 
             var diagnostics = csProject.GetDiagnostics().Select(DumpDiagnostic);
             Assert.Equal(1, diagnostics.Count());

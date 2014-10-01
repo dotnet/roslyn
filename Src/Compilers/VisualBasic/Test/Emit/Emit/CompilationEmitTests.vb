@@ -286,7 +286,7 @@ End Class
     </file>
 </compilation>
 
-            Dim usingComp = CreateCompilationWithMscorlib(srcUsing, references:={New MetadataImageReference(mdOnlyImage.AsImmutableOrNull())})
+            Dim usingComp = CreateCompilationWithMscorlib(srcUsing, references:={MetadataReference.CreateFromImage(mdOnlyImage.AsImmutableOrNull())})
 
             Using output = New MemoryStream()
                 emitResult = usingComp.Emit(output)
@@ -528,7 +528,7 @@ End Module
             Dim c As Compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim s = New MemoryStream()
             Assert.True(c.Emit(s).Success)
-            c = VisualBasicCompilation.Create("Nothing", references:={New MetadataImageReference(s.ToImmutable())})
+            c = VisualBasicCompilation.Create("Nothing", references:={MetadataReference.CreateFromImage(s.ToImmutable())})
 
             Dim m = c.GlobalNamespace.GetModuleMembers()
             Assert.Equal(m.Single().TypeKind, TypeKind.Module)
@@ -1864,7 +1864,7 @@ End Class
 
                 Assert.False(metadataReader.IsAssembly)
 
-                Assert.Equal(nameOverride & extension, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
+                Assert.Equal([module].Name, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
             End Using
         End Sub
 
@@ -1901,7 +1901,7 @@ End Class
                 Assert.True(metadataReader.IsAssembly)
 
                 Assert.Equal(nameOverride, metadataReader.GetString(metadataReader.GetAssemblyDefinition().Name))
-                Assert.Equal(nameOverride & extension, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
+                Assert.Equal([module].Name, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
             End Using
         End Sub
 
@@ -1938,7 +1938,7 @@ End Class
                 Assert.True(metadataReader.IsAssembly)
 
                 Assert.Equal(nameOverride, metadataReader.GetString(metadataReader.GetAssemblyDefinition().Name))
-                Assert.Equal(nameOverride, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
+                Assert.Equal([module].Name, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
             End Using
         End Sub
 
@@ -1975,7 +1975,7 @@ End Class
                 Assert.True(metadataReader.IsAssembly)
 
                 Assert.Equal(nameOverride, metadataReader.GetString(metadataReader.GetAssemblyDefinition().Name))
-                Assert.Equal(nameOverride & extension, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
+                Assert.Equal([module].Name, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
             End Using
         End Sub
 
@@ -2012,7 +2012,7 @@ End Class
                 Assert.True(metadataReader.IsAssembly)
 
                 Assert.Equal(nameOverride, metadataReader.GetString(metadataReader.GetAssemblyDefinition().Name))
-                Assert.Equal(nameOverride, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
+                Assert.Equal([module].Name, metadataReader.GetString(metadataReader.GetModuleDefinition().Name))
             End Using
         End Sub
 

@@ -95,25 +95,25 @@ class Test
 
             var module2 = CreateCompilationWithMscorlib(text2,
                 options: TestOptions.ReleaseModule,
-                references: new[] { new MetadataImageReference(ModuleMetadata.CreateFromImage(module1.EmitToArray(metadataOnly: true))) });
+                references: new[] { ModuleMetadata.CreateFromImage(module1.EmitToArray(metadataOnly: true)).GetReference() });
 
             // use ref2 only
             var comp = CreateCompilationWithMscorlib(text,
                 options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>() { { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_UnreferencedField), ReportDiagnostic.Suppress } }),
-                references: new[] { new MetadataImageReference(ModuleMetadata.CreateFromImage(module2.EmitToArray(metadataOnly: true))) });
+                references: new[] { ModuleMetadata.CreateFromImage(module2.EmitToArray(metadataOnly: true)).GetReference() });
 
             comp.VerifyDiagnostics(
-    // error CS8014: Reference to '1b2d660e-e892-4338-a4e7-f78ce7960ce9.netmodule' netmodule missing.
-    Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments(name1 + ".netmodule"),
-    // (8,18): error CS7079: The type 'A' is defined in a module that has not been added. You must add the module '2bddf16b-09e6-4c4d-bd08-f348e194eca4.netmodule'.
-    //         Test x = b;
-    Diagnostic(ErrorCode.ERR_NoTypeDefFromModule, "b").WithArguments("A", name1 + ".netmodule"),
-    // (8,18): error CS0029: Cannot implicitly convert type 'B' to 'Test'
-    //         Test x = b;
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, "b").WithArguments("B", "Test"),
-    // (4,7): warning CS0649: Field 'Test.b' is never assigned to, and will always have its default value null
-    //     B b;    
-    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "b").WithArguments("Test.b", "null")
+                // error CS8014: Reference to '1b2d660e-e892-4338-a4e7-f78ce7960ce9.netmodule' netmodule missing.
+                Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments(name1 + ".netmodule"),
+                // (8,18): error CS7079: The type 'A' is defined in a module that has not been added. You must add the module '2bddf16b-09e6-4c4d-bd08-f348e194eca4.netmodule'.
+                //         Test x = b;
+                Diagnostic(ErrorCode.ERR_NoTypeDefFromModule, "b").WithArguments("A", name1 + ".netmodule"),
+                // (8,18): error CS0029: Cannot implicitly convert type 'B' to 'Test'
+                //         Test x = b;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "b").WithArguments("B", "Test"),
+                // (4,7): warning CS0649: Field 'Test.b' is never assigned to, and will always have its default value null
+                //     B b;    
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "b").WithArguments("Test.b", "null")
             );
         }
 
@@ -5021,15 +5021,14 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                 });
 
             comp.VerifyDiagnostics(
-    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-    //             Console.WriteLine(typeof(Util.A));   // CS0438
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
-                );
+                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                //             Console.WriteLine(typeof(Util.A));   // CS0438
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util"));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -5061,7 +5060,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
@@ -5106,8 +5105,8 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -5120,9 +5119,9 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -5168,7 +5167,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 }, sourceFileName: "Test.cs");
 
@@ -5181,8 +5180,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
@@ -5227,8 +5226,8 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -5241,9 +5240,9 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -5289,7 +5288,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 }, sourceFileName: "Test.cs");
 
@@ -5302,8 +5301,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
@@ -5348,7 +5347,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
@@ -5361,8 +5360,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
@@ -5407,7 +5406,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
@@ -5420,8 +5419,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
@@ -5466,7 +5465,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
@@ -5479,8 +5478,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
@@ -5525,7 +5524,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
@@ -5538,8 +5537,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
@@ -5572,7 +5571,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                 });
 
             comp.VerifyDiagnostics(
@@ -5608,7 +5607,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                 });
 
             comp.VerifyDiagnostics(
@@ -5644,7 +5643,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                 });
 
             comp.VerifyDiagnostics(
@@ -5680,7 +5679,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                 });
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI).VerifyDiagnostics();
@@ -5722,7 +5721,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -5735,8 +5734,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -5782,8 +5781,8 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -5796,9 +5795,9 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -5844,7 +5843,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -5857,8 +5856,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -5904,8 +5903,8 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -5918,9 +5917,9 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -5969,7 +5968,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -5982,8 +5981,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -6032,7 +6031,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -6045,8 +6044,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -6095,8 +6094,8 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -6112,9 +6111,9 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -6166,7 +6165,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -6179,8 +6178,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -6229,7 +6228,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 }, sourceFileName: "Test.cs");
 
@@ -6245,8 +6244,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
@@ -6298,8 +6297,8 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                     new CSharpCompilationReference(lib)
                 });
 
@@ -6315,9 +6314,9 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(lib.EmitToArray())
+                    mod1.GetReference(),
+                    mod2.GetReference(),
+                    MetadataReference.CreateFromImage(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
@@ -6363,8 +6362,8 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                     mod3Ref
                 });
 
@@ -6380,8 +6379,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(mod1),
+                    mod2.GetReference(),
+                    mod1.GetReference(),
                     mod3Ref
                 });
 
@@ -6399,9 +6398,9 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
+                    mod2.GetReference(),
                     mod3Ref,
-                    new MetadataImageReference(mod1)
+                    mod1.GetReference()
                 });
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
@@ -6448,8 +6447,8 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
-                    new MetadataImageReference(mod2),
+                    mod1.GetReference(),
+                    mod2.GetReference(),
                     mod3Ref
                 });
 
@@ -6462,8 +6461,8 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod2),
-                    new MetadataImageReference(mod1),
+                    mod2.GetReference(),
+                    mod1.GetReference(),
                     mod3Ref
                 });
 
@@ -6478,9 +6477,9 @@ namespace NS
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
                 {
-                    new MetadataImageReference(mod1),
+                    mod1.GetReference(),
                     mod3Ref,
-                    new MetadataImageReference(mod2)
+                    mod2.GetReference()
                 });
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
@@ -6567,7 +6566,7 @@ public static int AT = (new { field = 2 }).field;
                 ilBytes = ReadFromFile(reference.Path);
             }
 
-            var moduleRef = new MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes));
+            var moduleRef = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
 
             var source =
 @"
@@ -6636,7 +6635,7 @@ interface ITest20
                 ilBytes = ReadFromFile(reference.Path);
             }
 
-            var moduleRef1 = new MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes));
+            var moduleRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
 
             var mod2Source =
 @"
@@ -14004,7 +14003,7 @@ static class B
         return 1;
     }
 }";
-            var ref1 = new MetadataImageReference(TestResources.SymbolsTests.netModule.netModule1.AsImmutableOrNull(), display: "NetModule.mod");
+            var ref1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(display: "NetModule.mod");
 
             CreateCompilationWithMscorlib(text, new[] { ref1 }).VerifyDiagnostics(
                 // error CS1509: The referenced file 'NetModule.mod' is not an assembly
@@ -14141,9 +14140,7 @@ using X = ABC.X<int>;";
 {
     public void M0() { }
 }";
-            var ref1 = new MetadataImageReference(
-                ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.CorLibrary.NoMsCorLibRef),
-                display: "NoMsCorLibRef.mod");
+            var ref1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.CorLibrary.NoMsCorLibRef).GetReference(display: "NoMsCorLibRef.mod");
 
             CreateCompilationWithMscorlib(text, references: new[] { ref1 }).VerifyDiagnostics(
                 // error CS1542: 'NoMsCorLibRef.mod' cannot be added to this assembly because it already is an assembly
@@ -15268,7 +15265,7 @@ End Structure";
                 new[] { MscorlibRef_v4_0_30316_17626 },
                 new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            var ref1 = new MetadataImageReference(vbcomp.EmitToArray(), embedInteropTypes: true);
+            var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
 
             CreateCompilationWithMscorlib(text, new[] { ref1 }).VerifyDiagnostics(
                 // (5,26): error CS1754: Type 'INestedInterface.InnerInterface' cannot be embedded because it is a nested type. Consider setting the 'Embed Interop Types' property to false.
@@ -17556,7 +17553,7 @@ public class C
         [Fact]
         public void CS3013WRN_CLS_ModuleMissingCLS()
         {
-            var netModule = CreateCompilation("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
+            var netModule = CreateCompilation("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(expectedWarnings: new[] { Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion) });
             CreateCompilationWithMscorlib("[assembly: System.CLSCompliant(true)]", new[] { netModule }).VerifyDiagnostics(
                 // lib.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));

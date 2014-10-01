@@ -536,10 +536,10 @@ End Module
     </compilation>
 
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataImageReference(netModuleMetadata, filePath:="R:\A\B\ModuleNameMismatch.netmodule")})
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {netModuleMetadata.GetReference(filePath:="R:\A\B\ModuleNameMismatch.netmodule")})
             CompileAndVerify(compilation1)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataImageReference(netModuleMetadata, filePath:="R:\A\B\ModuleNameMismatch.mod")})
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {netModuleMetadata.GetReference(filePath:="R:\A\B\ModuleNameMismatch.mod")})
 
             AssertTheseDiagnostics(compilation2,
 <expected>

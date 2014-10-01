@@ -454,7 +454,7 @@ Example app.config:
             ImmutableArray<byte> assemblyBytes;
             ImmutableArray<byte> pdbBytes;
             EmitILToArray(ilSource, appendDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
-            return new MetadataImageReference(assemblyBytes, embedInteropTypes: embedInteropTypes);
+            return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
         }
 
         internal static MetadataReference CreateReflectionEmitAssembly(Action<ModuleBuilder> create)
@@ -469,7 +469,7 @@ Example app.config:
                 assembly.Save(name);
 
                 var image = CommonTestBase.ReadFromFile(file.Path);
-                return new MetadataImageReference(image);
+                return MetadataReference.CreateFromImage(image);
             }
         }
 

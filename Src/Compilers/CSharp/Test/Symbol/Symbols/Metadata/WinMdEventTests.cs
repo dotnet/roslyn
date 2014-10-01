@@ -311,25 +311,26 @@ class C
     }
 }";
 
-            var dynamicCommonRef = CreateCompilation(
+            var dynamicCommon = CreateCompilation(
                 DynamicCommonSrc,
-                references: new[] { 
+                references: new[] {
                     MscorlibRef_v4_0_30316_17626,
                     EventLibRef,
                 },
-                options:
-                    new CSharpCompilationOptions(
-                        OutputKind.NetModule,
-                        allowUnsafe: true)).EmitToImageReference(
-// (6,31): warning CS0067: The event 'A.d1' is never used
-//     public event voidDelegate d1;
-Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d1").WithArguments("A.d1"),
-// (8,34): warning CS0067: The event 'A.d3' is never used
-//     public event dynamicDelegate d3;
-Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d3").WithArguments("A.d3"),
-// (7,42): warning CS0067: The event 'A.d2' is never used
-//     public event genericDelegate<object> d2;
-Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2"));
+                options: new CSharpCompilationOptions(OutputKind.NetModule, allowUnsafe: true));
+            
+            var dynamicCommonRef = dynamicCommon.EmitToImageReference(expectedWarnings: new[]
+            {
+                // (6,31): warning CS0067: The event 'A.d1' is never used
+                //     public event voidDelegate d1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d1").WithArguments("A.d1"),
+                // (8,34): warning CS0067: The event 'A.d3' is never used
+                //     public event dynamicDelegate d3;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d3").WithArguments("A.d3"),
+                // (7,42): warning CS0067: The event 'A.d2' is never used
+                //     public event genericDelegate<object> d2;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2")
+            });
 
             var verifer = CompileAndVerifyOnWin8Only(
                 src,

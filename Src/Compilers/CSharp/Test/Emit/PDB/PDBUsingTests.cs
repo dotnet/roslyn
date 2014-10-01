@@ -1692,8 +1692,8 @@ class Test { static void Main() { } }
         public void UsingExternAlias()
         {
             var libSource = "public class C { }";
-            var peImage = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToArray();
-            var libRef = new MetadataImageReference(peImage, aliases: ImmutableArray.Create("Q"));
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib");
+            var libRef = lib.EmitToImageReference(aliases: ImmutableArray.Create("Q"));
 
             var source = @"
 extern alias Q;

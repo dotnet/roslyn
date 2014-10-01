@@ -24,9 +24,7 @@ End Interface
                 new[] { MscorlibRef_v4_0_30316_17626 },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            var metaDataArray = vbcomp.EmitToArray();
-
-            var ref1 = new MetadataImageReference(metaDataArray, embedInteropTypes: true);
+            var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
 
             var text = @"class C : I {}";
             var tree = Parse(text);

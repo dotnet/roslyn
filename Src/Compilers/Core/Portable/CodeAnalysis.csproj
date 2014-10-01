@@ -97,8 +97,10 @@
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
     <Compile Include="DiagnosticAnalyzer\AsyncQueue.TaskCompletionSourceWithCancellation.cs" />
     <Compile Include="Emit\EditAndContinue\EncVariableSlotAllocator.cs" />
+    <Compile Include="InternalUtilities\AssemblyLocationLightUp.cs" />
     <Compile Include="InternalUtilities\DocumentationCommentId.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcher.cs" />
+    <Compile Include="InternalUtilities\FileStreamLightUp.cs" />
     <Compile Include="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="Collections\KeyedStack.cs" />
     <Compile Include="Collections\OrderPreservingMultiDictionary.cs" />

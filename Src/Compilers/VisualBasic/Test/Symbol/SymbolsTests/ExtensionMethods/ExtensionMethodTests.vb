@@ -205,7 +205,7 @@ End Module
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = New MetadataImageReference(ReadFromFile(reference.Path))
+                Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -416,7 +416,7 @@ End Module
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = New MetadataImageReference(ReadFromFile(reference.Path))
+                Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -612,7 +612,7 @@ End Module
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = New MetadataImageReference(ReadFromFile(reference.Path))
+                Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -807,7 +807,7 @@ End Module
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = New MetadataImageReference(ReadFromFile(reference.Path))
+                Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -1004,7 +1004,7 @@ End Module
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = New MetadataImageReference(ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)))
+                Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -2240,7 +2240,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = New MetadataImageReference(ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)))
+                Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         <compilation name="ExtensionMethodsDeclaredInTypesWithConflictingNamesAreNotVisible">

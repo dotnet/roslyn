@@ -2430,7 +2430,7 @@ End Class
 ]]>
          </file>
      </compilation>),
-            references:=NoVbRuntimeReferences.Concat({New MetadataImageReference(memory.ToImmutable())}),
+            references:=NoVbRuntimeReferences.Concat({MetadataReference.CreateFromImage(memory.ToImmutable())}),
             options:=TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(c,

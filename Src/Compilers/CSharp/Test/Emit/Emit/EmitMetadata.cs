@@ -254,14 +254,8 @@ public class Test : Class2
         [Fact, WorkItem(529006, "DevDiv")]
         public void AddModule()
         {
-            var netModule1 = new MetadataImageReference(
-                ModuleMetadata.CreateFromImage(
-                    TestResources.SymbolsTests.netModule.netModule1),
-                    filePath: Path.GetFullPath("netModule1.netmodule"));
-            var netModule2 = new MetadataImageReference(
-                ModuleMetadata.CreateFromImage(
-                    TestResources.SymbolsTests.netModule.netModule2),
-                    filePath: Path.GetFullPath("netModule2.netmodule"));
+            var netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(filePath: Path.GetFullPath("netModule1.netmodule"));
+            var netModule2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule2).GetReference(filePath: Path.GetFullPath("netModule2.netmodule"));
 
             string source = @"
 public class Test : Class1

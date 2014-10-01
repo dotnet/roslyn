@@ -45,90 +45,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact]
         public void PresentCorLib()
         {
-            using (var @lock = MetadataCache.LockAndClean())
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] {TestReferences.NetFx.v4_0_21006.mscorlib});
+
+            MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
+
+            for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
-                var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] {TestReferences.NetFx.v4_0_21006.mscorlib});
+                var t = msCorLibRef.GetSpecialType((SpecialType)i);
+                Assert.Equal((SpecialType)i, t.SpecialType);
+                Assert.Same(msCorLibRef, t.ContainingAssembly);
+            }
 
-                MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
+            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
-                for (int i = 1; i <= (int)SpecialType.Count; i++)
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs:new[] { MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib.AsImmutableOrNull()) });
+
+            msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
+            Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
+
+            Queue<NamespaceSymbol> namespaces = new Queue<NamespaceSymbol>();
+
+            namespaces.Enqueue(msCorLibRef.Modules[0].GlobalNamespace);
+            int count = 0;
+
+            while (namespaces.Count > 0)
+            {
+                foreach (var m in namespaces.Dequeue().GetMembers())
                 {
-                    var t = msCorLibRef.GetSpecialType((SpecialType)i);
-                    Assert.Equal((SpecialType)i, t.SpecialType);
-                    Assert.Same(msCorLibRef, t.ContainingAssembly);
-                }
+                    NamespaceSymbol ns = m as NamespaceSymbol;
 
-                Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
-
-                @lock.CleanCaches();
-
-                assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs:new[] { new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib.AsImmutableOrNull()) });
-
-                msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
-                Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
-
-                Queue<NamespaceSymbol> namespaces = new Queue<NamespaceSymbol>();
-
-                namespaces.Enqueue(msCorLibRef.Modules[0].GlobalNamespace);
-                int count = 0;
-
-                while (namespaces.Count > 0)
-                {
-                    foreach (var m in namespaces.Dequeue().GetMembers())
+                    if (ns != null)
                     {
-                        NamespaceSymbol ns = m as NamespaceSymbol;
+                        namespaces.Enqueue(ns);
+                    }
+                    else if (((NamedTypeSymbol)m).SpecialType != SpecialType.None)
+                    {
+                        count++;
+                    }
 
-                        if (ns != null)
-                        {
-                            namespaces.Enqueue(ns);
-                        }
-                        else if (((NamedTypeSymbol)m).SpecialType != SpecialType.None)
-                        {
-                            count++;
-                        }
-
-                        if (count >= (int)SpecialType.Count)
-                        {
-                            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
-                        }
+                    if (count >= (int)SpecialType.Count)
+                    {
+                        Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
                     }
                 }
-
-                Assert.Equal(count, (int)SpecialType.Count);
-                Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
             }
+
+            Assert.Equal(count, (int)SpecialType.Count);
+            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
         }
 
         [Fact]
         public void FakeCorLib()
         {
-            using (MetadataCache.LockAndClean())
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.SymbolsTests.CorLibrary.FakeMsCorLib.dll });
+
+            MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
+
+            for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
-                var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.SymbolsTests.CorLibrary.FakeMsCorLib.dll });
+                Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
+                var t = msCorLibRef.GetSpecialType((SpecialType)i);
+                Assert.Equal((SpecialType)i, t.SpecialType);
 
-                MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
-
-                for (int i = 1; i <= (int)SpecialType.Count; i++)
+                if (t.SpecialType == SpecialType.System_Object)
                 {
-                    Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
-                    var t = msCorLibRef.GetSpecialType((SpecialType)i);
-                    Assert.Equal((SpecialType)i, t.SpecialType);
-
-                    if (t.SpecialType == SpecialType.System_Object)
-                    {
-                        Assert.NotEqual(TypeKind.Error, t.TypeKind);
-                    }
-                    else
-                    {
-                        Assert.Equal(TypeKind.Error, t.TypeKind);
-                        Assert.Same(msCorLibRef, t.ContainingAssembly);
-                    }
-
+                    Assert.NotEqual(TypeKind.Error, t.TypeKind);
+                }
+                else
+                {
+                    Assert.Equal(TypeKind.Error, t.TypeKind);
                     Assert.Same(msCorLibRef, t.ContainingAssembly);
                 }
 
-                Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
+                Assert.Same(msCorLibRef, t.ContainingAssembly);
             }
+
+            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
         }
 
         [Fact]

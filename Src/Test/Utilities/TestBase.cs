@@ -43,31 +43,29 @@ namespace Roslyn.Test.Utilities
             {
                 if (_WinRtRefs == null)
                 {
-                    var winmd = new MetadataImageReference(TestResources.WinRt.Windows, display: "Windows");
+                    var winmd = AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows).GetReference(display: "Windows");
                     
                     var windowsruntime =
-                        new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime, display: "System.Runtime.WindowsRuntime.dll");
+                        AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime).GetReference(display: "System.Runtime.WindowsRuntime.dll");
                                                     
                     var runtime =
-                        new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime, display: "System.Runtime.dll");
+                        AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime).GetReference(display: "System.Runtime.dll");
 
                     var objectModel =
-                        new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_ObjectModel, display: "System.ObjectModel.dll");
+                        AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_ObjectModel).GetReference(display: "System.ObjectModel.dll");
 
 
-                    var uixaml = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml,
-                                                            display: "System.Runtime.WindowsRuntime.UI.Xaml.dll");
+                    var uixaml = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml).
+                        GetReference(display: "System.Runtime.WindowsRuntime.UI.Xaml.dll");
 
 
-                    var interop = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime,
-                                                             display: "System.Runtime.InteropServices.WindowsRuntime.dll");
+                    var interop = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime).
+                        GetReference(display: "System.Runtime.InteropServices.WindowsRuntime.dll");
 
                     //Not mentioned in the adapter doc but pointed to from System.Runtime, so we'll put it here.
-                    var system = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System,
-                                                             display: "System.dll");
+                    var system = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System).GetReference(display: "System.dll");
 
-                    var mscor = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib,
-                                                             display: "mscorlib");
+                    var mscor = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib");
 
                     _WinRtRefs = new MetadataReference[] { winmd, windowsruntime, runtime, objectModel, uixaml, interop, system, mscor };
                 }
@@ -87,10 +85,8 @@ namespace Roslyn.Test.Utilities
             {
                 if (_PortableRefsMinimal == null)
                 {
-                    var mscorlibPortable = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib, display: "mscorlib.dll");
-
-                    var systemRuntimePortable =
-                        new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime, display: "System.Runtime.dll");
+                    var mscorlibPortable = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib).GetReference(display: "mscorlib.dll");
+                    var systemRuntimePortable = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime).GetReference(display: "System.Runtime.dll");
 
                     _PortableRefsMinimal = new MetadataReference[] { mscorlibPortable, systemRuntimePortable };
                 }
@@ -141,7 +137,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_systemCoreRef_v4_0_30319_17929 == null)
                 {
-                    _systemCoreRef_v4_0_30319_17929 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core, display: "System.Core.v4_0_30319_17929.dll");
+                    _systemCoreRef_v4_0_30319_17929 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display: "System.Core.v4_0_30319_17929.dll");
                 }
 
                 return _systemCoreRef_v4_0_30319_17929;
@@ -155,7 +151,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_systemCoreRef == null)
                 {
-                    _systemCoreRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, display: "System.Core.v4_0_30319.dll");
+                    _systemCoreRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll");
                 }
 
                 return _systemCoreRef;
@@ -169,7 +165,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_systemWindowsFormsRef == null)
                 {
-                    _systemWindowsFormsRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Windows_Forms, display: "System.Windows.Forms.v4_0_30319.dll");
+                    _systemWindowsFormsRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Windows_Forms).GetReference(display: "System.Windows.Forms.v4_0_30319.dll");
                 }
 
                 return _systemWindowsFormsRef;
@@ -183,7 +179,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_systemDrawingRef == null)
                 {
-                    _systemDrawingRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Drawing, display: "System.Drawing.v4_0_30319.dll");
+                    _systemDrawingRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Drawing).GetReference(display: "System.Drawing.v4_0_30319.dll");
                 }
 
                 return _systemDrawingRef;
@@ -197,7 +193,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_systemDataRef == null)
                 {
-                    _systemDataRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Data, display: "System.Data.v4_0_30319.dll");
+                    _systemDataRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Data).GetReference(display: "System.Data.v4_0_30319.dll");
                 }
 
                 return _systemDataRef;
@@ -211,7 +207,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_mscorlibRef == null)
                 {
-                    _mscorlibRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, display: "mscorlib.v4_0_30319.dll");
+                    _mscorlibRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "mscorlib.v4_0_30319.dll");
                 }
 
                 return _mscorlibRef;
@@ -225,7 +221,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_mscorlibRefPortable == null)
                 {
-                    _mscorlibRefPortable = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib_portable, display: "mscorlib.v4_0_30319.portable.dll");
+                    _mscorlibRefPortable = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib_portable).GetReference(display: "mscorlib.v4_0_30319.portable.dll");
                 }
 
                 return _mscorlibRefPortable;
@@ -239,7 +235,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_aacorlibRef == null)
                 {
-                    _aacorlibRef = new MetadataImageReference(TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928, display: "mscorlib.v4_0_30319.dll");
+                    _aacorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928).GetReference(display: "mscorlib.v4_0_30319.dll");
                 }
 
                 return _aacorlibRef;
@@ -253,7 +249,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_mscorlibRef_v4_0_30316_17626 == null)
                 {
-                    _mscorlibRef_v4_0_30316_17626 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib, display: "mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri");
+                    _mscorlibRef_v4_0_30316_17626 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri");
                 }
 
                 return _mscorlibRef_v4_0_30316_17626;
@@ -267,7 +263,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_mscorlibRef_v20 == null)
                 {
-                    _mscorlibRef_v20 = new MetadataImageReference(ProprietaryTestResources.NetFX.v2_0_50727.mscorlib, display: "mscorlib.v2.0.50727.dll");
+                    _mscorlibRef_v20 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib.v2.0.50727.dll");
                 }
 
                 return _mscorlibRef_v20;
@@ -284,7 +280,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_mscorlibRef_silverlight == null)
                 {
-                    _mscorlibRef_silverlight = new MetadataImageReference(ProprietaryTestResources.NetFX.silverlight_v5_0_5_0.mscorlib_v5_0_5_0_silverlight, display: "mscorlib.v5.0.5.0_silverlight.dll");
+                    _mscorlibRef_silverlight = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.silverlight_v5_0_5_0.mscorlib_v5_0_5_0_silverlight).GetReference(display: "mscorlib.v5.0.5.0_silverlight.dll");
                 }
 
                 return _mscorlibRef_silverlight;
@@ -298,7 +294,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_minCorlibRef == null)
                 {
-                    _minCorlibRef = new MetadataImageReference(TestResources.NetFX.Minimal.mincorlib, display: "minCorLib.dll");
+                    _minCorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib).GetReference(display: "minCorLib.dll");
                 }
 
                 return _minCorlibRef;
@@ -312,7 +308,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_MsvbRef == null)
                 {
-                    _MsvbRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_VisualBasic, display: "Microsoft.VisualBasic.v4_0_30319.dll");
+                    _MsvbRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.v4_0_30319.dll");
                 }
 
                 return _MsvbRef;
@@ -326,7 +322,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_MsvbRef_v4_0_30319_17929 == null)
                 {
-                    _MsvbRef_v4_0_30319_17929 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.Microsoft_VisualBasic, display: "Microsoft.VisualBasic.v4_0_30319_17929.dll");
+                    _MsvbRef_v4_0_30319_17929 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.v4_0_30319_17929.dll");
                 }
 
                 return _MsvbRef_v4_0_30319_17929;
@@ -340,7 +336,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (csharpRef == null)
                 {
-                    csharpRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_CSharp, display: "Microsoft.CSharp.v4.0.30319.dll");
+                    csharpRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll");
                 }
 
                 return csharpRef;
@@ -355,7 +351,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_SystemRef == null)
                 {
-                    _SystemRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System, display: "System.v4_0_30319.dll");
+                    _SystemRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System).GetReference(display: "System.v4_0_30319.dll");
                 }
 
                 return _SystemRef;
@@ -369,7 +365,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_SystemRef_v4_0_30319_17929 == null)
                 {
-                    _SystemRef_v4_0_30319_17929 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System, display: "System.v4_0_30319_17929.dll");
+                    _SystemRef_v4_0_30319_17929 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System).GetReference(display: "System.v4_0_30319_17929.dll");
                 }
 
                 return _SystemRef_v4_0_30319_17929;
@@ -383,7 +379,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_SystemRef_v20 == null)
                 {
-                    _SystemRef_v20 = new MetadataImageReference(ProprietaryTestResources.NetFX.v2_0_50727.System, display: "System.v2_0_50727.dll");
+                    _SystemRef_v20 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v2_0_50727.System).GetReference(display: "System.v2_0_50727.dll");
                 }
 
                 return _SystemRef_v20;
@@ -397,7 +393,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_SystemXmlRef == null)
                 {
-                    _SystemXmlRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml, display: "System.Xml.v4_0_30319.dll");
+                    _SystemXmlRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml).GetReference(display: "System.Xml.v4_0_30319.dll");
                 }
 
                 return _SystemXmlRef;
@@ -411,7 +407,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_SystemXmlLinqRef == null)
                 {
-                    _SystemXmlLinqRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml_Linq, display: "System.Xml.Linq.v4_0_30319.dll");
+                    _SystemXmlLinqRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml_Linq).GetReference(display: "System.Xml.Linq.v4_0_30319.dll");
                 }
 
                 return _SystemXmlLinqRef;
@@ -425,7 +421,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_FacadeSystemRuntimeRef == null)
                 {
-                    _FacadeSystemRuntimeRef = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime, display: "System.Runtime.dll");
+                    _FacadeSystemRuntimeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime.dll");
                 }
 
                 return _FacadeSystemRuntimeRef;
@@ -439,7 +435,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_FSharpTestLibraryRef == null)
                 {
-                    _FSharpTestLibraryRef = new MetadataImageReference(TestResources.SymbolsTests.General.FSharpTestLibrary, display: "FSharpTestLibrary.dll");
+                    _FSharpTestLibraryRef = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.FSharpTestLibrary).GetReference(display: "FSharpTestLibrary.dll");
                 }
 
                 return _FSharpTestLibraryRef;

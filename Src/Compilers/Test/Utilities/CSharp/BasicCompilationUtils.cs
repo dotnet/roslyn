@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
             var verifier = Instance.CompileAndVerify(compilation, emitOptions: EmitOptions.CCI, verify: verify);
-            return new MetadataImageReference(verifier.EmittedAssemblyData);
+            return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 
         private static VisualBasicCompilation CreateCompilationWithMscorlib(string source, string assemblyName, IEnumerable<MetadataReference> references)

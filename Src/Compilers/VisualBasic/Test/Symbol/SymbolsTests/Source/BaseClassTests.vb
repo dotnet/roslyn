@@ -2233,7 +2233,7 @@ End Class
             c2.VerifyDiagnostics()
 
             Dim compilationImage = compilation.EmitToArray(metadataOnly:=True)
-            CompilationUtils.CreateCompilationWithMscorlibAndReferences(c2Source, {New MetadataImageReference(compilationImage)}).VerifyDiagnostics()
+            CompilationUtils.CreateCompilationWithMscorlibAndReferences(c2Source, {MetadataReference.CreateFromImage(compilationImage)}).VerifyDiagnostics()
         End Sub
 
         <WorkItem(792711, "DevDiv")>
@@ -2250,7 +2250,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim metadataRef = New MetadataImageReference(CreateCompilationWithMscorlib(source).EmitToArray(), embedInteropTypes:=True)
+            Dim metadataRef = CreateCompilationWithMscorlib(source).EmitToImageReference(embedInteropTypes:=True)
 
             Dim comp = CreateCompilationWithMscorlibAndReferences(<compilation/>, {metadataRef})
             Dim derived = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Derived")

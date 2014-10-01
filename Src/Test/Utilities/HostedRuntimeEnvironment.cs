@@ -142,11 +142,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         ImmutableArray<byte> bytes = module.Module.PEReaderOpt.GetEntireImage().GetContent();
                         if (isManifestModule)
                         {
-                            dependencies.Add(new ModuleData(((AssemblyMetadata)metadata).GetAssembly().Identity, OutputKind.DynamicallyLinkedLibrary, bytes, pdb: default(ImmutableArray<byte>), inMemoryModule: !(r is MetadataFileReference)));
+                            dependencies.Add(new ModuleData(((AssemblyMetadata)metadata).GetAssembly().Identity, OutputKind.DynamicallyLinkedLibrary, bytes, pdb: default(ImmutableArray<byte>), inMemoryModule: true));
                         }
                         else
                         {
-                            dependencies.Add(new ModuleData(module.Name, bytes, pdb: default(ImmutableArray<byte>), inMemoryModule: !(r is MetadataFileReference)));
+                            dependencies.Add(new ModuleData(module.Name, bytes, pdb: default(ImmutableArray<byte>), inMemoryModule: true));
                         }
 
                         isManifestModule = false;

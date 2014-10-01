@@ -2994,7 +2994,7 @@ BC30367: Class 'B' cannot be indexed because it has no default property.
                 ~
 </expected>)
             ' DefaultMember attribute from metadata should be used.
-            Dim reference1b = New MetadataImageReference(compilation1.EmitToArray())
+            Dim reference1b = MetadataReference.CreateFromImage(compilation1.EmitToArray())
             Dim compilation2b = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {reference1b})
             compilation2b.AssertNoErrors()
         End Sub
@@ -3041,7 +3041,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim reference1 = New MetadataImageReference(compilation1.EmitToArray())
+            Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {reference1})
             compilation2.AssertTheseDiagnostics(
 <expected>
@@ -3089,7 +3089,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim reference1 = New MetadataImageReference(compilation1.EmitToArray())
+            Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {reference1})
             compilation2.AssertTheseDiagnostics(
 <expected>
@@ -3165,7 +3165,7 @@ End Class
                 </compilation>
             Dim compilation1 = CreateCompilationWithMscorlib(source1)
             compilation1.AssertNoErrors()
-            Dim reference1 = New MetadataImageReference(compilation1.EmitToArray())
+            Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
             Dim source2 =
                 <compilation>
                     <file name="c.vb"><![CDATA[
@@ -3651,7 +3651,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim reference1 = New MetadataImageReference(compilation1.EmitToArray())
+            Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {reference1})
             compilation2.AssertTheseDiagnostics(
 <expected>
@@ -7038,7 +7038,7 @@ End Class
                     </file>
                 </compilation>
             Dim compilation1 = CreateCompilationWithMscorlib(source1)
-            Dim reference1 = New MetadataImageReference(compilation1.EmitToArray())
+            Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
             Dim source2 =
                 <compilation>
                     <file name="c.vb"><![CDATA[

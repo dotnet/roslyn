@@ -505,7 +505,7 @@ class C
 
                 Assert.True(result.Success);
                 var mod1 = ModuleMetadata.CreateFromImage(output_mod1.ToImmutable());
-                var ref_mod1 = new MetadataImageReference(mod1);
+                var ref_mod1 = mod1.GetReference();
                 Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
 
                 {
@@ -554,7 +554,7 @@ class C
                     });
 
                 Assert.True(result.Success);
-                var ref_mod2 = new MetadataImageReference(ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()));
+                var ref_mod2 = ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()).GetReference();
 
                 {
                     var c3 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod2 }, TestOptions.ReleaseDll);
@@ -611,7 +611,7 @@ class C
 
                 Assert.True(result.Success);
                 var mod3 = ModuleMetadata.CreateFromImage(output_mod3.ToImmutable());
-                var ref_mod3 = new MetadataImageReference(mod3);
+                var ref_mod3 = mod3.GetReference();
                 Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
 
                 {

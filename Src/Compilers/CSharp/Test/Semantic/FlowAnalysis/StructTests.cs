@@ -185,7 +185,7 @@ public struct StructWithValue
     int PrivateData;
 }");
             var sourceReference = new CSharpCompilationReference(comp1);
-            var metadataReference = new MetadataImageReference(comp1.EmitToStream());
+            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
             var source2 =
 @"class Program

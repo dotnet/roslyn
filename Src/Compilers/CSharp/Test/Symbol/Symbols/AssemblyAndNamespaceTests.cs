@@ -367,7 +367,7 @@ namespace Foo<T>
         {
             var source = @"public class C { }";
 
-            var aliasedCorlib = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, aliases: ImmutableArray.Create("Foo"));
+            var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Foo"));
 
             var comp = CreateCompilation(source, new[] { aliasedCorlib });
 
@@ -407,7 +407,7 @@ class App
 ";
 
             var libComp = CreateCompilationWithMscorlib45(lib, assemblyName: "lib");
-            var libRef = new MetadataImageReference(libComp.EmitToArray(), aliases: ImmutableArray.Create("myTask"));
+            var libRef = libComp.EmitToImageReference(aliases: ImmutableArray.Create("myTask"));
 
             var comp = CreateCompilationWithMscorlib45(source, new[] { libRef });
 

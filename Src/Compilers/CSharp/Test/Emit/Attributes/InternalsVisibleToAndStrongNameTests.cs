@@ -395,7 +395,7 @@ public class Test
         string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
             public class C { internal void Foo() {} }";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider)).EmitToStream();
+        var otherStream = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider)).EmitToStream();
 
         var c = CreateCompilationWithMscorlib(
 @"public class A
@@ -408,14 +408,14 @@ public class Test
         }
     }
 }",
-        references: new[] { new MetadataImageReference(other) }, 
+        references: new[] { AssemblyMetadata.CreateFromStream(otherStream, leaveOpen: true).GetReference() }, 
         assemblyName: "WantsIVTAccessButCantHave",
         options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
 
         //compilation should not succeed, and internals should not be imported.
         c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Foo").WithArguments("C", "Foo"));
 
-        other.Position = 0;
+        otherStream.Position = 0;
 
         var c2 = CreateCompilationWithMscorlib(
 @"public class A
@@ -428,7 +428,7 @@ public class Test
         }
     }
 }",
-            new[] { new MetadataImageReference(other) }, 
+            new[] { MetadataReference.CreateFromStream(otherStream) }, 
             assemblyName: "WantsIVTAccess",
             options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
 
@@ -748,7 +748,7 @@ public class C
         var tempFile = Temp.CreateFile();
         moduleContents.Position = 0;
 
-        using (var metadata = ModuleMetadata.CreateFromImageStream(moduleContents))
+        using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
         {
             var flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags;
             //confirm file does not claim to be signed
@@ -766,7 +766,7 @@ public class Z
             //now that the module checks out, ensure that adding it to a compilation outputing a dll
             //results in a signed assembly.
             var assemblyComp = CreateCompilationWithMscorlib(source, 
-                new[] { new MetadataImageReference(metadata) },
+                new[] { metadata.GetReference() },
                 TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
 
             using (var finalStrm = tempFile.Open())
@@ -1501,7 +1501,7 @@ public class C
         CompileAndVerify(other.WithReferences(new []{other.References.ElementAt(0), new CSharpCompilationReference(unsigned)}),
                          emitOptions: EmitOptions.CCI).VerifyDiagnostics();
 
-        CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), new MetadataImageReference(unsigned.EmitToStream()) }), 
+        CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) }), 
                          emitOptions: EmitOptions.CCI).VerifyDiagnostics();
     }
 
@@ -1527,7 +1527,7 @@ public class C
 ", options:TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider).WithCryptoKeyFile(KeyPairFile));
 
         var comps = new [] {other.WithReferences(new []{other.References.ElementAt(0), new CSharpCompilationReference(unsigned)}),
-                            other.WithReferences(new []{other.References.ElementAt(0), new MetadataImageReference(unsigned.EmitToStream())})};
+                            other.WithReferences(new []{other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })};
 
         foreach (var comp in comps)
         {

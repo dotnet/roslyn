@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void VersionUnification_SymbolUsed()
         {
             // Identity: C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9
-            var v1 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, display: "C, V1");
+            var v1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(display: "C, V1");
 
             // Identity: C, Version=2.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9
-            var v2 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, display: "C, V2");
+            var v2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C2).GetReference(display: "C, V2");
 
             var refV1 = CreateCompilationWithMscorlib("public class D : C { }", new[] { v1 }, assemblyName: "refV1");
             var refV2 = CreateCompilationWithMscorlib("public class D : C { }", new[] { v2 }, assemblyName: "refV2");
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(546080, "DevDiv")]
         public void VersionUnification_SymbolNotUsed()
         {
-            var v1 = new MetadataImageReference(TestResources.SymbolsTests.General.C1);
-            var v2 = new MetadataImageReference(TestResources.SymbolsTests.General.C2);
+            var v1 = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C1);
+            var v2 = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2);
 
             var refV1 = CreateCompilationWithMscorlib("public class D : C { }", new[] { v1 });
             var refV2 = CreateCompilationWithMscorlib("public class D : C { }", new[] { v2 });
@@ -685,7 +685,7 @@ public class Test
             var main = CreateCompilationWithMscorlib(
                sourceMain,
                assemblyName: "Main",
-               references: new MetadataReference[] { new MetadataImageReference(refLibV1.EmitToArray()), new CSharpCompilationReference(libV2) },
+               references: new MetadataReference[] { MetadataReference.CreateFromImage(refLibV1.EmitToArray()), new CSharpCompilationReference(libV2) },
                options: TestOptions.ReleaseExe);
 
             // TODO (tomat): we should display paths rather than names "RefLibV1" and "Lib"
@@ -719,8 +719,8 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
     }
 }";
             var tree = Parse(source);
-            var r1 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
-            var r2 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
+            var r1 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
+            var r2 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
             var r2_SysCore = r2.WithAliases(new[] { "SysCore" });
 
             var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRef, r1, r2_SysCore }, new CSharpCompilationOptions(OutputKind.ConsoleApplication), "Test");
@@ -734,8 +734,8 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             CSharpCompilation c;
             string source;
 
-            var r1 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, filePath: @"c:\temp\a.dll", display: "R1");
-            var r2 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, filePath: @"c:\temp\a.dll", display: "R2");
+            var r1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath: @"c:\temp\a.dll", display: "R1");
+            var r2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath: @"c:\temp\a.dll", display: "R2");
             var rFoo = r2.WithAliases(new[] { "foo" });
             var rBar = r2.WithAliases(new[] { "bar" });
             var rEmbed = r1.WithEmbedInteropTypes(true);
@@ -826,109 +826,103 @@ public class E : bar::C { }
         [Fact]
         public void DuplicateAssemblyReferences_EquivalentPath()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                string p1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib1).Path;
-                string p2 = MakeEquivalentPath(p1);
-                string p3 = MakeEquivalentPath(p2);
+            string p1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib1).Path;
+            string p2 = MakeEquivalentPath(p1);
+            string p3 = MakeEquivalentPath(p2);
 
-                var r1 = new MetadataFileReference(p1);
-                var r2 = new MetadataFileReference(p2);
-                SyntaxTree t1, t2, t3;
+            var r1 = MetadataReference.CreateFromFile(p1);
+            var r2 = MetadataReference.CreateFromFile(p2);
+            SyntaxTree t1, t2, t3;
 
-                var compilation = CSharpCompilation.Create("foo",
-                    syntaxTrees: new[] 
-                    {
-                        t1 = Parse("#r \"" + p2 + "\"", options: TestOptions.Script),
-                        t2 = Parse("#r \"" + p3 + "\"", options: TestOptions.Script),
-                        t3 = Parse("#r \"Foo\"", options: TestOptions.Script),
-                    },
-                    references: new MetadataReference[] { MscorlibRef, r1, r2 },
-                    options: TestOptions.ReleaseDll.
-                        WithMetadataReferenceResolver(new MappingReferenceResolver(assemblyNames: new Dictionary<string, string> { { "Foo", p3 } })).
-                        WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default)
-                );
+            var compilation = CSharpCompilation.Create("foo",
+                syntaxTrees: new[] 
+                {
+                    t1 = Parse("#r \"" + p2 + "\"", options: TestOptions.Script),
+                    t2 = Parse("#r \"" + p3 + "\"", options: TestOptions.Script),
+                    t3 = Parse("#r \"Foo\"", options: TestOptions.Script),
+                },
+                references: new MetadataReference[] { MscorlibRef, r1, r2 },
+                options: TestOptions.ReleaseDll.
+                    WithMetadataReferenceResolver(new MappingReferenceResolver(assemblyNames: new Dictionary<string, string> { { "Foo", p3 } })).
+                    WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default)
+            );
 
-                // no diagnostics expected, all duplicate references should be ignored as they all refer to the same file:
-                compilation.VerifyDiagnostics();
+            // no diagnostics expected, all duplicate references should be ignored as they all refer to the same file:
+            compilation.VerifyDiagnostics();
 
-                var refs = compilation.ExternalReferences;
-                Assert.Equal(3, refs.Length);
-                Assert.Equal(MscorlibRef, refs[0]);
-                Assert.Equal(r1, refs[1]);
-                Assert.Equal(r2, refs[2]);
+            var refs = compilation.ExternalReferences;
+            Assert.Equal(3, refs.Length);
+            Assert.Equal(MscorlibRef, refs[0]);
+            Assert.Equal(r1, refs[1]);
+            Assert.Equal(r2, refs[2]);
 
-                // All #r's resolved are represented in directive references.
-                var dirRefs = compilation.DirectiveReferences;
-                Assert.Equal(2, dirRefs.Length);
+            // All #r's resolved are represented in directive references.
+            var dirRefs = compilation.DirectiveReferences;
+            Assert.Equal(2, dirRefs.Length);
 
-                var as1 = compilation.GetReferencedAssemblySymbol(r2);
-                Assert.Equal("MDTestLib1", as1.Identity.Name);
+            var as1 = compilation.GetReferencedAssemblySymbol(r2);
+            Assert.Equal("MDTestLib1", as1.Identity.Name);
 
-                // r1 is a dup of r2:
-                Assert.Null(compilation.GetReferencedAssemblySymbol(r1));
+            // r1 is a dup of r2:
+            Assert.Null(compilation.GetReferencedAssemblySymbol(r1));
 
-                var rd1 = t1.GetCompilationUnitRoot().GetReferenceDirectives().Single();
-                var rd2 = t2.GetCompilationUnitRoot().GetReferenceDirectives().Single();
-                var rd3 = t3.GetCompilationUnitRoot().GetReferenceDirectives().Single();
+            var rd1 = t1.GetCompilationUnitRoot().GetReferenceDirectives().Single();
+            var rd2 = t2.GetCompilationUnitRoot().GetReferenceDirectives().Single();
+            var rd3 = t3.GetCompilationUnitRoot().GetReferenceDirectives().Single();
 
-                var dr1 = compilation.GetDirectiveReference(rd1) as MetadataFileReference;
-                var dr2 = compilation.GetDirectiveReference(rd2) as MetadataFileReference;
-                var dr3 = compilation.GetDirectiveReference(rd3) as MetadataFileReference;
+            var dr1 = compilation.GetDirectiveReference(rd1) as PortableExecutableReference;
+            var dr2 = compilation.GetDirectiveReference(rd2) as PortableExecutableReference;
+            var dr3 = compilation.GetDirectiveReference(rd3) as PortableExecutableReference;
 
-                Assert.Equal(MetadataImageKind.Assembly, dr1.Properties.Kind);
-                Assert.Equal(MetadataImageKind.Assembly, dr2.Properties.Kind);
-                Assert.Equal(MetadataImageKind.Assembly, dr3.Properties.Kind);
+            Assert.Equal(MetadataImageKind.Assembly, dr1.Properties.Kind);
+            Assert.Equal(MetadataImageKind.Assembly, dr2.Properties.Kind);
+            Assert.Equal(MetadataImageKind.Assembly, dr3.Properties.Kind);
 
-                Assert.True(dr1.Properties.Aliases.IsDefault);
-                Assert.True(dr2.Properties.Aliases.IsDefault);
-                Assert.True(dr3.Properties.Aliases.IsDefault);
+            Assert.True(dr1.Properties.Aliases.IsDefault);
+            Assert.True(dr2.Properties.Aliases.IsDefault);
+            Assert.True(dr3.Properties.Aliases.IsDefault);
 
-                Assert.False(dr1.Properties.EmbedInteropTypes);
-                Assert.False(dr2.Properties.EmbedInteropTypes);
-                Assert.False(dr3.Properties.EmbedInteropTypes);
+            Assert.False(dr1.Properties.EmbedInteropTypes);
+            Assert.False(dr2.Properties.EmbedInteropTypes);
+            Assert.False(dr3.Properties.EmbedInteropTypes);
 
-                // the paths come from the resolver:
-                Assert.Equal(p2, dr1.FilePath);
-                Assert.Equal(p3, dr2.FilePath);
-                Assert.Equal(p3, dr3.FilePath);
-            }
+            // the paths come from the resolver:
+            Assert.Equal(p2, dr1.FilePath);
+            Assert.Equal(p3, dr2.FilePath);
+            Assert.Equal(p3, dr3.FilePath);
         }
 
         [Fact]
         public void DuplicateModuleReferences_EquivalentPath()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var dir = Temp.CreateDirectory();
-                string p1 = dir.CreateFile("netModule1.netmodule").WriteAllBytes(TestResources.SymbolsTests.netModule.netModule1).Path;
-                string p2 = MakeEquivalentPath(p1);
+            var dir = Temp.CreateDirectory();
+            string p1 = dir.CreateFile("netModule1.netmodule").WriteAllBytes(TestResources.SymbolsTests.netModule.netModule1).Path;
+            string p2 = MakeEquivalentPath(p1);
 
-                var m1 = new MetadataFileReference(p1, MetadataImageKind.Module);
-                var m2 = new MetadataFileReference(p2, MetadataImageKind.Module);
+            var m1 = MetadataReference.CreateFromFile(p1, new MetadataReferenceProperties(MetadataImageKind.Module));
+            var m2 = MetadataReference.CreateFromFile(p2, new MetadataReferenceProperties(MetadataImageKind.Module));
 
-                var compilation = CSharpCompilation.Create("foo", options: TestOptions.ReleaseDll,
-                    references: new MetadataReference[] { m1, m2 });
+            var compilation = CSharpCompilation.Create("foo", options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { m1, m2 });
 
-                // We don't deduplicate references based on file path on the compilation level.
-                // The host (command line compiler and msbuild workspace) is responsible for such de-duplication, if needed.
+            // We don't deduplicate references based on file path on the compilation level.
+            // The host (command line compiler and msbuild workspace) is responsible for such de-duplication, if needed.
 
-                compilation.VerifyDiagnostics(
-                    // error CS8015: Module 'netModule1.netmodule' is already defined in this assembly. Each module must have a unique filename.
-                    Diagnostic(ErrorCode.ERR_NetModuleNameMustBeUnique).WithArguments("netModule1.netmodule"),
-                    // netModule1.netmodule: error CS0101: The namespace '<global namespace>' already contains a definition for 'Class1'
-                    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class1", "<global namespace>"),
-                    // netModule1.netmodule: error CS0101: The namespace 'NS1' already contains a definition for 'Class4'
-                    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class4", "NS1"),
-                    // netModule1.netmodule: error CS0101: The namespace 'NS1' already contains a definition for 'Class8'
-                    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class8", "NS1"));
+            compilation.VerifyDiagnostics(
+                // error CS8015: Module 'netModule1.netmodule' is already defined in this assembly. Each module must have a unique filename.
+                Diagnostic(ErrorCode.ERR_NetModuleNameMustBeUnique).WithArguments("netModule1.netmodule"),
+                // netModule1.netmodule: error CS0101: The namespace '<global namespace>' already contains a definition for 'Class1'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class1", "<global namespace>"),
+                // netModule1.netmodule: error CS0101: The namespace 'NS1' already contains a definition for 'Class4'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class4", "NS1"),
+                // netModule1.netmodule: error CS0101: The namespace 'NS1' already contains a definition for 'Class8'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class8", "NS1"));
 
-                var mods = compilation.Assembly.Modules.ToArray();
-                Assert.Equal(3, mods.Length);
+            var mods = compilation.Assembly.Modules.ToArray();
+            Assert.Equal(3, mods.Length);
 
-                Assert.NotNull(compilation.GetReferencedModuleSymbol(m1));
-                Assert.NotNull(compilation.GetReferencedModuleSymbol(m2));
-            }
+            Assert.NotNull(compilation.GetReferencedModuleSymbol(m1));
+            Assert.NotNull(compilation.GetReferencedModuleSymbol(m2));
         }
 
         /// <summary>
@@ -937,8 +931,8 @@ public class E : bar::C { }
         [Fact]
         public void DuplicateAssemblyReferences_EquivalentStrongNames_Metadata()
         {
-            var ref1 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, embedInteropTypes: true, filePath: @"R:\A\MTTestLib1.dll");
-            var ref2 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, embedInteropTypes: false, filePath: @"R:\B\MTTestLib1.dll");
+            var ref1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C2).GetReference(embedInteropTypes: true, filePath: @"R:\A\MTTestLib1.dll");
+            var ref2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C2).GetReference(embedInteropTypes: false, filePath: @"R:\B\MTTestLib1.dll");
 
             var c = CreateCompilationWithMscorlib("class C {}", new[] { ref1, ref2 });
             c.VerifyDiagnostics(
@@ -971,20 +965,17 @@ public interface I {}";
         [Fact]
         public void DuplicateAssemblyReferences_EquivalentName()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                string p1 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).Path;
-                string p2 = Temp.CreateFile().CopyContentFrom(p1).Path;
+            string p1 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).Path;
+            string p2 = Temp.CreateFile().CopyContentFrom(p1).Path;
 
-                var r1 = new MetadataFileReference(p1);
-                var r2 = new MetadataFileReference(p2);
+            var r1 = MetadataReference.CreateFromFile(p1);
+            var r2 = MetadataReference.CreateFromFile(p2);
 
-                var compilation = CSharpCompilation.Create("foo", references: new[] { r1, r2 });
+            var compilation = CSharpCompilation.Create("foo", references: new[] { r1, r2 });
 
-                var refs = compilation.Assembly.Modules.Select(module => module.GetReferencedAssemblies()).ToArray();
-                Assert.Equal(1, refs.Length);
-                Assert.Equal(1, refs[0].Length);
-            }
+            var refs = compilation.Assembly.Modules.Select(module => module.GetReferencedAssemblies()).ToArray();
+            Assert.Equal(1, refs.Length);
+            Assert.Equal(1, refs[0].Length);
         }
 
         /// <summary>
@@ -994,75 +985,69 @@ public interface I {}";
         [WorkItem(546026, "DevDiv"), WorkItem(546169, "DevDiv")]
         public void CS1703ERR_DuplicateImport()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var p1 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
-                var p2 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v2_0_50727.System).Path;
-                var text = @"namespace N {}";
+            var p1 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
+            var p2 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v2_0_50727.System).Path;
+            var text = @"namespace N {}";
 
-                var comp = CSharpCompilation.Create(
-                    "DupSignedRefs",
-                    new[] { SyntaxFactory.ParseSyntaxTree(text) },
-                    new[] { new MetadataFileReference(p1), new MetadataFileReference(p2) },
-                    TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+            var comp = CSharpCompilation.Create(
+                "DupSignedRefs",
+                new[] { SyntaxFactory.ParseSyntaxTree(text) },
+                new[] { MetadataReference.CreateFromFile(p1), MetadataReference.CreateFromFile(p2) },
+                TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
-                comp.VerifyDiagnostics(
-                    // error CS1703: Multiple assemblies with equivalent identity have been imported: '...\v4.0.30319\System.dll' and '...\v2.0.50727\System.dll'. Remove one of the duplicate references.
-                    Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments(p1, p2));
-            }
+            comp.VerifyDiagnostics(
+                // error CS1703: Multiple assemblies with equivalent identity have been imported: '...\v4.0.30319\System.dll' and '...\v2.0.50727\System.dll'. Remove one of the duplicate references.
+                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments(p1, p2));
         }
 
         [Fact]
         public void CS1704ERR_DuplicateImportSimple()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var libSource = @"
+            var libSource = @"
 using System;
 public class A { }";
 
 
-                var c1 = CreateCompilationWithMscorlib(libSource, options: TestOptions.ReleaseDll, assemblyName: "CS1704");
+            var c1 = CreateCompilationWithMscorlib(libSource, options: TestOptions.ReleaseDll, assemblyName: "CS1704");
 
-                var dir1 = Temp.CreateDirectory();
-                var exe1 = dir1.CreateFile("CS1704.dll");
-                var pdb1 = dir1.CreateFile("CS1704.pdb");
+            var dir1 = Temp.CreateDirectory();
+            var exe1 = dir1.CreateFile("CS1704.dll");
+            var pdb1 = dir1.CreateFile("CS1704.pdb");
 
-                var dir2 = Temp.CreateDirectory();
-                var exe2 = dir2.CreateFile("CS1704.dll");
-                var pdb2 = dir2.CreateFile("CS1704.pdb");
+            var dir2 = Temp.CreateDirectory();
+            var exe2 = dir2.CreateFile("CS1704.dll");
+            var pdb2 = dir2.CreateFile("CS1704.pdb");
 
-                using (var output = exe1.Open())
+            using (var output = exe1.Open())
+            {
+                using (var outputPdb = pdb1.Open())
                 {
-                    using (var outputPdb = pdb1.Open())
-                    {
-                        c1.Emit(output, null, pdb1.Path, outputPdb, null);
-                    }
+                    c1.Emit(output, null, pdb1.Path, outputPdb, null);
                 }
+            }
 
-                using (var output = exe2.Open())
+            using (var output = exe2.Open())
+            {
+                using (var outputPdb = pdb2.Open())
                 {
-                    using (var outputPdb = pdb2.Open())
-                    {
-                        c1.Emit(output, null, pdb2.Path, outputPdb, null);
-                    }
+                    c1.Emit(output, null, pdb2.Path, outputPdb, null);
                 }
+            }
 
-                var ref1 = new MetadataFileReference(exe1.Path, aliases: ImmutableArray.Create("A1"));
-                var ref2 = new MetadataFileReference(exe2.Path, aliases: ImmutableArray.Create("A2"));
+            var ref1 = AssemblyMetadata.CreateFromFile(exe1.Path).GetReference(aliases: ImmutableArray.Create("A1"));
+            var ref2 = AssemblyMetadata.CreateFromFile(exe2.Path).GetReference(aliases: ImmutableArray.Create("A2"));
 
-                var source = @"
+            var source = @"
 extern alias A1;
 extern alias A2;
 
 class B : A1::A { }
 class C : A2::A { }
 ";
-                // Dev12 reports CS1704. An assembly with the same simple name '...' has already been imported. 
-                // We consider the second reference a duplicate and ignore it (merging the aliases).
+            // Dev12 reports CS1704. An assembly with the same simple name '...' has already been imported. 
+            // We consider the second reference a duplicate and ignore it (merging the aliases).
 
-                CreateCompilationWithMscorlib(source, new[] { ref1, ref2 }).VerifyDiagnostics();
-            }
+            CreateCompilationWithMscorlib(source, new[] { ref1, ref2 }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1136,8 +1121,8 @@ public class Q
                                     metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.W2))
             {
 
-                var mdRefLib1 = new MetadataImageReference(metadataLib1, filePath: @"C:\W1.dll");
-                var mdRefLib2 = new MetadataImageReference(metadataLib2, filePath: @"C:\W2.dll");
+                var mdRefLib1 = metadataLib1.GetReference(filePath: @"C:\W1.dll");
+                var mdRefLib2 = metadataLib2.GetReference(filePath: @"C:\W2.dll");
 
                 var main = CreateCompilationWithMscorlib(sourceMain,
                     new[] { mdRefLib1, mdRefLib2 });
@@ -1171,8 +1156,8 @@ public class Q
             using (AssemblyMetadata metadataLib1 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1),
                                     metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB))
             {
-                var mdRefLib1 = new MetadataImageReference(metadataLib1, filePath: @"C:\W1.dll");
-                var mdRefLib2 = new MetadataImageReference(metadataLib2, filePath: @"C:\WB.dll");
+                var mdRefLib1 = metadataLib1.GetReference(filePath: @"C:\W1.dll");
+                var mdRefLib2 = metadataLib2.GetReference(filePath: @"C:\WB.dll");
 
                 var main = CreateCompilationWithMscorlib(sourceMain,
                     new[] {mdRefLib1, mdRefLib2});
@@ -1201,8 +1186,8 @@ public class Q
             using (AssemblyMetadata metadataLib1 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB),
                                     metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB_Version1))
             {
-                var mdRefLib1 = new MetadataImageReference(metadataLib1, filePath: @"C:\WB.dll");
-                var mdRefLib2 = new MetadataImageReference(metadataLib2, filePath: @"C:\WB_Version1.dll");
+                var mdRefLib1 = metadataLib1.GetReference(filePath: @"C:\WB.dll");
+                var mdRefLib2 = metadataLib2.GetReference(filePath: @"C:\WB_Version1.dll");
 
                 var main = CreateCompilationWithMscorlib(sourceMain,
                     new[] { mdRefLib1, mdRefLib2 });
@@ -1275,34 +1260,31 @@ public class A
         [Fact]
         public void ReferenceResolution1()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var path1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib1).Path;
-                var path2 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib2).Path;
+            var path1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib1).Path;
+            var path2 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib2).Path;
 
-                var resolver = new ReferenceResolver1(path1, path2);
-                var c1 = CSharpCompilation.Create("c1",
-                    syntaxTrees: new[] 
-                    {
-                        Parse("#r \"1\"", options: TestOptions.Script),
-                        Parse("#r \"2.dll\"", options: TestOptions.Script),
-                    },
-                    options: TestOptions.ReleaseDll
-                        .WithMetadataReferenceResolver(resolver)
-                        .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            var resolver = new ReferenceResolver1(path1, path2);
+            var c1 = CSharpCompilation.Create("c1",
+                syntaxTrees: new[] 
+                {
+                    Parse("#r \"1\"", options: TestOptions.Script),
+                    Parse("#r \"2.dll\"", options: TestOptions.Script),
+                },
+                options: TestOptions.ReleaseDll
+                    .WithMetadataReferenceResolver(resolver)
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
-                Assert.NotNull(c1.Assembly); // force creation of SourceAssemblySymbol
+            Assert.NotNull(c1.Assembly); // force creation of SourceAssemblySymbol
 
-                var dirRefs = c1.DirectiveReferences;
-                var assemblySymbol1 = c1.GetReferencedAssemblySymbol(dirRefs[0]);
-                var assemblySymbol2 = c1.GetReferencedAssemblySymbol(dirRefs[1]);
+            var dirRefs = c1.DirectiveReferences;
+            var assemblySymbol1 = c1.GetReferencedAssemblySymbol(dirRefs[0]);
+            var assemblySymbol2 = c1.GetReferencedAssemblySymbol(dirRefs[1]);
 
-                Assert.Equal("MDTestLib1", assemblySymbol1.Name);
-                Assert.Equal("MDTestLib2", assemblySymbol2.Name);
+            Assert.Equal("MDTestLib1", assemblySymbol1.Name);
+            Assert.Equal("MDTestLib2", assemblySymbol2.Name);
 
-                Assert.True(resolver.resolved1);
-                Assert.True(resolver.resolved2);
-            }
+            Assert.True(resolver.resolved1);
+            Assert.True(resolver.resolved2);
         }
 
         private class TestException : Exception
@@ -1342,49 +1324,43 @@ public class A
         [Fact]
         public void ReferenceResolution_ExceptionsFromResolver()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var options = TestOptions.ReleaseDll.
-                    WithMetadataReferenceResolver(new ErroneousReferenceResolver()).
-                    WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default);
+            var options = TestOptions.ReleaseDll.
+                WithMetadataReferenceResolver(new ErroneousReferenceResolver()).
+                WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default);
 
-                foreach (var tree in new[] 
-                {
-                    Parse("#r \"throw\"", options: TestOptions.Script),
-                })
-                {
-                    var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: options);
-                    Assert.Throws<TestException>(() => { var a = c.Assembly; });
-                }
+            foreach (var tree in new[] 
+            {
+                Parse("#r \"throw\"", options: TestOptions.Script),
+            })
+            {
+                var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: options);
+                Assert.Throws<TestException>(() => { var a = c.Assembly; });
             }
         }
 
         [Fact]
         public void ReferenceResolution_ExceptionsFromProvider()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var provider = new ErroneousMetadataReferenceProvider();
+            var provider = new ErroneousMetadataReferenceProvider();
 
-                var c1 = CSharpCompilation.Create("c",
-                    syntaxTrees: new[] { Parse(@"#r ""c:\throw.dll""", options: TestOptions.Script) },
-                    options: TestOptions.ReleaseDll.
-                        WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\throw.dll", @"c:\throw.dll" } })).
-                        WithMetadataReferenceProvider(provider));
+            var c1 = CSharpCompilation.Create("c",
+                syntaxTrees: new[] { Parse(@"#r ""c:\throw.dll""", options: TestOptions.Script) },
+                options: TestOptions.ReleaseDll.
+                    WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\throw.dll", @"c:\throw.dll" } })).
+                    WithMetadataReferenceProvider(provider));
 
-                Assert.Throws<TestException>(() => { var a = c1.Assembly; });
+            Assert.Throws<TestException>(() => { var a = c1.Assembly; });
 
-                var c2 = CSharpCompilation.Create("c",
-                    references: new[] { MscorlibRef },
-                    syntaxTrees: new[] { Parse(@"#r ""c:\null.dll""", options: TestOptions.Script) },
-                    options: TestOptions.ReleaseDll.
-                        WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\null.dll", @"c:\null.dll" } })).
-                        WithMetadataReferenceProvider(provider));
+            var c2 = CSharpCompilation.Create("c",
+                references: new[] { MscorlibRef },
+                syntaxTrees: new[] { Parse(@"#r ""c:\null.dll""", options: TestOptions.Script) },
+                options: TestOptions.ReleaseDll.
+                    WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\null.dll", @"c:\null.dll" } })).
+                    WithMetadataReferenceProvider(provider));
 
-                c2.VerifyDiagnostics(
-                    // (1,1): error CS0006: Metadata file 'c:\null.dll' could not be found
-                    Diagnostic(ErrorCode.ERR_NoMetadataFile, @"#r ""c:\null.dll""").WithArguments(@"c:\null.dll"));
-            }
+            c2.VerifyDiagnostics(
+                // (1,1): error CS0006: Metadata file 'c:\null.dll' could not be found
+                Diagnostic(ErrorCode.ERR_NoMetadataFile, @"#r ""c:\null.dll""").WithArguments(@"c:\null.dll"));
         }
 
         [Fact]
@@ -1415,7 +1391,7 @@ public class B : A { }
 public class Foo {}
 ";
             var b = CreateCompilationWithMscorlib(sourceB, new[] { new CSharpCompilationReference(a) }, assemblyName: "B");
-            var refB = new MetadataImageReference(b.EmitToArray());
+            var refB = MetadataReference.CreateFromImage(b.EmitToArray());
 
             var sourceA2 = @"
 public class A 
@@ -1425,7 +1401,7 @@ public class A
 ";
             // construct A2 that has a reference to assembly identity "B".
             var a2 = CreateCompilationWithMscorlib(sourceA2, new[] { refB }, assemblyName: "A");
-            var refA2 = new MetadataImageReference(a2.EmitToArray());
+            var refA2 = MetadataReference.CreateFromImage(a2.EmitToArray());
             var symbolB = a2.GetReferencedAssemblySymbol(refB);
             Assert.True(symbolB is Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol, "PE symbol expected");
 
@@ -1462,11 +1438,11 @@ public class B : A
         {
             var a = CreateCompilationWithMscorlib("public class A { }", assemblyName: "A");
             var b = CreateCompilationWithMscorlib("public class B : A { } ", new[] { new CSharpCompilationReference(a) }, assemblyName: "B");
-            var refB = new MetadataImageReference(b.EmitToArray());
+            var refB = MetadataReference.CreateFromImage(b.EmitToArray());
 
             // construct A2 that has a reference to assembly identity "B".
             var a2 = CreateCompilationWithMscorlib(@"public class A { B B; }", new[] { refB }, assemblyName: "A");
-            var refA2 = new MetadataImageReference(a2.EmitToArray());
+            var refA2 = MetadataReference.CreateFromImage(a2.EmitToArray());
 
 
             var withCircularReference1 = CreateCompilationWithMscorlib(@"public class B : A { }", new[] { refA2 }, assemblyName: "B");
@@ -1668,7 +1644,7 @@ namespace System.Printing
 
             var ilRef = CompileIL(il, appendDefaultHeader: false);
             var oldMetadata = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib(oldVersion + csharp, assemblyName: "ReachFramework").EmitToArray());
-            var oldRef = new MetadataImageReference(oldMetadata);
+            var oldRef = oldMetadata.GetReference();
 
             var comp = CreateCompilationWithMscorlib(newVersion + csharp, new[] { ilRef, oldRef }, assemblyName: "ReachFramework");
             comp.VerifyDiagnostics();
@@ -1788,7 +1764,7 @@ class D
 ";
 
             var assemblyMetadata = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib("public class TypeDependedOnByModule { }", assemblyName: "lib1").EmitToArray());
-            var assemblyRef = new MetadataImageReference(assemblyMetadata);
+            var assemblyRef = assemblyMetadata.GetReference();
             var moduleRef = CreateCompilationWithMscorlib("public class TypeFromModule : TypeDependedOnByModule { }", new[] {assemblyRef}, options: TestOptions.ReleaseModule, assemblyName: "lib2").EmitToImageReference();
 
             var comp1 = CreateCompilationWithMscorlib(text1, new MetadataReference[] 
@@ -1913,9 +1889,9 @@ internal class C
         [WorkItem(531342, "DevDiv"), WorkItem(727122, "DevDiv")]
         public void PortableLibrary()
         {
-            var mscorlibPP7 = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib, display: "mscorlib, PP7");
-            var systemRuntimePP7 = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime, display: "System.Runtime, PP7");
-            var systemRuntimeFacade = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime, display: "System.Runtime, facade");
+            var mscorlibPP7 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib).GetReference(display: "mscorlib, PP7");
+            var systemRuntimePP7 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime).GetReference(display: "System.Runtime, PP7");
+            var systemRuntimeFacade = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime, facade");
 
             var plSource = @"public class C {}";
             var pl = CreateCompilation(plSource, new[] { mscorlibPP7, systemRuntimePP7 });
@@ -1923,7 +1899,7 @@ internal class C
             var mainRefs = new MetadataReference[] 
             {
                 new CSharpCompilationReference(pl), 
-                new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45.mscorlib)
+                MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45.mscorlib)
             };
 
             var mainSource = @"public class D : C { }";

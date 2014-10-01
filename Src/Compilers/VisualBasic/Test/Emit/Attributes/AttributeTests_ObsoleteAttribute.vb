@@ -466,7 +466,7 @@ End Class
     </file>
 </compilation>
 
-            Dim peReference = New MetadataImageReference(CreateCompilationWithMscorlibAndVBRuntime(peSource).EmitToArray())
+            Dim peReference = MetadataReference.CreateFromImage(CreateCompilationWithMscorlibAndVBRuntime(peSource).EmitToArray())
 
             Dim source =
 <compilation>

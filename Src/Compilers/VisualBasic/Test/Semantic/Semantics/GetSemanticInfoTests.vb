@@ -3859,7 +3859,7 @@ Namespace Server
     End Class
 End Namespace 
     </file>
-</compilation>, New MetadataFileReference() {})
+</compilation>, {})
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
@@ -3972,7 +3972,7 @@ Friend Interface I10
     Sub foo()
 End Interface
     </file>
-</compilation>, New MetadataFileReference() {})
+</compilation>, {})
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)

@@ -269,7 +269,7 @@ End Class
 
             Dim c1 = VisualBasicCompilation.Create("VB_EmitAddModule",
                                         {VisualBasicSyntaxTree.ParseText(source)},
-                                        {mscorlibRef, New MetadataImageReference(netModule1), New MetadataImageReference(netModule2)},
+                                        {mscorlibRef, netModule1.GetReference(), netModule2.GetReference()},
                                         TestOptions.ReleaseDll)
 
 

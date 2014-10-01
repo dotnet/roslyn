@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public abstract class DiagnosticAnalyzerTestBase
     {
-        private static readonly MetadataReference CorlibReference = new MetadataFileReference(typeof(object).Assembly.Location, MetadataImageKind.Assembly);
-        private static readonly MetadataReference SystemCoreReference = new MetadataFileReference(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
-        private static readonly MetadataReference CSharpSymbolsReference = new MetadataFileReference(typeof(CSharpCompilation).Assembly.Location, MetadataImageKind.Assembly);
-        private static readonly MetadataReference CodeAnalysisReference = new MetadataFileReference(typeof(Compilation).Assembly.Location, MetadataImageKind.Assembly);
+        private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
+        private static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromAssembly(typeof(Enumerable).Assembly);
+        private static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromAssembly(typeof(CSharpCompilation).Assembly);
+        private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromAssembly(typeof(Compilation).Assembly);
 
         internal static string DefaultFilePathPrefix = "Test";
         internal static string CSharpDefaultFileExt = "cs";

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var b in bytes)
                 {
-                    refs.Add(new MetadataImageReference(b.AsImmutableOrNull()));
+                    refs.Add(MetadataReference.CreateFromImage(b.AsImmutableOrNull()));
                 }
             }
 

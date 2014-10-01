@@ -31,7 +31,7 @@ namespace NS
 }
 ";
                     var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo1", options: TestOptions.ReleaseDll);
-                    foo1 = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("Bar"));
+                    foo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
                 return foo1;
@@ -56,7 +56,7 @@ namespace NS
 }
 ";
                     var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo2", options: TestOptions.ReleaseDll);
-                    foo2 = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("Bar"));
+                    foo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
                 return foo2;
@@ -211,9 +211,9 @@ namespace NS
 }
 ";
             var comp = CreateCompilationWithMscorlib(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
-            var outputBytes = comp.EmitToArray();
-            var foo1 = new MetadataImageReference(outputBytes);
-            var foo1Alias = new MetadataImageReference(outputBytes, aliases: ImmutableArray.Create("Baz"));
+            var outputMetadata = AssemblyMetadata.CreateFromImage(comp.EmitToArray());
+            var foo1 = outputMetadata.GetReference();
+            var foo1Alias = outputMetadata.GetReference(aliases: ImmutableArray.Create("Baz"));
 
             src =
         @"
@@ -227,7 +227,7 @@ namespace NS
 ";
             comp = CreateCompilationWithMscorlib(src, assemblyName: "Bar.dll", options: TestOptions.ReleaseDll);
             comp = comp.AddReferences(foo1);
-            var foo2 = new MetadataImageReference(comp.EmitToArray());
+            var foo2 = MetadataReference.CreateFromImage(comp.EmitToArray());
 
             src =
             @"
@@ -313,7 +313,7 @@ namespace NS
 }
 ";
             var comp = CreateCompilationWithMscorlib(src, options: TestOptions.ReleaseDll);
-            var foo1Alias = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("global"));
+            var foo1Alias = comp.EmitToImageReference(aliases: ImmutableArray.Create("global"));
 
             src =
             @"
@@ -392,10 +392,10 @@ class A : Bar::NS.Foo {}
         public void SameExternAliasInMultipleTreesValid()
         {
             var comp1 = CreateCompilationWithMscorlib("public class C { }", assemblyName: "A1");
-            var ref1 = new MetadataImageReference(CompileAndVerify(comp1).EmittedAssemblyData, aliases: ImmutableArray.Create("X"));
+            var ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
             var comp2 = CreateCompilationWithMscorlib("public class D { }", assemblyName: "A2");
-            var ref2 = new MetadataImageReference(CompileAndVerify(comp2).EmittedAssemblyData, aliases: ImmutableArray.Create("X"));
+            var ref2 = comp2.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
             const int numFiles = 20;
             var comp3 = CreateCompilationWithMscorlib(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), new[] { ref1, ref2 }, assemblyName: "A3.dll");

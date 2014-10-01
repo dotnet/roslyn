@@ -5,6 +5,8 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Diagnostics;
+using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class PortableExecutableReference : MetadataReference
     {
-        private readonly string fullPath;
+        private readonly string filePath;
 
         private DocumentationProvider lazyDocumentation;
 
@@ -23,12 +25,12 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider initialDocumentation = null)
             : base(properties)
         {
-            this.fullPath = fullPath;
+            this.filePath = fullPath;
             this.lazyDocumentation = initialDocumentation;
         }
 
         /// <summary>
-        /// Path or name used in error messages to identity the reference.
+        /// Display string used in error messages to identity the reference.
         /// </summary>
         public override string Display
         {
@@ -36,21 +38,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Full path describing the location of the metadata, or null if the metadata have no location.
+        /// Path describing the location of the metadata, or null if the metadata have no location.
         /// </summary>
         public string FilePath
         {
-            get { return fullPath; }
+            get { return filePath; }
         }
-
-        /// <summary>
-        /// Create documentation provider for the reference.
-        /// </summary>
-        /// <remarks>
-        /// Called when the compiler needs to read the documentation for the reference. 
-        /// This method is called at most once per metadata reference and its result is cached on the reference object.
-        /// </remarks>
-        protected abstract DocumentationProvider CreateDocumentationProvider();
 
         /// <summary>
         /// XML documentation comments provider for the reference.
@@ -67,6 +60,73 @@ namespace Microsoft.CodeAnalysis
                 return lazyDocumentation;
             }
         }
+
+        /// <summary>
+        /// Create documentation provider for the reference.
+        /// </summary>
+        /// <remarks>
+        /// Called when the compiler needs to read the documentation for the reference. 
+        /// This method is called at most once per metadata reference and its result is cached on the reference object.
+        /// </remarks>
+        protected abstract DocumentationProvider CreateDocumentationProvider();
+
+        /// <summary>
+        /// Returns an instance of the reference with specified aliases.
+        /// </summary>
+        /// <param name="aliases">The new aliases for the reference.</param>
+        /// <exception cref="ArgumentException">Alias is invalid for the metadata kind.</exception> 
+        public new PortableExecutableReference WithAliases(IEnumerable<string> aliases)
+        {
+            return this.WithAliases(ImmutableArray.CreateRange(aliases));
+        }
+
+        /// <summary>
+        /// Returns an instance of the reference with specified aliases.
+        /// </summary>
+        /// <param name="aliases">The new aliases for the reference.</param>
+        /// <exception cref="ArgumentException">Alias is invalid for the metadata kind.</exception> 
+        public new PortableExecutableReference WithAliases(ImmutableArray<string> aliases)
+        {
+            return WithProperties(new MetadataReferenceProperties(this.Properties.Kind, aliases, this.Properties.EmbedInteropTypes));
+        }
+
+        /// <summary>
+        /// Returns an instance of the reference with specified interop types embedding.
+        /// </summary>
+        /// <param name="value">The new value for <see cref="MetadataReferenceProperties.EmbedInteropTypes"/>.</param>
+        /// <exception cref="ArgumentException">Interop types can't be embedded from modules.</exception> 
+        public new PortableExecutableReference WithEmbedInteropTypes(bool value)
+        {
+            return WithProperties(new MetadataReferenceProperties(this.Properties.Kind, this.Properties.Aliases, value));
+        }
+
+        /// <summary>
+        /// Returns an instance of the reference with specified properties, or this instance if properties haven't changed.
+        /// </summary>
+        /// <param name="properties">The new properties for the reference.</param>
+        /// <exception cref="ArgumentException">Specified values not valid for this reference.</exception> 
+        public new PortableExecutableReference WithProperties(MetadataReferenceProperties properties)
+        {
+            if (properties == this.Properties)
+            {
+                return this;
+            }
+
+            return WithPropertiesImpl(properties);
+        }
+
+        internal sealed override MetadataReference WithPropertiesImplReturningMetadataReference(MetadataReferenceProperties properties)
+        {
+            return WithPropertiesImpl(properties);
+        }
+
+        /// <summary>
+        /// Returns an instance of the reference with specified properties.
+        /// </summary>
+        /// <param name="properties">The new properties for the reference.</param>
+        /// <exception cref="NotSupportedException">Specified values not supported.</exception> 
+        /// <remarks>Only invoked if the properties changed.</remarks>
+        protected abstract PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties);
 
         /// <summary>
         /// Get metadata representation for the PE file.

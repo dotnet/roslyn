@@ -2364,8 +2364,8 @@ public interface IA
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(refSrc) },
                 references: new MetadataReference[] { MscorlibRef });
 
-            var refData = refComp.EmitToArray();
-            var mdRef = new MetadataImageReference(refData, embedInteropTypes: false);
+            var refData = AssemblyMetadata.CreateFromImage(refComp.EmitToArray());
+            var mdRef = refData.GetReference(embedInteropTypes: false);
             var comp = CreateCompilationWithMscorlib("", new[] { mdRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
@@ -2401,7 +2401,7 @@ public interface IA
             iam2 = ia.GetMember<MethodSymbol>("M2");
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
-            mdRef = new MetadataImageReference(refData, embedInteropTypes: true);
+            mdRef = refData.GetReference(embedInteropTypes: true);
             comp = CreateCompilationWithMscorlib("", new[] { mdRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
@@ -2456,8 +2456,8 @@ public interface IA
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(refSrc) },
                 references: new[] { MscorlibRef });
 
-            refData = refComp.EmitToArray();
-            mdRef = new MetadataImageReference(refData, embedInteropTypes: true);
+            refData = AssemblyMetadata.CreateFromImage(refComp.EmitToArray());
+            mdRef = refData.GetReference(embedInteropTypes: true);
 
             comp = CreateCompilationWithMscorlib("", new[] { mdRef });
 

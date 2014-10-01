@@ -39,6 +39,11 @@ namespace Roslyn.Test.Utilities
 
             return metadata;
         }
+
+        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class TestImageReference : PortableExecutableReference
@@ -74,6 +79,11 @@ namespace Roslyn.Test.Utilities
         protected override Metadata GetMetadataImpl()
         {
             return AssemblyMetadata.CreateFromImage(metadataBytes);
+        }
+
+        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+        {
+            throw new NotImplementedException();
         }
     }
 }

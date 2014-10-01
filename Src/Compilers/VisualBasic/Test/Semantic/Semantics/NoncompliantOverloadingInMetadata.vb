@@ -2650,7 +2650,7 @@ Container4.ContaineR5.Container6
 } // end of class bByyx.Test
 ]]>
 
-            Dim ilAssemblyRef1 As MetadataImageReference = Nothing
+            Dim ilAssemblyRef1 As MetadataReference = Nothing
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="ConsoleApplication">
@@ -3280,7 +3280,7 @@ End Module
 
             End If
 
-            Dim ilAssemblyRef2 As MetadataImageReference = Nothing
+            Dim ilAssemblyRef2 As MetadataReference = Nothing
 
             Dim compilation9 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="ConsoleApplication1">

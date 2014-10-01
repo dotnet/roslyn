@@ -18,22 +18,18 @@ namespace Roslyn.Test.Utilities
 
                 if ((path = item as string) != null)
                 {
-                    if (string.Equals(Path.GetExtension(path), ".netmodule", StringComparison.OrdinalIgnoreCase))
-                    {
-                        yield return new MetadataFileReference(path, MetadataImageKind.Module);
-                    }
-                    else
-                    {
-                        yield return new MetadataFileReference(path, MetadataImageKind.Assembly);
-                    }
+                    var kind = (string.Equals(Path.GetExtension(path), ".netmodule", StringComparison.OrdinalIgnoreCase)) ? 
+                        MetadataImageKind.Module : MetadataImageKind.Assembly;
+
+                    yield return MetadataReference.CreateFromFile(path, new MetadataReferenceProperties(kind));
                 }
                 else if (item is ImmutableArray<byte>)
                 {
-                    yield return new MetadataImageReference((ImmutableArray<byte>)item);
+                    yield return MetadataReference.CreateFromImage((ImmutableArray<byte>)item);
                 }
                 else if ((bytes = item as byte[]) != null)
                 {
-                    yield return new MetadataImageReference(bytes.AsImmutableOrNull());
+                    yield return MetadataReference.CreateFromImage(bytes.AsImmutableOrNull());
                 }
                 else if ((compilation = item as Compilation) != null)
                 {

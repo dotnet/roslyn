@@ -415,7 +415,7 @@ public class A
     }
 }
 ";
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
@@ -961,7 +961,7 @@ namespace AttributeTest
 }
 ";
 
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: TestOptions.ReleaseDll);
 
@@ -1035,7 +1035,7 @@ namespace AttributeTest
 }
 ";
 
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
@@ -1077,7 +1077,7 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
@@ -1311,7 +1311,7 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
@@ -1449,7 +1449,7 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
@@ -1541,7 +1541,7 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
@@ -1648,7 +1648,7 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
@@ -2497,20 +2497,20 @@ class Program
         [Fact]
         public void AttributeArgumentAsEnumFromMetadata()
         {
-            var metadata1 = CSharpCompilation.Create("bar.dll",
+            var metadataStream1 = CSharpCompilation.Create("bar.dll",
                 references: new[] { MscorlibRef },
                 syntaxTrees: new[] { Parse("public enum Bar { Baz }") }).EmitToStream(metadataOnly: true);
 
-            var ref1 = new MetadataImageReference(metadata1);
+            var ref1 = MetadataReference.CreateFromStream(metadataStream1);
 
-            var metadata2 = CSharpCompilation.Create("foo.dll", references: new[] { MscorlibRef, ref1 },
+            var metadataStream2 = CSharpCompilation.Create("foo.dll", references: new[] { MscorlibRef, ref1 },
                 syntaxTrees: new[] {
                     SyntaxFactory.ParseSyntaxTree(
                         "public class Ca : System.Attribute { public Ca(object o) { } } " +
                         "[Ca(Bar.Baz)]" +
                         "public class Foo { }") }).EmitToStream(metadataOnly: true);
 
-            var ref2 = new MetadataImageReference(metadata2);
+            var ref2 = MetadataReference.CreateFromStream(metadataStream2);
 
             var compilation = CSharpCompilation.Create("moo.dll", references: new[] { MscorlibRef, ref1, ref2 });
 
@@ -3606,7 +3606,7 @@ static class AttributeMod
     {
     }
 }";
-            var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
             var compilation = CreateCompilationWithMscorlib(source, references, options: opt);

@@ -711,7 +711,7 @@ End Class
     </compilation>, references:={New VisualBasicCompilationReference(comp0)})
 
             Dim mtdata = DirectCast(comp1, Compilation).EmitToArray(True)
-            Dim mtref = New MetadataImageReference(mtdata)
+            Dim mtref = MetadataReference.CreateFromImage(mtdata)
             Dim comp2 = CreateCompilationWithMscorlibAndReferences(
     <compilation name="App">
         <file name="c.vb">

@@ -3050,7 +3050,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef2,
-                                                                                                      {New MetadataImageReference(verifier.EmittedAssemblyData)},
+                                                                                                      {MetadataReference.CreateFromImage(verifier.EmittedAssemblyData)},
                                                                                                       TestOptions.ReleaseExe)
 
             CompilationUtils.AssertNoErrors(compilation)

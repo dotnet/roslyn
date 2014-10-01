@@ -3163,7 +3163,7 @@ End Module";
             var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
             var compilationVerifier = CompileAndVerify(compilation1, emitOptions: EmitOptions.CCI);
-            var reference1 = new MetadataImageReference(compilationVerifier.EmittedAssemblyData);
+            var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
 namespace NB
@@ -3176,7 +3176,7 @@ namespace NB
             var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "B");
             compilation2.VerifyDiagnostics();
             compilationVerifier = CompileAndVerify(compilation2, emitOptions: EmitOptions.CCI);
-            var reference2 = new MetadataImageReference(compilationVerifier.EmittedAssemblyData);
+            var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"using NB;
 namespace NA.NC

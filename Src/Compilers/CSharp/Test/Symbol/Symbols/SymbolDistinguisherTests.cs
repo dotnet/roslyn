@@ -89,13 +89,8 @@ public class C
 
             var tree = Parse(source, "file.cs");
 
-            var libFile = Temp.CreateFile(extension: ".dll");
-            var libPath = libFile.Path;
-
             var libComp = CreateCompilationWithMscorlib(tree, assemblyName: "Metadata");
-            libComp.Emit(libPath).Diagnostics.Verify();
-
-            var libRef = new MetadataFileReference(libPath, MetadataReferenceProperties.Assembly);
+            var libRef = MetadataReference.CreateFromImage(libComp.EmitToArray(), filePath: "Metadata.dll");
             var comp = CreateCompilationWithMscorlib(tree, new[] { libRef }, assemblyName: "Source");
 
             var sourceAssembly = comp.SourceAssembly;
@@ -105,7 +100,7 @@ public class C
             var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var distinguisher = new SymbolDistinguisher(comp, sourceType, referencedType);
             Assert.Equal("C [file.cs(1)]", distinguisher.First.ToString());
-            Assert.Equal(string.Format("C [{0}]", libPath), distinguisher.Second.ToString());
+            Assert.Equal(string.Format("C [Metadata.dll]"), distinguisher.Second.ToString());
         }
 
         [Fact]
@@ -134,13 +129,9 @@ public class C
 
             var tree = Parse(source, @"a\..\file.cs");
 
-            var libFile = Temp.CreateFile(extension: ".dll");
-            var libPath = libFile.Path;
-
             var libComp = CreateCompilationWithMscorlib(tree, assemblyName: "Metadata");
-            libComp.Emit(libPath).Diagnostics.Verify();
+            var libRef = MetadataReference.CreateFromImage(libComp.EmitToArray(), filePath: "Metadata.dll");
 
-            var libRef = new MetadataFileReference(libPath, MetadataReferenceProperties.Assembly);
             var comp = CreateCompilationWithMscorlib(tree, new[] { libRef }, assemblyName: "Source");
 
             var sourceAssembly = comp.SourceAssembly;

@@ -828,9 +828,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     var documentationService = this.Services.GetService<IDocumentationProviderService>();
                     var docProvider = documentationService.GetDocumentationProvider(outputFilePath);
+                    var metadata = AssemblyMetadata.CreateFromImage(File.ReadAllBytes(outputFilePath));
 
-                    return new MetadataImageReference(
-                        AssemblyMetadata.CreateFromImage(ImmutableArray.Create(File.ReadAllBytes(outputFilePath))),
+                    return metadata.GetReference(
                         documentation: docProvider,
                         aliases: aliases,
                         display: outputFilePath);

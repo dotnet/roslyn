@@ -162,7 +162,7 @@ End Module
                                                         {MsvbRef, MscorlibRef, SystemCoreRef},
                                                         TestOptions.ReleaseDll)
 
-            Return New MetadataImageReference(libraryCompilation.EmitToArray())
+            Return MetadataReference.CreateFromImage(libraryCompilation.EmitToArray())
         End Function
 
         <Fact()>
@@ -937,7 +937,7 @@ BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F8(
 </errors>)
             Dim comp2b = CreateCompilationWithMscorlibAndVBRuntime(
                 source2,
-                additionalRefs:={New MetadataImageReference(comp1.EmitToArray())},
+                additionalRefs:={MetadataReference.CreateFromImage(comp1.EmitToArray())},
                 options:=TestOptions.DebugExe)
             comp2b.AssertTheseDiagnostics(<errors/>)
             CompileAndVerify(comp2b, expectedOutput:=

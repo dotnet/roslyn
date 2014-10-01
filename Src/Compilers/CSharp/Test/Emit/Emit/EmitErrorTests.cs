@@ -200,11 +200,11 @@ public class B
 
             var source = @"class Module1 { }";
 
-            var compilationOK = CreateCompilationWithMscorlib(source, new MetadataReference[] { new MetadataImageReference(moduleMetadata, filePath: @"R:\A\B\ModuleNameMismatch.netmodule") });
+            var compilationOK = CreateCompilationWithMscorlib(source, new MetadataReference[] { moduleMetadata.GetReference(filePath: @"R:\A\B\ModuleNameMismatch.netmodule") });
 
             CompileAndVerify(compilationOK);
 
-            var compilationError = CreateCompilationWithMscorlib(source, new MetadataReference[] { new MetadataImageReference(moduleMetadata, filePath: @"R:\A\B\ModuleNameMismatch.mod") });
+            var compilationError = CreateCompilationWithMscorlib(source, new MetadataReference[] { moduleMetadata.GetReference(filePath: @"R:\A\B\ModuleNameMismatch.mod") });
 
             compilationError.VerifyDiagnostics(
                 // error CS7086: Module name 'ModuleNameMismatch.netmodule' stored in 'ModuleNameMismatch.mod' must match its filename.

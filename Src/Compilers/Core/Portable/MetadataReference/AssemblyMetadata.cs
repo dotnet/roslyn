@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="peImage">
         /// Manifest module image.
         /// </param>
-        /// <exception cref="ArgumentException"><paramref name="peImage"/> has the default value.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         public static AssemblyMetadata CreateFromImage(ImmutableArray<byte> peImage)
         {
             return Create(ModuleMetadata.CreateFromImage(peImage));
@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="peImage">
         /// Manifest module image.
         /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         public static AssemblyMetadata CreateFromImage(IEnumerable<byte> peImage)
         {
@@ -128,9 +129,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="peStream">Manifest module PE image stream.</param>
         /// <param name="leaveOpen">False to close the stream upon disposal of the metadata.</param>
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
-        public static AssemblyMetadata CreateFromImageStream(Stream peStream, bool leaveOpen = false)
+        public static AssemblyMetadata CreateFromStream(Stream peStream, bool leaveOpen = false)
         {
-            return Create(ModuleMetadata.CreateFromImageStream(peStream, leaveOpen));
+            return Create(ModuleMetadata.CreateFromStream(peStream, leaveOpen));
         }
 
         /// <summary>
@@ -139,9 +140,27 @@ namespace Microsoft.CodeAnalysis
         /// <param name="peStream">Manifest module PE image stream.</param>
         /// <param name="options">False to close the stream upon disposal of the metadata.</param>
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
-        public static AssemblyMetadata CreateFromImageStream(Stream peStream, PEStreamOptions options)
+        public static AssemblyMetadata CreateFromStream(Stream peStream, PEStreamOptions options)
         {
-            return Create(ModuleMetadata.CreateFromImageStream(peStream, options));
+            return Create(ModuleMetadata.CreateFromStream(peStream, options));
+        }
+
+        /// <summary>
+        /// Finds all modules of an assembly on a specified path and builds an instance of <see cref="AssemblyMetadata"/> that represents them.
+        /// </summary>
+        /// <param name="path">The full path to the assembly on disk.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="path"/> is invalid.</exception>
+        /// <exception cref="IOException">Error reading file <paramref name="path"/>. See <see cref="Exception.InnerException"/> for details.</exception>
+        /// <exception cref="NotSupportedException">Reading from a file path is not supported by the platform.</exception>
+        public static AssemblyMetadata CreateFromFile(string path)
+        {
+            return CreateFromFile(ModuleMetadata.CreateFromFile(path), path);
+        }
+
+        internal static AssemblyMetadata CreateFromFile(ModuleMetadata manifestModule, string path)
+        {
+            return new AssemblyMetadata(manifestModule, moduleName => ModuleMetadata.CreateFromFile(Path.Combine(Path.GetDirectoryName(path), moduleName)));
         }
 
         /// <summary>
@@ -408,6 +427,25 @@ namespace Microsoft.CodeAnalysis
         public override MetadataImageKind Kind
         {
             get { return MetadataImageKind.Assembly; }
+        }
+
+        /// <summary>
+        /// Creates a reference to the assembly metadata.
+        /// </summary>
+        /// <param name="documentation">Provider of XML documentation comments for the metadata symbols contained in the module.</param>
+        /// <param name="aliases">Aliases that can be used to refer to the assembly from source code (see "extern alias" directive in C#).</param>
+        /// <param name="embedInteropTypes">True to embed interop types from the referenced assembly to the referencing compilation. Must be false for a module.</param>
+        /// <param name="filePath">Path describing the location of the metadata, or null if the metadata have no location.</param>
+        /// <param name="display">Display string used in error messages to identity the reference.</param>
+        /// <returns>A reference to the assembly metadata.</returns>
+        public PortableExecutableReference GetReference(
+            DocumentationProvider documentation = null, 
+            ImmutableArray<string> aliases = default(ImmutableArray<string>),
+            bool embedInteropTypes = false, 
+            string filePath = null,
+            string display = null)
+        {
+            return new MetadataImageReference(this, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes), documentation, filePath, display);
         }
     }
 }

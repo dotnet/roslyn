@@ -2,10 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,6 +34,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(GetProperties(compilation, aliases, embedInteropTypes))
         {
             this.Compilation = compilation;
+        }
+
+        private CSharpCompilationReference(CSharpCompilation compilation, MetadataReferenceProperties properties)
+            : base(properties)
+        {
+            this.Compilation = compilation;
+        }
+
+        internal override CompilationReference WithPropertiesImpl(MetadataReferenceProperties properties)
+        {
+            return new CSharpCompilationReference(Compilation, properties);
         }
 
         private string GetDebuggerDisplay()

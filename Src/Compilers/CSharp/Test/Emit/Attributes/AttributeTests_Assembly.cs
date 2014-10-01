@@ -788,7 +788,7 @@ public class C {}
             Assert.True(compilation.Emit(stream).Success);
             stream.Position = 0;
 
-            using (var metadata = ModuleMetadata.CreateFromImageStream(stream))
+            using (var metadata = ModuleMetadata.CreateFromStream(stream))
             {
                 var peReader = metadata.MetadataReader;
                 AssemblyDefinition row = peReader.GetAssemblyDefinition();
@@ -850,10 +850,10 @@ public class C {}
                 }
                 ";
 
-        private MetadataImageReference GetNetModuleWithAssemblyAttributesRef(string source = null, IEnumerable<MetadataReference> references = null)
+        private MetadataReference GetNetModuleWithAssemblyAttributesRef(string source = null, IEnumerable<MetadataReference> references = null)
         {
             string assemblyName = GetUniqueName();
-            return new MetadataImageReference(GetNetModuleWithAssemblyAttributes(source, references, assemblyName), display: assemblyName + ".netmodule");
+            return GetNetModuleWithAssemblyAttributes(source, references, assemblyName).GetReference(display: assemblyName + ".netmodule");
         }
 
         private ModuleMetadata GetNetModuleWithAssemblyAttributes(string source = null, IEnumerable<MetadataReference> references = null, string assemblyName = null)
@@ -916,7 +916,7 @@ public class C {}
 
             var consoleappCompilation = CreateCompilationWithMscorlib(
                 consoleappSource, 
-                references: new[] { new MetadataImageReference(netModuleWithAssemblyAttributes) }, 
+                references: new[] { netModuleWithAssemblyAttributes.GetReference() }, 
                 options: TestOptions.ReleaseExe);
 
             var diagnostics = consoleappCompilation.GetDiagnostics();
@@ -960,7 +960,7 @@ public class C {}
 
             consoleappCompilation = CreateCompilationWithMscorlib(
                 consoleappSource, 
-                references: new[] { new MetadataImageReference(netModuleWithAssemblyAttributes) },
+                references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseModule);
 
             Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length);

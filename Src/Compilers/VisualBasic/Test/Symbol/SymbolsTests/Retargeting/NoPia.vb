@@ -282,45 +282,39 @@ End Class
 
         <Fact()>
         Public Sub LocalTypeSubstitution1_1()
-            Using MetadataCache.LockAndClean()
-                Dim compilation1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL)
-                CompileAndVerify(compilation1)
-                Dim compilation2 = CreateCompilationWithMscorlib(SourceLocalTypes2_IL)
-                CompileAndVerify(compilation2)
-                LocalTypeSubstitution1(compilation1, compilation2)
-            End Using
+            Dim compilation1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL)
+            CompileAndVerify(compilation1)
+            Dim compilation2 = CreateCompilationWithMscorlib(SourceLocalTypes2_IL)
+            CompileAndVerify(compilation2)
+            LocalTypeSubstitution1(compilation1, compilation2)
         End Sub
 
         <Fact()>
         Public Sub LocalTypeSubstitution1_2()
-            Using MetadataCache.LockAndClean()
-                Dim compilation1 = CreateCompilationWithMscorlib(
-                    SourceLocalTypes1,
-                    references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
-                CompileAndVerify(compilation1)
-                Dim compilation2 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib(
+                SourceLocalTypes1,
+                references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
+            CompileAndVerify(compilation1)
+            Dim compilation2 = CreateCompilationWithMscorlib(
                     SourceLocalTypes2,
                     references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
-                CompileAndVerify(compilation2)
-                LocalTypeSubstitution1(compilation1, compilation2)
-            End Using
+            CompileAndVerify(compilation2)
+            LocalTypeSubstitution1(compilation1, compilation2)
         End Sub
 
         <Fact()>
         Public Sub LocalTypeSubstitution1_3()
-            Using MetadataCache.LockAndClean()
-                Dim compilation0 = CreateCompilationWithMscorlib(SourcePia1)
-                CompileAndVerify(compilation0)
-                Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation0 = CreateCompilationWithMscorlib(SourcePia1)
+            CompileAndVerify(compilation0)
+            Dim compilation1 = CreateCompilationWithMscorlib(
                     SourceLocalTypes1,
                     references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-                CompileAndVerify(compilation1)
-                Dim compilation2 = CreateCompilationWithMscorlib(
+            CompileAndVerify(compilation1)
+            Dim compilation2 = CreateCompilationWithMscorlib(
                     SourceLocalTypes2,
                     references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-                CompileAndVerify(compilation2)
-                LocalTypeSubstitution1(compilation1, compilation2)
-            End Using
+            CompileAndVerify(compilation2)
+            LocalTypeSubstitution1(compilation1, compilation2)
         End Sub
 
         Private Sub LocalTypeSubstitution1(compilation1 As VisualBasicCompilation, compilation2 As VisualBasicCompilation)
@@ -539,41 +533,35 @@ End Class
 
         <Fact()>
         Public Sub CyclicReference_1()
-            Using MetadataCache.LockAndClean()
-                Dim piaRef = TestReferences.SymbolsTests.NoPia.Pia1
-                Dim compilation1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL)
-                CompileAndVerify(compilation1)
-                Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
-                CyclicReference(piaRef, localTypes1Ref)
-            End Using
+            Dim piaRef = TestReferences.SymbolsTests.NoPia.Pia1
+            Dim compilation1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL)
+            CompileAndVerify(compilation1)
+            Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
+            CyclicReference(piaRef, localTypes1Ref)
         End Sub
 
         <Fact()>
         Public Sub CyclicReference_2()
-            Using MetadataCache.LockAndClean()
-                Dim piaRef = TestReferences.SymbolsTests.NoPia.Pia1
-                Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim piaRef = TestReferences.SymbolsTests.NoPia.Pia1
+            Dim compilation1 = CreateCompilationWithMscorlib(
                     SourceLocalTypes1,
                     references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
-                CompileAndVerify(compilation1)
-                Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
-                CyclicReference(piaRef, localTypes1Ref)
-            End Using
+            CompileAndVerify(compilation1)
+            Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
+            CyclicReference(piaRef, localTypes1Ref)
         End Sub
 
         <Fact()>
         Public Sub CyclicReference_3()
-            Using MetadataCache.LockAndClean()
-                Dim pia1 = CreateCompilationWithMscorlib(SourcePia1)
-                CompileAndVerify(pia1)
-                Dim piaRef = New VisualBasicCompilationReference(pia1)
-                Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim pia1 = CreateCompilationWithMscorlib(SourcePia1)
+            CompileAndVerify(pia1)
+            Dim piaRef = New VisualBasicCompilationReference(pia1)
+            Dim compilation1 = CreateCompilationWithMscorlib(
                     SourceLocalTypes1,
                     references:={New VisualBasicCompilationReference(pia1, embedInteropTypes:=True)})
-                CompileAndVerify(compilation1)
-                Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
-                CyclicReference(piaRef, localTypes1Ref)
-            End Using
+            CompileAndVerify(compilation1)
+            Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
+            CyclicReference(piaRef, localTypes1Ref)
         End Sub
 
         Private Sub CyclicReference(piaRef As MetadataReference, localTypes1Ref As CompilationReference)
@@ -662,7 +650,7 @@ End Structure
 ]]></file></compilation>
             Dim pia = CreateCompilationWithMscorlib(piaSource)
             CompileAndVerify(pia)
-            Dim piaImage = New MetadataImageReference(pia.EmitToArray())
+            Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -688,7 +676,7 @@ End Interface
 ]]></file></compilation>
             Dim localTypes2 = CreateCompilationWithMscorlib(source)
             CompileAndVerify(localTypes2)
-            Dim localTypes2Image = New MetadataImageReference(localTypes2.EmitToArray())
+            Dim localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray())
 
             Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
@@ -754,7 +742,7 @@ End Structure
 ]]></file></compilation>
             Dim pia = CreateCompilationWithMscorlib(piaSource)
             CompileAndVerify(pia)
-            Dim piaImage = New MetadataImageReference(pia.EmitToArray())
+            Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -779,7 +767,7 @@ End Interface
 ]]></file></compilation>
             Dim localTypes2 = CreateCompilationWithMscorlib(source)
             CompileAndVerify(localTypes2)
-            Dim localTypes2Image = New MetadataImageReference(localTypes2.EmitToArray())
+            Dim localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray())
 
             Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
@@ -845,7 +833,7 @@ End Structure
 ]]></file></compilation>
             Dim pia = CreateCompilationWithMscorlib(piaSource)
             CompileAndVerify(pia)
-            Dim piaImage = New MetadataImageReference(pia.EmitToArray())
+            Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -870,7 +858,7 @@ End Interface
 ]]></file></compilation>
             Dim localTypes2 = CreateCompilationWithMscorlib(source)
             'CompileAndVerify(localTypes2)
-            Dim localTypes2Image = New MetadataImageReference(localTypes2.EmitToArray())
+            Dim localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray())
 
             Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
@@ -936,7 +924,7 @@ End Structure
 ]]></file></compilation>
             Dim pia = CreateCompilationWithMscorlib(piaSource)
             CompileAndVerify(pia)
-            Dim piaImage = New MetadataImageReference(pia.EmitToArray())
+            Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -996,7 +984,7 @@ End Structure
 ]]></file></compilation>
             Dim pia = CreateCompilationWithMscorlib(piaSource)
             CompileAndVerify(pia)
-            Dim piaImage = New MetadataImageReference(pia.EmitToArray())
+            Dim piaImage = MetadataReference.CreateFromImage(pia.EmitToArray())
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -1022,7 +1010,7 @@ End Interface
 ]]></file></compilation>
             Dim localTypes2 = CreateCompilationWithMscorlib(source)
             'CompileAndVerify(localTypes2)
-            Dim localTypes2Image = New MetadataImageReference(localTypes2.EmitToArray())
+            Dim localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray())
 
             Dim compilation = CreateCompilationWithMscorlib(<compilation/>,
                 references:=New MetadataReference() {New VisualBasicCompilationReference(localTypes2), New VisualBasicCompilationReference(pia)})
@@ -1090,7 +1078,7 @@ namespace n1.n2
 ]]>.Value,
                 assemblyName:="Pia1",
                 referencedAssemblies:=New MetadataReference() {MscorlibRef})
-            Dim pia1Image = New MetadataImageReference(pia1.EmitToArray(), embedInteropTypes:=True)
+            Dim pia1Image = pia1.EmitToImageReference(embedInteropTypes:=True)
             Dim pia2 = CreateCSharpCompilation(<![CDATA[
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib("Pia.dll")] 
@@ -1103,7 +1091,7 @@ namespace N1.N2
 ]]>.Value,
                 assemblyName:="Pia2",
                 referencedAssemblies:=New MetadataReference() {MscorlibRef})
-            Dim pia2Image = New MetadataImageReference(pia2.EmitToArray(), embedInteropTypes:=True)
+            Dim pia2Image = pia2.EmitToImageReference(embedInteropTypes:=True)
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
 using System;
 class A : Attribute
@@ -1120,7 +1108,7 @@ class C3 {}
                 assemblyName:="1",
                 referencedAssemblies:=New MetadataReference() {MscorlibRef, pia1Image})
             compilation1.VerifyDiagnostics()
-            Dim compilation1Image = New MetadataImageReference(compilation1.EmitToArray())
+            Dim compilation1Image = MetadataReference.CreateFromImage(compilation1.EmitToArray())
 
             Dim compilation2 = CreateCompilationWithMscorlib(<compilation name="2"/>,
                 references:=New MetadataReference() {compilation1Image, pia1Image})

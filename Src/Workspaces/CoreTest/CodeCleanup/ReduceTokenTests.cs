@@ -1843,7 +1843,7 @@ End Module";
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(new MetadataFileReference(typeof(int).Assembly.Location))
+            return project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

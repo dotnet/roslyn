@@ -52,7 +52,7 @@ class C
 
             var c1 = CreateCompilation(src1, references);
             var c2 = CreateCompilation(src2, references);
-            var md1 = AssemblyMetadata.CreateFromImageStream(c1.EmitToStream());
+            var md1 = AssemblyMetadata.CreateFromStream(c1.EmitToStream());
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => ImmutableArray.Create<string>());
 
             var mdStream = new MemoryStream();
@@ -118,7 +118,7 @@ class C
     public static void Main() { F(null); }
 }
 ";
-            var md1 = AssemblyMetadata.CreateFromImageStream(CreateCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
+            var md1 = AssemblyMetadata.CreateFromStream(CreateCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
 
             var c1 = CreateCompilation(src1, new[] { MscorlibRef });
             var c2 = CreateCompilation(src2, new[] { MscorlibRef });

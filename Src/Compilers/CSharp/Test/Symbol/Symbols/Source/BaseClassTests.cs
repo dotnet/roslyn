@@ -1488,7 +1488,7 @@ class Z
             Assert.Equal(0, c2.GetDiagnostics().Count());
 
             var metadata1 = c1.EmitToArray(metadataOnly: true);
-            c2 = CreateCompilationWithMscorlib(textB, new[] { new MetadataImageReference(metadata1) });
+            c2 = CreateCompilationWithMscorlib(textB, new[] { MetadataReference.CreateFromImage(metadata1) });
 
             Assert.Equal(0, c2.GetDiagnostics().Count());
         }
@@ -1759,7 +1759,7 @@ public class Derived<T> : Base<Derived<T>>
 }
 ";
 
-            var metadataRef = new MetadataImageReference(CreateCompilationWithMscorlib(source).EmitToArray(), embedInteropTypes: true);
+            var metadataRef = CreateCompilationWithMscorlib(source).EmitToImageReference(embedInteropTypes: true);
 
             var comp = CreateCompilationWithMscorlib("", new[] { metadataRef });
             var derived = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");

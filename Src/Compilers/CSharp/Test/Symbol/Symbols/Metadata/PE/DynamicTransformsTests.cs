@@ -429,7 +429,7 @@ class D
     }
 }
 ";
-            var dll = new MetadataImageReference(TestResources.MetadataTests.Invalid.InvalidDynamicAttributeArgs.AsImmutableOrNull());
+            var dll = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidDynamicAttributeArgs.AsImmutableOrNull());
 
             var c = CreateCompilationWithMscorlib(csSource, new[] { dll });
                 

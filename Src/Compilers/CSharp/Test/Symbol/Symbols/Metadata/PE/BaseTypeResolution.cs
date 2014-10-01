@@ -32,14 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             TestBaseTypeResolutionHelper2(assemblies);
 
-            using (MetadataCache.LockAndClean())
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
             {
-                assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
-                {
-                    TestReferences.SymbolsTests.MDTestLib1,
-                    TestReferences.SymbolsTests.MDTestLib2
-                });
-            }
+                TestReferences.SymbolsTests.MDTestLib1,
+                TestReferences.SymbolsTests.MDTestLib2
+            });
 
             // TestBaseTypeResolutionHelper3(assemblies); // TODO(alekseyt): this test is not valid.  See email of 7/23/2010 for explanation.
 

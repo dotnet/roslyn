@@ -516,7 +516,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib As New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, aliases:=ImmutableArray.Create("Foo"))
+            Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Foo"))
 
             Dim comp = CreateCompilationWithReferences(source, {aliasedCorlib})
 
@@ -558,7 +558,7 @@ End Class
                 </compilation>
 
             Dim libComp = CreateCompilationWithReferences([lib], {MscorlibRef_v4_0_30316_17626})
-            Dim libRef As New MetadataImageReference(libComp.EmitToArray(), aliases:=ImmutableArray.Create("myTask"))
+            Dim libRef = libComp.EmitToImageReference(aliases:=ImmutableArray.Create("myTask"))
 
             Dim comp = CreateCompilationWithReferences(source, {libRef, MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929})
 

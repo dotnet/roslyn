@@ -9926,7 +9926,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
@@ -9943,7 +9943,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -9984,7 +9984,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
@@ -10011,7 +10011,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 

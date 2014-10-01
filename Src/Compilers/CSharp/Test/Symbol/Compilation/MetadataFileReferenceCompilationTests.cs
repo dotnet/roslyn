@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable CS0618 // MetadataFileReference to be removed
+
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -119,7 +121,7 @@ class A { }
                 var b = CreateCompilationWithMscorlib(
                     @"public class B { public static int Main() { return C.Main(); } }",
                     assemblyName: "b",
-                    references: new[] { new MetadataImageReference(TestResources.SymbolsTests.General.C2) },
+                    references: new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2) },
                     options: TestOptions.ReleaseDll);
 
                 using (MemoryStream output = new MemoryStream())

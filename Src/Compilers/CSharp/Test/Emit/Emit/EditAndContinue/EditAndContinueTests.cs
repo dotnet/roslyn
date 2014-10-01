@@ -5129,7 +5129,7 @@ public interface I
     }
 }";
             var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
-            var referencePIA = new MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes: true);
+            var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA });
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA });
 
@@ -5225,7 +5225,7 @@ public struct S
     }
 }";
             var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
-            var referencePIA = new MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes: true);
+            var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
             var compilation1A = CreateCompilationWithMscorlib(source1A, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
             var compilation1B = CreateCompilationWithMscorlib(source1B, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
@@ -5311,7 +5311,7 @@ public interface IB
     enum E { X }
 }";
             var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
-            var referencePIA = new MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes: true);
+            var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
 

@@ -595,7 +595,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-                {New MetadataImageReference(other.EmitToArray())})
+                {MetadataReference.CreateFromImage(other.EmitToArray())})
             CompilationUtils.AssertNoErrors(c)
         End Sub
 
@@ -631,7 +631,7 @@ End Module
     End Module
 ]]>
     </file>
-</compilation>, {New MetadataImageReference(otherImage)})
+</compilation>, {MetadataReference.CreateFromImage(otherImage)})
 
             CompilationUtils.AssertNoErrors(comp)
         End Sub
@@ -1934,7 +1934,7 @@ Module M1
 End Module
 ]]>
     </file>
-</compilation>, {New MetadataImageReference(assem1Bytes)})
+</compilation>, {MetadataReference.CreateFromImage(assem1Bytes)})
             Dim assem2Bytes = assem2.EmitToArray()
 
             Dim assem3 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -1959,7 +1959,7 @@ End Module
 ]]>
     </file>
 </compilation>,
-                {New MetadataImageReference(assem1Bytes), New MetadataImageReference(assem2Bytes)})
+                {MetadataReference.CreateFromImage(assem1Bytes), MetadataReference.CreateFromImage(assem2Bytes)})
 
 
             CompilationUtils.AssertTheseDiagnostics(assem3,
@@ -1997,7 +1997,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
             compilation1.AssertNoErrors()
             Dim compilationVerifier = CompileAndVerify(compilation1, emitOptions:=EmitOptions.CCI)
-            Dim reference1 = New MetadataImageReference(compilationVerifier.EmittedAssemblyData)
+            Dim reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource2 =
                 <compilation name="B">
                     <file name="b.vb"><![CDATA[
@@ -2014,7 +2014,7 @@ End Class
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {reference1})
             compilation2.AssertNoErrors()
             compilationVerifier = CompileAndVerify(compilation2, emitOptions:=EmitOptions.CCI)
-            Dim reference2 = New MetadataImageReference(compilationVerifier.EmittedAssemblyData)
+            Dim reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource3 =
                 <compilation name="C">
                     <file name="c.vb"><![CDATA[
@@ -2049,7 +2049,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
             compilation1.AssertNoErrors()
             Dim compilationVerifier = CompileAndVerify(compilation1, emitOptions:=EmitOptions.CCI)
-            Dim reference1 = New MetadataImageReference(compilationVerifier.EmittedAssemblyData)
+            Dim reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource2 =
                 <compilation name="B">
                     <file name="b.vb"><![CDATA[
@@ -2066,7 +2066,7 @@ End Class
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {reference1})
             compilation2.AssertNoErrors()
             compilationVerifier = CompileAndVerify(compilation2, emitOptions:=EmitOptions.CCI)
-            Dim reference2 = New MetadataImageReference(compilationVerifier.EmittedAssemblyData)
+            Dim reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource3 =
                 <compilation name="C">
                     <file name="c.vb"><![CDATA[

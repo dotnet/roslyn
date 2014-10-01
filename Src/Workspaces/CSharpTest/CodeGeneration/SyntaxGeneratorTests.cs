@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         private readonly SyntaxGenerator g = SyntaxGenerator.GetGenerator(new CustomWorkspace(), LanguageNames.CSharp);
 
         private readonly CSharpCompilation emptyCompilation = CSharpCompilation.Create("empty",
-                references: new MetadataReference[] { new MetadataFileReference(typeof(int).Assembly.Location) });
+                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
 
         private readonly INamedTypeSymbol ienumerableInt;
 

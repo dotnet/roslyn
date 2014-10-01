@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
         /// This directory is only used if the base directory isn't implied by the context within which the path is being resolved.
         /// 
         /// It is used, for example, when resolving a strong name key file specified in <see cref="System.Reflection.AssemblyKeyFileAttribute"/>,
-        /// or a metadata file path specified in <see cref="MetadataFileReference"/>.
+        /// or a metadata file path specified in <see cref="PortableExecutableReference.FilePath"/>.
         /// 
         /// Resolution of a relative path that needs the base directory fails if the base directory is null.
         /// </remarks>

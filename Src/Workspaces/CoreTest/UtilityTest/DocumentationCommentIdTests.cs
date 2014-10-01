@@ -13,17 +13,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class DocumentationCommentIdTests : TestBase
     {
-        private static readonly MetadataReference mscorlib;
-
-        static DocumentationCommentIdTests()
-        {
-            mscorlib = new MetadataFileReference(typeof(int).Assembly.Location);
-        }
-
         private CSharpCompilation CreateCSharpCompilation(string sourceText)
         {
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText);
-            return CSharpCompilation.Create("foo.exe").AddReferences(mscorlib).AddSyntaxTrees(syntaxTree);
+            return CSharpCompilation.Create("foo.exe").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(syntaxTree);
         }
 
         private void CheckDeclarationId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)

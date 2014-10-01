@@ -1029,7 +1029,7 @@ End class
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim modRef1 = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim modRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef1, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
@@ -1088,7 +1088,7 @@ End class
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim modRef2 = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim modRef2 = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef2, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
@@ -1198,7 +1198,7 @@ End Class
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim modRef = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim modRef = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             Dim app =
 <compilation>
@@ -1257,7 +1257,7 @@ End class
 <compilation name="A">
     <file name="a.vb"><![CDATA[
     ]]></file>
-</compilation>, {New MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.TypeForwarders.Forwarded)),
+</compilation>, {ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.TypeForwarders.Forwarded).GetReference(),
                  New VisualBasicCompilationReference(cC_v1)},
                 TestOptions.ReleaseDll)
 

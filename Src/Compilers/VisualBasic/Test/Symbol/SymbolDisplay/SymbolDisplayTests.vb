@@ -4026,7 +4026,7 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlibAndReferences(src2, references:={compref})
 
             Dim mtdata = comp1.EmitToArray()
-            Dim mtref = New MetadataImageReference(mtdata)
+            Dim mtref = MetadataReference.CreateFromImage(mtdata)
             Dim comp2 = CreateCompilationWithMscorlibAndReferences(dummy, references:={mtref})
 
             Dim tsym1 = comp1.SourceModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Gen")

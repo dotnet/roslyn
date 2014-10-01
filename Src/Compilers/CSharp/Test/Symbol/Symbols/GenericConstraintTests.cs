@@ -2787,7 +2787,7 @@ public abstract class B4<T, U>
 public abstract class B5 : B4<A, IA>
 {
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { new MetadataImageReference(compilation1.EmitToArray()) });
+            var compilation2 = CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) });
             compilation2.VerifyDiagnostics();
             var source3 =
 @"class C1A : IB1
@@ -2818,7 +2818,7 @@ class C5B : B5
 {
     public override void M4<T4B, U4B>() { }
 }";
-            var compilation3 = CreateCompilationWithMscorlib(source3, references: new MetadataReference[] { new MetadataImageReference(compilation2.EmitToArray()) });
+            var compilation3 = CreateCompilationWithMscorlib(source3, references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation2.EmitToArray()) });
             compilation3.VerifyDiagnostics(
                 // (3,17): error CS0012: The type 'IA' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-0788-249e00d004ea, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     void IB1.M1<T1A, U1A>() { }
@@ -6602,7 +6602,7 @@ class P
 }";
             var compilation2 = CreateCompilationWithMscorlib(
                 source2,
-                references: new MetadataReference[] { new MetadataImageReference(compilation1.EmitToArray()) },
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) },
                 options: TestOptions.ReleaseExe);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, emitOptions: EmitOptions.RefEmitBug, expectedOutput:

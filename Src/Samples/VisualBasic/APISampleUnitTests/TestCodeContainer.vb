@@ -59,7 +59,7 @@ Class TestCodeContainer
         Me.Compilation = VisualBasicCompilation.Create(
             "test",
             syntaxTrees:={Me.SyntaxTree},
-            references:={New MetadataFileReference(GetType(Object).Assembly.Location)})
+            references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly)})
 
         Me.SemanticModel = Compilation.GetSemanticModel(Me.SyntaxTree)
     End Sub

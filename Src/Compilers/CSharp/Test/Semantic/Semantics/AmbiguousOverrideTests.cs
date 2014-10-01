@@ -393,7 +393,7 @@ class Test
     }
 }
 ";
-            var asm = new MetadataImageReference(TestResources.SymbolsTests.CustomModifiers.ModoptTests.AsImmutableOrNull());
+            var asm = MetadataReference.CreateFromImage(TestResources.SymbolsTests.CustomModifiers.ModoptTests.AsImmutableOrNull());
             CreateCompilationWithMscorlib(text, new[] { asm }).VerifyDiagnostics(
     // (11,9): error CS0570: 'Metadata.Modreq.M(?)' is not supported by the language
     //         new D().M(11); // Dev10: error CS0570: 'M' is not supported by the language

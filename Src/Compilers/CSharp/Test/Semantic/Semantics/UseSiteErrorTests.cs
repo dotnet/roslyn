@@ -1155,8 +1155,7 @@ class B : C, I { }
             var xSource = @"
 public class X {}
 ";
-            var xImage = CreateCompilationWithMscorlib(xSource, assemblyName: "X").EmitToArray();
-            var xRef = new MetadataImageReference(xImage, display: "X");
+            var xRef = CreateCompilationWithMscorlib(xSource, assemblyName: "X").EmitToImageReference();
 
             var libSource = @"
 public interface I

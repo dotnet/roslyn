@@ -3691,7 +3691,7 @@ End Class
 
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-                reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
             Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -3775,7 +3775,7 @@ End Class
 
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-                reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
             Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -3870,7 +3870,7 @@ End Class
 
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-                reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
             Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -3928,7 +3928,7 @@ End Class
 
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-                reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
             Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -3997,7 +3997,7 @@ End Class
 
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-                reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
             Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -4066,7 +4066,7 @@ End Class
 
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-                reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
             Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -4151,7 +4151,7 @@ End Class
 
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-                reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
             Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -4216,7 +4216,7 @@ End Class
 
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
-                reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
             Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))

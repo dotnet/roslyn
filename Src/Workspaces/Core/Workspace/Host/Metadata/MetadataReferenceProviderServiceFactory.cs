@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             public override PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
-                return new MetadataFileReference(resolvedPath, properties, this.documentationService.GetDocumentationProvider(resolvedPath));
+                return MetadataReference.CreateFromFile(resolvedPath, properties, this.documentationService.GetDocumentationProvider(resolvedPath));
             }
         }
     }

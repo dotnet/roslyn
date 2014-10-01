@@ -1,13 +1,9 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Reflection;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -21,11 +17,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal sealed class ExistingReferencesResolver : LoggingMetadataReferencesResolver
         {
-            private readonly ImmutableArray<MetadataFileReference> availableReferences;
+            private readonly ImmutableArray<PortableExecutableReference> availableReferences;
             private readonly AssemblyIdentityComparer assemblyIdentityComparer;
 
             public ExistingReferencesResolver(
-                ImmutableArray<MetadataFileReference> availableReferences,
+                ImmutableArray<PortableExecutableReference> availableReferences,
                 ImmutableArray<string> referencePaths,
                 string baseDirectory,
                 AssemblyIdentityComparer assemblyIdentityComparer,

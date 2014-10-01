@@ -4191,7 +4191,7 @@ public class B : A
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
             var compilationVerifier = CompileAndVerify(compilation1, emitOptions: EmitOptions.CCI);
-            var reference1 = new MetadataImageReference(compilationVerifier.EmittedAssemblyData);
+            var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
 {
@@ -6899,7 +6899,7 @@ public class B : A
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
             var compilationVerifier = CompileAndVerify(compilation1, emitOptions: EmitOptions.CCI);
-            var reference1 = new MetadataImageReference(compilationVerifier.EmittedAssemblyData);
+            var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
 {

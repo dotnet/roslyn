@@ -225,7 +225,7 @@ class Test2
     }
 }  
 ";
-            CSharpCompilation compUsing = CreateCompilationWithMscorlib(srcUsing, new[] { new MetadataImageReference(mdOnlyImage.AsImmutableOrNull()) });
+            CSharpCompilation compUsing = CreateCompilationWithMscorlib(srcUsing, new[] { MetadataReference.CreateFromImage(mdOnlyImage.AsImmutableOrNull()) });
 
             using (var output = new MemoryStream())
             {
@@ -305,7 +305,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             Assert.Equal(symbolsSynthesizedCount, cciExplicit.Count());
             Assert.Equal(symbolsSynthesizedCount, cciMethods.Count());
 
-            var libAssemblyReference = new MetadataImageReference(dllImage.AsImmutableOrNull());
+            var libAssemblyReference = MetadataReference.CreateFromImage(dllImage.AsImmutableOrNull());
 
             var exeText = @"
 class Class2
@@ -1035,7 +1035,7 @@ class C
 
             //EDMAURER this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
             //that contains System.Object.
-            var metadataReader = ModuleMetadata.CreateFromImageStream(compilation.EmitToStream()).MetadataReader;
+            var metadataReader = ModuleMetadata.CreateFromStream(compilation.EmitToStream()).MetadataReader;
             Assert.Equal("v2.0.50727", metadataReader.MetadataVersion);
         }
 
@@ -1774,7 +1774,7 @@ public sealed class ContentType
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule, assemblyName: "ContentType");
             compilation.VerifyDiagnostics();
 
-            using (ModuleMetadata block = ModuleMetadata.CreateFromImageStream(compilation.EmitToStream()))
+            using (ModuleMetadata block = ModuleMetadata.CreateFromStream(compilation.EmitToStream()))
             {
                 var reader = block.MetadataReader;
                 foreach (var typeRef in reader.TypeReferences)
@@ -2151,17 +2151,17 @@ public class Test
     }
 }";
             var c1 = CreateCompilationWithMscorlib(p1, options: TestOptions.ReleaseDll, assemblyName: Guid.NewGuid().ToString());
-            CompileAndVerify(p2, new[] { new MetadataImageReference(c1.EmitToStream()) }, expectedOutput: "0");
+            CompileAndVerify(p2, new[] { MetadataReference.CreateFromStream(c1.EmitToStream()) }, expectedOutput: "0");
         }
 
         [WorkItem(546450, "DevDiv")]
         [Fact]
-        void EmitNetModuleWithReferencedNetModule()
+        public void EmitNetModuleWithReferencedNetModule()
         {
             string source1 = @"public class A {}";
             string source2 = @"public class B: A {}";
             var comp = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
-            var metadataRef = new MetadataImageReference(ModuleMetadata.CreateFromImageStream(comp.EmitToStream()));
+            var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
             CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitOptions: EmitOptions.RefEmitBug, verify: false);
         }
 
@@ -2591,7 +2591,7 @@ class Viewable
 }
 ";
             var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.ReleaseDll);
-            var peReader = ModuleMetadata.CreateFromImageStream(compilation.EmitToStream()).Module.GetMetadataReader();
+            var peReader = ModuleMetadata.CreateFromStream(compilation.EmitToStream()).Module.GetMetadataReader();
 
             int P1RVA = 0;
             int P2RVA = 0;

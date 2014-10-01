@@ -2541,9 +2541,10 @@ End Namespace
 </compilation>
 
             Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
-            Dim modRef = modComp.EmitToImageReference(
+            Dim modRef = modComp.EmitToImageReference(expectedWarnings:=
+            {
                 Diagnostic(ERRID.WRN_NamespaceCaseMismatch3, "ns1").WithArguments("ns1", "NS1", "a.vb")
-                )
+            })
 
             Dim source2 =
 <compilation>
@@ -2603,9 +2604,10 @@ End Namespace
 </compilation>
 
             Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
-            Dim modRef = modComp.EmitToImageReference(
+            Dim modRef = modComp.EmitToImageReference(expectedWarnings:=
+            {
                 Diagnostic(ERRID.WRN_NamespaceCaseMismatch3, "ns1").WithArguments("ns1", "NS1", "a.vb")
-                )
+            })
 
             Dim source2 =
 <compilation>
@@ -2726,9 +2728,10 @@ End Namespace
 </compilation>
 
             Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
-            Dim modRef = modComp.EmitToImageReference(
+            Dim modRef = modComp.EmitToImageReference(expectedWarnings:=
+            {
                 Diagnostic(ERRID.WRN_NamespaceCaseMismatch3, "ns1").WithArguments("ns1", "NS1", "a.vb")
-                )
+            })
 
             Dim source2 =
 <compilation>
@@ -2916,7 +2919,7 @@ Friend Class c2
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim moduleRef = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim moduleRef = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             Dim source =
 <compilation>
@@ -2982,7 +2985,7 @@ BC37211: Type 'ITest20(Of T)' exported from module 'ITest20Mod.netmodule' confli
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim moduleRef1 = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim moduleRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             Dim mod2 =
 <compilation name="mod_1_2">
@@ -3089,21 +3092,21 @@ End Class
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim module1_FT1_Ref = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim module1_FT1_Ref = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(modSource.Replace("<<ModuleName>>", "module2_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
                                                                        appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim module2_FT1_Ref = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim module2_FT1_Ref = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(modSource.Replace("<<ModuleName>>", "module3_FT2").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes2"),
                                                                        appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim module3_FT2_Ref = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim module3_FT2_Ref = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             Dim module4_FT1_source =
             <![CDATA[
@@ -3134,7 +3137,7 @@ End Class
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
-            Dim module4_Ref = New MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes))
+            Dim module4_Ref = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
             forwardedTypesSource.@name = "consumer"
 

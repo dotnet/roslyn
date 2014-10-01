@@ -1312,7 +1312,7 @@ namespace NS
         {
             var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: "Asm1");
             var verifier1 = CompileAndVerify(comp1, emitOptions: EmitOptions.RefEmitBug);
-            var ref1 = new MetadataImageReference(verifier1.EmittedAssemblyData);
+            var ref1 = MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData);
 
             var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
 
@@ -1371,18 +1371,18 @@ namespace NS
         {
             string moduleA = @"public class Foo{ public static string A = ""Original""; }";
             var bitsA = CreateCompilationWithMscorlib(moduleA, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
-            var refA = new MetadataImageReference(bitsA);
+            var refA = MetadataReference.CreateFromImage(bitsA);
 
             string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Foo.A); } }";
             var bitsB = CreateCompilationWithMscorlib(moduleB, new[] { refA }, TestOptions.ReleaseExe, assemblyName: "test").EmitToArray();
 
             string module0 = @"public class Foo{ public static string A = ""Substituted""; }";
             var bits0 = CreateCompilationWithMscorlib(module0, options: TestOptions.ReleaseModule, assemblyName: "asm0").EmitToArray();
-            var ref0 = new MetadataImageReference(ModuleMetadata.CreateFromImage(bits0));
+            var ref0 = ModuleMetadata.CreateFromImage(bits0).GetReference();
 
             string module1 = "using System;";
             var bits1 = CreateCompilationWithMscorlib(module1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1").EmitToArray();
-            var ref1 = new MetadataImageReference(AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)));
+            var ref1 = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)).GetReference();
 
             string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Foo))]";
             var bits2 = CreateCompilationWithMscorlib(module2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
@@ -1516,7 +1516,7 @@ public class CF1
                 ilBytes = ReadFromFile(reference.Path);
             }
 
-            var modRef2 = new MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes));
+            var modRef2 = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
 
             appCompilation = CreateCompilationWithMscorlib(app, references: new MetadataReference[] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
 
@@ -1564,14 +1564,14 @@ public class CF1
             var folder = Temp.CreateDirectory();
             var comp0 = CreateCompilationWithMscorlib(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
             var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, emitOptions: EmitOptions.RefEmitBug, verify: false).EmittedAssemblyData);
-            var ref0 = new MetadataImageReference(asm0);
+            var ref0 = asm0.GetReference();
 
             var comp1 = CreateCompilationWithMscorlib(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");
             var asm1 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp1, emitOptions: EmitOptions.RefEmitBug).EmittedAssemblyData);
 
             var assembly1 = AssemblyMetadata.Create(asm1, asm0);
 
-            var ref1 = new MetadataImageReference(assembly1);
+            var ref1 = assembly1.GetReference();
 
             var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2");
 

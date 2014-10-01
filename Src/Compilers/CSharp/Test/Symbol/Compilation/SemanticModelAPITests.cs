@@ -1002,7 +1002,7 @@ class Test
 }
 ";
             var comp1 = CreateCompilationWithMscorlib("public class C { }");
-            var ref1 = new MetadataImageReference(CompileAndVerify(comp1).EmittedAssemblyData, aliases: ImmutableArray.Create("X"));
+            var ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
             var comp2 = CreateCompilationWithMscorlib(source, new[] { ref1 });
             var tree = comp2.SyntaxTrees.Single();
@@ -3104,8 +3104,8 @@ class C
 
 ";
 
-            var libBytes = CreateCompilationWithMscorlib("", assemblyName: "lib").EmitToArray();
-            var comp = CreateCompilationWithMscorlib(source, new[] { new MetadataImageReference(libBytes, aliases: ImmutableArray.Create("Alias")) });
+            var libRef = CreateCompilationWithMscorlib("", assemblyName: "lib").EmitToImageReference(aliases: ImmutableArray.Create("Alias"));
+            var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 

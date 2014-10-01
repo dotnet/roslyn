@@ -58,17 +58,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return stream;
         }
 
-
-        public static MetadataReference EmitToImageReference(this Compilation comp, params DiagnosticDescription[] expectedWarnings)
+        public static MetadataReference EmitToImageReference(this Compilation comp, bool embedInteropTypes = false, ImmutableArray<string> aliases = default(ImmutableArray<string>), DiagnosticDescription[] expectedWarnings = null)
         {
             var image = comp.EmitToArray(expectedWarnings: expectedWarnings);
-            if (comp.Options.OutputKind.IsNetModule()) 
+            if (comp.Options.OutputKind == OutputKind.NetModule)
             {
-                return new MetadataImageReference(ModuleMetadata.CreateFromImage(image), display: comp.MakeSourceModuleName());
+                return ModuleMetadata.CreateFromImage(image).GetReference(display: comp.MakeSourceModuleName());
             }
             else
             {
-                return new MetadataImageReference(image, display: comp.MakeSourceAssemblySimpleName());
+                return AssemblyMetadata.CreateFromImage(image).GetReference(aliases: aliases, embedInteropTypes: embedInteropTypes, display: comp.MakeSourceAssemblySimpleName());
             }
         }
 

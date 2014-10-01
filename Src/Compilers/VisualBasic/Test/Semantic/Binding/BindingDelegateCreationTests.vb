@@ -186,7 +186,7 @@ Module Program
 End Module
     </file>
 </compilation>
-            Dim ref = New MetadataImageReference(TestResources.SymbolsTests.General.DelegatesWithoutInvoke.AsImmutableOrNull())
+            Dim ref = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.DelegatesWithoutInvoke.AsImmutableOrNull())
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c1,
 <errors>
@@ -836,7 +836,7 @@ End Module
     </file>
     </compilation>
 
-                Dim ref = New MetadataImageReference(TestResources.SymbolsTests.General.DelegateByRefParamArray.AsImmutableOrNull())
+                Dim ref = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.DelegateByRefParamArray.AsImmutableOrNull())
 
                 Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
                 AssertTheseDiagnostics(c1,

@@ -445,7 +445,7 @@ End Module
 
             Assert.True(result.Success)
             Dim mod1 = ModuleMetadata.CreateFromImage(output_mod1.ToImmutable())
-            Dim ref_mod1 = New MetadataImageReference(mod1)
+            Dim ref_mod1 = mod1.GetReference()
             Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()(0).Attributes)
 
             If True Then
@@ -487,7 +487,7 @@ End Module
                 })
 
             Assert.True(result.Success)
-            Dim ref_mod2 = New MetadataImageReference(ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()))
+            Dim ref_mod2 = ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()).GetReference()
 
             If True Then
                 Dim C3 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod2}, TestOptions.ReleaseDll)
@@ -537,7 +537,7 @@ End Module
 
             Assert.True(result.Success)
             Dim mod3 = ModuleMetadata.CreateFromImage(output_mod3.ToImmutable())
-            Dim ref_mod3 = New MetadataImageReference(mod3)
+            Dim ref_mod3 = mod3.GetReference()
             Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()(0).Attributes)
 
             If True Then

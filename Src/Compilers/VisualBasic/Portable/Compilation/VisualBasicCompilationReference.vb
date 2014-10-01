@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(compilation As VisualBasicCompilation, Optional aliases As ImmutableArray(Of String) = Nothing, Optional embedInteropTypes As Boolean = False)
             MyBase.New(GetProperties(compilation, aliases, embedInteropTypes))
 
-            Dim NewCompilation As VisualBasicCompilation = Nothing
+            Dim newCompilation As VisualBasicCompilation = Nothing
             'This retargeting code should only be enabled to verify all compilation references used in unit tests continue to work correctly
             ' when the mscorlib of the referenced assembly is changed to an earlier mscorlib causing retargeting to occur.
             ' Only enable this code if this retargeting functionality is required to be tested.    
@@ -109,10 +109,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 NewCompilation = compilation
             End If
 #Else
-            NewCompilation = compilation
+            newCompilation = compilation
 #End If
-            m_Compilation = NewCompilation
+            m_Compilation = newCompilation
         End Sub
+
+        Private Sub New(compilation As VisualBasicCompilation, properties As MetadataReferenceProperties)
+            MyBase.New(properties)
+            m_Compilation = compilation
+        End Sub
+
+        Friend Overrides Function WithPropertiesImpl(properties As MetadataReferenceProperties) As CompilationReference
+            Return New VisualBasicCompilationReference(m_Compilation, properties)
+        End Function
 
         Private Function GetDebuggerDisplay() As String
             Return VBResources.CompilationVisualBasic + m_Compilation.AssemblyName

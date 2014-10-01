@@ -17,13 +17,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class SerializationTests : TestBase
     {
-        private static readonly MetadataReference mscorlib;
-
-        static SerializationTests()
-        {
-            mscorlib = new MetadataFileReference(typeof(int).Assembly.Location);
-        }
-
         private Document CreateSolutionDocument(string sourceText)
         {
             var pid = ProjectId.CreateNewId();
@@ -31,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = new CustomWorkspace().CurrentSolution
                     .AddProject(pid, "test", "test", LanguageNames.CSharp)
-                    .AddMetadataReference(pid, mscorlib)
+                    .AddMetadataReference(pid, TestReferences.NetFx.v4_0_30319.mscorlib)
                     .AddDocument(did, "foo.cs", SourceText.From(sourceText));
 
             return solution.GetDocument(did);

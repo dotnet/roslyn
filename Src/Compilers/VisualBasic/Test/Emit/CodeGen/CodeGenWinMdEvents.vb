@@ -535,10 +535,7 @@ End Namespace
             Dim comp1 = CreateCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             comp1.VerifyDiagnostics()
 
-            Dim serializationRef As New MetadataImageReference(
-                ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization.AsImmutableOrNull(),
-                display:="System.Runtime.Serialization.dll")
-
+            Dim serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization
             Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, emitOptions:=EmitOptions.RefEmitBug, expectedOutput:=<![CDATA[
 A

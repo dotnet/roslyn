@@ -1296,7 +1296,7 @@ System.Runtime.InteropServices.UnknownWrapper
             // definitions in metadata:
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                CompileAndVerify(new[] { sourceCalls }, new[] { SystemRef, new MetadataImageReference(assembly) }, expectedOutput: expected );
+                CompileAndVerify(new[] { sourceCalls }, new[] { SystemRef, assembly.GetReference() }, expectedOutput: expected );
             }
         }
 

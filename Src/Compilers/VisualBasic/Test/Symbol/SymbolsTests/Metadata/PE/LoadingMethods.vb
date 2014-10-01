@@ -915,7 +915,7 @@ End Class
     </file>
 </compilation>
 
-            Dim longFormRef = New MetadataImageReference(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull())
+            Dim longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull())
             Dim c = CreateCompilationWithMscorlibAndReferences(source, {longFormRef})
             c.AssertTheseDiagnostics(<![CDATA[
 BC30657: 'RT' has a return type that is not supported or parameter types that are not supported.

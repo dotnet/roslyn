@@ -709,7 +709,8 @@ Class C3
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference(Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Runtime.InteropServices"))})
+    </compilation>, additionalRefs:={netModule1.EmitToImageReference(expectedWarnings:={
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Runtime.InteropServices")})})
 
             assembly.AssertNoDiagnostics()
         End Sub
@@ -809,7 +810,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Assert.Equal(3, comp.References.Count)
             Assert.Contains(compRef2, comp.References)
 
-            Dim modRef1 = New MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00))
+            Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference()
 
             ' Add Module file reference
             comp = comp.AddReferences(modRef1)
@@ -874,7 +875,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Assert.Equal(0, comp.References.Count)
 
             ' Not Implemented
-            ' Dim asmByteRef = new MetadataImageReference(New Byte(4) {}, "AssemblyBytesRef1", embedInteropTypes:=True)
+            ' Dim asmByteRef = MetadataReference.CreateFromImage(New Byte(4) {}, "AssemblyBytesRef1", embedInteropTypes:=True)
             'Dim asmObjectRef = New AssemblyObjectReference(assembly:=System.Reflection.Assembly.GetAssembly(GetType(Object)), embedInteropTypes:=True)
             'comp = comp.AddReferences(asmByteRef, asmObjectRef)
             'Assert.Equal(2, comp.References.Count)
@@ -889,13 +890,13 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub ModuleSuppliedAsAssembly()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={New MetadataImageReference(TestResources.MetadataTests.NetModule01.ModuleVB01.AsImmutableOrNull())})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotAssembly)
         End Sub
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={New MetadataImageReference(ModuleMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System))})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -907,7 +908,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Assert.Null(comp.GetReferencedAssemblySymbol(TestReferences.NetFx.v4_0_30319.System))
 
-            Dim modRef1 = New MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01))
+            Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()
             Assert.Null(comp.GetReferencedModuleSymbol(modRef1))
         End Sub
 
@@ -1546,6 +1547,10 @@ End Class
                 metadataSequence.MoveNext()
                 Return metadataSequence.Current
             End Function
+
+            Protected Overrides Function WithPropertiesImpl(properties As MetadataReferenceProperties) As PortableExecutableReference
+                Throw New NotImplementedException()
+            End Function
         End Class
 
         <Fact>
@@ -1578,7 +1583,7 @@ End Class
 
             Using pinnedPEImage = PinnedImmutableArray.Create(moduleBytes.AsImmutable())
                 Using mdModule = ModuleMetadata.CreateFromMetadata(pinnedPEImage.Pointer + headers.MetadataStartOffset, headers.MetadataSize)
-                    Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, New MetadataImageReference(mdModule, display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
+                    Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, mdModule.GetReference(display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
                     c.VerifyDiagnostics(Diagnostic(ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1))
                 End Using
             End Using

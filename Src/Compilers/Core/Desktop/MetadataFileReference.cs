@@ -8,6 +8,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    // TODO: only used by tests, remove
+
     /// <summary>
     /// Represents metadata stored in a file.
     /// </summary>
@@ -19,16 +21,17 @@ namespace Microsoft.CodeAnalysis
     /// If you need to manage the lifetime of the metadata (and the file stream) explicitly use <see cref="MetadataImageReference"/> or 
     /// implement a custom subclass of <see cref="PortableExecutableReference"/>.
     /// </remarks>
-    public sealed class MetadataFileReference : PortableExecutableReference
+    [Obsolete("To be removed", error:false)]
+    internal sealed class MetadataFileReference : PortableExecutableReference
     {
         private Metadata lazyMetadata;
 
-        public MetadataFileReference(string fullPath, MetadataImageKind kind = MetadataImageKind.Assembly, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, DocumentationProvider documentation = null)
+        internal MetadataFileReference(string fullPath, MetadataImageKind kind = MetadataImageKind.Assembly, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, DocumentationProvider documentation = null)
             : this(fullPath, new MetadataReferenceProperties(kind, aliases, embedInteropTypes), documentation)
         {
         }
 
-        public MetadataFileReference(string fullPath, MetadataReferenceProperties properties, DocumentationProvider documentation = null)
+        internal MetadataFileReference(string fullPath, MetadataReferenceProperties properties, DocumentationProvider documentation = null)
             : base(properties, fullPath, initialDocumentation: documentation ?? DocumentationProvider.Default)
         {
             if (fullPath == null)
@@ -66,6 +69,11 @@ namespace Microsoft.CodeAnalysis
             throw ExceptionUtilities.Unreachable;
         }
 
+        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+        {
+            return new MetadataFileReference(this.FilePath, properties);
+        }
+
         public override string Display
         {
             get
@@ -84,5 +92,6 @@ namespace Microsoft.CodeAnalysis
 
             return lazyMetadata;
         }
+
     }
 }

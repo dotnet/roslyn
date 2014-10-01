@@ -6896,7 +6896,7 @@ BC30652:
         End Module
         ]]></file>
     </compilation>)
-            compilation1 = compilation1.AddReferences(New MetadataImageReference(csharpComp.EmitToArray()))
+            compilation1 = compilation1.AddReferences(MetadataReference.CreateFromImage(csharpComp.EmitToArray()))
             Dim expectedErrors1 = <errors><![CDATA[
 BC30656: Field 'X' is of an unsupported type.
             Dim X = A.X 

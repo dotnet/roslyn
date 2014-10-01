@@ -74,8 +74,9 @@ namespace Microsoft.CodeAnalysis
                 // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
                 // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
                 // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                var referenceWithNativeMemory = new MetadataImageReference(
-                    AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length)),
+                var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
+
+                var referenceWithNativeMemory = metadata.GetReference(
                     documentation: documentationProvider,
                     aliases: aliases,
                     embedInteropTypes: embedInteropTypes,
@@ -89,11 +90,15 @@ namespace Microsoft.CodeAnalysis
                 return referenceWithNativeMemory;
             }
 
-            // otherwise, we just let it use stream. unfortunately, if we give stream, compiler will
+            // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
             // internally copy it to native memory again. since compiler owns lifetime of stream,
             // it would be great if compiler can be little bit smarter on how it deals with stream.
-            return new MetadataImageReference(
-                stream,
+
+            // We don't deterministically release the resulting metadata since we don't know 
+            // when we should. So we leave it up to the GC to collect it and release all the associated resources.
+            var metadataFromStream = AssemblyMetadata.CreateFromStream(stream);
+
+            return metadataFromStream.GetReference(
                 documentation: documentationProvider,
                 aliases: aliases,
                 embedInteropTypes: embedInteropTypes,

@@ -372,4 +372,10 @@
   <data name="RuleSetHasDuplicateRules" xml:space="preserve">
     <value>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</value>
   </data>
+  <data name="CantCreateModuleReferenceToAssembly" xml:space="preserve">
+    <value>Can't create a module reference to an assembly.</value>
+  </data>
+  <data name="CantCreateReferenceToDynamicAssembly" xml:space="preserve">
+    <value>Can't create a metadata reference to a dynamic assembly.</value>
+  </data>
 </root>

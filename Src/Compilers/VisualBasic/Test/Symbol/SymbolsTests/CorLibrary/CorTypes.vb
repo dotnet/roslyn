@@ -32,76 +32,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
         <Fact()>
         Public Sub PresentCorLib()
-            Using lock = MetadataCache.LockAndClean()
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
-                Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.NetFx.v4_0_21006.mscorlib})
-                Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
+            For i As Integer = 1 To SpecialType.Count
+                Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
+                Assert.Equal(CType(i, SpecialType), t.SpecialType)
+                Assert.Same(msCorLibRef, t.ContainingAssembly)
+            Next
 
-                For i As Integer = 1 To SpecialType.Count
-                    Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
-                    Assert.Equal(CType(i, SpecialType), t.SpecialType)
-                    Assert.Same(msCorLibRef, t.ContainingAssembly)
+            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib)})
+            msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
+            Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+
+            Dim namespaces As New Queue(Of NamespaceSymbol)()
+
+            namespaces.Enqueue(msCorLibRef.Modules(0).GlobalNamespace)
+            Dim count As Integer = 0
+
+            While (namespaces.Count > 0)
+
+                For Each m In namespaces.Dequeue().GetMembers()
+                    Dim ns = TryCast(m, NamespaceSymbol)
+
+                    If (ns IsNot Nothing) Then
+                        namespaces.Enqueue(ns)
+                    ElseIf (DirectCast(m, NamedTypeSymbol).SpecialType <> SpecialType.None) Then
+                        count += 1
+                    End If
+
+                    If (count >= SpecialType.Count) Then
+                        Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+                    End If
                 Next
+            End While
 
-                Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
-
-                lock.CleanCaches()
-
-                assemblies = MetadataTestHelpers.GetSymbolsForReferences({New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib)})
-                msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
-                Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
-
-                Dim namespaces As New Queue(Of NamespaceSymbol)()
-
-                namespaces.Enqueue(msCorLibRef.Modules(0).GlobalNamespace)
-                Dim count As Integer = 0
-
-                While (namespaces.Count > 0)
-
-                    For Each m In namespaces.Dequeue().GetMembers()
-                        Dim ns = TryCast(m, NamespaceSymbol)
-
-                        If (ns IsNot Nothing) Then
-                            namespaces.Enqueue(ns)
-                        ElseIf (DirectCast(m, NamedTypeSymbol).SpecialType <> SpecialType.None) Then
-                            count += 1
-                        End If
-
-                        If (count >= SpecialType.Count) Then
-                            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
-                        End If
-                    Next
-                End While
-
-                Assert.Equal(count, CType(SpecialType.Count, Integer))
-                Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
-            End Using
+            Assert.Equal(count, CType(SpecialType.Count, Integer))
+            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
         End Sub
 
         <Fact()>
         Public Sub FakeCorLib()
-            Using (MetadataCache.LockAndClean())
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.SymbolsTests.CorLibrary.FakeMsCorLib.dll})
+            Dim msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
-                Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.SymbolsTests.CorLibrary.FakeMsCorLib.dll})
-                Dim msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
+            For i As Integer = 1 To SpecialType.Count
+                Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+                Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
+                Assert.Equal(CType(i, SpecialType), t.SpecialType)
 
-                For i As Integer = 1 To SpecialType.Count
-                    Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
-                    Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
-                    Assert.Equal(CType(i, SpecialType), t.SpecialType)
-
-                    If (t.SpecialType = SpecialType.System_Object) Then
-                        Assert.NotEqual(TypeKind.Error, t.TypeKind)
-                    Else
-                        Assert.Equal(TypeKind.Error, t.TypeKind)
-                        Assert.Same(msCorLibRef, t.ContainingAssembly)
-                    End If
-
+                If (t.SpecialType = SpecialType.System_Object) Then
+                    Assert.NotEqual(TypeKind.Error, t.TypeKind)
+                Else
+                    Assert.Equal(TypeKind.Error, t.TypeKind)
                     Assert.Same(msCorLibRef, t.ContainingAssembly)
-                Next
+                End If
 
-                Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
-            End Using
+                Assert.Same(msCorLibRef, t.ContainingAssembly)
+            Next
+
+            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
         End Sub
 
         <Fact()>

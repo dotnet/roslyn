@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // from it the nodes that describe the method symbols. We then compare the description of
             // the symbols given to the comment that follows the call.
 
-            var mscorlibRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib.AsImmutableOrNull(), display: "mscorlib");
+            var mscorlibRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib");
             var references = new[] { mscorlibRef }.Concat(additionalRefs ?? SpecializedCollections.EmptyArray<MetadataReference>());
 
             var compilation = CreateCompilation(source, references, TestOptions.ReleaseDll);

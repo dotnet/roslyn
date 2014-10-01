@@ -1255,7 +1255,7 @@ public class D
     }
 }
 ";
-            var longFormRef = new MetadataImageReference(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull());
+            var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull());
 
             var c = CreateCompilationWithMscorlib(source, new[] { longFormRef });
 

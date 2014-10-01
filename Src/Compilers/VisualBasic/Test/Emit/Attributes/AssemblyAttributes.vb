@@ -1050,7 +1050,7 @@ End Class
                                                            Optional netModuleSourceBody As String = Nothing,
                                                            Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                            Optional nameSuffix As String = "") As MetadataReference
-        Return New MetadataImageReference(GetNetModuleWithAssemblyAttributes(netModuleSourceHeader, netModuleSourceBody, references, nameSuffix))
+        Return GetNetModuleWithAssemblyAttributes(netModuleSourceHeader, netModuleSourceBody, references, nameSuffix).GetReference()
     End Function
 
     Private Function GetNetModuleWithAssemblyAttributes(Optional netModuleSourceHeader As String = Nothing,
@@ -1119,7 +1119,7 @@ End Class
         Dim token As Handle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
         Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
-        Dim consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {New MetadataImageReference(netModuleWithAssemblyAttributes)})
+        Dim consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {netModuleWithAssemblyAttributes.GetReference()})
         Dim diagnostics = consoleappCompilation.GetDiagnostics()
 
         Dim attrs = consoleappCompilation.Assembly.GetAttributes()
@@ -1155,7 +1155,7 @@ End Class
         token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
         Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
-        consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {New MetadataImageReference(netModuleWithAssemblyAttributes)}, TestOptions.ReleaseModule)
+        consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {netModuleWithAssemblyAttributes.GetReference()}, TestOptions.ReleaseModule)
         Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length)
 
         Dim modRef = DirectCast(consoleappCompilation.EmitToImageReference(), MetadataImageReference)

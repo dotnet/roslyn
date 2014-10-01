@@ -1,20 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.CompilerServices
 Imports System.Reflection.Metadata
-Imports CompilationCreationTestHelpers
-Imports Microsoft.CodeAnalysis.ImmutableArrayExtensions
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
-Imports Roslyn.Test.Utilities
-Imports VBReferenceManager = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ReferenceManager
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -35,13 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             TestBaseTypeResolutionHelper2(assemblies)
 
-            Using MetadataCache.LockAndClean()
-
-                assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                                        {TestResources.SymbolsTests.General.MDTestLib1,
-                                         TestResources.SymbolsTests.General.MDTestLib2})
-
-            End Using
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(
+                                    {TestResources.SymbolsTests.General.MDTestLib1,
+                                     TestResources.SymbolsTests.General.MDTestLib2})
 
             TestBaseTypeResolutionHelper3(assemblies)
 

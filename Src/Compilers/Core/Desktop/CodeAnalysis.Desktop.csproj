@@ -41,7 +41,6 @@
       <DependentUpon>CodeAnalysisDesktopResources.resx</DependentUpon>
     </Compile>
     <Compile Include="AssemblyIdentityExtensions.cs" />
-    <Compile Include="AssemblyMetadata.FromFile.cs" />
     <Compile Include="AssemblyPortabilityPolicy.cs" />
     <Compile Include="AssemblyVersion.cs" />
     <Compile Include="CLRHost\ClrMetaHost.cs" />
@@ -85,7 +84,6 @@
     <Compile Include="MetadataFileReference.cs" />
     <Compile Include="MetadataFileReferenceProvider.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
-    <Compile Include="ModuleMetadata.FromFile.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />
     <Compile Include="SerializableCompilationOptions.cs" />

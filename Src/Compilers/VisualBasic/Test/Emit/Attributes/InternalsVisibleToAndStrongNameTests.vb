@@ -427,7 +427,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New MetadataImageReference(otherImage)}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {MetadataReference.CreateFromImage(otherImage)}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         'compilation should not succeed, and internals should not be imported.
         c.GetDiagnostics()
@@ -452,7 +452,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New MetadataImageReference(otherImage)}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {MetadataReference.CreateFromImage(otherImage)}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         c2.VerifyDiagnostics()
     End Sub
@@ -1055,7 +1055,7 @@ End Class
         Dim tempFile = Temp.CreateFile()
         moduleContents.Position = 0
 
-        Using metadata = ModuleMetadata.CreateFromImageStream(moduleContents)
+        Using metadata = ModuleMetadata.CreateFromStream(moduleContents)
             Dim flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags
             ' confirm file does not claim to be signed
             Assert.Equal(0, CInt(flags And CorFlags.StrongNameSigned))
@@ -1075,7 +1075,7 @@ End Class
 
             ' now that the module checks out, ensure that adding it to a compilation outputing a dll
             ' results in a signed assembly.
-            Dim assemblyComp = CreateCompilationWithMscorlibAndReferences(source, {New MetadataImageReference(metadata)}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
+            Dim assemblyComp = CreateCompilationWithMscorlibAndReferences(source, {metadata.GetReference()}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
             Using finalStrm = tempFile.Open()
                 success = assemblyComp.Emit(finalStrm)
@@ -1291,7 +1291,7 @@ End Class
 
         CompileAndVerify(other.WithReferences({other.References(0), New VisualBasicCompilationReference(unsigned)})).VerifyDiagnostics()
 
-        CompileAndVerify(other.WithReferences({other.References(0), New MetadataImageReference(unsigned.EmitToArray)})).VerifyDiagnostics()
+        CompileAndVerify(other.WithReferences({other.References(0), MetadataReference.CreateFromImage(unsigned.EmitToArray)})).VerifyDiagnostics()
     End Sub
 
     <Fact> <WorkItem(529779, "DevDiv")>
@@ -1322,7 +1322,7 @@ End Class
         options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim comps = {other.WithReferences({other.References(0), New VisualBasicCompilationReference(unsigned)}),
-                     other.WithReferences({other.References(0), New MetadataImageReference(unsigned.EmitToArray)})}
+                     other.WithReferences({other.References(0), MetadataReference.CreateFromImage(unsigned.EmitToArray)})}
 
         For Each comp In comps
             Dim outStrm = New MemoryStream()

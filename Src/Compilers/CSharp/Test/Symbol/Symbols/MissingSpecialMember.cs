@@ -466,9 +466,12 @@ namespace System
 }}
 ";
 
-            var corlibRef = CreateCompilation(corlibSource).EmitToImageReference(
+            var corlibRef = CreateCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
+            {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+            });
+
             var publicLibRef = CreateCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
             var internalLibRef = CreateCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
 
@@ -488,9 +491,12 @@ namespace System
             var comp1 = CreateCompilation(source);
             validate(comp1);
 
-            var reference = comp1.EmitToImageReference(
+            var reference = comp1.EmitToImageReference(expectedWarnings: new[]
+            {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+            });
+
             var comp2 = CreateCompilation("", new[] { reference });
             validate(comp2);
         }

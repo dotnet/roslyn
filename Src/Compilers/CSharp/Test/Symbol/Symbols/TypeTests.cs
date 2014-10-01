@@ -835,9 +835,7 @@ namespace M
         [Fact]
         public void UseTypeInNetModule()
         {
-            var module1Ref = new MetadataImageReference(
-                ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1),
-                display: "netModule1.netmodule");
+            var module1Ref = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(display: "netModule1.netmodule");
 
             var text = @"class Test
 {
@@ -1380,7 +1378,7 @@ class NonGen
         [Fact]
         public void MultiDimArray()
         {
-            var r = new MetadataImageReference(TestResources.SymbolsTests.Methods.CSMethods.AsImmutableOrNull());
+            var r = MetadataReference.CreateFromImage(TestResources.SymbolsTests.Methods.CSMethods.AsImmutableOrNull());
             var source = @"
 class Program
 {

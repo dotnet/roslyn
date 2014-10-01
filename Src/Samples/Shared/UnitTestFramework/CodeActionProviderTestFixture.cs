@@ -45,7 +45,7 @@ namespace Roslyn.UnitTestFramework
 
             var references = AppDomain.CurrentDomain.GetAssemblies()
                 .Where(a => simpleNames.Contains(a.GetName().Name, StringComparer.OrdinalIgnoreCase))
-                .Select(a => new MetadataFileReference(a.Location));
+                .Select(MetadataReference.CreateFromAssembly);
 
             return new CustomWorkspace().CurrentSolution
                 .AddProject(projectId, "TestProject", "TestProject", LanguageName)

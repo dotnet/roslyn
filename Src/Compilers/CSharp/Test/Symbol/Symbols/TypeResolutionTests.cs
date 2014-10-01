@@ -111,7 +111,7 @@ namespace System
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree("class C { }") },
                 references: new[] { 
                     MscorlibRef,
-                    new MetadataImageReference(File.ReadAllBytes(typeof(TypeTests).Assembly.Location))
+                    MetadataReference.CreateFromImage(File.ReadAllBytes(typeof(TypeTests).Assembly.Location))
                 });
 
             var intSym = c.Assembly.GetTypeByReflectionType(typeof(int), includeReferences: true);

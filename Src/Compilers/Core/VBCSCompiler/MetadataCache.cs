@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 options |= PEStreamOptions.PrefetchEntireImage;
             }
 
-            return ModuleMetadata.CreateFromImageStream(fileStream, options);
+            return ModuleMetadata.CreateFromStream(fileStream, options);
         }
 
         private ImmutableArray<ModuleMetadata> GetAllModules(ModuleMetadata manifestModule, string assemblyDir)
@@ -135,6 +135,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override Metadata GetMetadataImpl()
         {
             return mdCache.GetMetadata(FilePath, Properties);
+        }
+
+        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+        {
+            return new CachingMetadataReference(this.FilePath, properties);
         }
     }
 

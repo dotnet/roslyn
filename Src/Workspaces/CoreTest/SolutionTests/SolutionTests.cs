@@ -28,12 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class SolutionTests : TestBase
     {
-        private static readonly MetadataReference mscorlib;
-
-        static SolutionTests()
-        {
-            mscorlib = new MetadataFileReference(typeof(int).Assembly.Location);
-        }
+        private static readonly MetadataReference mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
 
         public static byte[] GetResourceBytes(string fileName)
         {
@@ -321,7 +316,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddMetadataReferences()
         {
-            var csharpReference = new MetadataImageReference(GetResourceBytes(@"CSharpProject.dll").AsImmutable());
+            var csharpReference = MetadataReference.CreateFromImage(GetResourceBytes(@"CSharpProject.dll"));
             var solution = CreateSolution();
             var project1 = ProjectId.CreateNewId();
             solution = solution.AddProject(project1, "foo", "foo.dll", LanguageNames.CSharp);

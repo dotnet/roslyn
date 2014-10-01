@@ -65,7 +65,7 @@ public class C {
             var solution = CreateSolution()
                            .AddProject(pid, "foo", "foo.dll", LanguageNames.CSharp)
                            .AddMetadataReference(pid, MscorlibRef)
-                           .AddMetadataReference(pid, ((MetadataImageReference)MscorlibRef).WithAliases(new[] { "X" }))
+                           .AddMetadataReference(pid, ((PortableExecutableReference)MscorlibRef).WithAliases(new[] { "X" }))
                            .AddDocument(did, "foo.cs", SourceText.From(text));
 
             var project = solution.Projects.First();

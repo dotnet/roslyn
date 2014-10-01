@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return moduleSymbol;
             }
 
-            private static MetadataImageReference LoadTestEmittedExecutableForSymbolValidation(
+            private static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
                 ImmutableArray<byte> image,
                 OutputKind outputKind,
                 string display = null)
@@ -253,12 +253,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (outputKind == OutputKind.NetModule)
                 {
-                    return new MetadataImageReference(moduleMetadata, display: display);
+                    return moduleMetadata.GetReference(display: display);
                 }
                 else
                 {
-                    var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
-                    return new MetadataImageReference(assemblyMetadata, display: display);
+                    return AssemblyMetadata.Create(moduleMetadata).GetReference(display: display);
                 }
             }
         }

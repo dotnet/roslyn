@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#Disable Warning BC40000  ' MetadataCache to be removed
+
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Runtime.CompilerServices
@@ -1164,3 +1166,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
     End Class
 End Namespace
+

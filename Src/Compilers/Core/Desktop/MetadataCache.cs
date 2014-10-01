@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis
     /// 
     /// For analyzer assemblies - a map from file name and timestamp to a weak reference to the diagnostic analyzers defined in the assembly.
     /// </summary>
+    [Obsolete("To be removed", error:false)]
     internal static class MetadataCache
     {
         /// <summary>
@@ -762,7 +763,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // memory-map all modules of the assembly:
-            assembly = MetadataFileFactory.CreateAssembly(fullPath);
+            assembly = AssemblyMetadata.CreateFromFile(fullPath);
 
             // refresh the timestamp (the file may have changed just before we memory-mapped it):
             bool fault = true;
@@ -806,8 +807,8 @@ namespace Microsoft.CodeAnalysis
                 return module;
             }
 
-            // mempy-map the module:
-            module = MetadataFileFactory.CreateModule(fullPath);
+            // memory-map the module:
+            module = ModuleMetadata.CreateFromFile(fullPath);
 
             // refresh the timestamp (the file may have changed just before we memory-mapped it):
             bool fault = true;

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
                     referenceDirectiveResolver = new ExistingReferencesResolver(
-                        resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<MetadataFileReference>().AsImmutable(),
+                        resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
                         Arguments.ReferencePaths,
                         Arguments.BaseDirectory,
                         assemblyIdentityComparer,

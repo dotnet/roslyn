@@ -167,7 +167,7 @@ class Program
 
             var comp2 = CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
-                additionalRefs: new MetadataReference[] { new MetadataImageReference(comp1.EmitToStream()) },
+                additionalRefs: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 expectedOutput: "12").Compilation;
 
             var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];

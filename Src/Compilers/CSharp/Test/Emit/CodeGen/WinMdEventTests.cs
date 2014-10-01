@@ -619,9 +619,7 @@ namespace EventDeserialization
 
             var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, "Lib");
 
-            var serializationRef = new MetadataImageReference(
-                ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization.AsImmutableOrNull(),
-                display: "System.Runtime.Serialization.dll");
+            var serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization;
             
             var comp2 = CreateCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef}), TestOptions.ReleaseExe);
             CompileAndVerify(comp2, emitOptions: EmitOptions.RefEmitBug, expectedOutput: @"A

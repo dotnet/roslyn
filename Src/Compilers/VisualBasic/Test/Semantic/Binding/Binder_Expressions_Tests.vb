@@ -2344,7 +2344,7 @@ BC30182: Type expected.
         </file>
     </compilation>
 
-            Dim c2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {New MetadataImageReference(baseBuffer)})
+            Dim c2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {MetadataReference.CreateFromImage(baseBuffer)})
 
             Dim derivedBuffer = CompileAndVerify(c2).EmittedAssemblyData
 
@@ -2374,7 +2374,7 @@ BC30182: Type expected.
 
             Dim image = CompileAndVerify(c1_without).EmittedAssemblyData
 
-            Dim c3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {New MetadataImageReference(derivedBuffer), New MetadataImageReference(image)})
+            Dim c3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {MetadataReference.CreateFromImage(derivedBuffer), MetadataReference.CreateFromImage(image)})
 
             AssertTheseDiagnostics(c3, <expected>
 BC30545: Property access must assign to the property or use its value.

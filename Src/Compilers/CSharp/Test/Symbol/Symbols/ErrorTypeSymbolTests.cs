@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "91AB32B7-DDDF-4E50-87EF-4E8B0A664A41");
             compilation1.VerifyDiagnostics();
-            var reference1 = new MetadataImageReference(compilation1.EmitToArray(true));
+            var reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray(true));
 
             // Binding types in source, no missing types.
             var source2 =
@@ -37,7 +37,7 @@ class C7 : A<string>.B<object> { }";
             var compilation2 = CreateCompilationWithMscorlib(source2, references: new[] { reference1 }, assemblyName: "91AB32B7-DDDF-4E50-87EF-4E8B0A664A42");
             compilation2.VerifyDiagnostics();
             CompareConstructedErrorTypes(compilation2, missingTypes: false, fromSource: true);
-            var reference2 = new MetadataImageReference(compilation2.EmitToArray(true));
+            var reference2 = MetadataReference.CreateFromImage(compilation2.EmitToArray(true));
 
             // Loading types from metadata, no missing types.
             var source3 =

@@ -3625,7 +3625,7 @@ public class Gen<V>
             var comp1 = CreateCompilationWithMscorlib(src2, references: new MetadataReference[] { compref }, assemblyName: "Comp1");
 
             var mtdata = comp1.EmitToArray();
-            var mtref = new MetadataImageReference(mtdata);
+            var mtref = MetadataReference.CreateFromImage(mtdata);
             var comp2 = CreateCompilationWithMscorlib("", references: new MetadataReference[] { mtref }, assemblyName: "Comp2");
 
             var tsym1 = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("Gen");

@@ -166,7 +166,7 @@ End Class
         Dim comp = VisualBasicCompilation.Create(
             "test",
             syntaxTrees:={SyntaxFactory.ParseSyntaxTree(file1), SyntaxFactory.ParseSyntaxTree(file2)},
-            references:={New MetadataFileReference(GetType(Object).Assembly.Location)})
+            references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly)})
 
         Dim globalNamespace = comp.SourceModule.GlobalNamespace
 

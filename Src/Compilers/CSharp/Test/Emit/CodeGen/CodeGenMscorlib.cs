@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Decimal { }
 }";
             var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = new MetadataImageReference(compilation1.EmitToStream());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
 {
@@ -286,7 +286,7 @@ namespace System.Collections
     }
 }";
             var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = new MetadataImageReference(compilation1.EmitToStream());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
 {
@@ -333,7 +333,7 @@ namespace System.Collections
 ";
 
             var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = new MetadataImageReference(compilation1.EmitToStream());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"
 

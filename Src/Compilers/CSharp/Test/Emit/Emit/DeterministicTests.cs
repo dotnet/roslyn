@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var tree = CSharpSyntaxTree.ParseText("class Program { static void Main() { } }");
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
-                                                       new[] { new MetadataFileReference(typeof(object).Assembly.Location) },
+                                                       new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) },
                                                        new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithFeatures((new[] { "deterministic" }).AsImmutable()));
             var output = new WriteOnlyStream();
             compilation.Emit(output);

@@ -1,9 +1,5 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.IO;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -26,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="properties"/> parameters.</returns>
         public override PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
         {
-            return new MetadataFileReference(resolvedPath, properties);
+            return MetadataReference.CreateFromFile(resolvedPath, properties);
         }
     }
 }

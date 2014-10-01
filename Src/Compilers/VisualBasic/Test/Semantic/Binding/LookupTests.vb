@@ -947,53 +947,51 @@ P.Q.R.S
 
         <Fact()>
         Public Sub DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace()
-            Using MetadataCache.LockAndClean()
-                ' We need to be careful about metadata references we use here.
-                ' The test checks that fields of namespace symbols are initialized in certain order.
-                ' If we used a shared Mscorlib reference then other tests might have already initialized it's shared AssemblySymbol.
-                Dim nonSharedMscorlibReference = New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull(), display:="mscorlib.v4_0_30319.dll")
+            ' We need to be careful about metadata references we use here.
+            ' The test checks that fields of namespace symbols are initialized in certain order.
+            ' If we used a shared Mscorlib reference then other tests might have already initialized it's shared AssemblySymbol.
+            Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
 
-                Dim c = VisualBasicCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
+            Dim c = VisualBasicCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
                                                      syntaxTrees:={Parse(<text>
                                                                             Namespace P
                                                                             End Namespace
                                                                         </text>.Value)},
                                                      references:={nonSharedMscorlibReference})
 
-                Dim system = c.Assembly.Modules(0).GetReferencedAssemblySymbols()(0).GlobalNamespace.GetMembers("System").OfType(Of PENamespaceSymbol)().Single()
-                Dim deployment = system.GetMembers("Deployment").OfType(Of PENamespaceSymbol)().Single()
-                Dim internal = deployment.GetMembers("Internal").OfType(Of PENamespaceSymbol)().Single()
-                Dim isolation = internal.GetMembers("Isolation").OfType(Of PENamespaceSymbol)().Single()
+            Dim system = c.Assembly.Modules(0).GetReferencedAssemblySymbols()(0).GlobalNamespace.GetMembers("System").OfType(Of PENamespaceSymbol)().Single()
+            Dim deployment = system.GetMembers("Deployment").OfType(Of PENamespaceSymbol)().Single()
+            Dim internal = deployment.GetMembers("Internal").OfType(Of PENamespaceSymbol)().Single()
+            Dim isolation = internal.GetMembers("Isolation").OfType(Of PENamespaceSymbol)().Single()
 
-                Assert.Equal(Accessibility.Private, system.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Private, deployment.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Private, internal.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Private, isolation.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.False(isolation.AreTypesLoaded)
+            Assert.Equal(Accessibility.Private, system.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Private, deployment.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Private, internal.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Private, isolation.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.False(isolation.AreTypesLoaded)
 
-                Assert.Equal(Accessibility.Friend, isolation.DeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.False(isolation.AreTypesLoaded)
-                Assert.Equal(Accessibility.Friend, isolation.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Private, system.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Private, deployment.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Private, internal.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                isolation.GetTypeMembers()
-                Assert.True(isolation.AreTypesLoaded)
+            Assert.Equal(Accessibility.Friend, isolation.DeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.False(isolation.AreTypesLoaded)
+            Assert.Equal(Accessibility.Friend, isolation.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Private, system.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Private, deployment.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Private, internal.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            isolation.GetTypeMembers()
+            Assert.True(isolation.AreTypesLoaded)
 
-                Dim io = system.GetMembers("IO").OfType(Of PENamespaceSymbol)().Single()
-                Dim isolatedStorage = io.GetMembers("IsolatedStorage").OfType(Of PENamespaceSymbol)().Single()
+            Dim io = system.GetMembers("IO").OfType(Of PENamespaceSymbol)().Single()
+            Dim isolatedStorage = io.GetMembers("IsolatedStorage").OfType(Of PENamespaceSymbol)().Single()
 
-                Assert.Equal(Accessibility.Private, system.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Private, io.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Private, isolatedStorage.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.False(isolatedStorage.AreTypesLoaded)
+            Assert.Equal(Accessibility.Private, system.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Private, io.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Private, isolatedStorage.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.False(isolatedStorage.AreTypesLoaded)
 
-                Assert.Equal(Accessibility.Public, isolatedStorage.DeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.False(isolatedStorage.AreTypesLoaded)
-                Assert.Equal(Accessibility.Public, isolatedStorage.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Public, system.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.Equal(Accessibility.Public, io.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
-            End Using
+            Assert.Equal(Accessibility.Public, isolatedStorage.DeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.False(isolatedStorage.AreTypesLoaded)
+            Assert.Equal(Accessibility.Public, isolatedStorage.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Public, system.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.Equal(Accessibility.Public, io.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
         End Sub
 
         <Fact()>

@@ -60,7 +60,7 @@ namespace APISampleUnitTestsCS
             {
                 if (mscorlib == null)
                 {
-                    mscorlib = new MetadataFileReference(typeof(object).Assembly.Location);
+                    mscorlib = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
                 }
 
                 return mscorlib;
@@ -2344,7 +2344,7 @@ class Program
                 .AddMetadataReference(projectId, Mscorlib)
                 .AddMetadataReference(projectId, AppDomain.CurrentDomain.GetAssemblies()
                     .Where(a => string.Compare(a.GetName().Name, "System", StringComparison.OrdinalIgnoreCase) == 0)
-                    .Select(a => new MetadataFileReference(a.Location)).Single())
+                    .Select(MetadataReference.CreateFromAssembly).Single())
                 .AddDocument(documentId, "MyFile.cs", source);
             var document = solution.GetDocument(documentId);
 

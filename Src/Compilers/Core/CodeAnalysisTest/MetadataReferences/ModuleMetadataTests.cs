@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 }) ModuleMetadata.CreateFromImage((IntPtr)ptr, 0); });
             Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 }) ModuleMetadata.CreateFromImage((IntPtr)ptr, -1); });
 
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromImage(default(ImmutableArray<byte>)));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromImage(default(IEnumerable<byte>)));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromImage(default(byte[])));
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(ImmutableArray<byte>)));
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(IEnumerable<byte>)));
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(byte[])));
 
             // It's not particularly important that this not throw. The parsing of the metadata is now lazy, and the result is that an exception
             // will be thrown when something tugs on the metadata later.
@@ -73,28 +73,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromImageStream()
         {
-            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImageStream(peStream: null));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromImageStream(new TestStream(canRead: false, canSeek: true)));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromImageStream(new TestStream(canRead: true, canSeek: false)));
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromStream(peStream: null));
+            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromStream(new TestStream(canRead: false, canSeek: true)));
+            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromStream(new TestStream(canRead: true, canSeek: false)));
         }
 
         [Fact]
         public void CreateFromFile()
         {
-            Assert.Throws<ArgumentNullException>(() => MetadataFileFactory.CreateModule((string)null));
-            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(""));
-            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule("foo.dll"));
-            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule("c:foo.dll"));
-            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@".\foo.dll"));
-            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@"\foo.dll"));
-            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@"http://foo.bar"));
-            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@"c:\*"));
-            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@"\\.\COM1"));
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromFile((string)null));
+            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(""));
+            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"http://foo.bar"));
+            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"c:\*"));
+            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"\\.\COM1"));
 
-            Assert.Throws<FileNotFoundException>(() => MetadataFileFactory.CreateModule(SystemDrive + @":\file_that_does_not_exists.dll"));
-            Assert.Throws<FileNotFoundException>(() => MetadataFileFactory.CreateModule(SystemDrive + @":\directory_that_does_not_exists\file_that_does_not_exists.dll"));
-            Assert.Throws<PathTooLongException>(() => MetadataFileFactory.CreateModule(SystemDrive + @":\" + new string('x', 1000)));
-            Assert.Throws<IOException>(() => MetadataFileFactory.CreateModule(Environment.GetFolderPath(Environment.SpecialFolder.Windows)));
+            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(SystemDrive + @":\file_that_does_not_exists.dll"));
+            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(SystemDrive + @":\directory_that_does_not_exists\file_that_does_not_exists.dll"));
+            Assert.Throws<PathTooLongException>(() => ModuleMetadata.CreateFromFile(SystemDrive + @":\" + new string('x', 1000)));
+            Assert.Throws<IOException>(() => ModuleMetadata.CreateFromFile(Environment.GetFolderPath(Environment.SpecialFolder.Windows)));
         }
 
         [Fact]

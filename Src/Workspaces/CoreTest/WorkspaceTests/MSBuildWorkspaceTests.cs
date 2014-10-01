@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // verify the dependent project has the correct metadata references (and does not include the output for the project references)
             var references = vbProject.MetadataReferences.ToList();
             Assert.Equal(4, references.Count);
-            var fileNames = new HashSet<string>(references.Select(r => Path.GetFileName(((MetadataFileReference)r).FilePath)));
+            var fileNames = new HashSet<string>(references.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)));
             Assert.Equal(true, fileNames.Contains("System.Core.dll"));
             Assert.Equal(true, fileNames.Contains("System.dll"));
             Assert.Equal(true, fileNames.Contains("Microsoft.VisualBasic.dll"));
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // prove that vb project refers to csharp project via generated metadata (skeleton) assembly. 
             // it should be a MetadataImageReference
             var c2 = p2.GetCompilationAsync().Result;
-            var pref = c2.References.OfType<MetadataImageReference>().FirstOrDefault(r => r.Display == "CSharpProject");
+            var pref = c2.References.OfType<PortableExecutableReference>().FirstOrDefault(r => r.Display == "CSharpProject");
             Assert.NotNull(pref);
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // we should now find a MetadataImageReference that was generated instead of a MetadataFileReference
             var c2 = p2.GetCompilationAsync().Result;
-            var pref = c2.References.OfType<MetadataImageReference>().FirstOrDefault(r => r.Display == "EmittedCSharpProject");
+            var pref = c2.References.OfType<PortableExecutableReference>().FirstOrDefault(r => r.Display == "EmittedCSharpProject");
             Assert.NotNull(pref);
         }
 
@@ -435,7 +435,7 @@ class C1
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
             var project = solution.Projects.First();
             var refs = project.MetadataReferences.ToList();
-            var csharpLib = refs.OfType<MetadataFileReference>().FirstOrDefault(r => r.FilePath.Contains("Microsoft.CSharp"));
+            var csharpLib = refs.OfType<PortableExecutableReference>().FirstOrDefault(r => r.FilePath.Contains("Microsoft.CSharp"));
             Assert.NotNull(csharpLib);
         }
 
@@ -1407,7 +1407,7 @@ class C1
 
             var compilation = project.GetCompilationAsync().Result;
             var metadataBytes = compilation.EmitToArray();
-            var mtref = new MetadataImageReference(metadataBytes);
+            var mtref = MetadataReference.CreateFromImage(metadataBytes);
             var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
@@ -1428,7 +1428,7 @@ class C1
 
             var compilation = project.GetCompilationAsync().Result;
             var metadataBytes = compilation.EmitToArray();
-            var mtref = new MetadataImageReference(metadataBytes);
+            var mtref = MetadataReference.CreateFromImage(metadataBytes);
             var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
@@ -1450,7 +1450,7 @@ class C1
 
             var compilation = project.GetCompilationAsync().Result;
             var metadataBytes = compilation.EmitToArray();
-            var mtref = new MetadataImageReference(metadataBytes);
+            var mtref = MetadataReference.CreateFromImage(metadataBytes);
             var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
@@ -1471,7 +1471,7 @@ class C1
 
             var compilation = project.GetCompilationAsync().Result;
             var metadataBytes = compilation.EmitToArray();
-            var mtref = new MetadataImageReference(metadataBytes);
+            var mtref = MetadataReference.CreateFromImage(metadataBytes);
             var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();

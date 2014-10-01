@@ -3068,7 +3068,7 @@ Module Module1
     End Sub
 End Module        
     </file>
-</compilation>, New MetadataFileReference() {})
+</compilation>, {})
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of ExpressionSyntax)(compilation, "a.vb")
 
@@ -3241,7 +3241,7 @@ Module Module1
     End Sub
 End Module        
     </file>
-</compilation>, New MetadataFileReference() {})
+</compilation>, {})
 
             Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
 

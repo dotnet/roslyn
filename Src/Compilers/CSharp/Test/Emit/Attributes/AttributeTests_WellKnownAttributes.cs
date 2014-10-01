@@ -2628,7 +2628,7 @@ class C<T>
 
             var image = compilation.EmitToStream();
 
-            using (var metadata = ModuleMetadata.CreateFromImageStream(image))
+            using (var metadata = ModuleMetadata.CreateFromStream(image))
             {
                 var metadataReader = metadata.MetadataReader;
                 foreach (var methodHandle in metadataReader.MethodDefinitions)
@@ -3684,10 +3684,12 @@ public class MainClass
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
 
-            var assemblyRef = compDll.EmitToImageReference(
+            var assemblyRef = compDll.EmitToImageReference(expectedWarnings: new[]
+            {
                 // (11,6): warning CS0684: 'IWorksheet' interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'
                 //     [CoClass(typeof(WorksheetClass))]
-                Diagnostic(ErrorCode.WRN_CoClassWithoutComImport, "CoClass(typeof(WorksheetClass))").WithArguments("IWorksheet"));
+                Diagnostic(ErrorCode.WRN_CoClassWithoutComImport, "CoClass(typeof(WorksheetClass))").WithArguments("IWorksheet")
+            });
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
             CreateCompilationWithMscorlib(source2, references: new[] { assemblyRef }).VerifyDiagnostics(
@@ -5489,7 +5491,7 @@ public class TestClass
     public Action event1;
 }
 ";
-            var peReference = new MetadataImageReference(CreateCompilationWithMscorlib(peSource).EmitToStream());
+            var peReference = MetadataReference.CreateFromStream(CreateCompilationWithMscorlib(peSource).EmitToStream());
 
             var source = @"
 public class Test

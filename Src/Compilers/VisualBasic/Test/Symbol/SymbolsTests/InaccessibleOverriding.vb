@@ -347,7 +347,7 @@ BC30981: 'Friend Overrides ReadOnly Property P As String' in class 'Class3' cann
 
             Using proj2ILFile = SharedCompilationUtils.IlasmTempAssembly(proj2ILText, appendDefaultHeader:=False)
                 Dim proj2AssemblyName = IO.Path.GetFileNameWithoutExtension(proj2ILFile.Path)
-                Dim proj2Ref = New MetadataImageReference(ReadFromFile(proj2ILFile.Path))
+                Dim proj2Ref = MetadataReference.CreateFromImage(ReadFromFile(proj2ILFile.Path))
                 Dim proj2AssemblyNameBytes As New System.Text.StringBuilder()
                 proj2AssemblyNameBytes.Append(proj2AssemblyName.Length.ToString("X") + " ")
                 For Each c In proj2AssemblyName
@@ -397,7 +397,7 @@ BC30981: 'Friend Overrides ReadOnly Property P As String' in class 'Class3' cann
                 proj1ILText = proj1ILText.Replace("<<P1Name>>", p1AssemblyName)
 
                 Using proj1ILFile = SharedCompilationUtils.IlasmTempAssembly(proj1ILText, appendDefaultHeader:=False)
-                    Dim proj1Ref = New MetadataImageReference(ReadFromFile(proj1ILFile.Path))
+                    Dim proj1Ref = MetadataReference.CreateFromImage(ReadFromFile(proj1ILFile.Path))
 
                     Dim proj3 = CompileAndVerify(
                         <compilation name="P3">
@@ -478,7 +478,7 @@ End Module
 
             Using proj2ILFile = SharedCompilationUtils.IlasmTempAssembly(proj2ILText, appendDefaultHeader:=False)
                 Dim proj2AssemblyName = IO.Path.GetFileNameWithoutExtension(proj2ILFile.Path)
-                Dim proj2Ref = New MetadataImageReference(ReadFromFile(proj2ILFile.Path))
+                Dim proj2Ref = MetadataReference.CreateFromImage(ReadFromFile(proj2ILFile.Path))
 
                 Dim proj1ILText = <![CDATA[
 .assembly extern mscorlib
@@ -521,7 +521,7 @@ End Module
 } // end of class Class1    ]]>.Value
 
                 Using proj1ILFile = SharedCompilationUtils.IlasmTempAssembly(proj1ILText, appendDefaultHeader:=False)
-                    Dim proj1Ref = New MetadataImageReference(ReadFromFile(proj1ILFile.Path))
+                    Dim proj1Ref = MetadataReference.CreateFromImage(ReadFromFile(proj1ILFile.Path))
 
                     Dim proj3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                         <compilation name="P3">
@@ -619,7 +619,7 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
             ' So BC30284 is reasonable, and Dev10 does the same.
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
-                Dim ilRef = New MetadataImageReference(ReadFromFile(reference.Path))
+                Dim ilRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
                     <compilation name="CannotOverrideInAccessibleMemberInMetadata">
                         <file name="a.vb">
@@ -705,7 +705,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
 ]]>
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
-                Dim ilRef = New MetadataImageReference(ReadFromFile(reference.Path))
+                Dim ilRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                     <compilation name="Bug14346">
                         <file name="a.vb">

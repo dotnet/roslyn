@@ -265,13 +265,13 @@ class B : Box<System." + systemTypeName + @"> {}
             var comp1 = CreateCompilationWithMscorlib(@"public class C { }",
                 assemblyName: "C");
 
-            var C = new MetadataImageReference(comp1.EmitToArray());
+            var C = MetadataReference.CreateFromImage(comp1.EmitToArray());
 
             var comp2 = CreateCompilationWithMscorlib(@"public class B { public static C GetC() { return new C(); } }",
                 assemblyName: "B",
                 references: new[] { C });
 
-            var B = new MetadataImageReference(comp2.EmitToArray());
+            var B = MetadataReference.CreateFromImage(comp2.EmitToArray());
 
             var comp3 = CreateCompilationWithMscorlib(@"public class A { public static void Main() { object o = B.GetC(); } }",
                 assemblyName: "A",

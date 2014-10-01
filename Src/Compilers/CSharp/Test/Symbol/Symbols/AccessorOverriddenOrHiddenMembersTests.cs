@@ -831,7 +831,7 @@ public class G<T>
 ", references: new MetadataReference[] { compref }, assemblyName: "ACCImpGen");
 
             var mtdata = comp1.EmitToArray(true);
-            var mtref = new MetadataImageReference(mtdata);
+            var mtref = MetadataReference.CreateFromImage(mtdata);
             var comp2 = CreateCompilationWithMscorlib(@"", references: new MetadataReference[] { mtref }, assemblyName: "META");
 
             var tsym = comp2.GetReferencedAssemblySymbol(mtref).GlobalNamespace.GetMember<NamedTypeSymbol>("G");

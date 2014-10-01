@@ -286,7 +286,7 @@ class C
         {
             var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
-            var funcRef = new MetadataImageReference(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
+            var funcRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
 
             string source = @"
 class C
@@ -11246,7 +11246,7 @@ class C
         [Fact]
         public void GetIndex_IndexerWithByRefParam()
         {
-            var ilRef = new MetadataImageReference(TestResources.MetadataTests.Interop.IndexerWithByRefParam.AsImmutableOrNull());
+            var ilRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Interop.IndexerWithByRefParam.AsImmutableOrNull());
 
             string source = @"
 class C

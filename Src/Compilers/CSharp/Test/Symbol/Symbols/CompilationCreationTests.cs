@@ -2653,13 +2653,11 @@ class Module1
         [Fact]
         public void CompilationWithReferenceDirectives()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var data = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Data).Path;
-                var core = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).Path;
-                var system = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
+            var data = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Data).Path;
+            var core = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).Path;
+            var system = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
 
-                var trees = new[] {
+            var trees = new[] {
                 SyntaxFactory.ParseSyntaxTree(@"
 #r ""System.Data""
 #r """ + typeof(System.Xml.Serialization.IXmlSerializable).Assembly.Location + @"""
@@ -2675,35 +2673,32 @@ System.Diagnostics.Process.GetCurrentProcess();
 ", options: TestOptions.Script)
             };
 
-                var compilation = CSharpCompilation.Create("foo",
-                    syntaxTrees: trees,
-                    references: new[] { MscorlibRef },
-                    options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new Resolver(data, core, system)).WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            var compilation = CSharpCompilation.Create("foo",
+                syntaxTrees: trees,
+                references: new[] { MscorlibRef },
+                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new Resolver(data, core, system)).WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
-                var boundRefs = compilation.Assembly.BoundReferences();
+            var boundRefs = compilation.Assembly.BoundReferences();
 
-                Assert.Equal(5, boundRefs.Length);
-                Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "mscorlib"));
-                Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "System"));
-                Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "System.Core"));
-                Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "System.Data"));
-                Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "System.Xml"));
+            Assert.Equal(5, boundRefs.Length);
+            Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "mscorlib"));
+            Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "System"));
+            Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "System.Core"));
+            Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "System.Data"));
+            Assert.NotNull(boundRefs.FirstOrDefault(sym => sym.Name == "System.Xml"));
 
-                compilation.VerifyDiagnostics();
-            }
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
         public void CompilationWithReferenceDirectives_Errors()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var data = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Data).Path;
-                var core = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).Path;
-                var system = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
-                var mscorlibRef = new MetadataFileReference(typeof(object).Assembly.Location);
+            var data = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Data).Path;
+            var core = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).Path;
+            var system = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
+            var mscorlibRef = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
 
-                var trees = new[] {
+            var trees = new[] {
                     SyntaxFactory.ParseSyntaxTree(@"
 #r System
 #r ""~!@#$%^&*():\?/""
@@ -2714,14 +2709,14 @@ System.Diagnostics.Process.GetCurrentProcess();
 ")
                 };
 
-                var compilation = CSharpCompilation.Create("foo",
-                    syntaxTrees: trees,
-                    references: new[] { mscorlibRef },
-                    options: TestOptions.ReleaseDll
-                        .WithMetadataReferenceResolver(new Resolver(data, core, system))
-                        .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            var compilation = CSharpCompilation.Create("foo",
+                syntaxTrees: trees,
+                references: new[] { mscorlibRef },
+                options: TestOptions.ReleaseDll
+                    .WithMetadataReferenceResolver(new Resolver(data, core, system))
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
-                compilation.VerifyDiagnostics(
+            compilation.VerifyDiagnostics(
                 // (3,1): error CS0006: Metadata file '~!@#$%^&*():\?/' could not be found
                 Diagnostic(ErrorCode.ERR_NoMetadataFile, @"#r ""~!@#$%^&*():\?/""").WithArguments(@"~!@#$%^&*():\?/"),
                 // (4,1): error CS0006: Metadata file 'non-existing-reference' could not be found
@@ -2730,7 +2725,6 @@ System.Diagnostics.Process.GetCurrentProcess();
                 Diagnostic(ErrorCode.ERR_ExpectedPPFile, "System"),
                 // (2,1): error CS7011: #r is only allowed in scripts
                 Diagnostic(ErrorCode.ERR_ReferenceDirectiveOnlyAllowedInScripts, @"#r ""System.Core"""));
-            }
         }
 
         private static readonly string ResolvedPath = Path.GetPathRoot(Environment.CurrentDirectory) + "RESOLVED";
@@ -2747,7 +2741,7 @@ System.Diagnostics.Process.GetCurrentProcess();
             public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
             {
                 var path = fullPath == ResolvedPath ? targetDll : fullPath;
-                return new MetadataFileReference(path, properties);
+                return MetadataReference.CreateFromFile(path, properties);
             }
         }
 
@@ -2762,57 +2756,51 @@ System.Diagnostics.Process.GetCurrentProcess();
         [Fact]
         public void MetadataReferenceProvider()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                var csClasses01 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
-                var csInterfaces01 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01).Path;
+            var csClasses01 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
+            var csInterfaces01 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01).Path;
 
-                var provider = new DummyFileProvider(csClasses01);
-                var resolver = new DummyRelativePathResolver();
+            var provider = new DummyFileProvider(csClasses01);
+            var resolver = new DummyRelativePathResolver();
 
-                var source = @"
+            var source = @"
 #r """ + typeof(object).Assembly.Location + @"""
 #r """ + "!@#$%^/&*-resolve" + @"""
 #r """ + csInterfaces01 + @"""
 class C : Metadata.ICSPropImpl { }";
 
-                var compilation = CSharpCompilation.Create("foo",
-                    syntaxTrees: new[]
+            var compilation = CSharpCompilation.Create("foo",
+                syntaxTrees: new[]
                     {
                         Parse(source, options: TestOptions.Script)
                     },
-                    options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver).WithMetadataReferenceProvider(provider));
+                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver).WithMetadataReferenceProvider(provider));
 
-                compilation.VerifyDiagnostics();
-            }
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
         public void CompilationWithReferenceDirective_RelativeToBaseDirectory()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
-                string fileName = Path.GetFileName(path);
-                string dir = Path.GetDirectoryName(path);
+            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
+            string fileName = Path.GetFileName(path);
+            string dir = Path.GetDirectoryName(path);
 
-                var trees = new[]
+            var trees = new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(@"
 #r "".\" + fileName + @"""
 ", path: Path.Combine(dir, "a.csx"), options: TestOptions.Script),
                 };
 
-                var compilation = CSharpCompilation.Create(
-                    "foo",
-                    trees,
-                    new[] { MscorlibRef },
-                    TestOptions.ReleaseDll
-                        .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
-                        .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            var compilation = CSharpCompilation.Create(
+                "foo",
+                trees,
+                new[] { MscorlibRef },
+                TestOptions.ReleaseDll
+                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
-                compilation.VerifyDiagnostics();
-            }
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2832,58 +2820,52 @@ class C : Metadata.ICSPropImpl { }";
         [Fact]
         public void CompilationWithReferenceDirective_RelativeToBaseParent()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
-                string fileName = Path.GetFileName(path);
-                string dir = Path.Combine(Path.GetDirectoryName(path), "subdir");
+            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
+            string fileName = Path.GetFileName(path);
+            string dir = Path.Combine(Path.GetDirectoryName(path), "subdir");
 
-                var trees = new[]
+            var trees = new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(@"
 #r ""..\" + fileName + @"""
 ", path: Path.Combine(dir, "a.csx"), options: TestOptions.Script),
                 };
 
-                var compilation = CSharpCompilation.Create("foo",
-                    syntaxTrees: trees,
-                    references: new[] { MscorlibRef },
-                    options: TestOptions.ReleaseDll
-                        .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
-                        .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            var compilation = CSharpCompilation.Create("foo",
+                syntaxTrees: trees,
+                references: new[] { MscorlibRef },
+                options: TestOptions.ReleaseDll
+                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
-                compilation.VerifyDiagnostics();
-            }
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
         public void CompilationWithReferenceDirective_RelativeToBaseRoot()
         {
-            using (MetadataCache.LockAndClean())
-            {
-                string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
-                string root = Path.GetPathRoot(path);
-                string unrooted = path.Substring(root.Length);
+            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
+            string root = Path.GetPathRoot(path);
+            string unrooted = path.Substring(root.Length);
 
-                string dir = Path.Combine(root, "foo", "bar", "baz");
+            string dir = Path.Combine(root, "foo", "bar", "baz");
 
-                var trees = new[]
+            var trees = new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(@"
 #r ""\" + unrooted + @"""
 ", path: Path.Combine(dir, "a.csx"), options: TestOptions.Script),
                 };
 
-                var compilation = CSharpCompilation.Create(
-                    "foo",
-                    trees,
-                    new[] { MscorlibRef },
-                    TestOptions.ReleaseDll
-                        .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
-                        .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            var compilation = CSharpCompilation.Create(
+                "foo",
+                trees,
+                new[] { MscorlibRef },
+                TestOptions.ReleaseDll
+                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
-                compilation.VerifyDiagnostics();
-            }
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]

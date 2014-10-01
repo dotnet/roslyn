@@ -21,14 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     var list = new List<MetadataReference>(WinRtRefs.Length + 2);
                     list.AddRange(WinRtRefs);
-                    list.Add(
-                        new MetadataImageReference(
-                            TestResources.WinRt.Windows_Languages_WinRTTest.AsImmutableOrNull(),
-                            display: "WinRTTest"));
-                    list.Add(
-                        new MetadataImageReference(
-                            ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core.AsImmutableOrNull(),
-                            display: "SystemCore"));
+                    list.Add(AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display: "WinRTTest"));
+                    list.Add(AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display: "SystemCore"));
                     _legacyRefs = list.ToArray();
                 }
                 return _legacyRefs;

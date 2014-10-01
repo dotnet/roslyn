@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#pragma warning disable CS0618
 
 using System;
 using System.Collections.Generic;
@@ -288,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <exception cref="IOException">IO error reading the metadata.</exception>
         private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath)
         {
-            using (var assembly = MetadataFileFactory.CreateAssembly(fullPath))
+            using (var assembly = AssemblyMetadata.CreateFromFile(fullPath))
             {
                 var typeNameMap = from module in assembly.GetModules()
                                   from typeDefHandle in module.MetadataReader.TypeDefinitions

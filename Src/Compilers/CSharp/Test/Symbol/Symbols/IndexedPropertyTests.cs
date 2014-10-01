@@ -1682,7 +1682,7 @@ public class B2 : A2
     }
 }";
             var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitOptions: EmitOptions.CCI);
-            var reference2 = new MetadataImageReference(compilation2.EmittedAssemblyData);
+            var reference2 = MetadataReference.CreateFromImage(compilation2.EmittedAssemblyData);
             // Can invoke C# implementations by invoking the accessors directly
             // or by casting to the COM interface and invoking the indexed property.
             var source3 =

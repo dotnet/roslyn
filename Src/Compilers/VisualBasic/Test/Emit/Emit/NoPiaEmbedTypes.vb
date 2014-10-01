@@ -98,12 +98,12 @@ BC31541: Reference to class 'M' is not allowed when its assembly is configured t
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=False)})
+                additionalRefs:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=False)})
             VerifyEmitDiagnostics(compilation2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -165,7 +165,7 @@ BC31541: Reference to class 'A' is not allowed when its assembly is configured t
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -202,7 +202,7 @@ Imports COfA = C(Of A)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -267,7 +267,7 @@ BC31558: Nested type 'IA.E' cannot be embedded.
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -321,7 +321,7 @@ BC31558: Nested type 'S1.S2' cannot be embedded.
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -367,7 +367,7 @@ BC31558: Nested type 'S1.S2' cannot be embedded.
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -407,7 +407,7 @@ BC31558: Nested type 'S1.S2' cannot be embedded.
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors2)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors2)
         End Sub
@@ -489,7 +489,7 @@ BC36923: Type 'D1(Of T)' cannot be embedded because it has generic argument. Con
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -608,7 +608,7 @@ BC31542: Embedded interop structure 'S5' can contain only public instance fields
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -696,7 +696,7 @@ BC35000: Requested operation is not available because the runtime library functi
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
             compilation1 = CreateCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef_v20, New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                references:={MscorlibRef_v20, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
         End Sub
@@ -741,7 +741,7 @@ BC35000: Requested operation is not available because the runtime library functi
             compilation1 = CreateCompilationWithReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                references:={MscorlibRef_v20, New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                references:={MscorlibRef_v20, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
         End Sub
@@ -1491,7 +1491,7 @@ End Class
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugExe,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
 
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             verifier.VerifyDiagnostics()
@@ -1603,7 +1603,7 @@ End Interface
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), SystemCoreRef})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug, verify:=False)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -1644,7 +1644,7 @@ BC30375: 'New' cannot be used on an interface.
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
         End Sub
@@ -1691,7 +1691,7 @@ BC31543: Interop type 'C' cannot be embedded because it is missing the required 
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
         End Sub
@@ -1737,7 +1737,7 @@ End Structure
                                                        End Sub
             Dim compilation1 = CreateCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef, SystemRef, New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
@@ -1757,7 +1757,7 @@ End Structure
 ]]>)
             compilation1 = CreateCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef_v4_0_30316_17626, SystemRef, New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                references:={MscorlibRef_v4_0_30316_17626, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
@@ -1810,7 +1810,7 @@ End Module
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, <errors>
 BC31450: Type 'C(Of )' cannot be used as an implementing class.
         Return New I()
@@ -1856,12 +1856,12 @@ End Structure
             ' No errors for /r:_.dll
             Dim compilation1 = CreateCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef, SystemRef, New MetadataImageReference(compilation0.EmitToArray())})
+                references:={MscorlibRef, SystemRef, MetadataReference.CreateFromImage(compilation0.EmitToArray())})
             compilation1.AssertTheseDiagnostics()
             ' Error for /l:_.dll
             compilation1 = CreateCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef, SystemRef, New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             compilation1.AssertTheseDiagnostics(<errors>
 BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
         Return New I("")
@@ -1932,7 +1932,7 @@ BC35000: Requested operation is not available because the runtime library functi
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
         End Sub
@@ -2054,7 +2054,7 @@ End Class
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), SystemCoreRef})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("C.Add", expectedAdd)
@@ -2130,7 +2130,7 @@ End Class
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2205,7 +2205,7 @@ BC31556: Interface 'I4' has an invalid source interface which is required to emb
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
             compilation1 = CreateCompilationWithMscorlibAndReferences(
                 sources1,
-                references:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), SystemCoreRef})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
         End Sub
@@ -2257,7 +2257,7 @@ BC31557: Source interface 'IE' is missing method 'E', which is required to embed
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
             compilation1 = CreateCompilationWithMscorlibAndReferences(
                 sources1,
-                references:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), SystemCoreRef})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
         End Sub
@@ -2303,7 +2303,7 @@ BC31543: Interop type 'I' cannot be embedded because it is missing the required 
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errorsMetadataOnly)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errorsMetadataOnly)
         End Sub
@@ -2349,7 +2349,7 @@ BC31543: Interop type 'I' cannot be embedded because it is missing the required 
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errorsMetadataOnly)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errorsMetadataOnly)
         End Sub
@@ -2403,7 +2403,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2457,7 +2457,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2502,7 +2502,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2550,7 +2550,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2600,7 +2600,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2648,7 +2648,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2696,7 +2696,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2747,7 +2747,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Date)'.
                                                     </errors>)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2805,7 +2805,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M2(x As Decimal)'.
                                                     </errors>)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2859,7 +2859,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Decimal)'.
                                                     </errors>)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2903,7 +2903,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2952,7 +2952,7 @@ End Structure
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -3021,7 +3021,7 @@ BC31552: Cannot embed interop type 'I1' found in both assembly '0, Version=0.0.0
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -3095,7 +3095,7 @@ BC31560: Embedding the interop type 'I3' from assembly '0, Version=0.0.0.0, Cult
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=False)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=False)})
             VerifyEmitDiagnostics(compilation1)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
             ' Errors for /l:0.dll.
@@ -3106,7 +3106,7 @@ BC31560: Embedding the interop type 'I3' from assembly '0, Version=0.0.0.0, Cult
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
         End Sub
@@ -3169,17 +3169,17 @@ End Class
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=False)})
+                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=False)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -3247,17 +3247,17 @@ BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.
             AssertTheseDiagnostics(verifier, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=False)})
+                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True), New MetadataImageReference(compilation1.EmitToArray(), embedInteropTypes:=False)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, errors)
         End Sub
@@ -3314,7 +3314,7 @@ End Interface
             CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
         End Sub
 
@@ -3374,7 +3374,7 @@ End Class
             CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
         End Sub
 
@@ -3431,7 +3431,7 @@ End Class
             CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             CompileAndVerify(compilation2, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
         End Sub
 
@@ -3481,7 +3481,7 @@ End Class
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndReferences(
                 sources1,
-                references:={New MetadataImageReference(compilation0.EmitToArray(), embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitOptions:=EmitOptions.RefEmitBug)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -3539,7 +3539,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray(), embedInteropTypes:=True)})
+                references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -3605,7 +3605,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray(), embedInteropTypes:=True)})
+                references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
 
@@ -3628,7 +3628,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray())})
+                references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4, emitOptions:=EmitOptions.RefEmitBug)
 
             assembly = compilation4.SourceModule.GetReferencedAssemblySymbols()(1)
@@ -3697,7 +3697,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray(), embedInteropTypes:=True)})
+                references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
 
@@ -3708,7 +3708,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray())})
+                references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4, emitOptions:=EmitOptions.RefEmitBug, verify:=False)
         End Sub
 
@@ -3766,7 +3766,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
 
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray(), embedInteropTypes:=True)})
+                references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -3830,7 +3830,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
 
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray(), embedInteropTypes:=True)})
+                references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -3958,7 +3958,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
 
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray(), embedInteropTypes:=True)})
+                references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
 
@@ -3969,7 +3969,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray())})
+                references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4, emitOptions:=EmitOptions.RefEmitBug)
         End Sub
 
@@ -4032,7 +4032,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
 
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray(), embedInteropTypes:=True)})
+                references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
 
@@ -4043,7 +4043,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
-                references:={New MetadataImageReference(piaCompilation2.EmitToArray())})
+                references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4, emitOptions:=EmitOptions.RefEmitBug, verify:=False)
         End Sub
 

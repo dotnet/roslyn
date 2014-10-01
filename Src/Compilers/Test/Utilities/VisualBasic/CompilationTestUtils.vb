@@ -258,7 +258,7 @@ Friend Module CompilationUtils
                                                         Optional includeSystemCore As Boolean = False,
                                                         Optional appendDefaultHeader As Boolean = True,
                                                         Optional parseOptions As VisualBasicParseOptions = Nothing,
-                                                        <Out> Optional ByRef ilReference As MetadataImageReference = Nothing,
+                                                        <Out> Optional ByRef ilReference As MetadataReference = Nothing,
                                                         <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
     ) As VisualBasicCompilation
         Dim references As New List(Of MetadataReference)
@@ -279,11 +279,11 @@ Friend Module CompilationUtils
         Return CreateCompilationWithMscorlibAndReferences(sources, references, options, spans, parseOptions)
     End Function
 
-    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataImageReference
+    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataReference
         Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource, appendDefaultHeader)
-            ilImage = ImmutableArray.Create(Of Byte)(File.ReadAllBytes(reference.Path))
+            ilImage = ImmutableArray.Create(File.ReadAllBytes(reference.Path))
         End Using
-        Return New MetadataImageReference(ilImage)
+        Return MetadataReference.CreateFromImage(ilImage)
     End Function
 
     Public Function GetUniqueName() As String

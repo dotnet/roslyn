@@ -3226,7 +3226,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {New MetadataImageReference(compilation1.EmitToArray())})
+            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {MetadataReference.CreateFromImage(compilation1.EmitToArray())})
             compilation2.AssertTheseDiagnostics(<errors/>)
             Dim vbSource3 =
                 <compilation>
@@ -3264,7 +3264,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(vbSource3, {New MetadataImageReference(compilation2.EmitToArray())})
+            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(vbSource3, {MetadataReference.CreateFromImage(compilation2.EmitToArray())})
             compilation3.AssertTheseDiagnostics(<errors/>)
         End Sub
 

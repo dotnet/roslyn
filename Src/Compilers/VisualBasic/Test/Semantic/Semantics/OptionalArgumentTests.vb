@@ -701,7 +701,7 @@ End Module
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "M6").WithArguments("x", "Public Shared Sub M6(x As Object)"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "M8").WithArguments("x", "Public Shared Sub M8(x As Object)"))
 
-            Dim metadataRef = New MetadataImageReference(libComp.EmitToArray())
+            Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
 1
@@ -762,7 +762,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim libRef = New MetadataImageReference(libComp.EmitToArray())
+            Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 1
@@ -851,7 +851,7 @@ System.Runtime.InteropServices.DispatchWrapper
 System.Runtime.InteropServices.DispatchWrapper
 ]]>
 
-            Dim metadataRef = New MetadataImageReference(libComp.EmitToArray())
+            Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
             CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected).VerifyDiagnostics()
         End Sub
 
@@ -914,7 +914,7 @@ End Module
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "Foo2").WithArguments("x", "Public Shared Sub Foo2(x As String)"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "Foo3").WithArguments("x", "Public Shared Sub Foo3(x As Integer)"))
 
-            libRef = New MetadataImageReference(libComp.EmitToArray())
+            libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 System.Reflection.Missing
@@ -987,7 +987,7 @@ a
 10
 ]]>).VerifyDiagnostics()
 
-            libRef = New MetadataImageReference(libComp.EmitToArray())
+            libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 False
@@ -1658,7 +1658,7 @@ Void Main() - 10, Main, a.vb
             Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, New VisualBasicCompilationReference(attributeCompilation)}, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput)
 
-            compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, New MetadataImageReference(attributeCompilation.EmitToArray())}, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, MetadataReference.CreateFromImage(attributeCompilation.EmitToArray())}, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput)
         End Sub
 

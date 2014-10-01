@@ -764,7 +764,7 @@ End Class
                            </compilation>
             Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
-            Dim referencePIA As MetadataReference = New MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes:=True)
+            Dim referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes:=True)
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
 
@@ -859,7 +859,7 @@ End Class
                             </compilation>
             Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
-            Dim referencePIA As MetadataReference = New MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes:=True)
+            Dim referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes:=True)
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
             Dim compilation1A = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1A, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
             Dim compilation1B = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1B, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
@@ -944,7 +944,7 @@ End Class
                           </compilation>
             Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
-            Dim referencePIA As MetadataReference = New MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes:=True)
+            Dim referencePIA = AssemblyMetadata.CreateFromImage(compilationPIA.EmitToArray()).GetReference(embedInteropTypes:=True)
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
 

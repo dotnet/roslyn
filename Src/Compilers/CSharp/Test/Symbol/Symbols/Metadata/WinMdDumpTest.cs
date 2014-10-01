@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 {
     public class WinMdDumpTest : CSharpTestBase
     {
-        private readonly MetadataReference WindowsRef = new MetadataImageReference(TestResources.WinRt.Windows.AsImmutableOrNull());
-        private readonly MetadataReference SystemRuntimeRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime.AsImmutableOrNull());
-        private readonly MetadataReference SystemObjectModelRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_ObjectModel.AsImmutableOrNull());
-        private readonly MetadataReference WindowsRuntimeUIXamlRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
-        private readonly MetadataReference InteropServicesWindowsRuntimeRef = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime.AsImmutableOrNull());
+        private readonly MetadataReference WindowsRef = MetadataReference.CreateFromImage(TestResources.WinRt.Windows.AsImmutableOrNull());
+        private readonly MetadataReference SystemRuntimeRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime.AsImmutableOrNull());
+        private readonly MetadataReference SystemObjectModelRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_ObjectModel.AsImmutableOrNull());
+        private readonly MetadataReference WindowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
+        private readonly MetadataReference InteropServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime.AsImmutableOrNull());
         
         private void AppendMembers(StringBuilder result, NamespaceOrTypeSymbol container, string indent)
         {
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         [Fact]
         public void DumpWinMDPrefixing()
         {
-            var winmd = new MetadataImageReference(TestResources.WinRt.WinMDPrefixing.AsImmutableOrNull());
+            var winmd = MetadataReference.CreateFromImage(TestResources.WinRt.WinMDPrefixing.AsImmutableOrNull());
             var actual = Dump(winmd, new[] { WindowsRef });
             var expected = Encoding.UTF8.GetString(TestResources.WinRt.WinMDPrefixing_dump);
             AssertDumpsEqual(expected, actual);

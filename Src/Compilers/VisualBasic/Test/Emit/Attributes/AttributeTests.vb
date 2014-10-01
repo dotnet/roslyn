@@ -592,7 +592,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
-                {New MetadataImageReference(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull())},
+                {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull())},
                 TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
@@ -709,7 +709,7 @@ End Namespace
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
-                {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
+                {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01)},
                 TestOptions.ReleaseDll)
 
             Dim attributeValidator =
@@ -791,7 +791,7 @@ End Namespace
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
-                {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
+                {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01)},
                 TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
@@ -844,7 +844,7 @@ End Namespace
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
-                {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
+                {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01)},
                 TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
@@ -881,7 +881,7 @@ End Namespace
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
-                {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
+                {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01)},
                 TestOptions.ReleaseDll)
 
             Dim sourceAttributeValidator = Sub(m As ModuleSymbol)
@@ -951,7 +951,7 @@ End Namespace
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
-                {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
+                {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
                 TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
@@ -1007,7 +1007,7 @@ End Namespace
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
-                {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
+                {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01)},
                 TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
@@ -1828,7 +1828,7 @@ End Class
                                                references:={MscorlibRef},
                                                syntaxTrees:={Parse("Public Enum Bar : Baz : End Enum")}).EmitToArray(metadataOnly:=True)
 
-            Dim ref1 = New MetadataImageReference(metadata1)
+            Dim ref1 = MetadataReference.CreateFromImage(metadata1)
 
             Dim metadata2 = VisualBasicCompilation.Create(
                                 "foo.dll",
@@ -1843,7 +1843,7 @@ End Class
                                         Public Class Foo
                                         End Class]]>.Value)}).EmitToArray(metadataOnly:=True)
 
-            Dim ref2 = New MetadataImageReference(metadata2)
+            Dim ref2 = MetadataReference.CreateFromImage(metadata2)
 
             Dim comp = VisualBasicCompilation.Create("moo.dll", references:={MscorlibRef, ref1, ref2})
 
@@ -1871,7 +1871,7 @@ End Namespace
                                                              {MscorlibRef},
                                                              TestOptions.ReleaseDll)
 
-            Dim classLibrary = New MetadataImageReference(compilation1.EmitToArray())
+            Dim classLibrary = MetadataReference.CreateFromImage(compilation1.EmitToArray())
 
             Dim source =
         <compilation>
@@ -1921,7 +1921,7 @@ End Namespace
                                                              {MscorlibRef},
                                                              TestOptions.ReleaseDll)
 
-            Dim classLibrary = New MetadataImageReference(compilation1.EmitToArray())
+            Dim classLibrary = MetadataReference.CreateFromImage(compilation1.EmitToArray())
 
             Dim source =
         <compilation>
@@ -2447,7 +2447,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
-                {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())})
+                {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01)})
 
             ' BC30663, BC30662
             Dim expectedErrors =

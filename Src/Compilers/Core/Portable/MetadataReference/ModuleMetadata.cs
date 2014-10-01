@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.InternalUtilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -88,22 +89,27 @@ namespace Microsoft.CodeAnalysis
         /// Create metadata module from a sequence of bytes.
         /// </summary>
         /// <param name="peImage">The portable executable image beginning with the DOS header ("MZ").</param>
-        /// <exception cref="ArgumentException"><paramref name="peImage"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         public static ModuleMetadata CreateFromImage(IEnumerable<byte> peImage)
         {
-            return CreateFromImage(peImage.AsImmutableOrNull());
+            if (peImage == null)
+            {
+                throw new ArgumentNullException(nameof(peImage));
+            }
+
+            return CreateFromImage(ImmutableArray.CreateRange(peImage));
         }
 
         /// <summary>
         /// Create metadata module from a byte array.
         /// </summary>
         /// <param name="peImage">Portable executable image beginning with the DOS header ("MZ").</param>
-        /// <exception cref="ArgumentException"><paramref name="peImage"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         public static ModuleMetadata CreateFromImage(ImmutableArray<byte> peImage)
         {
             if (peImage.IsDefault)
             {
-                throw new ArgumentException(nameof(peImage));
+                throw new ArgumentNullException(nameof(peImage));
             }
 
             return new ModuleMetadata(new PEReader(peImage));
@@ -117,11 +123,11 @@ namespace Microsoft.CodeAnalysis
         /// False to close the stream upon disposal of the metadata (the responsibility for disposal of the stream is transferred upon entry of the constructor
         /// unless the arguments given are invalid).
         /// </param>
-        /// <exception cref="ArgumentException">The stream doesn't support seek operations.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="peStream"/> is null.</exception>
-        public static ModuleMetadata CreateFromImageStream(Stream peStream, bool leaveOpen = false)
+        /// <exception cref="ArgumentException">The stream doesn't support seek operations.</exception>
+        public static ModuleMetadata CreateFromStream(Stream peStream, bool leaveOpen = false)
         {
-            return CreateFromImageStream(peStream, leaveOpen ? PEStreamOptions.LeaveOpen : PEStreamOptions.Default);
+            return CreateFromStream(peStream, leaveOpen ? PEStreamOptions.LeaveOpen : PEStreamOptions.Default);
         }
 
         /// <summary>
@@ -133,8 +139,8 @@ namespace Microsoft.CodeAnalysis
         /// Unless <see cref="PEStreamOptions.LeaveOpen"/> is specified, the responsibility for disposal of the stream is transferred upon entry of the constructor
         /// unless the arguments given are invalid.
         /// </param>
-        /// <exception cref="ArgumentException">The stream doesn't support read and seek operations.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="peStream"/> is null.</exception>
+        /// <exception cref="ArgumentException">The stream doesn't support read and seek operations.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="options"/> has an invalid value.</exception>
         /// <exception cref="BadImageFormatException">
         /// <see cref="PEStreamOptions.PrefetchMetadata"/> or <see cref="PEStreamOptions.PrefetchEntireImage"/> is specified and the PE headers of the image are invalid.
@@ -142,7 +148,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException">
         /// <see cref="PEStreamOptions.PrefetchMetadata"/> or <see cref="PEStreamOptions.PrefetchEntireImage"/> is specified and an error occurs while reading the stream.
         /// </exception>
-        public static ModuleMetadata CreateFromImageStream(Stream peStream, PEStreamOptions options)
+        public static ModuleMetadata CreateFromStream(Stream peStream, PEStreamOptions options)
         {
             if (peStream == null)
             {
@@ -156,6 +162,24 @@ namespace Microsoft.CodeAnalysis
 
             // ownership of the stream is passed on PEReader:
             return new ModuleMetadata(new PEReader(peStream, options));
+        }
+
+        /// <summary>
+        /// Creates metadata module from a file containing a portable executable image.
+        /// </summary>
+        /// <param name="path">File path.</param>
+        /// <remarks>
+        /// The file might remain mapped (and read-locked) until this object is disposed.
+        /// The memory map is only created for large files. Small files are read into memory.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="path"/> is invalid.</exception>
+        /// <exception cref="IOException">Error opening file <paramref name="path"/>. See <see cref="Exception.InnerException"/> for details.</exception>
+        /// <exception cref="FileNotFoundException">File <paramref name="path"/> not found.</exception>
+        /// <exception cref="NotSupportedException">Reading from a file path is not supported by the platform.</exception>
+        public static ModuleMetadata CreateFromFile(string path)
+        {
+            return CreateFromStream(FileStreamLightUp.OpenFileStream(path));
         }
 
         /// <summary>
@@ -255,6 +279,18 @@ namespace Microsoft.CodeAnalysis
         internal MetadataReader MetadataReader
         {
             get { return Module.MetadataReader; }
+        }
+
+        /// <summary>
+        /// Creates a reference to the module metadata.
+        /// </summary>
+        /// <param name="documentation">Provider of XML documentation comments for the metadata symbols contained in the module.</param>
+        /// <param name="filePath">Path describing the location of the metadata, or null if the metadata have no location.</param>
+        /// <param name="display">Display string used in error messages to identity the reference.</param>
+        /// <returns>A reference to the module metadata.</returns>
+        public PortableExecutableReference GetReference(DocumentationProvider documentation = null, string filePath = null, string display = null)
+        {
+            return new MetadataImageReference(this, MetadataReferenceProperties.Module, documentation, filePath, display);
         }
     }
 }

@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             MetadataReference reference = null;
             using (var tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource))
             {
-                reference = new MetadataImageReference(ReadFromFile(tempAssembly.Path));
+                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }
 
             var compilation = CreateCompilationWithMscorlib(cSharpSource, new[] { reference }, compilationOptions);

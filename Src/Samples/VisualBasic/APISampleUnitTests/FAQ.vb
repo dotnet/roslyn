@@ -57,12 +57,12 @@ Namespace APISampleUnitTestsVB
         End Class
 
 
-        Private _Mscorlib As MetadataFileReference
+        Private _Mscorlib As MetadataReference
 
-        Public ReadOnly Property Mscorlib As MetadataFileReference
+        Public ReadOnly Property Mscorlib As MetadataReference
             Get
                 If _Mscorlib Is Nothing Then
-                    _Mscorlib = New MetadataFileReference(GetType(Object).Assembly.Location)
+                    _Mscorlib = MetadataReference.CreateFromAssembly(GetType(Object).Assembly)
                 End If
                 Return _Mscorlib
             End Get
@@ -86,7 +86,7 @@ Module Program
     End Sub
 End Module
 </text>.Value)
-            Dim vbRuntime = New MetadataFileReference(GetType(Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute).Assembly.Location)
+            Dim vbRuntime = MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)
             Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib, vbRuntime})
             Dim model = comp.GetSemanticModel(tree)
 
@@ -644,7 +644,7 @@ Module Program
 End Module
 </text>.Value)
 
-            Dim vbRuntime = New MetadataFileReference(GetType(CompilerServices.StandardModuleAttribute).Assembly.Location)
+            Dim vbRuntime = MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)
             Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib, vbRuntime})
             Dim results = New StringBuilder()
 
@@ -2250,7 +2250,7 @@ End Module
             Dim newRoot = CType(rewriter.Visit(oldRoot), CompilationUnitSyntax)
             newRoot = newRoot.NormalizeWhitespace() ' normalize all the whitespace to make it legible
             Dim newTree = tree.WithRootAndOptions(newRoot, tree.Options)
-            Dim vbRuntime = New MetadataFileReference(GetType(Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute).Assembly.Location)
+            Dim vbRuntime = MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)
             Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={newTree}, references:={Mscorlib, vbRuntime})
             Dim output As String = Execute(comp)
 
@@ -2392,7 +2392,7 @@ End Module
             Dim _documentId = DocumentId.CreateNewId(_projectId)
 
             Dim systemReference = AppDomain.CurrentDomain.GetAssemblies().Where(Function(x) String.Equals(x.GetName().Name, "System", StringComparison.OrdinalIgnoreCase)).
-                Select(Function(x) New MetadataFileReference(x.Location)).Single()
+                Select(AddressOf MetadataReference.CreateFromAssembly).Single()
 
             Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
