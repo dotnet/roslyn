@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         ////private readonly IEnumerable<string> diagnosticIds = ImmutableArray.Create(CA1008DiagnosticAnalyzer.RuleNameRename,
         ////                                                                           CA1008DiagnosticAnalyzer.RuleNameMultipleZero,
         ////                                                                           CA1008DiagnosticAnalyzer.RuleNameNoZeroValue);
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
             ////return diagnosticIds;
-            return SpecializedCollections.EmptyEnumerable<string>();
+            return ImmutableArray<string>.Empty;
         }
 
         protected sealed override string GetCodeFixDescription(string ruleId)

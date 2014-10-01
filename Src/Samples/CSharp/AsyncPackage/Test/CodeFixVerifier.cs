@@ -75,10 +75,11 @@ namespace TestTemplate
             var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
             var compilerDiagnostics = GetCompilerDiagnostics(document);
             var attempts = analyzerDiagnostics.Length;
-
+            
             for (int i = 0; i < attempts; ++i)
             {
-                var actions = codeFixProvider.GetFixesAsync(document, analyzerDiagnostics[0].Location.SourceSpan, analyzerDiagnostics, CancellationToken.None).Result;
+                var context = new CodeFixContext(document, analyzerDiagnostics[0], CancellationToken.None);
+                var actions = codeFixProvider.GetFixesAsync(context).Result;
                 if (!actions.Any())
                 {
                     break;

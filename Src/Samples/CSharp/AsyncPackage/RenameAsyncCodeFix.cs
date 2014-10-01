@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
 
 namespace AsyncPackage
 {
@@ -19,22 +19,22 @@ namespace AsyncPackage
     [ExportCodeFixProvider(RenameAsyncAnalyzer.RenameAsyncId, LanguageNames.CSharp)]
     public class RenameAsyncCodeFix : CodeFixProvider
     {
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return new[] { RenameAsyncAnalyzer.RenameAsyncId };
+            return ImmutableArray.Create(RenameAsyncAnalyzer.RenameAsyncId);
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnosticSpan = diagnostics.First().Location.SourceSpan;
+            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
             var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
             // Return a code action that will invoke the fix. (The name is intentional; that's my sense of humor)
-            return new[] { new RenameAsyncCodeAction("Add Async to the end of the method name", c => RenameMethodAsync(document, methodDeclaration, c)) };
+            return new[] { new RenameAsyncCodeAction("Add Async to the end of the method name", c => RenameMethodAsync(context.Document, methodDeclaration, c)) };
         }
 
         private async Task<Solution> RenameMethodAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)

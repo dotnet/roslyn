@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
         protected const string RightName = "right";
         protected const string NotImplementedExceptionName = "System.NotImplementedException";
 
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return SpecializedCollections.SingletonEnumerable(CA2231DiagnosticAnalyzer.RuleId);
+            return ImmutableArray.Create(CA2231DiagnosticAnalyzer.RuleId);
         }
 
         protected sealed override string GetCodeFixDescription(string ruleId)

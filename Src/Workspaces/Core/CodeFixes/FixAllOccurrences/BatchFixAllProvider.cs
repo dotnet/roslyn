@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var diagnostic = diagnosticsArray[i];
                 fixerTasks[i] = Task.Run(async () =>
                 {
-                    var fixes = await fixAllContext.CodeFixProvider.GetFixesAsync(document, diagnostic.Location.SourceSpan, 
-                        SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                    var context = new CodeFixContext(document, diagnostic, cancellationToken);
+                    var fixes = await fixAllContext.CodeFixProvider.GetFixesAsync(context).ConfigureAwait(false);
 
                     if (fixes != null)
                     {

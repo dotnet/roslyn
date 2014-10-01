@@ -18,13 +18,16 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken);
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
         {
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var actions = SpecializedCollections.EmptyEnumerable<CodeAction>();
-            foreach (var diagnostic in diagnostics)
+            foreach (var diagnostic in context.Diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

@@ -20,8 +20,8 @@
 //
 // *********************************************************
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,16 +32,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace MakeConstCS
 {
     [ExportCodeFixProvider("MakeConstCS", LanguageNames.CSharp)]
     internal class MakeConstCodeFixProvider : CodeFixProvider
     {
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return new[] { DiagnosticAnalyzer.MakeConstDiagnosticId };
+            return ImmutableArray.Create(DiagnosticAnalyzer.MakeConstDiagnosticId);
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -49,17 +48,17 @@ namespace MakeConstCS
             return null;
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken);
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken);
 
-            var diagnosticSpan = diagnostics.First().Location.SourceSpan;
+            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
 
             // Find the local declaration identified by the diagnostic.
             var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
 
             // return a code action that will invoke the fix.
-            return new[] { CodeAction.Create("Make constant", c => MakeConstAsync(document, declaration, c)) };
+            return new[] { CodeAction.Create("Make constant", c => MakeConstAsync(context.Document, declaration, c)) };
         }
 
         private async Task<Document> MakeConstAsync(Document document, LocalDeclarationStatementSyntax localDeclaration, CancellationToken cancellationToken)

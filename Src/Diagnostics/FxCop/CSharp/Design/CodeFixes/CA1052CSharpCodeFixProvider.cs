@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.FxCopAnalyzers;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
@@ -19,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     [ExportCodeFixProvider(StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.CSharp)]
     public class CA1052CSharpCodeFixProvider : CodeFixProvider
     {
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return SpecializedCollections.SingletonEnumerable(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId);
+            return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId);
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -29,8 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
         {
+            var document = context.Document;
+            var span = context.Span;
+            var cancellationToken = context.CancellationToken;
+
             cancellationToken.ThrowIfCancellationRequested();
             var root = await document.GetSyntaxRootAsync(cancellationToken);
             var classDeclaration = root.FindToken(span.Start).GetAncestor<ClassDeclarationSyntax>();

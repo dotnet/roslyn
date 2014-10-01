@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     [ExportCodeFixProvider("CA2237 CodeFix provider", LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA2237CodeFixProvider : CodeFixProviderBase
     {
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return SpecializedCollections.SingletonEnumerable(SerializationRulesDiagnosticAnalyzer.RuleCA2237Id);
+            return ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2237Id);
         }
 
         protected sealed override string GetCodeFixDescription(string ruleId)

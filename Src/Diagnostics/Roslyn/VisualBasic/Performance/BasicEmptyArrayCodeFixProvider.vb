@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -14,10 +15,8 @@ Namespace Microsoft.CodeAnalysis.Performance
     Public NotInheritable Class BasicEmptyArrayCodeFixProvider
         Inherits CodeFixProviderBase
 
-        Private Shared ReadOnly fixableDiagnosticIds As String() = New String() {RoslynDiagnosticIds.UseArrayEmptyRuleId}
-
-        Public Overrides Function GetFixableDiagnosticIds() As IEnumerable(Of String)
-            Return fixableDiagnosticIds
+        Public Overrides Function GetFixableDiagnosticIds() As ImmutableArray(Of String)
+            Return ImmutableArray.Create(RoslynDiagnosticIds.UseArrayEmptyRuleId)
         End Function
 
         Protected Overrides Function GetCodeFixDescription(ruleId As String) As String

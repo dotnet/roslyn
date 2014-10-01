@@ -296,6 +296,7 @@
     <Compile Include="CodeCleanup\Providers\PredefinedCodeCleanupProviderNames.cs" />
     <Compile Include="CodeCleanup\Providers\SimpleCodeCleanupProvider.cs" />
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
+    <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\WellKnownFixAllProviders.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchFixAllProvider.cs" />
@@ -349,6 +350,7 @@
     <Compile Include="CodeGeneration\SyntaxAnnotationExtensions.cs" />
     <Compile Include="CodeGeneration\TypeConstraintKind.cs" />
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
+    <Compile Include="CodeRefactorings\CodeRefactoringContext.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
     <Compile Include="Log\KeyValueLogMessage.cs" />
     <Compile Include="Log\LogAggregator.cs" />

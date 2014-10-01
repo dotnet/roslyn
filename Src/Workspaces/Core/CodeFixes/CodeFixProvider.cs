@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System.Collections.Generic;
-using System.Threading;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -14,15 +13,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     public abstract class CodeFixProvider
     {
         /// <summary>
-        /// A list of diagnostic ID's that this provider can provider fixes for.
+        /// A list of diagnostic IDs that this provider can provider fixes for.
         /// </summary>
-        public abstract IEnumerable<string> GetFixableDiagnosticIds();
+        public abstract ImmutableArray<string> GetFixableDiagnosticIds();
 
         /// <summary>
-        /// Gets one or more fixes for the specified diagnostics represented as a list of <see cref="CodeAction"/>'s.
+        /// Gets one or more fixes for the specified code fix context represented as a list of <see cref="CodeAction"/>'s.
         /// </summary>
-        /// <returns>A list of zero or more potential <see cref="CodeAction"/>'s. It is also safe to return null if there are none.</returns>
-        public abstract Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken);
+        /// <returns>A list of zero or more potential <see cref="CodeAction"/>. It is also safe to return null if there are none.</returns>
+        public abstract Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context);
 
         /// <summary>
         /// Gets an optional <see cref="FixAllProvider"/> that can fix all/multiple occurrences of diagnostics fixed by this code fix provider.

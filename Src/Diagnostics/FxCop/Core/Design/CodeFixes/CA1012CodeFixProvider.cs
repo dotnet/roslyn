@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,9 +19,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     [ExportCodeFixProvider(CA1012DiagnosticAnalyzer.RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1012CodeFixProvider : CodeFixProviderBase
     {
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return SpecializedCollections.SingletonEnumerable(CA1012DiagnosticAnalyzer.RuleId);
+            return ImmutableArray.Create(CA1012DiagnosticAnalyzer.RuleId);
         }
 
         protected sealed override string GetCodeFixDescription(string ruleId)

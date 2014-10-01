@@ -22,9 +22,9 @@ namespace AsyncPackage
     [ExportCodeFixProvider(AsyncLambdaAnalyzer.AsyncLambdaId1, LanguageNames.CSharp)]
     public class AsyncLambdaVariableCodeFix : CodeFixProvider
     {
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return new[] { AsyncLambdaAnalyzer.AsyncLambdaId1 };
+            return ImmutableArray.Create(AsyncLambdaAnalyzer.AsyncLambdaId1);
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -32,11 +32,11 @@ namespace AsyncPackage
             return null;
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnosticSpan = diagnostics.First().Location.SourceSpan;
+            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
 
             Debug.Assert(root != null);
             var parent = root.FindToken(diagnosticSpan.Start).Parent;
@@ -46,7 +46,7 @@ namespace AsyncPackage
                 var variableDeclaration = parent.FirstAncestorOrSelf<VariableDeclarationSyntax>();
 
                 // Return a code action that will invoke the fix.
-                return new[] { new AsyncLambdaVariableCodeAction("Async lambdas should not be stored in void-returning delegates", c => ChangeToFunc(document, variableDeclaration, c)) };
+                return new[] { new AsyncLambdaVariableCodeAction("Async lambdas should not be stored in void-returning delegates", c => ChangeToFunc(context.Document, variableDeclaration, c)) };
             }
 
             return ImmutableArray<CodeAction>.Empty;

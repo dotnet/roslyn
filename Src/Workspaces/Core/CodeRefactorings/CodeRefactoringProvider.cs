@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     public abstract class CodeRefactoringProvider
     {
         /// <summary>
-        /// Gets refactorings that are applicable within the span of the document representd as a list of <see cref="CodeAction"/>'s.
+        /// Gets refactorings that are applicable within the span of the document represented as a list of <see cref="CodeAction"/>'s.
         /// </summary>
         /// <returns>A list of zero or more applicable <see cref="CodeAction"/>'s. It is also safe to return null if there are none.</returns>
-        public abstract Task<IEnumerable<CodeAction>> GetRefactoringsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<CodeAction>> GetRefactoringsAsync(CodeRefactoringContext context);
     }
 }

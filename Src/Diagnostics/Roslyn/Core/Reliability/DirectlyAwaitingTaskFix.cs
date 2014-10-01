@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -18,16 +19,16 @@ namespace Roslyn.Diagnostics.CodeFixes
         protected abstract TExpressionSyntax FixExpression(TExpressionSyntax syntaxNode, CancellationToken cancellationToken);
         protected abstract string FalseLiteralString { get; }
 
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return new[] { RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId };
+            return ImmutableArray.Create(RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId);
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            return GetFixesCore(document, root, diagnostics, cancellationToken);
+            return GetFixesCore(context.Document, root, context.Diagnostics, context.CancellationToken);
         }
 
         private IEnumerable<CodeAction> GetFixesCore(Document document, SyntaxNode root, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)

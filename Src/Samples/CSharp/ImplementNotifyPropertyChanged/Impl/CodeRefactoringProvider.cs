@@ -38,11 +38,15 @@ namespace ImplementNotifyPropertyChangedCS
     [ExportCodeRefactoringProvider("ImplementNotifyPropertyChangedCS", LanguageNames.CSharp)]
     internal partial class ImplementNotifyPropertyChangedCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public sealed override async Task<IEnumerable<CodeAction>> GetRefactoringsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<CodeAction>> GetRefactoringsAsync(CodeRefactoringContext context)
         {
+            var document = context.Document;
+            var textSpan = context.Span;
+            var cancellationToken = context.CancellationToken;
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var properties = ExpansionChecker.GetExpandableProperties(span, root, model);
+            var properties = ExpansionChecker.GetExpandableProperties(textSpan, root, model);
 
             return properties.Any()
                 ? new[] { new ImplementNotifyPropertyChangedCodeAction("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)) }

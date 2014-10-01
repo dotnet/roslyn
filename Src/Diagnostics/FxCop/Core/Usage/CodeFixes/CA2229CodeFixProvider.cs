@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     [ExportCodeFixProvider("CA2229 CodeFix provider", LanguageNames.CSharp)]
     public sealed class CA2229CodeFixProvider : CodeFixProviderBase
     {
-        public sealed override IEnumerable<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return SpecializedCollections.SingletonEnumerable(SerializationRulesDiagnosticAnalyzer.RuleCA2229Id);
+            return ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2229Id);
         }
 
         protected sealed override string GetCodeFixDescription(string ruleId)
