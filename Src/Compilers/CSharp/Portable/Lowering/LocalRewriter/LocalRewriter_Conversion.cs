@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -405,12 +403,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Helper method to generate a lowered conversion from the given rewrittenOperand to the given rewrittenType.
+        /// Helper method to generate a lowered conversion from the given <paramref name="rewrittenOperand"/> to the given <paramref name="rewrittenType"/>.
         /// </summary>
         /// <remarks>
         /// If we're converting a default parameter value to the parameter type, then the conversion can actually fail
         /// (e.g. if the default value was specified by an attribute and was, therefore, not checked by the compiler).
         /// Set acceptFailingConversion if you want to see default(rewrittenType) in such cases.
+        /// The error will be suppressed only for conversions from <see cref="decimal"/> or <see cref="DateTime"/>.
         /// </remarks>
         private BoundExpression MakeConversion(BoundExpression rewrittenOperand, TypeSymbol rewrittenType, bool @checked, bool acceptFailingConversion = false)
         {
@@ -418,13 +417,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = this.compilation.Conversions.ClassifyConversion(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
             diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
 
-            if (!conversion.IsValid && acceptFailingConversion)
+            if (!conversion.IsValid)
             {
-                // In practice, we expect this to happen only when the DateTimeConstant and DecimalConstant
-                // attributes are used.
-                Debug.Assert(rewrittenOperand.Type.SpecialType == SpecialType.System_Decimal ||
-                    rewrittenOperand.Type.SpecialType == SpecialType.System_DateTime);
-                // As in Dev11, this failure is silent.
+                if (!acceptFailingConversion ||
+                     rewrittenOperand.Type.SpecialType != SpecialType.System_Decimal && 
+                     rewrittenOperand.Type.SpecialType != SpecialType.System_DateTime)
+                {
+                    // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
+                    diagnostics.Add(
+                        ErrorCode.ERR_NoImplicitConv,
+                        rewrittenOperand.Syntax.Location,
+                        rewrittenOperand.Type,
+                        rewrittenType);
+                }
+
                 return factory.NullOrDefault(rewrittenType);
             }
 
@@ -1066,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: syntax,
                     rewrittenReceiver: null,
                     method: method,
-                    rewrittenArguments: ImmutableArray.Create<BoundExpression>(rewrittenOperand),
+                    rewrittenArguments: ImmutableArray.Create(rewrittenOperand),
                     type: returnType);
 
             return MakeConversion(rewrittenCall, rewrittenType, @checked);

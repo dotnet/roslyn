@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var m in methods)
                     {
-                        module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo((MethodSymbol)m.OriginalDefinition, syntaxNode, diagnostics);
+                        module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(m.OriginalDefinition, syntaxNode, diagnostics);
                     }
                 }
             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var p in properties)
                     {
-                        module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo((PropertySymbol)p.OriginalDefinition, syntaxNode, diagnostics);
+                        module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo(p.OriginalDefinition, syntaxNode, diagnostics);
                     }
                 }
             }
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
                     {
                         // return an invocation of "Array.Empty<T>()"
-                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create<TypeSymbol>(ats.ElementType)); 
+                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType)); 
                         return new BoundCall(
                             syntax,
                             null,
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundArrayCreation(
                 syntax,
-                ImmutableArray.Create<BoundExpression>(
+                ImmutableArray.Create(
                     MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type)),
                 new BoundArrayInitialization(syntax, arrayArgs),
                 paramArrayType);
@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // We have something like M(double = 1.23), so replace the argument with 1.23.
+                // We have something like M(double x = 1.23), so replace the argument with 1.23.
 
                 TypeSymbol constantType = compilation.GetSpecialType(defaultConstantValue.SpecialType);
                 defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType);

@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (curr.Flags.Includes(BinderFlags.InCatchBlock))
                 {
                     // The finally block is below the catch block in the binder chain, so it 
-                    // musted be nested within the catch block syntactically.
+                    // must be nested within the catch block syntactically.
 
                     diagnostics.Add(ErrorCode.ERR_BadEmptyThrowInFinally, node.ThrowKeyword.GetLocation());
                     hasErrors = true;

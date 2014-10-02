@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -1497,9 +1496,9 @@ class C
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission6"));
         }
 
-        [Fact(Skip = "Bug 1036356")]
+        [Fact]
         [WorkItem(1036356, "DevDiv")]
-        public void EnumDefaultParameterValue()
+        public void EnumAsDefaultParameterValue()
         {
             const string source = @"
 using System;
@@ -1517,7 +1516,10 @@ class Program
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
-            comp.Emit(Stream.Null);
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
+                //         Foo();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Foo()").WithArguments("int", "System.Enum").WithLocation(13, 9));
         }
 
         #endregion
