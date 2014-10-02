@@ -6121,7 +6121,7 @@ public class Test
             var start = DateTime.UtcNow;
             CreateCompilationWithMscorlibAndSystemCore(source, new[] { libRef }).VerifyDiagnostics();
             var elapsed = DateTime.UtcNow - start;
-            Assert.InRange(elapsed.TotalSeconds, 0, 5); // Was originally over 30 minutes, so we have some wiggle room here.
+            Assert.InRange(elapsed.TotalSeconds, 0, 10.0); // Was originally over 30 minutes, so we have some wiggle room here.
         }
 
         [WorkItem(546730, "DevDiv"), WorkItem(546739, "DevDiv")]
