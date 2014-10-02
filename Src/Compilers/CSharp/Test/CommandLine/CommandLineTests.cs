@@ -6525,11 +6525,13 @@ using System.Diagnostics; // Unused.
             var csc = new MockCSharpCompiler(null, sourceDir.Path, args);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
 
             var expectedExitCode = expectedErrorCount > 0 ? 1 : 0;
-            Assert.Equal(expectedExitCode, exitCode);
+            Assert.True(
+                expectedExitCode == exitCode, 
+                string.Format("Expected exit code to be '{0}' was '{1}'.\nOutput:\n{2}", expectedExitCode, exitCode, output));
 
-            var output = outWriter.ToString();
             Assert.DoesNotContain("hidden", output);
 
             if (expectedInfoCount == 0)
