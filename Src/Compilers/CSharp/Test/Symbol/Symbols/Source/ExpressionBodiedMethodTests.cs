@@ -112,6 +112,24 @@ public class C {
         }
 
         [Fact]
+        [WorkItem(1029117)]
+        public void Syntax08()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+namespace MyNamespace
+{
+    public partial struct Foo
+    {
+        public double Bar => 0;
+    }
+    public partial struct Foo
+    {
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LambdaTest01()
         {
             var comp = CreateCompilationWithMscorlib45(@"
