@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LessThanExpression:
                 case SyntaxKind.GreaterThanOrEqualExpression:
                 case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.NameOfExpression:
 
                 //  The ?: conditional operator.
                 case SyntaxKind.ConditionalExpression:

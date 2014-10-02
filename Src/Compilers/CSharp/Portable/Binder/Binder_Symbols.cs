@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private Symbol BindNonGenericSimpleName(
+        protected Symbol BindNonGenericSimpleName(
             IdentifierNameSyntax node,
             DiagnosticBag diagnostics,
             ConsList<Symbol> basesBeingResolved,

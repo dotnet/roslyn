@@ -840,8 +840,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string rightmostIdentifier = ((IdentifierNameSyntax)right).Identifier.ValueText;
 
                 // We use TypeofBinder in order to resolve unbound generic names without any error.
-                TypeofBinder typeofBinder = new TypeofBinder(argument, this);
-                var symbols = LookupForNameofArgument(left, (IdentifierNameSyntax)right, rightmostIdentifier, diagnostics, typeofBinder, isAliasQualified, out hasErrors);
+                var typeofBinder = new TypeofBinder(argument, this);
+                var symbols = typeofBinder.LookupForNameofArgument(left, (IdentifierNameSyntax)right, rightmostIdentifier, diagnostics, isAliasQualified, out hasErrors);
                 return new BoundNameOfOperator(node, symbols, ConstantValue.Create(rightmostIdentifier), this.GetSpecialType(SpecialType.System_String, diagnostics, node), hasErrors: hasErrors);
             }
             else
@@ -864,49 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        /// <summary>
-        /// Returns the list of the symbols which represent the argument of the nameof operator. Ambiguities are not an error for the nameof.
-        /// </summary>
-        private ImmutableArray<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, DiagnosticBag diagnostics, TypeofBinder binder, bool isAliasQualified, out bool hasErrors)
-        {
-            ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
-            Symbol container = null;
-            hasErrors = false;
-
-            // We treat the AliasQualified syntax different than the rest. We bind the whole part for the alias.
-            if (isAliasQualified)
-            {
-                container = binder.BindNamespaceAliasSymbol((IdentifierNameSyntax)left, diagnostics);
-                var aliasSymbol = container as AliasSymbol;
-                if (aliasSymbol != null) container = aliasSymbol.Target;
-                if (container.Kind == SymbolKind.NamedType)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, left.Location, left);
-                    hasErrors = true;
-                    return symbols.ToImmutableAndFree();
-                }
-            }
-            // If it isn't AliasQualified, we first bind the left part, and then bind the right part as a simple name.
-            else if (left != null)
-            {
-                // We use OriginalDefinition because of the unbound generic names such as List<>, Dictionary<,>.
-                container = binder.BindNamespaceOrTypeSymbol(left, diagnostics, null, false).OriginalDefinition;
-            }
-
-            this.BindNonGenericSimpleName(right, diagnostics, null, false, (NamespaceOrTypeSymbol)container, isNameofArgument: true, symbols: symbols);
-            if (CheckUsedBeforeDeclarationIfLocal(symbols, right))
-            {
-                Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, right, right);
-                hasErrors = true;
-            }
-            else if (symbols.Count == 0)
-            {
-                hasErrors = true;
-            }
-            return symbols.ToImmutableAndFree();
-        }
-
-        private bool CheckUsedBeforeDeclarationIfLocal(ArrayBuilder<Symbol> symbols, ExpressionSyntax node)
+        protected bool CheckUsedBeforeDeclarationIfLocal(ArrayBuilder<Symbol> symbols, ExpressionSyntax node)
         {
             if (symbols.Count > 0)
             {

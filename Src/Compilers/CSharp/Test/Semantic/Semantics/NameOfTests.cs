@@ -547,7 +547,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(global::Program)").WithArguments("nameof operator", "6").WithLocation(4, 24));
         }
 
-        [Fact(Skip = "994549")]
+        [Fact]
         public void TestNameofIndexerName()
         {
             var source = @"
@@ -565,7 +565,7 @@ class C
     [System.Runtime.CompilerServices.IndexerName(""_"" + nameof(Other))]
     public int this[int index]
     {
-        get { return Other(index); }
+        get { return 0; }
     }
 }";
             CompileAndVerify(source, expectedOutput: @"Main
