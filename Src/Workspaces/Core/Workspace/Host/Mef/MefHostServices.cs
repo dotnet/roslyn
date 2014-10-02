@@ -244,33 +244,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 this.workspaceServices = workspaceServices;
                 this.language = language;
+
                 var hostServices = (MefHostServices)workspaceServices.HostServices;
 
-                var languageServices = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>().ToArray();
-                var languageServiceFactories = hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
-                                                           .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)).ToArray();
-
-                var allServices = languageServices.Concat(languageServiceFactories).ToArray();
-                var allServicesForThisLanguage = allServices.Where(lz => lz.Metadata.Language == language).ToArray();
-
-                this.services = allServicesForThisLanguage.ToImmutableArray();
-
-                if ((this.language == LanguageNames.CSharp || this.language == LanguageNames.VisualBasic) &&
-                     !this.services.Any(s => s.Metadata.ServiceType == typeof(ISyntaxTreeFactoryService).AssemblyQualifiedName))
-                {
-                    var tempServices = this.services.Select(lz => ValueTuple.Create(lz.Value, lz.Metadata, lz.Metadata.ServiceType)).ToArray();
-                    var tempKind = this.workspaceServices.Workspace.Kind;
-                    var tempLanguage = this.language;
-
-                    ExceptionHelpers.Crash(new Exception("Crash"));
-
-                    GC.KeepAlive(tempKind);
-                    GC.KeepAlive(tempServices);
-                    GC.KeepAlive(allServicesForThisLanguage);
-                    GC.KeepAlive(allServices);
-                    GC.KeepAlive(languageServiceFactories);
-                    GC.KeepAlive(languageServices);
-                }
+                this.services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>()
+                        .Concat(hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
+                                            .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)))
+                        .Where(lz => lz.Metadata.Language == language).ToImmutableArray();
             }
 
             public override HostWorkspaceServices WorkspaceServices
@@ -394,7 +374,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             var hasLanguageService = false;
-            var hasService = false;
+            var hasCSharpService = false;
+            var hasVBService = false;
 
             foreach (var lazy in services)
             {
@@ -416,11 +397,23 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     continue;
                 }
 
-                hasService = true;
-                break;
+                if (metadata.Language == LanguageNames.CSharp)
+                {
+                    hasCSharpService = true;
+                }
+
+                if (metadata.Language == LanguageNames.VisualBasic)
+                {
+                    hasVBService = true;
+                }
+
+                if (hasCSharpService && hasVBService)
+                {
+                    break;
+                }
             }
 
-            if (!hasLanguageService || hasService)
+            if (!hasLanguageService || (hasVBService && hasCSharpService))
             {
                 return;
             }
@@ -430,10 +423,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var tempExportMap = this.exportsMap.Select(kv => ValueTuple.Create(kv.Key, kv.Value == null ? null : kv.Value as IEnumerable<object>))
                                                .Select(t => ValueTuple.Create(t.Item1, t.Item2 == null ? null : t.Item2.ToArray())).ToArray();
 
+            var tempServices2 = services;
+
             ExceptionHelpers.Crash(new Exception("Crash"));
 
             GC.KeepAlive(tempLanguages);
             GC.KeepAlive(tempServices);
+            GC.KeepAlive(tempServices2);
             GC.KeepAlive(tempExportMap);
         }
 
