@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (container == null)
             {
-                throw new ArgumentNullException("container");
+                throw new ArgumentNullException(nameof(container));
             }
 
             using (this.stateLock.DisposableRead())
@@ -470,15 +470,21 @@ namespace Microsoft.CodeAnalysis
             this.RegisterText(textContainer);
         }
 
-        protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader)
+        protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
         {
             this.CheckDocumentIsInCurrentSolution(documentId);
             this.CheckDocumentIsOpen(documentId);
 
+            // When one file from a set of linked or shared documents is closed, we first update
+            // our data structures and then call SetDocumentContext to tell the project system 
+            // what the new active context is. This can cause reentrancy, so we call 
+            // SetDocumentContext after releasing the serializationLock.
+            DocumentId currentContextDocumentId;
+
             using (this.serializationLock.DisposableWait())
             {
                 // forget any open document info
-                ForgetAnyOpenDocumentInfo(documentId);
+                currentContextDocumentId = ForgetAnyOpenDocumentInfo(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
@@ -494,22 +500,22 @@ namespace Microsoft.CodeAnalysis
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
                 this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
             }
-        }
 
-        private void ForgetAnyOpenDocumentInfo(DocumentId documentId)
-        {
-            DocumentId currentContextDocumentId;
-            using (this.stateLock.DisposableWrite())
-            {
-                currentContextDocumentId = this.ClearOpenDocument_NoLock(documentId);
-            }
-
-            if (currentContextDocumentId != null && this.CanChangeActiveContextDocument)
+            if (updateActiveContext && currentContextDocumentId != null && this.CanChangeActiveContextDocument)
             {
                 // Closing this document did not result in the buffer closing, so some 
                 // document is now the current context of that buffer. Fire the appropriate
                 // events to set that document as the current context of that buffer.
+
                 SetDocumentContext(currentContextDocumentId);
+            }
+        }
+
+        private DocumentId ForgetAnyOpenDocumentInfo(DocumentId documentId)
+        {
+            using (this.stateLock.DisposableWrite())
+            {
+                return this.ClearOpenDocument_NoLock(documentId);
             }
         }
 
