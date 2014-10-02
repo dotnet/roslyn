@@ -422,5 +422,10 @@ class MainClass
             // Assert.Equal("SourceLocation(@10:14)\"c;\"", loc2.GetDebuggerDisplay());
             Assert.Equal("SourceFile([148..150))", loc2.ToString());
         }
+
+        public void TestExternalLocationToString()
+        {
+
+        }
     }
 }
