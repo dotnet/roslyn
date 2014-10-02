@@ -490,7 +490,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!isAnalyzerSuppressed(analyzer, compilationOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken))
                 {
-                    sessionScope.RegisterSessionAnalyzer(analyzer);
                     ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
                     {
                         // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.

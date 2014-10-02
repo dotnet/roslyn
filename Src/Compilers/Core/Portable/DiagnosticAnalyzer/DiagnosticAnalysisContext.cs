@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.scope = scope;
         }
 
-        public void RegisterSessionAnalyzer(DiagnosticAnalyzer analyzer)
-        {
-            this.scope.RegisterSessionAnalyzer(analyzer);
-        }
-
         public void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
         {
             this.scope.RegisterCompilationStartAction(action);

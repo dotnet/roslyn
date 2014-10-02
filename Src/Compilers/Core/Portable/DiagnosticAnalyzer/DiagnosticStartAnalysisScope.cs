@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public abstract class SessionStartAnalysisScope
     {
-        public abstract void RegisterSessionAnalyzer(DiagnosticAnalyzer analyzer);
-
         public abstract void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action);
         public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
 
@@ -70,11 +68,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 this.analyzer = analyzer;
                 this.scope = scope;
-            }
-
-            public override void RegisterSessionAnalyzer(DiagnosticAnalyzer analyzer)
-            {
-                this.scope.RegisterSessionAnalyzer(analyzer);
             }
 
             public override void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
@@ -198,22 +191,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public sealed class HostSessionStartAnalysisScope : HostAnalysisScope
         {
-            private ImmutableArray<DiagnosticAnalyzer> sessionAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
             private ImmutableArray<CompilationStartAnalyzerAction> compilationStartActions = ImmutableArray<CompilationStartAnalyzerAction>.Empty;
-
-            public ImmutableArray<DiagnosticAnalyzer> SessionAnalyzers
-            {
-                get { return this.sessionAnalyzers; }
-            }
 
             public ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
             {
                 get { return this.compilationStartActions; }
-            }
-
-            public void RegisterSessionAnalyzer(DiagnosticAnalyzer analyzer)
-            {
-                this.sessionAnalyzers = this.sessionAnalyzers.Add(analyzer);
             }
 
             public void RegisterCompilationStartAction(DiagnosticAnalyzer analyzer, Action<CompilationStartAnalysisContext> action)
