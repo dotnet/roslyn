@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,7 +14,6 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     using Utils = CompilationUtils;
-    using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
     public class GetExtendedSemanticInfoTests : SemanticModelTestBase
     {
@@ -5808,6 +5806,26 @@ class Program
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [WorkItem(1040171, "DevDiv")]
+        [Fact(Skip = "Bug 1040171")]
+        public void LabeledEmbeddedStatement_ForEach_2()
+        {
+            const string sourceCode = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool c = true;
+
+        foreach (string s in args)
+            label: c = false;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            compilation.GetDiagnostics();
         }
 
         [WorkItem(540759, "DevDiv")]
