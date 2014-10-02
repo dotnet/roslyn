@@ -1570,13 +1570,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             CancellationToken cancellationToken,
             SemanticModel semanticModelOpt = null)
         {
-#if false
-            if (syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken))
-            {
-                return false;
-            }
-#endif
-
             // cases:
             //   var q = |
             //   var q = a|
@@ -2069,6 +2062,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return true;
                 }
+            }
+
+            // "\{ |
+            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedStringMidToken))
+            {
+                return true;
             }
 
             return false;

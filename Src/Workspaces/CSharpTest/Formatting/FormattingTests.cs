@@ -5483,5 +5483,113 @@ class C
 }";
             AssertFormat(expected, code);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatingStrings1()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = ""Hello, \{a}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = ""Hello, \{a}"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatingStrings2()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var b = ""World"";
+        var c = ""\{a}, \{b}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var b = ""World"";
+        var c = ""\{a}, \{b}"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatingStrings3()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = ""Hello, \{ a }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = ""Hello, \{ a }"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatingStrings4()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var b = ""World"";
+        var c = ""\{ a }, \{ b }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var b = ""World"";
+        var c = ""\{ a }, \{ b }"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
     }
 }

@@ -3,8 +3,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForIdentifer(token);
             }
-            else if (token.CSharpKind() == SyntaxKind.StringLiteralToken || token.CSharpKind() == SyntaxKind.CharacterLiteralToken)
+            else if (IsStringLiteral(token))
             {
                 return token.IsVerbatimStringLiteral()
                     ? ClassificationTypeNames.VerbatimStringLiteral
@@ -47,6 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
 
             return null;
+        }
+
+        private static bool IsStringLiteral(SyntaxToken token)
+        {
+            return token.CSharpKind() == SyntaxKind.StringLiteralToken
+                || token.CSharpKind() == SyntaxKind.CharacterLiteralToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedStringStartToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedStringMidToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedStringEndToken;
         }
 
         private static string GetClassificationForIdentifer(SyntaxToken token)

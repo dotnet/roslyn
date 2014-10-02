@@ -448,12 +448,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // If we ask right at the end of the file, we'll get back nothing. We handle that case
             // specially for now, though SyntaxTree.FindToken should work at the end of a file.
-            if (token.CSharpKind() == SyntaxKind.EndOfDirectiveToken || token.CSharpKind() == SyntaxKind.EndOfFileToken)
+            if (token.IsKind(SyntaxKind.EndOfDirectiveToken, SyntaxKind.EndOfFileToken))
             {
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.CSharpKind() == SyntaxKind.StringLiteralToken)
+            if (token.IsKind(SyntaxKind.StringLiteralToken))
             {
                 var span = token.Span;
 
