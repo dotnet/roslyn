@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     /// until run time. When a constructor calls a virtual method, it is possible that the constructor for the 
     /// instance that invokes the method has not executed. 
     /// </summary>
-    public abstract class CA2214DiagnosticAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+    public abstract class CA2214DiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         public const string RuleId = "CA2214";
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterCodeBlockStartAction<TSyntaxKind>(
+            analysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(
                 (context) =>
                 {
                     if (ShouldOmitThisDiagnostic(context.OwningSymbol, context.SemanticModel.Compilation))
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 });
         }
 
-        protected abstract void GetCodeBlockEndedAnalyzer(CodeBlockStartAnalysisContext<TSyntaxKind> context, IMethodSymbol constructorSymbol);
+        protected abstract void GetCodeBlockEndedAnalyzer(CodeBlockStartAnalysisContext<TLanguageKindEnum> context, IMethodSymbol constructorSymbol);
 
         private static bool ShouldOmitThisDiagnostic(ISymbol symbol, Compilation compilation)
         {

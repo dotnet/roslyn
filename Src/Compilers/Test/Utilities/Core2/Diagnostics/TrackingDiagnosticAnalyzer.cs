@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public abstract class TrackingDiagnosticAnalyzer<TSyntaxKind> : TestDiagnosticAnalyzer<TSyntaxKind>
+    public abstract class TrackingDiagnosticAnalyzer<TLanguageKindEnum> : TestDiagnosticAnalyzer<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
         #region Tracking
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             public readonly string AbstractMemberName;
             public readonly string CallerName;
-            public readonly TSyntaxKind SyntaxKind;
+            public readonly TLanguageKindEnum SyntaxKind;
             public readonly SymbolKind? SymbolKind;
             public readonly MethodKind? MethodKind;
             public readonly bool ReturnsVoid;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 AbstractMemberName = abstractMemberName;
                 CallerName = callerName;
-                SyntaxKind = node == null ? default(TSyntaxKind) : (TSyntaxKind)(object)(ushort)node.RawKind;
+                SyntaxKind = node == null ? default(TLanguageKindEnum) : (TLanguageKindEnum)(object)(ushort)node.RawKind;
                 SymbolKind = symbol == null ? (SymbolKind?)null : symbol.Kind;
                 MethodKind = symbol is IMethodSymbol ? ((IMethodSymbol)symbol).MethodKind : (MethodKind?)null;
                 ReturnsVoid = symbol is IMethodSymbol ? ((IMethodSymbol)symbol).ReturnsVoid : false;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertSequenceEqual(expectedSymbolKinds, actualSymbolKinds);
         }
 
-        protected virtual bool IsAnalyzeNodeSupported(TSyntaxKind syntaxKind)
+        protected virtual bool IsAnalyzeNodeSupported(TLanguageKindEnum syntaxKind)
         {
             return !omittedSyntaxKindRegex.IsMatch(syntaxKind.ToString());
         }

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class AbstractCodeBlockAnalyzerFactory<TSyntaxKind> : DiagnosticAnalyzer
+    public abstract class AbstractCodeBlockAnalyzerFactory<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -21,13 +21,13 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterCodeBlockStartAction<TSyntaxKind>(CreateAnalyzerWithinCodeBlock);
+            context.RegisterCodeBlockStartAction<TLanguageKindEnum>(CreateAnalyzerWithinCodeBlock);
         }
 
         protected abstract DiagnosticDescriptor Descriptor { get; }
         protected abstract ExecutableNodeAnalyzer GetExecutableNodeAnalyzer();
 
-        private void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<TSyntaxKind> context)
+        private void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
         {
             var analyzer = GetExecutableNodeAnalyzer();
             context.RegisterSyntaxNodeAction(analyzer.AnalyzeNode, analyzer.SyntaxKindsOfInterest.ToArray());
@@ -36,7 +36,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract class ExecutableNodeAnalyzer
         {
             protected abstract DiagnosticDescriptor Descriptor { get; }
-            public abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
+            public abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
             public abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 
             protected Diagnostic CreateDiagnostic(SyntaxNode node)

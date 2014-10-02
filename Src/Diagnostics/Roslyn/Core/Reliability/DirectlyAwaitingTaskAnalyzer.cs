@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class DirectlyAwaitingTaskAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+    public abstract class DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         internal const string NameForExportAttribute = "DirectlyAwaitingTaskAnalyzer";
 
@@ -32,7 +32,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     var taskTypes = new Lazy<ImmutableArray<INamedTypeSymbol>>(() => GetTaskTypes(context.Compilation));
 
-                    context.RegisterCodeBlockStartAction<TSyntaxKind>(new CodeBlockAnalyzer(this, taskTypes).Initialize);
+                    context.RegisterCodeBlockStartAction<TLanguageKindEnum>(new CodeBlockAnalyzer(this, taskTypes).Initialize);
                 });
         }
 
@@ -45,20 +45,20 @@ namespace Roslyn.Diagnostics.Analyzers
         }
 
         protected abstract SyntaxNode GetAwaitedExpression(SyntaxNode awaitNode);
-        protected abstract TSyntaxKind AwaitSyntaxKind { get; }
+        protected abstract TLanguageKindEnum AwaitSyntaxKind { get; }
 
         private sealed class CodeBlockAnalyzer
         {
-            private readonly DirectlyAwaitingTaskAnalyzer<TSyntaxKind> analyzer;
+            private readonly DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> analyzer;
             private readonly Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes;
 
-            public CodeBlockAnalyzer(DirectlyAwaitingTaskAnalyzer<TSyntaxKind> analyzer, Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes)
+            public CodeBlockAnalyzer(DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> analyzer, Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes)
             {
                 this.analyzer = analyzer;
                 this.taskTypes = taskTypes;
             }
 
-            public void Initialize(CodeBlockStartAnalysisContext<TSyntaxKind> context)
+            public void Initialize(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
             {
                 context.RegisterSyntaxNodeAction(new SyntaxNodeAnalyzer(analyzer, taskTypes).AnalyzeNode, analyzer.AwaitSyntaxKind);
             }
@@ -66,10 +66,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private sealed class SyntaxNodeAnalyzer
         {
-            private readonly DirectlyAwaitingTaskAnalyzer<TSyntaxKind> analyzer;
+            private readonly DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> analyzer;
             private readonly Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes;
 
-            public SyntaxNodeAnalyzer(DirectlyAwaitingTaskAnalyzer<TSyntaxKind> analyzer, Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes)
+            public SyntaxNodeAnalyzer(DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> analyzer, Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes)
             {
                 this.analyzer = analyzer;
                 this.taskTypes = taskTypes;

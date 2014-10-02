@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in the analysis.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
-        /// <param name="cancellationToken">a cancellation token that can be used to abort analysis</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         /// <returns>A newly created analyzer driver</returns>
         /// <remarks>
-        /// Note that since a compilation is immutable, the act of creating a driver and attaching it, produces
+        /// Note that since a compilation is immutable, the act of creating a driver and attaching it produces
         /// a new compilation. Any further actions on the compilation should use the new compilation.
         /// </remarks>
         public static AnalyzerDriver Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, out Compilation newCompilation, CancellationToken cancellationToken)
@@ -622,10 +622,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Driver to execute diagnostic analyzers for a given compilation.
     /// It uses a <see cref="AsyncQueue{TElement}"/> of <see cref="CompilationEvent"/>s to drive its analysis.
     /// </summary>
-    public class AnalyzerDriver<TSyntaxKind> : AnalyzerDriver
+    public class AnalyzerDriver<TLanguageKindEnum> : AnalyzerDriver where TLanguageKindEnum : struct
     {
-        private Func<SyntaxNode, TSyntaxKind> GetKind;
-        private ImmutableDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>> lazyNodeAnalyzersByKind = null;
+        private Func<SyntaxNode, TLanguageKindEnum> GetKind;
+        private ImmutableDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> lazyNodeAnalyzersByKind = null;
 
         /// <summary>
         /// Create an analyzer driver.
@@ -639,30 +639,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Otherwise if it returns false, then the exception is not handled by the driver.
         /// If null, then the driver always handles the exception.
         /// </param>
-        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TSyntaxKind> getKind, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null) : base(analyzers, options, cancellationToken, continueOnAnalyzerException)
+        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null) : base(analyzers, options, cancellationToken, continueOnAnalyzerException)
         {
             GetKind = getKind;
         }
 
-        private ImmutableDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>> NodeAnalyzersByKind
+        private ImmutableDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> NodeAnalyzersByKind
         {
             get
             {
                 if (lazyNodeAnalyzersByKind == null)
                 {
-                    var nodeAnalyzers = this.compilationAnalysisScope.GetSyntaxNodeActions<TSyntaxKind>();
-                    ImmutableDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>> analyzersByKind;
+                    var nodeAnalyzers = this.compilationAnalysisScope.GetSyntaxNodeActions<TLanguageKindEnum>();
+                    ImmutableDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> analyzersByKind;
                     if (nodeAnalyzers.Any())
                     {
                         var addDiagnostic = GetDiagnosticSinkWithSuppression();
-                        var pooledAnalyzersByKind = PooledDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>>.GetInstance();
+                        var pooledAnalyzersByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
                         GetNodeAnalyzersByKind(nodeAnalyzers, pooledAnalyzersByKind, addDiagnostic);
                         analyzersByKind = pooledAnalyzersByKind.ToImmutableDictionary();
                         pooledAnalyzersByKind.Free();
                     }
                     else
                     {
-                        analyzersByKind = ImmutableDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>>.Empty;
+                        analyzersByKind = ImmutableDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
                     }
 
                     lazyNodeAnalyzersByKind = analyzersByKind;
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var statelessNodeAnalyzersByKind = this.NodeAnalyzersByKind;
             var executeSyntaxNodeAnalyzers = statelessNodeAnalyzersByKind.Any();
-            var executeCodeBlockAnalyzers = CanHaveExecutableCodeBlock(symbol) && (this.compilationAnalysisScope.HasCodeBlockStartActions<TSyntaxKind>() || this.compilationAnalysisScope.HasCodeBlockEndActions<TSyntaxKind>());
+            var executeCodeBlockAnalyzers = CanHaveExecutableCodeBlock(symbol) && (this.compilationAnalysisScope.HasCodeBlockStartActions<TLanguageKindEnum>() || this.compilationAnalysisScope.HasCodeBlockEndActions<TLanguageKindEnum>());
 
             if (executeSyntaxNodeAnalyzers || executeCodeBlockAnalyzers)
             {
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static void ExecuteStatelessNodeAnalyzers(
-            IDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>> analyzersByKind,
+            IDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> analyzersByKind,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             IEnumerable<DeclarationInfo> declarationsInNode,
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             AnalyzerOptions analyzerOptions,
-            Func<SyntaxNode, TSyntaxKind> getKind,
+            Func<SyntaxNode, TLanguageKindEnum> getKind,
             CancellationToken cancellationToken)
         {
             // Eliminate syntax nodes for descendant member declarations within declarations.
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="continueOnAnalyzerException">Predicate to decide if exceptions from the action should be handled or not.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static void ExecuteSyntaxNodeAction(
-            SyntaxNodeAnalyzerAction<TSyntaxKind> syntaxNodeAction,
+            SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction,
             SyntaxNode node,
             SemanticModel semanticModel,
             AnalyzerOptions analyzerOptions,
@@ -826,16 +826,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="getAnalyzerKindsOfInterest">Optional delegate to return cached syntax kinds.
         /// If null, then this property is explicitly invoked by the driver to compute syntax kinds of interest.</param>
         public static void ExecuteCodeBlockActions(
-            IEnumerable<CodeBlockStartAnalyzerAction<TSyntaxKind>> codeBlockStartedAnalyzers,
-            IEnumerable<CodeBlockEndAnalyzerAction<TSyntaxKind>> codeBlockEndedAnalyzers,
+            IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartedAnalyzers,
+            IEnumerable<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> codeBlockEndedAnalyzers,
             IEnumerable<DeclarationInfo> declarationsInNode,
             SemanticModel semanticModel,
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            Func<SyntaxNode, TSyntaxKind> getKind,
+            Func<SyntaxNode, TLanguageKindEnum> getKind,
             CancellationToken cancellationToken,
-            Func<SyntaxNodeAnalyzerAction<TSyntaxKind>, IEnumerable<TSyntaxKind>> getAnalyzerKindsOfInterest = null)
+            Func<SyntaxNodeAnalyzerAction<TLanguageKindEnum>, IEnumerable<TLanguageKindEnum>> getAnalyzerKindsOfInterest = null)
         {
             if (!codeBlockStartedAnalyzers.Any() && !codeBlockEndedAnalyzers.Any())
             {
@@ -857,8 +857,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static void ExecuteCodeBlockAnalyzers(
-            IEnumerable<CodeBlockStartAnalyzerAction<TSyntaxKind>> codeBlockStartedAnalyzers,
-            IEnumerable<CodeBlockEndAnalyzerAction<TSyntaxKind>> codeBlockEndedAnalyzers,
+            IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartedAnalyzers,
+            IEnumerable<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> codeBlockEndedAnalyzers,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             ImmutableArray<SyntaxNode> executableCodeBlocks,
@@ -866,9 +866,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            Func<SyntaxNode, TSyntaxKind> getKind,
+            Func<SyntaxNode, TLanguageKindEnum> getKind,
             CancellationToken cancellationToken,
-            Func<SyntaxNodeAnalyzerAction<TSyntaxKind>, IEnumerable<TSyntaxKind>> getAnalyzerKindsOfInterest = null)
+            Func<SyntaxNodeAnalyzerAction<TLanguageKindEnum>, IEnumerable<TLanguageKindEnum>> getAnalyzerKindsOfInterest = null)
         {
             Debug.Assert(declaredNode != null);
             Debug.Assert(declaredSymbol != null);
@@ -877,8 +877,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(executableCodeBlocks.Any());
 
             // Compute the sets of code block end and stateful syntax node actions.
-            var endedAnalyzers = PooledHashSet<CodeBlockEndAnalyzerAction<TSyntaxKind>>.GetInstance();
-            var executableNodeAnalyzers = ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>.GetInstance();
+            var endedAnalyzers = PooledHashSet<CodeBlockEndAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+            var executableNodeAnalyzers = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
 
             // Include the stateless code block actions.
             endedAnalyzers.AddAll(codeBlockEndedAnalyzers);
@@ -889,9 +889,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from the start action.
                 ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
                 {
-                    HostCodeBlockStartAnalysisScope<TSyntaxKind> codeBlockScope = new HostCodeBlockStartAnalysisScope<TSyntaxKind>();
-                    AnalyzerCodeBlockStartAnalysisScope<TSyntaxKind> analyzerBlockScope = new AnalyzerCodeBlockStartAnalysisScope<TSyntaxKind>(da.Analyzer, codeBlockScope);
-                    CodeBlockStartAnalysisContext<TSyntaxKind> blockStartContext = new CodeBlockStartAnalysisContext<TSyntaxKind>(analyzerBlockScope, declaredNode, declaredSymbol, semanticModel, analyzerOptions, cancellationToken);
+                    HostCodeBlockStartAnalysisScope<TLanguageKindEnum> codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>();
+                    AnalyzerCodeBlockStartAnalysisScope<TLanguageKindEnum> analyzerBlockScope = new AnalyzerCodeBlockStartAnalysisScope<TLanguageKindEnum>(da.Analyzer, codeBlockScope);
+                    CodeBlockStartAnalysisContext<TLanguageKindEnum> blockStartContext = new CodeBlockStartAnalysisContext<TLanguageKindEnum>(analyzerBlockScope, declaredNode, declaredSymbol, semanticModel, analyzerOptions, cancellationToken);
                     da.Action(blockStartContext);
                     endedAnalyzers.AddAll(codeBlockScope.CodeBlockEndActions);
                     executableNodeAnalyzers.AddRange(codeBlockScope.SyntaxNodeActions);
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Execute stateful executable node analyzers, if any.
             if (executableNodeAnalyzers.Any())
             {
-                var executableNodeAnalyzersByKind = PooledDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>>.GetInstance();
+                var executableNodeAnalyzersByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
                 GetNodeAnalyzersByKind(executableNodeAnalyzers, executableNodeAnalyzersByKind, addDiagnostic, getAnalyzerKindsOfInterest);
 
                 var nodesToAnalyze = executableCodeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf());
@@ -936,13 +936,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            Func<SyntaxNode, TSyntaxKind> getKind,
+            Func<SyntaxNode, TLanguageKindEnum> getKind,
             CancellationToken cancellationToken,
-            Func<SyntaxNodeAnalyzerAction<TSyntaxKind>, IEnumerable<TSyntaxKind>> getAnalyzerKindsOfInterest = null)
+            Func<SyntaxNodeAnalyzerAction<TLanguageKindEnum>, IEnumerable<TLanguageKindEnum>> getAnalyzerKindsOfInterest = null)
         {
             ExecuteCodeBlockAnalyzers(
-                compilationScope.GetCodeBlockStartActions<TSyntaxKind>(),
-                compilationScope.GetCodeBlockEndActions<TSyntaxKind>(),
+                compilationScope.GetCodeBlockStartActions<TLanguageKindEnum>(),
+                compilationScope.GetCodeBlockEndActions<TLanguageKindEnum>(),
                 declaredNode,
                 declaredSymbol,
                 executableCodeBlocks,
@@ -956,10 +956,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static void GetNodeAnalyzersByKind(
-            IEnumerable<SyntaxNodeAnalyzerAction<TSyntaxKind>> nodeAnalyzers,
-            PooledDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>> nodeAnalyzersByKind,
+            IEnumerable<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeAnalyzers,
+            PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeAnalyzersByKind,
             Action<Diagnostic> addDiagnostic,
-            Func<SyntaxNodeAnalyzerAction<TSyntaxKind>, IEnumerable<TSyntaxKind>> getAnalyzerKindsOfInterest = null)
+            Func<SyntaxNodeAnalyzerAction<TLanguageKindEnum>, IEnumerable<TLanguageKindEnum>> getAnalyzerKindsOfInterest = null)
         {
             Debug.Assert(nodeAnalyzers != null && nodeAnalyzers.Any());
             Debug.Assert(nodeAnalyzersByKind != null && !nodeAnalyzersByKind.Any());
@@ -975,10 +975,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     foreach (var kind in kindsOfInterest)
                     {
-                        ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>> analyzersForKind;
+                        ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> analyzersForKind;
                         if (!nodeAnalyzersByKind.TryGetValue(kind, out analyzersForKind))
                         {
-                            nodeAnalyzersByKind.Add(kind, analyzersForKind = ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>.GetInstance());
+                            nodeAnalyzersByKind.Add(kind, analyzersForKind = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance());
                         }
 
                         analyzersForKind.Add(nodeAnalyzer);
@@ -994,12 +994,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static void ExecuteSyntaxNodeActions(
             IEnumerable<SyntaxNode> nodesToAnalyze,
-            IDictionary<TSyntaxKind, ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>>> nodeActionsByKind,
+            IDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             SemanticModel model,
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnException,
-            Func<SyntaxNode, TSyntaxKind> getKind,
+            Func<SyntaxNode, TLanguageKindEnum> getKind,
             CancellationToken cancellationToken)
         {
             Debug.Assert(nodeActionsByKind != null);
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var child in nodesToAnalyze)
             {
-                ArrayBuilder<SyntaxNodeAnalyzerAction<TSyntaxKind>> actionsForKind;
+                ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> actionsForKind;
                 if (nodeActionsByKind.TryGetValue(getKind(child), out actionsForKind))
                 {
                     foreach (var analyzer in actionsForKind)

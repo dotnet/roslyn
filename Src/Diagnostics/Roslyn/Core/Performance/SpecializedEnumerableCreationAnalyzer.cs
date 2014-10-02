@@ -83,7 +83,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract void GetCodeBlockStartedAnalyzer(CompilationStartAnalysisContext context, INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol);
 
-        protected abstract class AbstractCodeBlockStartedAnalyzer<TSyntaxKind>
+        protected abstract class AbstractCodeBlockStartedAnalyzer<TLanguageKindEnum> where TLanguageKindEnum : struct
         {
             private INamedTypeSymbol genericEnumerableSymbol;
             private IMethodSymbol genericEmptyEnumerableSymbol;
@@ -94,9 +94,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 this.genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
             }
 
-            protected abstract void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<TSyntaxKind> context, INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol);
+            protected abstract void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<TLanguageKindEnum> context, INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol);
 
-            public void Initialize(CodeBlockStartAnalysisContext<TSyntaxKind> context)
+            public void Initialize(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
             {
                 var methodSymbol = context.OwningSymbol as IMethodSymbol;
                 if (methodSymbol != null &&

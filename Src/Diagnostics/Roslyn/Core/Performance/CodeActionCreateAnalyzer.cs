@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class CodeActionCreateAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+    public abstract class CodeActionCreateAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         internal const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         internal const string CreateMethodName = "Create";
@@ -50,7 +50,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var createSymbolsSet = ImmutableHashSet.CreateRange(createSymbols);
-            context.RegisterCodeBlockStartAction<TSyntaxKind>(GetCodeBlockStartedAnalyzer(createSymbolsSet).CreateAnalyzerWithinCodeBlock);
+            context.RegisterCodeBlockStartAction<TLanguageKindEnum>(GetCodeBlockStartedAnalyzer(createSymbolsSet).CreateAnalyzerWithinCodeBlock);
         }
 
         protected abstract AbstractCodeBlockStartedAnalyzer GetCodeBlockStartedAnalyzer(ImmutableHashSet<ISymbol> symbols);
@@ -64,9 +64,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 this.symbols = symbols;
             }
 
-            protected abstract void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<TSyntaxKind> context, ImmutableHashSet<ISymbol> symbols);
+            protected abstract void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<TLanguageKindEnum> context, ImmutableHashSet<ISymbol> symbols);
 
-            public void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<TSyntaxKind> context)
+            public void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
             {
                 GetSyntaxAnalyzer(context, symbols);
             }

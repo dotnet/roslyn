@@ -146,10 +146,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static TCompilation VerifyAnalyzerDiagnostics<TCompilation, TSyntaxKind>(
-                this TCompilation c, Func<SyntaxNode, TSyntaxKind> getKind, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options, DiagnosticDescription[] expected, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        private static TCompilation VerifyAnalyzerDiagnostics<TCompilation, TLanguageKindEnum>(
+                this TCompilation c, Func<SyntaxNode, TLanguageKindEnum> getKind, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options, DiagnosticDescription[] expected, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
             where TCompilation : Compilation
-            where TSyntaxKind : struct
+            where TLanguageKindEnum : struct
         {
             ImmutableArray<Diagnostic> diagnostics;
             c = c.GetAnalyzerDiagnostics(getKind, analyzers, options, continueOnAnalyzerException, diagnostics: out diagnostics);
@@ -186,20 +186,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static TCompilation GetAnalyzerDiagnostics<TCompilation, TSyntaxKind>(
+        private static TCompilation GetAnalyzerDiagnostics<TCompilation, TLanguageKindEnum>(
                 this TCompilation c,
-                Func<SyntaxNode, TSyntaxKind> getKind,
+                Func<SyntaxNode, TLanguageKindEnum> getKind,
                 DiagnosticAnalyzer[] analyzers,
                 AnalyzerOptions options,
                 Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
                 out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
-            where TSyntaxKind : struct
+            where TLanguageKindEnum : struct
         {
             // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
             continueOnAnalyzerException = continueOnAnalyzerException ?? DonotCatchAnalyzerExceptions;
 
-            var driver = new AnalyzerDriver<TSyntaxKind>(analyzers.ToImmutableArray(), getKind, options, CancellationToken.None, continueOnAnalyzerException);
+            var driver = new AnalyzerDriver<TLanguageKindEnum>(analyzers.ToImmutableArray(), getKind, options, CancellationToken.None, continueOnAnalyzerException);
             c = (TCompilation)c.WithEventQueue(driver.CompilationEventQueue);
             var discarded = c.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result;

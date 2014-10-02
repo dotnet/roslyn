@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public ImmutableArray<SymbolKind> Kinds { get { return this.kinds; } }
     }
 
-    public sealed class SyntaxNodeAnalyzerAction<TSyntaxKind> : AnalyzerAction
+    public sealed class SyntaxNodeAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
         private readonly Action<SyntaxNodeAnalysisContext> action;
-        private readonly ImmutableArray<TSyntaxKind> kinds;
+        private readonly ImmutableArray<TLanguageKindEnum> kinds;
 
-        public SyntaxNodeAnalyzerAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TSyntaxKind> kinds, DiagnosticAnalyzer analyzer)
+        public SyntaxNodeAnalyzerAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> kinds, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
             this.action = action;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         }
 
         public Action<SyntaxNodeAnalysisContext> Action { get { return this.action; } }
-        public ImmutableArray<TSyntaxKind> Kinds { get { return this.kinds; } }
+        public ImmutableArray<TLanguageKindEnum> Kinds { get { return this.kinds; } }
     }
 
     public sealed class CompilationStartAnalyzerAction : AnalyzerAction
@@ -103,20 +103,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<SyntaxTreeAnalysisContext> Action { get { return this.action; } }
     }
 
-    public sealed class CodeBlockStartAnalyzerAction<TSyntaxKind> : AnalyzerAction
+    public sealed class CodeBlockStartAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
-        private readonly Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action;
+        private readonly Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action;
 
-        public CodeBlockStartAnalyzerAction(Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action, DiagnosticAnalyzer analyzer)
+        public CodeBlockStartAnalyzerAction(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
             this.action = action;
         }
 
-        public Action<CodeBlockStartAnalysisContext<TSyntaxKind>> Action { get { return this.action; } }
+        public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get { return this.action; } }
     }
 
-    public sealed class CodeBlockEndAnalyzerAction<TSyntaxKind> : AnalyzerAction
+    public sealed class CodeBlockEndAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
         private readonly Action<CodeBlockEndAnalysisContext> action;
 

@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class ThrowingDiagnosticAnalyzer<TSyntaxKind> : TestDiagnosticAnalyzer<TSyntaxKind>
+    public class ThrowingDiagnosticAnalyzer<TLanguageKindEnum> : TestDiagnosticAnalyzer<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
         public class DeliberateException : Exception
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             for (int i = 0; i < AllAnalyzerMemberNames.Length; i++)
             {
                 var member = AllAnalyzerMemberNames[i];
-                var analyzer = new ThrowingDiagnosticAnalyzer<TSyntaxKind>();
+                var analyzer = new ThrowingDiagnosticAnalyzer<TLanguageKindEnum>();
                 analyzer.ThrowOn(member);
                 try
                 {

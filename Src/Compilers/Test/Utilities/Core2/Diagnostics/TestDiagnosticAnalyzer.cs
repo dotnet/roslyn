@@ -13,11 +13,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public abstract class TestDiagnosticAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+    public abstract class TestDiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         protected static readonly ImmutableArray<SymbolKind> AllSymbolKinds = GetAllEnumValues<SymbolKind>();
 
-        protected static readonly ImmutableArray<TSyntaxKind> AllSyntaxKinds = GetAllEnumValues<TSyntaxKind>();
+        protected static readonly ImmutableArray<TLanguageKindEnum> AllSyntaxKinds = GetAllEnumValues<TLanguageKindEnum>();
 
         protected static readonly ImmutableArray<string> AllAnalyzerMemberNames = new string[] { "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "Initialize", "SupportedDiagnostics" }.ToImmutableArray();
         // protected static readonly ImmutableArray<string> AllAbstractMemberNames = ImmutableArray<string>.Empty.AddRange(GetAbstractMemberNames(typeof(CompilationStartAnalysisScope)).Distinct());
@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             OnAbstractMember("Initialize");
 
-            context.RegisterCodeBlockStartAction<TSyntaxKind>(new NestedCodeBlockAnalyzer(this).Initialize);
+            context.RegisterCodeBlockStartAction<TLanguageKindEnum>(new NestedCodeBlockAnalyzer(this).Initialize);
 
             context.RegisterCompilationEndAction(this.AnalyzeCompilation);
             context.RegisterSemanticModelAction(this.AnalyzeSemanticModel);
-            context.RegisterCodeBlockEndAction<TSyntaxKind>(this.AnalyzeCodeBlock);
+            context.RegisterCodeBlockEndAction<TLanguageKindEnum>(this.AnalyzeCodeBlock);
             context.RegisterSymbolAction(this.AnalyzeSymbol, AllSymbolKinds.ToArray());
             context.RegisterSyntaxTreeAction(this.AnalyzeSyntaxTree);
-            context.RegisterSyntaxNodeAction<TSyntaxKind>(this.AnalyzeNode, AllSyntaxKinds.ToArray());
+            context.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.AnalyzeNode, AllSyntaxKinds.ToArray());
         }
 
         void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
@@ -101,18 +101,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private class NestedCodeBlockAnalyzer
         {
-            private TestDiagnosticAnalyzer<TSyntaxKind> container;
+            private TestDiagnosticAnalyzer<TLanguageKindEnum> container;
 
-            public NestedCodeBlockAnalyzer(TestDiagnosticAnalyzer<TSyntaxKind> container)
+            public NestedCodeBlockAnalyzer(TestDiagnosticAnalyzer<TLanguageKindEnum> container)
             {
                 this.container = container;
             }
 
-            public void Initialize(CodeBlockStartAnalysisContext<TSyntaxKind> context)
+            public void Initialize(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
             {
                 this.container.OnAbstractMember("CodeBlockStart", context.CodeBlock, context.OwningSymbol);
                 context.RegisterCodeBlockEndAction(this.container.AnalyzeCodeBlock);
-                context.RegisterSyntaxNodeAction(this.container.AnalyzeNode, TestDiagnosticAnalyzer<TSyntaxKind>.AllSyntaxKinds.ToArray());
+                context.RegisterSyntaxNodeAction(this.container.AnalyzeNode, TestDiagnosticAnalyzer<TLanguageKindEnum>.AllSyntaxKinds.ToArray());
             }
         }
 

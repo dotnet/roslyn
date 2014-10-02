@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
 {
-    public abstract class CA1821DiagnosticAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+    public abstract class CA1821DiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         internal const string RuleId = "CA1821";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterCodeBlockStartAction<TSyntaxKind>(
+            analysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(
                 (context) =>
         {
                     var method = context.OwningSymbol as IMethodSymbol;

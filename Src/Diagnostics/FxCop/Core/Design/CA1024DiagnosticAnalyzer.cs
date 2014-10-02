@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// Cause:
     /// A public or protected method has a name that starts with Get, takes no parameters, and returns a value that is not an array.
     /// </summary>
-    public abstract class CA1024DiagnosticAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+    public abstract class CA1024DiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         internal const string RuleId = "CA1024";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterCodeBlockStartAction<TSyntaxKind>(
+            analysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(
                 (context) =>
                 {
                     var methodSymbol = context.OwningSymbol as IMethodSymbol;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
             protected abstract Location GetDiagnosticLocation(SyntaxNode node);
 
-            public abstract TSyntaxKind SyntaxKindOfInterest { get; }
+            public abstract TLanguageKindEnum SyntaxKindOfInterest { get; }
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {

@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
         public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds);
 
-        public abstract void RegisterCodeBlockStartAction<TSyntaxKind>(Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action);
-        public abstract void RegisterCodeBlockEndAction<TSyntaxKind>(Action<CodeBlockEndAnalysisContext> action);
+        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
+        public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
 
         public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
-        public abstract void RegisterSyntaxNodeAction<TSyntaxKind>(Action<SyntaxNodeAnalysisContext> action, params TSyntaxKind[] syntaxKinds);
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct;
     }
 
     /// <summary>
@@ -37,21 +37,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
         public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds);
 
-        public abstract void RegisterCodeBlockStartAction<TSyntaxKind>(Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action);
-        public abstract void RegisterCodeBlockEndAction<TSyntaxKind>(Action<CodeBlockEndAnalysisContext> action);
+        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
+        public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
 
         public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
-        public abstract void RegisterSyntaxNodeAction<TSyntaxKind>(Action<SyntaxNodeAnalysisContext> action, params TSyntaxKind[] syntaxKinds);
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct;
     }
 
     /// <summary>
     /// Scope for setting up analyzers for a code block.
     /// </summary>
-    public abstract class CodeBlockStartAnalysisScope<TSyntaxKind>
+    public abstract class CodeBlockStartAnalysisScope<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
         public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
 
-        public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TSyntaxKind[] syntaxKinds);
+        public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds);
     }
 
     namespace Internal
@@ -102,19 +102,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.scope.RegisterSymbolAction(this.analyzer, action, symbolKinds);
             }
 
-            public override void RegisterCodeBlockStartAction<TSyntaxKind>(Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action)
+            public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action)
             {
-                this.scope.RegisterCodeBlockStartAction<TSyntaxKind>(this.analyzer, action);
+                this.scope.RegisterCodeBlockStartAction<TLanguageKindEnum>(this.analyzer, action);
             }
 
-            public override void RegisterCodeBlockEndAction<TSyntaxKind>(Action<CodeBlockEndAnalysisContext> action)
+            public override void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action)
             {
-                this.scope.RegisterCodeBlockEndAction<TSyntaxKind>(this.analyzer, action);
+                this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(this.analyzer, action);
             }
 
-            public override void RegisterSyntaxNodeAction<TSyntaxKind>(Action<SyntaxNodeAnalysisContext> action, params TSyntaxKind[] syntaxKinds)
+            public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
             {
-                this.scope.RegisterSyntaxNodeAction<TSyntaxKind>(this.analyzer, action, syntaxKinds);
+                this.scope.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.analyzer, action, syntaxKinds);
             }
         }
 
@@ -152,31 +152,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.scope.RegisterSymbolAction(this.analyzer, action, symbolKinds);
             }
 
-            public override void RegisterCodeBlockStartAction<TSyntaxKind>(Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action)
+            public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action)
             {
-                this.scope.RegisterCodeBlockStartAction<TSyntaxKind>(this.analyzer, action);
+                this.scope.RegisterCodeBlockStartAction<TLanguageKindEnum>(this.analyzer, action);
             }
 
-            public override void RegisterCodeBlockEndAction<TSyntaxKind>(Action<CodeBlockEndAnalysisContext> action)
+            public override void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action)
             {
-                this.scope.RegisterCodeBlockEndAction<TSyntaxKind>(this.analyzer, action);
+                this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(this.analyzer, action);
             }
 
-            public override void RegisterSyntaxNodeAction<TSyntaxKind>(Action<SyntaxNodeAnalysisContext> action, params TSyntaxKind[] syntaxKinds)
+            public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
             {
-                this.scope.RegisterSyntaxNodeAction<TSyntaxKind>(this.analyzer, action, syntaxKinds);
+                this.scope.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.analyzer, action, syntaxKinds);
             }
         }
 
         /// <summary>
         /// Scope for setting up analyzers for a code block, automatically associating actions with analyzers.
         /// </summary>
-        public sealed class AnalyzerCodeBlockStartAnalysisScope<TSyntaxKind> : CodeBlockStartAnalysisScope<TSyntaxKind>
+        public sealed class AnalyzerCodeBlockStartAnalysisScope<TLanguageKindEnum> : CodeBlockStartAnalysisScope<TLanguageKindEnum> where TLanguageKindEnum : struct
         {
             private readonly DiagnosticAnalyzer analyzer;
-            private readonly HostCodeBlockStartAnalysisScope<TSyntaxKind> scope;
+            private readonly HostCodeBlockStartAnalysisScope<TLanguageKindEnum> scope;
 
-            internal AnalyzerCodeBlockStartAnalysisScope(DiagnosticAnalyzer analyzer, HostCodeBlockStartAnalysisScope<TSyntaxKind> scope)
+            internal AnalyzerCodeBlockStartAnalysisScope(DiagnosticAnalyzer analyzer, HostCodeBlockStartAnalysisScope<TLanguageKindEnum> scope)
             {
                 this.analyzer = analyzer;
                 this.scope = scope;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.scope.RegisterCodeBlockEndAction(this.analyzer, action);
             }
 
-            public override void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TSyntaxKind[] syntaxKinds)
+            public override void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
             {
                 this.scope.RegisterSyntaxNodeAction(this.analyzer, action, syntaxKinds);
             }
@@ -261,33 +261,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.sessionScope = sessionScope;
             }
 
-            public override bool HasCodeBlockStartActions<TSyntaxKind>()
+            public override bool HasCodeBlockStartActions<TLanguageKindEnum>()
             {
                 return
-                    base.HasCodeBlockStartActions<TSyntaxKind>() ||
-                    this.sessionScope.HasCodeBlockStartActions<TSyntaxKind>();
+                    base.HasCodeBlockStartActions<TLanguageKindEnum>() ||
+                    this.sessionScope.HasCodeBlockStartActions<TLanguageKindEnum>();
             }
 
-            public override ImmutableArray<CodeBlockStartAnalyzerAction<TSyntaxKind>> GetCodeBlockStartActions<TSyntaxKind>()
+            public override ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> GetCodeBlockStartActions<TLanguageKindEnum>()
             {
-                return base.GetCodeBlockStartActions<TSyntaxKind>().Concat(this.sessionScope.GetCodeBlockStartActions<TSyntaxKind>());
+                return base.GetCodeBlockStartActions<TLanguageKindEnum>().Concat(this.sessionScope.GetCodeBlockStartActions<TLanguageKindEnum>());
             }
 
-            public override bool HasCodeBlockEndActions<TSyntaxKind>()
+            public override bool HasCodeBlockEndActions<TLanguageKindEnum>()
             {
                 return
-                    base.HasCodeBlockEndActions<TSyntaxKind>() ||
-                    this.sessionScope.HasCodeBlockEndActions<TSyntaxKind>();
+                    base.HasCodeBlockEndActions<TLanguageKindEnum>() ||
+                    this.sessionScope.HasCodeBlockEndActions<TLanguageKindEnum>();
             }
 
-            public override ImmutableArray<CodeBlockEndAnalyzerAction<TSyntaxKind>> GetCodeBlockEndActions<TSyntaxKind>()
+            public override ImmutableArray<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> GetCodeBlockEndActions<TLanguageKindEnum>()
             {
-                return base.GetCodeBlockEndActions<TSyntaxKind>().Concat(this.sessionScope.GetCodeBlockEndActions<TSyntaxKind>());
+                return base.GetCodeBlockEndActions<TLanguageKindEnum>().Concat(this.sessionScope.GetCodeBlockEndActions<TLanguageKindEnum>());
             }
 
-            public override ImmutableArray<SyntaxNodeAnalyzerAction<TSyntaxKind>> GetSyntaxNodeActions<TSyntaxKind>()
+            public override ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>()
             {
-                return base.GetSyntaxNodeActions<TSyntaxKind>().Concat(this.sessionScope.GetSyntaxNodeActions<TSyntaxKind>());
+                return base.GetSyntaxNodeActions<TLanguageKindEnum>().Concat(this.sessionScope.GetSyntaxNodeActions<TLanguageKindEnum>());
             }
 
             public override AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
@@ -312,17 +312,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Scope for setting up analyzers for a code block, capable of retrieving the actions.
         /// </summary>
-        public sealed class HostCodeBlockStartAnalysisScope<TSyntaxKind>
+        public sealed class HostCodeBlockStartAnalysisScope<TLanguageKindEnum> where TLanguageKindEnum : struct
         {
-            private ImmutableArray<CodeBlockEndAnalyzerAction<TSyntaxKind>> codeBlockEndActions = ImmutableArray<CodeBlockEndAnalyzerAction<TSyntaxKind>>.Empty;
-            private ImmutableArray<SyntaxNodeAnalyzerAction<TSyntaxKind>> syntaxNodeActions = ImmutableArray<SyntaxNodeAnalyzerAction<TSyntaxKind>>.Empty;
+            private ImmutableArray<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> codeBlockEndActions = ImmutableArray<CodeBlockEndAnalyzerAction<TLanguageKindEnum>>.Empty;
+            private ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> syntaxNodeActions = ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.Empty;
 
-            public ImmutableArray<CodeBlockEndAnalyzerAction<TSyntaxKind>> CodeBlockEndActions
+            public ImmutableArray<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> CodeBlockEndActions
             {
                 get { return this.codeBlockEndActions; }
             }
 
-            public ImmutableArray<SyntaxNodeAnalyzerAction<TSyntaxKind>> SyntaxNodeActions
+            public ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> SyntaxNodeActions
             {
                 get { return this.syntaxNodeActions; }
             }
@@ -333,12 +333,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void RegisterCodeBlockEndAction(DiagnosticAnalyzer analyzer, Action<CodeBlockEndAnalysisContext> action)
             {
-                this.codeBlockEndActions = this.codeBlockEndActions.Add(new CodeBlockEndAnalyzerAction<TSyntaxKind>(action, analyzer));
+                this.codeBlockEndActions = this.codeBlockEndActions.Add(new CodeBlockEndAnalyzerAction<TLanguageKindEnum>(action, analyzer));
             }
 
-            public void RegisterSyntaxNodeAction(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, params TSyntaxKind[] syntaxKinds)
+            public void RegisterSyntaxNodeAction(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
             {
-                this.syntaxNodeActions = this.syntaxNodeActions.Add(new SyntaxNodeAnalyzerAction<TSyntaxKind>(action, ImmutableArray.Create<TSyntaxKind>(syntaxKinds), analyzer));
+                this.syntaxNodeActions = this.syntaxNodeActions.Add(new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, ImmutableArray.Create<TLanguageKindEnum>(syntaxKinds), analyzer));
             }
         }
 
@@ -373,29 +373,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 get { return this.symbolActions; }
             }
 
-            public virtual bool HasCodeBlockStartActions<TSyntaxKind>()
+            public virtual bool HasCodeBlockStartActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
             {
-                return this.codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TSyntaxKind>>().Any();
+                return this.codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>().Any();
             }
 
-            public virtual ImmutableArray<CodeBlockStartAnalyzerAction<TSyntaxKind>> GetCodeBlockStartActions<TSyntaxKind>()
+            public virtual ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> GetCodeBlockStartActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
             {
-                return this.codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TSyntaxKind>>().AsImmutable();
+                return this.codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>().AsImmutable();
             }
 
-            public virtual bool HasCodeBlockEndActions<TSyntaxKind>()
+            public virtual bool HasCodeBlockEndActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
             {
-                return this.codeBlockEndActions.OfType<CodeBlockEndAnalyzerAction<TSyntaxKind>>().Any();
+                return this.codeBlockEndActions.OfType<CodeBlockEndAnalyzerAction<TLanguageKindEnum>>().Any();
             }
 
-            public virtual ImmutableArray<CodeBlockEndAnalyzerAction<TSyntaxKind>> GetCodeBlockEndActions<TSyntaxKind>()
+            public virtual ImmutableArray<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> GetCodeBlockEndActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
             {
-                return this.codeBlockEndActions.OfType<CodeBlockEndAnalyzerAction<TSyntaxKind>>().AsImmutable();
+                return this.codeBlockEndActions.OfType<CodeBlockEndAnalyzerAction<TLanguageKindEnum>>().AsImmutable();
             }
 
-            public virtual ImmutableArray<SyntaxNodeAnalyzerAction<TSyntaxKind>> GetSyntaxNodeActions<TSyntaxKind>()
+            public virtual ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
             {
-                return this.syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TSyntaxKind>>().AsImmutable();
+                return this.syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().AsImmutable();
             }
 
             public virtual AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
@@ -433,23 +433,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.symbolActions = this.symbolActions.Add(analyzerAction);
             }
 
-            public void RegisterCodeBlockStartAction<TSyntaxKind>(DiagnosticAnalyzer analyzer, Action<CodeBlockStartAnalysisContext<TSyntaxKind>> action)
+            public void RegisterCodeBlockStartAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
             {
-                CodeBlockStartAnalyzerAction<TSyntaxKind> analyzerAction = new CodeBlockStartAnalyzerAction<TSyntaxKind>(action, analyzer);
+                CodeBlockStartAnalyzerAction<TLanguageKindEnum> analyzerAction = new CodeBlockStartAnalyzerAction<TLanguageKindEnum>(action, analyzer);
                 this.GetOrCreateAnalyzerActions(analyzer).AddCodeBlockStartAction(analyzerAction);
                 this.codeBlockStartActions = this.codeBlockStartActions.Add(analyzerAction);
             }
 
-            public void RegisterCodeBlockEndAction<TSyntaxKind>(DiagnosticAnalyzer analyzer, Action<CodeBlockEndAnalysisContext> action)
+            public void RegisterCodeBlockEndAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct
             {
-                CodeBlockEndAnalyzerAction<TSyntaxKind> analyzerAction = new CodeBlockEndAnalyzerAction<TSyntaxKind>(action, analyzer);
+                CodeBlockEndAnalyzerAction<TLanguageKindEnum> analyzerAction = new CodeBlockEndAnalyzerAction<TLanguageKindEnum>(action, analyzer);
                 this.GetOrCreateAnalyzerActions(analyzer).AddCodeBlockEndAction(analyzerAction);
                 this.codeBlockEndActions = this.codeBlockEndActions.Add(analyzerAction);
             }
 
-            public void RegisterSyntaxNodeAction<TSyntaxKind>(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, params TSyntaxKind[] syntaxKinds)
+            public void RegisterSyntaxNodeAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
             {
-                SyntaxNodeAnalyzerAction<TSyntaxKind> analyzerAction = new SyntaxNodeAnalyzerAction<TSyntaxKind>(action, ImmutableArray.Create<TSyntaxKind>(syntaxKinds), analyzer);
+                SyntaxNodeAnalyzerAction<TLanguageKindEnum> analyzerAction = new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, ImmutableArray.Create<TLanguageKindEnum>(syntaxKinds), analyzer);
                 this.GetOrCreateAnalyzerActions(analyzer).AddSyntaxNodeAction(analyzerAction);
                 this.syntaxNodeActions = this.syntaxNodeActions.Add(analyzerAction);
             }
@@ -554,34 +554,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.symbolActions = this.symbolActions.Add(action);
             }
 
-            public void AddCodeBlockStartAction<TSyntaxKind>(CodeBlockStartAnalyzerAction<TSyntaxKind> action)
+            public void AddCodeBlockStartAction<TLanguageKindEnum>(CodeBlockStartAnalyzerAction<TLanguageKindEnum> action) where TLanguageKindEnum : struct
             {
                 this.codeBlockStartActions = this.codeBlockStartActions.Add(action);
             }
 
-            public void AddCodeBlockEndAction<TSyntaxKind>(CodeBlockEndAnalyzerAction<TSyntaxKind> action)
+            public void AddCodeBlockEndAction<TLanguageKindEnum>(CodeBlockEndAnalyzerAction<TLanguageKindEnum> action) where TLanguageKindEnum : struct
             {
                 this.codeBlockEndActions = this.codeBlockEndActions.Add(action);
             }
 
-            public void AddSyntaxNodeAction<TSyntaxKind>(SyntaxNodeAnalyzerAction<TSyntaxKind> action)
+            public void AddSyntaxNodeAction<TLanguageKindEnum>(SyntaxNodeAnalyzerAction<TLanguageKindEnum> action) where TLanguageKindEnum : struct
             {
                 this.syntaxNodeActions = this.syntaxNodeActions.Add(action);
             }
 
-            public ImmutableArray<CodeBlockStartAnalyzerAction<TSyntaxKind>> GetCodeBlockStartActions<TSyntaxKind>()
+            public ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> GetCodeBlockStartActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
             {
-                return this.codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TSyntaxKind>>().ToImmutableArray();
+                return this.codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
             }
 
-            public ImmutableArray<CodeBlockEndAnalyzerAction<TSyntaxKind>> GetCodeBlockEndActions<TSyntaxKind>()
+            public ImmutableArray<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> GetCodeBlockEndActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
             {
-                return this.codeBlockEndActions.OfType<CodeBlockEndAnalyzerAction<TSyntaxKind>>().ToImmutableArray();
+                return this.codeBlockEndActions.OfType<CodeBlockEndAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
             }
 
-            public ImmutableArray<SyntaxNodeAnalyzerAction<TSyntaxKind>> GetSyntaxNodeActions<TSyntaxKind>()
+            public ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
             {
-                return this.syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TSyntaxKind>>().ToImmutableArray();
+                return this.syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
             }
 
             public AnalyzerActions Append(AnalyzerActions otherActions)
