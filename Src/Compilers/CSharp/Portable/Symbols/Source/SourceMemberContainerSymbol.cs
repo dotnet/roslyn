@@ -1912,7 +1912,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.StaticKeyword) &&
                         !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
                         !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
-                        (propertyDecl.AccessorList == null || All(propertyDecl.AccessorList.Accessors, a => a.Body == null));
+                        propertyDecl.AccessorList != null &&
+                        All(propertyDecl.AccessorList.Accessors, a => a.Body == null);
                 case SyntaxKind.EventFieldDeclaration:
                     // field-like event declaration
                     var eventFieldDecl = (EventFieldDeclarationSyntax)m;
