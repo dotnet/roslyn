@@ -422,5 +422,14 @@ class MainClass
             // Assert.Equal("SourceLocation(@10:14)\"c;\"", loc2.GetDebuggerDisplay());
             Assert.Equal("SourceFile([148..150))", loc2.ToString());
         }
+
+        [Fact]
+        public void TestExternalLocationFormatting()
+        {
+            Location location = Location.Create("test.txt",new TextSpan(), new LinePositionSpan(new LinePosition(2,1), new LinePosition(3,1)));
+            var diagnostic = Diagnostic.Create("", "", "msg", DiagnosticSeverity.Warning, true, 1, false, location: location);
+
+            Assert.Equal("test.txt(3,2): warning : msg", CSharpDiagnosticFormatter.Instance.Format(diagnostic));
+        }
     }
 }
