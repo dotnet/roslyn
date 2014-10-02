@@ -1837,9 +1837,6 @@ class B : A
     // (8,34): error CS0112: A static member 'B.Q' cannot be marked as override, virtual, or abstract
     //     public static virtual object Q { get; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("B.Q").WithLocation(8, 34),
-    // (8,38): error CS0840: 'B.Q.get' must declare a body because it is not marked abstract or extern. Automatically implemented properties must define both get and set accessors.
-    //     public static virtual object Q { get; }
-    Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArguments("B.Q.get").WithLocation(8, 38),
     // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("B.R").WithLocation(9, 37),

@@ -451,5 +451,170 @@ class C
 ";
             CompileAndVerify(source, additionalRefs: new[] { ExpressionAssemblyRef }, expectedOutput: "42");
         }
+
+        [Fact]
+        public void TestInitializerInCtor001()
+        {
+            var source = @"
+class C
+{
+    public int I{get;}
+
+    public C()
+    {
+        I = 42;
+    }
+
+    static void Main()
+    {
+        C c = new C();
+        System.Console.WriteLine(c.I);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "42").
+                VerifyIL("C..ctor", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldc.i4.s   42
+  IL_0009:  stfld      ""int C.<I>k__BackingField""
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestInitializerInCtor002()
+        {
+            var source = @"
+public struct S
+{
+    public int X{get;}
+    public int Y{get;}
+
+    public S()
+    {
+        X = 42;
+        Y = X;
+    }
+
+    public static void Main()
+    {
+        S s = new S();
+        System.Console.WriteLine(s.Y);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "42").
+                VerifyIL("S..ctor", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stfld      ""int S.<X>k__BackingField""
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.0
+  IL_000a:  call       ""int S.X.get""
+  IL_000f:  stfld      ""int S.<Y>k__BackingField""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestInitializerInCtor003()
+        {
+            var source = @"
+struct C
+{
+    public int I{get;}
+    public int J{get; set;}
+
+    public C(int arg)
+    {
+        I = 33;
+        J = I;
+        I = J;
+        I = arg;
+    }
+
+    static void Main()
+    {
+        C c = new C(42);
+        System.Console.WriteLine(c.I);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "42").
+                VerifyIL("C..ctor(int)", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   33
+  IL_0003:  stfld      ""int C.<I>k__BackingField""
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.0
+  IL_000a:  call       ""int C.I.get""
+  IL_000f:  call       ""void C.J.set""
+  IL_0014:  ldarg.0
+  IL_0015:  ldarg.0
+  IL_0016:  call       ""int C.J.get""
+  IL_001b:  stfld      ""int C.<I>k__BackingField""
+  IL_0020:  ldarg.0
+  IL_0021:  ldarg.1
+  IL_0022:  stfld      ""int C.<I>k__BackingField""
+  IL_0027:  ret
+}
+");
+        }
+
+
+        [Fact]
+        public void TestInitializerInCtor004()
+        {
+            var source = @"
+struct C
+{
+    public static int I{get;}
+    public static int J{get; set;}
+
+    static C()
+    {
+        I = 33;
+        J = I;
+        I = J;
+        I = 42;
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(C.I);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "42").
+                VerifyIL("C..cctor()", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   33
+  IL_0002:  stsfld     ""int C.<I>k__BackingField""
+  IL_0007:  call       ""int C.I.get""
+  IL_000c:  call       ""void C.J.set""
+  IL_0011:  call       ""int C.J.get""
+  IL_0016:  stsfld     ""int C.<I>k__BackingField""
+  IL_001b:  ldc.i4.s   42
+  IL_001d:  stsfld     ""int C.<I>k__BackingField""
+  IL_0022:  ret
+}
+");
+        }
+
     }
 }

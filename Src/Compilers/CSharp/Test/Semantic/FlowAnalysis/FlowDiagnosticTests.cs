@@ -1247,7 +1247,7 @@ struct Program
     {
     }
 }";
-            CreateCompilationWithMscorlib(program, parseOptions: TestOptions.ExperimentalParseOptions)
+            CreateCompilationWithMscorlib(program)
                 .VerifyDiagnostics(
                 // (5,12): error CS0843: Backing field for automatically implemented property 'Program.X' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.X"));
@@ -1265,7 +1265,7 @@ struct Program
     public S(int i) {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int P { get; set; } = 1;
@@ -1291,15 +1291,408 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
     // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public decimal R { get; } = 300;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20),
-    // (9,9): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-    //         P = p;
-    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "P").WithArguments("this").WithLocation(9, 9)
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20)
     );
+        }
+
+        [Fact]
+        public void AutoPropInitialization4()
+        {
+            var text = @"
+struct Program
+{
+    struct S1
+    {
+        public int i;
+        public int ii { get; }
+    }
+
+    S1 x { get; }
+    S1 x2 { get; }
+
+
+    public Program()
+    {
+        x.i = 1;
+        System.Console.WriteLine(x2.ii);
+    }
+
+    public void Foo()
+    {
+    }
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    //         x.i = 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
+    // (16,9): error CS0170: Use of possibly unassigned field 'i'
+    //         x.i = 1;
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
+    // (17,34): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
+    //         System.Console.WriteLine(x2.ii);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
+    // (14,12): error CS0843: Backing field for automatically implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
+    //     public Program()
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12)
+    );
+        }
+
+        [Fact]
+        public void AutoPropInitialization5()
+        {
+            var text = @"
+struct Program
+{
+    struct S1
+    {
+        public int i;
+        public int ii { get; }
+    }
+
+    S1 x { get; set;}
+    S1 x2 { get; set;}
+
+
+    public Program()
+    {
+        x.i = 1;
+        System.Console.WriteLine(x2.ii);
+    }
+
+    public void Foo()
+    {
+    }
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    //         x.i = 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
+    // (16,9): error CS0170: Use of possibly unassigned field 'i'
+    //         x.i = 1;
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
+    // (17,34): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
+    //         System.Console.WriteLine(x2.ii);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
+    // (14,12): error CS0843: Backing field for automatically implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
+    //     public Program()
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12)
+    );
+        }
+
+        [Fact]
+        public void AutoPropInitialization6()
+        {
+            var text = @"
+struct Program
+{
+    struct S1
+    {
+        public int i;
+        public int ii { get; }
+    }
+
+    S1 x { get; set;}
+    S1 x2 { get;}
+
+
+    public Program()
+    {
+        x = new S1();
+        x.i += 1;
+
+        x2 = new S1();
+        x2.i += 1;
+    }
+
+    public void Foo()
+    {
+    }
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (17,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    //         x.i += 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(17, 9),
+    // (20,9): error CS1612: Cannot modify the return value of 'Program.x2' because it is not a variable
+    //         x2.i += 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x2").WithArguments("Program.x2").WithLocation(20, 9)
+                );
+        }
+
+        [Fact]
+        public void AutoPropInitialization7()
+        {
+            var text = @"
+struct Program
+{
+    struct S1
+    {
+        public int i;
+        public int ii { get; }
+    }
+
+    S1 x { get; set;}
+    S1 x2 { get;}
+
+
+    public Program()
+    {
+        this = default(Program);
+
+        System.Action a = () =>
+        {
+            this.x = new S1();
+        };
+
+        System.Action a2 = () =>
+        {
+            this.x2 = new S1();
+        };
+    }
+
+    public void Foo()
+    {
+    }
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (20,13): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+    //             this.x = new S1();
+    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(20, 13),
+    // (25,13): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+    //             this.x2 = new S1();
+    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(25, 13),
+    // (6,20): warning CS0649: Field 'Program.S1.i' is never assigned to, and will always have its default value 0
+    //         public int i;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("Program.S1.i", "0").WithLocation(6, 20)
+                );
+        }
+
+        [Fact]
+        public void AutoPropInitialization7c()
+        {
+            var text = @"
+class Program
+{
+    struct S1
+    {
+        public int i;
+        public int ii { get; }
+    }
+
+    S1 x { get; set;}
+    S1 x2 { get;}
+
+
+    public Program()
+    {
+        System.Action a = () =>
+        {
+            this.x = new S1();
+        };
+
+        System.Action a2 = () =>
+        {
+            this.x2 = new S1();
+        };
+    }
+
+    public void Foo()
+    {
+    }
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (23,13): error CS0200: Property or indexer 'Program.x2' cannot be assigned to -- it is read only
+    //             this.x2 = new S1();
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "this.x2").WithArguments("Program.x2").WithLocation(23, 13),
+    // (6,20): warning CS0649: Field 'Program.S1.i' is never assigned to, and will always have its default value 0
+    //         public int i;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("Program.S1.i", "0").WithLocation(6, 20)
+                );
+        }
+
+        [Fact]
+        public void AutoPropInitialization8()
+        {
+            var text = @"
+struct Program
+{
+    struct S1
+    {
+        public int i;
+        public int ii { get; }
+    }
+
+    S1 x { get; set;}
+    S1 x2 { get;}
+
+    public Program(int arg)
+        : this()
+    {
+        x2 = x;
+    }
+
+    public void Foo()
+    {
+    }
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (6,20): warning CS0649: Field 'Program.S1.i' is never assigned to, and will always have its default value 0
+    //         public int i;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("Program.S1.i", "0").WithLocation(6, 20)
+                );
+        }
+
+        [Fact]
+        public void AutoPropInitialization9()
+        {
+            var text = @"
+struct Program
+{
+    struct S1
+    {
+    }
+
+    S1 x { get; set;}
+    S1 x2 { get;}
+
+    public Program(int arg)
+    {
+        x2 = x;
+    }
+
+    public void Foo()
+    {
+    }
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            // no errors since S1 is empty
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void AutoPropInitialization10()
+        {
+            var text = @"
+struct Program
+{
+    public struct S1
+    {
+        public int x;
+    }
+
+    S1 x1 { get; set;}
+    S1 x2 { get;}
+    S1 x3;
+
+    public Program(int arg)
+    {
+        Foo(out x1);
+        Foo(ref x1);
+        Foo(out x2);
+        Foo(ref x2);
+        Foo(out x3);
+        Foo(ref x3);
+    }
+
+    public static void Foo(out S1 s)
+    {
+        s = default(S1);
+    }
+
+    public static void Foo1(ref S1 s)
+    {
+        s = default(S1);
+    }
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            // no errors since S1 is empty
+            comp.VerifyDiagnostics(
+    // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Foo(out x1);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
+    // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Foo(ref x1);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
+    // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Foo(out x2);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
+    // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Foo(ref x2);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
+    // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
+    //         Foo(ref x3);
+    Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
+    // (15,17): error CS8079: Use of automatically implemented property 'x1' whose backing field is possibly unassigned 
+    //         Foo(out x1);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x1").WithArguments("x1").WithLocation(15, 17),
+    // (16,9): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+    //         Foo(ref x1);
+    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Foo").WithArguments("this").WithLocation(16, 9),
+    // (17,17): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
+    //         Foo(out x2);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 17),
+    // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
+    //         public int x;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
+                );
         }
 
         [Fact]

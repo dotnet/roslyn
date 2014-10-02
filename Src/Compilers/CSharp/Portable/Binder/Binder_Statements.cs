@@ -1837,6 +1837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: If the left operand is a property or indexer access, the property or indexer must
             // SPEC: have a set accessor. If this is not the case, a compile-time error occurs.
 
+            // Addendum: Assignment is also allowed for get-only autoprops in their constructor
+
             BoundExpression receiver;
             CSharpSyntaxNode propertySyntax;
             var propertySymbol = GetPropertySymbol(expr, out receiver, out propertySyntax);
@@ -1860,8 +1862,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)setMethod == null)
                 {
-                    Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);
-                    return false;
+                    var containing = this.ContainingMemberOrLambda;
+                    if (!AccessingAutopropertyFromConstructor(receiver, propertySymbol, containing))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);
+                        return false;
+                    }
                 }
                 else if (receiver != null && receiver.Kind == BoundKind.BaseReference && setMethod.IsAbstract)
                 {
@@ -1950,6 +1956,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+
+        internal static bool AccessingAutopropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
+        {
+            return AccessingAutopropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+        }
+
+        internal static bool AccessingAutopropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
+        {
+            var sourceProperty = propertySymbol as SourcePropertySymbol;
+            var propertyIsStatic = propertySymbol.IsStatic;
+
+            return (object)sourceProperty != null &&
+                    sourceProperty.IsAutoProperty &&
+                    sourceProperty.ContainingType == fromMember.ContainingType &&
+                    ((MethodSymbol)fromMember).MethodKind == (propertyIsStatic ? MethodKind.StaticConstructor
+                                                                                : MethodKind.Constructor) &&
+                   (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+        }
+
 
         /// <summary>
         /// SPEC: When a property or indexer declared in a struct-type is the target of an 

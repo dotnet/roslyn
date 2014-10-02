@@ -707,6 +707,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int containingSlot = MakeSlot(receiverOpt);
                         return (containingSlot == -1) ? -1 : GetOrCreateSlot(eventSymbol.AssociatedField, containingSlot);
                     }
+                case BoundKind.PropertyAccess:
+                    {
+                        var propAccess = (BoundPropertyAccess)node;
+
+                        if (Binder.AccessingAutopropertyFromConstructor(propAccess, this.currentMethodOrLambda))
+                        {
+                            var propSymbol = propAccess.PropertySymbol;
+                            var backingField = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            if (backingField != null)
+                            {
+                                var receiverOpt = propAccess.ReceiverOpt;
+                                if (propSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return -1; // access of static property
+                                if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return -1; // property of non-struct
+                                int containingSlot = MakeSlot(receiverOpt);
+                                return (containingSlot == -1) ? -1 : GetOrCreateSlot(backingField, containingSlot);
+                            }
+                        }
+
+                        goto default;
+                    }
                 default:
                     return -1;
             }
@@ -826,6 +846,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.PropertyAccess:
+                    {
+                        var propertyAccess = (BoundPropertyAccess)node;
+                        if (Binder.AccessingAutopropertyFromConstructor(propertyAccess, this.currentMethodOrLambda))
+                        {
+                            var property = propertyAccess.PropertySymbol;
+                            var backingField = (property as SourcePropertySymbol)?.BackingField;
+                            if (backingField != null)
+                            {
+                                if (!MayRequireTracking(propertyAccess.ReceiverOpt, backingField) || IsAssigned(propertyAccess.ReceiverOpt, out unassignedSlot))
+                                {
+                                    return true;
+                                }
+
+                                unassignedSlot = GetOrCreateSlot(backingField, unassignedSlot);
+                                break;
+                            }
+                        }
+
+                        goto default;
+                    }
+
                 case BoundKind.Parameter:
                     {
                         var parameter = ((BoundParameter)node);
@@ -852,7 +894,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             alreadyReported.EnsureCapacity(unassignedSlot + 1);
             if (!alreadyReported[unassignedSlot])
             {
-                Diagnostics.Add(ErrorCode.ERR_UseDefViolationField, new SourceLocation(node), fieldSymbol.Name);
+                var associatedSymbol = fieldSymbol.AssociatedSymbol;
+                if (associatedSymbol?.Kind == SymbolKind.Property)
+                {
+                    Diagnostics.Add(ErrorCode.ERR_UseDefViolationProperty, new SourceLocation(node), associatedSymbol.Name);
+                }
+                else
+                {
+                    Diagnostics.Add(ErrorCode.ERR_UseDefViolationField, new SourceLocation(node), fieldSymbol.Name);
+                }
+
                 alreadyReported[unassignedSlot] = true; // mark the variable's slot so that we don't complain about the variable again
             }
         }
@@ -953,6 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ThisReference:
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
+                case BoundKind.PropertyAccess:
                     {
                         var expression = (BoundExpression)node;
                         int slot = MakeSlot(expression);
@@ -1743,6 +1795,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssigned(node, node.FieldSymbol, node.Syntax);
             }
 
+            return result;
+        }
+
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            var result = base.VisitPropertyAccess(node);
+            if (Binder.AccessingAutopropertyFromConstructor(node, this.currentMethodOrLambda))
+            {
+                var property = node.PropertySymbol;
+                var backingField = (property as SourcePropertySymbol)?.BackingField;
+                if (backingField != null)
+                {
+                    if (MayRequireTracking(node.ReceiverOpt, backingField))
+                    {
+                        // special definite assignment behavior for fields of struct local variables.
+                        int unassignedSlot;
+                        if (this.State.Reachable && !IsAssigned(node, out unassignedSlot))
+                        {
+                            ReportUnassigned(backingField, unassignedSlot, node.Syntax);
+                        }
+                    }
+                }
+            }
             return result;
         }
 

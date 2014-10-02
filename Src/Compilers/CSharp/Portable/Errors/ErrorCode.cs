@@ -1267,9 +1267,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
-        ERR_AutoPropertyMustHaveSetOrInitializer = 8051,
-        ERR_AutoPropertyMustHaveGetAccessor = 8052,
-        ERR_AutoPropertyInitializerInInterface = 8053,
+        ERR_AutoPropertyMustHaveGetAccessor = 8051,
+        ERR_AutoPropertyInitializerInInterface = 8052,
+
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
         ERR_AccessorListAndExpressionBody = 8056,
@@ -1286,5 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnclosedExpressionHole = 8076,
         ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,
+
+        ERR_UseDefViolationProperty = 8079,
     }
 }

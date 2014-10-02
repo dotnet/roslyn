@@ -898,6 +898,36 @@ class C : I
         }
 
         [Fact]
+        public void SetGetOnlyAutopropsInConstructors()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"using System;
+class C
+{
+    public int P1 { get; }
+    public static int P2 { get; }
+
+    public C()
+    {
+        P1 = 10;
+    }
+
+    static C()
+    {
+        P2 = 11;
+    }
+    
+    static void Main()
+    {
+        Console.Write(C.P2);
+        var c = new C();
+        Console.Write(c.P1);
+    }
+}", options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: "1110");
+        }
+
+        [Fact]
         public void AutoPropInitializersClass()
         {
             var comp = CreateCompilationWithMscorlib(@"using System;
@@ -956,16 +986,16 @@ class C
         [Fact]
         public void AutoPropInitializersStruct()
         {
-            var comp = CreateCompilationWithMscorlib(@"using System;
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
 struct S
 {
     public readonly int P;
-    public string Q { get; set; }
-    public decimal R { get; set; }
+    public string Q { get; }
+    public decimal R { get; }
     public static char T { get; } = 'T';
 
     public S(int p)
-        :this()
     {
         P = p;
         Q = ""test"";
@@ -1001,13 +1031,13 @@ struct S
 
                 var q = type.GetMember<SourcePropertySymbol>("Q");
                 var qBack = q.BackingField;
-                Assert.False(qBack.IsReadOnly);
+                Assert.True(qBack.IsReadOnly);
                 Assert.False(qBack.IsStatic);
                 Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
 
                 var r = type.GetMember<SourcePropertySymbol>("R");
                 var rBack = r.BackingField;
-                Assert.False(rBack.IsReadOnly);
+                Assert.True(rBack.IsReadOnly);
                 Assert.False(rBack.IsStatic);
                 Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
 

@@ -17,6 +17,94 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public class PropertyTests : CSharpTestBase
     {
         [Fact]
+        public void SetGetOnlyAutoPropNoExperimental()
+        {
+            // One would think this creates an error, but it doesn't because
+            // language version is a property of the parser and there are
+            // no syntactical changes to the language for get-only autoprops
+            CreateCompilationWithMscorlib45(@"
+class C
+{
+    public int P { get; }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SetGetOnlyAutoPropInConstructor()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+class C
+{
+    public int P { get; }
+    public C()
+    {
+        P = 10;
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SetGetOnlyAutoPropOutOfConstructor()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+class C
+{
+    public int P { get; }
+    public static int Ps { get; }
+
+    public C()
+    {
+        Ps = 3;
+    }
+
+    public void M()
+    {
+        P = 10;
+        C.Ps = 1;
+    }
+}
+
+struct S
+{
+    public int P { get; }
+    public static int Ps { get; }
+
+    public S()
+    {
+        this = default(S);
+        Ps = 5;
+    }
+
+    public void M()
+    {
+        P = 10;
+        S.Ps = 1;
+    }
+}
+
+").VerifyDiagnostics(
+    // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
+    //         Ps = 5;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
+    // (9,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
+    //         Ps = 3;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("C.Ps").WithLocation(9, 9),
+    // (14,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+    //         P = 10;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(14, 9),
+    // (15,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
+    //         C.Ps = 1;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "C.Ps").WithArguments("C.Ps").WithLocation(15, 9),
+    // (32,9): error CS0200: Property or indexer 'S.P' cannot be assigned to -- it is read only
+    //         P = 10;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("S.P").WithLocation(32, 9),
+    // (33,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
+    //         S.Ps = 1;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "S.Ps").WithArguments("S.Ps").WithLocation(33, 9)
+    );
+        }
+
+        [Fact]
         public void StructWithSameNameFieldAndProperty()
         {
             var text = @"
@@ -79,10 +167,10 @@ struct S
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
     // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int P { get; set; } = 1;
+//     public int P { get; set; } = 1;
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(4, 16),
     // (6,20): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public decimal R { get; } = 300;
+//     public decimal R { get; } = 300;
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(6, 20)
                 );
         }
@@ -149,10 +237,7 @@ struct S
 }";
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
 
-            comp.VerifyDiagnostics(
-// (3,20): error CS8033: Auto-implemented properties must have set accessors or initializers.
-//     public int P { get; }
-Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArguments("C.P.get").WithLocation(3, 20));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

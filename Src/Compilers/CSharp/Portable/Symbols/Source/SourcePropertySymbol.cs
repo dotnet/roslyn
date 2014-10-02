@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasAccessorList = syntax.AccessorList != null;
             var propertySyntax = syntax as PropertyDeclarationSyntax;
-            var arrowExpression = propertySyntax != null 
+            var arrowExpression = propertySyntax != null
                 ? propertySyntax.ExpressionBody
                 : ((IndexerDeclarationSyntax)syntax).ExpressionBody;
             bool hasExpressionBody = arrowExpression != null;
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (notRegularProperty || hasInitializer)
             {
                 var hasGetSyntax = getSyntax != null;
-                this.isAutoProperty = notRegularProperty && (hasGetSyntax && setSyntax != null || (hasGetSyntax && hasInitializer));
+                this.isAutoProperty = notRegularProperty && hasGetSyntax;
 
                 if (this.isAutoProperty || hasInitializer)
                 {
@@ -279,10 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (getSyntax == null)
                         {
                             diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, accessor.Locations[0], accessor);
-                        }
-                        else if (propertySyntax != null && propertySyntax.Initializer == null)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, accessor.Locations[0], accessor);
                         }
                     }
                 }

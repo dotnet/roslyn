@@ -723,6 +723,9 @@
   <data name="ERR_UseDefViolationField" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'</value>
   </data>
+  <data name="ERR_UseDefViolationProperty" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property '{0}'</value>
+  </data>
   <data name="ERR_UnassignedThis" xml:space="preserve">
     <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
   </data>
@@ -1933,10 +1936,10 @@
     <value>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</value>
   </data>
   <data name="ERR_ExplicitLayoutAndAutoImplementedProperty" xml:space="preserve">
-    <value>'{0}': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
+    <value>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
-    <value>Backing field for automatically implemented property '{0}' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.</value>
+    <value>Auto-implemented property property '{0}' must be fully assigned before control is returned to the caller.</value>
   </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
@@ -3912,9 +3915,6 @@
   </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
     <value>Only auto-implemented properties can have initializers.</value>
-  </data>
-  <data name="ERR_AutoPropertyMustHaveSetOrInitializer" xml:space="preserve">
-    <value>Auto-implemented properties must have set accessors or initializers.</value>
   </data>
   <data name="ERR_AutoPropertyMustHaveGetAccessor" xml:space="preserve">
     <value>Auto-implemented properties must have get accessors.</value>

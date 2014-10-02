@@ -489,6 +489,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // no need for it to be previously assigned: it is on the left.
                     break;
 
+                case BoundKind.PropertyAccess:
+                    var access = (BoundPropertyAccess)node;
+
+                    if (Binder.AccessingAutopropertyFromConstructor(access, this.member))
+                    {
+                        var backingField = (access.PropertySymbol as SourcePropertySymbol)?.BackingField;
+                        if (backingField != null)
+                        {
+                            VisitFieldAccessInternal(access.ReceiverOpt, backingField);
+                            break;
+                        }
+                    }
+
+                    goto default;
+
                 case BoundKind.FieldAccess:
                     {
                         BoundFieldAccess node1 = (BoundFieldAccess)node;
@@ -1408,10 +1423,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitReceiverAfterCall(receiver, setter);
         }
 
+        // returns false if expression is not a property access 
+        // or if the property has a backing field
+        // and accessed in a corresponding constructor
+        private bool RegularPropertyAccess(BoundExpression expr)
+        {
+            if (expr.Kind != BoundKind.PropertyAccess)
+            {
+                return false;
+            }
+
+            return !Binder.AccessingAutopropertyFromConstructor((BoundPropertyAccess)expr, this.member);
+        }
+
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             // TODO: should events be handled specially too?
-            if (node.Left.Kind == BoundKind.PropertyAccess)
+            if (RegularPropertyAccess(node.Left))
             {
                 var left = (BoundPropertyAccess)node.Left;
                 var property = left.PropertySymbol;
@@ -1432,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             // TODO: should events be handled specially too?
-            if (node.Left.Kind == BoundKind.PropertyAccess)
+            if (RegularPropertyAccess(node.Left))
             {
                 var left = (BoundPropertyAccess)node.Left;
                 var property = left.PropertySymbol;
@@ -1499,6 +1527,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var property = node.PropertySymbol;
+
+            if(Binder.AccessingAutopropertyFromConstructor(node, this.member))
+            {
+                var backingField = (property as SourcePropertySymbol)?.BackingField;
+                if (backingField != null)
+                {
+                    VisitFieldAccessInternal(node.ReceiverOpt, backingField);
+                    return null;
+                }
+            }
+
             var method = GetMethod(property) ?? property.SetMethod;
             VisitReceiverBeforeCall(node.ReceiverOpt, method);
             if (trackExceptions) NotePossibleException(node);
@@ -1782,7 +1821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
             // TODO: should we also specially handle events?
-            if (node.Operand.Kind == BoundKind.PropertyAccess)
+            if (RegularPropertyAccess(node.Operand))
             {
                 var left = (BoundPropertyAccess)node.Operand;
                 var property = left.PropertySymbol;

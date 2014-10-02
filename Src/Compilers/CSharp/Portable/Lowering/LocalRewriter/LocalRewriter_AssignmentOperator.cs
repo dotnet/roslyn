@@ -208,7 +208,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
-            Debug.Assert((object)setMethod != null);
+
+            if((object)setMethod == null)
+            {
+                Debug.Assert((property as SourcePropertySymbol)?.IsAutoProperty == true,
+                    "only autoproperties can be assignable without having setters");
+
+                var backingField = (property as SourcePropertySymbol).BackingField;
+                return factory.AssignmentExpression(
+                    factory.Field(rewrittenReceiver, backingField),
+                    rewrittenRight);
+            }
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.

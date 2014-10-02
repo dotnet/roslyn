@@ -32,10 +32,8 @@ class C
             comp.VerifyDiagnostics(
     // (4,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
     //     public int P { get; } => 1;
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5),
-    // (4,20): error CS8051: Auto-implemented properties must have set accessors or initializers.
-    //     public int P { get; } => 1;
-    Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArguments("C.P.get").WithLocation(4, 20));
+    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5)
+    );
         }
 
         [Fact]
