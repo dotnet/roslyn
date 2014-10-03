@@ -1046,7 +1046,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     File.Delete(fullPath);
                 }
             }
-            catch (System.IO.IOException exception)
+            catch (IOException exception)
+            {
+                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+            }
+            catch (NotSupportedException exception)
+            {
+                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+            }
+            catch (UnauthorizedAccessException exception)
             {
                 this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }

@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis
     {
         private sealed class TempFileStream : FileStream
         {
-            public TempFileStream()
-                : base(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite)
+            public TempFileStream(string path, FileMode mode, FileAccess access, FileShare share)
+                : base(path, mode, access, share)
             {
             }
 
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis
             protected override void Dispose(bool disposing)
             {
                 base.Dispose(disposing);
-
                 try
                 {
                     File.Delete(Name);
@@ -111,9 +110,11 @@ namespace Microsoft.CodeAnalysis
 
         internal override Stream CreateInputStream()
         {
-            return new TempFileStream();
+            var path = Path.GetTempFileName();
+            Func<string, FileStream> streamConstructor = lPath => new TempFileStream(lPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+            return FileUtilities.CreateFileStreamChecked(streamConstructor, path);
         }
-
+        
         internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)
         {
             var keyPair = default(ImmutableArray<byte>);

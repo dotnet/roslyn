@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             MemoryStream memoryStream = new MemoryStream();
             var buffer = new byte[1024];
-            using (var stream = File.OpenRead(path))
+            using (var stream = FileUtilities.OpenRead(path))
             {
                 int bytesRead = 0;
                 do

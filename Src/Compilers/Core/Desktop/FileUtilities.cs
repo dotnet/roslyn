@@ -284,8 +284,7 @@ namespace Roslyn.Utilities
 
             try
             {
-                // Use FileShare.Delete to support files that are opened with DeleteOnClose option.
-                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
             catch (IOException)
             {
@@ -299,20 +298,35 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Used to create a file given a path specified by the user.
+        /// paramName - Provided by the Public surface APIs to have a clearer message. Internal API just rethrow the exception
         /// </summary>
-        internal static FileStream CreateFileStreamChecked(Func<string, FileStream> factory, string path, string paramName)
+        internal static FileStream CreateFileStreamChecked(Func<string, FileStream> factory, string path, string paramName = null)
         {
             try
             {
                 return factory(path);
             }
-            catch (ArgumentNullException)
+            catch (ArgumentNullException e)
             {
-                throw new ArgumentNullException(paramName);
+                if (paramName == null)
+                {
+                    throw e;
+                }
+                else
+                {
+                    throw new ArgumentNullException(paramName);
+                }
             }
             catch (ArgumentException e)
             {
-                throw new ArgumentException(e.Message, paramName);
+                if (paramName == null)
+                {
+                    throw e;
+                }
+                else
+                {
+                    throw new ArgumentException(e.Message, paramName);
+                }
             }
             catch (IOException)
             {

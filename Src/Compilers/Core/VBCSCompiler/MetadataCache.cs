@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private ModuleMetadata CreateModuleMetadata(string path, bool prefetchEntireImage)
         {
             // TODO: exception handling?
-            var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var fileStream = FileUtilities.OpenRead(path);
 
             var options = PEStreamOptions.PrefetchMetadata;
             if (prefetchEntireImage)
