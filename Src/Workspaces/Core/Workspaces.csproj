@@ -564,9 +564,7 @@
     <Compile Include="Options\OptionsServiceFactory.cs" />
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
-    <Compile Include="Options\Providers\ExportLanguageSpecificOptionSerializerAttriubte.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
-    <Compile Include="Options\Providers\ExportOptionSerializerAttribute.cs" />
     <Compile Include="Options\Providers\IOptionProvider.cs" />
     <Compile Include="Options\Providers\IOptionSerializer.cs" />
     <Compile Include="Options\Providers\OptionSerializerMetadata.cs" />
