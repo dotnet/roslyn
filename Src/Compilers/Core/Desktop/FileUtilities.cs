@@ -306,11 +306,11 @@ namespace Roslyn.Utilities
             {
                 return factory(path);
             }
-            catch (ArgumentNullException e)
+            catch (ArgumentNullException)
             {
                 if (paramName == null)
                 {
-                    throw e;
+                    throw;
                 }
                 else
                 {
@@ -321,7 +321,7 @@ namespace Roslyn.Utilities
             {
                 if (paramName == null)
                 {
-                    throw e;
+                    throw;
                 }
                 else
                 {
