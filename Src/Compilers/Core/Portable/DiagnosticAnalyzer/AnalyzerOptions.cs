@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -17,10 +18,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<string, string> GlobalOptions { get; internal set; }
 
-        public AnalyzerOptions(IEnumerable<AdditionalStream> additionalStreams, IDictionary<string, string> globalOptions)
+        /// <summary>
+        /// CultureInfo to be used for localizing diagnostics.
+        /// </summary>
+        public CultureInfo Culture { get; internal set; }
+
+        public AnalyzerOptions(IEnumerable<AdditionalStream> additionalStreams, IDictionary<string, string> globalOptions, CultureInfo culture = null)
         {
             this.AdditionalStreams = additionalStreams == null ? ImmutableArray<AdditionalStream>.Empty : additionalStreams.ToImmutableArray();
             this.GlobalOptions = globalOptions == null ? ImmutableDictionary<string, string>.Empty : globalOptions.ToImmutableDictionary();
+            this.Culture = culture ?? CultureInfo.CurrentUICulture;
         }
     }
 }
