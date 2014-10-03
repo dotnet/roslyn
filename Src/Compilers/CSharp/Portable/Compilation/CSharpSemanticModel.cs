@@ -2793,7 +2793,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (expr.Syntax.Kind == SyntaxKind.ObjectCreationExpression)
                         {
-                            if (resultKind == LookupResultKind.NotCreatable || expr.Type.IsDelegateType())
+                            if (resultKind == LookupResultKind.NotCreatable)
+                            {
+                                return expr.Symbols;
+                            }
+                            else if (expr.Type.IsDelegateType())
                             {
                                 resultKind = LookupResultKind.Empty;
                                 return symbols;
@@ -4807,29 +4811,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override ISymbol GetEnclosingSymbolCore(int position, CancellationToken cancellationToken)
         {
             return this.GetEnclosingSymbol(position, cancellationToken);
-        }
-
-        internal sealed override CommonOverloadResolutionResult<TSymbol> ResolveOverloadsCore<TSymbol>(
-            int position,
-            ImmutableArray<TSymbol> members,
-            ImmutableArray<ITypeSymbol> typeArguments,
-            ImmutableArray<SyntaxNode> arguments)
-        {
-            foreach (var member in members)
-            {
-                member.EnsureCSharpSymbolOrNull<ISymbol, Symbol>("members");
-            }
-
-            foreach (var typeArg in typeArguments)
-            {
-                typeArg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("typeArguments");
-            }
-
-            return this.ResolveOverloads(
-                position,
-                members.Cast<Symbol>().AsImmutable(),
-                typeArguments.Cast<TypeSymbol>().AsImmutable(),
-                arguments.Cast<ArgumentSyntax>().AsImmutable()).ToCommon<TSymbol>();
         }
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)

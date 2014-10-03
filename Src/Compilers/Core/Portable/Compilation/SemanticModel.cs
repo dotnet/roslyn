@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -737,60 +736,6 @@ namespace Microsoft.CodeAnalysis
         /// that the position is considered inside of.
         /// </summary>
         protected abstract ISymbol GetEnclosingSymbolCore(int position, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Resolves the set of provided arguments against set of provided members to determine the
-        /// appropriate overload. The arguments are bound as if they were at 'position' within this
-        /// semantic model. An CommonOverloadResolutionResult is returned that gives the result of
-        /// the compiler's overload resolution analysis.
-        /// </summary>
-        /// <param name="position">A character position used to identify a declaration scope and
-        /// accessibility. This character position must be within the FullSpan of the Root syntax
-        /// node in this SemanticModel. This position is used when binding the arguments.
-        /// </param>
-        /// <param name="members">The set of members to resolve overloads among.</param>
-        /// <param name="arguments">The list of arguments, in order, to use when resolving the
-        /// overloads. The arguments are interpreted as if they occurred within the declaration
-        /// scope that encloses "position".</param>
-        /// <param name="typeArguments">If present, the type argument provided. If not provided,
-        /// type inference is done.</param>
-        /// <remarks>
-        /// This can be used to resolve constructors, properties as well as methods.
-        /// </remarks>
-        [Obsolete("This API will be removed in a subsequent release.")]
-        public CommonOverloadResolutionResult<TSymbol> ResolveOverloads<TSymbol>(
-           int position,
-           ImmutableArray<TSymbol> members,
-           ImmutableArray<ITypeSymbol> typeArguments,
-           ImmutableArray<SyntaxNode> arguments) where TSymbol : ISymbol
-        {
-            return ResolveOverloadsCore(position, members, typeArguments, arguments);
-        }
-
-        /// <summary>
-        /// Resolves the set of provided arguments against set of provided members to determine the
-        /// appropriate overload. The arguments are bound as if they were at 'position' within this
-        /// semantic model. An CommonOverloadResolutionResult is returned that gives the result of
-        /// the compiler's overload resolution analysis.
-        /// </summary>
-        /// <param name="position">A character position used to identify a declaration scope and
-        /// accessibility. This character position must be within the FullSpan of the Root syntax
-        /// node in this SemanticModel. This position is used when binding the arguments.
-        /// </param>
-        /// <param name="members">The set of members to resolve overloads among.</param>
-        /// <param name="arguments">The list of arguments, in order, to use when resolving the
-        /// overloads. The arguments are interpreted as if they occurred within the declaration
-        /// scope that encloses "position".</param>
-        /// <param name="typeArguments">If present, the type argument provided. If not provided,
-        /// type inference is done.</param>
-        /// <remarks>
-        /// This can be used to resolve constructors, properties as well as methods.
-        /// </remarks>
-        internal abstract CommonOverloadResolutionResult<TSymbol> ResolveOverloadsCore<TSymbol>(
-           int position,
-           ImmutableArray<TSymbol> members,
-           ImmutableArray<ITypeSymbol> typeArguments,
-           ImmutableArray<SyntaxNode> arguments) where TSymbol : ISymbol;
 
         /// <summary>
         /// Determines if the symbol is accessible from the specified location. 

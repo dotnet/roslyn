@@ -2093,7 +2093,7 @@ _Default:
         ''' <remarks>
         ''' This can be used to resolve constructors as well as methods.
         ''' </remarks>
-        Friend Shadows Function ResolveOverloads(Of TMember As Symbol)(
+        Friend Function ResolveOverloads(Of TMember As Symbol)(
                  position As Integer,
                  members As ImmutableArray(Of TMember),
                  typeArguments As ImmutableArray(Of TypeSymbol),
@@ -3419,24 +3419,6 @@ _Default:
 
         Protected NotOverridable Overrides Function GetEnclosingSymbolCore(position As Integer, Optional cancellationToken As System.Threading.CancellationToken = Nothing) As ISymbol
             Return GetEnclosingSymbol(position, cancellationToken)
-        End Function
-
-        Friend NotOverridable Overrides Function ResolveOverloadsCore(Of TSymbol As ISymbol)(position As Integer,
-                                                                                       members As ImmutableArray(Of TSymbol),
-                                                                                       typeArguments As ImmutableArray(Of ITypeSymbol),
-                                                                                       arguments As ImmutableArray(Of SyntaxNode)) As CommonOverloadResolutionResult(Of TSymbol)
-            For Each member In members
-                EnsureVbSymbolOrNothing(Of ISymbol, Symbol)(member, "members")
-            Next
-
-            For Each typeArg In typeArguments
-                typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)("typeArguments")
-            Next
-
-            Return ResolveOverloads(position,
-                                    members.Cast(Of MethodSymbol).AsImmutable(),
-                                    typeArguments.Cast(Of TypeSymbol).AsImmutable(),
-                                    arguments.Cast(Of ArgumentSyntax).AsImmutable()).ToCommon(Of TSymbol)()
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean

@@ -12083,8 +12083,9 @@ static class Stat { }
             Assert.Equal(ConversionKind.ImplicitReference, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("Stat", semanticInfo.CandidateSymbols.First().Name);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -12152,8 +12153,9 @@ interface X { }
             Assert.Equal(ConversionKind.ImplicitReference, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("X", semanticInfo.CandidateSymbols.First().Name);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -12217,8 +12219,9 @@ class Program<T>
             Assert.Equal(ConversionKind.Boxing, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("T", semanticInfo.CandidateSymbols.First().Name);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -12284,8 +12287,8 @@ abstract class X { }
             Assert.Equal(ConversionKind.ImplicitReference, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MemberGroup.Length);
         }
@@ -14201,8 +14204,9 @@ public class MainClass
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("InterfaceType", semanticInfo.CandidateSymbols.First().Name);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -14361,8 +14365,9 @@ public class Program
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("System.IAppDomainSetup", semanticInfo.CandidateSymbols.First().ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
