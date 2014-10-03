@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    public enum CodeGenerationDestination
+    internal enum CodeGenerationDestination
     {
         Unspecified = 0,
         CompilationUnit = 1,

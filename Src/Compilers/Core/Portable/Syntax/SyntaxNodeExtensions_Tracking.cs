@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static List<SyntaxNode> GetCurrentNodeFromTrueRoots(SyntaxNode trueRoot, SyntaxNode node)
+        private static IReadOnlyList<SyntaxNode> GetCurrentNodeFromTrueRoots(SyntaxNode trueRoot, SyntaxNode node)
         {
             var id = GetId(node);
             if (id != null)
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return null;
+                return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
             }
         }
 

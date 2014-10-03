@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private ImmutableArray<AttributeData> attributes;
 
         public Accessibility DeclaredAccessibility { get; private set; }
-        protected internal SymbolModifiers Modifiers { get; private set; }
+        protected internal DeclarationModifiers Modifiers { get; private set; }
         public string Name { get; private set; }
         public INamedTypeSymbol ContainingType { get; protected set; }
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol containingType,
             IList<AttributeData> attributes,
             Accessibility declaredAccessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             string name)
         {
             this.ContainingType = containingType;

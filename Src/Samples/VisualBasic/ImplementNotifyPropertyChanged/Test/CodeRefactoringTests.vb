@@ -508,6 +508,7 @@ Imports System.ComponentModel
 
 Class C
     Implements INotifyPropertyChanged
+    Implements INotifyPropertyChanged
 
     Private _p As Integer
 
@@ -552,9 +553,8 @@ Imports System.Collections.Generic
 Class C
     Implements INotifyPropertyChanged
 
-    Private _p As Integer
-
     Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+    Private _p As Integer
 
     Property P As Integer
         Get
@@ -604,8 +604,6 @@ Imports System.Collections.Generic
 Class C
     Implements INotifyPropertyChanged
 
-    Private _p As Integer
-
     Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
 
     Private Sub SetProperty(Of T)(ByRef field As T, value As T, name As String)
@@ -614,6 +612,8 @@ Class C
             RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(name))
         End If
     End Sub
+
+    Private _p As Integer
 
     Property P As Integer
         Get

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             string identifier,
             SyntaxNode type,
             Accessibility accessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             SyntaxNode initializer)
         {
             return SyntaxFactory.FieldDeclaration(
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<string> typeParameters,
             SyntaxNode returnType,
             Accessibility accessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> statements)
         {
             bool hasBody = !modifiers.IsAbstract;
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             string name, 
             IEnumerable<SyntaxNode> parameters, 
             Accessibility accessibility, 
-            SymbolModifiers modifiers, 
+            DeclarationModifiers modifiers, 
             IEnumerable<SyntaxNode> baseConstructorArguments, 
             IEnumerable<SyntaxNode> statements)
         {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             string identifier,
             SyntaxNode type,
             Accessibility accessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> getterStatements,
             IEnumerable<SyntaxNode> setterStatements)
         {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return SyntaxFactory.PropertyDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, (modifiers & propertyModifiers) - SymbolModifiers.ReadOnly),
+                GetModifiers(accessibility, (modifiers & propertyModifiers) - DeclarationModifiers.ReadOnly),
                 (TypeSyntax)type,
                 default(ExplicitInterfaceSpecifierSyntax),
                 SyntaxFactory.Identifier(identifier),
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> parameters,
             SyntaxNode type,
             Accessibility accessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> getterStatements,
             IEnumerable<SyntaxNode> setterStatements)
         {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return SyntaxFactory.IndexerDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, (modifiers & indexerModifiers) - SymbolModifiers.ReadOnly),
+                GetModifiers(accessibility, (modifiers & indexerModifiers) - DeclarationModifiers.ReadOnly),
                 (TypeSyntax)type,
                 default(ExplicitInterfaceSpecifierSyntax),
                 SyntaxFactory.BracketedParameterList(SyntaxFactory.SeparatedList<ParameterSyntax>(parameters.Cast<ParameterSyntax>())),
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private SyntaxNode AsImplementation(SyntaxNode declaration, Accessibility requiredAccess)
         {
             Accessibility access;
-            SymbolModifiers modifiers;
+            DeclarationModifiers modifiers;
 
             var method = declaration as MethodDeclarationSyntax;
             if (method != null)
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 this.GetAccessibilityAndModifiers(method.Modifiers, out access, out modifiers);
                 if (modifiers.IsAbstract || access != requiredAccess)
                 {
-                    method = method.WithModifiers(GetModifiers(requiredAccess, modifiers - SymbolModifiers.Abstract));
+                    method = method.WithModifiers(GetModifiers(requiredAccess, modifiers - DeclarationModifiers.Abstract));
                 }
 
                 if (method.Body == null)
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 this.GetAccessibilityAndModifiers(prop.Modifiers, out access, out modifiers);
                 if (modifiers.IsAbstract || access != requiredAccess)
                 {
-                    prop = prop.WithModifiers(GetModifiers(requiredAccess, modifiers - SymbolModifiers.Abstract));
+                    prop = prop.WithModifiers(GetModifiers(requiredAccess, modifiers - DeclarationModifiers.Abstract));
                 }
 
                 if (prop.AccessorList.Accessors.Any(a => a.Body == null))
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 this.GetAccessibilityAndModifiers(indexer.Modifiers, out access, out modifiers);
                 if (modifiers.IsAbstract || access != requiredAccess)
                 {
-                    indexer = indexer.WithModifiers(GetModifiers(requiredAccess, modifiers - SymbolModifiers.Abstract));
+                    indexer = indexer.WithModifiers(GetModifiers(requiredAccess, modifiers - DeclarationModifiers.Abstract));
                 }
 
                 if (indexer.AccessorList.Accessors.Any(a => a.Body == null))
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             string name,
             IEnumerable<string> typeParameters,
             Accessibility accessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             SyntaxNode baseType,
             IEnumerable<SyntaxNode> interfaceTypes,
             IEnumerable<SyntaxNode> members)
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             string name,
             IEnumerable<string> typeParameters,
             Accessibility accessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> interfaceTypes,
             IEnumerable<SyntaxNode> members)
         {
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return SyntaxFactory.InterfaceDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, SymbolModifiers.None),
+                GetModifiers(accessibility, DeclarationModifiers.None),
                 SyntaxFactory.Identifier(name),
                 GetTypeParameters(typeParameters),
                 itypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null,
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.EnumDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, SymbolModifiers.None),
+                GetModifiers(accessibility, DeclarationModifiers.None),
                 SyntaxFactory.Identifier(name),
                 default(BaseListSyntax),
                 members != null ? SyntaxFactory.SeparatedList(members.Select(AsEnumMember)) : default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return method.WithAttributeLists(method.AttributeLists.AddRange(attributesWithReturnTarget));
         }
 
-        private SyntaxTokenList GetModifiers(Accessibility accessibility, SymbolModifiers modifiers)
+        private SyntaxTokenList GetModifiers(Accessibility accessibility, DeclarationModifiers modifiers)
         {
             SyntaxTokenList list = SyntaxFactory.TokenList();
 
@@ -736,10 +736,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return list;
         }
 
-        private void GetAccessibilityAndModifiers(SyntaxTokenList modifierTokens, out Accessibility accessibility, out SymbolModifiers modifiers)
+        private void GetAccessibilityAndModifiers(SyntaxTokenList modifierTokens, out Accessibility accessibility, out DeclarationModifiers modifiers)
         { 
             accessibility = Accessibility.NotApplicable;
-            modifiers = SymbolModifiers.None;
+            modifiers = DeclarationModifiers.None;
 
             foreach (var token in modifierTokens)
             {
@@ -778,47 +778,47 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.AbstractKeyword:
-                        modifiers = modifiers | SymbolModifiers.Abstract;
+                        modifiers = modifiers | DeclarationModifiers.Abstract;
                         break;
 
                     case SyntaxKind.NewKeyword:
-                        modifiers = modifiers | SymbolModifiers.New;
+                        modifiers = modifiers | DeclarationModifiers.New;
                         break;
 
                     case SyntaxKind.OverrideKeyword:
-                        modifiers = modifiers | SymbolModifiers.Override;
+                        modifiers = modifiers | DeclarationModifiers.Override;
                         break;
 
                     case SyntaxKind.VirtualKeyword:
-                        modifiers = modifiers | SymbolModifiers.Virtual;
+                        modifiers = modifiers | DeclarationModifiers.Virtual;
                         break;
 
                     case SyntaxKind.StaticKeyword:
-                        modifiers = modifiers | SymbolModifiers.Static;
+                        modifiers = modifiers | DeclarationModifiers.Static;
                         break;
 
                     case SyntaxKind.AsyncKeyword:
-                        modifiers = modifiers | SymbolModifiers.Async;
+                        modifiers = modifiers | DeclarationModifiers.Async;
                         break;
 
                     case SyntaxKind.ConstKeyword:
-                        modifiers = modifiers | SymbolModifiers.Const;
+                        modifiers = modifiers | DeclarationModifiers.Const;
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword:
-                        modifiers = modifiers | SymbolModifiers.ReadOnly;
+                        modifiers = modifiers | DeclarationModifiers.ReadOnly;
                         break;
 
                     case SyntaxKind.SealedKeyword:
-                        modifiers = modifiers | SymbolModifiers.Sealed;
+                        modifiers = modifiers | DeclarationModifiers.Sealed;
                         break;
 
                     case SyntaxKind.UnsafeKeyword:
-                        modifiers = modifiers | SymbolModifiers.Unsafe;
+                        modifiers = modifiers | DeclarationModifiers.Unsafe;
                         break;
 
                     case SyntaxKind.PartialKeyword:
-                        modifiers = modifiers | SymbolModifiers.Partial;
+                        modifiers = modifiers | DeclarationModifiers.Partial;
                         break;
                 }
             }

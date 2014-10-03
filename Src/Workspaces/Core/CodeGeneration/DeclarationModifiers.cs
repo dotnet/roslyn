@@ -5,16 +5,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    public struct SymbolModifiers
+    public struct DeclarationModifiers
     {
         private readonly Modifiers modifiers;
 
-        private SymbolModifiers(Modifiers modifiers)
+        private DeclarationModifiers(Modifiers modifiers)
         {
             this.modifiers = modifiers;
         }
 
-        public SymbolModifiers(
+        internal DeclarationModifiers(
             bool isStatic = false,
             bool isAbstract = false,
             bool isNew = false,
@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
         }
 
-        public static SymbolModifiers From(ISymbol symbol)
+        public static DeclarationModifiers From(ISymbol symbol)
         {
             var field = symbol as IFieldSymbol;
             var property = symbol as IPropertySymbol;
             var method = symbol as IMethodSymbol;
 
-            return new SymbolModifiers(
+            return new DeclarationModifiers(
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,
                 ////isNew: (property != null && property.OverriddenProperty == null) || (method != null && method.OverriddenMethod == null),
@@ -120,49 +120,64 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get { return (this.modifiers & Modifiers.Async) != 0; }
         }
 
-        public SymbolModifiers WithIsStatic(bool isStatic)
+        public DeclarationModifiers WithIsStatic(bool isStatic)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.Static, isStatic));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Static, isStatic));
         }
 
-        public SymbolModifiers WithIsAbstract(bool isAbstract)
+        public DeclarationModifiers WithIsAbstract(bool isAbstract)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.Abstract, isAbstract));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Abstract, isAbstract));
         }
 
-        public SymbolModifiers WithIsNew(bool isNew)
+        public DeclarationModifiers WithIsNew(bool isNew)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.New, isNew));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.New, isNew));
         }
 
-        public SymbolModifiers WithIsUnsafe(bool isUnsafe)
+        public DeclarationModifiers WithIsUnsafe(bool isUnsafe)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.Unsafe, isUnsafe));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Unsafe, isUnsafe));
         }
 
-        public SymbolModifiers WithIsReadOnly(bool isReadOnly)
+        public DeclarationModifiers WithIsReadOnly(bool isReadOnly)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.ReadOnly, isReadOnly));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.ReadOnly, isReadOnly));
         }
 
-        public SymbolModifiers WithIsVirtual(bool isVirtual)
+        public DeclarationModifiers WithIsVirtual(bool isVirtual)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.Virtual, isVirtual));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Virtual, isVirtual));
         }
 
-        public SymbolModifiers WithIsOverride(bool isOverride)
+        public DeclarationModifiers WithIsOverride(bool isOverride)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.Override, isOverride));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Override, isOverride));
         }
 
-        public SymbolModifiers WithIsSealed(bool isSealed)
+        public DeclarationModifiers WithIsSealed(bool isSealed)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.Sealed, isSealed));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Sealed, isSealed));
         }
 
-        public SymbolModifiers WithIsConst(bool isConst)
+        public DeclarationModifiers WithIsConst(bool isConst)
         {
-            return new SymbolModifiers(SetFlag(this.modifiers, Modifiers.Const, isConst));
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Const, isConst));
+        }
+
+        public DeclarationModifiers WithWithEvents(bool withEvents)
+        {
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.WithEvents, withEvents));
+        }
+
+        public DeclarationModifiers WithPartial(bool isPartial)
+        {
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Partial, isPartial));
+        }
+
+        public DeclarationModifiers WithAsync(bool isAsync)
+        {
+            return new DeclarationModifiers(SetFlag(this.modifiers, Modifiers.Async, isAsync));
         }
 
         private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
@@ -188,39 +203,39 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Async       = 0x0800
         }
 
-        public static readonly SymbolModifiers None = default(SymbolModifiers);
+        public static readonly DeclarationModifiers None = default(DeclarationModifiers);
 
-        public static readonly SymbolModifiers Static = new SymbolModifiers(Modifiers.Static);
-        public static readonly SymbolModifiers Abstract = new SymbolModifiers(Modifiers.Abstract);
-        public static readonly SymbolModifiers New = new SymbolModifiers(Modifiers.New);
-        public static readonly SymbolModifiers Unsafe = new SymbolModifiers(Modifiers.Unsafe);
-        public static readonly SymbolModifiers ReadOnly = new SymbolModifiers(Modifiers.ReadOnly);
-        public static readonly SymbolModifiers Virtual = new SymbolModifiers(Modifiers.Virtual);
-        public static readonly SymbolModifiers Override = new SymbolModifiers(Modifiers.Override);
-        public static readonly SymbolModifiers Sealed = new SymbolModifiers(Modifiers.Sealed);
-        public static readonly SymbolModifiers Const = new SymbolModifiers(Modifiers.Const);
-        public static readonly SymbolModifiers WithEvents = new SymbolModifiers(Modifiers.WithEvents);
-        public static readonly SymbolModifiers Partial = new SymbolModifiers(Modifiers.Partial);
-        public static readonly SymbolModifiers Async = new SymbolModifiers(Modifiers.Async);
+        public static readonly DeclarationModifiers Static = new DeclarationModifiers(Modifiers.Static);
+        public static readonly DeclarationModifiers Abstract = new DeclarationModifiers(Modifiers.Abstract);
+        public static readonly DeclarationModifiers New = new DeclarationModifiers(Modifiers.New);
+        public static readonly DeclarationModifiers Unsafe = new DeclarationModifiers(Modifiers.Unsafe);
+        public static readonly DeclarationModifiers ReadOnly = new DeclarationModifiers(Modifiers.ReadOnly);
+        public static readonly DeclarationModifiers Virtual = new DeclarationModifiers(Modifiers.Virtual);
+        public static readonly DeclarationModifiers Override = new DeclarationModifiers(Modifiers.Override);
+        public static readonly DeclarationModifiers Sealed = new DeclarationModifiers(Modifiers.Sealed);
+        public static readonly DeclarationModifiers Const = new DeclarationModifiers(Modifiers.Const);
+        public static readonly DeclarationModifiers WithEvents = new DeclarationModifiers(Modifiers.WithEvents);
+        public static readonly DeclarationModifiers Partial = new DeclarationModifiers(Modifiers.Partial);
+        public static readonly DeclarationModifiers Async = new DeclarationModifiers(Modifiers.Async);
 
-        public static SymbolModifiers operator |(SymbolModifiers left, SymbolModifiers right)
+        public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
         {
-            return new SymbolModifiers(left.modifiers | right.modifiers);
+            return new DeclarationModifiers(left.modifiers | right.modifiers);
         }
 
-        public static SymbolModifiers operator &(SymbolModifiers left, SymbolModifiers right)
+        public static DeclarationModifiers operator &(DeclarationModifiers left, DeclarationModifiers right)
         {
-            return new SymbolModifiers(left.modifiers & right.modifiers);
+            return new DeclarationModifiers(left.modifiers & right.modifiers);
         }
 
-        public static SymbolModifiers operator +(SymbolModifiers left, SymbolModifiers right)
+        public static DeclarationModifiers operator +(DeclarationModifiers left, DeclarationModifiers right)
         {
-            return new SymbolModifiers(left.modifiers | right.modifiers);
+            return new DeclarationModifiers(left.modifiers | right.modifiers);
         }
 
-        public static SymbolModifiers operator -(SymbolModifiers left, SymbolModifiers right)
+        public static DeclarationModifiers operator -(DeclarationModifiers left, DeclarationModifiers right)
         {
-            return new SymbolModifiers(left.modifiers & ~right.modifiers);
+            return new DeclarationModifiers(left.modifiers & ~right.modifiers);
         }
     }
 }

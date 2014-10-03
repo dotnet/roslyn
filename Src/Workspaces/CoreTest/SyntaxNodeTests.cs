@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var cgenField = CodeGenerationSymbolFactory.CreateFieldSymbol(
                 attributes: null,
                 accessibility: Accessibility.Private,
-                modifiers: new SymbolModifiers(),
+                modifiers: new DeclarationModifiers(),
                 type: comp.GetSpecialType(SpecialType.System_Int32),
                 name: "X");
 

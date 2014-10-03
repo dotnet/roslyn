@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol containingType,
             IList<AttributeData> attributes,
             Accessibility declaredAccessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             IMethodSymbol explicitInterfaceSymbolOpt,
             string name,

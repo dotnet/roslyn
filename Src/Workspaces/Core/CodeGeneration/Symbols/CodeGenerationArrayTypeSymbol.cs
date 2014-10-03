@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public int Rank { get; private set; }
 
         public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank)
-            : base(null, null, Accessibility.NotApplicable, default(SymbolModifiers), string.Empty, SpecialType.None)
+            : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)
         {
             this.ElementType = elementType;
             this.Rank = rank;

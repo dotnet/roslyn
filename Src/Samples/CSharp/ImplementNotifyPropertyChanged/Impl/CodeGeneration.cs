@@ -39,13 +39,12 @@ namespace ImplementNotifyPropertyChangedCS
     internal static class CodeGeneration
     {
         internal static CompilationUnitSyntax ImplementINotifyPropertyChanged(CompilationUnitSyntax root, SemanticModel model, IEnumerable<ExpandablePropertyInfo> properties, Workspace workspace)
-        { 
+        {
             var typeDeclaration = properties.First().PropertyDeclaration.FirstAncestorOrSelf<TypeDeclarationSyntax>();
             var backingFieldLookup = Enumerable.ToDictionary(properties, info => info.PropertyDeclaration, info => info.BackingFieldName);
 
-            root = root.ReplaceNodes(
-                properties.Select(p => p.PropertyDeclaration as SyntaxNode).Concat(new[] { typeDeclaration }),
-                    (original, updated) => original.IsKind(SyntaxKind.PropertyDeclaration)
+            root = root.ReplaceNodes(properties.Select(p => p.PropertyDeclaration as SyntaxNode).Concat(new[] { typeDeclaration }),
+                (original, updated) => original.IsKind(SyntaxKind.PropertyDeclaration)
                     ? ExpandProperty((PropertyDeclarationSyntax)original, backingFieldLookup[(PropertyDeclarationSyntax)original]) as SyntaxNode
                     : ExpandType((TypeDeclarationSyntax)original, (TypeDeclarationSyntax)updated, properties.Where(p => p.NeedsBackingField), model, workspace));
 
@@ -77,20 +76,54 @@ namespace ImplementNotifyPropertyChangedCS
 
         private static TypeDeclarationSyntax WithBackingFields(this TypeDeclarationSyntax node, IEnumerable<ExpandablePropertyInfo> properties, Workspace workspace)
         {
-            foreach (var property in properties)
+            // generate backing field for auto-props
+            foreach (var p in properties)
             {
-                // When the getter doesn't have a body (i.e. an auto-prop), we'll need to generate a new field.
-                var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                    attributes: null,
-                    accessibility: Microsoft.CodeAnalysis.Accessibility.Private,
-                    modifiers: new SymbolModifiers(),
-                    type: property.Type,
-                    name: property.BackingFieldName);
+                var fieldDecl = GenerateBackingField(p, workspace);
 
-                node = CodeGenerator.AddFieldDeclaration(node, newField, workspace);
+                // put field just before property
+                var currentProp = node.DescendantNodes().OfType<PropertyDeclarationSyntax>().First(d => d.Identifier.Text == p.PropertyDeclaration.Identifier.Text);
+                node = node.InsertNodesBefore(currentProp, new[] { fieldDecl });
             }
 
             return node;
+        }
+
+        private static MemberDeclarationSyntax GenerateBackingField(ExpandablePropertyInfo property, Workspace workspace)
+        {
+            var g = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
+            var type = g.TypeExpression(property.Type);
+
+            var fieldDecl = (FieldDeclarationSyntax)ParseMember(string.Format("private _fieldType_ {0};", property.BackingFieldName));
+            return fieldDecl.ReplaceNode(fieldDecl.Declaration.Type, type).WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private static MemberDeclarationSyntax ParseMember(string member)
+        {
+            var decl = ((ClassDeclarationSyntax)SyntaxFactory.ParseCompilationUnit("class x {\r\n" + member + "\r\n}").Members[0]).Members[0];
+            return decl.WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private static TypeDeclarationSyntax AddMembers(this TypeDeclarationSyntax node, params MemberDeclarationSyntax[] members)
+        {
+            return AddMembers(node, (IEnumerable<MemberDeclarationSyntax>)members);
+        }
+
+        private static TypeDeclarationSyntax AddMembers(this TypeDeclarationSyntax node, IEnumerable<MemberDeclarationSyntax> members)
+        {
+            var classDecl = node as ClassDeclarationSyntax;
+            if (classDecl != null)
+            {
+                return classDecl.WithMembers(classDecl.Members.AddRange(members));
+            }
+
+            var structDecl = node as StructDeclarationSyntax;
+            if (structDecl != null)
+            {
+                return structDecl.WithMembers(structDecl.Members.AddRange(members));
+            }
+
+            throw new InvalidOperationException();
         }
 
         private static PropertyDeclarationSyntax ExpandProperty(PropertyDeclarationSyntax property, string backingFieldName)
@@ -127,7 +160,7 @@ namespace ImplementNotifyPropertyChangedCS
 
         private static TypeDeclarationSyntax WithBaseType(this TypeDeclarationSyntax node, TypeDeclarationSyntax original, SemanticModel semanticModel)
         {
-            var classSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(original);
+            var classSymbol = semanticModel.GetDeclaredSymbol(original);
             var interfaceSymbol = semanticModel.Compilation.GetTypeByMetadataName(InterfaceName);
 
             // Does this class already implement INotifyPropertyChanged? If not, add it to the base list.
@@ -151,7 +184,7 @@ namespace ImplementNotifyPropertyChangedCS
 
         private static TypeDeclarationSyntax WithPropertyChangedEvent(this TypeDeclarationSyntax node, TypeDeclarationSyntax original, SemanticModel semanticModel, Workspace workspace)
         {
-            var classSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(original);
+            var classSymbol = semanticModel.GetDeclaredSymbol(original);
             var interfaceSymbol = semanticModel.Compilation.GetTypeByMetadataName(InterfaceName);
             var propertyChangedEventSymbol = (IEventSymbol)interfaceSymbol.GetMembers("PropertyChanged").Single();
             var propertyChangedEvent = classSymbol.FindImplementationForInterfaceMember(propertyChangedEventSymbol);
@@ -159,26 +192,17 @@ namespace ImplementNotifyPropertyChangedCS
             // Does this class contain an implementation for the PropertyChanged event? If not, add it.
             if (propertyChangedEvent == null)
             {
-                node = CodeGenerator.AddEventDeclaration(
-                    node,
-                    GeneratePropertyChangedEvent(semanticModel.Compilation),
-                    workspace);
+                var propertyChangedEventDecl = GeneratePropertyChangedEvent();
+                node = node.AddMembers(propertyChangedEventDecl);
             }
 
             return node;
         }
 
-        internal static IEventSymbol GeneratePropertyChangedEvent(Compilation compilation)
+        internal static MemberDeclarationSyntax GeneratePropertyChangedEvent()
         {
-            var propertyChangedEventHandlerType = compilation.GetTypeByMetadataName("System.ComponentModel.PropertyChangedEventHandler");
-
-            return CodeGenerationSymbolFactory.CreateEventSymbol(
-                attributes: null,
-                accessibility: Microsoft.CodeAnalysis.Accessibility.Public,
-                modifiers: new SymbolModifiers(),
-                type: propertyChangedEventHandlerType,
-                explicitInterfaceSymbol: null,
-                name: "PropertyChanged");
+            var decl = (EventFieldDeclarationSyntax)ParseMember("public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;");
+            return decl.ReplaceNode(decl.Declaration.Type, decl.Declaration.Type.WithAdditionalAnnotations(Simplifier.Annotation));
         }
 
         private static IMethodSymbol FindSetPropertyMethod(this INamedTypeSymbol classSymbol, Compilation compilation)
@@ -210,7 +234,7 @@ namespace ImplementNotifyPropertyChangedCS
 
         private static TypeDeclarationSyntax WithSetPropertyMethod(this TypeDeclarationSyntax node, TypeDeclarationSyntax original, SemanticModel semanticModel, Workspace workspace)
         {
-            var classSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(original);
+            var classSymbol = semanticModel.GetDeclaredSymbol(original);
             var interfaceSymbol = semanticModel.Compilation.GetTypeByMetadataName(InterfaceName);
             var propertyChangedEventSymbol = (IEventSymbol)interfaceSymbol.GetMembers("PropertyChanged").Single();
             var propertyChangedEvent = classSymbol.FindImplementationForInterfaceMember(propertyChangedEventSymbol);
@@ -218,56 +242,29 @@ namespace ImplementNotifyPropertyChangedCS
             var setPropertyMethod = classSymbol.FindSetPropertyMethod(semanticModel.Compilation);
             if (setPropertyMethod == null)
             {
-                node = CodeGenerator.AddMethodDeclaration(
-                                        node,
-                                        GenerateSetPropertyMethod(semanticModel.Compilation),
-                                        workspace);
+                var setPropertyDecl = GenerateSetPropertyMethod();
+                node = AddMembers(node, setPropertyDecl);
             }
 
             return node;
         }
 
-        internal static IMethodSymbol GenerateSetPropertyMethod(Compilation compilation)
+        internal static MethodDeclarationSyntax GenerateSetPropertyMethod()
         {
-            var body = SyntaxFactory.ParseStatement(
-                @"if (!System.Collections.Generic.EqualityComparer<T>.Default.Equals(field, value))
+            return (MethodDeclarationSyntax)ParseMember(@"
+private void SetProperty<T>(ref T field, T value, string name)
 {
-    field = value;
-
-    var handler = PropertyChanged;
-    if (handler != null)
+    if (!System.Collections.Generic.EqualityComparer<T>.Default.Equals(field, value))
     {
-        handler(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+        field = value;
+
+        var handler = PropertyChanged;
+        if (handler != null)
+        {
+            handler(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+        }
     }
-}");
-
-            body = body.WithAdditionalAnnotations(Simplifier.Annotation);
-
-            var stringType = compilation.GetSpecialType(SpecialType.System_String);
-            var voidType = compilation.GetSpecialType(SpecialType.System_Void);
-
-            var typeParameter = CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T");
-
-            var parameter1 = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                attributes: null,
-                refKind: RefKind.Ref,
-                isParams: false,
-                type: typeParameter,
-                name: "field");
-
-            var parameter2 = CodeGenerationSymbolFactory.CreateParameterSymbol(typeParameter, "value");
-            var parameter3 = CodeGenerationSymbolFactory.CreateParameterSymbol(stringType, "name");
-
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
-                accessibility: Microsoft.CodeAnalysis.Accessibility.Private,
-                modifiers: new SymbolModifiers(),
-                returnType: voidType,
-                explicitInterfaceSymbol: null,
-                name: "SetProperty",
-                typeParameters: new[] { typeParameter },
-                parameters: new[] { parameter1, parameter2, parameter3 },
-                statements: new[] { body });
+}").WithAdditionalAnnotations(Simplifier.Annotation);
         }
     }
 }

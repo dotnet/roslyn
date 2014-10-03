@@ -103,7 +103,8 @@ namespace Roslyn.UnitTestFramework
 
         private bool VerifyText(string expected, Document document)
         {
-            Assert.Equal(expected, Format(document).ToString());
+            var actual = Format(document).ToString();
+            Assert.Equal(expected, actual);
             return true;
         }
 

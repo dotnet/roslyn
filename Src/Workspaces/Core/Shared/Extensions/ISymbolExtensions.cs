@@ -837,9 +837,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                  method.MethodKind == MethodKind.EventRemove);
         }
 
-        public static SymbolModifiers GetSymbolModifiers(this ISymbol symbol)
+        public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
         {
-            return new SymbolModifiers(
+            return new DeclarationModifiers(
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,
                 isUnsafe: symbol.IsUnsafe(),

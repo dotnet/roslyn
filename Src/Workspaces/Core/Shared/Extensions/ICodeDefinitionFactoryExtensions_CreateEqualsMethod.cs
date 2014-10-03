@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: null,
                 accessibility: Accessibility.Public,
-                modifiers: new SymbolModifiers(isOverride: true),
+                modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
                 explicitInterfaceSymbol: null,
                 name: EqualsName,

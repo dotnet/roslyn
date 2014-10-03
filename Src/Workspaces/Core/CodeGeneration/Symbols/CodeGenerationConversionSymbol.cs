@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol containingType,
             IList<AttributeData> attributes,
             Accessibility declaredAccessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             ITypeSymbol toType,
             IParameterSymbol fromType,
             bool isImplicit,

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
                 var ctorSymbol = CodeGenerationSymbolFactory.CreateConstructorSymbol(null,
                                                                                      typeSymbol.IsSealed ? Accessibility.Private : Accessibility.Protected,
-                                                                                     new SymbolModifiers(),
+                                                                                     new DeclarationModifiers(),
                                                                                      typeSymbol.Name,
                                                                                      parameters,
                                                                                      throwStatement);

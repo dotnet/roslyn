@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            SymbolModifiers modifiers = default(SymbolModifiers),
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
             SyntaxNode initializer = null);
 
         /// <summary>
@@ -46,16 +46,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 field.Name,
                 TypeExpression(field.Type),
                 field.DeclaredAccessibility,
-                SymbolModifiers.From(field),
+                DeclarationModifiers.From(field),
                 initializer);
         }
 
-        protected static SymbolModifiers fieldModifiers = SymbolModifiers.Const | SymbolModifiers.ReadOnly | SymbolModifiers.Static;
-        protected static SymbolModifiers methodModifiers = SymbolModifiers.Abstract | SymbolModifiers.Async | SymbolModifiers.New | SymbolModifiers.Override | SymbolModifiers.Partial | SymbolModifiers.Sealed | SymbolModifiers.Static | SymbolModifiers.Virtual;
-        protected static SymbolModifiers constructorModifers = SymbolModifiers.Static;
-        protected static SymbolModifiers propertyModifiers = SymbolModifiers.Abstract | SymbolModifiers.New | SymbolModifiers.Override | SymbolModifiers.ReadOnly | SymbolModifiers.Sealed | SymbolModifiers.Static | SymbolModifiers.Virtual;
-        protected static SymbolModifiers indexerModifiers = SymbolModifiers.Abstract | SymbolModifiers.New | SymbolModifiers.Override | SymbolModifiers.ReadOnly | SymbolModifiers.Sealed | SymbolModifiers.Static | SymbolModifiers.Virtual;
-        protected static SymbolModifiers typeModifiers = SymbolModifiers.Abstract | SymbolModifiers.Partial | SymbolModifiers.Sealed | SymbolModifiers.Static;
+        protected static DeclarationModifiers fieldModifiers = DeclarationModifiers.Const | DeclarationModifiers.ReadOnly | DeclarationModifiers.Static;
+        protected static DeclarationModifiers methodModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        protected static DeclarationModifiers constructorModifers = DeclarationModifiers.Static;
+        protected static DeclarationModifiers propertyModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        protected static DeclarationModifiers indexerModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        protected static DeclarationModifiers typeModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static;
 
         /// <summary>
         /// Creates a method declaration.
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IEnumerable<string> typeParameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            SymbolModifiers modifiers = default(SymbolModifiers),
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
             IEnumerable<SyntaxNode> statements = null);
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
                 returnType: TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,
-                modifiers: SymbolModifiers.From(method),
+                modifiers: DeclarationModifiers.From(method),
                 statements: statements);
 
             if (method.TypeParameters.Length > 0)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            SymbolModifiers modifiers = default(SymbolModifiers),
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
             IEnumerable<SyntaxNode> getterStatements = null,
             IEnumerable<SyntaxNode> setterStatements = null);
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     property.Name,
                     TypeExpression(property.Type),
                     property.DeclaredAccessibility,
-                    SymbolModifiers.From(property),
+                    DeclarationModifiers.From(property),
                     getterStatements,
                     setterStatements);
         }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IEnumerable<SyntaxNode> parameters,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            SymbolModifiers modifiers = default(SymbolModifiers),
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
             IEnumerable<SyntaxNode> getterStatements = null,
             IEnumerable<SyntaxNode> setterStatements = null);
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
                 TypeExpression(indexer.Type),
                 indexer.DeclaredAccessibility,
-                SymbolModifiers.From(indexer),
+                DeclarationModifiers.From(indexer),
                 getterStatements,
                 setterStatements);
         }
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string containingTypeName = null,
             IEnumerable<SyntaxNode> parameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            SymbolModifiers modifiers = default(SymbolModifiers),
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
             IEnumerable<SyntaxNode> baseConstructorArguments = null,
             IEnumerable<SyntaxNode> statements = null);
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 constructorMethod.ContainingType != null ? constructorMethod.ContainingType.Name : "New",
                 constructorMethod.Parameters.Select(p => ParameterDeclaration(p)),
                 constructorMethod.DeclaredAccessibility,
-                SymbolModifiers.From(constructorMethod),
+                DeclarationModifiers.From(constructorMethod),
                 baseConstructorArguments,
                 statements);
         }
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             IEnumerable<string> typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            SymbolModifiers modifiers = default(SymbolModifiers),
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
             SyntaxNode baseType = null,
             IEnumerable<SyntaxNode> interfaceTypes = null,
             IEnumerable<SyntaxNode> members = null);
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             IEnumerable<string> typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            SymbolModifiers modifiers = default(SymbolModifiers),
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
             IEnumerable<SyntaxNode> interfaceTypes = null,
             IEnumerable<SyntaxNode> members = null);
 
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                             declaration = ClassDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                modifiers: SymbolModifiers.From(type),
+                                modifiers: DeclarationModifiers.From(type),
                                 baseType: TypeExpression(type.BaseType),
                                 interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
                                 members: type.GetMembers().Select(m => Declaration(m)));
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                             declaration = StructDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                modifiers: SymbolModifiers.From(type),
+                                modifiers: DeclarationModifiers.From(type),
                                 interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
                                 members: type.GetMembers().Select(m => Declaration(m)));
                             break;

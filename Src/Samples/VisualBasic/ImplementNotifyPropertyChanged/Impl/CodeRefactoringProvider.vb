@@ -41,10 +41,19 @@ Friend Class ImplementNotifyPropertyChangedCodeRefactoringProvider
 
         Dim root = DirectCast(Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False), CompilationUnitSyntax)
         Dim model = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+
+        ' if length Is 0 then no particular range Is selected, so pick the first enclosing declaration
+        If textSpan.Length = 0 Then
+            Dim decl = root.FindToken(textSpan.Start).Parent.AncestorsAndSelf().OfType(Of DeclarationStatementSyntax)().FirstOrDefault()
+            If decl IsNot Nothing Then
+                textSpan = decl.Span
+            End If
+        End If
+
         Dim properties = ExpansionChecker.GetExpandableProperties(textSpan, root, model)
 
         Return If(properties.Any(),
-            {New ImplementNotifyPropertyChangedCodeAction("Apply INotifyPropertyChanged pattern", Function(c) ImplementNotifyPropertyChangedAsync(document, root, model, properties, c))},
+            {CodeAction.Create("Apply INotifyPropertyChanged pattern", Function(c) ImplementNotifyPropertyChangedAsync(document, root, model, properties, c))},
             Nothing)
     End Function
 
@@ -54,26 +63,4 @@ Friend Class ImplementNotifyPropertyChangedCodeRefactoringProvider
         document = Await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken:=cancellationToken).ConfigureAwait(False)
         Return document
     End Function
-
-    Private Class ImplementNotifyPropertyChangedCodeAction
-        Inherits CodeAction
-
-        Private createDocument As Func(Of CancellationToken, Task(Of Document))
-        Private _title As String
-
-        Public Sub New(title As String, createDocument As Func(Of CancellationToken, Task(Of Document)))
-            Me._title = title
-            Me.createDocument = createDocument
-        End Sub
-
-        Public Overrides ReadOnly Property Title As String
-            Get
-                Return _title
-            End Get
-        End Property
-
-        Protected Overrides Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
-            Return Me.createDocument(cancellationToken)
-        End Function
-    End Class
 End Class

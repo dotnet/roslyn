@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol containingType,
             IList<AttributeData> attributes,
             Accessibility accessibility,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             IList<IParameterSymbol> parameters) :
             base(containingType,
                  attributes,

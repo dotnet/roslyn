@@ -46,10 +46,21 @@ namespace ImplementNotifyPropertyChangedCS
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // if length is 0 then no particular range is selected, so pick the first enclosing member
+            if (textSpan.Length == 0)
+            {
+                var decl = root.FindToken(textSpan.Start).Parent.AncestorsAndSelf().OfType<MemberDeclarationSyntax>().FirstOrDefault();
+                if (decl != null)
+                {
+                    textSpan = decl.FullSpan;
+                }
+            }
+
             var properties = ExpansionChecker.GetExpandableProperties(textSpan, root, model);
 
             return properties.Any()
-                ? new[] { new ImplementNotifyPropertyChangedCodeAction("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)) }
+                ? new[] { CodeAction.Create("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)) }
                 : null;
         }
 
@@ -59,25 +70,6 @@ namespace ImplementNotifyPropertyChangedCS
             document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             return document;
-        }
-
-        private class ImplementNotifyPropertyChangedCodeAction : CodeAction
-        {
-            private Func<CancellationToken, Task<Document>> createDocument;
-            private string title;
-
-            public ImplementNotifyPropertyChangedCodeAction(string title, Func<CancellationToken, Task<Document>> createDocument)
-            {
-                this.title = title;
-                this.createDocument = createDocument;
-            }
-
-            public override string Title { get { return title; } }
-
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return this.createDocument(cancellationToken);
-            }
         }
     }
 }

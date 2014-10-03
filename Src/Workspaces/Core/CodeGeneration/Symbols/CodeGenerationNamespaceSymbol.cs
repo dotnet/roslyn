@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly IList<INamespaceOrTypeSymbol> members;
 
         public CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members)
-            : base(null, null, Accessibility.NotApplicable, default(SymbolModifiers), name)
+            : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), name)
         {
             this.members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
         }

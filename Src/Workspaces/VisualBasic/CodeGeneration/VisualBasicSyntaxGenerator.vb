@@ -402,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return list
         End Function
 
-        Public Overrides Function FieldDeclaration(name As String, type As SyntaxNode, Optional accessibility As Accessibility = Nothing, Optional modifiers As SymbolModifiers = Nothing, Optional initializer As SyntaxNode = Nothing) As SyntaxNode
+        Public Overrides Function FieldDeclaration(name As String, type As SyntaxNode, Optional accessibility As Accessibility = Nothing, Optional modifiers As DeclarationModifiers = Nothing, Optional initializer As SyntaxNode = Nothing) As SyntaxNode
             Return SyntaxFactory.FieldDeclaration(
                 attributeLists:=Nothing,
                 modifiers:=GetModifierList(accessibility, modifiers And fieldModifiers, isField:=True),
@@ -415,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional typeParameters As IEnumerable(Of String) = Nothing,
             Optional returnType As SyntaxNode = Nothing,
             Optional accessibility As Accessibility = Nothing,
-            Optional modifiers As SymbolModifiers = Nothing,
+            Optional modifiers As DeclarationModifiers = Nothing,
             Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
             Dim statement = SyntaxFactory.MethodStatement(
@@ -469,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             identifier As String,
             type As SyntaxNode,
             Optional accessibility As Accessibility = Nothing,
-            Optional modifiers As SymbolModifiers = Nothing,
+            Optional modifiers As DeclarationModifiers = Nothing,
             Optional getterStatements As IEnumerable(Of SyntaxNode) = Nothing,
             Optional setterStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
@@ -505,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             parameters As IEnumerable(Of SyntaxNode),
             type As SyntaxNode,
             Optional accessibility As Accessibility = Nothing,
-            Optional modifiers As SymbolModifiers = Nothing,
+            Optional modifiers As DeclarationModifiers = Nothing,
             Optional getterStatements As IEnumerable(Of SyntaxNode) = Nothing,
             Optional setterStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
@@ -653,14 +653,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function AsImplementation(declaration As SyntaxNode, requiredAccess As Accessibility, allowDefault As Boolean) As SyntaxNode
 
             Dim access As Accessibility
-            Dim modifiers As SymbolModifiers
+            Dim modifiers As DeclarationModifiers
             Dim isDefault As Boolean
 
             Dim method = TryCast(declaration, MethodStatementSyntax)
             If method IsNot Nothing Then
                 Me.GetAccessibilityAndModifiers(method.Modifiers, access, modifiers, isDefault)
                 If modifiers.IsAbstract OrElse access <> requiredAccess Then
-                    method = method.WithModifiers(GetModifierList(requiredAccess, modifiers - SymbolModifiers.Abstract, False))
+                    method = method.WithModifiers(GetModifierList(requiredAccess, modifiers - DeclarationModifiers.Abstract, False))
                 End If
 
                 Return SyntaxFactory.MethodBlock(
@@ -673,7 +673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If prop IsNot Nothing Then
                 Me.GetAccessibilityAndModifiers(prop.Modifiers, access, modifiers, isDefault)
                 If modifiers.IsAbstract OrElse access <> requiredAccess Then
-                    prop = prop.WithModifiers(GetModifierList(requiredAccess, modifiers - SymbolModifiers.Abstract, isDefault And allowDefault))
+                    prop = prop.WithModifiers(GetModifierList(requiredAccess, modifiers - DeclarationModifiers.Abstract, isDefault And allowDefault))
                 End If
 
                 Dim accessors = New List(Of AccessorBlockSyntax)
@@ -696,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional name As String = Nothing,
             Optional parameters As IEnumerable(Of SyntaxNode) = Nothing,
             Optional accessibility As Accessibility = Nothing,
-            Optional modifiers As SymbolModifiers = Nothing,
+            Optional modifiers As DeclarationModifiers = Nothing,
             Optional baseConstructorArguments As IEnumerable(Of SyntaxNode) = Nothing,
             Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
@@ -719,7 +719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             name As String,
             Optional typeParameters As IEnumerable(Of String) = Nothing,
             Optional accessibility As Accessibility = Nothing,
-            Optional modifiers As SymbolModifiers = Nothing,
+            Optional modifiers As DeclarationModifiers = Nothing,
             Optional baseType As SyntaxNode = Nothing,
             Optional interfaceTypes As IEnumerable(Of SyntaxNode) = Nothing,
             Optional members As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
@@ -744,7 +744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             name As String,
             Optional typeParameters As IEnumerable(Of String) = Nothing,
             Optional accessibility As Accessibility = Nothing,
-            Optional modifiers As SymbolModifiers = Nothing,
+            Optional modifiers As DeclarationModifiers = Nothing,
             Optional interfaceTypes As IEnumerable(Of SyntaxNode) = Nothing,
             Optional members As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
@@ -779,7 +779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.InterfaceBlock(
                 begin:=SyntaxFactory.InterfaceStatement(
                     attributeLists:=Nothing,
-                    modifiers:=GetModifierList(accessibility, SymbolModifiers.None),
+                    modifiers:=GetModifierList(accessibility, DeclarationModifiers.None),
                     identifier:=SyntaxFactory.Identifier(name),
                     typeParameterList:=GetTypeParameters(typeParameters)),
                 [inherits]:=If(itypes IsNot Nothing, SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.SeparatedList(itypes))), Nothing),
@@ -820,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.EnumBlock(
                 enumStatement:=SyntaxFactory.EnumStatement(
                     attributeLists:=Nothing,
-                    modifiers:=GetModifierList(accessibility, SymbolModifiers.None),
+                    modifiers:=GetModifierList(accessibility, DeclarationModifiers.None),
                     identifier:=SyntaxFactory.Identifier(identifier),
                     underlyingType:=Nothing),
                     members:=If(members IsNot Nothing, SyntaxFactory.List(members.Select(AddressOf AsEnumMember)), Nothing))
@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function GetModifierList(accessibility As Accessibility, modifiers As SymbolModifiers, Optional isDefault As Boolean = False, Optional isField As Boolean = False) As SyntaxTokenList
+        Private Function GetModifierList(accessibility As Accessibility, modifiers As DeclarationModifiers, Optional isDefault As Boolean = False, Optional isField As Boolean = False) As SyntaxTokenList
             Dim _list = SyntaxFactory.TokenList()
 
             If isDefault Then
@@ -1022,9 +1022,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return _list
         End Function
 
-        Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As SymbolModifiers, ByRef isDefault As Boolean)
+        Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
             accessibility = Accessibility.NotApplicable
-            modifiers = SymbolModifiers.None
+            modifiers = DeclarationModifiers.None
             isDefault = False
 
             For Each token In modifierTokens
@@ -1048,27 +1048,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             accessibility = Accessibility.Protected
                         End If
                     Case SyntaxKind.MustInheritKeyword
-                        modifiers = modifiers Or SymbolModifiers.Abstract
+                        modifiers = modifiers Or DeclarationModifiers.Abstract
                     Case SyntaxKind.ShadowsKeyword
-                        modifiers = modifiers Or SymbolModifiers.[New]
+                        modifiers = modifiers Or DeclarationModifiers.[New]
                     Case SyntaxKind.OverridesKeyword
-                        modifiers = modifiers Or SymbolModifiers.Override
+                        modifiers = modifiers Or DeclarationModifiers.Override
                     Case SyntaxKind.OverridableKeyword
-                        modifiers = modifiers Or SymbolModifiers.Virtual
+                        modifiers = modifiers Or DeclarationModifiers.Virtual
                     Case SyntaxKind.SharedKeyword
-                        modifiers = modifiers Or SymbolModifiers.Static
+                        modifiers = modifiers Or DeclarationModifiers.Static
                     Case SyntaxKind.AsyncKeyword
-                        modifiers = modifiers Or SymbolModifiers.Async
+                        modifiers = modifiers Or DeclarationModifiers.Async
                     Case SyntaxKind.ConstKeyword
-                        modifiers = modifiers Or SymbolModifiers.Const
+                        modifiers = modifiers Or DeclarationModifiers.Const
                     Case SyntaxKind.ReadOnlyKeyword
-                        modifiers = modifiers Or SymbolModifiers.ReadOnly
+                        modifiers = modifiers Or DeclarationModifiers.ReadOnly
                     Case SyntaxKind.NotInheritableKeyword
-                        modifiers = modifiers Or SymbolModifiers.Sealed
+                        modifiers = modifiers Or DeclarationModifiers.Sealed
                     Case SyntaxKind.WithEventsKeyword
-                        modifiers = modifiers Or SymbolModifiers.WithEvents
+                        modifiers = modifiers Or DeclarationModifiers.WithEvents
                     Case SyntaxKind.PartialKeyword
-                        modifiers = modifiers Or SymbolModifiers.Partial
+                        modifiers = modifiers Or DeclarationModifiers.Partial
                 End Select
             Next
         End Sub

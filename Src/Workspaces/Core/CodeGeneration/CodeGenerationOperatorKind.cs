@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    public enum CodeGenerationOperatorKind
+    internal enum CodeGenerationOperatorKind
     {
         Addition = 0,
         BitwiseAnd = 1,

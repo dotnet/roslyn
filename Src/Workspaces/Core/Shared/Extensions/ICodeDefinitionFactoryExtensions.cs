@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: null,
                 accessibility: Accessibility.Public,
-                modifiers: new SymbolModifiers(),
+                modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: constructor.Parameters,
                 statements: null,
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             yield return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: null,
                 accessibility: Accessibility.Public,
-                modifiers: new SymbolModifiers(),
+                modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements.ToList(),
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         yield return CodeGenerationSymbolFactory.CreateFieldSymbol(
                             attributes: null,
                             accessibility: Accessibility.Private,
-                            modifiers: default(SymbolModifiers),
+                            modifiers: default(DeclarationModifiers),
                             type: parameterType,
                             name: parameterToNewFieldMap[parameterName]);
                     }
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IPropertySymbol OverrideProperty(
             this SyntaxGenerator codeFactory,
             IPropertySymbol overriddenProperty,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             INamedTypeSymbol containingType,
             Document document,
             CancellationToken cancellationToken)
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEventSymbol OverrideEvent(
             this SyntaxGenerator codeFactory,
             IEventSymbol overriddenEvent,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             INamedTypeSymbol newContainingType)
         {
             return CodeGenerationSymbolFactory.CreateEventSymbol(
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IMethodSymbol OverrideMethod(
             this SyntaxGenerator codeFactory,
             IMethodSymbol overriddenMethod,
-            SymbolModifiers modifiers,
+            DeclarationModifiers modifiers,
             INamedTypeSymbol newContainingType,
             Document newDocument,
             CancellationToken cancellationToken)
