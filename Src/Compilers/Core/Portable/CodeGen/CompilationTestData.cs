@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
+        // ILBuilder requires that Symbols still be alive when visualizing tokens from the IL stream.
+        // We'll hold on to a reference here.
+        public Compilation Compilation;
+
         // The map is used for storing a list of methods and their associated IL.
         // The key is a formatted qualified method name, e.g. Namespace.Class<T>.m<S>
         public readonly ConcurrentDictionary<string, MethodData> Methods = new ConcurrentDictionary<string, MethodData>();
@@ -27,5 +31,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public Cci.IModule Module;
 
         public Func<object> SymWriterFactory;
+
+        public void Reset()
+        {
+            this.Compilation = null;
+            this.Methods.Clear();
+            this.Module = null;
+            this.SymWriterFactory = null;
+        }
     }
 }

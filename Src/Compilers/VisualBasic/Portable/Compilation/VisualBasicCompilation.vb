@@ -2174,6 +2174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If testData IsNot Nothing Then
+                testData.Compilation = Me
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)
                 testData.Module = moduleBeingBuilt
             End If

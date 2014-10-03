@@ -2348,6 +2348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // testData is only passed when running tests.
             if (testData != null)
             {
+                testData.Compilation = this;
                 moduleBeingBuilt.SetMethodTestData(testData.Methods);
                 testData.Module = moduleBeingBuilt;
             }

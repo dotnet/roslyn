@@ -46,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     edits:=edits)
 
             If testData IsNot Nothing Then
+                testData.Compilation = compilation
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)
                 testData.Module = moduleBeingBuilt
             End If
