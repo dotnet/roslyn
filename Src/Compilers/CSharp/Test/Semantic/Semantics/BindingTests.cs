@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1791,6 +1790,35 @@ partial class C
                 // (7,32): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         fixed (int* ptr = arg) object o = null;
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = null;"));
+        }
+
+        [WorkItem(1040171, "DevDiv")]
+        [Fact]
+        public void Bug1040171()
+        {
+            const string sourceCode = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool c = true;
+
+        foreach (string s in args)
+            label: c = false;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             label: c = false;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "label: c = false;").WithLocation(9, 13),
+                // (9,13): warning CS0164: This label has not been referenced
+                //             label: c = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(9, 13),
+                // (6,14): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         bool c = true;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(6, 14));
         }
 
         [Fact, WorkItem(543426, "DevDiv")]

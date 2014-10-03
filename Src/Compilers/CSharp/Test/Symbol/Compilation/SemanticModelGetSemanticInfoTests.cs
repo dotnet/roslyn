@@ -5808,26 +5808,6 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(1040171, "DevDiv")]
-        [Fact(Skip = "Bug 1040171")]
-        public void LabeledEmbeddedStatement_ForEach_2()
-        {
-            const string sourceCode = @"
-class Program
-{
-    static void Main(string[] args)
-    {
-        bool c = true;
-
-        foreach (string s in args)
-            label: c = false;
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
-            compilation.GetDiagnostics();
-        }
-
         [WorkItem(540759, "DevDiv")]
         [Fact]
         public void DeclarationEmbeddedStatement_Else()

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -363,7 +363,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = LookupResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
-            var symbol = (LabelSymbol)result.Symbols.First();
+
+            // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
+            // In this case we create new label symbol on the fly, and an error is reported by parser
+            var symbol = (LabelSymbol)result.Symbols.FirstOrDefault() ?? new SourceLabelSymbol((MethodSymbol)ContainingMemberOrLambda, node.Identifier);
 
             if (!symbol.IdentifierNodeOrToken.IsToken || symbol.IdentifierNodeOrToken.AsToken() != node.Identifier)
             {
@@ -716,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerOpt = binder.BindInferredVariableInitializer(diagnostics, equalsValueClauseSyntax, declarator);
 
                 // If we got a good result then swap the inferred type for the "var" 
-                if (initializerOpt != null && (object)initializerOpt.Type != null)
+                if ((object)initializerOpt?.Type != null)
                 {
                     declTypeOpt = initializerOpt.Type;
 
@@ -1340,23 +1343,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            // Array accesses are always variables.
-            var arrayAccess = expr as BoundArrayAccess;
-            if (arrayAccess != null)
-            {
-                return true;
-            }
-
-            // Pointer dereferences are always variables.
-            var pointerDereference = expr as BoundPointerIndirectionOperator;
-            if (pointerDereference != null)
-            {
-                return true;
-            }
-            
-            // Pointer element access is just sugar for pointer dereference.
-            var pointerElementAccess = expr as BoundPointerElementAccess;
-            if (pointerElementAccess != null)
+           
+            if (expr is BoundArrayAccess  // Array accesses are always variables
+                || expr is BoundPointerIndirectionOperator // Pointer dereferences are always variables
+                || expr is BoundPointerElementAccess) // Pointer element access is just sugar for pointer dereference
             {
                 return true;
             }
@@ -1467,8 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // At this point we should have covered all the possible cases for variables.
 
-            var conversion = expr as BoundConversion;
-            if (conversion != null && conversion.ConversionKind == ConversionKind.Unboxing)
+            if ((expr as BoundConversion)?.ConversionKind == ConversionKind.Unboxing)
             {
                 Error(diagnostics, ErrorCode.ERR_UnboxNotLValue, node);
                 return false;
@@ -1674,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(methodGroup.ResultKind != LookupResultKind.Viable);
                     BoundNode receiver = methodGroup.ReceiverOpt;
-                    if ((object)otherSymbol != null && receiver != null && receiver.Kind == BoundKind.TypeOrValueExpression)
+                    if ((object)otherSymbol != null && receiver?.Kind == BoundKind.TypeOrValueExpression)
                     {
                         // Since we're not accessing a method, this can't be a Color Color case, so TypeOrValueExpression should not have been used.
                         // CAVEAT: otherSymbol could be invalid in some way (e.g. inaccessible), in which case we would have fallen back on a
@@ -1690,8 +1679,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundBadExpression(
                         expr.Syntax,
                         methodGroup.ResultKind,
-                        (object)otherSymbol == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create<Symbol>(otherSymbol),
-                        receiver == null ? ImmutableArray<BoundNode>.Empty : ImmutableArray.Create<BoundNode>(receiver),
+                        (object)otherSymbol == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(otherSymbol),
+                        receiver == null ? ImmutableArray<BoundNode>.Empty : ImmutableArray.Create(receiver),
                         GetNonMethodMemberType(otherSymbol));
                 }
             }
@@ -1869,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
-                else if (receiver != null && receiver.Kind == BoundKind.BaseReference && setMethod.IsAbstract)
+                else if (receiver?.Kind == BoundKind.BaseReference && setMethod.IsAbstract)
                 {
                     Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbol);
                     return false;
@@ -1899,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver != null && receiver.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
                     if (RequiresVariableReceiver(receiver, setMethod))
                     {
@@ -1920,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, node, propertySymbol);
                     return false;
                 }
-                else if (receiver != null && receiver.Kind == BoundKind.BaseReference && getMethod.IsAbstract)
+                else if (receiver?.Kind == BoundKind.BaseReference && getMethod.IsAbstract)
                 {
                     Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbol);
                     return false;
@@ -1950,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver != null && receiver.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
                 }
             }
 
@@ -1990,16 +1979,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool RequiresVariableReceiver(BoundExpression receiver, Symbol symbol)
         {
-            if (receiver != null && !symbol.IsStatic && symbol.Kind != SymbolKind.Event)
-            {
-                var receiverType = receiver.Type;
-                if ((object)receiverType != null && receiverType.IsValueType)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return !symbol.IsStatic 
+                && symbol.Kind != SymbolKind.Event 
+                && receiver?.Type?.IsValueType == true;
         }
 
         private TypeSymbol GetAccessThroughType(BoundExpression receiver)
@@ -2088,10 +2070,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (blockBinder.IsDirectlyInIterator)
             {
-                var meth = blockBinder.ContainingMemberOrLambda as SourceMethodSymbol;
-                if ((object)meth != null)
+                var method = blockBinder.ContainingMemberOrLambda as SourceMethodSymbol;
+                if ((object)method != null)
                 {
-                    meth.IteratorElementType = blockBinder.GetIteratorElementType(null, diagnostics);
+                    method.IteratorElementType = blockBinder.GetIteratorElementType(null, diagnostics);
                 }
                 else
                 {
@@ -2819,23 +2801,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool IsTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return (object)symbol != null && symbol.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsTaskReturningAsync(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsTaskReturningAsync(this.Compilation);
         }
 
         protected bool IsGenericTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return (object)symbol != null && symbol.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTaskReturningAsync(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTaskReturningAsync(this.Compilation);
         }
 
         protected virtual TypeSymbol GetCurrentReturnType()
         {
-            var symbol = this.ContainingMemberOrLambda as MethodSymbol;
-            if ((object)symbol != null)
-            {
-                return symbol.ReturnType;
-            }
-            return null;
+            return (this.ContainingMemberOrLambda as MethodSymbol)?.ReturnType;
         }
 
         private BoundReturnStatement BindReturn(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
@@ -2939,7 +2916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We can't follow the same route in async methods, since empty-return-operands become a "Task"
                 // return type.
 
-                if (arg != null && IsInAsyncMethod() && (object)arg.Type != null && arg.Type.SpecialType == SpecialType.System_Void)
+                if ((object)arg?.Type != null && IsInAsyncMethod() && arg.Type.SpecialType == SpecialType.System_Void)
                 {
                     Error(diagnostics, ErrorCode.ERR_CantReturnVoid, expressionSyntax);
                 }
@@ -3230,7 +3207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     statement = new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
                 }
             }
-            else if ((object)expression.Type != null && expression.Type.SpecialType == SpecialType.System_Void)
+            else if (expression.Type?.SpecialType == SpecialType.System_Void)
             {
                 statement = new BoundExpressionStatement(syntax, expression) { WasCompilerGenerated = true };
             }
