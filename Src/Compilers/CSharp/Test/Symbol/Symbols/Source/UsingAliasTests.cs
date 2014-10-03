@@ -32,10 +32,10 @@ partial class A : Object {}
             var a3 = root.Members[2] as TypeDeclarationSyntax;
             var a4 = root.Members[3] as TypeDeclarationSyntax;
 
-            var base1 = a1.BaseList.Types[0] as TypeSyntax;
-            var base2 = a2.BaseList.Types[0] as TypeSyntax;
-            var base3 = a3.BaseList.Types[0] as TypeSyntax;
-            var base4 = a4.BaseList.Types[0] as TypeSyntax;
+            var base1 = a1.BaseList.Types[0].Type as TypeSyntax;
+            var base2 = a2.BaseList.Types[0].Type as TypeSyntax;
+            var base3 = a3.BaseList.Types[0].Type as TypeSyntax;
+            var base4 = a4.BaseList.Types[0].Type as TypeSyntax;
 
             var model = comp.GetSemanticModel(tree);
 
@@ -89,10 +89,10 @@ partial class A : Object {}
             var a3 = root.Members[2] as TypeDeclarationSyntax;
             var a4 = root.Members[3] as TypeDeclarationSyntax;
 
-            var base1 = a1.BaseList.Types[0] as TypeSyntax;
-            var base2 = a2.BaseList.Types[0] as TypeSyntax;
-            var base3 = a3.BaseList.Types[0] as TypeSyntax;
-            var base4 = a4.BaseList.Types[0] as TypeSyntax;
+            var base1 = a1.BaseList.Types[0].Type as TypeSyntax;
+            var base2 = a2.BaseList.Types[0].Type as TypeSyntax;
+            var base3 = a3.BaseList.Types[0].Type as TypeSyntax;
+            var base4 = a4.BaseList.Types[0].Type as TypeSyntax;
 
             var model = comp.GetSemanticModel(tree);
 
@@ -144,10 +144,10 @@ partial class A : Object {}
             var a3 = root.Members[2] as TypeDeclarationSyntax;
             var a4 = root.Members[3] as TypeDeclarationSyntax;
 
-            var base1 = a1.BaseList.Types[0] as TypeSyntax;
-            var base2 = a2.BaseList.Types[0] as TypeSyntax;
-            var base3 = a3.BaseList.Types[0] as TypeSyntax;
-            var base4 = a4.BaseList.Types[0] as TypeSyntax;
+            var base1 = a1.BaseList.Types[0].Type as TypeSyntax;
+            var base2 = a2.BaseList.Types[0].Type as TypeSyntax;
+            var base3 = a3.BaseList.Types[0].Type as TypeSyntax;
+            var base4 = a4.BaseList.Types[0].Type as TypeSyntax;
 
             var model = comp.GetSemanticModel(tree);
 

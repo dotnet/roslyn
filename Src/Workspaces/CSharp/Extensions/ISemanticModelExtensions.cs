@@ -329,14 +329,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //    as the interface type itself.
             if (type != null)
             {
-                if (type.IsParentKind(SyntaxKind.BaseList))
+                if (type.Parent is BaseTypeSyntax && type.Parent.IsParentKind(SyntaxKind.BaseList) && ((BaseTypeSyntax)type.Parent).Type == type)
                 {
                     var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken) as INamedTypeSymbol;
                     if (containingType != null && containingType.TypeKind == TypeKind.Interface)
                     {
                         return containingType.DeclaredAccessibility;
                     }
-                    else if (((BaseListSyntax)type.Parent).Types.IndexOf(type) == 0)
+                    else if (((BaseListSyntax)type.Parent.Parent).Types[0] == type.Parent)
                     {
                         return containingType.DeclaredAccessibility;
                     }

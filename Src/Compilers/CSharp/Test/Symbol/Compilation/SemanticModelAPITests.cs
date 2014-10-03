@@ -276,7 +276,7 @@ class A {}
             var comp = CreateCompilationWithMscorlib(tree);
 
             var bdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
-            var bbase = bdecl.BaseList.Types[0] as TypeSyntax;
+            var bbase = bdecl.BaseList.Types[0].Type as TypeSyntax;
             var model = comp.GetSemanticModel(tree);
 
             var info = model.GetSymbolInfo(bbase);
@@ -302,7 +302,7 @@ public class B : A {}
             var comp = CreateCompilationWithMscorlib(tree);
 
             var cdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
-            var cbase = cdecl.BaseList.Types[0] as TypeSyntax;
+            var cbase = cdecl.BaseList.Types[0].Type as TypeSyntax;
             var model = comp.GetSemanticModel(tree);
 
             var info = model.GetSymbolInfo(cbase);
@@ -328,7 +328,7 @@ public class B {
             var comp = CreateCompilationWithMscorlib(tree);
 
             var cdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
-            var cbase = cdecl.BaseList.Types[0] as TypeSyntax;
+            var cbase = cdecl.BaseList.Types[0].Type as TypeSyntax;
             var model = comp.GetSemanticModel(tree);
 
             var info = model.GetSymbolInfo(cbase);
@@ -351,7 +351,7 @@ class A<T> {}
             var comp = CreateCompilationWithMscorlib(tree);
 
             var bdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
-            var bbase = bdecl.BaseList.Types[0] as TypeSyntax; // A<T>
+            var bbase = bdecl.BaseList.Types[0].Type as TypeSyntax; // A<T>
             var model = comp.GetSemanticModel(tree);
 
             var info = model.GetSymbolInfo(bbase);
@@ -564,7 +564,7 @@ namespace N {
             var nDecl = root.Members[0] as NamespaceDeclarationSyntax;
             var n2Decl = root.Members[1] as NamespaceDeclarationSyntax;
             var cDecl = n2Decl.Members[0] as TypeDeclarationSyntax;
-            var cBase = (cDecl.BaseList.Types[0] as AliasQualifiedNameSyntax).Name;
+            var cBase = (cDecl.BaseList.Types[0].Type as AliasQualifiedNameSyntax).Name;
 
             var cBaseType = model.GetSymbolInfo(cBase).Symbol;
             var bOuter = comp.GlobalNamespace.GetTypeMembers("B", 0).Single();

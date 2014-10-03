@@ -44,18 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     continue;
                 }
-                SeparatedSyntaxList<TypeSyntax> inheritedTypeDecls = typeBlock.BaseList.Types;
+                SeparatedSyntaxList<BaseTypeSyntax> inheritedTypeDecls = bases.Types;
 
                 var baseBinder = this.DeclaringCompilation.GetBinder(bases);
                 baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
                 if ((object)backupLocation == null)
                 {
-                    backupLocation = inheritedTypeDecls[0].GetLocation();
+                    backupLocation = inheritedTypeDecls[0].Type.GetLocation();
                 }
 
-                foreach (TypeSyntax t in inheritedTypeDecls)
+                foreach (BaseTypeSyntax baseTypeSyntax in inheritedTypeDecls)
                 {
+                    TypeSyntax t = baseTypeSyntax.Type;
                     TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics);
                    
                     if (bt == @base)

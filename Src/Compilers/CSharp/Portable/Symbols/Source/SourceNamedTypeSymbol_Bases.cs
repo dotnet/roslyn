@@ -149,8 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Wrap base binder in a location-specific binder that will avoid generic constraint checks.
                     baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-                    foreach (var b in bases.Types)
+                    foreach (var baseTypeSyntax in bases.Types)
                     {
+                        var b = baseTypeSyntax.Type;
                         var tmpDiag = DiagnosticBag.GetInstance();
                         var curBaseSym = baseBinder.BindType(b, tmpDiag);
                         tmpDiag.Free();
@@ -328,9 +329,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             int i = -1;
-            foreach (var typeSyntax in bases.Types)
+            foreach (var baseTypeSyntax in bases.Types)
             {
                 i++;
+                var typeSyntax = baseTypeSyntax.Type;
                 var location = new SourceLocation(typeSyntax);
 
                 TypeSymbol baseType;

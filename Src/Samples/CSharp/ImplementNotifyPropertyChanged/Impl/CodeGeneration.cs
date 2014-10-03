@@ -137,8 +137,8 @@ namespace ImplementNotifyPropertyChangedCS
                     .WithAdditionalAnnotations(Simplifier.Annotation);
 
                 node = node.IsKind(SyntaxKind.ClassDeclaration)
-                   ? ((ClassDeclarationSyntax)node).AddBaseListTypes(baseTypeName) as TypeDeclarationSyntax
-                   : ((StructDeclarationSyntax)node).AddBaseListTypes(baseTypeName);
+                   ? ((ClassDeclarationSyntax)node).AddBaseListTypes(SyntaxFactory.SimpleBaseType(baseTypeName)) as TypeDeclarationSyntax
+                   : ((StructDeclarationSyntax)node).AddBaseListTypes(SyntaxFactory.SimpleBaseType(baseTypeName));
 
                 // Add a formatting annotation to the base list to ensure that it gets formatted properly.
                 node = node.ReplaceNode(

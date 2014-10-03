@@ -364,19 +364,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> interfaceTypes,
             IEnumerable<SyntaxNode> members)
         {
-            List<SyntaxNode> baseTypes = null;
+            List<BaseTypeSyntax> baseTypes = null;
             if (baseType != null || interfaceTypes != null)
             {
-                baseTypes = new List<SyntaxNode>();
+                baseTypes = new List<BaseTypeSyntax>();
 
                 if (baseType != null)
                 {
-                    baseTypes.Add(baseType);
+                    baseTypes.Add(SyntaxFactory.SimpleBaseType((TypeSyntax)baseType));
                 }
 
                 if (interfaceTypes != null)
                 {
-                    baseTypes.AddRange(interfaceTypes);
+                    baseTypes.AddRange(interfaceTypes.Select(i => SyntaxFactory.SimpleBaseType((TypeSyntax)i)));
                 }
 
                 if (baseTypes.Count == 0)
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GetModifiers(accessibility, modifiers & typeModifiers),
                 SyntaxFactory.Identifier(name),
                 GetTypeParameters(typeParameters),
-                baseTypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(baseTypes.Cast<TypeSyntax>())) : null,
+                baseTypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(baseTypes)) : null,
                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
                 GetClassMembers(name, members));
         }
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> interfaceTypes,
             IEnumerable<SyntaxNode> members)
         {
-            var itypes = interfaceTypes != null ? interfaceTypes.Cast<TypeSyntax>().ToList() : null;
+            var itypes = interfaceTypes != null ? interfaceTypes.Select(i => (BaseTypeSyntax)SyntaxFactory.SimpleBaseType((TypeSyntax)i)).ToList() : null;
             if (itypes != null && itypes.Count == 0)
             {
                 itypes = null;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> interfaceTypes = null,
             IEnumerable<SyntaxNode> members = null)
         {
-            var itypes = interfaceTypes != null ? interfaceTypes.Cast<TypeSyntax>().ToList() : null;
+            var itypes = interfaceTypes != null ? interfaceTypes.Select(i => (BaseTypeSyntax)SyntaxFactory.SimpleBaseType((TypeSyntax)i)).ToList() : null;
             if (itypes != null && itypes.Count == 0)
             {
                 itypes = null;

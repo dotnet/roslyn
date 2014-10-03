@@ -690,7 +690,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.IdentifierToken &&
                 token.HasMatchingText(SyntaxKind.WhereKeyword) &&
                 token.Parent.IsKind(SyntaxKind.IdentifierName) &&
-                token.Parent.IsParentKind(SyntaxKind.BaseList))
+                token.Parent.IsParentKind(SyntaxKind.SimpleBaseType) &&
+                token.Parent.Parent.IsParentKind(SyntaxKind.BaseList))
             {
                 return true;
             }

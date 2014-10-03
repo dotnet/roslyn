@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EventDeclaration:
                 case SyntaxKind.BaseList:
+                case SyntaxKind.SimpleBaseType:
                     return true;
 
                 case SyntaxKind.Block:

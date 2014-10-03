@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
             var member = CreateSimpleMethodDeclaration(CA1001DiagnosticAnalyzer.Dispose, statement);
             var newNode =
                 syntaxNode.BaseList != null ?
-                    syntaxNode.AddBaseListTypes(SyntaxFactory.ParseTypeName(CA1001DiagnosticAnalyzer.IDisposable)).AddMembers(new[] { member }) :
-                    syntaxNode.AddBaseListTypes(SyntaxFactory.ParseTypeName(CA1001DiagnosticAnalyzer.IDisposable)).AddMembers(new[] { member }).WithIdentifier(syntaxNode.Identifier.WithTrailingTrivia(SyntaxFactory.Space));
+                    syntaxNode.AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName(CA1001DiagnosticAnalyzer.IDisposable))).AddMembers(new[] { member }) :
+                    syntaxNode.AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName(CA1001DiagnosticAnalyzer.IDisposable))).AddMembers(new[] { member }).WithIdentifier(syntaxNode.Identifier.WithTrailingTrivia(SyntaxFactory.Space));
             newNode = newNode.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
             return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNode(nodeToFix, newNode)));
         }

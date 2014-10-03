@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var types = bases.Types;
                 if (types.Count > 0)
                 {
-                    var typeSyntax = types[0];
+                    var typeSyntax = types[0].Type;
 
                     var baseBinder = compilation.GetBinder(bases);
                     var type = baseBinder.BindType(typeSyntax, diagnostics);

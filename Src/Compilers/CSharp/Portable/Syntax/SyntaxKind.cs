@@ -484,7 +484,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         EnumDeclaration = 8858,
         DelegateDeclaration = 8859,
 
-        BaseList = 8865,
+        BaseList = 8864,
+        SimpleBaseType = 8865,
         TypeParameterConstraintClause = 8866,
         ConstructorConstraint = 8867,
         ClassConstraint = 8868,

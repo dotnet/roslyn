@@ -171,8 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.EventDeclaration:
                     return ((EventDeclarationSyntax)parent).Type == node;
 
-                    case SyntaxKind.BaseList:
-                    return true;  // children of BaseListSyntax are only types
+                    case SyntaxKind.SimpleBaseType:
+                    return true;  
 
                     case SyntaxKind.CrefParameter:
                     return true;

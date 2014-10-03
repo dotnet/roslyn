@@ -354,7 +354,7 @@ class A : Bar::NS.Foo {}
 
             //find the alias qualifier on the base type and get its semantic info.
             var a1 = root.Members[0] as TypeDeclarationSyntax;
-            var base1 = a1.BaseList.Types[0] as QualifiedNameSyntax;
+            var base1 = a1.BaseList.Types[0].Type as QualifiedNameSyntax;
             var left = base1.Left as AliasQualifiedNameSyntax;
             var qualifier = left.Alias;
 

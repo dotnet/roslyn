@@ -1886,19 +1886,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var colon = this.EatToken();
-            var list = pool.AllocateSeparated<TypeSyntax>();
+            var list = pool.AllocateSeparated<BaseTypeSyntax>();
             try
             {
                 // first type
                 if (this.IsPossibleTypeParameterConstraintClauseStart())
                 {
-                    list.Add(this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected));
+                    list.Add(syntaxFactory.SimpleBaseType(this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected)));
                 }
                 else
                 {
                     TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false, parentIsParameter: false);
 
-                    list.Add(firstType);
+                    list.Add(syntaxFactory.SimpleBaseType(firstType));
 
                     // any additional types
                     while (true)
@@ -1913,11 +1913,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                             if (this.IsPossibleTypeParameterConstraintClauseStart())
                             {
-                                list.Add(this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected));
+                                list.Add(syntaxFactory.SimpleBaseType(this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected)));
                             }
                             else
                             {
-                                list.Add(this.ParseDeclarationType(isConstraint: false, parentIsParameter: false));
+                                list.Add(syntaxFactory.SimpleBaseType(this.ParseDeclarationType(isConstraint: false, parentIsParameter: false)));
                             }
 
                             continue;
@@ -1937,7 +1937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PostSkipAction SkipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<TypeSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
@@ -4932,8 +4932,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var colon = this.EatToken(SyntaxKind.ColonToken);
                 var type = this.ParseType(false);
-                var tmpList = this.pool.AllocateSeparated<TypeSyntax>();
-                tmpList.Add(type);
+                var tmpList = this.pool.AllocateSeparated<BaseTypeSyntax>();
+                tmpList.Add(syntaxFactory.SimpleBaseType(type));
                 baseList = syntaxFactory.BaseList(colon, tmpList);
                 this.pool.Free(tmpList);
             }

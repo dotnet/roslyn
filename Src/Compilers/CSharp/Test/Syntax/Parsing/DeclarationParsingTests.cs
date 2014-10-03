@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.BaseList);
             Assert.NotNull(cs.BaseList.ColonToken);
             Assert.Equal(1, cs.BaseList.Types.Count);
-            Assert.Equal("b", cs.BaseList.Types[0].ToString());
+            Assert.Equal("b", cs.BaseList.Types[0].Type.ToString());
 
             Assert.Equal(0, cs.ConstraintClauses.Count);
             Assert.NotNull(cs.OpenBraceToken);
@@ -929,8 +929,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.BaseList);
             Assert.NotNull(cs.BaseList.ColonToken);
             Assert.Equal(2, cs.BaseList.Types.Count);
-            Assert.Equal("b", cs.BaseList.Types[0].ToString());
-            Assert.Equal("c", cs.BaseList.Types[1].ToString());
+            Assert.Equal("b", cs.BaseList.Types[0].Type.ToString());
+            Assert.Equal("c", cs.BaseList.Types[1].Type.ToString());
 
             Assert.Equal(0, cs.ConstraintClauses.Count);
             Assert.NotNull(cs.OpenBraceToken);
@@ -1370,8 +1370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.BaseList);
             Assert.NotNull(cs.BaseList.ColonToken);
             Assert.Equal(2, cs.BaseList.Types.Count);
-            Assert.Equal("c", cs.BaseList.Types[0].ToString());
-            Assert.Equal("d", cs.BaseList.Types[1].ToString());
+            Assert.Equal("c", cs.BaseList.Types[0].Type.ToString());
+            Assert.Equal("d", cs.BaseList.Types[1].Type.ToString());
 
             Assert.Equal(1, cs.ConstraintClauses.Count);
             Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);

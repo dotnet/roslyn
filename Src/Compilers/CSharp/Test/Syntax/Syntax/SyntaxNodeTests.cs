@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAddBaseListTypes()
         {
             var cls = SyntaxFactory.ParseCompilationUnit("class C { }").Members[0] as ClassDeclarationSyntax;
-            var cls2 = cls.AddBaseListTypes(SyntaxFactory.ParseTypeName("B"));
+            var cls2 = cls.AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("B")));
         }
 
         [Fact]

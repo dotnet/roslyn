@@ -1128,6 +1128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     nodeToSpeculate = ((TypeConstraintSyntax)node).Type;
                 }
+                else if (node is BaseTypeSyntax)
+                {
+                    nodeToSpeculate = ((BaseTypeSyntax)node).Type;
+                }
                 else
                 {
                     return null;

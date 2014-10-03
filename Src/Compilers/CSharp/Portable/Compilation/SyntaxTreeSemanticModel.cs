@@ -483,10 +483,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // bound in the context of the containing symbols base being resolved.
             for (; expression != null && expression.Parent != null; expression = expression.Parent as TypeSyntax)
             {
-                if (expression.Parent.Kind == SyntaxKind.BaseList)
+                var parent = expression.Parent;
+                if (parent is BaseTypeSyntax && parent.Parent != null && parent.Parent.Kind == SyntaxKind.BaseList && ((BaseTypeSyntax)parent).Type == expression)
                 {
                     // we have a winner
-                    var decl = (BaseTypeDeclarationSyntax)expression.Parent.Parent;
+                    var decl = (BaseTypeDeclarationSyntax)parent.Parent.Parent;
                     var symbol = this.GetDeclaredSymbol(decl);
                     return ConsList<Symbol>.Empty.Prepend((Symbol)symbol.OriginalDefinition);
                 }

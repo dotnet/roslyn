@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options)
         {
             var baseList = namedType.EnumUnderlyingType != null && namedType.EnumUnderlyingType.SpecialType != SpecialType.System_Int32
-                ? SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList(namedType.EnumUnderlyingType.GenerateTypeSyntax()))
+                ? SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())))
                 : null;
 
             return SyntaxFactory.EnumDeclaration(
@@ -233,15 +233,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static BaseListSyntax GenerateBaseList(INamedTypeSymbol namedType)
         {
-            var types = new List<TypeSyntax>();
+            var types = new List<BaseTypeSyntax>();
             if (namedType.TypeKind == TypeKind.Class && namedType.BaseType != null && namedType.BaseType.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_Object)
             {
-                types.Add(namedType.BaseType.GenerateTypeSyntax());
+                types.Add(SyntaxFactory.SimpleBaseType(namedType.BaseType.GenerateTypeSyntax()));
             }
 
             foreach (var type in namedType.Interfaces)
             {
-                types.Add(type.GenerateTypeSyntax());
+                types.Add(SyntaxFactory.SimpleBaseType(type.GenerateTypeSyntax()));
             }
 
             if (types.Count == 0)

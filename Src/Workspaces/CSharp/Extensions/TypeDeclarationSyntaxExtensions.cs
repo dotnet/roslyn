@@ -225,11 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return lastToken;
         }
 
-        public static IEnumerable<TypeSyntax> GetAllBaseListTypes(this TypeDeclarationSyntax typeNode, SemanticModel model, CancellationToken cancellationToken)
+        public static IEnumerable<BaseTypeSyntax> GetAllBaseListTypes(this TypeDeclarationSyntax typeNode, SemanticModel model, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(typeNode);
 
-            IEnumerable<TypeSyntax> baseListTypes = SpecializedCollections.EmptyEnumerable<TypeSyntax>();
+            IEnumerable<BaseTypeSyntax> baseListTypes = SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
 
             var isPartialType = typeNode.Modifiers.Any(m => m.CSharpKind() == SyntaxKind.PartialKeyword);
             if (isPartialType)

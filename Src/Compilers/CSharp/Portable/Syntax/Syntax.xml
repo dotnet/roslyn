@@ -2614,12 +2614,27 @@
       </PropertyComment>
       <Kind Name="ColonToken"/>
     </Field>
-    <Field Name="Types" Type="SeparatedSyntaxList&lt;TypeSyntax&gt;">
+    <Field Name="Types" Type="SeparatedSyntaxList&lt;BaseTypeSyntax&gt;">
       <PropertyComment>
         <summary>Gets the base type references.</summary>
       </PropertyComment>
     </Field>
   </Node>
+
+  <AbstractNode Name="BaseTypeSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent base type syntax nodes are derived. This is an abstract class.</summary>
+    </TypeComment>
+    <Field Name="Type" Type="TypeSyntax">
+    </Field>
+  </AbstractNode>
+
+  <Node Name="SimpleBaseTypeSyntax" Base="BaseTypeSyntax">
+    <Kind Name="SimpleBaseType"/>
+    <Field Name="Type" Type="TypeSyntax" Override="true">
+    </Field>
+  </Node>
+
   <Node Name="TypeParameterConstraintClauseSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
       <summary>Type parameter constraint clause.</summary>

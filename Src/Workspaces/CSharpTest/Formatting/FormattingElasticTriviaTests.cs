@@ -58,8 +58,8 @@ class B
                         SyntaxFactory.Identifier("My"),
                         null,
                         SyntaxFactory.BaseList(
-                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                SyntaxFactory.ParseTypeName("System.Attribute"))),
+                            SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
+                                SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute")))),
                                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
                                 default(SyntaxList<MemberDeclarationSyntax>)),
                     SyntaxFactory.ClassDeclaration("A"),
