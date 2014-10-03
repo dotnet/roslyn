@@ -12,8 +12,13 @@ namespace Roslyn.Utilities.Pdb
         
         internal static ISymUnmanagedMethod GetBaselineMethod(this ISymUnmanagedReader reader, int methodToken)
         {
+            return reader.GetMethodByVersion(methodToken, methodVersion: 1);
+        }
+
+        internal static ISymUnmanagedMethod GetMethodByVersion(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
+        {
             ISymUnmanagedMethod method = null;
-            int hr = reader.GetMethodByVersion(methodToken, 1, out method);
+            int hr = reader.GetMethodByVersion(methodToken, methodVersion, out method);
             if (hr == E_FAIL)
             {
                 // method has no symbol info
@@ -21,7 +26,7 @@ namespace Roslyn.Utilities.Pdb
             }
             else if (hr != 0)
             {
-                throw new ArgumentException(string.Format("Invalid method token '0x{0:x8}' (hresult = 0x{1:x8})", methodToken, hr), "methodToken");
+                throw new ArgumentException(string.Format("Invalid method token '0x{0:x8}' or version '{1}' (hresult = 0x{2:x8})", methodToken, methodVersion, hr), "methodToken");
             }
 
             Debug.Assert(method != null);

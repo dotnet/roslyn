@@ -285,7 +285,7 @@ namespace Roslyn.Utilities.Pdb
         /// For each namespace enclosing the method, a list of import strings, innermost to outermost.
         /// There should always be at least one entry, for the global namespace.
         /// </returns>
-        public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings(this ISymUnmanagedReader reader, int methodToken, out ImmutableArray<string> externAliasStrings)
+        public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings(this ISymUnmanagedReader reader, int methodToken, int methodVersion, out ImmutableArray<string> externAliasStrings)
         {
             externAliasStrings = default(ImmutableArray<string>);
 
@@ -349,7 +349,7 @@ namespace Roslyn.Utilities.Pdb
 
                     int moduleInfoMethodToken;
                     ReadForwardToModuleRecord(bytes, ref offset, size, out moduleInfoMethodToken);
-                    ImmutableArray<string> allModuleInfoImportStrings = reader.GetBaselineMethod(moduleInfoMethodToken).GetImportStrings();
+                    ImmutableArray<string> allModuleInfoImportStrings = reader.GetMethodByVersion(moduleInfoMethodToken, methodVersion).GetImportStrings();
                     ArrayBuilder<string> externAliasBuilder = ArrayBuilder<string>.GetInstance();
                     foreach(string importString in allModuleInfoImportStrings)
                     {
@@ -372,7 +372,7 @@ namespace Roslyn.Utilities.Pdb
                 return default(ImmutableArray<ImmutableArray<string>>);
             }
 
-            ImmutableArray<string> importStrings = reader.GetBaselineMethod(methodToken).GetImportStrings();
+            ImmutableArray<string> importStrings = reader.GetMethodByVersion(methodToken, methodVersion).GetImportStrings();
             int numImportStrings = importStrings.Length;
 
             ArrayBuilder<ImmutableArray<string>> resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
@@ -440,9 +440,9 @@ namespace Roslyn.Utilities.Pdb
         /// <returns>
         /// A list of import strings.  There should always be at least one entry, for the global namespace.
         /// </returns>
-        public static ImmutableArray<string> GetVisualBasicImportStrings(this ISymUnmanagedReader reader, int methodToken)
+        public static ImmutableArray<string> GetVisualBasicImportStrings(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
-            ImmutableArray<string> importStrings = reader.GetBaselineMethod(methodToken).GetImportStrings();
+            ImmutableArray<string> importStrings = reader.GetMethodByVersion(methodToken, methodVersion).GetImportStrings();
 
             // Follow at most one forward link.
             if (importStrings.Length > 0)
@@ -458,7 +458,7 @@ namespace Roslyn.Utilities.Pdb
                         int tempMethodToken;
                         if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
                         {
-                            return reader.GetBaselineMethod(tempMethodToken).GetImportStrings();
+                            return reader.GetMethodByVersion(tempMethodToken, methodVersion).GetImportStrings();
                         }
                     }
                 }
