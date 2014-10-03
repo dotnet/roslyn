@@ -6140,11 +6140,12 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Dim vbc = New MockVisualBasicCompiler(Nothing, sourceDir.Path, args)
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = vbc.Run(outWriter, Nothing)
+            Dim output = outWriter.ToString()
 
             Dim expectedExitCode = If(expectedErrorCount > 0, 1, 0)
-            Assert.Equal(expectedExitCode, exitCode)
+            Assert.True(expectedExitCode = exitCode,
+                        String.Format("Expected exit code to be '{0}' was '{1}'.\nOutput:\n{2}", expectedExitCode, exitCode, output))
 
-            Dim output = outWriter.ToString()
             Assert.DoesNotContain(" : hidden", output)
 
             If expectedInfoCount = 0 Then
