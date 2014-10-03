@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Enum
 
     Partial Class BoundPropertyAccess
-        Public Sub New(syntax As VisualBasicSyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
-            Me.New(syntax, propertySymbol, propertyGroupOpt, accessKind, receiverOpt, arguments, GetTypeFromAccessKind(propertySymbol, accessKind), hasErrors)
+        Public Sub New(syntax As VisualBasicSyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
+            Me.New(syntax, propertySymbol, propertyGroupOpt, accessKind, isWriteable, receiverOpt, arguments, GetTypeFromAccessKind(propertySymbol, accessKind), hasErrors)
         End Sub
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.AccessKind = PropertyAccessKind.Unknown OrElse
                     Me.AccessKind = newAccessKind)
 
-            Return Me.Update(Me.PropertySymbol, Me.PropertyGroupOpt, newAccessKind, Me.ReceiverOpt, Me.Arguments, GetTypeFromAccessKind(Me.PropertySymbol, newAccessKind))
+            Return Me.Update(Me.PropertySymbol, Me.PropertyGroupOpt, newAccessKind, Me.IsWriteable, Me.ReceiverOpt, Me.Arguments, GetTypeFromAccessKind(Me.PropertySymbol, newAccessKind))
         End Function
 
 #If DEBUG Then

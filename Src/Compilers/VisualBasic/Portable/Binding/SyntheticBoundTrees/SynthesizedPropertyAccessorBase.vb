@@ -239,6 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                                providerProperty,
                                                                                Nothing,
                                                                                PropertyAccessKind.Get,
+                                                                               False,
                                                                                If(providerProperty.IsShared, Nothing, withEventsLocalAccess),
                                                                                ImmutableArray(Of BoundExpression).Empty)
                         End If
@@ -319,6 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                                providerProperty,
                                                                                Nothing,
                                                                                PropertyAccessKind.Get,
+                                                                               False,
                                                                                If(providerProperty.IsShared, Nothing, withEventsLocalAccess),
                                                                                ImmutableArray(Of BoundExpression).Empty)
                         End If

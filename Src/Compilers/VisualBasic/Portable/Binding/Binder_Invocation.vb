@@ -954,6 +954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     [property],
                     propertyGroup,
                     PropertyAccessKind.Unknown,
+                    [property].IsWritable(receiver, Me),
                     receiver,
                     boundArguments,
                     hasErrors:=hasErrors)

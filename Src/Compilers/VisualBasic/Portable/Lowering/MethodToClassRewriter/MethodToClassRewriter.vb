@@ -105,6 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Update(rewrittenPropertySymbol,
                                Nothing,
                                node.AccessKind,
+                               node.IsWriteable,
                                rewrittenReceiver,
                                newArguments.AsImmutableOrNull,
                                VisitType(node.Type))

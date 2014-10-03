@@ -251,6 +251,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return symbol.Kind = SymbolKind.Property AndAlso Not DirectCast(symbol, PropertySymbol).IsWithEvents
         End Function
 
+        <Extension()>
+        Friend Function IsAnyConstructor(method As MethodSymbol) As Boolean
+            Dim kind = method.MethodKind
+            Return kind = MethodKind.Constructor OrElse kind = MethodKind.SharedConstructor
+        End Function
+
         ''' <summary>
         ''' default zero-init constructor symbol is added to a struct when it does not define 
         ''' its own parameterless public constructor.

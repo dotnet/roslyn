@@ -1439,6 +1439,141 @@ Module1+B3
 </expected>)
         End Sub
 
+        <Fact()>
+        Public Sub PropertyInByRefContext2a()
+            Dim compilationDef =
+<compilation name="TypeArgumentInference3">
+    <file name="a.vb">
+Imports System
+        
+Module Module1
+
+    Class B1
+        Public readonly Property B2 As B2
+        Public readonly Property B4 As B4
+    End Class
+
+    Class B2
+
+        Shared Widening Operator CType(x As B2) As B3
+            Return Nothing
+        End Operator
+
+        'Shared Widening Operator CType(x As B3) As B2
+        '    Return Nothing
+        'End Operator
+
+    End Class
+
+    Class B3
+    End Class
+
+    Class B4
+
+        Shared Widening Operator CType(x As B4) As B3
+            Return Nothing
+        End Operator
+
+    End Class
+
+    Sub Test(Of T)(ByRef x As T, y As T, z As T)
+        System.Console.WriteLine(GetType(T))
+    End Sub
+
+    Sub Main()
+        Dim x As New B1
+        Dim y As New B3
+
+        Test(x.B2, y, x.B4)
+        Test(Of B3)(x.B2, y, x.B4)
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Module1+B3
+Module1+B3
+]]>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+</expected>)
+        End Sub
+
+        <Fact()>
+        Public Sub PropertyInByRefContext2b()
+            Dim compilationDef =
+<compilation name="TypeArgumentInference3">
+    <file name="a.vb">
+Imports System
+        
+Module Module1
+
+    Class B1
+        Public readonly Property B2 As B2
+        Public readonly Property B4 As B4
+
+        public sub new
+            Dim y As New B3
+
+            Test(me.B2, y, me.B4)
+            Test(Of B3)(me.B2, y, me.B4)
+        end sub
+    End Class
+
+    Class B2
+
+        Shared Widening Operator CType(x As B2) As B3
+            Return Nothing
+        End Operator
+
+        'Shared Widening Operator CType(x As B3) As B2
+        '    Return Nothing
+        'End Operator
+
+    End Class
+
+    Class B3
+    End Class
+
+    Class B4
+
+        Shared Widening Operator CType(x As B4) As B3
+            Return Nothing
+        End Operator
+
+    End Class
+
+    Sub Test(Of T)(ByRef x As T, y As T, z As T)
+        System.Console.WriteLine(GetType(T))
+    End Sub
+
+    Sub Main()
+        dim o as new B1
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Test(Of T)(ByRef x As T, y As T, z As T)' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+            Test(me.B2, y, me.B4)
+            ~~~~
+BC33037: Cannot copy the value of 'ByRef' parameter 'x' back to the matching argument because type 'Module1.B3' cannot be converted to type 'Module1.B2'.
+            Test(Of B3)(me.B2, y, me.B4)
+                        ~~~~~
+</expected>)
+        End Sub
+
         <Fact, WorkItem(545092, "DevDiv")>
         Public Sub Bug13357()
             Dim compilationDef =

@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim [property] = DirectCast(members(0), PropertySymbol)
                 If [property].Type IsNot Nothing AndAlso [property].Type.SpecialType = SpecialType.System_String AndAlso
                     [property].DeclaredAccessibility = Accessibility.Public AndAlso [property].GetArity() = 0 AndAlso
-                    [property].IsWritable AndAlso [property].SetMethod.DeclaredAccessibility = Accessibility.Public Then
+                    [property].HasSet AndAlso [property].SetMethod.DeclaredAccessibility = Accessibility.Public Then
 
                     Return True
                 End If

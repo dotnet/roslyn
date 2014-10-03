@@ -1855,28 +1855,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim receiver As BoundExpression = propertyAccess.ReceiverOpt
 
-                    If Not propertySymbol.IsWritable Then
+                    If Not propertyAccess.IsWriteable Then
                         ReportDiagnostic(diagnostics, node, ERRID.ERR_NoSetProperty1, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
                         isError = True
                     Else
                         Dim setMethod = propertySymbol.GetMostDerivedSetMethod()
-                        Debug.Assert(setMethod IsNot Nothing)
 
-                        ReportDiagnosticsIfObsolete(diagnostics, setMethod, node)
+                        If setMethod IsNot Nothing Then
+                            ReportDiagnosticsIfObsolete(diagnostics, setMethod, node)
 
-                        If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
-                            isError = True
-                        Else
-                            Dim accessThroughType = GetAccessThroughType(receiver)
-                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-
-                            If Not IsAccessible(setMethod, useSiteDiagnostics, accessThroughType) AndAlso
-                               IsAccessible(propertySymbol, useSiteDiagnostics, accessThroughType) Then
-                                ReportDiagnostic(diagnostics, node, ERRID.ERR_NoAccessibleSet, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                            If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
                                 isError = True
-                            End If
+                            Else
+                                Dim accessThroughType = GetAccessThroughType(receiver)
+                                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
-                            diagnostics.Add(node, useSiteDiagnostics)
+                                If Not IsAccessible(setMethod, useSiteDiagnostics, accessThroughType) AndAlso
+                                   IsAccessible(propertySymbol, useSiteDiagnostics, accessThroughType) Then
+                                    ReportDiagnostic(diagnostics, node, ERRID.ERR_NoAccessibleSet, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                                    isError = True
+                                End If
+
+                                diagnostics.Add(node, useSiteDiagnostics)
+                            End If
                         End If
                     End If
 

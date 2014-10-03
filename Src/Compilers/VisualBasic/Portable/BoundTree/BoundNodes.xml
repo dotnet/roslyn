@@ -833,7 +833,12 @@
              semantic information, it is discarded in the rewriter -->
         <Field Name="PropertyGroupOpt" Type="BoundPropertyGroup" Null="allow" SkipInVisitor="true" />
 
-        <Field Name="AccessKind" Type="PropertyAccessKind"/>
+        <Field Name="AccessKind" Type="PropertyAccessKind"/>           
+      
+        <!-- autoproperty could be writeable even when having no setter 
+             when in a corresponding constructor or initializer -->
+        <Field Name="IsWriteable" Type="Boolean"/>
+      
         <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
     </Node>

@@ -190,6 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       propertyDef,
                                                                       Nothing,
                                                                       PropertyAccessKind.Get,
+                                                                      False,
                                                                       anonymousTypeInstance,
                                                                       ImmutableArray(Of BoundExpression).Empty,
                                                                       propertyDef.Type)

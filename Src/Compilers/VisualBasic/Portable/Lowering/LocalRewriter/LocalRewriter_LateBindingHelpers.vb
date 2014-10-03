@@ -836,7 +836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each argument In arguments
                     Dim writeTarget As BoundExpression
 
-                    If Not argument.IsSupportingAssignment Then
+                    If Not argument.IsSupportingAssignment() Then
                         ' in this case writeTarget will not be used for assignment
                         writeTarget = Nothing
 

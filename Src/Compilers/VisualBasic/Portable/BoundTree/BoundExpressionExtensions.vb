@@ -175,9 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
                     End If
 
-                    Dim propertySymbol = propertyAccess.PropertySymbol
-                    Dim setMethod = propertySymbol.GetMostDerivedSetMethod()
-                    Return setMethod IsNot Nothing
+                    Return propertyAccess.IsWriteable
 
                 Case Else
                     Return False

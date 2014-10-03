@@ -81,7 +81,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Left.IsPropertyOrXmlPropertyAccess() OrElse
                          Left.IsLateBound OrElse
                          Left.Type.IsSameTypeIgnoringCustomModifiers(Type) OrElse
-                         (Type.IsVoidType() AndAlso Syntax.Kind = SyntaxKind.MidAssignmentStatement))
+                         (Type.IsVoidType() AndAlso Syntax.Kind = SyntaxKind.MidAssignmentStatement) OrElse
+                         (Left.Kind = BoundKind.FieldAccess AndAlso
+                                DirectCast(Left, BoundFieldAccess).FieldSymbol.AssociatedSymbol.Kind = SymbolKind.Property AndAlso
+                                Type.IsVoidType()))
+
         End Sub
 #End If
 

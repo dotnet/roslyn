@@ -335,6 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             propertySymbol,
                             node.PropertyGroupOpt,
                             node.AccessKind,
+                            node.IsWriteable,
                             receiver.First,
                             firstArgs,
                             node.Type)
@@ -343,6 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             propertySymbol,
                             node.PropertyGroupOpt,
                             node.AccessKind,
+                            node.IsWriteable,
                             receiver.Second,
                             secondArgs,
                             node.Type)
@@ -373,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For i = 0 To nArgs - 1
                     Dim boundArgument As BoundExpression = node.ArgumentsOpt(i)
                     ' LateBound argument
-                    If Not boundArgument.IsSupportingAssignment Then
+                    If Not boundArgument.IsSupportingAssignment() Then
                         UseTwiceRegularArgument(containingMember, boundArgument, arg, firstArgsArray(i), secondArgsArray(i))
                     Else
                         Dim temp = New SynthesizedLocal(containingMember, boundArgument.Type, SynthesizedLocalKind.LoweringTemp)

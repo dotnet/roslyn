@@ -349,6 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      propertySymbol,
                                                                      propertyGroupOpt:=Nothing,
                                                                      accessKind:=PropertyAccessKind.Set,
+                                                                     isWriteable:=True,
                                                                      receiverOpt:=boundReceiver,
                                                                      arguments:=ImmutableArray(Of BoundExpression).Empty,
                                                                      hasErrors:=hasError)

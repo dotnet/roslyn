@@ -170,21 +170,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        <Conditional("DEBUG")>
+        Private Shared Sub AssertIsWritableFromMember(node As BoundPropertyAccess, fromMember As Symbol)
+            Dim receiver = node.ReceiverOpt
+
+            Dim sourceProperty As SourcePropertySymbol = DirectCast(node.PropertySymbol, SourcePropertySymbol)
+            Dim propertyIsStatic As Boolean = node.PropertySymbol.IsShared
+
+            Debug.Assert(
+                sourceProperty IsNot Nothing AndAlso
+                sourceProperty.IsAutoProperty AndAlso
+                sourceProperty.ContainingType = fromMember.ContainingType AndAlso
+                propertyIsStatic = fromMember.IsShared AndAlso
+                (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
+                (fromMember.Kind = SymbolKind.Field OrElse (fromMember.Kind = SymbolKind.Method AndAlso
+                                                            DirectCast(fromMember, MethodSymbol).IsAnyConstructor)))
+
+        End Sub
+
         Private Function RewritePropertyAssignmentAsSetCall(node As BoundAssignmentOperator, setNode As BoundPropertyAccess) As BoundExpression
             Debug.Assert(setNode.AccessKind = PropertyAccessKind.Set)
 
             Dim [property] = setNode.PropertySymbol
             Dim setMethod = [property].GetMostDerivedSetMethod()
-            Debug.Assert(setMethod IsNot Nothing)
 
-            ' GenerateAccessorCall rewrites the arguments
-            Return RewriteReceiverArgumentsAndGenerateAccessorCall(node.Syntax,
+            If (setMethod Is Nothing) Then
+                AssertIsWritableFromMember(setNode, Me.currentMethodOrLambda)
+
+                Dim backingField = setNode.PropertySymbol.AssociatedField
+                Debug.Assert(backingField IsNot Nothing, "autoproperty must have a backing field")
+
+                Dim rewrittenReceiver = VisitExpressionNode(setNode.ReceiverOpt)
+                Dim field = New BoundFieldAccess(setNode.Syntax,
+                                                 rewrittenReceiver,
+                                                 backingField,
+                                                 isLValue:=True,
+                                                 type:=backingField.Type)
+
+                Dim rewrittenValue = VisitExpression(node.Right)
+
+                Return New BoundAssignmentOperator(node.Syntax,
+                                                   field,
+                                                   rewrittenValue,
+                                                   node.SuppressObjectClone,
+                                                   node.Type)
+
+            Else
+                ' GenerateAccessorCall rewrites the arguments
+                Return RewriteReceiverArgumentsAndGenerateAccessorCall(node.Syntax,
                                   setMethod,
                                   setNode.ReceiverOpt,
                                   setNode.Arguments.Concat(ImmutableArray.Create(node.Right)),
                                   node.ConstantValueOpt,
                                   False,
                                   setMethod.ReturnType)
+            End If
+
         End Function
 
         Private Function RewriteLateBoundAssignment(node As BoundAssignmentOperator) As BoundNode

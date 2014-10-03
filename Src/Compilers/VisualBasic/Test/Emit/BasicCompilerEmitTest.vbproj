@@ -132,7 +132,7 @@
     <Compile Include="CodeGen\CodeGenForeach.vb" />
     <Compile Include="CodeGen\CodeGenForLoops.vb" />
     <Compile Include="CodeGen\CodeGenGetTypeOperator.vb" />
-    <Compile Include="CodeGen\CodeGenStructCtor.vb" />
+    <Compile Include="CodeGen\CodeGenCtorInitializers.vb" />
     <Compile Include="CodeGen\CodeGenGoto.vb" />
     <Compile Include="CodeGen\CodeGenIfOperator.vb" />
     <Compile Include="CodeGen\CodeGenInterfaceImplementation.vb" />

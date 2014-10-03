@@ -109,14 +109,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Indicates if the property can be written into, which means this 
-        ''' type overrides OR inherits a setter for this property.
+        ''' Indicates if the property has a Set accessor.
         ''' </summary>
-        Friend ReadOnly Property IsWritable As Boolean
+        Friend ReadOnly Property HasSet As Boolean
             Get
                 Return Me.GetMostDerivedSetMethod() IsNot Nothing
             End Get
         End Property
+
+        ''' <summary>
+        ''' Indicates if the property can be written into, which means this 
+        ''' type overrides OR inherits a setter for this property.
+        ''' Or is a getter only autoproperty accessed in a corresponding constructor or initializer
+        ''' </summary>
+        Friend Function IsWritable(receiver As BoundExpression, containingBinder As Binder) As Boolean
+            If Me.HasSet Then
+                Return True
+            End If
+
+            Dim sourceProperty As SourcePropertySymbol = TryCast(Me, SourcePropertySymbol)
+            Dim propertyIsStatic As Boolean = Me.IsShared
+            Dim fromMember = containingBinder.ContainingMember
+
+            Return sourceProperty IsNot Nothing AndAlso
+                sourceProperty.IsAutoProperty AndAlso
+                sourceProperty.ContainingType = fromMember.ContainingType AndAlso
+                propertyIsStatic = fromMember.IsShared AndAlso
+                (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
+                ((fromMember.Kind = SymbolKind.Method AndAlso DirectCast(fromMember, MethodSymbol).IsAnyConstructor) OrElse
+                        TypeOf containingBinder Is DeclarationInitializerBinder)
+
+        End Function
+
 
         ''' <summary>
         ''' Gets the associated "get" method for this property. If this property
