@@ -266,6 +266,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         WorkCoordinator_Shutdown,
 
         DiagnosticAnalyzerService_Analyzers,
+        DiagnosticAnalyzerDriver_AnalyzerCrash,        
         PersistedSemanticVersion_Info,
         Esent_Exceptions
     }

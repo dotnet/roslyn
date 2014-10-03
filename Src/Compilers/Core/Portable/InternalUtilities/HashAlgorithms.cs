@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.IO;
-using System.Reflection;
-using System.Linq;
 using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace Roslyn.Utilities
 {
@@ -34,16 +34,16 @@ namespace Roslyn.Utilities
 
         protected static Type LoadAlgorithm(string name)
         {
-            const string mscorlib = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
+            const string Mscorlib = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
 
-            var type = Type.GetType("System.Security.Cryptography." + name + "CryptoServiceProvider, " + mscorlib, throwOnError: false);
+            var type = Type.GetType("System.Security.Cryptography." + name + "CryptoServiceProvider, " + Mscorlib, throwOnError: false);
 
             if (type != null && type.GetTypeInfo().IsPublic)
             {
                 return type;
             }
 
-            return Type.GetType("System.Security.Cryptography." + name + "Managed, " + mscorlib, throwOnError: false);
+            return Type.GetType("System.Security.Cryptography." + name + "Managed, " + Mscorlib, throwOnError: false);
         }
 
         protected HashAlgorithm(IDisposable hashInstance)
