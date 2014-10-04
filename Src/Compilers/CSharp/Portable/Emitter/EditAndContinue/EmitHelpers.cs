@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (testData != null)
             {
-                testData.Compilation = compilation;
                 moduleBeingBuilt.SetMethodTestData(testData.Methods);
                 testData.Module = moduleBeingBuilt;
             }

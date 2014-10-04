@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencies = new List<ModuleData>();
 
-            testData.Reset();
+            testData.Methods.Clear();
 
             ImmutableArray<byte> mainImage, mainPdb;
             bool succeeded = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, testData, out mainImage, out mainPdb);
@@ -409,7 +409,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationTestData GetCompilationTestData()
         {
-            Debug.Assert(testData.Compilation != null, "If CompilationTestData does not have a pointer to the compilation that initialized it, then AVs may result when attempting to access Symbols during IL visualization.");
             if (testData.Module == null)
             {
                 throw new InvalidOperationException("You must call Emit before calling GetCompilationTestData.");
