@@ -349,6 +349,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid CodePage value: {0}.
+        /// </summary>
+        internal static string InvalidCodePage {
+            get {
+                return ResourceManager.GetString("InvalidCodePage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Destination type must be a {0}..
         /// </summary>
         internal static string InvalidDestinationNode {

@@ -38,6 +38,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ParseOptions ParseOptions { get; private set; }
 
         /// <summary>
+        /// The codepage for this project.
+        /// </summary>
+        public int CodePage { get; private set; }
+
+        /// <summary>
         /// The source documents.
         /// </summary>
         public IReadOnlyList<DocumentFileInfo> Documents { get; private set; }
@@ -68,6 +73,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string assemblyName,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
+            int codePage,
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
             IEnumerable<ProjectFileReference> projectReferences,
@@ -79,6 +85,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.AssemblyName = assemblyName;
             this.CompilationOptions = compilationOptions;
             this.ParseOptions = parseOptions;
+            this.CodePage = codePage;
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
             this.AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();

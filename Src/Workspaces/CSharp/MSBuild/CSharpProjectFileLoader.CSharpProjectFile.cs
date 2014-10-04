@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     assemblyName,
                     compilerInputs.CompilationOptions,
                     compilerInputs.ParseOptions,
+                    compilerInputs.CodePage,
                     docs,
                     additionalDocs,
                     this.GetProjectReferences(executedProject),
@@ -271,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal bool Initialized { get; private set; }
                 internal CSharpParseOptions ParseOptions { get; private set; }
                 internal CSharpCompilationOptions CompilationOptions { get; private set; }
+                internal int CodePage { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> References { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> AnalyzerReferences { get; private set; }
@@ -447,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetCodePage(int codePage)
                 {
-                    // ??
+                    this.CodePage = codePage;
                     return true;
                 }
 

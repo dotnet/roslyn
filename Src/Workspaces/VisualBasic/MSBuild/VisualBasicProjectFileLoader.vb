@@ -85,6 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     compilerInputs.CompilationOptions,
                     compilerInputs.ParseOptions.WithPreprocessorSymbols(AddPredefinedPreprocessorSymbols(
                         compilerInputs.CompilationOptions.OutputKind, compilerInputs.ParseOptions.PreprocessorSymbols)),
+                    compilerInputs.CodePage,
                     Me.GetDocuments(compilerInputs.Sources, executedProject),
                     Me.GetDocuments(compilerInputs.AdditionalFiles, executedProject),
                     Me.GetProjectReferences(executedProject),
@@ -263,6 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _initialized As Boolean
                 Private _parseOptions As VisualBasicParseOptions
                 Private _compilationOptions As VisualBasicCompilationOptions
+                Private _codePage As Integer
                 Private _sources As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _additionalFiles As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _references As IEnumerable(Of MSB.Framework.ITaskItem)
@@ -308,6 +310,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public ReadOnly Property ParseOptions As VisualBasicParseOptions
                     Get
                         Return Me._parseOptions
+                    End Get
+                End Property
+
+                Public ReadOnly Property CodePage As Integer
+                    Get
+                        Return Me._codePage
                     End Get
                 End Property
 
@@ -415,6 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetCodePage(codePage As Integer) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetCodePage
+                    Me._codePage = codePage
                     Return True
                 End Function
 

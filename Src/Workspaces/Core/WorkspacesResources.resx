@@ -360,4 +360,7 @@
   <data name="RemovedHeader" xml:space="preserve">
     <value>Removed:</value>
   </data>
+  <data name="InvalidCodePage" xml:space="preserve">
+    <value>Invalid CodePage value: {0}</value>
+  </data>
 </root>

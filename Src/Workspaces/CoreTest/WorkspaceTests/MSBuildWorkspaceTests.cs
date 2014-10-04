@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2193,6 +2194,89 @@ class C1
             {
                 var c = p.GetCompilationAsync().Result;
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(991528)]
+        public void MSBuildProjectShouldHandleCodePageProperty()
+        {
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>1254</CodePage>") },
+                { "class1.cs", "//“" }
+            });
+
+            CreateFiles(files);
+
+            var projPath = Path.Combine(this.SolutionDirectory.Path, "Encoding.csproj");
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(projPath).Result;
+
+            var text = project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result;
+            Assert.Equal(Encoding.GetEncoding(1254), text.Encoding);
+
+            // The smart quote (“) in class1.cs shows up as "â€œ" in codepage 1254. Do a sanity
+            // check here to make sure this file hasn't been corrupted in a way that would
+            // impact subsequent asserts.
+            Assert.Equal("//â€œ".Length, 5);
+            Assert.Equal("//â€œ".Length, text.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(991528)]
+        public void MSBuildProjectShouldHandleInvalidCodePageProperty()
+        {
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>-1</CodePage>") },
+                { "class1.cs", "//“" }
+            });
+
+            CreateFiles(files);
+
+            var projPath = Path.Combine(this.SolutionDirectory.Path, "Encoding.csproj");
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(projPath).Result;
+
+            Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result.Encoding);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(991528)]
+        public void MSBuildProjectShouldHandleInvalidCodePageProperty2()
+        {
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>Broken</CodePage>") },
+                { "class1.cs", "//“" }
+            });
+
+            CreateFiles(files);
+
+            var projPath = Path.Combine(this.SolutionDirectory.Path, "Encoding.csproj");
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(projPath).Result;
+
+            Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result.Encoding);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(991528)]
+        public void MSBuildProjectShouldHandleDefaultCodePageProperty()
+        {
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty) },
+                { "class1.cs", "//“" }
+            });
+
+            CreateFiles(files);
+
+            var projPath = Path.Combine(this.SolutionDirectory.Path, "Encoding.csproj");
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(projPath).Result;
+
+            var text = project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result;
+            Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), text.Encoding);
+            Assert.Equal("//“", text.ToString());
         }
     }
 }

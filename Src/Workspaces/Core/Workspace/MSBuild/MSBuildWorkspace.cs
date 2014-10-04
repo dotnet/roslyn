@@ -644,9 +644,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var docFileInfos = projectFileInfo.Documents.ToImmutableArrayOrEmpty();
             CheckDocuments(docFileInfos, projectFilePath, projectId);
 
-            // TODO: is there a way how to specify encoding to msbuild? csc.exe has /codepage command line option.
-            // For now use auto-detection. (bug 941489).
-            Encoding defaultEncoding = null;
+            Encoding defaultEncoding = GetDefaultEncoding(projectFileInfo.CodePage);
 
             var docs = new List<DocumentInfo>();
             foreach (var docFileInfo in docFileInfos)
@@ -713,11 +711,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     resolvedReferences.ProjectReferences,
                     metadataReferences,
                     analyzerReferences: projectFileInfo.AnalyzerReferences,
-                    additionalDocuments: additonalDocs, 
+                    additionalDocuments: additonalDocs,
                     isSubmission: false,
                     hostObjectType: null));
 
             return projectId;
+        }
+
+        private static Encoding GetDefaultEncoding(int codePage)
+        {
+            // If no CodePage was specified in the project file, then the FileTextLoader will 
+            // attempt to use UTF8 before falling back on Encoding.Default.
+            if (codePage == 0)
+            {
+                return null;
+            }
+
+            try
+            {
+                return Encoding.GetEncoding(codePage);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return null;
+            }
         }
 
         private static readonly char[] DirectorySplitChars = new char[] { Path.DirectorySeparatorChar };
@@ -955,7 +972,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var relativePath = folders != null ? Path.Combine(Path.Combine(folders.ToArray()), fileName) : fileName;
 
                 var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath));
-                var encoding = (text != null) ? text.Encoding : Encoding.UTF8;
+                var encoding = (text != null) ? text.Encoding : null;
 
                 var documentInfo = DocumentInfo.Create(documentId, fileName, folders, sourceCodeKind, new FileTextLoader(fullPath, encoding), fullPath, encoding, isGenerated: false);
 
