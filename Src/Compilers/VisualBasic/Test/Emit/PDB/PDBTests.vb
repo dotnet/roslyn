@@ -1940,9 +1940,9 @@ End Module
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
+                    <slot kind="15" offset="32"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
@@ -2069,7 +2069,7 @@ End Module
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
                     <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
+                    <slot kind="15" offset="32"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencepoints total="13">
@@ -2133,9 +2133,9 @@ End Module
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
+                    <slot kind="15" offset="32"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
@@ -2199,9 +2199,9 @@ End Module
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
+                    <slot kind="15" offset="32"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
@@ -2392,7 +2392,7 @@ End Module
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
+                    <slot kind="15" offset="34"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
@@ -7522,6 +7522,61 @@ End Class
             </scope>
         </method>
     </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Sub SynthesizedVariableForSelectCastValue()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Class C
+    Sub F(args As String())
+        Select Case args(0)
+            Case "a"
+                Console.WriteLine(1)
+            Case "b"
+                Console.WriteLine(2)
+            Case "c"
+                Console.WriteLine(3)
+        End Select
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
+            c.VerifyDiagnostics()
+            c.VerifyPdb("C.F",
+<symbols>
+    <methods>
+        <method containingType="C" name="F" parameterNames="args">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="15" offset="0"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencepoints total="10">
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="28" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="9" end_row="4" end_column="28" file_ref="0"/>
+                <entry il_offset="0x32" start_row="5" start_column="13" end_row="5" end_column="21" file_ref="0"/>
+                <entry il_offset="0x33" start_row="6" start_column="17" end_row="6" end_column="37" file_ref="0"/>
+                <entry il_offset="0x3c" start_row="7" start_column="13" end_row="7" end_column="21" file_ref="0"/>
+                <entry il_offset="0x3d" start_row="8" start_column="17" end_row="8" end_column="37" file_ref="0"/>
+                <entry il_offset="0x46" start_row="9" start_column="13" end_row="9" end_column="21" file_ref="0"/>
+                <entry il_offset="0x47" start_row="10" start_column="17" end_row="10" end_column="37" file_ref="0"/>
+                <entry il_offset="0x50" start_row="11" start_column="9" end_row="11" end_column="19" file_ref="0"/>
+                <entry il_offset="0x51" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
+            </sequencepoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x52">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+
 </symbols>)
         End Sub
 

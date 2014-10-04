@@ -107,11 +107,10 @@ namespace Microsoft.CodeAnalysis
         // VB TODO:
         ForDirection = 14,
 
-        // VB TODO:
-        // degenerate select key (can we EnC when stopped on case?)
-
-        // VB TODO: XmlInExpressionLambda locals are always lifted and must have distinct names.
-        XmlInExpressionLambda = 15,
+        /// <summary>
+        /// Local variable used to store the value of Select Case during the execution of Case statements.
+        /// </summary>
+        SelectCaseValue = 15,
 
         // VB TODO
         OnErrorActiveHandler = 16,
@@ -168,6 +167,9 @@ namespace Microsoft.CodeAnalysis
         /// and can be reused for all iterations of the loop.
         /// </summary>
         CachedAnonymousMethodDelegate = 31,
+
+        // VB TODO: XmlInExpressionLambda locals are always lifted and must have distinct names.
+        XmlInExpressionLambda = 32,
 
         /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValue"/> (<see cref="EditAndContinueMethodDebugInformation"/>)

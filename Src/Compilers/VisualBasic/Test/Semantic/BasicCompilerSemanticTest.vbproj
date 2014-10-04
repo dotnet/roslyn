@@ -203,7 +203,7 @@
     <Compile Include="Semantics\QueryExpressions_LookupSymbols.vb" />
     <Compile Include="Semantics\QueryExpressions_SemanticModel.vb" />
     <Compile Include="Semantics\RedimStatementTests.vb" />
-    <Compile Include="Semantics\SelectCaseTest.vb" />
+    <Compile Include="Semantics\SelectCaseTests.vb" />
     <Compile Include="Semantics\SyncLockTests.vb" />
     <Compile Include="Semantics\SyntaxTreeRootTests.vb" />
     <Compile Include="Semantics\TooLongNameTests.vb" />

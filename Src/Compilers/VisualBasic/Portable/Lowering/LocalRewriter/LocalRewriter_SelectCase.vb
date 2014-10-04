@@ -193,6 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 statementBuilder.Add(New BoundSequencePoint(selectExprStmtSyntax, Nothing))
             End If
 
+
             If generateUnstructuredExceptionHandlingResumeCode Then
                 RegisterUnstructuredExceptionHandlingResumeTarget(selectExprStmtSyntax, canThrow:=True, statements:=statementBuilder)
                 ' If the Select throws, a Resume Next should branch to the End Select.
@@ -217,7 +218,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim selectExprType = rewrittenSelectExpression.Type
 
                 ' Store the select expression result in a temp
-                Dim tempLocal = New SynthesizedLocal(Me.currentMethodOrLambda, selectExprType, SynthesizedLocalKind.LoweringTemp)
+                Dim selectStatementSyntax = DirectCast(selectExprStmtSyntax.Parent, SelectBlockSyntax).SelectStatement
+                Dim tempLocal = New SynthesizedLocal(Me.currentMethodOrLambda, selectExprType, SynthesizedLocalKind.SelectCaseValue, selectStatementSyntax)
                 tempLocals = ImmutableArray.Create(Of LocalSymbol)(tempLocal)
 
                 Dim boundTemp = New BoundLocal(rewrittenSelectExpression.Syntax, tempLocal, selectExprType)
