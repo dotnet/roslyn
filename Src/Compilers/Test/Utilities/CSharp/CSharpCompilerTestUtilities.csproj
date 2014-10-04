@@ -94,6 +94,7 @@
     <Compile Include="DiagnosticExtensions.cs" />
     <Compile Include="DiagnosticTestUtilities.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="LocalVariableDeclaratorsCollector.cs" />
     <Compile Include="MetadataTestHelpers.cs" />
     <Compile Include="MockCSharpCompiler.cs" />
     <Compile Include="MockCsi.cs" />

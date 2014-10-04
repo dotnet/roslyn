@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 guidStreamLengthAdded: previousGeneration.GuidStreamLengthAdded,
                 anonymousTypeMap: anonymousTypeMap,
                 localsForMethodsAddedOrChanged: previousGeneration.LocalsForMethodsAddedOrChanged,
-                localNames: previousGeneration.LocalNames);
+                debugInformationProvider: previousGeneration.DebugInformationProvider);
         }
 
         internal EmitBaseline PreviousGeneration

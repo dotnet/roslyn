@@ -1315,7 +1315,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
             Assert.Equal(expectedEnumValues.Length, fields.Count - 1)
             For count = 0 To fields.Count - 1
                 Dim field = DirectCast(fields(count), FieldSymbol)
-                Dim fieldDefinition = DirectCast(field, Microsoft.Cci.IFieldDefinition)
+                Dim fieldDefinition = DirectCast(field, Cci.IFieldDefinition)
                 If count = 0 Then
                     Assert.Equal(field.Name, "value__")
                     Assert.False(field.IsShared)

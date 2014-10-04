@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias PDB;
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -16,7 +18,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.PdbUtilities;
+using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
@@ -717,34 +719,12 @@ namespace Roslyn.Test.Utilities
 
         public static void AssertXmlEqual(string expected, string actual)
         {
-            XmlElementDiff.AssertEqual(expected, actual, ShallowElementComparer.Instance);
+            XmlElementDiff.AssertEqual(XElement.Parse(expected), XElement.Parse(actual), null, 0, expectedIsXmlLiteral: true);
         }
 
         public static void AssertXmlEqual(XElement expected, XElement actual)
         {
-            XmlElementDiff.AssertEqual(expected, actual, ShallowElementComparer.Instance);
-        }
-
-        private class ShallowElementComparer : IEqualityComparer<XElement>
-        {
-            public static readonly IEqualityComparer<XElement> Instance = new ShallowElementComparer();
-
-            private ShallowElementComparer() { }
-
-            public bool Equals(XElement element1, XElement element2)
-            {
-                Assert.NotNull(element1);
-                Assert.NotNull(element2);
-
-                return element1.Name == "customDebugInfo"
-                    ? element1.ToString() == element2.ToString()
-                    : XmlElementDiff.NameAndAttributeComparer.Instance.Equals(element1, element2);
-            }
-
-            public int GetHashCode(XElement element)
-            {
-                return element.Name.GetHashCode();
-            }
+            XmlElementDiff.AssertEqual(expected, actual, null, 0, expectedIsXmlLiteral: false);
         }
 
         protected static string ConsolidateArguments(string[] args)

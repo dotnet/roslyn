@@ -879,30 +879,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case SyntaxKind.Block:
-                    
-                    MemberDeclarationSyntax memberDecl;
-                    AccessorDeclarationSyntax accessorDecl;
-                    if ((memberDecl = node.Parent as MemberDeclarationSyntax) != null)
-                    {
-                        var symbol = (SourceMethodSymbol)GetDeclaredSymbol(memberDecl);
-                        if ((object)symbol == null)
-                            return null;
 
-                        return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, memberDecl);
-                    }
-                    else if ((accessorDecl = node.Parent as AccessorDeclarationSyntax) != null)
-                    {
-                        var symbol = (SourceMethodSymbol)GetDeclaredSymbol(accessorDecl);
-                        if ((object)symbol == null)
-                            return null;
+                        MemberDeclarationSyntax memberDecl;
+                        AccessorDeclarationSyntax accessorDecl;
+                        if ((memberDecl = node.Parent as MemberDeclarationSyntax) != null)
+                        {
+                            var symbol = (SourceMethodSymbol)GetDeclaredSymbol(memberDecl);
+                            if ((object)symbol == null)
+                                return null;
 
-                        return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, accessorDecl);
-                    }
-                    else
-                    {
-                        Debug.Assert(false, "Unexpected node: " + node.Parent);
-                        return null;
-                    }
+                            return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, memberDecl);
+                        }
+                        else if ((accessorDecl = node.Parent as AccessorDeclarationSyntax) != null)
+                        {
+                            var symbol = (SourceMethodSymbol)GetDeclaredSymbol(accessorDecl);
+                            if ((object)symbol == null)
+                                return null;
+
+                            return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, accessorDecl);
+                        }
+                        else
+                        {
+                            Debug.Assert(false, "Unexpected node: " + node.Parent);
+                            return null;
+                        }
 
                 case SyntaxKind.EqualsValueClause:
                     switch (node.Parent.Kind)
@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method;
 
-            method = GetDeclaredSymbol(memberDecl, cancellationToken) as MethodSymbol;
+                method = GetDeclaredSymbol(memberDecl, cancellationToken) as MethodSymbol;
 
             if ((object)method == null)
             {

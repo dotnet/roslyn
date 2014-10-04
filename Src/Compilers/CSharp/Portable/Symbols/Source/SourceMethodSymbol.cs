@@ -84,9 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private OverriddenOrHiddenMembersResult lazyOverriddenOrHiddenMembers;
 
-        // syntax may not be available (some symbols have just signature, others body, or no syntax at all)
-        protected readonly SyntaxReference syntaxReference;
-        protected readonly SyntaxReference bodySyntaxReference;
+        // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
+        protected readonly SyntaxReference syntaxReferenceOpt;
+
+        // some symbols may not have a body syntax (e.g. abstract and extern members, primary constructors, synthesized event accessors, etc.)
+        protected readonly SyntaxReference bodySyntaxReferenceOpt;
+
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
 
@@ -106,19 +109,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return cachedDiagnostics;
         }
 
-        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReference, SyntaxReference bodySyntaxReference, Location location)
-            : this(containingType, syntaxReference, bodySyntaxReference, ImmutableArray.Create(location))
+        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
+            : this(containingType, syntaxReferenceOpt, bodySyntaxReferenceOpt, ImmutableArray.Create(location))
         {
         }
 
-        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReference, SyntaxReference bodySyntaxReference, ImmutableArray<Location> locations)
+        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
 
             this.containingType = containingType;
-            this.syntaxReference = syntaxReference;
-            this.bodySyntaxReference = bodySyntaxReference;
+            this.syntaxReferenceOpt = syntaxReferenceOpt;
+            this.bodySyntaxReferenceOpt = bodySyntaxReferenceOpt;
             this.locations = locations;
         }
 
@@ -202,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected virtual object MethodChecksLockObject
         {
-            get { return this.syntaxReference; }
+            get { return this.syntaxReferenceOpt; }
         }
 
         protected void LazyMethodChecks()
@@ -502,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.bodySyntaxReference == null) ? null : this.bodySyntaxReference.GetSyntax();
+                return (this.bodySyntaxReferenceOpt == null) ? null : this.bodySyntaxReferenceOpt.GetSyntax();
             }
         }
 
@@ -510,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.syntaxReference;
+                return this.syntaxReferenceOpt;
             }
         }
 
@@ -518,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.syntaxReference == null ? null : (CSharpSyntaxNode)this.syntaxReference.GetSyntax();
+                return (this.syntaxReferenceOpt == null) ? null : (CSharpSyntaxNode)this.syntaxReferenceOpt.GetSyntax();
             }
         }
 
@@ -526,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.syntaxReference == null ? null : this.syntaxReference.SyntaxTree;
+                return this.syntaxReferenceOpt == null ? null : this.syntaxReferenceOpt.SyntaxTree;
             }
         }
 
@@ -551,8 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CSharpSyntaxNode node = this.SyntaxNode;
-                return (node == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create<SyntaxReference>(node.GetReference());
+                return (this.syntaxReferenceOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntaxReferenceOpt);
             }
         }
 
@@ -991,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return data != null ? data.ObsoleteAttributeData : null;
                 }
 
-                var reference = this.syntaxReference;
+                var reference = this.syntaxReferenceOpt;
                 if (reference == null)
                 {
                     // no references -> no attributes
@@ -1518,5 +1520,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// present, this is not treated as expression-bodied.
         /// </remarks>
         internal abstract bool IsExpressionBodied { get; }
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            // Method without body doesn't declare locals.
+            Debug.Assert(this.BodySyntax != null);
+            Debug.Assert(this.BodySyntax.SyntaxTree == localTree);
+
+            // All locals are declared within the body of the method.
+            Debug.Assert(this.BodySyntax.Span.Contains(localPosition));
+
+            return localPosition - this.BodySyntax.SpanStart;
+        }
     }
 }

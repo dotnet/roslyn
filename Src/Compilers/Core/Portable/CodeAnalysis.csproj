@@ -78,7 +78,7 @@
     <Compile Include="CodeGen\TokenMap.cs" />
     <Compile Include="CodeGen\VariableSlotAllocator.cs" />
     <Compile Include="CodeGen\Win32Res.cs" />
-    <Compile Include="Collections\ArrayBuilder.ArrayBuilderEnumerator.cs" />
+    <Compile Include="Collections\ArrayBuilder.Enumerator.cs" />
     <Compile Include="Collections\ArrayBuilder.cs" />
     <Compile Include="Collections\ArrayBuilderExtensions.cs" />
     <Compile Include="Collections\ArrayElement.cs" />
@@ -98,6 +98,7 @@
     <Compile Include="DiagnosticAnalyzer\AsyncQueue.TaskCompletionSourceWithCancellation.cs" />
     <Compile Include="Emit\EditAndContinue\EncVariableSlotAllocator.cs" />
     <Compile Include="InternalUtilities\AssemblyLocationLightUp.cs" />
+    <Compile Include="Emit\EditAndContinueMethodDebugInformation.cs" />
     <Compile Include="InternalUtilities\DocumentationCommentId.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcher.cs" />
     <Compile Include="InternalUtilities\FileStreamLightUp.cs" />
@@ -456,7 +457,9 @@
     <Compile Include="Symbols\IFieldSymbol.cs" />
     <Compile Include="Symbols\ILabelSymbol.cs" />
     <Compile Include="Symbols\ILocalSymbol.cs" />
+    <Compile Include="Symbols\ILocalSymbolInternal.cs" />
     <Compile Include="Symbols\IMethodSymbol.cs" />
+    <Compile Include="Symbols\IMethodSymbolInternal.cs" />
     <Compile Include="Symbols\IModuleSymbol.cs" />
     <Compile Include="Symbols\INamedTypeSymbol.cs" />
     <Compile Include="Symbols\INamespaceOrTypeSymbol.cs" />
@@ -481,7 +484,8 @@
     <Compile Include="Symbols\SymbolKindExtensions.cs" />
     <Compile Include="Symbols\SymbolVisitor.cs" />
     <Compile Include="Symbols\SymbolVisitor`1.cs" />
-    <Compile Include="Symbols\CommonSynthesizedLocalKind.cs" />
+    <Compile Include="SynthesizedLocalKind.cs" />
+    <Compile Include="CodeGen\LocalDebugId.cs" />
     <Compile Include="Symbols\TypedConstant.cs" />
     <Compile Include="Symbols\TypedConstantKind.cs" />
     <Compile Include="Symbols\TypedConstantValue.cs" />

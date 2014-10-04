@@ -1,20 +1,15 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Friend MustInherit Class MethodSymbol
         Inherits Symbol
-        Implements IMethodSymbol
+        Implements IMethodSymbolInternal
 
         ''' <summary>
         ''' Gets what kind of method this is. There are several different kinds of things in the
@@ -747,16 +742,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' When a state machine method MoveNext() is generated for an Async method, additional information is 
-        ''' supposed to be written into PDB file; this property links such a MoveNext() method to an original 
-        ''' Async method and should only be overriden in the method symbol created in AsyncRewriter representing
-        ''' synthesized MoveNext() method
+        ''' Calculates a syntax offset for a local (user-defined or long-lived synthesized) declared at <paramref name="localPosition"/>.
         ''' </summary>
-        Friend Overridable ReadOnly Property AsyncKickoffMethod As MethodSymbol
-            Get
-                Return Nothing
-            End Get
-        End Property
+        ''' <remarks>
+        ''' Syntax offset is a unique identifier for the local within the emitted method body.
+        ''' It's based on position of the local declarator. In single-part method bodies it's simply the distance
+        ''' from the start of the method body syntax span. If a method body has multiple parts (such as a constructor 
+        ''' comprising of code for member initializers and constructor initializer calls) the offset is calculated
+        ''' as if all source these parts were concatenated together and prepended to the constructor body.
+        ''' The resulting syntax offset is then negative for locals defined outside of the constructor body.
+        ''' </remarks>
+        Friend Overridable Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            ' Method body doesn't contain any user-defined or long-lived synthesized locals.
+            Throw ExceptionUtilities.Unreachable
+        End Function
 
 #Region "IMethodSymbol"
 
@@ -946,6 +945,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.AssociatedAnonymousDelegate
             End Get
         End Property
+#End Region
+
+#Region "IMethodSymbolInternal"
+        Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
+            Return CalculateLocalSyntaxOffset(localPosition, localTree)
+        End Function
 #End Region
 
 #Region "ISymbol"

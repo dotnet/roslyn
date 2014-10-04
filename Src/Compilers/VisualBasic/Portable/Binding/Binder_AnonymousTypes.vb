@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Text.RegularExpressions
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -82,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' the array builder is being created lazily if needed
             Private _fieldDeclarations As ArrayBuilder(Of BoundAnonymousTypePropertyAccess)
 
-            ' '_locals' field points to an array which holds locals intorduced during binding
+            ' '_locals' field points to an array which holds locals introduced during binding
             ' for each field which is being used in other field initialization;
             ' Thus while binding 'New With { .a = 1, .b = 1 + .a }' a local will be created to 
             ' hold the value of '1' and to be used as '.a = <local_a>' and '.b = 1 + <local_a>'
@@ -340,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim local = Me._locals(fieldIndex)
                     If local Is Nothing Then
                         ' create a local
-                        local = New SynthesizedLocal(Me.ContainingMember, Me._fields(fieldIndex).Type, SynthesizedLocalKind.None)
+                        local = New SynthesizedLocal(Me.ContainingMember, Me._fields(fieldIndex).Type, SynthesizedLocalKind.LoweringTemp)
                         Me._locals(fieldIndex) = local
                     End If
                 End If

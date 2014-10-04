@@ -599,7 +599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     controlVariable,
                     newValue,
                     suppressObjectClone:=True,
-                    Type:=controlVariable.Type
+                    type:=controlVariable.Type
                 )
             )
 
@@ -790,7 +790,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' To ensure that behavior non-constant values are hoisted into temps before entering the loop
         ''' which avoids re-fetching potentially changed values.
         ''' </summary>
-
         Private Function CacheToTempIfNotConst(
                             value As BoundExpression,
                             locals As ArrayBuilder(Of LocalSymbol),

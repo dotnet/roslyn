@@ -361,7 +361,6 @@
     <Compile Include="Emit\AssemblyReference.vb" />
     <Compile Include="Emit\AttributeDataAdapter.vb" />
     <Compile Include="Emit\CustomModifierAdapter.vb" />
-    <Compile Include="Emit\EditAndContinue\VisualBasicDefinitionMap.LocalVisitors.vb" />
     <Compile Include="Emit\EditAndContinue\VisualBasicDefinitionMap.vb" />
     <Compile Include="Emit\EditAndContinue\EmitHelpers.vb" />
     <Compile Include="Emit\EditAndContinue\PEDeltaAssemblyBuilder.vb" />
@@ -428,6 +427,7 @@
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.SpillFieldAllocator.vb" />
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.vb" />
     <Compile Include="Lowering\AsyncRewriter\AsyncStateMachine.vb" />
+    <Compile Include="Lowering\DebugAttributes.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass_ExpressionLambdas.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter.vb" />
@@ -508,6 +508,7 @@
     <Compile Include="Lowering\StateMachineRewriter\StateMachineRewriter.StateMachineMethodToClassRewriter.vb" />
     <Compile Include="Lowering\StateMachineRewriter\StateMachineRewriter.vb" />
     <Compile Include="Lowering\StateMachineRewriter\StateMachineStates.vb" />
+    <Compile Include="Lowering\StateMachineRewriter\StateMachineTypeSymbol.vb" />
     <Compile Include="Lowering\StateMachineRewriter\SynthesizedContainer.vb" />
     <Compile Include="Lowering\StateMachineRewriter\SynthesizedStateMachineMethod.vb" />
     <Compile Include="Lowering\StateMachineRewriter\SynthesizedStateMachineProperty.vb" />
@@ -769,7 +770,6 @@
     <Compile Include="Symbols\Source\SynthesizedEventBackingFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedLambdaSymbol.vb" />
-    <Compile Include="Symbols\Source\SynthesizedLocalKind.vb" />
     <Compile Include="Symbols\Source\SynthesizedMainTypeEntryPoint.vb" />
     <Compile Include="Symbols\Source\SynthesizedMyGroupCollectionPropertyAccessorSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedMyGroupCollectionPropertyBackingFieldSymbol.vb" />

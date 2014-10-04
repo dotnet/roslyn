@@ -19,13 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Generates the name of a lambda's function value local.
-        ''' </summary>
-        Public Shared Function MakeTempLambdaLocalName() As String
-            Return String.Empty
-        End Function
-
-        ''' <summary>
         ''' Generates the name of a state machine's type
         ''' </summary>
         Public Shared Function MakeStateMachineTypeName(index As Integer, topMethodMetadataName As String) As String
@@ -175,17 +168,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Shared Function MakeLocalName(kind As SynthesizedLocalKind, type As TypeSymbol, ByRef index As Integer) As String
+        Friend Shared Function MakeHoistedLocalFieldName(kind As SynthesizedLocalKind, type As TypeSymbol, ByRef index As Integer) As String
             Debug.Assert(kind.IsLongLived())
+
+            Const SynthesizedLocalNamePrefix As String = "VB$"
 
             Select Case kind
                 Case SynthesizedLocalKind.XmlInExpressionLambda
                     index += 1
                     Return SynthesizedLocalNamePrefix & type.GetNativeCompilerVType() & "$L" & index
+
                 Case SynthesizedLocalKind.LambdaDisplayClass
-                    'TODO: VB10 adds line/column numbers in hex here. Not sure if that is important or always meaningful.
                     index += 1
                     Return StringConstants.ClosureVariablePrefix & index
+
+                Case SynthesizedLocalKind.With
+                    index += 1
+                    Return StringConstants.SynthesizedLocalKindWith & index
 
                 Case SynthesizedLocalKind.Lock
                     Return StringConstants.SynthesizedLocalKindLock
@@ -199,8 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return StringConstants.SynthesizedLocalKindForEachArrayIndex
                 Case SynthesizedLocalKind.LockTaken
                     Return StringConstants.SynthesizedLocalKindLockTaken
-                Case SynthesizedLocalKind.With
-                    Return StringConstants.SynthesizedLocalKindWith
 
                 Case SynthesizedLocalKind.ForLimit
                     Return StringConstants.ForLimit
@@ -213,8 +210,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Case SynthesizedLocalKind.StateMachineReturnValue
                     Return StringConstants.StateMachineReturnValueLocalName
-                Case SynthesizedLocalKind.StateMachineException
-                    Return StringConstants.StateMachineExceptionLocalName
                 Case SynthesizedLocalKind.StateMachineCachedState
                     Return StringConstants.StateMachineCachedState
 
@@ -226,61 +221,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return StringConstants.OnErrorCurrentStatement
                 Case SynthesizedLocalKind.OnErrorCurrentLine
                     Return StringConstants.OnErrorCurrentLine
-                Case SynthesizedLocalKind.FunctionReturnValue
-                    ' TODO: temporarily assign a name
-                    Return "VB$FRV"
             End Select
 
             Throw ExceptionUtilities.UnexpectedValue(kind)
         End Function
 
-        Private Const SynthesizedLocalNamePrefix As String = "VB$"
-
         Friend Shared Function TryParseLocalName(name As String, ByRef kind As SynthesizedLocalKind, ByRef uniqueId As Integer) As Boolean
+            ' TODO: revisit this method
 
-            'TODO: are we using this for anything?
             uniqueId = 0
 
             Select Case name
-
-                Case StringConstants.SynthesizedLocalKindLock
-                    kind = SynthesizedLocalKind.Lock
-                Case StringConstants.SynthesizedLocalKindUsing
-                    kind = SynthesizedLocalKind.Using
-                Case StringConstants.SynthesizedLocalKindForEachEnumerator
-                    kind = SynthesizedLocalKind.ForEachEnumerator
-                Case StringConstants.SynthesizedLocalKindForEachArray
-                    kind = SynthesizedLocalKind.ForEachArray
-                Case StringConstants.SynthesizedLocalKindForEachArrayIndex
-                    kind = SynthesizedLocalKind.ForEachArrayIndex
-                Case StringConstants.SynthesizedLocalKindLockTaken
-                    kind = SynthesizedLocalKind.LockTaken
                 Case StringConstants.SynthesizedLocalKindWith
                     kind = SynthesizedLocalKind.With
 
-                Case StringConstants.OnErrorActiveHandler
-                    kind = SynthesizedLocalKind.OnErrorActiveHandler
-                Case StringConstants.OnErrorResumeTarget
-                    kind = SynthesizedLocalKind.OnErrorResumeTarget
-                Case StringConstants.OnErrorCurrentStatement
-                    kind = SynthesizedLocalKind.OnErrorCurrentStatement
-                Case StringConstants.OnErrorCurrentLine
-                    kind = SynthesizedLocalKind.OnErrorCurrentLine
                 Case StringConstants.StateMachineCachedState
                     kind = SynthesizedLocalKind.StateMachineCachedState
-                Case StringConstants.StateMachineExceptionLocalName
-                    kind = SynthesizedLocalKind.StateMachineException
                 Case StringConstants.StateMachineReturnValueLocalName
                     kind = SynthesizedLocalKind.StateMachineReturnValue
-
-                Case StringConstants.ForLimit
-                    kind = SynthesizedLocalKind.ForLimit
-                Case StringConstants.ForStep
-                    kind = SynthesizedLocalKind.ForStep
-                Case StringConstants.ForLoopObject
-                    kind = SynthesizedLocalKind.ForLoopObject
-                Case StringConstants.ForDirection
-                    kind = SynthesizedLocalKind.ForDirection
 
                 Case Else
 
@@ -289,10 +247,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return True
                     End If
 
-                    kind = SynthesizedLocalKind.None
+                    kind = SynthesizedLocalKind.UserDefined
                     Return False
             End Select
             Return True
+        End Function
+
+        Friend Shared Function MakeSynthesizedLocalName(kind As SynthesizedLocalKind, ByRef uniqueId As Integer) As String
+            Debug.Assert(kind.IsLongLived())
+
+            ' The following variables have to be named, EE depends on the name format.
+            Dim name As String
+            Select Case kind
+                Case SynthesizedLocalKind.LambdaDisplayClass
+                    name = MakeLambdaDisplayClassStorageName(uniqueId)
+                    uniqueId += 1
+
+                Case SynthesizedLocalKind.With
+                    ' Dev12 didn't name the local. We do so that we can do better job in EE evaluating With statements.
+                    name = StringConstants.SynthesizedLocalKindWith & uniqueId
+                    uniqueId += 1
+
+                Case Else
+                    name = Nothing
+            End Select
+
+            Return name
         End Function
 
         Friend Shared Function MakeLambdaMethodName(index As Integer) As String
@@ -301,6 +281,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Shared Function MakeLambdaDisplayClassName(index As Integer) As String
             Return StringConstants.ClosureClassPrefix & index
+        End Function
+
+        Friend Shared Function MakeLambdaDisplayClassStorageName(uniqueId As Integer) As String
+            Return StringConstants.ClosureVariablePrefix & uniqueId
         End Function
     End Class
 

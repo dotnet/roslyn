@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -61,6 +63,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        public LocalSlotConstraints Constraints
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         public Location Location
         {
             get { return Location.None; }
@@ -84,6 +91,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public byte[] Signature
         {
             get { return this.signature; }
+        }
+
+        public LocalDebugId Id
+        {
+            get { return LocalDebugId.None; }
+        }
+
+        public SynthesizedLocalKind Kind
+        {
+            get { return SynthesizedLocalKind.EmitterTemp; }
         }
     }
 }

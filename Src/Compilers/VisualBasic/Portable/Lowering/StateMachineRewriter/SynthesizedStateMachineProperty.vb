@@ -1,17 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -24,19 +14,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits SynthesizedPropertyBase
         Implements ISynthesizedMethodBodyImplementationSymbol
 
-        Private ReadOnly getter As SynthesizedStateMachineMethod
-        Private ReadOnly propName As String
+        Private ReadOnly _getter As SynthesizedStateMachineMethod
+        Private ReadOnly _name As String
 
-        Friend Sub New(containingType As NamedTypeSymbol,
+        Friend Sub New(stateMachineType As StateMachineTypeSymbol,
                        name As String,
-                       interfaceMethod As MethodSymbol,
+                       interfacePropertyGetter As MethodSymbol,
                        syntax As VisualBasicSyntaxNode,
-                       attributes As DebugAttributes,
+                       debugAttributes As DebugAttributes,
                        declaredAccessibility As Accessibility,
                        enableDebugInfo As Boolean,
                        hasMethodBodyDependency As Boolean)
 
-            Me.propName = name
+            Me._name = name
 
             ' If property is named Current, then getter is named get_Current
             ' the getter is named IEnumerator.get_Current
@@ -49,21 +39,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 getterName = "IEnumerator.get_Current"
             End If
 
-            getter = New SynthesizedStateMachineMethod(containingType,
-                                                         getterName,
-                                                         interfaceMethod,
-                                                         syntax,
-                                                         attributes,
-                                                         declaredAccessibility,
-                                                         enableDebugInfo,
-                                                         hasMethodBodyDependency,
-                                                         associatedProperty:=Me)
+            _getter = New SynthesizedStateMachineMethod(stateMachineType,
+                                                        getterName,
+                                                        interfacePropertyGetter,
+                                                        syntax,
+                                                        debugAttributes,
+                                                        declaredAccessibility,
+                                                        enableDebugInfo,
+                                                        hasMethodBodyDependency,
+                                                        associatedProperty:=Me)
 
         End Sub
 
         Private ReadOnly Property ImplementedProperty As PropertySymbol
             Get
-                Return DirectCast(getter.ExplicitInterfaceImplementations(0).AssociatedSymbol, PropertySymbol)
+                Return DirectCast(_getter.ExplicitInterfaceImplementations(0).AssociatedSymbol, PropertySymbol)
             End Get
         End Property
 
@@ -75,13 +65,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return propName
+                Return _name
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return getter.ContainingSymbol
+                Return _getter.ContainingSymbol
             End Get
         End Property
 
@@ -93,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property GetMethod As MethodSymbol
             Get
-                Return getter
+                Return _getter
             End Get
         End Property
 
@@ -117,49 +107,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return Me.getter.ReturnType
+                Return Me._getter.ReturnType
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return Me.getter.Parameters
+                Return Me._getter.Parameters
             End Get
         End Property
 
         Public Overrides ReadOnly Property ParameterCount As Integer
             Get
-                Return Me.getter.ParameterCount
+                Return Me._getter.ParameterCount
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me.getter.ReturnTypeCustomModifiers
+                Return Me._getter.ReturnTypeCustomModifiers
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return Me.getter.DeclaredAccessibility
+                Return Me._getter.DeclaredAccessibility
             End Get
         End Property
 
         Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
             Get
-                Return Me.getter.CallingConvention
+                Return Me._getter.CallingConvention
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return Me.getter.IsShared
+                Return Me._getter.IsShared
             End Get
         End Property
 
         Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
             Get
-                Return Me.getter.HasMethodBodyDependency
+                Return Me._getter.HasMethodBodyDependency
             End Get
         End Property
 

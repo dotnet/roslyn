@@ -271,7 +271,6 @@
     <Compile Include="DocumentationComments\SourceDocumentationCommentUtils.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpDefinitionMap.cs" />
     <Compile Include="Emitter\EditAndContinue\EmitHelpers.cs" />
-    <Compile Include="Emitter\EditAndContinue\CSharpDefinitionMap.LocalVisitors.cs" />
     <Compile Include="Emitter\EditAndContinue\PEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpSymbolMatcher.cs" />
     <Compile Include="Emitter\Model\ArrayTypeSymbolAdapter.cs" />
@@ -436,9 +435,9 @@
     <Compile Include="Lowering\StateMachineRewriter\IteratorAndAsyncCaptureWalker.cs" />
     <Compile Include="Lowering\StateMachineRewriter\MethodToStateMachineRewriter.cs" />
     <Compile Include="Lowering\StateMachineRewriter\StateMachineFieldSymbol.cs" />
-    <Compile Include="Lowering\StateMachineRewriter\StateMachineHoistedLocalSymbol.cs" />
     <Compile Include="Lowering\StateMachineRewriter\StateMachineRewriter.cs" />
     <Compile Include="Lowering\StateMachineRewriter\StateMachineStates.cs" />
+    <Compile Include="Lowering\StateMachineRewriter\StateMachineTypeSymbol.cs" />
     <Compile Include="Lowering\StateMachineRewriter\SynthesizedStateMachineProperty.cs" />
     <Compile Include="Lowering\SynthesizedMethodBaseSymbol.cs" />
     <Compile Include="Lowering\StateMachineRewriter\SynthesizedStateMachineMethod.cs" />
@@ -686,7 +685,6 @@
     <Compile Include="Symbols\Synthesized\SynthesizedStringHashFunctionSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedSubmissionConstructor.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedTypeParameterSymbol.cs" />
-    <Compile Include="Symbols\SynthesizedLocalKind.cs" />
     <Compile Include="Symbols\Synthesized\TypeSubstitutedLocalSymbol.cs" />
     <Compile Include="Symbols\TypedConstantExtensions.cs" />
     <Compile Include="Symbols\TypeMap.cs" />

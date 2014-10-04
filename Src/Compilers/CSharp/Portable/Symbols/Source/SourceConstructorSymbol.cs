@@ -1,11 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -62,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
-            var syntax = (ConstructorDeclarationSyntax)syntaxReference.GetSyntax();
-            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntaxReference.SyntaxTree);
+            var syntax = GetSyntax();
+            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
             ParameterListSyntax parameterList = syntax.ParameterList;
 
             // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
@@ -87,6 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, Locations[0]);
             }
+        }
+
+        internal ConstructorDeclarationSyntax GetSyntax()
+        {
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (ConstructorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
         public override bool IsVararg
@@ -115,8 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.lazyParameters.Length;
                 }
 
-                var syntax = (ConstructorDeclarationSyntax)syntaxReference.GetSyntax();
-                return syntax.ParameterList.ParameterCount;
+                return GetSyntax().ParameterList.ParameterCount;
             }
         }
 
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckModifiers(MethodKind methodKind, Location location, DiagnosticBag diagnostics)
         {
-            if (bodySyntaxReference == null && !IsExtern)
+            if (bodySyntaxReferenceOpt == null && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -218,5 +219,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            TextSpan span;
+
+            // local defined within the body of the constructor:
+            if (bodySyntaxReferenceOpt != null && localTree == bodySyntaxReferenceOpt.SyntaxTree)
+            {
+                span = bodySyntaxReferenceOpt.Span;
+                if (span.Contains(localPosition))
+                {
+                    return localPosition - span.Start;
+                }
+            }
+
+#if FEATURE_CSHARP6_CUT
+            var ctorSyntax = GetSyntax();
+
+            int ctorInitializerLength;
+            var ctorInitializer = GetSyntax().Initializer;
+            if (ctorInitializer != null && localTree == ctorInitializer.SyntaxTree)
+            {
+                span = ctorInitializer.Span;
+                ctorInitializerLength = span.Length;
+
+                if (span.Contains(localPosition))
+                {
+                    return -ctorInitializerLength + (localPosition - span.Start);
+                }
+
+                // the scope of variables declared in a constructor initializer starts at the start of the constructor declaration:
+                if (ctorSyntax.SpanStart == localPosition)
+                {
+                    return -ctorInitializerLength;
+                }
+            }
+            else
+            {
+                ctorInitializerLength = 0;
+            }
+
+            var containingType = (SourceNamedTypeSymbol)this.ContainingType;
+            int initializerStart;
+            int aggregateInitializerLength;
+            if (containingType.TryFindDeclaringInitializerStart(localPosition, localTree, this.IsStatic, out initializerStart, out aggregateInitializerLength))
+            {
+                return -(ctorInitializerLength + aggregateInitializerLength) + (localPosition - initializerStart);
+            }
+
+            // The scope of primary constructor parameters starts at the primary constructor start 
+            // and spans all declarations of the type.
+            if (ctorSyntax.IsKind(SyntaxKind.ParameterList) && ctorSyntax.SpanStart == localPosition)
+            {
+                return -(ctorInitializerLength + aggregateInitializerLength);
+            }
+#endif
+            // we haven't found the contructor part that declares the variable:
+            throw ExceptionUtilities.Unreachable;
+        }
+
+#if FEATURE_CSHARP6_CUT
+
+        /// <summary>
+        /// Retruns either
+        /// - <see cref="ConstructorInitializerSyntax"/> - regular constructor initializer
+        /// - <see cref="BaseClassWithArgumentsSyntax"/> - primary constructor initializer
+        /// - null - no initializer
+        /// </summary>
+        private SyntaxNode TryGetConstructorInitializer()
+        {
+            var syntax = GetSyntax();
+
+            if (syntax.IsKind(SyntaxKind.ConstructorDeclaration))
+            {
+                return ((ConstructorDeclarationSyntax)syntax).Initializer;
+            }
+
+            if (syntax.IsKind(SyntaxKind.ParameterList))
+            {
+                var classDeclaration = (ClassDeclarationSyntax)syntax.Parent;
+
+                if (classDeclaration.BaseList != null && classDeclaration.BaseList.Types.Count > 0)
+                {
+                    TypeSyntax baseTypeSyntax = classDeclaration.BaseList.Types[0];
+                    if (baseTypeSyntax.Kind == SyntaxKind.BaseClassWithArguments)
+                    {
+                        return baseTypeSyntax;
+                    }
+                }
+            }
+
+            return null;
+        }
+#endif
     }
 }

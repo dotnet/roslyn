@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.type;
         }
 
-        internal override int IteratorLocalIndex
+        internal override int UserDefinedHoistedLocalId
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

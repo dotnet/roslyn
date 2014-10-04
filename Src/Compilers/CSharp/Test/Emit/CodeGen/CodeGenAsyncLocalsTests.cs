@@ -141,37 +141,118 @@ class Test
         }
 
         [Fact]
-        public void AsyncWithParamsAndLocals_Hoisted()
+        public void HoistedParameters()
         {
             var source = @"
 using System;
 using System.Threading.Tasks;
 
-class Test
+class C
 {
-    public static async Task<int> F(int x)
-    {
-        return await Task.Factory.StartNew(() => { return x; });
-    }
+    public static Task<int> G() => null;
 
-    public static async Task<int> G(int x)
+    public static async Task M(int x, int y, int z)
     {
-        int c = 0;
-        c = await F(x);
-        return c;
-    }
-
-    public static void Main()
-    {
-        Task<int> t = G(21);
-        t.Wait(1000 * 60);
-        Console.WriteLine(t.Result);
+        x = z;
+        await G();
+        y = 1;
     }
 }";
-            var expected = @"
-21
-";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "x",
+                    "y",
+                    "z",
+                    "<>u__$awaiter0",
+                }, module.GetFieldNames("C.<M>d__1"));
+            });
+
+            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "x",
+                    "y",
+                    "z",
+                    "<>u__$awaiter0",
+                }, module.GetFieldNames("C.<M>d__1"));
+            });
+        }
+
+        [Fact]
+        public void SynthesizedVariables1()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public static Task<int> H() => null;
+    public static Task<int> G(int a, int b, int c) => null;
+    public static int F(int a) => 1;
+    
+    public async Task M(IDisposable disposable)
+    {
+        foreach (var item in new[] { 1, 2, 3 }) { using (disposable) { await H(); } }
+        foreach (var item in new[] { 1, 2, 3 }) { }
+        using (disposable) { await H(); }
+        if (disposable != null) { using (disposable) { await G(F(1), F(2), await G(F(3), F(4), await H())); } }
+        using (disposable) { await H(); }
+        if (disposable != null) { using (disposable) { } }
+        lock (this) { }
+    }
+}";
+            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "disposable",
+                    "<>4__this",
+                    "<>7__wrap1",
+                    "<>7__wrap2",
+                    "<>7__wrap3",
+                    "<>u__$awaiter0",
+                    "<>7__wrap4",
+                    "<>7__wrap5",
+                    "<>7__wrap6",
+                }, module.GetFieldNames("C.<M>d__1"));
+            });
+
+#if TODO 
+            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "<>4__this",
+                    "disposable",
+                    "<>s__6$1",
+                    "<>s__7$2",
+                    "<item>5__1",
+                    "<>s__3$3",
+                    "<item>5__2",
+                    "<>s__3$6",
+                    "<>s__3$7",
+                    "<>s__530$1$1",
+                    "<>s__530$1$2",
+                    "<>s__530$1$3",
+                    "<>s__530$1$4",
+                    "<>s__3$8",
+                    "<>u__$awaiter0",
+                }, module.GetFieldNames("C.<M>d__1"));
+            });
+#endif
         }
 
         [Fact]

@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 guidStreamLengthAdded: previousGeneration.GuidStreamLengthAdded,
                 anonymousTypeMap: anonymousTypeMap,
                 localsForMethodsAddedOrChanged: locals,
-                localNames: previousGeneration.LocalNames);
+                debugInformationProvider: previousGeneration.DebugInformationProvider);
         }
 
         private static IReadOnlyDictionary<K, V> MapDefinitions<K, V>(
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 var type = map.MapReference(localInfo.Type);
                 Debug.Assert(type != null);
-                return new EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.SynthesizedKind, localInfo.Signature);
+                return new EncLocalInfo(localInfo.Id, type, localInfo.Constraints, localInfo.Kind, localInfo.Signature);
             }
         }
     }

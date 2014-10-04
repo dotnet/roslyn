@@ -1,21 +1,18 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias PDB;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.MetadataUtilities;
-using Roslyn.Test.PdbUtilities;
+using PDB::Roslyn.Test.MetadataUtilities;
+using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
-using Xunit;
-using System.Runtime.CompilerServices;
-using System.Xml;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

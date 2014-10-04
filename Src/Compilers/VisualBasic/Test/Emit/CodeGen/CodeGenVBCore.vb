@@ -2562,6 +2562,11 @@ End Class
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Program" name="Main" parameterNames="args">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="38" file_ref="1"/>
                 <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="31" file_ref="1"/>

@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public override ScopeInfo OpenScope(
                 ScopeType scopeType,
-                Microsoft.Cci.ITypeReference exceptionType,
+                Cci.ITypeReference exceptionType,
                 ExceptionHandlerScope currentExceptionHandler)
             {
                 var scope = base.OpenScope(scopeType, exceptionType, currentExceptionHandler);
@@ -362,6 +362,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     LocalVariables = ImmutableArray.CreateBuilder<LocalDefinition>(1);
                 }
 
+                Debug.Assert(variable.Name != null);
+
                 LocalVariables.Add(variable);
             }
 
@@ -371,6 +373,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     LocalConstants = ImmutableArray.CreateBuilder<LocalConstantDefinition>(1);
                 }
+
+                Debug.Assert(constant.Name != null);
 
                 LocalConstants.Add(constant);
             }

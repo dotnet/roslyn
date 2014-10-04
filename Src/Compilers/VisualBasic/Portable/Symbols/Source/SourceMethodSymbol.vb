@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' The syntax references for the primary (non-partial) declarations.
         ' Nothing if there are only partial declarations.
-        Private ReadOnly m_syntaxRef As SyntaxReference
+        Protected ReadOnly m_syntaxReferenceOpt As SyntaxReference
 
         ' Location(s)
         Private m_lazyLocations As ImmutableArray(Of Location)
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             m_containingType = containingType
             m_flags = flags
-            m_syntaxRef = syntaxRef
+            m_syntaxReferenceOpt = syntaxRef
 
             ' calculated lazily if not initialized
             m_lazyLocations = locations
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim handledEvents As ImmutableArray(Of HandledEvent)
 
             If syntax.HandlesClause IsNot Nothing Then
-                If container.TypeKind = TYPEKIND.Structure Then
+                If container.TypeKind = TypeKind.Structure Then
                     ' Structures cannot handle events
                     binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_StructsCannotHandleEvents)
 
@@ -224,7 +224,7 @@ lReportErrorOnTwoTokens:
                 diagBag)
 
             ' modifiers: Protected and Overloads in Modules and Structures:
-            If container.TypeKind = TYPEKIND.Module Then
+            If container.TypeKind = TypeKind.Module Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Overloads) <> 0 Then
                     Dim keyword = syntax.Modifiers.First(Function(m) m.VisualBasicKind = SyntaxKind.OverloadsKeyword)
                     diagBag.Add(ERRID.ERR_OverloadsModifierInModule, keyword.GetLocation(), keyword.ValueText)
@@ -232,7 +232,7 @@ lReportErrorOnTwoTokens:
                     Dim keyword = syntax.Modifiers.First(Function(m) m.VisualBasicKind = SyntaxKind.ProtectedKeyword)
                     diagBag.Add(ERRID.ERR_ModuleCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
                 End If
-            ElseIf container.TypeKind = TYPEKIND.Structure Then
+            ElseIf container.TypeKind = TypeKind.Structure Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
                     Dim keyword = syntax.Modifiers.First(Function(m) m.VisualBasicKind = SyntaxKind.ProtectedKeyword)
                     diagBag.Add(ERRID.ERR_StructCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
@@ -749,22 +749,21 @@ lReportErrorOnTwoTokens:
 
 #Region "Syntax and Binding"
 
-        ' Return the statements in the method body.
+        ' Return the entire declaration block: Begin Statement + Body Statements + End Statement.
         Friend ReadOnly Property BlockSyntax As MethodBlockBaseSyntax
             Get
-                If m_syntaxRef Is Nothing Then
+                If m_syntaxReferenceOpt Is Nothing Then
                     Return Nothing
                 End If
 
-                Dim decl = m_syntaxRef.GetSyntax()
-
+                Dim decl = m_syntaxReferenceOpt.GetSyntax()
                 Return TryCast(decl.Parent, MethodBlockBaseSyntax)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
-                If m_syntaxRef Is Nothing Then
+                If m_syntaxReferenceOpt Is Nothing Then
                     Return Nothing
                 End If
 
@@ -776,15 +775,15 @@ lReportErrorOnTwoTokens:
 
                 ' in case of a method in an interface there is no block.
                 ' just return the sub/function statement in this case.
-                Return m_syntaxRef.GetVisualBasicSyntax()
+                Return m_syntaxReferenceOpt.GetVisualBasicSyntax()
             End Get
         End Property
 
         ' Return the syntax tree that contains the method block.
         Public ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                If m_syntaxRef IsNot Nothing Then
-                    Return m_syntaxRef.SyntaxTree
+                If m_syntaxReferenceOpt IsNot Nothing Then
+                    Return m_syntaxReferenceOpt.SyntaxTree
                 End If
                 Return Nothing
             End Get
@@ -792,7 +791,7 @@ lReportErrorOnTwoTokens:
 
         Friend ReadOnly Property DeclarationSyntax As MethodBaseSyntax
             Get
-                Return If(m_syntaxRef IsNot Nothing, DirectCast(m_syntaxRef.GetSyntax(), MethodBaseSyntax), Nothing)
+                Return If(m_syntaxReferenceOpt IsNot Nothing, DirectCast(m_syntaxReferenceOpt.GetSyntax(), MethodBaseSyntax), Nothing)
             End Get
         End Property
 
@@ -805,7 +804,7 @@ lReportErrorOnTwoTokens:
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(m_syntaxRef)
+                Return GetDeclaringSyntaxReferenceHelper(m_syntaxReferenceOpt)
             End Get
         End Property
 
@@ -828,15 +827,15 @@ lReportErrorOnTwoTokens:
         ''' </summary>
         Friend ReadOnly Property NonMergedLocation As Location
             Get
-                Return If(m_syntaxRef IsNot Nothing, GetSymbolLocation(m_syntaxRef), Nothing)
+                Return If(m_syntaxReferenceOpt IsNot Nothing, GetSymbolLocation(m_syntaxReferenceOpt), Nothing)
             End Get
         End Property
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
             If Not m_lazyLexicalSortKey.IsInitialized Then
-                m_lazyLexicalSortKey.SetFrom(If(m_syntaxRef IsNot Nothing,
-                                              New LexicalSortKey(m_syntaxRef, Me.DeclaringCompilation),
+                m_lazyLexicalSortKey.SetFrom(If(m_syntaxReferenceOpt IsNot Nothing,
+                                              New LexicalSortKey(m_syntaxReferenceOpt, Me.DeclaringCompilation),
                                               LexicalSortKey.NotInSource))
             End If
             Return m_lazyLexicalSortKey
@@ -849,7 +848,7 @@ lReportErrorOnTwoTokens:
                 If m_lazyLocations.IsDefault Then
 
                     ' This symbol location
-                    Dim location As location = Me.NonMergedLocation
+                    Dim location As Location = Me.NonMergedLocation
                     ImmutableInterlocked.InterlockedCompareExchange(Me.m_lazyLocations,
                                                         If(location Is Nothing,
                                                            ImmutableArray(Of Location).Empty,
@@ -905,12 +904,12 @@ lReportErrorOnTwoTokens:
         Friend Function BindTypeParameterConstraints(syntax As TypeParameterSyntax,
                                                      diagnostics As DiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
 
-            Dim binder As binder = BinderBuilder.CreateBinderForType(Me.ContainingSourceModule, Me.SyntaxTree, m_containingType)
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(Me.ContainingSourceModule, Me.SyntaxTree, m_containingType)
             binder = BinderBuilder.CreateBinderForGenericMethodDeclaration(Me, binder)
 
             ' Handle type parameter variance.
             If syntax.VarianceKeyword.VisualBasicKind <> SyntaxKind.None Then
-                binder.ReportDiagnostic(diagnostics, syntax.VarianceKeyword, ERRID.ERR_VarianceDisallowedHere)
+                Binder.ReportDiagnostic(diagnostics, syntax.VarianceKeyword, ERRID.ERR_VarianceDisallowedHere)
             End If
 
             ' Wrap constraints binder in a location-specific binder to
@@ -1069,7 +1068,7 @@ lReportErrorOnTwoTokens:
                         Dim propertyIdentifier = propertySyntax.PropertyStatement.Identifier
                         Dim propertySymbol = DirectCast(
                             container.FindMember(propertyIdentifier.ValueText, SymbolKind.Property, propertyIdentifier.Span, tree),
-                            propertySymbol)
+                            PropertySymbol)
 
                         ' in case of ill formed syntax it can happen that the ContainingType of the actual binder does not directly contain
                         ' this property symbol. One example is e.g. a namespace nested in a class. Instead of a namespace binder, the containing
@@ -1095,12 +1094,12 @@ lReportErrorOnTwoTokens:
                     End If
 
                 Case SyntaxKind.AddHandlerAccessorStatement, SyntaxKind.RemoveHandlerAccessorStatement, SyntaxKind.RaiseEventAccessorStatement
-                    Dim eventBlockSyntax = TryCast(syntax.Parent.Parent, eventBlockSyntax)
+                    Dim eventBlockSyntax = TryCast(syntax.Parent.Parent, EventBlockSyntax)
                     If eventBlockSyntax IsNot Nothing Then
                         Dim eventIdentifier = eventBlockSyntax.EventStatement.Identifier
                         Dim eventSymbol = DirectCast(
                             container.FindMember(eventIdentifier.ValueText, SymbolKind.Event, eventIdentifier.Span, tree),
-                            eventSymbol)
+                            EventSymbol)
 
                         ' in case of ill formed syntax it can happen that the ContainingType of the actual binder does not directly contain
                         ' this event symbol. One example is e.g. a namespace nested in a class. Instead of a namespace binder, the containing
@@ -1147,7 +1146,7 @@ lReportErrorOnTwoTokens:
 
                 Case Else
                     Dim methodSymbol = DirectCast(container.FindMember(GetMemberNameFromSyntax(syntax),
-                                                                       SymbolKind.Method, GetMethodLocationFromSyntax(syntax), tree), methodSymbol)
+                                                                       SymbolKind.Method, GetMethodLocationFromSyntax(syntax), tree), MethodSymbol)
 
                     ' Substitute with partial method implementation?
                     If methodSymbol IsNot Nothing Then
@@ -1166,16 +1165,16 @@ lReportErrorOnTwoTokens:
             Debug.Assert(ExplicitInterfaceImplementations.Contains(implementedMethod))
 
             Dim methodSyntax As MethodStatementSyntax = Nothing
-            Dim syntaxTree As syntaxTree = Nothing
+            Dim syntaxTree As SyntaxTree = Nothing
             Dim containingSourceType = TryCast(m_containingType, SourceMemberContainerTypeSymbol)
 
-            If m_syntaxRef IsNot Nothing Then
-                methodSyntax = TryCast(m_syntaxRef.GetSyntax(), MethodStatementSyntax)
-                syntaxTree = m_syntaxRef.SyntaxTree
+            If m_syntaxReferenceOpt IsNot Nothing Then
+                methodSyntax = TryCast(m_syntaxReferenceOpt.GetSyntax(), MethodStatementSyntax)
+                syntaxTree = m_syntaxReferenceOpt.SyntaxTree
             End If
 
             If methodSyntax IsNot Nothing AndAlso methodSyntax.ImplementsClause IsNot Nothing AndAlso containingSourceType IsNot Nothing Then
-                Dim binder As binder = BinderBuilder.CreateBinderForType(containingSourceType.ContainingSourceModule, syntaxTree, containingSourceType)
+                Dim binder As Binder = BinderBuilder.CreateBinderForType(containingSourceType.ContainingSourceModule, syntaxTree, containingSourceType)
                 Dim implementingSyntax = FindImplementingSyntax(methodSyntax.ImplementsClause,
                                                                 Me,
                                                                 implementedMethod,
@@ -1189,7 +1188,7 @@ lReportErrorOnTwoTokens:
 
         Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
 
-            Dim syntaxTree As syntaxTree = Me.SyntaxTree
+            Dim syntaxTree As SyntaxTree = Me.SyntaxTree
 
             ' All source method symbols must have block syntax.
             Dim methodBlock As MethodBlockBaseSyntax = Me.BlockSyntax
@@ -1320,7 +1319,7 @@ lReportErrorOnTwoTokens:
 
         Protected ReadOnly Property AttributeDeclarationSyntaxList As SyntaxList(Of AttributeListSyntax)
             Get
-                Return If(m_syntaxRef IsNot Nothing, DeclarationSyntax.AttributeLists, Nothing)
+                Return If(m_syntaxReferenceOpt IsNot Nothing, DeclarationSyntax.AttributeLists, Nothing)
             End Get
         End Property
 

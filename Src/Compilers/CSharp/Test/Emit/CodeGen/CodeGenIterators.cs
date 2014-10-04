@@ -1146,7 +1146,7 @@ class T
         }
 
         [Fact, WorkItem(545767, "DevDiv")]
-        public void DoNotCaptureUnusedParameters()
+        public void DoNotCaptureUnusedParameters_Release()
         {
             var source = @"
 using System;
@@ -1163,7 +1163,7 @@ class Program
         yield return x;
     }
 }";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var rel = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1172,7 +1172,7 @@ class Program
                 }, module.GetFieldNames("Program.<M>d__0"));
             });
 
-            c.VerifyIL("Program.M", @"
+            rel.VerifyIL("Program.M", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1180,8 +1180,39 @@ class Program
   IL_0001:  newobj     ""Program.<M>d__0..ctor(int)""
   IL_0006:  ret
 }");
+
+#if TODO
+            var dbg = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current",
+                    "items",
+                    "<x>5__1",
+                }, module.GetFieldNames("Program.<M>d__0"));
+            });
+
+            dbg.VerifyIL("Program.M", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (Program.<M>d__0 V_0,
+                System.Collections.Generic.IEnumerator<int> V_1)
+  IL_0000:  ldc.i4.0
+  IL_0001:  newobj     ""Program.<M>d__0..ctor(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldarg.0
+  IL_0009:  stfld      ""System.Collections.Generic.IEnumerable<int> Program.<M>d__0.items""
+  IL_000e:  ldloc.0
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ret
+}");
+#endif
         }
-        
+
         [Fact]
         public void HoistedParameters_Enumerable()
         {
@@ -1196,15 +1227,26 @@ struct Test
         yield return 1;
         y = 1;
     }
-
-    public static void Main()
-    {
-        F(1, 2, 3);
-    }
 }";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 // consider: we don't really need to hoist "x" and "z", we could store the values of "<>3__x" and "<>3__z" to locals at the beginning of MoveNext.
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current",
+                    "<>l__initialThreadId",
+                    "x",
+                    "<>3__x",
+                    "y",
+                    "<>3__y",
+                    "z",
+                    "<>3__z",
+                }, module.GetFieldNames("Test.<F>d__0"));
+            });
+
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
                 AssertEx.Equal(new[]
                 {
                     "<>1__state",
@@ -1234,13 +1276,8 @@ struct Test
         yield return 1;
         y = 1;
     }
-
-    public static void Main()
-    {
-        F(1, 2, 3);
-    }
 }";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1251,6 +1288,83 @@ struct Test
                     "z",
                 }, module.GetFieldNames("Test.<F>d__0"));
             });
+
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current",
+                    "x",
+                    "y",
+                    "z",
+                }, module.GetFieldNames("Test.<F>d__0"));
+            });
+        }
+
+        [Fact]
+        public void SynthesizedVariables1()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    public IEnumerable<int> M(IDisposable disposable)
+    {
+        foreach (var item in new[] { 1, 2, 3 }) { lock (this) { yield return 1; } }
+        foreach (var item in new[] { 1, 2, 3 }) { }
+        lock (this) { yield return 2; }
+        if (disposable != null) { using (disposable) { yield return 3; } }
+        lock (this) { yield return 4; }
+        if (disposable != null) { using (disposable) { } }
+        lock (this) { }
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current",
+                    "<>l__initialThreadId",
+                    "disposable",
+                    "<>3__disposable",
+                    "<>4__this",
+                    "<>7__wrap1",
+                    "<>7__wrap2",
+                    "<>7__wrap3",
+                    "<>7__wrap4",
+                    "<>7__wrap5",
+                }, module.GetFieldNames("C.<M>d__0"));
+            });
+#if TODO
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current",
+                    "<>l__initialThreadId",
+                    "<>4__this",
+                    "disposable",
+                    "<>3__disposable",
+                    "<>s__6$1",
+                    "<>s__7$2",
+                    "<item>5__1",
+                    "<>s__2$3",
+                    "<>s__520$4",
+                    "<item>5__2",
+                    "<>s__2$5",
+                    "<>s__520$6",
+                    "<>s__3$7",
+                    "<>s__2$8",
+                    "<>s__520$9",
+                }, module.GetFieldNames("C.<M>d__0"));
+            });
+#endif
         }
 
         [Fact]

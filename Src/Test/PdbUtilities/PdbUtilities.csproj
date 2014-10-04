@@ -22,8 +22,8 @@
     <Compile Include="..\..\Compilers\Core\Portable\Collections\ArrayBuilder.cs">
       <Link>Collections\ArrayBuilder.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\Collections\ArrayBuilder.ArrayBuilderEnumerator.cs">
-      <Link>Collections\ArrayBuilder.ArrayBuilderEnumerator.cs</Link>
+    <Compile Include="..\..\Compilers\Core\Portable\Collections\ArrayBuilder.Enumerator.cs">
+      <Link>Collections\ArrayBuilder.Enumerator.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
@@ -108,6 +108,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

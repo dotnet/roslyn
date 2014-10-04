@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitLocal(BoundLocal node)
             {
-                if (!node.LocalSymbol.SynthesizedLocalKind.IsLongLived())
+                if (!node.LocalSymbol.SynthesizedKind.IsLongLived())
                 {
                     LocalSymbol longLived;
                     if (tempSubstitution.TryGetValue(node.LocalSymbol, out longLived))
@@ -231,15 +232,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     awaitExpression.GetResult,
                     awaitExpression.Type);
 
+                var syntax = awaitExpression.Syntax;
+
+                Debug.Assert(syntax.IsKind(SyntaxKind.AwaitExpression));
+                F.Syntax = syntax;
+
                 BoundAssignmentOperator assignToTemp;
-                var replacement = F.StoreToTemp(awaitExpression, out assignToTemp, kind: SynthesizedLocalKind.AwaitSpill);
+                var replacement = F.StoreToTemp(awaitExpression, out assignToTemp, kind: SynthesizedLocalKind.AwaitSpill, syntaxOpt: syntax);
                 if (builder == null)
                 {
                     builder = new BoundSpillSequenceBuilder();
                 }
 
                 builder.AddLocal(replacement.LocalSymbol, F.Diagnostics);
-                F.Syntax = awaitExpression.Syntax;
                 builder.AddStatement(F.ExpressionStatement(assignToTemp));
                 return replacement;
             }
@@ -298,11 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var substituterOpt = (substituteTemps && tempSubstitution.Count > 0) ? new LocalSubstituter(tempSubstitution) : null;
             var result = F.Block(builder.GetLocals(), builder.GetStatements(substituterOpt));
-
-            if (substituteTemps)
-            {
-                tempSubstitution.Clear();
-            }
 
             builder.Free();
             return result;
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.Local:
                         var local = (BoundLocal)expression;
-                        if (local.LocalSymbol.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill || refKind != RefKind.None)
+                        if (local.LocalSymbol.SynthesizedKind == SynthesizedLocalKind.AwaitSpill || refKind != RefKind.None)
                         {
                             return local;
                         }
@@ -401,7 +401,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             BoundAssignmentOperator assignToTemp;
-                            var replacement = F.StoreToTemp(expression, out assignToTemp, refKind: refKind, kind: SynthesizedLocalKind.AwaitSpill);
+                            Debug.Assert(F.Syntax.IsKind(SyntaxKind.AwaitExpression));
+
+                            var replacement = F.StoreToTemp(
+                                expression, 
+                                out assignToTemp, 
+                                refKind: refKind, 
+                                kind: SynthesizedLocalKind.AwaitSpill, 
+                                syntaxOpt: F.Syntax);
+
                             builder.AddLocal(replacement.LocalSymbol, F.Diagnostics);
                             builder.AddStatement(F.ExpressionStatement(assignToTemp));
                             return replacement;
@@ -471,9 +479,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Statement Visitors
 
+        private void EnterStatement(BoundNode boundStatement)
+        {
+            tempSubstitution.Clear();
+        }
+
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            Debug.Assert(tempSubstitution.Count == 0);
+            EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
             var boundExpression = VisitExpression(ref builder, node.BoundExpression);
@@ -483,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
-            Debug.Assert(tempSubstitution.Count == 0);
+            EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
             BoundExpression expression = VisitExpression(ref builder, node.ExpressionOpt);
@@ -492,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {
-            Debug.Assert(tempSubstitution.Count == 0);
+            EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
             BoundExpression expr;
@@ -516,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
         {
-            Debug.Assert(tempSubstitution.Count == 0);
+            EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
             var condition = VisitExpression(ref builder, node.Condition);
@@ -525,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
-            Debug.Assert(tempSubstitution.Count == 0);
+            EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.ExpressionOpt);
@@ -779,7 +792,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var tmp = F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.AwaitSpill);
+                Debug.Assert(F.Syntax.IsKind(SyntaxKind.AwaitExpression));
+                var tmp = F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.AwaitSpill, syntax: F.Syntax);
+
                 conditionBuilder.AddLocal(tmp, F.Diagnostics);
                 conditionBuilder.AddStatement(
                     F.If(condition,
@@ -930,14 +945,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var local in locals)
             {
-                if (local.SynthesizedLocalKind.IsLongLived())
+                if (local.SynthesizedKind.IsLongLived())
                 {
                     builder.AddLocal(local, F.Diagnostics);
                 }
                 else
                 {
+                    Debug.Assert(F.Syntax.IsKind(SyntaxKind.AwaitExpression));
+
                     SynthesizedLocal shortLived = (SynthesizedLocal)local;
-                    SynthesizedLocal longLived = shortLived.WithSynthesizedLocalKind(SynthesizedLocalKind.AwaitSpill);
+                    SynthesizedLocal longLived = shortLived.WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind.AwaitSpill, F.Syntax);
                     tempSubstitution.Add(shortLived, longLived);
 
                     builder.AddLocal(longLived, F.Diagnostics);

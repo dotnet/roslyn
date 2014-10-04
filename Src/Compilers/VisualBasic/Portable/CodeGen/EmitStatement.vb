@@ -1,13 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Symbols
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
@@ -1251,65 +1247,115 @@ OtherExpressions:
                 ' Reference in the scope for debugging purpose
                 _builder.AddLocalConstantToScope(localConstantDef)
                 Return Nothing
-
-            ElseIf Me.IsStackLocal(local) Then
-                Return Nothing
-
-            Else
-                Dim translatedType = _module.Translate(local.Type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
-                ' Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
-                ' Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
-                _module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics)
-
-                Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None) Or
-                    If(local.IsPinned, LocalSlotConstraints.Pinned, LocalSlotConstraints.None)
-                Dim name As String = GetLocalDebugName(local)
-                Debug.Assert(Not HasDebugName(local) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
-
-                Dim localDef = _builder.LocalSlotManager.DeclareLocal(
-                    type:=translatedType,
-                    symbol:=local,
-                    name:=name,
-                    synthesizedKind:=CType(local.SynthesizedLocalKind, CommonSynthesizedLocalKind),
-                    pdbAttributes:=local.SynthesizedLocalKind.PdbAttributes(),
-                    constraints:=constraints,
-                    isDynamic:=False,
-                    dynamicTransformFlags:=Nothing)
-
-                ' If there is a name, add it to the scope.
-                If name IsNot Nothing Then
-                    ' Reference in the scope for debugging purpose
-                    _builder.AddLocalToScope(localDef)
-                End If
-
-                Return localDef
             End If
 
+            If Me.IsStackLocal(local) Then
+                Return Nothing
+            End If
+
+            Dim translatedType = _module.Translate(local.Type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
+            ' Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
+            ' Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
+            _module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics)
+
+            Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None) Or
+                If(local.IsPinned, LocalSlotConstraints.Pinned, LocalSlotConstraints.None)
+
+            Dim localId As LocalDebugId = Nothing
+            Dim name As String = GetLocalDebugName(local, localId)
+
+            Dim localDef = _builder.LocalSlotManager.DeclareLocal(
+                type:=translatedType,
+                symbol:=local,
+                name:=name,
+                kind:=local.SynthesizedKind,
+                id:=localId,
+                pdbAttributes:=local.SynthesizedKind.PdbAttributes(),
+                constraints:=constraints,
+                isDynamic:=False,
+                dynamicTransformFlags:=Nothing,
+                isSlotReusable:=local.SynthesizedKind.IsSlotReusable(_optimizations))
+
+            ' If named, add it to the local debug scope.
+            If localDef.Name IsNot Nothing Then
+                _builder.AddLocalToScope(localDef)
+            End If
+
+            Return localDef
         End Function
 
-        Private Function GetLocalDebugName(local As LocalSymbol) As String
-            If local.Name IsNot Nothing Then
-                Debug.Assert(local.SynthesizedLocalKind = SynthesizedLocalKind.None)
+        ''' <summary>
+        ''' Gets the name And id of the local that are going to be generated into the debug metadata.
+        ''' </summary>
+        Private Function GetLocalDebugName(local As LocalSymbol, <Out> ByRef localId As LocalDebugId) As String
+            localId = LocalDebugId.None
+
+            If local.IsImportedFromMetadata Then
                 Return local.Name
             End If
 
-            If HasDebugName(local) Then
-                Return GeneratedNames.MakeLocalName(local.SynthesizedLocalKind, local.Type, _uniqueId)
+            Dim localKind = local.SynthesizedKind
+
+            ' only user-defined locals should be named during lowering:
+            Debug.Assert((local.Name Is Nothing) = (localKind <> SynthesizedLocalKind.UserDefined))
+
+            If Not localKind.IsLongLived() Then
+                Return Nothing
             End If
 
-            Return Nothing
+            If _optimizations = OptimizationLevel.Debug Then
+                Dim syntax = local.GetDeclaratorSyntax()
+                Dim syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree)
+
+                Dim ordinal = AssignLocalOrdinal(localKind, syntaxOffset)
+
+                ' user-defined locals should have 0 ordinal
+                Debug.Assert(ordinal = 0 OrElse localKind <> SynthesizedLocalKind.UserDefined)
+
+                localId = New LocalDebugId(syntaxOffset, ordinal)
+            End If
+
+            If local.Name IsNot Nothing Then
+                Return local.Name
+            End If
+
+            Return GeneratedNames.MakeSynthesizedLocalName(localKind, _uniqueNameId)
         End Function
 
-        Private Function HasDebugName(local As LocalSymbol) As Boolean
-            Return local.SynthesizedLocalKind.IsNamed(_optimizations)
+        Private Function AssignLocalOrdinal(localKind As SynthesizedLocalKind, syntaxOffset As Integer) As Integer
+#If Not DEBUG Then
+            ' Optimization (avoid growing the dictionary below) 
+            ' User-defined locals have to have a distinct syntax offset, thus ordinal is always 0.
+            If localKind = SynthesizedLocalKind.UserDefined
+                Return 0
+            End If
+#End If
+            Dim ordinal As Integer = 0
+            Dim key As Long = (CLng(syntaxOffset) << 8) Or localKind
+
+            ' Group by syntax offset and kind.
+            ' Variables associated with the same syntax and kind will be assigned different ordinals.
+            If _synthesizedLocalOrdinals Is Nothing Then
+                _synthesizedLocalOrdinals = PooledDictionary(Of Long, Integer).GetInstance()
+            Else
+                _synthesizedLocalOrdinals.TryGetValue(key, ordinal)
+            End If
+
+            _synthesizedLocalOrdinals(key) = ordinal + 1
+            Debug.Assert(ordinal = 0 OrElse localKind <> SynthesizedLocalKind.UserDefined)
+            Return ordinal
         End Function
 
-        Private Sub FreeLocal(temp As LocalSymbol)
+        Private Function IsSlotReusable(local As LocalSymbol) As Boolean
+            Return local.SynthesizedKind.IsSlotReusable(_optimizations)
+        End Function
+
+        Private Sub FreeLocal(local As LocalSymbol)
             'TODO: releasing locals with name NYI.
             'NOTE: VB considers named local's extent to be whole method 
             '      so releasing them may just not be possible.
-            If temp.Name Is Nothing AndAlso Not HasDebugName(temp) AndAlso Not Me.IsStackLocal(temp) Then
-                _builder.LocalSlotManager.FreeLocal(temp)
+            If local.Name Is Nothing AndAlso IsSlotReusable(local) AndAlso Not IsStackLocal(local) Then
+                _builder.LocalSlotManager.FreeLocal(local)
             End If
         End Sub
 
@@ -1391,7 +1437,8 @@ OtherExpressions:
                         nameOpt:=field.Name,
                         type:=Nothing,
                         slot:=0,
-                        synthesizedKind:=CommonSynthesizedLocalKind.EmitterTemp,
+                        synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
+                        id:=Nothing,
                         pdbAttributes:=Cci.PdbWriter.DefaultLocalAttributesValue,
                         constraints:=LocalSlotConstraints.None,
                         isDynamic:=False,

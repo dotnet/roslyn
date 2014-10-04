@@ -1,13 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -19,7 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits SynthesizedContainer
         Implements ISynthesizedMethodBodyImplementationSymbol
 
-        Private ReadOnly m_containingSymbol As Symbol
         Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
         Private ReadOnly m_topLevelMethod As MethodSymbol
 
@@ -39,34 +32,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                         container,
                                                                                         StringConstants.CLOSURE_GENERICPARAM_PREFIX & typeParameter.Ordinal,
                                                                                         TypeSubstitutionFactory)
-
         ''' <summary>
         ''' Creates a Frame definition
         ''' </summary>
-        ''' <param name="containingType">Type that contains Frame type.</param>
-        ''' <param name="enclosingMethod">Method that contains lambda expression for which we do the rewrite.</param>
+        ''' <param name="topLevelMethod">Method that contains lambda expression for which we do the rewrite.</param>
         ''' <param name="copyConstructor">Specifies whether the Frame needs a copy-constructor.</param>
-        Friend Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
-            containingType As NamedTypeSymbol,
-            enclosingMethod As MethodSymbol,
-            copyConstructor As Boolean,
-            tempNumber As Integer
-        )
-            MyBase.New(enclosingMethod, GeneratedNames.MakeLambdaDisplayClassName(tempNumber), containingType, ImmutableArray(Of NamedTypeSymbol).Empty)
+        Friend Sub New(compilationState As TypeCompilationState,
+                       topLevelMethod As MethodSymbol,
+                       scopeSyntax As VisualBasicSyntaxNode,
+                       copyConstructor As Boolean)
 
-            Me.m_containingSymbol = containingType
+            MyBase.New(topLevelMethod, GeneratedNames.MakeLambdaDisplayClassName(compilationState.GenerateTempNumber()), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
+
+            AssertIsLambdaScopeSyntax(scopeSyntax)
 
             If copyConstructor Then
-                Me.m_constructor = New SynthesizedLambdaCopyConstructor(syntaxNode, Me)
+                Me.m_constructor = New SynthesizedLambdaCopyConstructor(scopeSyntax, Me)
             Else
-                Me.m_constructor = New SynthesizedLambdaConstructor(syntaxNode, Me)
+                Me.m_constructor = New SynthesizedLambdaConstructor(scopeSyntax, Me)
             End If
 
-            Me.m_typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(enclosingMethod.TypeParameters, Me, CreateTypeParameter)
-            Me.TypeMap = TypeSubstitution.Create(enclosingMethod, enclosingMethod.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
-            Me.m_topLevelMethod = enclosingMethod
+            Me.m_typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, CreateTypeParameter)
+            Me.TypeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
+            Me.m_topLevelMethod = topLevelMethod
         End Sub
+
+        <Conditional("DEBUG")>
+        Private Shared Sub AssertIsLambdaScopeSyntax(syntax As VisualBasicSyntaxNode)
+
+        End Sub
+
+        Public ReadOnly Property ScopeSyntax As VisualBasicSyntaxNode
+            Get
+                Return m_constructor.Syntax
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
-            Dim type = ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object)
+            Dim type = ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             ' WARN: We assume that if System_Object was not found we would never reach 
             '       this point because the error should have been/processed generated earlier
             Debug.Assert(type.GetUseSiteErrorInfo() Is Nothing)
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
-            Dim type = ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object)
+            Dim type = ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             ' WARN: We assume that if System_Object was not found we would never reach 
             '       this point because the error should have been/processed generated earlier
             Debug.Assert(type.GetUseSiteErrorInfo() Is Nothing)

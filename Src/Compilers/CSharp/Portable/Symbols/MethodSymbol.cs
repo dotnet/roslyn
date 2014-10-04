@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents a method or method-like symbol (including constructor,
     /// destructor, operator, or property/event accessor).
     /// </summary>
-    internal abstract partial class MethodSymbol : Symbol, IMethodSymbol
+    internal abstract partial class MethodSymbol : Symbol, IMethodSymbolInternal
     {
         internal const MethodSymbol None = null;
 
@@ -903,14 +901,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool GenerateDebugInfo { get; }
 
         /// <summary>
-        /// When a state machine method MoveNext() is generated for an async method, additional information is 
-        /// supposed to be written into PDB file; this property links such a MoveNext() method to an original 
-        /// async method and should only be overriden in the method symbol created in AsyncRewriter representing
-        /// the synthesized MoveNext() method
+        /// Calculates a syntax offset for a local (user-defined or long-lived synthesized) declared at <paramref name="localPosition"/>.
         /// </summary>
-        internal virtual MethodSymbol AsyncKickoffMethod
+        /// <remarks>
+        /// Syntax offset is a unique identifier for the local within the emitted method body.
+        /// It's based on position of the local declarator. In single-part method bodies it's simply the distance
+        /// from the start of the method body syntax span. If a method body has multiple parts (such as a constructor 
+        /// comprising of code for member initializers and constructor initializer calls) the offset is calculated
+        /// as if all source these parts were concatenated together and prepended to the constructor body.
+        /// The resulting syntax offset is then negative for locals defined outside of the constructor body.
+        /// </remarks>
+        internal virtual int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            get { return null; }
+            // Method body doesn't contain any user-defined or long-lived synthesized locals.
+            throw ExceptionUtilities.Unreachable;
         }
 
         #region IMethodSymbol Members
@@ -1109,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.Construct(arguments.Cast<TypeSymbol>().AsImmutable());
         }
 
-        Microsoft.CodeAnalysis.IMethodSymbol Microsoft.CodeAnalysis.IMethodSymbol.PartialImplementationPart
+        IMethodSymbol IMethodSymbol.PartialImplementationPart
         {
             get
             {
@@ -1117,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Microsoft.CodeAnalysis.IMethodSymbol Microsoft.CodeAnalysis.IMethodSymbol.PartialDefinitionPart
+        IMethodSymbol IMethodSymbol.PartialDefinitionPart
         {
             get
             {
@@ -1131,6 +1135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return null;
             }
+        }
+
+        #endregion
+
+        #region IMethodSymbolInternal
+
+        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            return CalculateLocalSyntaxOffset(localPosition, localTree);
         }
 
         #endregion

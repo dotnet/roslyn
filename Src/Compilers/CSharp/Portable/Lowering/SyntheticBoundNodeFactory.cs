@@ -7,9 +7,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -158,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public SynthesizedFieldSymbolBase StateMachineField(TypeSymbol fieldType, string name, int iteratorLocalIndex)
+        public SynthesizedFieldSymbolBase StateMachineField(TypeSymbol fieldType, string localName, int userDefinedHoistedLocalId)
         {
-            var result = new StateMachineHoistedLocalSymbol(CurrentClass, fieldType, name, iteratorLocalIndex);
+            var result = new StateMachineFieldSymbol(CurrentClass, fieldType, localName, userDefinedHoistedLocalId);
             AddField(CurrentClass, result);
             return result;
         }
@@ -388,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         public LocalSymbol SynthesizedLocal(
             TypeSymbol type, 
-            CSharpSyntaxNode syntax = null,
+            SyntaxNode syntax = null,
             bool isPinned = false,
             RefKind refKind = RefKind.None, 
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp, 
@@ -400,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #else
         public LocalSymbol SynthesizedLocal(
             TypeSymbol type,
-            CSharpSyntaxNode syntax = null,
+            SyntaxNode syntax = null,
             bool isPinned = false,
             RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp)
@@ -1082,7 +1084,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument,
             out BoundAssignmentOperator store,
             RefKind refKind = RefKind.None, 
-            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp
+            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
+            CSharpSyntaxNode syntaxOpt = null
 #if DEBUG
             , [CallerLineNumber]int callerLineNumber = 0
             , [CallerFilePath]string callerFilePath = null
@@ -1103,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     createdAtLineNumber: callerLineNumber,
                     createdAtFilePath: callerFilePath,
 #endif
-                    syntaxOpt: kind.IsLongLived() ? syntax : null,
+                    syntaxOpt: syntaxOpt ?? (kind.IsLongLived() ? syntax : null),
                     isPinned: false,
                     refKind: refKind),
                 null,

@@ -1,16 +1,20 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+extern alias PDB;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
-using Roslyn.Test.PdbUtilities;
+using Microsoft.CodeAnalysis.Emit;
+using PDB::Roslyn.Test.PdbUtilities;
+using PDB::Roslyn.Utilities.Pdb;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,6 +48,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public CompilationVerifier Clone()
             {
                 return new CompilationVerifier(test, compilation, dependencies);
+            }
+
+            internal CompilationTestData TestData
+            {
+                get { return testData; }
             }
 
             public Compilation Compilation
@@ -172,8 +181,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 var actualPdbXml = GetPdbXml(this.compilation, qualifiedMethodName);
                 AssertXmlEqual(expectedPdbXml, actualPdbXml);
-
                 return this;
+            }
+
+            public sealed class DebugInfoProvider : IDisposable
+            {
+                public readonly TempPdbReader PdbReader;
+
+                public DebugInfoProvider(TempPdbReader pdbReader)
+                {
+                    PdbReader = pdbReader;
+                }
+
+                public void Dispose()
+                {
+                    PdbReader.Dispose();
+                }
+
+                public EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(MethodHandle handle)
+                {
+                    return PdbReader.RawSymbolReader.GetEncMethodDebugInfo(handle);
+                }
+            }
+
+            public DebugInfoProvider CreatePdbInfoProvider()
+            {
+                return new DebugInfoProvider(TempPdbReader.Create(new MemoryStream(EmittedAssemblyPdb.ToArray())));
             }
 
             public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, bool useRefEmitter = false)

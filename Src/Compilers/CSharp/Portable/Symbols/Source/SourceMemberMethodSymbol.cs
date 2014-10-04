@@ -449,9 +449,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
-            var syntax = (MethodDeclarationSyntax)syntaxReference.GetSyntax();
-            var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntaxReference.SyntaxTree).GetBinder(syntax.ReturnType);
+            var syntax = GetSyntax();
+            var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType);
             MethodChecks(syntax, withTypeParamsBinder, diagnostics);
+        }
+
+        internal MethodDeclarationSyntax GetSyntax()
+        {
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (MethodDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -495,14 +501,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<TypeParameterConstraintClause>.Empty;
             }
 
-            var syntax = (MethodDeclarationSyntax)this.syntaxReference.GetSyntax();
+            var syntax = GetSyntax();
             var constraintClauses = syntax.ConstraintClauses;
             if (constraintClauses.Count == 0)
             {
                 return ImmutableArray<TypeParameterConstraintClause>.Empty;
             }
 
-            var syntaxTree = this.syntaxReference.SyntaxTree;
+            var syntaxTree = syntax.SyntaxTree;
 
             // If we're binding these constraints before the method has been
             // fully constructed (see partial method comment in .ctor), we have
@@ -551,9 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return !this.lazyParameters.IsDefault
-                    ? this.lazyParameters.Length
-                    : ((MethodDeclarationSyntax)syntaxReference.GetSyntax()).ParameterList.ParameterCount;
+                return !this.lazyParameters.IsDefault ? this.lazyParameters.Length : GetSyntax().ParameterList.ParameterCount;
             }
         }
 
@@ -680,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ((MethodDeclarationSyntax)this.SyntaxNode).ExplicitInterfaceSpecifier != null;
+                return this.GetSyntax().ExplicitInterfaceSpecifier != null;
             }
         }
 
@@ -737,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var sourceContainer = this.ContainingType as SourceMemberContainerTypeSymbol;
                 if ((object)sourceContainer != null && sourceContainer.AnyMemberHasAttributes)
                 {
-                    return ((BaseMethodDeclarationSyntax)this.SyntaxNode).AttributeLists;
+                    return this.GetSyntax().AttributeLists;
                 }
 
                 return default(SyntaxList<AttributeListSyntax>);
@@ -932,11 +936,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed class '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (bodySyntaxReference == null && IsAsync)
+            else if (bodySyntaxReferenceOpt == null && IsAsync)
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
             }
-            else if (bodySyntaxReference == null && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
+            else if (bodySyntaxReferenceOpt == null && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -995,8 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)this.explicitInterfaceType != null)
             {
-                var syntax = (MethodDeclarationSyntax)this.SyntaxNode;
-                Debug.Assert(syntax != null);
+                var syntax = this.GetSyntax();
                 Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
                 this.explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
             }

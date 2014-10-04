@@ -3,10 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -20,66 +25,110 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static class XmlElementDiff
     {
-        /// <summary>
-        /// Compare two XElements.  Assumed to be non-null.
-        /// </summary>
-        public static void AssertEqual(XElement expectedRoot, XElement actualRoot, IEqualityComparer<XElement> shallowComparer)
+        private class ShallowElementComparer : IEqualityComparer<XElement>
         {
-            Tuple<XElement, XElement> firstMismatch;
-            if (!CheckEqual(expectedRoot, actualRoot, shallowComparer, out firstMismatch))
+            public static readonly IEqualityComparer<XElement> Instance = new ShallowElementComparer();
+
+            private ShallowElementComparer() { }
+
+            public bool Equals(XElement element1, XElement element2)
             {
-                Assert.True(false, GetAssertText(expectedRoot.ToString(), actualRoot.ToString(), expectedRoot, firstMismatch, expectedAndActualAsCSharpString: false));
+                Assert.NotNull(element1);
+                Assert.NotNull(element2);
+
+                return element1.Name == "customDebugInfo"
+                    ? element1.ToString() == element2.ToString()
+                    : XmlElementDiff.NameAndAttributeComparer.Instance.Equals(element1, element2);
+            }
+
+            public int GetHashCode(XElement element)
+            {
+                return element.Name.GetHashCode();
             }
         }
 
         /// <summary>
-        /// Parse two strings as XElements and compare the results.  Assumed to be well-formed XML.
+        /// Compare two XElements.  Assumed to be non-null.
         /// </summary>
-        public static void AssertEqual(string expected, string actual, IEqualityComparer<XElement> shallowComparer)
+        public static void AssertEqual(
+            XElement expectedRoot, 
+            XElement actualRoot,
+            string expectedValueSourcePath,
+            int expectedValueSourceLine,
+            bool expectedIsXmlLiteral)
         {
-            Assert.False(string.IsNullOrEmpty(expected));
-            Assert.False(string.IsNullOrEmpty(actual));
-
-            XElement expectedRoot = XElement.Parse(expected);
-            XElement actualRoot = XElement.Parse(actual);
-
             Tuple<XElement, XElement> firstMismatch;
-            if (!CheckEqual(expectedRoot, actualRoot, shallowComparer, out firstMismatch))
+            if (!CheckEqual(expectedRoot, actualRoot, ShallowElementComparer.Instance, out firstMismatch))
             {
-                Assert.True(false, GetAssertText(expected, actual, expectedRoot, firstMismatch, expectedAndActualAsCSharpString: true));
+                Assert.True(false, GetAssertText(GetXmlString(expectedRoot, expectedIsXmlLiteral), GetXmlString(actualRoot, expectedIsXmlLiteral), expectedRoot, firstMismatch, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral));
+            }
+        }
+
+        private static string GetXmlString(XElement node, bool expectedIsXmlLiteral)
+        {
+            using (StringWriter sw = new StringWriter(CultureInfo.InvariantCulture))
+            {
+                XmlWriterSettings ws = new XmlWriterSettings();
+                ws.IndentChars = expectedIsXmlLiteral ? "    " : "  ";
+                ws.OmitXmlDeclaration = true;
+                ws.Indent = true;
+                using (XmlWriter w = XmlWriter.Create(sw, ws))
+                {
+                    node.WriteTo(w);
+                }
+
+                return sw.ToString();
             }
         }
 
         /// <summary>
         /// Helpful diff output message.  Can be printed as either an XML literal (VB) or a string literal (C#).
         /// </summary>
-        private static string GetAssertText(string expected, string actual, XElement expectedRoot, Tuple<XElement, XElement> firstMismatch, bool expectedAndActualAsCSharpString)
+        private static string GetAssertText(
+            string expected, 
+            string actual,
+            XElement expectedRoot, 
+            Tuple<XElement, XElement> firstMismatch, 
+            string expectedValueSourcePath,
+            int expectedValueSourceLine,
+            bool expectedIsXmlLiteral)
         {
             StringBuilder assertText = new StringBuilder();
-            
-            assertText.AppendLine("Expected");
-            assertText.AppendLine("====");
-            assertText.AppendLine(expectedAndActualAsCSharpString ? string.Format("@\"{0}\"", expected.Replace("\"", "\"\"")) : expected);
-            assertText.AppendLine();
 
-            if (firstMismatch.Item1 != expectedRoot)
+            string actualString = expectedIsXmlLiteral ? actual.Replace(" />\r\n", "/>\r\n") : string.Format("@\"{0}\"", actual.Replace("\"", "\"\""));
+            string expectedString = expectedIsXmlLiteral ? expected.Replace(" />\r\n", "/>\r\n") : string.Format("@\"{0}\"", expected.Replace("\"", "\"\""));
+
+            string link;
+            if (AssertEx.TryGenerateExpectedSourceFielAndGetDiffLink(actualString, expectedString.Count(c => c == '\n') + 1, expectedValueSourcePath, expectedValueSourceLine, out link))
             {
-                assertText.AppendLine("First Difference");
+                assertText.AppendLine(link);
+            }
+            else
+            {
+                assertText.AppendLine("Expected");
                 assertText.AppendLine("====");
-                assertText.AppendLine("Expected Fragment");
-                assertText.AppendLine("----");
-                assertText.AppendLine(firstMismatch.Item1.ToString());
+                assertText.AppendLine(expectedString);
                 assertText.AppendLine();
-                assertText.AppendLine("Actual Fragment");
-                assertText.AppendLine("----");
-                assertText.AppendLine(firstMismatch.Item2.ToString());
+
+                if (firstMismatch.Item1 != expectedRoot)
+                {
+                    assertText.AppendLine("First Difference");
+                    assertText.AppendLine("====");
+                    assertText.AppendLine("Expected Fragment");
+                    assertText.AppendLine("----");
+                    assertText.AppendLine(firstMismatch.Item1.ToString());
+                    assertText.AppendLine();
+                    assertText.AppendLine("Actual Fragment");
+                    assertText.AppendLine("----");
+                    assertText.AppendLine(firstMismatch.Item2.ToString());
+                    assertText.AppendLine();
+                }
+
+                assertText.AppendLine("Actual");
+                assertText.AppendLine("====");
+                assertText.AppendLine(actualString);
                 assertText.AppendLine();
             }
-
-            assertText.AppendLine("Actual");
-            assertText.AppendLine("====");
-            assertText.AppendLine(expectedAndActualAsCSharpString ? string.Format("@\"{0}\"", actual.Replace("\"", "\"\"")) : actual);
-            assertText.AppendLine();
 
             return assertText.ToString();
         }

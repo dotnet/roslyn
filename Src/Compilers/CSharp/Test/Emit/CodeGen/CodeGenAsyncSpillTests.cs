@@ -602,11 +602,11 @@ public class Test
 {
   // Code size      297 (0x129)
   .maxstack  4
-  .locals init (int V_0, //CS$524$0000
-                int V_1, //CS$523$0001
+  .locals init (int V_0,
+                int V_1,
                 int& V_2,
-                int V_3, //CS$530$0002
-                int V_4, //CS$530$0003
+                int V_3,
+                int V_4,
                 int V_5,
                 int& V_6,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_7,
@@ -803,7 +803,36 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "array",
+                    "<>7__wrap1",
+                    "<>7__wrap2",
+                    "<>u__$awaiter0",
+                    "<>7__wrap3",
+                    "<>7__wrap4",
+                }, module.GetFieldNames("C.<F>d__1"));
+            });
+#if TODO
+            CompileAndVerify(source, additionalRefs: AsyncRefs, verify:false, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "array",
+                    "<>s__530$1$2",
+                    "<>s__530$1$7",
+                    "<>s__531$1$1",
+                    "<>u__$awaiter0",
+                    "<>s__531$1$2",
+                }, module.GetFieldNames("C.<F>d__1"));
+            });
+#endif
         }
 
         [Fact]
@@ -2767,6 +2796,69 @@ class C
 42
 ";
             CompileAndVerify(source, expected);
+        }
+
+        
+
+        [Fact]
+        public void SynthesizedVariables1()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void F1(ref int x, int y, int z)
+    {
+        x += y + z;
+    }
+
+    static int F0()
+    {
+        Console.WriteLine(-1);
+        return 0;
+    }
+
+    static async Task<int> F2()
+    {
+        int[] x = new int[1] { 21 };
+        x = null;
+        F1(ref x[0], F0(), await Task.Factory.StartNew(() => 21));
+        F1(ref x[0], F0(), await Task.Factory.StartNew(() => 21));
+        return x[0];
+    }
+}";
+            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "<x>5__1",
+                    "<>7__wrap1",
+                    "<>7__wrap2",
+                    "<>u__$awaiter4",
+                    "<>7__wrap3",
+                }, module.GetFieldNames("C.<F2>d__1"));
+            });
+#if TODO
+            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "<x>5__1",
+                    "<>s__530$1$2",
+                    "<>s__530$2$5",
+                    "<>s__531$1$1",
+                    "<>u__$awaiter4",
+                    "<>s__531$2$2",
+                }, module.GetFieldNames("C.<F2>d__1"));
+            });
+#endif
         }
     }
 }

@@ -120,19 +120,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal LocalDefinition DeclareLocal(
             Cci.ITypeReference type,
-            ILocalSymbol symbol,
+            ILocalSymbolInternal symbol,
             string name,
-            CommonSynthesizedLocalKind synthesizedKind,
+            SynthesizedLocalKind kind,
+            LocalDebugId id,
             uint pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
-            ImmutableArray<TypedConstant> dynamicTransformFlags)
+            ImmutableArray<TypedConstant> dynamicTransformFlags,
+            bool isSlotReusable)
         {
             LocalDefinition local;
 
-            if ((name != null) || !FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
+            if (!isSlotReusable || !FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
             {
-                local = this.DeclareLocalImpl(type, symbol, name, synthesizedKind, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
+                local = this.DeclareLocalImpl(type, symbol, name, kind, id, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
             }
 
             LocalMap.Add(symbol, local);
@@ -173,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     type: type,
                     symbolOpt: null,
                     nameOpt: null,
-                    synthesizedKind: CommonSynthesizedLocalKind.EmitterTemp,
+                    kind: SynthesizedLocalKind.EmitterTemp,
+                    id: LocalDebugId.None,
                     pdbAttributes: Cci.PdbWriter.HiddenLocalAttributesValue,
                     constraints: constraints,
                     isDynamic: false,
@@ -185,9 +188,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private LocalDefinition DeclareLocalImpl(
             Cci.ITypeReference type,
-            ILocalSymbol symbolOpt,
+            ILocalSymbolInternal symbolOpt,
             string nameOpt,
-            CommonSynthesizedLocalKind synthesizedKind,
+            SynthesizedLocalKind kind,
+            LocalDebugId id,
             uint pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
@@ -202,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             if (symbolOpt != null && slotAllocatorOpt != null)
             {
-                local = this.slotAllocatorOpt.GetPreviousLocal(type, symbolOpt, nameOpt, synthesizedKind, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
+                local = this.slotAllocatorOpt.GetPreviousLocal(type, symbolOpt, nameOpt, kind, id, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
                 if (local != null)
                 {
                     int slot = local.SlotIndex;
@@ -216,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 nameOpt: nameOpt,
                 type: type,
                 slot: this.lazyAllLocals.Count,
-                synthesizedKind: synthesizedKind,
+                synthesizedKind: kind,
+                id: id,
                 pdbAttributes: pdbAttributes,
                 constraints: constraints,
                 isDynamic: isDynamic,

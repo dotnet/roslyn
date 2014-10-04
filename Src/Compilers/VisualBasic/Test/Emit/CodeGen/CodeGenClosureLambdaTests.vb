@@ -129,7 +129,7 @@ End Class
 
         <Fact>
         Public Sub ClosureSimple()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -144,9 +144,9 @@ Module M1
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="12").
-    VerifyIL("M1.Main",
-            <![CDATA[
+</compilation>, expectedOutput:="12")
+
+            c.VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       75 (0x4b)
   .maxstack  2
@@ -177,7 +177,7 @@ End Module
 
         <Fact>
         Public Sub ClosureSimpleLift()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -194,13 +194,13 @@ Module M1
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="36").
-    VerifyIL("M1.Main",
-            <![CDATA[
+</compilation>, expectedOutput:="36")
+
+            c.VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       56 (0x38)
   .maxstack  4
-  .locals init (M1._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (M1._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub M1._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -226,7 +226,7 @@ End Module
 
         <Fact>
         Public Sub InInstanceLift()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -252,13 +252,12 @@ Module M1
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="36").
-    VerifyIL("M1.C1.Foo",
-            <![CDATA[
+</compilation>, expectedOutput:="36")
+            c.VerifyIL("M1.C1.Foo", <![CDATA[
 {
   // Code size       56 (0x38)
   .maxstack  4
-  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub M1.C1._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -325,7 +324,7 @@ End Module
 {
   // Code size       63 (0x3f)
   .maxstack  4
-  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub M1.C1._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -394,7 +393,7 @@ End Module
 {
   // Code size       89 (0x59)
   .maxstack  4
-  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub M1.C1._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -433,7 +432,7 @@ End Module
 
         <Fact>
         Public Sub ClosureNested()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -451,9 +450,9 @@ Module M1
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="654321").
-    VerifyIL("M1._Closure$__1._Lambda$__4",
-            <![CDATA[
+</compilation>, expectedOutput:="654321")
+
+            c.VerifyIL("M1._Closure$__1._Lambda$__4", <![CDATA[
 {
   // Code size       38 (0x26)
   .maxstack  3
@@ -1106,7 +1105,7 @@ End Module
 {
   // Code size       44 (0x2c)
   .maxstack  4
-  .locals init (M1.C1._Closure$__1(Of T) V_0) //$VB$Closure_1
+  .locals init (M1.C1._Closure$__1(Of T) V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub M1.C1._Closure$__1(Of T)..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -1884,7 +1883,7 @@ End Module
 
         <Fact>
         Public Sub PropagatingValueSimpleFor()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1915,15 +1914,15 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="123456").
-    VerifyIL("Module1.Main",
-            <![CDATA[
+</compilation>, expectedOutput:="123456")
+
+            c.VerifyIL("Module1.Main", <![CDATA[
 {
   // Code size       60 (0x3c)
   .maxstack  4
   .locals init (System.Action() V_0, //a
-  Integer V_1, //i
-  Module1._Closure$__1 V_2) //$VB$Closure_1
+                Integer V_1, //i
+                Module1._Closure$__1 V_2) //$VB$Closure_0
   IL_0000:  ldc.i4.6
   IL_0001:  newarr     "System.Action"
   IL_0006:  stloc.0
@@ -1961,7 +1960,7 @@ End Module
 
         <Fact>
         Public Sub PropagatingValueSimpleForNonConstStep()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1994,9 +1993,9 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="616263646566").
-    VerifyIL("Module1._Closure$__2..ctor",
-            <![CDATA[
+</compilation>, expectedOutput:="616263646566")
+
+            c.VerifyIL("Module1._Closure$__2..ctor", <![CDATA[
 {
 // Code size       22 (0x16)
 .maxstack  2
@@ -2010,17 +2009,16 @@ IL_000b:  ldfld      "Module1._Closure$__2.$VB$Local_x As Integer"
 IL_0010:  stfld      "Module1._Closure$__2.$VB$Local_x As Integer"
 IL_0015:  ret
 }
-]]>).
-VerifyIL("Module1.Main",
-            <![CDATA[
+]]>)
+            c.VerifyIL("Module1.Main", <![CDATA[
 {
   // Code size      126 (0x7e)
   .maxstack  4
   .locals init (System.Action() V_0, //a
                 Integer V_1, //S
-                Module1._Closure$__1 V_2, //$VB$Closure_1
+                Module1._Closure$__1 V_2, //$VB$Closure_0
                 Integer V_3,
-                Module1._Closure$__2 V_4) //$VB$Closure_2
+                Module1._Closure$__2 V_4) //$VB$Closure_1
   IL_0000:  ldc.i4.6
   IL_0001:  newarr     "System.Action"
   IL_0006:  stloc.0
@@ -2141,7 +2139,7 @@ End Class
 {
   // Code size       56 (0x38)
   .maxstack  3
-  .locals init (C._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (C._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub C._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -2281,7 +2279,7 @@ End Class
 {
   // Code size      131 (0x83)
   .maxstack  3
-  .locals init (Program._Closure$__1 V_0, //$VB$Closure_1
+  .locals init (Program._Closure$__1 V_0, //$VB$Closure_0
   System.Action V_1, //a
   System.Exception V_2)
   IL_0000:  newobj     "Sub Program._Closure$__1..ctor()"
@@ -2377,7 +2375,7 @@ End Class
 {
   // Code size      132 (0x84)
   .maxstack  3
-  .locals init (Program._Closure$__1 V_0, //$VB$Closure_1
+  .locals init (Program._Closure$__1 V_0, //$VB$Closure_0
                 System.Action V_1, //a
                 System.Exception V_2)
   IL_0000:  newobj     "Sub Program._Closure$__1..ctor()"
@@ -2464,7 +2462,7 @@ End Class
   // Code size       58 (0x3a)
   .maxstack  2
   .locals init (System.Action V_0, //a
-                Program._Closure$__1 V_1, //$VB$Closure_1
+                Program._Closure$__1 V_1, //$VB$Closure_0
                 System.Exception V_2)
   .try
   {
@@ -2532,7 +2530,7 @@ End Class
   // Code size       93 (0x5d)
   .maxstack  2
   .locals init (System.Action V_0, //a
-  Program._Closure$__1 V_1, //$VB$Closure_1
+  Program._Closure$__1 V_1, //$VB$Closure_0
   System.Exception V_2)
   .try
 {
@@ -2604,7 +2602,7 @@ End Class
 {
   // Code size       84 (0x54)
   .maxstack  2
-  .locals init (Program._Closure$__1 V_0, //$VB$Closure_1
+  .locals init (Program._Closure$__1 V_0, //$VB$Closure_0
                 System.Exception V_1)
   .try
   {
@@ -2683,8 +2681,8 @@ End Class
 {
   // Code size       90 (0x5a)
   .maxstack  2
-  .locals init (Program._Closure$__1 V_0, //$VB$Closure_1
-  System.Exception V_1)
+  .locals init (Program._Closure$__1 V_0, //$VB$Closure_0
+                System.Exception V_1)
   .try
 {
   IL_0000:  ldstr      "blah"
@@ -3328,7 +3326,7 @@ End Module
 {
   // Code size       41 (0x29)
   .maxstack  4
-  .locals init (SLamContext01mod._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (SLamContext01mod._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub SLamContext01mod._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  newobj     "Sub SLamContext01mod._Closure$__3..ctor()"

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -450,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     syntaxTree = addressOfExpression.Binder.SyntaxTree
                     For Each parameter In toMethodParameters
                         Dim parameterType = parameter.Type
-                        Dim tempParamSymbol = New SynthesizedLocal(toMethod, parameterType, SynthesizedLocalKind.None)
+                        Dim tempParamSymbol = New SynthesizedLocal(toMethod, parameterType, SynthesizedLocalKind.LoweringTemp)
                         ' TODO: Switch to using BoundValuePlaceholder, but we need it to be able to appear
                         ' as an LValue in case of a ByRef parameter.
                         Dim tempBoundParameter As BoundExpression = New BoundLocal(addressOfSyntax,

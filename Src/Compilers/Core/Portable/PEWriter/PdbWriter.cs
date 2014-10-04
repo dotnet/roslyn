@@ -136,7 +136,7 @@ namespace Microsoft.Cci
 
             EmitSequencePoints(methodBody.GetSequencePoints());
 
-            AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncMethodDebugInfo;
+            AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncDebugInfo;
             if (asyncDebugInfo != null)
             {
                 SetAsyncInfo(
@@ -150,7 +150,7 @@ namespace Microsoft.Cci
             var module = peWriter.Context.Module;
 
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !this.peWriter.IsFullMetadata, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);

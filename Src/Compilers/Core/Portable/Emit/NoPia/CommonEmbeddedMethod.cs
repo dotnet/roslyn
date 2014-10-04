@@ -170,9 +170,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     return ImmutableArray<Cci.SequencePoint>.Empty;
                 }
 
-                Cci.CustomDebugInfoKind Cci.IMethodBody.CustomDebugInfoKind
+                Cci.NamespaceScopeEncoding Cci.IMethodBody.NamespaceScopeEncoding
                 {
-                    get { return Cci.CustomDebugInfoKind.CSharpStyle; }
+                    get { return Cci.NamespaceScopeEncoding.InPlace; }
                 }
 
                 bool Cci.IMethodBody.HasDynamicLocalVariables
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     get { return false; }
                 }
 
-                Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncMethodDebugInfo
+                Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo
                 {
                     get { return null; }
                 }

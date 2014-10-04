@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,15 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SynthesizedStateMachineMethod(
             string name,            
             MethodSymbol interfaceMethod,
-            NamedTypeSymbol implementingType,
-            MethodSymbol asyncKickoffMethod,
+            StateMachineTypeSymbol stateMachineType,
             PropertySymbol associatedProperty,
             bool debuggerHidden,
             bool generateDebugInfo,
             bool hasMethodBodyDependency)
-            : base(interfaceMethod, implementingType,  name, debuggerHidden, generateDebugInfo, associatedProperty, asyncKickoffMethod)
+            : base(interfaceMethod, stateMachineType, name, debuggerHidden, generateDebugInfo, associatedProperty)
         {
             this.hasMethodBodyDependency = hasMethodBodyDependency;
+        }
+
+        public StateMachineTypeSymbol StateMachineType
+        {
+            get { return (StateMachineTypeSymbol)ContainingSymbol; }
         }
 
         public bool HasMethodBodyDependency
@@ -33,7 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
         {
-            get { return ((ISynthesizedMethodBodyImplementationSymbol)ContainingSymbol).Method; }
+            get { return StateMachineType.KickoffMethod; }
+        }
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            return this.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
     }
 }

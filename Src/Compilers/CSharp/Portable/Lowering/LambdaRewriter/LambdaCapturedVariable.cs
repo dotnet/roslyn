@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var local = variable as LocalSymbol;
             if ((object)local != null)
             {
-                if (local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass)
+                if (local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
                     return GeneratedNames.MakeLambdaDisplayClassStorageName(uniqueId++);
                 }
 
-                if (local.SynthesizedLocalKind == SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal)
+                if (local.SynthesizedKind == SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal)
                 {
                     return GeneratedNames.MakeHoistedLocalFieldName(string.Empty, uniqueId++);
                 }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type);
         }
 
-        internal override int IteratorLocalIndex
+        internal override int UserDefinedHoistedLocalId
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

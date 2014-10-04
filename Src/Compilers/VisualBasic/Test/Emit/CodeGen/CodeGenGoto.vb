@@ -786,7 +786,7 @@ End Class
 {
   // Code size       26 (0x1a)
   .maxstack  3
-  .locals init (c1._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (c1._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  ldloc.0
   IL_0001:  newobj     "Sub c1._Closure$__1..ctor(c1._Closure$__1)"
   IL_0006:  stloc.0

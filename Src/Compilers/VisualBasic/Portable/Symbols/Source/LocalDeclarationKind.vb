@@ -8,11 +8,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Enum LocalDeclarationKind As Byte
         ''' <summary> 
         ''' The local is not user defined nor it is a copy of a user defined local (e.g. with a substituted type).
-        ''' Check the value of <see cref="LocalSymbol.SynthesizedLocalKind"/> for the kind of synthesized variable.
+        ''' Check the value of <see cref="LocalSymbol.SynthesizedKind"/> for the kind of synthesized variable.
         ''' </summary> 
         None
         Variable
+
+        ''' <summary>
+        ''' Implicilty declared variable (w/o variable declaration).
+        ''' </summary>
         ImplicitVariable
+
         Constant
         [Static]
         [Using]

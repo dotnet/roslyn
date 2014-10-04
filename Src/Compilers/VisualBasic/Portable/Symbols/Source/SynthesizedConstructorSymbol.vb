@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -58,5 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _debuggable
             End Get
         End Property
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            ' although the containing type can be PE symbol, such a constructor doesn't 
+            ' declare source locals And thus this method shouldn't be called.
+            Dim containingType = DirectCast(Me.ContainingType, SourceMemberContainerTypeSymbol)
+            Return containingType.CalculateLocalSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, IsShared)
+        End Function
     End Class
 End Namespace

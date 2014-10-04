@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 guidStreamLengthAdded:=previousGeneration.GuidStreamLengthAdded,
                 anonymousTypeMap:=anonymousTypeMap,
                 localsForMethodsAddedOrChanged:=locals,
-                localNames:=previousGeneration.LocalNames)
+                debugInformationProvider:=previousGeneration.DebugInformationProvider)
         End Function
 
         Private Function MapDefinitions(Of K As Cci.IDefinition, V)(
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Else
                 Dim type = map.MapReference(localInfo.Type)
                 Debug.Assert(type IsNot Nothing)
-                Return New EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.SynthesizedKind, localInfo.Signature)
+                Return New EncLocalInfo(localInfo.Id, type, localInfo.Constraints, localInfo.Kind, localInfo.Signature)
             End If
         End Function
 

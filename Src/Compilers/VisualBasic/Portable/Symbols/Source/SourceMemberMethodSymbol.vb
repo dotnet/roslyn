@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -296,6 +297,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState, StateFlags.AllDiagnosticsReported, 0, diagnostics, CompilationStage.Declare)
             diagnostics.Free()
         End Sub
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Dim span As TextSpan
+
+            Dim block = BlockSyntax
+            If block IsNot Nothing AndAlso localTree Is block.SyntaxTree Then
+                ' Assign -1 offset to all variables that are associated with the header.
+                ' We can't assign >=0 since user-defined variables defined in the first statement of the body have 0
+                ' and user-defined variables need to have a unique syntax offset.
+                If localPosition = block.Begin.SpanStart Then
+                    Return -1
+                End If
+
+                span = block.Statements.Span
+
+                If span.Contains(localPosition) Then
+                    Return localPosition - span.Start
+                End If
+            End If
+
+            'Dim containingType = DirectCast(Me.ContainingType, SourceNamedTypeSymbol)
+            'Dim initializerStart As Integer = 0
+            'Dim aggregateInitializerLength As Integer = 0
+            'If containingType.TryFindDeclaringInitializerStart(localPosition, localTree, Me.IsShared, initializerStart, aggregateInitializerLength) Then
+            '    Return -aggregateInitializerLength + (localPosition - initializerStart)
+            'End If
+
+            Throw ExceptionUtilities.Unreachable
+        End Function
 
 #Region "Type Parameters"
 
@@ -724,7 +754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Bind event symbol
             Dim eventName As String = singleHandleClause.EventMember.Identifier.ValueText
-            Dim eventSymbol As eventSymbol = FindEvent(eventContainingType,
+            Dim eventSymbol As EventSymbol = FindEvent(eventContainingType,
                                                        typeBinder,
                                                        eventName,
                                                        handlesKind = HandledEventKind.MyBase,
@@ -805,9 +835,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim qualificationKind As QualificationKind
             If hookupMethod.IsShared Then
-                qualificationKind = qualificationKind.QualifiedViaTypeName
+                qualificationKind = QualificationKind.QualifiedViaTypeName
             Else
-                qualificationKind = qualificationKind.QualifiedViaValue
+                qualificationKind = QualificationKind.QualifiedViaValue
             End If
 
             Dim syntheticMethodGroup = New BoundMethodGroup(

@@ -507,14 +507,14 @@ class Test
 {
   // Code size      467 (0x1d3)
   .maxstack  3
-  .locals init (int V_0, //CS$524$0000
-                int V_1, //CS$523$0001
-                int V_2, //CS$530$0002
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
                 int V_4,
                 Test.<G>d__1 V_5,
                 object V_6,
-                int V_7, //CS$530$0003
+                int V_7,
                 System.Exception V_8)
  ~IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<G>d__1.<>1__state""
@@ -612,7 +612,7 @@ class Test
     }
    -IL_00ce:  nop
    -IL_00cf:  ldarg.0
-      IL_00d0:  ldarg.0
+    IL_00d0:  ldarg.0
     IL_00d1:  ldfld      ""int Test.<G>d__1.<x>5__1""
     IL_00d6:  stfld      ""int Test.<G>d__1.<>7__wrap4""
     IL_00db:  call       ""System.Threading.Tasks.Task<int> Test.F()""

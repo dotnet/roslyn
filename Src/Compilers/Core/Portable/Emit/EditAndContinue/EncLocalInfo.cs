@@ -2,8 +2,7 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.Cci;
-using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -11,45 +10,46 @@ namespace Microsoft.CodeAnalysis.Emit
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct EncLocalInfo : IEquatable<EncLocalInfo>
     {
-        // Offset of local declarator in collection of locals
-        // from syntax in the containing method.
-        public readonly int Offset;
-        public readonly ITypeReference Type;
+        public readonly LocalDebugId Id;
+        public readonly Cci.ITypeReference Type;
         public readonly LocalSlotConstraints Constraints;
-        public readonly CommonSynthesizedLocalKind SynthesizedKind;
+        public readonly SynthesizedLocalKind Kind;
         public readonly byte[] Signature;
+        public readonly bool isInvalid;
 
         public EncLocalInfo(byte[] signature)
         {
             Debug.Assert(signature != null);
             Debug.Assert(signature.Length > 0);
 
-            this.Offset = -1;
+            this.Id = LocalDebugId.None;
             this.Type = null;
             this.Constraints = default(LocalSlotConstraints);
-            this.SynthesizedKind = 0;
+            this.Kind = SynthesizedLocalKind.EmitterTemp;
             this.Signature = signature;
+            this.isInvalid = true;
         }
 
-        public EncLocalInfo(int offset, ITypeReference type, LocalSlotConstraints constraints, CommonSynthesizedLocalKind synthesizedKind, byte[] signature)
+        public EncLocalInfo(LocalDebugId id, Cci.ITypeReference type, LocalSlotConstraints constraints, SynthesizedLocalKind synthesizedKind, byte[] signature)
         {
             Debug.Assert(type != null);
 
-            this.Offset = offset;
+            this.Id = id;
             this.Type = type;
             this.Constraints = constraints;
-            this.SynthesizedKind = synthesizedKind;
+            this.Kind = synthesizedKind;
             this.Signature = signature;
+            this.isInvalid = false;
         }
 
         public bool IsDefault
         {
-            get { return (this.Type == null) && (this.Signature == null); }
+            get { return this.Type == null && this.Signature == null; }
         }
 
         public bool IsInvalid
         {
-            get { return this.Offset < 0; }
+            get { return isInvalid; }
         }
 
         public bool Equals(EncLocalInfo other)
@@ -57,26 +57,26 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(this.Type != null);
             Debug.Assert(other.Type != null);
 
-            return (this.Offset == other.Offset) &&
-                (this.SynthesizedKind == other.SynthesizedKind) &&
-                this.Type.Equals(other.Type) &&
-                (this.Constraints == other.Constraints);
+            return this.Id.Equals(other.Id) &&
+                   this.Kind == other.Kind &&
+                   this.Type.Equals(other.Type) &&
+                   this.Constraints == other.Constraints &&
+                   this.isInvalid == other.isInvalid;
         }
 
         public override bool Equals(object obj)
         {
-            return Equals((EncLocalInfo)obj);
+            return obj is EncLocalInfo && Equals((EncLocalInfo)obj);
         }
 
         public override int GetHashCode()
         {
             Debug.Assert(this.Type != null);
 
-            int result = this.Offset.GetHashCode();
-            result = Hash.Combine(result, this.Type.GetHashCode());
-            result = Hash.Combine(result, this.Constraints.GetHashCode());
-            result = Hash.Combine(result, this.SynthesizedKind.GetHashCode());
-            return result;
+            return Hash.Combine(this.Id.GetHashCode(),
+                   Hash.Combine(this.Type.GetHashCode(),
+                   Hash.Combine((int)this.Constraints,
+                   Hash.Combine(isInvalid, (int)this.Kind))));
         }
 
         private string GetDebuggerDisplay()
@@ -86,7 +86,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 return "[default]";
             }
 
-            return string.Format("[Offset={0}, Type={1}, Constraints={2}, SynthesizedKind={3}]", this.Offset, this.Type, this.Constraints, this.SynthesizedKind);
+            if (this.isInvalid)
+            {
+                return "[invalid]";
+            }
+
+            return string.Format("[Id={0}.{1}.{2}, Type={3}, Constraints={4}, SynthesizedKind={5}]", this.Id.SyntaxOffset, this.Id.Ordinal, this.Id.Subordinal, this.Type, this.Constraints, this.Kind);
         }
     }
 }

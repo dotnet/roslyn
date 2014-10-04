@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -45,12 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        internal new OperatorDeclarationSyntax GetSyntax()
+        {
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (OperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
         protected override ParameterListSyntax ParameterListSyntax
         {
             get
             {
-                var syntax = (OperatorDeclarationSyntax)syntaxReference.GetSyntax();
-                return syntax.ParameterList;
+                return GetSyntax().ParameterList;
             }
         }
 
@@ -58,8 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var syntax = (OperatorDeclarationSyntax)syntaxReference.GetSyntax();
-                return syntax.ReturnType;
+                return GetSyntax().ReturnType;
             }
         }
 

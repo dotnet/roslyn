@@ -1198,19 +1198,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Cci.AsyncMethodBodyDebugInfo asyncDebugInfo = null;
                 var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdbs);
 
-                if ((object)method.AsyncKickoffMethod == null) // is this the MoveNext of an async method?
-                {
-                    codeGen.Generate();
-                }
-                else
+                // We need to save additional debugging information for MoveNext of an async state machine.
+                var stateMachineMethod = method as SynthesizedStateMachineMethod;
+                if (stateMachineMethod != null && stateMachineMethod.StateMachineType.KickoffMethod.IsAsync && method.Name == WellKnownMemberNames.MoveNextMethodName)
                 {
                     int asyncCatchHandlerOffset;
                     ImmutableArray<int> asyncYieldPoints;
                     ImmutableArray<int> asyncResumePoints;
-                    codeGen.
-                        Generate(out asyncCatchHandlerOffset, out asyncYieldPoints, out asyncResumePoints);
+                    codeGen.Generate(out asyncCatchHandlerOffset, out asyncYieldPoints, out asyncResumePoints);
 
-                    asyncDebugInfo = new Cci.AsyncMethodBodyDebugInfo(method.AsyncKickoffMethod, asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints);
+                    asyncDebugInfo = new Cci.AsyncMethodBodyDebugInfo(stateMachineMethod.StateMachineType.KickoffMethod, asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints);
+                }
+                else
+                {
+                    codeGen.Generate();
                 }
 
                 var localVariables = builder.LocalSlotManager.LocalsInOrder();
@@ -1249,12 +1250,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     debugDocumentProvider,
                     builder.RealizedExceptionHandlers,
                     builder.GetAllScopes(),
-                    Cci.CustomDebugInfoKind.CSharpStyle,
                     builder.HasDynamicLocal,
                     namespaceScopes,
+                    Cci.NamespaceScopeEncoding.InPlace,
                     (stateMachineTypeOpt != null) ? stateMachineTypeOpt.Name : null,
                     iteratorScopes,
-                    asyncMethodDebugInfo: asyncDebugInfo);
+                    asyncDebugInfo);
             }
             finally
             {

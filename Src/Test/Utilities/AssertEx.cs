@@ -462,6 +462,17 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Differences:");
             message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, toString, separator));
 
+            string link;
+            if (TryGenerateExpectedSourceFielAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out link))
+            {
+                message.AppendLine(link);
+            }
+
+            return message.ToString();
+        }
+
+        internal static bool TryGenerateExpectedSourceFielAndGetDiffLink(string actualString, int expectedLineCount, string expectedValueSourcePath, int expectedValueSourceLine, out string link)
+        {
             // add a link to a .cmd file that opens a diff tool:
             if (!string.IsNullOrEmpty(DiffToolPath) && expectedValueSourcePath != null && expectedValueSourceLine != 0)
             {
@@ -470,15 +481,17 @@ namespace Roslyn.Test.Utilities
 
                 File.WriteAllLines(actualFile, testFileLines.Take(expectedValueSourceLine));
                 File.AppendAllText(actualFile, actualString);
-                File.AppendAllLines(actualFile, testFileLines.Skip(expectedValueSourceLine + expected.Count()));
+                File.AppendAllLines(actualFile, testFileLines.Skip(expectedValueSourceLine + expectedLineCount));
 
                 var compareCmd = Path.GetTempFileName() + ".cmd";
                 File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", DiffToolPath, actualFile, expectedValueSourcePath));
 
-                message.AppendLine("file://" + compareCmd);
+                link = "file://" + compareCmd;
+                return true;
             }
 
-            return message.ToString();
+            link = null;
+            return false;
         }
     }
 }

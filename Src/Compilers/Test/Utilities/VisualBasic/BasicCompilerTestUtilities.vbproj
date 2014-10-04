@@ -112,6 +112,7 @@
     <Compile Include="CompilationTestUtils.vb" />
     <Compile Include="DiagnosticExtensions.vb" />
     <Compile Include="Extensions.vb" />
+    <Compile Include="LocalVariableDeclaratorsCollector.vb" />
     <Compile Include="MetadataHelpers.vb" />
     <Compile Include="MockSymbols.vb" />
     <Compile Include="MockVbi.vb" />

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private AsyncRewriter(
             BoundStatement body,
-            MethodSymbol method,
+            SourceMethodSymbol method,
             AsyncStateMachine stateMachineType,
             VariableSlotAllocator variableSlotAllocatorOpt,
             TypeCompilationState compilationState,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stateMachineType = new AsyncStateMachine(method, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
+            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, (SourceMethodSymbol)method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
             if (!rewriter.constructedSuccessfully)
             {
                 return body;
@@ -86,12 +86,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add IAsyncStateMachine.MoveNext()
 
-            var moveNextMethod = OpenMethodImplementation(IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method, hasMethodBodyDependency: true, debuggerHidden: IsDebuggerHidden(this.method), generateDebugInfo: true);
+            var moveNextMethod = OpenMethodImplementation(
+                IAsyncStateMachine_MoveNext,
+                WellKnownMemberNames.MoveNextMethodName, 
+                debuggerHidden: IsDebuggerHidden(this.method), 
+                generateDebugInfo: true,
+                hasMethodBodyDependency: true);
+
             GenerateMoveNext(moveNextMethod);
 
             // Add IAsyncStateMachine.SetStateMachine()
             
-            OpenMethodImplementation(IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true, generateDebugInfo: false, hasMethodBodyDependency: false);
+            OpenMethodImplementation(
+                IAsyncStateMachine_SetStateMachine,
+                "SetStateMachine", 
+                debuggerHidden: true, 
+                generateDebugInfo: false, 
+                hasMethodBodyDependency: false);
 
             // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
             // If the state machine is a class there is no copy made and thus the initialization is not necessary. 

@@ -2,14 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Interface IMockSymbol
     Sub SetContainer(container As Symbol)
@@ -217,7 +210,7 @@ Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Friend Overrides Function GetSecurityInformation() As IEnumerable(Of Microsoft.Cci.SecurityAttribute)
+    Friend Overrides Function GetSecurityInformation() As IEnumerable(Of Cci.SecurityAttribute)
         Throw New InvalidOperationException()
     End Function
 
@@ -401,9 +394,9 @@ Class MockMethodSymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
+    Friend Overrides ReadOnly Property CallingConvention As Cci.CallingConvention
         Get
-            Return Microsoft.Cci.CallingConvention.Standard
+            Return Cci.CallingConvention.Standard
         End Get
     End Property
 
@@ -469,7 +462,7 @@ Class MockMethodSymbol
         End Get
     End Property
 
-    Friend Overrides Function GetSecurityInformation() As IEnumerable(Of Microsoft.Cci.SecurityAttribute)
+    Friend Overrides Function GetSecurityInformation() As IEnumerable(Of Cci.SecurityAttribute)
         Throw New InvalidOperationException()
     End Function
 

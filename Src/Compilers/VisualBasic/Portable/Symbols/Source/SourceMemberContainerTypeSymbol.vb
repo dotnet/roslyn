@@ -3261,6 +3261,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Function CalculateLocalSyntaxOffsetInSynthesizedConstructor(localPosition As Integer, localTree As SyntaxTree, isShared As Boolean) As Integer
+            Dim aggregateLength As Integer = 0
+
+            If IsScriptClass AndAlso Not isShared Then
+                For Each declaration In Me.m_declaration.Declarations
+                    Dim syntaxRef = declaration.SyntaxReference
+
+                    If localTree Is syntaxRef.SyntaxTree Then
+                        Return aggregateLength + localPosition
+                    End If
+
+                    aggregateLength += syntaxRef.Span.Length
+                Next
+
+                Throw ExceptionUtilities.Unreachable
+            End If
+
+            'Dim initializerStart As Integer = 0
+            'If TryFindDeclaringInitializerStart(localPosition, localTree, isShared, initializerStart, aggregateLength) Then
+            '    Return -aggregateLength + (localPosition - initializerStart)
+            'End If
+
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean
             Get
                 ' Only Modules can declare extension methods.

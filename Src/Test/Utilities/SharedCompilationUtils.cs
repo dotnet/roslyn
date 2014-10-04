@@ -1,12 +1,17 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿extern alias PDB;
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
+using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -50,16 +55,85 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static void VerifyIL(
             this CompilationTestData.MethodData method, 
             string expectedIL,
-            [CallerFilePath]string expectedValueSourcePath = null,
-            [CallerLineNumber]int expectedValueSourceLine = 0)
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
         {
             string actualIL = GetMethodIL(method);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
+        internal static void VerifyPdb(
+            this Compilation compilation,
+            string expectedPdb,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            VerifyPdb(compilation, "", expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+        }
+
+        internal static void VerifyPdb(
+            this Compilation compilation,
+            string qualifiedMethodName,
+            string expectedPdb,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            string actualPdb = GetPdbXml(compilation, qualifiedMethodName);
+            XmlElementDiff.AssertEqual(XElement.Parse(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
+        }
+
+        internal static void VerifyPdb(
+            this Compilation compilation,
+            XElement expectedPdb,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            VerifyPdb(compilation, "", expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+        }
+
+        internal static void VerifyPdb(
+            this Compilation compilation,
+            string qualifiedMethodName,
+            XElement expectedPdb,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            XElement actualPdb = XElement.Parse(GetPdbXml(compilation, qualifiedMethodName));
+            XmlElementDiff.AssertEqual(expectedPdb, actualPdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
+        }
+
+        internal static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
+        {
+            string actual = null;
+            using (var exebits = new MemoryStream())
+            {
+                using (var pdbbits = new MemoryStream())
+                {
+                    compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+
+                    pdbbits.Position = 0;
+                    exebits.Position = 0;
+
+                    actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
+                }
+            }
+
+            return actual;
+        }
+
         internal static string GetMethodIL(this CompilationTestData.MethodData method)
         {
             return ILBuilderVisualizer.ILBuilderToString(method.ILBuilder);
+        }
+
+        internal static EditAndContinueMethodDebugInformation GetEncDebugInfo(this CompilationTestData.MethodData methodData)
+        {
+            return Cci.CustomDebugInfoWriter.GetEncDebugInfo(methodData.ILBuilder.LocalSlotManager.LocalsInOrder());
+        }
+
+        internal static Func<MethodHandle, EditAndContinueMethodDebugInformation> EncDebugInfoProvider(this CompilationTestData.MethodData methodData)
+        {
+            return _ => methodData.GetEncDebugInfo();
         }
 
         public static DisposableFile IlasmTempAssembly(string declarations, bool appendDefaultHeader = true)

@@ -11,9 +11,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public abstract LocalDefinition GetPreviousLocal(
             Cci.ITypeReference type,
-            ILocalSymbol symbol,
+            ILocalSymbolInternal symbol,
             string nameOpt,
-            CommonSynthesizedLocalKind synthesizedKind,
+            SynthesizedLocalKind kind,
+            LocalDebugId id,
             uint pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,

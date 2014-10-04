@@ -247,12 +247,9 @@ class C
         <entry il_offset=""0x34"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
         <entry il_offset=""0x3b"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""1"" />
       </sequencepoints>
-      <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x3f"" attributes=""0"" />
-      </locals>
+      <locals />
       <scope startOffset=""0x0"" endOffset=""0x3f"">
         <namespace name=""System.Collections.Generic"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x3f"" attributes=""0"" />
       </scope>
     </method>
   </methods>
@@ -658,7 +655,7 @@ class C
 {
   // Code size       63 (0x3f)
   .maxstack  2
-  .locals init (int V_0, //CS$524$0000
+  .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
@@ -701,7 +698,7 @@ class C
 {
   // Code size       63 (0x3f)
   .maxstack  2
-  .locals init (int V_0, //CS$524$0000
+  .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
@@ -801,8 +798,8 @@ class C
 {
   // Code size      171 (0xab)
   .maxstack  3
-  .locals init (int V_0, //CS$524$0000
-                int V_1, //CS$523$0001
+  .locals init (int V_0,
+                int V_1,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
                 C.<F>d__1 V_3,
                 System.Exception V_4)
@@ -889,8 +886,8 @@ class C
 {
   // Code size      169 (0xa9)
   .maxstack  3
-  .locals init (int V_0, //CS$524$0000
-                int V_1, //CS$523$0001
+  .locals init (int V_0,
+                int V_1,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
                 C.<F>d__1 V_3,
                 System.Exception V_4)

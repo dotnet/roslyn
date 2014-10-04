@@ -6,10 +6,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -17,8 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     {
         private readonly MethodSymbol method;
 
-        // Syntax of the method body (block or an expression), 
+        // Syntax of the method body (block or an expression) being emitted, 
         // or null if the method being emitted isn't a source method.
+        // If we are emitting a lambda this is its body.
         private readonly SyntaxNode methodBodySyntaxOpt;
 
         private readonly BoundStatement boundBody;
@@ -33,8 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // not 0 when in a protected region with a handler. 
         private int tryNestingLevel = 0;
 
-        // Unique id for generated local names.
-        private int uniqueId;
+        // Dispenser of unique ordinals for synthesized variable names that have the same kind and syntax offset.
+        // The key is (local.SyntaxOffset << 8) | local.SynthesizedKind.
+        private PooledDictionary<long, int> synthesizedLocalOrdinals;
+        private int uniqueNameId;
 
         // label used when when return is emitted in a form of store/goto
         private static readonly object ReturnLabel = new object();
@@ -48,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// This is used to track the state of the epilogue.
         /// </summary>
         private IndirectReturnState indirectReturnState;
+
         private enum IndirectReturnState : byte
         {
             NotNeeded = 0,  // did not see indirect returns
@@ -56,20 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         private LocalDefinition returnTemp;
-        private LocalDefinition LazyReturnTemp
-        {
-            get
-            {
-                var result = returnTemp;
-                if (result == null)
-                {
-                    Debug.Assert(!this.method.ReturnsVoid, "returning something from void method?");
-                    result = AllocateTemp(this.method.ReturnType, boundBody.Syntax);
-                    returnTemp = result;
-                }
-                return result;
-            }
-        }
 
         public CodeGenerator(
             MethodSymbol method,
@@ -116,6 +110,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
         }
 
+        private LocalDefinition LazyReturnTemp
+        {
+            get
+            {
+                var result = returnTemp;
+                if (result == null)
+                {
+                    Debug.Assert(!this.method.ReturnsVoid, "returning something from void method?");
+                    result = AllocateTemp(this.method.ReturnType, boundBody.Syntax);
+                    returnTemp = result;
+                }
+                return result;
+            }
+        }
+
         private bool IsStackLocal(LocalSymbol local)
         {
             return stackLocals != null && stackLocals.Contains(local);
@@ -128,21 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(this.asyncCatchHandlerOffset < 0);
             Debug.Assert(this.asyncYieldPoints == null);
             Debug.Assert(this.asyncResumePoints == null);
-
-            if (!diagnostics.HasAnyErrors())
-            {
-                builder.Realize();
-            }
         }
 
         public void Generate(out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
         {
             this.GenerateImpl();
-
-            if (!diagnostics.HasAnyErrors())
-            {
-                builder.Realize();
-            }
 
             asyncCatchHandlerOffset = (this.asyncCatchHandlerOffset < 0)
                 ? -1
@@ -150,6 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             ArrayBuilder<int> yieldPoints = this.asyncYieldPoints;
             ArrayBuilder<int> resumePoints = this.asyncResumePoints;
+
+            Debug.Assert((yieldPoints == null) == (resumePoints == null));
+
             if (yieldPoints == null)
             {
                 asyncYieldPoints = ImmutableArray<int>.Empty;
@@ -177,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 asyncYieldPoints = yieldPointBuilder.ToImmutableAndFree();
                 asyncResumePoints = resumePointBuilder.ToImmutableAndFree();
+
                 yieldPoints.Free();
                 resumePoints.Free();
             }
@@ -202,6 +205,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // in such case we can still handle return here.
                 HandleReturn();
             }
+
+            if (!diagnostics.HasAnyErrors())
+            {
+                builder.Realize();
+            }
+
+            if (this.synthesizedLocalOrdinals != null)
+            {
+                this.synthesizedLocalOrdinals.Free();
+                this.synthesizedLocalOrdinals = null;
+            }
         }
 
         private void HandleReturn()
@@ -210,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(method.ReturnsVoid == (returnTemp == null));
 
-            if (this.emitPdbSequencePoints && (object)method.IteratorElementType == null)
+            if (this.emitPdbSequencePoints && (object)method.IteratorElementType == null && !method.IsAsync)
             {
                 // In debug mode user could set a breakpoint on the last "}" of the method and 
                 // expect to hit it before exiting the method.

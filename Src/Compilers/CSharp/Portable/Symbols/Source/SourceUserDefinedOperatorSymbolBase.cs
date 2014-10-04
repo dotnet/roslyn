@@ -106,13 +106,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal BaseMethodDeclarationSyntax GetSyntax()
+        {
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (BaseMethodDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
         abstract protected ParameterListSyntax ParameterListSyntax { get; }
         abstract protected TypeSyntax ReturnTypeSyntax { get; }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             var binder = this.DeclaringCompilation.
-                GetBinderFactory(syntaxReference.SyntaxTree).GetBinder(ReturnTypeSyntax);
+                GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(ReturnTypeSyntax);
 
             SyntaxToken arglistToken;
 
@@ -596,9 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return !this.lazyParameters.IsDefault ?
-                    this.lazyParameters.Length :
-                    ((BaseMethodDeclarationSyntax)syntaxReference.GetSyntax()).ParameterList.ParameterCount;
+                return !this.lazyParameters.IsDefault ? this.lazyParameters.Length : GetSyntax().ParameterList.ParameterCount;
             }
         }
 
@@ -632,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            return OneOrMany.Create(((BaseMethodDeclarationSyntax)this.SyntaxNode).AttributeLists);
+            return OneOrMany.Create(this.GetSyntax().AttributeLists);
         }
 
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)

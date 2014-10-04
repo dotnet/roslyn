@@ -4223,9 +4223,9 @@ End Class
 {
   // Code size      226 (0xe2)
   .maxstack  6
-  .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_1
-  System.Linq.Expressions.ParameterExpression V_1,
-  System.Exception V_2) //e
+  .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_0
+                System.Linq.Expressions.ParameterExpression V_1,
+                System.Exception V_2) //e
   IL_0000:  newobj     "Sub AllMembers._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -4394,7 +4394,7 @@ End Class
 {
   // Code size      448 (0x1c0)
   .maxstack  4
-  .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_1
+  .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_0
                 System.ArgumentException V_1) //e
   IL_0000:  newobj     "Sub AllMembers._Closure$__1..ctor()"
   IL_0005:  stloc.0

@@ -1776,26 +1776,26 @@ public class D
   // Code size       21 (0x15)
   .maxstack  1
   .locals init (System.Exception V_0, //ex
-           int V_1, //y
-           bool V_2, //CS$4$0000
-           int V_3)
- -IL_0000:  nop       
+                int V_1, //y
+                bool V_2,
+                int V_3)
+ -IL_0000:  nop
  -IL_0001:  ldc.i4.s   123
-  IL_0003:  stloc.1   
- -IL_0004:  ldarg.0   
-  IL_0005:  stloc.2   
- ~IL_0006:  ldloc.2   
+  IL_0003:  stloc.1
+ -IL_0004:  ldarg.0
+  IL_0005:  stloc.2
+ ~IL_0006:  ldloc.2
   IL_0007:  brfalse.s  IL_000e
- -IL_0009:  nop       
- -IL_000a:  ldloc.1   
-  IL_000b:  stloc.3   
+ -IL_0009:  nop
+ -IL_000a:  ldloc.1
+  IL_000b:  stloc.3
   IL_000c:  br.s       IL_0013
- -IL_000e:  nop       
- -IL_000f:  ldarg.1   
-  IL_0010:  stloc.3   
+ -IL_000e:  nop
+ -IL_000f:  ldarg.1
+  IL_0010:  stloc.3
   IL_0011:  br.s       IL_0013
- -IL_0013:  ldloc.3   
-  IL_0014:  ret       
+ -IL_0013:  ldloc.3
+  IL_0014:  ret
 }
 ", sequencePoints: "D.M");
         }
@@ -5386,68 +5386,68 @@ public class D
   // Code size       82 (0x52)
   .maxstack  2
   .locals init (int V_0, //x
-           int V_1, //y
-           bool V_2, //CS$4$0000
-           bool V_3, //CS$4$0001
-           bool V_4, //CS$4$0002
-           bool V_5, //CS$4$0003
-           bool V_6) //CS$4$0004
- -IL_0000:  nop       
- -IL_0001:  ldc.i4.1  
-  IL_0002:  stloc.0   
- -IL_0003:  ldc.i4.2  
-  IL_0004:  stloc.1   
- -IL_0005:  ldloc.0   
-  IL_0006:  ldloc.1   
-  IL_0007:  clt       
-  IL_0009:  stloc.2   
- ~IL_000a:  ldloc.2   
+                int V_1, //y
+                bool V_2,
+                bool V_3,
+                bool V_4,
+                bool V_5,
+                bool V_6)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+ -IL_0003:  ldc.i4.2
+  IL_0004:  stloc.1
+ -IL_0005:  ldloc.0
+  IL_0006:  ldloc.1
+  IL_0007:  clt
+  IL_0009:  stloc.2
+ ~IL_000a:  ldloc.2
   IL_000b:  brfalse.s  IL_0051
- -IL_000d:  nop       
- -IL_000e:  ldloc.1   
-  IL_000f:  ldloc.0   
-  IL_0010:  cgt       
-  IL_0012:  stloc.3   
- ~IL_0013:  ldloc.3   
+ -IL_000d:  nop
+ -IL_000e:  ldloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  cgt
+  IL_0012:  stloc.3
+ ~IL_0013:  ldloc.3
   IL_0014:  brfalse.s  IL_0050
- -IL_0016:  nop       
- -IL_0017:  ldloc.1   
-  IL_0018:  ldloc.0   
-  IL_0019:  clt       
-  IL_001b:  ldc.i4.0  
-  IL_001c:  ceq       
+ -IL_0016:  nop
+ -IL_0017:  ldloc.1
+  IL_0018:  ldloc.0
+  IL_0019:  clt
+  IL_001b:  ldc.i4.0
+  IL_001c:  ceq
   IL_001e:  stloc.s    V_4
  ~IL_0020:  ldloc.s    V_4
   IL_0022:  brfalse.s  IL_004f
- -IL_0024:  nop       
- -IL_0025:  ldloc.1   
-  IL_0026:  ldloc.0   
-  IL_0027:  ceq       
-  IL_0029:  ldc.i4.0  
-  IL_002a:  ceq       
+ -IL_0024:  nop
+ -IL_0025:  ldloc.1
+  IL_0026:  ldloc.0
+  IL_0027:  ceq
+  IL_0029:  ldc.i4.0
+  IL_002a:  ceq
   IL_002c:  stloc.s    V_5
  ~IL_002e:  ldloc.s    V_5
   IL_0030:  brfalse.s  IL_003b
- -IL_0032:  nop       
- -IL_0033:  ldc.i4.1  
+ -IL_0032:  nop
+ -IL_0033:  ldc.i4.1
   IL_0034:  call       ""void System.Console.Write(int)""
-  IL_0039:  nop       
- -IL_003a:  nop       
- -IL_003b:  ldloc.1   
-  IL_003c:  ldloc.0   
-  IL_003d:  ceq       
+  IL_0039:  nop
+ -IL_003a:  nop
+ -IL_003b:  ldloc.1
+  IL_003c:  ldloc.0
+  IL_003d:  ceq
   IL_003f:  stloc.s    V_6
  ~IL_0041:  ldloc.s    V_6
   IL_0043:  brfalse.s  IL_004e
- -IL_0045:  nop       
- -IL_0046:  ldc.i4.1  
+ -IL_0045:  nop
+ -IL_0046:  ldc.i4.1
   IL_0047:  call       ""void System.Console.Write(int)""
-  IL_004c:  nop       
- -IL_004d:  nop       
- -IL_004e:  nop       
- -IL_004f:  nop       
- -IL_0050:  nop       
- -IL_0051:  ret       
+  IL_004c:  nop
+ -IL_004d:  nop
+ -IL_004e:  nop
+ -IL_004f:  nop
+ -IL_0050:  nop
+ -IL_0051:  ret
 }
 ", sequencePoints: "D.Main");
         }
@@ -12678,16 +12678,16 @@ class C
   // Code size       23 (0x17)
   .maxstack  2
   .locals init (int V_0, //i
-                bool V_1) //CS$4$0000
-  IL_0000:  nop       
-  IL_0001:  ldc.i4.0  
-  IL_0002:  stloc.0   
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
   IL_0003:  br.s       IL_000d
-  IL_0005:  nop       
-  IL_0006:  nop       
+  IL_0005:  nop
+  IL_0006:  nop
   IL_0007:  call       ""void System.Diagnostics.Debugger.Break()""
-  IL_000c:  nop       
-  IL_000d:  ldloc.0   
+  IL_000c:  nop
+  IL_000d:  ldloc.0
   IL_000e:  ldc.i4.s   10
   IL_0010:  clt
   IL_0012:  stloc.1

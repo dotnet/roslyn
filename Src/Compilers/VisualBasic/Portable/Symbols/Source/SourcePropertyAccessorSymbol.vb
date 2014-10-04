@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -94,13 +95,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Include modifiers from the containing property.
             Dim flags = modifiers.AllFlags Or kindFlags Or propertyFlags
             Dim methodKind = kindFlags.ToMethodKind()
-            If methodKind = methodKind.PropertySet Then
+            If methodKind = MethodKind.PropertySet Then
                 flags = flags Or SourceMemberFlags.MethodIsSub
             End If
 
             Dim method As New SourcePropertyAccessorSymbol(
                 propertySymbol,
-                binder.GetAccessorName(propertySymbol.Name, methodKind, propertySymbol.IsCompilationOutputWinMdObj()),
+                Binder.GetAccessorName(propertySymbol.Name, methodKind, propertySymbol.IsCompilationOutputWinMdObj()),
                 flags,
                 binder.GetSyntaxReference(syntax),
                 ImmutableArray.Create(syntax.Keyword.GetLocation()))
@@ -159,12 +160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
                 Dim accessibility = Me.LocalAccessibility
-                If accessibility <> accessibility.NotApplicable Then
+                If accessibility <> Accessibility.NotApplicable Then
                     Return accessibility
                 End If
 
                 Dim propertyAccessibility = m_property.DeclaredAccessibility
-                Debug.Assert(propertyAccessibility <> accessibility.NotApplicable)
+                Debug.Assert(propertyAccessibility <> Accessibility.NotApplicable)
                 Return propertyAccessibility
             End Get
         End Property
@@ -229,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Case MethodKind.PropertySet
                     Debug.Assert(Me.IsSub)
-                    Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, Me.m_property.ContainingSourceType)
+                    Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, Me.m_property.ContainingSourceType)
                     Return binder.GetSpecialType(SpecialType.System_Void, Me.DeclarationSyntax, diagBag)
 
                 Case Else
@@ -274,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetParameters(sourceModule As SourceModuleSymbol, diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
             If m_property.IsCustomProperty Then
-                Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, Me.m_property.ContainingSourceType)
+                Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, Me.m_property.ContainingSourceType)
                 binder = New LocationSpecificBinder(BindingLocation.PropertyAccessorSignature, Me, binder)
 
                 Return BindParameters(Me.m_property, Me, Me.Locations.FirstOrDefault, binder, BlockSyntax.Begin.ParameterList, diagBag)
@@ -511,5 +512,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Not m_property.IsAutoProperty AndAlso MyBase.GenerateDebugInfoImpl
             End Get
         End Property
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Dim span As TextSpan
+
+            Dim block = BlockSyntax
+            If block IsNot Nothing AndAlso localTree Is block.SyntaxTree Then
+                ' Assign all variables that are associated with the property accessor header -1.
+                ' We can't assign >=0 since user-defined variables defined in the first statement of the body have 0
+                ' and user-defined variables need to have a unique syntax offset.
+                If localPosition = block.Begin.SpanStart Then
+                    Debug.Assert(Me.MethodKind = MethodKind.PropertyGet)
+                    Return -1
+                End If
+
+                span = block.Statements.Span
+
+                If span.Contains(localPosition) Then
+                    Return localPosition - span.Start
+                End If
+            End If
+
+            Throw ExceptionUtilities.Unreachable
+        End Function
     End Class
 End Namespace

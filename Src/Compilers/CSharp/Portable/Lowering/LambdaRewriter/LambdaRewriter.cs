@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LambdaFrame frame;
                 if (!frames.TryGetValue(node, out frame))
                 {
-                    frame = new LambdaFrame(topLevelMethod, CompilationState);
+                    frame = new LambdaFrame(CompilationState, topLevelMethod, node.Syntax);
                     frames.Add(node, frame);
 
                     if (CompilationState.Emitting)
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
         {
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(StaticCast<TypeSymbol>.From(currentTypeParameters));
-            LocalSymbol framePointer = new SynthesizedLocal(this.topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass);
+            LocalSymbol framePointer = new SynthesizedLocal(this.topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntax);
 
             CSharpSyntaxNode syntax = node.Syntax;
 

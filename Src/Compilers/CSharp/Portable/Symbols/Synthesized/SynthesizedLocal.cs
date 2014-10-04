@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol containingMethodOpt;
         private readonly TypeSymbol type;
         private readonly SynthesizedLocalKind kind;
-        private readonly CSharpSyntaxNode syntaxOpt;
+        private readonly SyntaxNode syntaxOpt;
         private readonly bool isPinned;
         private readonly RefKind refKind;
 
@@ -28,13 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol containingMethodOpt,
             TypeSymbol type,
             SynthesizedLocalKind kind,
-            CSharpSyntaxNode syntaxOpt = null,
+            SyntaxNode syntaxOpt = null,
             bool isPinned = false,
             RefKind refKind = RefKind.None, 
             [CallerLineNumber]int createdAtLineNumber = 0, 
             [CallerFilePath]string createdAtFilePath = null)
         {
             Debug.Assert(type.SpecialType != SpecialType.System_Void);
+            Debug.Assert(!kind.IsLongLived() || syntaxOpt != null);
 
             this.containingMethodOpt = containingMethodOpt;
             this.type = type;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol containingMethodOpt,
             TypeSymbol type,
             SynthesizedLocalKind kind,
-            CSharpSyntaxNode syntaxOpt = null,
+            SyntaxNode syntaxOpt = null,
             bool isPinned = false,
             RefKind refKind = RefKind.None)
         {
@@ -63,14 +65,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.refKind = refKind;
         }
 #endif
+        public SyntaxNode SyntaxOpt
+        {
+            get { return syntaxOpt; } 
+        }
 
-        internal SynthesizedLocal WithSynthesizedLocalKind(SynthesizedLocalKind kind)
+        internal SynthesizedLocal WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
             return new SynthesizedLocal(
                 this.containingMethodOpt,
                 this.type,
                 kind,
-                this.syntaxOpt,
+                syntax,
                 this.isPinned, 
                 this.refKind);
         }
@@ -80,12 +86,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.refKind; }
         }
 
+        internal override bool IsImportedFromMetadata
+        {
+            get { return false; }
+        }
+
         internal override LocalDeclarationKind DeclarationKind
         {
             get { return LocalDeclarationKind.None; }
         }
 
-        internal override SynthesizedLocalKind SynthesizedLocalKind
+        internal override SynthesizedLocalKind SynthesizedKind
         {
             get { return this.kind; }
         }
@@ -120,6 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (this.syntaxOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntaxOpt.GetReference()); }
         }
 
+        internal override SyntaxNode GetDeclaratorSyntax()
+        {
+            Debug.Assert(syntaxOpt != null);
+            return this.syntaxOpt;
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get { return true; }
@@ -148,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private new string GetDebuggerDisplay()
         {
             var builder = new StringBuilder();
-            builder.Append((this.kind == SynthesizedLocalKind.None) ? "<temp>" : this.kind.ToString());
+            builder.Append((this.kind == SynthesizedLocalKind.UserDefined) ? "<temp>" : this.kind.ToString());
             builder.Append(' ');
             builder.Append(this.type.ToDisplayString(SymbolDisplayFormat.TestFormat));
 

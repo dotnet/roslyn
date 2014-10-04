@@ -31,9 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property SynthesizedLocalKind As SynthesizedLocalKind
+            Friend Overrides ReadOnly Property SynthesizedKind As SynthesizedLocalKind
                 Get
-                    Return SynthesizedLocalKind.None
+                    Return SynthesizedLocalKind.UserDefined
                 End Get
             End Property
 
@@ -54,6 +54,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return ImmutableArray(Of SyntaxReference).Empty
                 End Get
             End Property
+
+            Friend Overrides Function GetDeclaratorSyntax() As SyntaxNode
+                Throw ExceptionUtilities.Unreachable
+            End Function
 
             Friend Overrides ReadOnly Property IdentifierToken As SyntaxToken
                 Get
@@ -78,9 +82,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End Get
             End Property
-
         End Class
-
     End Class
-
 End Namespace

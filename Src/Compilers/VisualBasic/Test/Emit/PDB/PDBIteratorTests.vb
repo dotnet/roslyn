@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
@@ -33,17 +34,19 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "Program+VB$StateMachine_2__Lambda$__1.MoveNext")
-
-            Dim expected =
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("Program+VB$StateMachine_2__Lambda$__1.MoveNext",
 <symbols>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Program+VB$StateMachine_2__Lambda$__1" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="20" offset="-1"/>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="6">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x2f" start_row="7" start_column="13" end_row="7" end_column="33" file_ref="0"/>
@@ -52,24 +55,13 @@ End Module
                 <entry il_offset="0x4c" start_row="9" start_column="17" end_row="9" end_column="24" file_ref="0"/>
                 <entry il_offset="0x6c" start_row="10" start_column="13" end_row="10" end_column="25" file_ref="0"/>
             </sequencepoints>
-            <locals>
-                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x6e" attributes="0"/>
-                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x6e" attributes="0"/>
-                <local name="VB$FRV" il_index="2" il_start="0x30" il_end="0x6d" attributes="0"/>
-            </locals>
+            <locals/>
             <scope startOffset="0x0" endOffset="0x6e">
                 <importsforward declaringType="Program" methodName="Main" parameterNames="args"/>
-                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x6e" attributes="0"/>
-                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x6e" attributes="0"/>
-                <scope startOffset="0x30" endOffset="0x6d">
-                    <local name="VB$FRV" il_index="2" il_start="0x30" il_end="0x6d" attributes="0"/>
-                </scope>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(651996, "DevDiv"), WorkItem(789705, "DevDiv")>
@@ -110,15 +102,22 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "Module1+VB$StateMachine_1_Foo.MoveNext")
-
             ' VERY IMPORTANT!!!! We must have locals named $VB$ResumableLocal_x$1 and $VB$ResumableLocal_x$2 here
             '                    Even though they do not really exist in IL, EE will rely on them for scoping     
-            Dim expected =
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_Foo.MoveNext",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+                    <slot kind="20" offset="-1"/>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="21" offset="-1"/>
+                    <slot kind="0" offset="4"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="20">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x43" start_row="12" start_column="5" end_row="12" end_column="55" file_ref="0"/>
@@ -142,19 +141,13 @@ End Module
                 <entry il_offset="0x179" start_row="26" start_column="5" end_row="26" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x17b" attributes="0"/>
-                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x17b" attributes="0"/>
-                <local name="VB$FRV" il_index="2" il_start="0x44" il_end="0x17a" attributes="0"/>
                 <local name="arr" il_index="3" il_start="0x44" il_end="0x17a" attributes="0"/>
-                <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0x61" il_end="0xc2" attributes="0" reusingslot="True"/>
+                <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0x61" il_end="0xc2" attributes="0"/>
                 <local name="$VB$ResumableLocal_x$2" il_index="0" il_start="0xed" il_end="0x15c" attributes="0" reusingslot="True"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x17b">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x17b" attributes="0"/>
-                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x17b" attributes="0"/>
                 <scope startOffset="0x44" endOffset="0x17a">
-                    <local name="VB$FRV" il_index="2" il_start="0x44" il_end="0x17a" attributes="0"/>
                     <local name="arr" il_index="3" il_start="0x44" il_end="0x17a" attributes="0"/>
                     <scope startOffset="0x61" endOffset="0xc2">
                         <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0x61" il_end="0xc2" attributes="0"/>
@@ -166,9 +159,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
@@ -273,12 +264,12 @@ End Class
                 <entry il_offset="0x54" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="$VB$Closure_1" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
+                <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x56">
                 <importsforward declaringType="C" methodName="Iterator_Lambda_NotHoisted" parameterNames=""/>
                 <scope startOffset="0x19" endOffset="0x55">
-                    <local name="$VB$Closure_1" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
+                    <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
                 </scope>
             </scope>
         </method>
@@ -431,14 +422,18 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "Module1+VB$StateMachine_1_Foo.MoveNext")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_Foo.MoveNext",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="20" offset="-1"/>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="6">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x2f" start_row="12" start_column="5" end_row="13" end_column="55" file_ref="0"/>
@@ -447,23 +442,13 @@ End Module
                 <entry il_offset="0x4c" start_row="15" start_column="9" end_row="15" end_column="16" file_ref="0"/>
                 <entry il_offset="0x67" start_row="16" start_column="5" end_row="16" end_column="17" file_ref="0"/>
             </sequencepoints>
-            <locals>
-                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x69" attributes="0"/>
-                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x69" attributes="0"/>
-                <local name="VB$FRV" il_index="2" il_start="0x30" il_end="0x68" attributes="0"/>
-            </locals>
+            <locals/>
             <scope startOffset="0x0" endOffset="0x69">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x69" attributes="0"/>
-                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x69" attributes="0"/>
-                <scope startOffset="0x30" endOffset="0x68">
-                    <local name="VB$FRV" il_index="2" il_start="0x30" il_end="0x68" attributes="0"/>
-                </scope>
             </scope>
         </method>
     </methods>
-</symbols>
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
     End Class

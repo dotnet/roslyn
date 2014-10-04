@@ -18,45 +18,20 @@ namespace Roslyn.Utilities.Pdb
     internal static class CustomDebugInfoReader
     {
         // The version number of the custom debug info binary format.
-        internal const int CdiVersion = 4; //CDIVERSION in Dev10
-
-        // The name of the attribute containing the byte array of custom debug info.
-        private const string CdiAttributeName = "MD2"; //MSCUSTOMDEBUGINFO in Dev10
+        // CDIVERSION in Dev10
+        internal const int CdiVersion = 4;
 
         // The number of bytes at the beginning of the byte array that contain global header information.
-        private const int CdiGlobalHeaderSize = 4; //start after header (version byte + size byte + dword padding)
+        // start after header (version byte + size byte + dword padding)
+        private const int CdiGlobalHeaderSize = 4;
 
         // The number of bytes at the beginning of each custom debug info record that contain header information
         // common to all record types (i.e. byte, kind, size).
-        private const int CdiRecordHeaderSize = 8; // version byte + kind byte + two bytes padding + size dword
+        // version byte + kind byte + two bytes padding + size dword
+        internal const int CdiRecordHeaderSize = 8; 
 
         /// <summary>
-        /// Get the blob of binary custom debug info for a given method.
-        /// </summary>
-        public static byte[] GetCustomDebugInfo(this ISymUnmanagedReader symReader, int methodToken)
-        {
-            int bytesAvailable;
-            symReader.GetSymAttribute(methodToken, CdiAttributeName, 0, out bytesAvailable, buffer: null);
-
-            if (bytesAvailable <= 0)
-            {
-                return null;
-            }
-
-            var buffer = new byte[bytesAvailable];
-            int bytesRead;
-            symReader.GetSymAttribute(methodToken, CdiAttributeName, bytesAvailable, out bytesRead, buffer);
-
-            if (bytesAvailable != bytesRead)
-            {
-                return null;
-            }
-
-            return buffer;
-        }
-
-        /// <summary>
-        /// This is the first thing in the blob returned by <see cref="GetCustomDebugInfo"/>.
+        /// This is the first header in the custom debug info blob.
         /// </summary>
         public static void ReadGlobalHeader(byte[] bytes, ref int offset, out byte version, out byte count)
         {
@@ -73,8 +48,40 @@ namespace Roslyn.Utilities.Pdb
         {
             version = bytes[offset + 0];
             kind = (CustomDebugInfoKind)bytes[offset + 1];
-            size = BitConverter.ToInt32(bytes, offset + 4); //note: two bytes of padding after kind
+
+            // two bytes of padding after kind
+            size = BitConverter.ToInt32(bytes, offset + 4); 
+
             offset += CdiRecordHeaderSize;
+        }
+
+        internal static ImmutableArray<byte> TryGetCustomDebugInfoRecord(byte[] customDebugInfo, CustomDebugInfoKind recordKind)
+        {
+            int offset = 0;
+
+            byte globalVersion;
+            byte globalCount;
+            ReadGlobalHeader(customDebugInfo, ref offset, out globalVersion, out globalCount);
+
+            while (offset < customDebugInfo.Length)
+            {
+                byte version;
+                CustomDebugInfoKind kind;
+                int size;
+
+                ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size);
+
+                int bodySize = size - CdiRecordHeaderSize;
+                if (version != CdiVersion || kind != recordKind)
+                {
+                    offset += bodySize;
+                    continue;
+                }
+
+                return ImmutableArray.Create(customDebugInfo, offset, bodySize);
+            }
+
+            return default(ImmutableArray<byte>);
         }
 
         /// <summary>
@@ -99,6 +106,7 @@ namespace Roslyn.Utilities.Pdb
 
                 builder.Add(count);
             }
+
             counts = builder.ToImmutableAndFree();
 
             offset += size - CdiRecordHeaderSize;
@@ -146,14 +154,14 @@ namespace Roslyn.Utilities.Pdb
         /// <remarks>
         /// Appears when there are locals in iterator methods.
         /// </remarks>
-        public static void ReadIteratorLocalsRecord(byte[] bytes, ref int offset, int size, out ImmutableArray<IteratorLocalBucket> buckets)
+        public static void ReadIteratorLocalsRecord(byte[] bytes, ref int offset, int size, out ImmutableArray<IteratorLocalScope> buckets)
         {
             int tempOffset = offset;
 
             var bucketCount = BitConverter.ToInt32(bytes, tempOffset);
             tempOffset += 4;
 
-            var builder = ArrayBuilder<IteratorLocalBucket>.GetInstance(bucketCount);
+            var builder = ArrayBuilder<IteratorLocalScope>.GetInstance(bucketCount);
             for (int i = 0; i < bucketCount; i++)
             {
                 int startOffset = BitConverter.ToInt32(bytes, tempOffset);
@@ -161,8 +169,9 @@ namespace Roslyn.Utilities.Pdb
                 int endOffset = BitConverter.ToInt32(bytes, tempOffset);
                 tempOffset += 4;
 
-                builder.Add(new IteratorLocalBucket(startOffset, endOffset));
+                builder.Add(new IteratorLocalScope(startOffset, endOffset));
             }
+
             buckets = builder.ToImmutableAndFree();
 
             offset += size - CdiRecordHeaderSize;
@@ -193,6 +202,7 @@ namespace Roslyn.Utilities.Pdb
 
                 builder.Append(ch);
             }
+
             name = pooled.ToStringAndFree();
 
             offset += size - CdiRecordHeaderSize;
@@ -216,9 +226,10 @@ namespace Roslyn.Utilities.Pdb
             var builder = ArrayBuilder<DynamicLocalBucket>.GetInstance(bucketCount);
             for (int i = 0; i < bucketCount; i++)
             {
-                const int numFlagBytes = 64;
-                var flags = 0UL;
-                for (int j = 0; j < numFlagBytes; j++)
+                const int FlagBytesCount = 64;
+
+                ulong flags = 0UL;
+                for (int j = 0; j < FlagBytesCount; j++)
                 {
                     var flag = bytes[tempOffset + j] != 0;
                     if (flag)
@@ -226,7 +237,8 @@ namespace Roslyn.Utilities.Pdb
                         flags |= 1UL << j;
                     }
                 }
-                tempOffset += numFlagBytes;
+
+                tempOffset += FlagBytesCount;
 
                 int flagCount = BitConverter.ToInt32(bytes, tempOffset);
                 tempOffset += 4;
@@ -234,21 +246,28 @@ namespace Roslyn.Utilities.Pdb
                 int slotId = BitConverter.ToInt32(bytes, tempOffset);
                 tempOffset += 4;
 
-                const int numNameBytes = 128;
+                const int NameBytesCount = 128;
                 var pooled = PooledStringBuilder.GetInstance();
                 var nameBuilder = pooled.Builder;
-                for (int j = 0; j < numNameBytes; j += 2)
+                for (int j = 0; j < NameBytesCount; j += 2)
                 {
                     char ch = BitConverter.ToChar(bytes, tempOffset + j);
-                    if (ch == 0) break;
+                    if (ch == 0)
+                    {
+                        break;
+                    }
+
                     nameBuilder.Append(ch);
                 }
-                tempOffset += numNameBytes; //The Identifier name takes 64 WCHAR no matter how big its actual length is.
+
+                // The Identifier name takes 64 WCHAR no matter how big its actual length is.
+                tempOffset += NameBytesCount; 
                 var name = pooled.ToStringAndFree();
 
                 var bucket = new DynamicLocalBucket(flagCount, flags, slotId, name);
                 builder.Add(bucket);
             }
+
             buckets = builder.ToImmutableAndFree();
 
             offset += size - CdiRecordHeaderSize;
@@ -258,16 +277,11 @@ namespace Roslyn.Utilities.Pdb
         /// <summary>
         /// Returns the raw bytes of a record.
         /// </summary>
-        public static void ReadUnknownRecord(byte[] bytes, ref int offset, int size, out ImmutableArray<byte> body)
+        public static void ReadRawRecordBody(byte[] bytes, ref int offset, int size, out ImmutableArray<byte> body)
         {
-            var bodySize = size - CdiRecordHeaderSize;
-            var builder = ArrayBuilder<byte>.GetInstance(bodySize);
-            var end = offset + bodySize;
-            for (; offset < end; offset++)
-            {
-                builder.Add(bytes[offset]);
-            }
-            body = builder.ToImmutableAndFree();
+            int bodySize = size - CdiRecordHeaderSize;
+            body = ImmutableArray.Create(bytes, offset, bodySize);
+            offset += bodySize;
         }
 
         /// <summary>
@@ -351,13 +365,15 @@ namespace Roslyn.Utilities.Pdb
                     ReadForwardToModuleRecord(bytes, ref offset, size, out moduleInfoMethodToken);
                     ImmutableArray<string> allModuleInfoImportStrings = reader.GetMethodByVersion(moduleInfoMethodToken, methodVersion).GetImportStrings();
                     ArrayBuilder<string> externAliasBuilder = ArrayBuilder<string>.GetInstance();
-                    foreach(string importString in allModuleInfoImportStrings)
+
+                    foreach (string importString in allModuleInfoImportStrings)
                     {
                         if (IsCSharpExternAliasInfo(importString))
                         {
                             externAliasBuilder.Add(importString);
                         }
                     }
+
                     externAliasStrings = externAliasBuilder.ToImmutableAndFree();
                 }
                 else
@@ -401,7 +417,6 @@ namespace Roslyn.Utilities.Pdb
                 resultBuilder.Add(groupBuilder.ToImmutable());
                 groupBuilder.Clear();
             }
-
 
             if (externAliasStrings.IsDefault)
             {
@@ -487,7 +502,6 @@ namespace Roslyn.Utilities.Pdb
         /// </remarks>
         private static ImmutableArray<string> GetImportStrings(this ISymUnmanagedMethod method)
         {
-
             ISymUnmanagedScope rootScope = method.GetRootScope();
             if (rootScope == null)
             {
@@ -498,7 +512,7 @@ namespace Roslyn.Utilities.Pdb
             ImmutableArray<ISymUnmanagedScope> childScopes = rootScope.GetScopes();
             if (childScopes.Length == 0)
             {
-                //Debug.Assert(false, "Expected at least one child scope."); // TODO (acasey): Why can't we assume this?
+                // Debug.Assert(false, "Expected at least one child scope."); // TODO (acasey): Why can't we assume this?
                 return ImmutableArray<string>.Empty;
             }
 
@@ -509,7 +523,7 @@ namespace Roslyn.Utilities.Pdb
             ImmutableArray<ISymUnmanagedNamespace> namespaces = firstChildScope.GetNamespaces();
             if (namespaces.Length == 0)
             {
-                //Debug.Assert(false, "Expected at least one namespace (i.e. the global namespace)."); // TODO (acasey): Why can't we assume this?
+                // Debug.Assert(false, "Expected at least one namespace (i.e. the global namespace)."); // TODO (acasey): Why can't we assume this?
                 return ImmutableArray<string>.Empty;
             }
 
@@ -518,6 +532,7 @@ namespace Roslyn.Utilities.Pdb
             {
                 importsBuilder.Add(@namespace.GetName());
             }
+
             return importsBuilder.ToImmutableAndFree();
         }
 
@@ -561,6 +576,7 @@ namespace Roslyn.Utilities.Pdb
                     target = import.Substring(1);
                     kind = ImportTargetKind.Namespace;
                     return true;
+
                 case 'E': // C# using
                     // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
                     // but they were probably implementation details that do not affect roslyn.
@@ -572,6 +588,7 @@ namespace Roslyn.Utilities.Pdb
                     alias = null;
                     kind = ImportTargetKind.Namespace;
                     return true;
+
                 case 'A': // C# type or namespace alias
                     if (!TrySplit(import, 1, ' ', out alias, out target))
                     {
@@ -585,27 +602,33 @@ namespace Roslyn.Utilities.Pdb
                             target = target.Substring(1);
                             externAlias = null;
                             return true;
+
                         case 'T':
                             kind = ImportTargetKind.Type;
                             target = target.Substring(1);
                             externAlias = null;
                             return true;
+
                         case 'E':
                             kind = ImportTargetKind.Namespace; // Never happens for types.
                             if (!TrySplit(target, 1, ' ', out target, out externAlias))
                             {
                                 return false;
                             }
+
                             return true;
+
                         default:
                             return false;
                     }
+
                 case 'X': // C# extern alias (in file)
                     externAlias = import.Substring(1);
                     alias = null;
                     target = null;
                     kind = ImportTargetKind.Assembly;
                     return true;
+
                 case 'Z': // C# extern alias (module-level)
                     if (!TrySplit(import, 1, ' ', out externAlias, out target))
                     {
@@ -615,6 +638,7 @@ namespace Roslyn.Utilities.Pdb
                     alias = null;
                     kind = ImportTargetKind.Assembly;
                     return true;
+
                 default:
                     return false;
             }
@@ -637,7 +661,8 @@ namespace Roslyn.Utilities.Pdb
                 return false;
             }
 
-            if (import.Length == 0) // VB current namespace
+            // VB current namespace
+            if (import.Length == 0) 
             {
                 alias = null;
                 target = import;
@@ -690,10 +715,12 @@ namespace Roslyn.Utilities.Pdb
                     {
                         case 'A':
                             pos++;
+
                             if (import[pos] != ':')
                             {
                                 return false;
                             }
+
                             pos++;
 
                             if (!TrySplit(import, pos, '=', out alias, out target))
@@ -703,12 +730,15 @@ namespace Roslyn.Utilities.Pdb
 
                             kind = ImportTargetKind.NamespaceOrType;
                             return true;
+
                         case 'X':
                             pos++;
+
                             if (import[pos] != ':')
                             {
                                 return false;
                             }
+
                             pos++;
 
                             if (!TrySplit(import, pos, '=', out alias, out target))
@@ -718,31 +748,38 @@ namespace Roslyn.Utilities.Pdb
 
                             kind = ImportTargetKind.XmlNamespace;
                             return true;
+
                         case 'T':
                             pos++;
+
                             if (import[pos] != ':')
                             {
                                 return false;
                             }
+
                             pos++;
 
                             alias = null;
                             target = import.Substring(pos);
                             kind = ImportTargetKind.Type;
                             return true;
+
                         case ':':
                             pos++;
                             alias = null;
                             target = import.Substring(pos);
                             kind = ImportTargetKind.Namespace;
                             return true;
+
                         default:
                             alias = null;
                             target = import.Substring(pos);
                             kind = ImportTargetKind.MethodToken;
                             return true;
                     }
-                default: // VB current namespace
+
+                default: 
+                    // VB current namespace
                     alias = null;
                     target = import;
                     kind = ImportTargetKind.CurrentNamespace;
@@ -754,6 +791,7 @@ namespace Roslyn.Utilities.Pdb
         private static bool TrySplit(string input, int offset, char separator, out string before, out string after)
         {
             int separatorPos = input.IndexOf(separator, offset);
+
             // Allow zero-length before for the global namespace (empty string).
             // Allow zero-length after for an XML alias in VB ("@PX:=").  Not sure what it means.
             if (offset <= separatorPos && separatorPos < input.Length)
@@ -778,21 +816,44 @@ namespace Roslyn.Utilities.Pdb
 
     internal enum ImportTargetKind
     {
-        /// <summary>C# or VB namespace import.</summary>
+        /// <summary>
+        /// C# or VB namespace import.
+        /// </summary>
         Namespace,
-        /// <summary>C# or VB type import.</summary>
+
+        /// <summary>
+        /// C# or VB type import.
+        /// </summary>
         Type,
-        /// <summary>VB namespace or type alias target (not specified).</summary>
+
+        /// <summary>
+        /// VB namespace or type alias target (not specified).
+        /// </summary>
         NamespaceOrType,
-        /// <summary>C# extern alias.</summary>
+
+        /// <summary>
+        /// C# extern alias.
+        /// </summary>
         Assembly,
-        /// <summary>VB XML import.</summary>
+
+        /// <summary>
+        /// VB XML import.
+        /// </summary>
         XmlNamespace,
-        /// <summary>VB forwarding information (i.e. another method has the imports for this one).</summary>
+
+        /// <summary>
+        /// VB forwarding information (i.e. another method has the imports for this one).
+        /// </summary>
         MethodToken,
-        /// <summary>VB containing namespace (not an import).</summary>
+
+        /// <summary>
+        /// VB containing namespace (not an import).
+        /// </summary>
         CurrentNamespace,
-        /// <summary>VB root namespace (not an import).</summary>
+
+        /// <summary>
+        /// VB root namespace (not an import).
+        /// </summary>
         DefaultNamespace,
     }
 
@@ -803,12 +864,12 @@ namespace Roslyn.Utilities.Pdb
         Project,
     }
 
-    internal struct IteratorLocalBucket
+    internal struct IteratorLocalScope
     {
         public readonly int StartOffset;
         public readonly int EndOffset;
 
-        public IteratorLocalBucket(int startoffset, int endOffset)
+        public IteratorLocalScope(int startoffset, int endOffset)
         {
             this.StartOffset = startoffset;
             this.EndOffset = endOffset;
@@ -844,5 +905,6 @@ namespace Roslyn.Utilities.Pdb
         IteratorLocals = 3,
         ForwardIterator = 4,
         DynamicLocals = 5,
+        EditAndContinueLocalSlotMap = 6,
     }
 }

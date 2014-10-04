@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!modifierErrors && bodySyntaxReference == null && !IsExtern)
+            if (!modifierErrors && bodySyntaxReferenceOpt == null && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -52,9 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
-            var syntax = (DestructorDeclarationSyntax)syntaxReference.GetSyntax();
-            var bodyBinder = this.DeclaringCompilation.GetBinder(syntaxReference);
+            var syntax = GetSyntax();
+            var bodyBinder = this.DeclaringCompilation.GetBinder(syntaxReferenceOpt);
             this.lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
+        }
+
+        internal DestructorDeclarationSyntax GetSyntax()
+        {
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (DestructorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
         public override bool IsVararg
@@ -112,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             // destructors can't have return type attributes
-            return OneOrMany.Create(((DestructorDeclarationSyntax)this.SyntaxNode).AttributeLists);
+            return OneOrMany.Create(this.GetSyntax().AttributeLists);
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()

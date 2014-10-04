@@ -8,21 +8,32 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Represents a synthesized state machine helper field 
+    /// Represents a synthesized state machine field.
     /// </summary>
     internal sealed class StateMachineFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly TypeSymbol type;
 
-        public StateMachineFieldSymbol(
-            NamedTypeSymbol stateMachineType,
-            TypeSymbol type,
-            string name,
-            bool isPublic)
-            : base(stateMachineType, name, isPublic, isReadOnly: false, isStatic: false)
+        // 0 if the corresponding captured local is synthesized, 
+        // or the field doesn't correspond to a hoisted local.
+        // > 0 if it corresponds to the field name
+        private readonly int userDefinedHoistedLocalId;
+
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string fieldName, bool isPublic)
+            : base(stateMachineType, fieldName, isPublic: isPublic, isReadOnly: false, isStatic: false)
         {
             Debug.Assert((object)type != null);
             this.type = type;
+        }
+
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string localName, int userDefinedHoistedLocalId)
+            : base(stateMachineType, localName, isPublic: true, isReadOnly: false, isStatic: false)
+        {
+            Debug.Assert(userDefinedHoistedLocalId >= 1);
+            Debug.Assert((object)type != null);
+
+            this.type = type;
+            this.userDefinedHoistedLocalId = userDefinedHoistedLocalId;
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
@@ -30,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.type;
         }
 
-        internal override int IteratorLocalIndex
+        internal override int UserDefinedHoistedLocalId
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return userDefinedHoistedLocalId; }
         }
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency

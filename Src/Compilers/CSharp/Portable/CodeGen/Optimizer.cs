@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 var locInfo = info[local];
 
-                if (local.SynthesizedLocalKind == SynthesizedLocalKind.OptimizerTemp)
+                if (local.SynthesizedKind == SynthesizedLocalKind.OptimizerTemp)
                 {
                     dummies.Add(locInfo);
                     info.Remove(local);
@@ -1543,7 +1543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // if accessing real val, check stack
-            if (local.SynthesizedLocalKind != SynthesizedLocalKind.OptimizerTemp)
+            if (local.SynthesizedKind != SynthesizedLocalKind.OptimizerTemp)
             {
                 if (locInfo.stackAtDeclaration != evalStack)
                 {
@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // if accessing real val, check stack
-            if (local.SynthesizedLocalKind != SynthesizedLocalKind.OptimizerTemp)
+            if (local.SynthesizedKind != SynthesizedLocalKind.OptimizerTemp)
             {
                 // -1 because real assignment "consumes, assigns, and then pushes back" the value.
                 var evalStack = this.evalStack - 1;
@@ -1805,12 +1805,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
     internal sealed class DummyLocal : LocalSymbol
     {
+        internal override bool IsImportedFromMetadata
+        {
+            get { return false; }
+        }
+
         internal override LocalDeclarationKind DeclarationKind
         {
             get { return LocalDeclarationKind.None; }
         }
 
-        internal override SynthesizedLocalKind SynthesizedLocalKind
+        internal override SynthesizedLocalKind SynthesizedKind
         {
             get { return SynthesizedLocalKind.OptimizerTemp; }
         }
@@ -1856,6 +1861,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override SyntaxNode GetDeclaratorSyntax()
         {
             throw new NotImplementedException();
         }

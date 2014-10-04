@@ -8,29 +8,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class CapturedSymbolReplacement
     {
+        public readonly bool IsReusable;
+
+        public CapturedSymbolReplacement(bool isReusable)
+        {
+            this.IsReusable = isReusable;
+        }
+
         /// <summary>
         /// Rewrite the replacement expression for the hoisted local so all synthesized field are accessed as members
         /// of the appropriate frame.
         /// </summary>
         public abstract BoundExpression Replacement(CSharpSyntaxNode node, Func<NamedTypeSymbol, BoundExpression> makeFrame);
-
-        public abstract bool IsReusable { get; }
     }
 
     internal sealed class CapturedToFrameSymbolReplacement : CapturedSymbolReplacement
     {
         public readonly SynthesizedFieldSymbolBase HoistedField;
-        public readonly bool isReusable;
 
         public CapturedToFrameSymbolReplacement(SynthesizedFieldSymbolBase hoistedField, bool isReusable)
+            : base(isReusable)
         {
             this.HoistedField = hoistedField;
-            this.isReusable = isReusable;
-        }
-
-        public override bool IsReusable
-        {
-            get { return isReusable; }
         }
 
         public override BoundExpression Replacement(CSharpSyntaxNode node, Func<NamedTypeSymbol, BoundExpression> makeFrame)
@@ -47,14 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ImmutableArray<SynthesizedFieldSymbolBase> HoistedFields;
 
         public CapturedToExpressionSymbolReplacement(BoundExpression replacement, ImmutableArray<SynthesizedFieldSymbolBase> hoistedFields)
+            : base(isReusable: false)
         {
             this.replacement = replacement;
             this.HoistedFields = hoistedFields;
-        }
-
-        public override bool IsReusable
-        {
-            get { return true; }
         }
 
         public override BoundExpression Replacement(CSharpSyntaxNode node, Func<NamedTypeSymbol, BoundExpression> makeFrame)

@@ -3,6 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -28,6 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' unique id for generated local names
         Private _uniqueId As Integer
 
+        ' Dispenser of unique ordinals for synthesized variable names that have the same kind And syntax offset.
+        ' The key Is (local.SyntaxOffset << 8) | local.SynthesizedKind.
+        Private _synthesizedLocalOrdinals As PooledDictionary(Of Long, Integer)
+        Private _uniqueNameId As Integer
+
         ' label used when when return is emitted in a form of store/goto
         Private Shared ReadOnly ReturnLabel As New Object
 
@@ -39,16 +46,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private _asyncYieldPoints As ArrayBuilder(Of Integer) = Nothing
         Private _asyncResumePoints As ArrayBuilder(Of Integer) = Nothing
 
-        Private Sub New(method As MethodSymbol,
-                        block As BoundStatement,
-                        builder As ILBuilder,
-                        moduleBuilder As PEModuleBuilder,
-                        diagnostics As DiagnosticBag,
-                        optimizations As OptimizationLevel,
-                        emittingPdbs As Boolean)
+        Public Sub New(method As MethodSymbol,
+                       boundBody As BoundStatement,
+                       builder As ILBuilder,
+                       moduleBuilder As PEModuleBuilder,
+                       diagnostics As DiagnosticBag,
+                       optimizations As OptimizationLevel,
+                       emittingPdbs As Boolean)
+
+            Debug.Assert(method IsNot Nothing)
+            Debug.Assert(boundBody IsNot Nothing)
+            Debug.Assert(builder IsNot Nothing)
+            Debug.Assert(moduleBuilder IsNot Nothing)
+            Debug.Assert(diagnostics IsNot Nothing)
 
             Me._method = method
-            Me._block = block
+            Me._block = boundBody
             Me._builder = builder
             Me._module = moduleBuilder
             Me._diagnostics = diagnostics
@@ -65,70 +78,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Me._emitPdbSequencePoints = emittingPdbs AndAlso method.GenerateDebugInfo
 
             If Me._optimizations = OptimizationLevel.Release Then
-                Me._block = Optimizer.Optimize(method, block, Me._stackLocals)
+                Me._block = Optimizer.Optimize(method, boundBody, Me._stackLocals)
             End If
 
             Me._checkCallsForUnsafeJITOptimization = (Me._method.ImplementationAttributes And MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags
             Debug.Assert(Not Me._module.JITOptimizationIsDisabled(Me._method))
-
-            Debug.Assert(method IsNot Nothing)
-            Debug.Assert(block IsNot Nothing)
-            Debug.Assert(builder IsNot Nothing)
-            Debug.Assert(moduleBuilder IsNot Nothing)
         End Sub
 
-        Public Shared Sub Run(method As MethodSymbol,
-                              block As BoundStatement,
-                              builder As ILBuilder,
-                              moduleBuilder As PEModuleBuilder,
-                              diagnostics As DiagnosticBag,
-                              optimizations As OptimizationLevel,
-                              emittingPdbs As Boolean)
-            Dim generator As CodeGenerator = New CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs)
-            generator.Generate()
-            Debug.Assert(generator._asyncYieldPoints Is Nothing)
-            Debug.Assert(generator._asyncResumePoints Is Nothing)
-            Debug.Assert(generator._asyncCatchHandlerOffset < 0)
+        Public Sub Generate()
+            Debug.Assert(_asyncYieldPoints Is Nothing)
+            Debug.Assert(_asyncResumePoints Is Nothing)
+            Debug.Assert(_asyncCatchHandlerOffset < 0)
 
-            If Not diagnostics.HasAnyErrors Then
-                builder.Realize()
-            End If
-
+            GenerateImpl()
         End Sub
 
-        Public Shared Sub Run(method As MethodSymbol,
-                              block As BoundStatement,
-                              builder As ILBuilder,
-                              moduleBuilder As PEModuleBuilder,
-                              diagnostics As DiagnosticBag,
-                              optimizations As OptimizationLevel,
-                              emittingPdbs As Boolean,
-                              <Out> ByRef asyncCatchHandlerOffset As Integer,
-                              <Out> ByRef asyncYieldPoints As ImmutableArray(Of Integer),
-                              <Out> ByRef asyncResumePoints As ImmutableArray(Of Integer))
-            Dim generator As CodeGenerator = New CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs)
-            generator.Generate()
+        Public Sub Generate(<Out> ByRef asyncCatchHandlerOffset As Integer,
+                            <Out> ByRef asyncYieldPoints As ImmutableArray(Of Integer),
+                            <Out> ByRef asyncResumePoints As ImmutableArray(Of Integer))
+            GenerateImpl()
 
-            If Not diagnostics.HasAnyErrors Then
-                builder.Realize()
-            End If
+            asyncCatchHandlerOffset = If(_asyncCatchHandlerOffset < 0, -1,
+                                         _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset))
 
-            asyncCatchHandlerOffset = If(generator._asyncCatchHandlerOffset < 0, -1,
-                                         generator._builder.GetILOffsetFromMarker(generator._asyncCatchHandlerOffset))
-
-            Dim yieldPoints As ArrayBuilder(Of Integer) = generator._asyncYieldPoints
-            Dim resumePoints As ArrayBuilder(Of Integer) = generator._asyncResumePoints
+            Dim yieldPoints As ArrayBuilder(Of Integer) = _asyncYieldPoints
+            Dim resumePoints As ArrayBuilder(Of Integer) = _asyncResumePoints
 
             Debug.Assert((yieldPoints Is Nothing) = (resumePoints Is Nothing))
-            If yieldPoints IsNot Nothing Then
+
+            If yieldPoints Is Nothing Then
+                asyncYieldPoints = ImmutableArray(Of Integer).Empty
+                asyncResumePoints = ImmutableArray(Of Integer).Empty
+            Else
                 Debug.Assert(yieldPoints.Count > 0, "Why it was allocated?")
 
                 Dim yieldPointsBuilder = ArrayBuilder(Of Integer).GetInstance
                 Dim resumePointsBuilder = ArrayBuilder(Of Integer).GetInstance
 
                 For i = 0 To yieldPoints.Count - 1
-                    Dim yieldOffset = generator._builder.GetILOffsetFromMarker(yieldPoints(i))
-                    Dim resumeOffset = generator._builder.GetILOffsetFromMarker(resumePoints(i))
+                    Dim yieldOffset = _builder.GetILOffsetFromMarker(yieldPoints(i))
+                    Dim resumeOffset = _builder.GetILOffsetFromMarker(resumePoints(i))
 
                     Debug.Assert(resumeOffset >= 0) ' resume marker should always be reachable from dispatch
 
@@ -145,15 +134,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 yieldPoints.Free()
                 resumePoints.Free()
-
-            Else
-                asyncYieldPoints = ImmutableArray(Of Integer).Empty
-                asyncResumePoints = ImmutableArray(Of Integer).Empty
             End If
-
         End Sub
 
-        Private Sub Generate()
+        Private Sub GenerateImpl()
             SetInitialDebugDocument()
 
             ' Synthesized methods should have a sequence point
@@ -163,8 +147,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             EmitStatement(_block)
+
             If _unhandledReturn Then
                 HandleReturn()
+            End If
+
+            If Not _diagnostics.HasAnyErrors Then
+                _builder.Realize()
+            End If
+
+            If _synthesizedLocalOrdinals IsNot Nothing Then
+                _synthesizedLocalOrdinals.Free()
+                _synthesizedLocalOrdinals = Nothing
             End If
         End Sub
 

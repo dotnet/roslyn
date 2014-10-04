@@ -98,14 +98,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SourceLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind);
         }
 
+        internal override bool IsImportedFromMetadata
+        {
+            get { return false; }
+        }
+
         internal override LocalDeclarationKind DeclarationKind
         {
             get { return this.declarationKind; }
         }
 
-        internal override SynthesizedLocalKind SynthesizedLocalKind
+        internal override SynthesizedLocalKind SynthesizedKind
         {
-            get { return SynthesizedLocalKind.None; }
+            get { return SynthesizedLocalKind.UserDefined; }
         }
 
         internal override bool IsPinned
@@ -253,32 +258,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override SyntaxNode GetDeclaratorSyntax()
+        {
+            return identifierToken.Parent;
+        }
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
-                CSharpSyntaxNode node;
-
+                SyntaxNode node = identifierToken.Parent;
+#if DEBUG
                 switch (declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
                     case LocalDeclarationKind.Constant:
                     case LocalDeclarationKind.FixedVariable:
                     case LocalDeclarationKind.UsingVariable:
-                    case LocalDeclarationKind.CatchVariable:
                     case LocalDeclarationKind.ForInitializerVariable:
-                        node = identifierToken.Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
+                        Debug.Assert(node is VariableDeclaratorSyntax);
                         break;
 
                     case LocalDeclarationKind.ForEachIterationVariable:
-                        node = identifierToken.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
+                        Debug.Assert(node is ForEachStatementSyntax);
+                        break;
+
+                    case LocalDeclarationKind.CatchVariable:
+                        Debug.Assert(node is CatchDeclarationSyntax);
                         break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(declarationKind);
                 }
-
-                return (node == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create<SyntaxReference>(node.GetReference());
+#endif
+                return ImmutableArray.Create(node.GetReference());
             }
         }
 

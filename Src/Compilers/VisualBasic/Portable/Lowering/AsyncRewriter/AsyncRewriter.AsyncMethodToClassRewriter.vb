@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._spillFieldAllocator = New SpillFieldAllocator(F)
 
                 If Me._asyncMethodKind = AsyncMethodKind.GenericTaskFunction Then
-                    Me._exprRetValue = Me.F.SynthesizedLocal(Me._owner._resultType, SynthesizedLocalKind.StateMachineReturnValue, Nothing)
+                    Me._exprRetValue = Me.F.SynthesizedLocal(Me._owner._resultType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
                 End If
             End Sub
 
@@ -100,11 +101,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Friend Sub GenerateMoveNext(body As BoundStatement, moveNextMethod As MethodSymbol)
                 Me.F.CurrentMethod = moveNextMethod
-
-                Dim exceptionLocal As LocalSymbol =
-                    Me.F.SynthesizedLocal(
-                        Me.F.WellKnownType(WellKnownType.System_Exception),
-                        SynthesizedLocalKind.StateMachineException, Nothing)
 
                 Dim rewrittenBody As BoundStatement = DirectCast(Visit(body), BoundStatement)
 
@@ -139,6 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' the Begin construct should map to the logical beginning of the method.  A breakpoint 
                 ' there should only be hit once, upon first entry into the method, and subsequent calls 
                 ' to MoveNext to resume the method should not hit that breakpoint.
+                Dim exceptionLocal = Me.F.SynthesizedLocal(Me.F.WellKnownType(WellKnownType.System_Exception))
                 bodyBuilder.Add(
                     Me.F.Try(
                         Me.F.Block(
@@ -196,8 +193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._owner.CloseMethod(
                     Me.F.Block(
                         If(Me._exprRetValue IsNot Nothing,
-                           ImmutableArray.Create(Of LocalSymbol)(Me._exprRetValue, Me.CachedState),
-                           ImmutableArray.Create(Of LocalSymbol)(Me.CachedState)),
+                           ImmutableArray.Create(Me._exprRetValue, Me.CachedState),
+                           ImmutableArray.Create(Me.CachedState)),
                        newBody))
             End Sub
 

@@ -308,6 +308,9 @@ namespace Roslyn.Test.PdbUtilities
                         case CustomDebugInfoKind.DynamicLocals:
                             WriteDynamicLocalsCustomDebugInfo(version, kind, size, bytes, ref offset);
                             break;
+                        case CustomDebugInfoKind.EditAndContinueLocalSlotMap:
+                            WriteEditAndContinueLocalSlotMap(version, kind, size, bytes, ref offset);
+                            break;
                         default:
                             WriteUnknownCustomDebugInfo(version, kind, size, bytes, ref offset);
                             break;
@@ -340,7 +343,7 @@ namespace Roslyn.Test.PdbUtilities
             WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
 
             ImmutableArray<byte> body;
-            CDI.ReadUnknownRecord(bytes, ref offset, size, out body);
+            CDI.ReadRawRecordBody(bytes, ref offset, size, out body);
 
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
             StringBuilder builder = pooled.Builder;
@@ -444,12 +447,12 @@ namespace Roslyn.Test.PdbUtilities
 
             WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
 
-            ImmutableArray<IteratorLocalBucket> buckets;
+            ImmutableArray<IteratorLocalScope> buckets;
             CDI.ReadIteratorLocalsRecord(bytes, ref offset, size, out buckets);
 
             writer.WriteAttributeString("bucketCount", buckets.Length.ToString());
 
-            foreach (IteratorLocalBucket bucket in buckets)
+            foreach (IteratorLocalScope bucket in buckets)
             {
                 writer.WriteStartElement("bucket");
                 writer.WriteAttributeString("startOffset", AsILOffset(bucket.StartOffset));
@@ -524,6 +527,85 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             writer.WriteEndElement(); //dynamicLocals
+        }
+
+        private unsafe void WriteEditAndContinueLocalSlotMap(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        {
+            Debug.Assert(kind == CustomDebugInfoKind.EditAndContinueLocalSlotMap);
+
+            writer.WriteStartElement("encLocalSlotMap");
+
+            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
+
+            int bodySize = size - CDI.CdiRecordHeaderSize;
+
+            fixed (byte* compressedSlotMapPtr = &bytes[offset])
+            {
+                var blobReader = new BlobReader((IntPtr)compressedSlotMapPtr, bodySize);
+
+                while (blobReader.RemainingBytes > 0)
+                {
+                    byte b = blobReader.ReadByte();
+
+                    if (b == 0xff)
+                    {
+                        break;
+                    }
+
+                    writer.WriteStartElement("slot");
+
+                    if (b == 0)
+                    {
+                        // short-lived temp, no info
+                        writer.WriteAttributeString("kind", "temp");
+                    }
+                    else
+                    {
+                        int ordinalCount = 0;
+
+                        if ((b & (1 << 7)) != 0)
+                        {
+                            // highest bit set - we have an ordinal
+                            ordinalCount++;
+                        }
+
+                        int synthesizedKind = (b & 0x3f) - 1;
+                        if (synthesizedKind == 29) // AwaitByRefSpill
+                        {
+                            ordinalCount++;
+                        }
+
+                        // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
+                        uint syntaxOffsetUnsigned;
+                        bool badSyntaxOffset = !blobReader.TryReadCompressedUInt32(out syntaxOffsetUnsigned);
+                        int syntaxOffset = (int)syntaxOffsetUnsigned - 1;
+
+                        uint ordinal = 0;
+                        bool badOrdinal = ordinalCount >= 1 && !blobReader.TryReadCompressedUInt32(out ordinal);
+
+                        uint subordinal = 0;
+                        bool badSubordinal = ordinalCount >= 2 && !blobReader.TryReadCompressedUInt32(out subordinal);
+
+                        writer.WriteAttributeString("kind", synthesizedKind.ToString());
+                        writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
+
+                        if (badOrdinal || ordinal > 0)
+                        {
+                            writer.WriteAttributeString("ordinal", badOrdinal ? "?" : ordinal.ToString());
+                        }
+
+                        if (badSubordinal || subordinal > 0)
+                        {
+                            writer.WriteAttributeString("subordinal", badSubordinal ? "?" : subordinal.ToString());
+                        }
+                    }
+
+                    writer.WriteEndElement();
+                }
+            }
+
+            offset += bodySize;
+            writer.WriteEndElement(); //encLocalSlotMap
         }
 
         private void WriteScopes(ISymUnmanagedScope scope)

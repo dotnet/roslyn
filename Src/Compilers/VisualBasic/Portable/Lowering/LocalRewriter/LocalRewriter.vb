@@ -696,13 +696,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       value As BoundExpression,
                                                       locals As ArrayBuilder(Of LocalSymbol),
                                                       expressions As ArrayBuilder(Of BoundExpression),
-                                                      Optional kind As SynthesizedLocalKind = SynthesizedLocalKind.LoweringTemp,
-                                                      Optional syntax As StatementSyntax = Nothing) As BoundExpression
+                                                      kind As SynthesizedLocalKind,
+                                                      syntaxOpt As StatementSyntax) As BoundExpression
 
             Debug.Assert(container IsNot Nothing)
             Debug.Assert(locals IsNot Nothing)
             Debug.Assert(expressions IsNot Nothing)
-            Debug.Assert(kind = SynthesizedLocalKind.LoweringTemp OrElse syntax IsNot Nothing)
+            Debug.Assert(kind = SynthesizedLocalKind.LoweringTemp OrElse syntaxOpt IsNot Nothing)
 
             Dim constValue As ConstantValue = value.ConstantValueOpt
 
@@ -717,7 +717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             End If
 
-            Dim temp = New SynthesizedLocal(container, value.Type, kind, syntax)
+            Dim temp = New SynthesizedLocal(container, value.Type, kind, syntaxOpt)
 
             locals.Add(temp)
 
@@ -777,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 sideEffectsBuilder.Add(value)
                 valueOpt = Nothing
             Else
-                valueOpt = CacheToTempIfNotConst(container, value, temporariesBuilder, sideEffectsBuilder)
+                valueOpt = CacheToTempIfNotConst(container, value, temporariesBuilder, sideEffectsBuilder, SynthesizedLocalKind.LoweringTemp, syntaxOpt:=Nothing)
                 Debug.Assert(Not valueOpt.IsLValue)
             End If
 

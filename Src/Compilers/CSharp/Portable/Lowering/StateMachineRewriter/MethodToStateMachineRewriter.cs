@@ -12,37 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class MethodToStateMachineRewriter : MethodToClassRewriter
     {
-        public MethodToStateMachineRewriter(
-            SyntheticBoundNodeFactory F,
-            MethodSymbol originalMethod,
-            FieldSymbol state,
-            IReadOnlySet<Symbol> variablesCaptured,
-            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
-            DiagnosticBag diagnostics,
-            bool useFinalizerBookkeeping)
-            : base(F.CompilationState, diagnostics)
-        {
-            Debug.Assert(F != null);
-            Debug.Assert(originalMethod != null);
-            Debug.Assert(state != null);
-            Debug.Assert(nonReusableLocalProxies != null);
-            Debug.Assert(diagnostics != null);
-            Debug.Assert(variablesCaptured != null);
-
-            this.F = F;
-            this.stateField = state;
-            this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), kind: SynthesizedLocalKind.StateMachineCachedState);
-            this.useFinalizerBookkeeping = useFinalizerBookkeeping;
-            this.hasFinalizerState = useFinalizerBookkeeping;
-            this.originalMethod = originalMethod;
-            this.variablesCaptured = variablesCaptured;
-
-            foreach (var proxy in nonReusableLocalProxies)
-            {
-                this.proxies.Add(proxy.Key, proxy.Value);
-            }
-        }
-
+        internal readonly MethodSymbol OriginalMethod;
 
         /// <summary>
         /// True if we need to generate the code to do the bookkeeping so we can "finalize" the state machine
@@ -126,6 +96,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly IReadOnlySet<Symbol> variablesCaptured;
 
+        public MethodToStateMachineRewriter(
+            SyntheticBoundNodeFactory F,
+            MethodSymbol originalMethod,
+            FieldSymbol state,
+            IReadOnlySet<Symbol> variablesCaptured,
+            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            DiagnosticBag diagnostics,
+            bool useFinalizerBookkeeping)
+            : base(F.CompilationState, diagnostics)
+        {
+            Debug.Assert(F != null);
+            Debug.Assert(originalMethod != null);
+            Debug.Assert(state != null);
+            Debug.Assert(nonReusableLocalProxies != null);
+            Debug.Assert(diagnostics != null);
+            Debug.Assert(variablesCaptured != null);
+
+            this.F = F;
+            this.stateField = state;
+            this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), syntax: F.Syntax, kind: SynthesizedLocalKind.StateMachineCachedState);
+            this.useFinalizerBookkeeping = useFinalizerBookkeeping;
+            this.hasFinalizerState = useFinalizerBookkeeping;
+            this.OriginalMethod = originalMethod;
+            this.variablesCaptured = variablesCaptured;
+
+            foreach (var proxy in nonReusableLocalProxies)
+            {
+                this.proxies.Add(proxy.Key, proxy.Value);
+            }
+        }
+
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
             Debug.Assert(localOrParameter.Kind == SymbolKind.Local || localOrParameter.Kind == SymbolKind.Parameter);
@@ -142,11 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return F.CurrentMethod; }
         }
 
-        private readonly MethodSymbol originalMethod;
-
         protected override NamedTypeSymbol ContainingType
         {
-            get { return originalMethod.ContainingType; }
+            get { return OriginalMethod.ContainingType; }
         }
 
         protected override BoundExpression FramePointer(CSharpSyntaxNode syntax, NamedTypeSymbol frameClass)
@@ -231,12 +230,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                 if (local.RefKind != RefKind.None) 
                 {
-                    Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
+                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
                     continue;
                 }
 
-                Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None || 
-                             local.SynthesizedLocalKind.IsLongLived());
+                Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined || 
+                             local.SynthesizedKind.IsLongLived());
 
                 CapturedSymbolReplacement proxy;
                 if (!proxies.TryGetValue(local, out proxy))
@@ -245,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     proxies.Add(local, proxy);
                 }
 
-                if (local.SynthesizedLocalKind == SynthesizedLocalKind.None)
+                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined)
                 {
                     hoistedUserDefinedLocals.Add(((CapturedToFrameSymbolReplacement)proxy).HoistedField);
                 }
@@ -369,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hoistedFields = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance();
             var replacement = HoistExpression(right, true, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
 
-            Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
             proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree()));
 
             if (needsSacrificialEvaluation)
@@ -532,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps. By-ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
 
-            Debug.Assert(leftLocal.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
+            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
             Debug.Assert(node.RefKind != RefKind.None);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
@@ -629,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThisReference(BoundThisReference node)
         {
-            var thisParameter = this.originalMethod.ThisParameter;
+            var thisParameter = this.OriginalMethod.ThisParameter;
             CapturedSymbolReplacement proxy;
             if ((object)thisParameter == null || !proxies.TryGetValue(thisParameter, out proxy))
             {
@@ -656,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
             // TODO: fix up the type of the resulting node to be the base type
-            CapturedSymbolReplacement proxy = proxies[this.originalMethod.ThisParameter];
+            CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
             Debug.Assert(proxy != null);
             return proxy.Replacement(F.Syntax, frameType => F.This());
         }

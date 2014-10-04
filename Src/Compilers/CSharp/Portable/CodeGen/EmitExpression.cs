@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // fortunately these are very shortlived temps that should not cause value sharing.
                 var temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
 #if DEBUG
-                Debug.Assert(temp == null || ((SynthesizedLocal)assignmentOperator.Left.ExpressionSymbol).SynthesizedLocalKind == SynthesizedLocalKind.LoweringTemp);
+                Debug.Assert(temp == null || ((SynthesizedLocal)assignmentOperator.Left.ExpressionSymbol).SynthesizedKind == SynthesizedLocalKind.LoweringTemp);
 #endif
             }
         }

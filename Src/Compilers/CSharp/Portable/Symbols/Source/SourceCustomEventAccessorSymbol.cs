@@ -87,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.name = GetOverriddenAccessorName(@event, isAdder) ?? this.name;
         }
 
+        internal AccessorDeclarationSyntax GetSyntax()
+        {
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (AccessorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get { return this.AssociatedSymbol.DeclaredAccessibility; }
@@ -99,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            return OneOrMany.Create(((AccessorDeclarationSyntax)this.SyntaxNode).AttributeLists);
+            return OneOrMany.Create(GetSyntax().AttributeLists);
         }
 
         public override string Name

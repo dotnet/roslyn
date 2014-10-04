@@ -4,6 +4,7 @@ Imports System
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' captured symbol is either a local or parameter.
             Dim local = TryCast(captured, LocalSymbol)
             If local IsNot Nothing AndAlso local.IsCompilerGenerated Then
-                Return StringConstants.LiftedNonLocalPrefix & If(local.SynthesizedLocalKind.IsLongLived(), GeneratedNames.MakeLocalName(local.SynthesizedLocalKind, local.Type, uniqueId), Nothing)
+                Return StringConstants.LiftedNonLocalPrefix & If(local.SynthesizedKind.IsLongLived(), GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, local.Type, uniqueId), Nothing)
             End If
 
             Dim parameter = TryCast(captured, ParameterSymbol)

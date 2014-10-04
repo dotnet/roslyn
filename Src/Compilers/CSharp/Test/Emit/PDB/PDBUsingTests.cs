@@ -1564,26 +1564,26 @@ public class Test : IDisposable
 {
   // Code size       23 (0x17)
   .maxstack  1
-  .locals init (Test V_0) //CS$3$0000
- -IL_0000:  nop       
+  .locals init (Test V_0)
+ -IL_0000:  nop
  -IL_0001:  newobj     ""Test..ctor()""
-  IL_0006:  stloc.0   
+  IL_0006:  stloc.0
   .try
   {
-   -IL_0007:  nop       
-   -IL_0008:  nop       
+   -IL_0007:  nop
+   -IL_0008:  nop
     IL_0009:  leave.s    IL_0016
   }
   finally
   {
-   ~IL_000b:  ldloc.0   
+   ~IL_000b:  ldloc.0
     IL_000c:  brfalse.s  IL_0015
-    IL_000e:  ldloc.0   
+    IL_000e:  ldloc.0
     IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0014:  nop       
+    IL_0014:  nop
     IL_0015:  endfinally
   }
- -IL_0016:  ret       
+ -IL_0016:  ret
 }", sequencePoints: "Test.Main");
         }
 

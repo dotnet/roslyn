@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
@@ -602,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             builder.OpenIteratorScope();
             foreach (var field in scope.Fields)
             {
-                int index = field.IteratorLocalIndex;
+                int index = field.UserDefinedHoistedLocalId;
                 Debug.Assert(index >= 1);
                 builder.DefineIteratorLocal(index);
             }
@@ -1320,9 +1321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return null;
             }
 
-            var name = GetLocalDebugName(local);
-            Debug.Assert(!HasDebugName(local) || !string.IsNullOrEmpty(name), "compiler generated names must be nonempty");
-
             LocalSlotConstraints constraints;
             Cci.ITypeReference translatedType;
 
@@ -1352,18 +1350,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
             this.module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, diagnostics);
 
+            LocalDebugId localId;
+            var name = GetLocalDebugName(local, out localId);
+
             var localDef = builder.LocalSlotManager.DeclareLocal(
                 type: translatedType,
                 symbol: local,
                 name: name,
-                synthesizedKind: (CommonSynthesizedLocalKind)local.SynthesizedLocalKind,
-                pdbAttributes: local.SynthesizedLocalKind.PdbAttributes(),
+                kind: local.SynthesizedKind,
+                id: localId,
+                pdbAttributes: local.SynthesizedKind.PdbAttributes(),
                 constraints: constraints,
                 isDynamic: isDynamicSourceLocal,
-                dynamicTransformFlags: transformFlags);
+                dynamicTransformFlags: transformFlags,
+                isSlotReusable: local.SynthesizedKind.IsSlotReusable(optimizations));
 
-            // If named, add it to the scope. It will be emitted to the PDB.
-            if (name != null)
+            // If named, add it to the local debug scope.
+            if (localDef.Name != null)
             {
                 builder.AddLocalToScope(localDef);
             }
@@ -1372,33 +1375,76 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>
-        /// Gets the name of the local that is going to be generated into the debug metadata.
+        /// Gets the name and id of the local that are going to be generated into the debug metadata.
         /// </summary>
-        /// <remarks>
-        /// Synthesized locals spanning multiple statements are
-        /// named in debug builds to ensure the associated
-        /// slots are recognized and reused in EnC.
-        /// </remarks>
-        private string GetLocalDebugName(LocalSymbol local)
+        private string GetLocalDebugName(ILocalSymbolInternal local, out LocalDebugId localId)
         {
-            if (local.Name != null)
+            localId = LocalDebugId.None;
+
+            if (local.IsImportedFromMetadata)
             {
-                // variable has been explicitly named in the source code:
-                Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None);
                 return local.Name;
             }
 
-            if (HasDebugName(local))
+            var localKind = local.SynthesizedKind;
+
+            // only user-defined locals should be named during lowering:
+            Debug.Assert((local.Name == null) == (localKind != SynthesizedLocalKind.UserDefined));
+
+            if (!localKind.IsLongLived())
             {
-                return GeneratedNames.MakeLocalName(local.SynthesizedLocalKind, uniqueId++);
+                return null;
             }
 
-            return null;
+            if (optimizations == OptimizationLevel.Debug)
+            {
+                var syntax = local.GetDeclaratorSyntax();
+                int syntaxOffset = this.method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
+
+                int ordinal = AssignLocalOrdinal(localKind, syntaxOffset);
+
+                // user-defined locals should have 0 ordinal:
+                Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
+
+                localId = new LocalDebugId(syntaxOffset, ordinal);
+            }
+
+            return local.Name ?? GeneratedNames.MakeSynthesizedLocalName(localKind, ref uniqueNameId);
         }
 
-        private bool HasDebugName(LocalSymbol local)
+        private int AssignLocalOrdinal(SynthesizedLocalKind localKind, int syntaxOffset)
         {
-            return local.SynthesizedLocalKind.IsNamed(this.optimizations);
+#if !DEBUG
+            // Optimization (avoid growing the dictionary below): 
+            // User-defined locals have to have a distinct syntax offset, thus ordinal is always 0.
+            if (localKind == SynthesizedLocalKind.UserDefined)
+            {
+                return 0;
+            }
+#endif
+            int ordinal;
+            long key = (long)syntaxOffset << 8 | (long)localKind;
+
+            // Group by syntax offset and kind.
+            // Variables associated with the same syntax and kind will be assigned different ordinals.
+            if (synthesizedLocalOrdinals == null)
+            {
+                synthesizedLocalOrdinals = PooledDictionary<long, int>.GetInstance();
+                ordinal = 0;
+            }
+            else if (!synthesizedLocalOrdinals.TryGetValue(key, out ordinal))
+            {
+                ordinal = 0;
+            }
+
+            synthesizedLocalOrdinals[key] = ordinal + 1;
+            Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
+            return ordinal;
+        }
+
+        private bool IsSlotReusable(LocalSymbol local)
+        {
+            return local.SynthesizedKind.IsSlotReusable(this.optimizations);
         }
 
         /// <summary>
@@ -1406,8 +1452,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private void FreeLocal(LocalSymbol local)
         {
-            //TODO: releasing named locals is NYI.
-            if ((local.Name == null) && !HasDebugName(local) && !IsStackLocal(local))
+            // TODO: releasing named locals is NYI.
+            if (local.Name == null && IsSlotReusable(local) && !IsStackLocal(local))
             {
                 builder.LocalSlotManager.FreeLocal(local);
             }

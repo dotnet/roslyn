@@ -1842,23 +1842,16 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
                                                               {
-                                                                  var list = new ArrayBuilder<CSharpAttributeData>();
-                                                                  GetAssemblyDescriptionAttributes(m.ContainingAssembly, list);
+                                                                  var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
-                                                                  Assert.Equal(1, list.Count);
+                                                                  Assert.Equal(1, list.Length);
                                                                   Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module1\")", list[0].ToString());
                                                               }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics();
         }
 
-        private static void GetAssemblyDescriptionAttributes(AssemblySymbol assembly, ArrayBuilder<CSharpAttributeData> list)
+        private static IEnumerable<CSharpAttributeData> GetAssemblyDescriptionAttributes(AssemblySymbol assembly)
         {
-            foreach (var attrData in assembly.GetAttributes())
-            {
-                if (attrData.IsTargetAttribute(assembly, AttributeDescription.AssemblyDescriptionAttribute))
-                {
-                    list.Add(attrData);
-                }
-            }
+            return assembly.GetAttributes().Where(data => data.IsTargetAttribute(assembly, AttributeDescription.AssemblyDescriptionAttribute));
         }
 
         [Fact, WorkItem(530579, "DevDiv")]
@@ -1881,10 +1874,9 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
-                var list = new ArrayBuilder<CSharpAttributeData>();
-                GetAssemblyDescriptionAttributes(m.ContainingAssembly, list);
+                var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
-                Assert.Equal(1, list.Count);
+                Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module2\")", list[0].ToString());
             }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics(
                 // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M1.netmodule' is overridden.
@@ -1912,16 +1904,15 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
-                var list = new ArrayBuilder<CSharpAttributeData>();
-                GetAssemblyDescriptionAttributes(m.ContainingAssembly, list);
+                var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
-                Assert.Equal(1, list.Count);
+                Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module3\")", list[0].ToString());
             }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics(
-    // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.
-    Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M2.netmodule"),
-    // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M1.netmodule' is overridden.
-    Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M1.netmodule")
+        // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.
+        Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M2.netmodule"),
+        // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M1.netmodule' is overridden.
+        Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M1.netmodule")
             );
         }
 
@@ -1945,10 +1936,9 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
-                var list = new ArrayBuilder<CSharpAttributeData>();
-                GetAssemblyDescriptionAttributes(m.ContainingAssembly, list);
+                var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
-                Assert.Equal(1, list.Count);
+                Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module1\")", list[0].ToString());
             }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics(
     // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.

@@ -7,6 +7,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Text
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -396,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 #End If
-        Public Function SynthesizedLocal(type As TypeSymbol, Optional kind As SynthesizedLocalKind = SynthesizedLocalKind.LoweringTemp, Optional syntax As StatementSyntax = Nothing) As LocalSymbol
+        Public Function SynthesizedLocal(type As TypeSymbol, Optional kind As SynthesizedLocalKind = SynthesizedLocalKind.LoweringTemp, Optional syntax As SyntaxNode = Nothing) As LocalSymbol
             Return New SynthesizedLocal(Me.CurrentMethod, type, kind, syntax)
         End Function
 

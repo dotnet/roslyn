@@ -93,13 +93,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '  if there is a temp local assign a value to it
                 ternaryConditionalExpression =
                     New BoundAssignmentOperator(rewrittenTestExpression.Syntax,
-                                                Left:=New BoundLocal(rewrittenTestExpression.Syntax,
+                                                left:=New BoundLocal(rewrittenTestExpression.Syntax,
                                                                      tempVariableSymbol,
                                                                      isLValue:=True,
                                                                      type:=rewrittenTestExpressionType),
-                                                Right:=rewrittenTestExpression,
+                                                right:=rewrittenTestExpression,
                                                 suppressObjectClone:=True,
-                                                Type:=rewrittenTestExpressionType)
+                                                type:=rewrittenTestExpressionType)
             End If
 
             ' NOTE: newTestExpression is not actually a boolean expression, but it is of a reference 
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           whenTrue:=rewrittenConvertedTestExpression,
                                                           whenFalse:=VisitExpressionNode(node.ElseExpression),
                                                           constantValueOpt:=node.ConstantValueOpt,
-                                                          Type:=node.Type))
+                                                          type:=node.Type))
 
             If tempVariableSymbol Is Nothing Then
                 Return result

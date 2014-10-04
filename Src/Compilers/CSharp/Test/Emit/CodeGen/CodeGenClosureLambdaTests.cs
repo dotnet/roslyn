@@ -701,30 +701,30 @@ class Program
   // Code size       49 (0x31)
   .maxstack  2
   .locals init (System.Action V_0, //a
-  Program.<>c__DisplayClass0 V_1, //CS$<>8__locals0
-  System.Exception V_2)
+                Program.<>c__DisplayClass0 V_1, //CS$<>8__locals0
+                System.Exception V_2)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
-{
-  IL_0002:  ldstr      ""pass""
-  IL_0007:  newobj     ""System.Exception..ctor(string)""
-  IL_000c:  throw
-}
+  {
+    IL_0002:  ldstr      ""pass""
+    IL_0007:  newobj     ""System.Exception..ctor(string)""
+    IL_000c:  throw
+  }
   catch System.Exception
-{
-  IL_000d:  newobj     ""Program.<>c__DisplayClass0..ctor()""
-  IL_0012:  stloc.1
-  IL_0013:  stloc.2
-  IL_0014:  ldloc.1
-  IL_0015:  ldloc.2
-  IL_0016:  stfld      ""System.Exception Program.<>c__DisplayClass0.e""
-  IL_001b:  ldloc.1
-  IL_001c:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
-  IL_0022:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0027:  stloc.0
-  IL_0028:  leave.s    IL_002a
-}
+  {
+    IL_000d:  newobj     ""Program.<>c__DisplayClass0..ctor()""
+    IL_0012:  stloc.1
+    IL_0013:  stloc.2
+    IL_0014:  ldloc.1
+    IL_0015:  ldloc.2
+    IL_0016:  stfld      ""System.Exception Program.<>c__DisplayClass0.e""
+    IL_001b:  ldloc.1
+    IL_001c:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
+    IL_0022:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+    IL_0027:  stloc.0
+    IL_0028:  leave.s    IL_002a
+  }
   IL_002a:  ldloc.0
   IL_002b:  callvirt   ""void System.Action.Invoke()""
   IL_0030:  ret
@@ -766,43 +766,43 @@ class Program
   // Code size       79 (0x4f)
   .maxstack  2
   .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals0
-  System.Exception V_1)
+                System.Exception V_1)
   .try
-{
-  IL_0000:  ldstr      ""fail""
-  IL_0005:  newobj     ""System.Exception..ctor(string)""
-  IL_000a:  throw
-}
+  {
+    IL_0000:  ldstr      ""fail""
+    IL_0005:  newobj     ""System.Exception..ctor(string)""
+    IL_000a:  throw
+  }
   filter
-{
-  IL_000b:  isinst     ""System.Exception""
-  IL_0010:  dup
-  IL_0011:  brtrue.s   IL_0017
-  IL_0013:  pop
-  IL_0014:  ldc.i4.0
-  IL_0015:  br.s       IL_0039
-  IL_0017:  newobj     ""Program.<>c__DisplayClass0..ctor()""
-  IL_001c:  stloc.0
-  IL_001d:  stloc.1
-  IL_001e:  ldloc.0
-  IL_001f:  ldloc.1
-  IL_0020:  stfld      ""System.Exception Program.<>c__DisplayClass0.ex""
-  IL_0025:  ldloc.0
-  IL_0026:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
-  IL_002c:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0031:  call       ""bool Program.Foo(System.Action)""
-  IL_0036:  ldc.i4.0
-  IL_0037:  cgt.un
-  IL_0039:  endfilter
-}  // end filter
-{  // handler
-  IL_003b:  pop
-  IL_003c:  ldloc.0
-  IL_003d:  ldfld      ""System.Exception Program.<>c__DisplayClass0.ex""
-  IL_0042:  callvirt   ""string System.Exception.Message.get""
-  IL_0047:  call       ""void System.Console.Write(string)""
-  IL_004c:  leave.s    IL_004e
-}
+  {
+    IL_000b:  isinst     ""System.Exception""
+    IL_0010:  dup
+    IL_0011:  brtrue.s   IL_0017
+    IL_0013:  pop
+    IL_0014:  ldc.i4.0
+    IL_0015:  br.s       IL_0039
+    IL_0017:  newobj     ""Program.<>c__DisplayClass0..ctor()""
+    IL_001c:  stloc.0
+    IL_001d:  stloc.1
+    IL_001e:  ldloc.0
+    IL_001f:  ldloc.1
+    IL_0020:  stfld      ""System.Exception Program.<>c__DisplayClass0.ex""
+    IL_0025:  ldloc.0
+    IL_0026:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
+    IL_002c:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+    IL_0031:  call       ""bool Program.Foo(System.Action)""
+    IL_0036:  ldc.i4.0
+    IL_0037:  cgt.un
+    IL_0039:  endfilter
+  }  // end filter
+  {  // handler
+    IL_003b:  pop
+    IL_003c:  ldloc.0
+    IL_003d:  ldfld      ""System.Exception Program.<>c__DisplayClass0.ex""
+    IL_0042:  callvirt   ""string System.Exception.Message.get""
+    IL_0047:  call       ""void System.Console.Write(string)""
+    IL_004c:  leave.s    IL_004e
+  }
   IL_004e:  ret
 }
 ");
@@ -867,41 +867,41 @@ class Program
   // Code size       73 (0x49)
   .maxstack  2
   .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals0
-  System.Exception V_1)
+                System.Exception V_1)
   .try
-{
-  IL_0000:  ldstr      ""xxx""
-  IL_0005:  newobj     ""System.Exception..ctor(string)""
-  IL_000a:  throw
-}
+  {
+    IL_0000:  ldstr      ""xxx""
+    IL_0005:  newobj     ""System.Exception..ctor(string)""
+    IL_000a:  throw
+  }
   filter
-{
-  IL_000b:  isinst     ""System.Exception""
-  IL_0010:  dup
-  IL_0011:  brtrue.s   IL_0017
-  IL_0013:  pop
-  IL_0014:  ldc.i4.0
-  IL_0015:  br.s       IL_0039
-  IL_0017:  newobj     ""Program.<>c__DisplayClass0..ctor()""
-  IL_001c:  stloc.0
-  IL_001d:  stloc.1
-  IL_001e:  ldloc.0
-  IL_001f:  ldloc.1
-  IL_0020:  stfld      ""System.Exception Program.<>c__DisplayClass0.e""
-  IL_0025:  ldloc.0
-  IL_0026:  ldftn      ""bool Program.<>c__DisplayClass0.<Main>b__1()""
-  IL_002c:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
-  IL_0031:  callvirt   ""bool System.Func<bool>.Invoke()""
-  IL_0036:  ldc.i4.0
-  IL_0037:  cgt.un
-  IL_0039:  endfilter
-}  // end filter
-{  // handler
-  IL_003b:  pop
-  IL_003c:  ldstr      ""pass""
-  IL_0041:  call       ""void System.Console.Write(string)""
-  IL_0046:  leave.s    IL_0048
-}
+  {
+    IL_000b:  isinst     ""System.Exception""
+    IL_0010:  dup
+    IL_0011:  brtrue.s   IL_0017
+    IL_0013:  pop
+    IL_0014:  ldc.i4.0
+    IL_0015:  br.s       IL_0039
+    IL_0017:  newobj     ""Program.<>c__DisplayClass0..ctor()""
+    IL_001c:  stloc.0
+    IL_001d:  stloc.1
+    IL_001e:  ldloc.0
+    IL_001f:  ldloc.1
+    IL_0020:  stfld      ""System.Exception Program.<>c__DisplayClass0.e""
+    IL_0025:  ldloc.0
+    IL_0026:  ldftn      ""bool Program.<>c__DisplayClass0.<Main>b__1()""
+    IL_002c:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
+    IL_0031:  callvirt   ""bool System.Func<bool>.Invoke()""
+    IL_0036:  ldc.i4.0
+    IL_0037:  cgt.un
+    IL_0039:  endfilter
+  }  // end filter
+  {  // handler
+    IL_003b:  pop
+    IL_003c:  ldstr      ""pass""
+    IL_0041:  call       ""void System.Console.Write(string)""
+    IL_0046:  leave.s    IL_0048
+  }
   IL_0048:  ret
 }
 ");
@@ -1014,8 +1014,8 @@ class Program
   // Code size      131 (0x83)
   .maxstack  3
   .locals init (Program.<>c__DisplayClass2<T> V_0, //CS$<>8__locals0
-  Program.<>c__DisplayClass0<T> V_1, //CS$<>8__locals1
-  T V_2)
+                Program.<>c__DisplayClass0<T> V_1, //CS$<>8__locals1
+                T V_2)
   IL_0000:  newobj     ""Program.<>c__DisplayClass2<T>..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -1025,49 +1025,49 @@ class Program
   IL_000e:  ldstr      ""y""
   IL_0013:  stfld      ""string Program.<>c__DisplayClass2<T>.y""
   .try
-{
-  IL_0018:  ldstr      ""xy""
-  IL_001d:  newobj     ""System.IO.IOException..ctor(string)""
-  IL_0022:  throw
-}
+  {
+    IL_0018:  ldstr      ""xy""
+    IL_001d:  newobj     ""System.IO.IOException..ctor(string)""
+    IL_0022:  throw
+  }
   filter
-{
-  IL_0023:  isinst     ""T""
-  IL_0028:  dup
-  IL_0029:  brtrue.s   IL_002f
-  IL_002b:  pop
-  IL_002c:  ldc.i4.0
-  IL_002d:  br.s       IL_005d
-  IL_002f:  unbox.any  ""T""
-  IL_0034:  newobj     ""Program.<>c__DisplayClass0<T>..ctor()""
-  IL_0039:  stloc.1
-  IL_003a:  ldloc.1
-  IL_003b:  ldloc.0
-  IL_003c:  stfld      ""Program.<>c__DisplayClass2<T> Program.<>c__DisplayClass0<T>.CS$<>8__locals2""
-  IL_0041:  stloc.2
-  IL_0042:  ldloc.1
-  IL_0043:  ldloc.2
-  IL_0044:  stfld      ""T Program.<>c__DisplayClass0<T>.e""
-  IL_0049:  ldloc.1
-  IL_004a:  ldftn      ""bool Program.<>c__DisplayClass0<T>.<F>b__4()""
-  IL_0050:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
-  IL_0055:  callvirt   ""bool System.Func<bool>.Invoke()""
-  IL_005a:  ldc.i4.0
-  IL_005b:  cgt.un
-  IL_005d:  endfilter
-}  // end filter
-{  // handler
-  IL_005f:  pop
-  IL_0060:  ldstr      ""pass_""
-  IL_0065:  ldarg.0
-  IL_0066:  ldfld      ""string Program.<>c__DisplayClass1<T>.x""
-  IL_006b:  ldloc.1
-  IL_006c:  ldfld      ""Program.<>c__DisplayClass2<T> Program.<>c__DisplayClass0<T>.CS$<>8__locals2""
-  IL_0071:  ldfld      ""string Program.<>c__DisplayClass2<T>.y""
-  IL_0076:  call       ""string string.Concat(string, string, string)""
-  IL_007b:  call       ""void System.Console.Write(string)""
-  IL_0080:  leave.s    IL_0082
-}
+  {
+    IL_0023:  isinst     ""T""
+    IL_0028:  dup
+    IL_0029:  brtrue.s   IL_002f
+    IL_002b:  pop
+    IL_002c:  ldc.i4.0
+    IL_002d:  br.s       IL_005d
+    IL_002f:  unbox.any  ""T""
+    IL_0034:  newobj     ""Program.<>c__DisplayClass0<T>..ctor()""
+    IL_0039:  stloc.1
+    IL_003a:  ldloc.1
+    IL_003b:  ldloc.0
+    IL_003c:  stfld      ""Program.<>c__DisplayClass2<T> Program.<>c__DisplayClass0<T>.CS$<>8__locals2""
+    IL_0041:  stloc.2
+    IL_0042:  ldloc.1
+    IL_0043:  ldloc.2
+    IL_0044:  stfld      ""T Program.<>c__DisplayClass0<T>.e""
+    IL_0049:  ldloc.1
+    IL_004a:  ldftn      ""bool Program.<>c__DisplayClass0<T>.<F>b__4()""
+    IL_0050:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
+    IL_0055:  callvirt   ""bool System.Func<bool>.Invoke()""
+    IL_005a:  ldc.i4.0
+    IL_005b:  cgt.un
+    IL_005d:  endfilter
+  }  // end filter
+  {  // handler
+    IL_005f:  pop
+    IL_0060:  ldstr      ""pass_""
+    IL_0065:  ldarg.0
+    IL_0066:  ldfld      ""string Program.<>c__DisplayClass1<T>.x""
+    IL_006b:  ldloc.1
+    IL_006c:  ldfld      ""Program.<>c__DisplayClass2<T> Program.<>c__DisplayClass0<T>.CS$<>8__locals2""
+    IL_0071:  ldfld      ""string Program.<>c__DisplayClass2<T>.y""
+    IL_0076:  call       ""string string.Concat(string, string, string)""
+    IL_007b:  call       ""void System.Console.Write(string)""
+    IL_0080:  leave.s    IL_0082
+  }
   IL_0082:  ret
 }
 ");
@@ -3733,8 +3733,8 @@ class Program
   // Code size       96 (0x60)
   .maxstack  3
   .locals init (System.Func<int> V_0, //ff
-  System.Func<int> V_1, //aa
-  Program.c1.<>c__DisplayClass0 V_2) //CS$<>8__locals0
+                System.Func<int> V_1, //aa
+                Program.c1.<>c__DisplayClass0 V_2) //CS$<>8__locals0
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldnull
@@ -4450,10 +4450,10 @@ class D
   // Code size      142 (0x8e)
   .maxstack  4
   .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals0
-  int V_1, //i
-  System.Func<int, int> V_2,
-  int V_3, //i
-  Program.<>c__DisplayClass1 V_4) //CS$<>8__locals1
+                int V_1, //i
+                System.Func<int, int> V_2,
+                int V_3, //i
+                Program.<>c__DisplayClass1 V_4) //CS$<>8__locals1
   IL_0000:  newobj     ""Program.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0

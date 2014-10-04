@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.exitLabel = F.GenerateLabel("exitLabel");
 
             this.exprRetValue = method.IsGenericTaskReturningAsync(F.Compilation)
-                ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, kind: SynthesizedLocalKind.AsyncMethodReturnValue)
+                ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, syntax: F.Syntax, kind: SynthesizedLocalKind.AsyncMethodReturnValue)
                 : null;
 
             this.dynamicFactory = new LoweredDynamicOperationFactory(F);
@@ -95,15 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             F.CurrentMethod = moveNextMethod;
 
-            var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
+            BoundStatement rewrittenBody = (BoundStatement)Visit(body);
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
             bodyBuilder.Add(F.HiddenSequencePoint());
             bodyBuilder.Add(F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
 
-            BoundStatement rewrittenBody = (BoundStatement)Visit(body);
-
+            var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
             bodyBuilder.Add(
                 F.Try(
                     F.Block(ImmutableArray<LocalSymbol>.Empty,

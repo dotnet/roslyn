@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DelegateDeclarationSyntax syntax,
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers)
-            : base(delegateType, syntax.GetReference(), bodySyntaxReference: null, location: syntax.Identifier.GetLocation())
+            : base(delegateType, syntax.GetReference(), bodySyntaxReferenceOpt: null, location: syntax.Identifier.GetLocation())
         {
             this.returnType = returnType;
             this.flags = MakeFlags(methodKind, declarationModifiers, this.returnType.SpecialType == SpecialType.System_Void, isExtensionMethod: false);
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Dev12 order is not strictly aphabetical - .ctor and Invoke go before other members.
                 // there are no real reasons for emitting the members inone order or another, 
                 // so we will keep them the same.
-                return new LexicalSortKey(this.syntaxReference.GetLocation(), this.DeclaringCompilation);
+                return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
 
         }
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Dev12 order is not strictly aphabetical - .ctor and Invoke go before other members.
                 // there are no real reasons for emitting the members inone order or another, 
                 // so we will keep them the same.
-                return new LexicalSortKey(this.syntaxReference.GetLocation(), this.DeclaringCompilation);
+                return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
         }
 

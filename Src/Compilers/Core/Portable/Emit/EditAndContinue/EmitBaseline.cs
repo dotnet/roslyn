@@ -11,8 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    public delegate ImmutableArray<string> LocalVariableNameProvider(MethodHandle method);
-
     // A MethodImpl entry is a pair of implementing method and implemented
     // method. However, the implemented method is a MemberRef rather
     // than a MethodDef (e.g.: I<int>.M) and currently we are not mapping
@@ -64,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// and from a function that maps from a method to an array of local names. 
         /// </summary>
         /// <param name="module">The metadata of the module before editing.</param>
-        /// <param name="localNames">
-        /// A function that returns the array of local names given a method index from the module metadata.
+        /// <param name="debugInformationProvider">
+        /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
         /// </param>
         /// <returns>An <see cref="EmitBaseline"/> for the module.</returns>
         /// <remarks>
@@ -74,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// 
         /// When an active method (one for which a frame is allocated on a stack) is updated the values of its local variables need to be preserved.
         /// The mapping of local variable names to their slots in the frame is not included in the metadata and thus needs to be provided by 
-        /// <paramref name="localNames"/>.
+        /// <paramref name="debugInformationProvider"/>.
         /// 
-        /// The <see cref="LocalVariableNameProvider"/> is only needed for the initial generation. The mapping for the subsequent generations
+        /// The <paramref name="debugInformationProvider"/> is only needed for the initial generation. The mapping for the subsequent generations
         /// is carried over through <see cref="EmitBaseline"/>. The compiler assigns slots to named local variables (including named temporary variables)
         /// it the order in which they appear in the source code. This property allows the compiler to reconstruct the local variable mapping 
         /// for the initial generation. A subsequent generation may add a new variable in between two variables of the previous generation. 
@@ -84,21 +82,21 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The slot ordering thus no longer matches the syntax ordering. It is therefore necessary to pass <see cref="EmitDifferenceResult.Baseline"/>
         /// to the next generation (rather than e.g. create new <see cref="EmitBaseline"/>s from scratch based on metadata produced by subsequent compilations).
         /// </remarks>
-        public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, LocalVariableNameProvider localNames)
+        public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, Func<MethodHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
         {
             if (module == null)
             {
-                throw new ArgumentNullException("module");
+                throw new ArgumentNullException(nameof(module));
             }
 
             if (!module.Module.HasIL)
             {
-                throw new ArgumentException(CodeAnalysisResources.PEImageNotAvailable, "module");
+                throw new ArgumentException(CodeAnalysisResources.PEImageNotAvailable, nameof(module));
             }
 
-            if (localNames == null)
+            if (debugInformationProvider == null)
             {
-                throw new ArgumentNullException("localNames");
+                throw new ArgumentNullException(nameof(debugInformationProvider));
             }
 
             var reader = module.MetadataReader;
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: 0,
                 anonymousTypeMap: null, // Unset for initial metadata
                 localsForMethodsAddedOrChanged: new Dictionary<uint, ImmutableArray<EncLocalInfo>>(),
-                localNames: localNames,
+                debugInformationProvider: debugInformationProvider,
                 typeToEventMap: reader.CalculateTypeEventMap(),
                 typeToPropertyMap: reader.CalculateTypePropertyMap(),
                 methodImpls: CalculateMethodImpls(reader));
@@ -179,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Local variable names for methods from metadata,
         /// indexed by method row.
         /// </summary>
-        internal readonly LocalVariableNameProvider LocalNames;
+        internal readonly Func<MethodHandle, EditAndContinueMethodDebugInformation> DebugInformationProvider;
 
         internal readonly ImmutableArray<int> TableSizes;
         internal readonly IReadOnlyDictionary<uint, uint> TypeToEventMap;
@@ -209,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             IReadOnlyDictionary<uint, ImmutableArray<EncLocalInfo>> localsForMethodsAddedOrChanged,
-            LocalVariableNameProvider localNames,
+            Func<MethodHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             IReadOnlyDictionary<uint, uint> typeToEventMap,
             IReadOnlyDictionary<uint, uint> typeToPropertyMap,
             IReadOnlyDictionary<MethodImplKey, uint> methodImpls)
@@ -217,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(module != null);
             Debug.Assert((ordinal == 0) == (encId == default(Guid)));
             Debug.Assert(encId != module.GetModuleVersionId());
-            Debug.Assert(localNames != null);
+            Debug.Assert(debugInformationProvider != null);
             Debug.Assert(typeToEventMap != null);
             Debug.Assert(typeToPropertyMap != null);
             Debug.Assert(moduleVersionId != default(Guid));
@@ -262,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.AnonymousTypeMap = anonymousTypeMap;
             this.LocalsForMethodsAddedOrChanged = localsForMethodsAddedOrChanged;
 
-            this.LocalNames = localNames;
+            this.DebugInformationProvider = debugInformationProvider;
             this.TableSizes = CalculateTableSizes(reader, this.TableEntriesAdded);
             this.TypeToEventMap = typeToEventMap;
             this.TypeToPropertyMap = typeToPropertyMap;
@@ -289,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             IReadOnlyDictionary<uint, ImmutableArray<EncLocalInfo>> localsForMethodsAddedOrChanged,
-            LocalVariableNameProvider localNames)
+            Func<MethodHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
         {
             Debug.Assert((this.AnonymousTypeMap == null) || (anonymousTypeMap != null));
             Debug.Assert((this.AnonymousTypeMap == null) || (anonymousTypeMap.Count >= this.AnonymousTypeMap.Count));
@@ -316,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: guidStreamLengthAdded,
                 anonymousTypeMap: anonymousTypeMap,
                 localsForMethodsAddedOrChanged: localsForMethodsAddedOrChanged,
-                localNames: localNames,
+                debugInformationProvider: debugInformationProvider,
                 typeToEventMap: this.TypeToEventMap,
                 typeToPropertyMap: this.TypeToPropertyMap,
                 methodImpls: this.MethodImpls);

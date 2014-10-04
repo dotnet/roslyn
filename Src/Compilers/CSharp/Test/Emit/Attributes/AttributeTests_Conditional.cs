@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -134,7 +135,7 @@ public class Test
 
         private void CommonValidatorForCondAttrType(ModuleSymbol module, bool isFromSource)
         {
-            var attributesArrayBuilder = ArrayBuilder<ImmutableArray<CSharpAttributeData>>.GetInstance();
+            var attributesArrayBuilder = new List<ImmutableArray<CSharpAttributeData>>();
             
             var classZ = module.GlobalNamespace.GetTypeMember("Z");
             attributesArrayBuilder.Add(classZ.GetAttributes());
@@ -236,8 +237,6 @@ public class Test
                         actualAttributeNames);
                 }
             }
-
-            attributesArrayBuilder.Free();
         }
 
         private void TestConditionAttributeType_SameSource(string condDefs)

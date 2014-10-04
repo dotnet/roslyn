@@ -347,15 +347,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var binder = GetBinder();
-                return binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.SyntaxNode);
+                return binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax());
             }
         }
 
         private Binder GetBinder()
         {
+            var syntax = this.GetSyntax();
             var compilation = this.DeclaringCompilation;
-            var binderFactory = compilation.GetBinderFactory(this.SyntaxTree);
-            return binderFactory.GetBinder(this.SyntaxNode);
+            var binderFactory = compilation.GetBinderFactory(syntax.SyntaxTree);
+            return binderFactory.GetBinder(syntax);
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed class '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (bodySyntaxReference == null && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
+            else if (bodySyntaxReferenceOpt == null && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -437,6 +438,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return prefix + propertyName;
         }
 
+        /// <returns>
+        /// <see cref="AccessorDeclarationSyntax"/> or <see cref="ArrowExpressionClauseSyntax"/>
+        /// </returns>
+        internal CSharpSyntaxNode GetSyntax()
+        {
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
+        }
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get
@@ -447,13 +457,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            var syntax = this.SyntaxNode;
+            var syntax = this.GetSyntax();
             switch (syntax.Kind)
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                     return OneOrMany.Create(((AccessorDeclarationSyntax)syntax).AttributeLists);
             }
+
             return base.GetAttributeDeclarations();
         }
 

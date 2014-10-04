@@ -1,8 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -51,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Me)
+            Return RuntimeHelpers.GetHashCode(Me)
         End Function
 
         Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean

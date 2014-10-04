@@ -2,9 +2,9 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
 using Xunit;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Emit
 {
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         [Fact]
         public void CreateInitialBaseline()
         {
-            var provider = new LocalVariableNameProvider(_ => ImmutableArray.Create<string>());
+            var provider = new Func<MethodHandle, EditAndContinueMethodDebugInformation>(_ => default(EditAndContinueMethodDebugInformation));
             var peModule = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Basic.Members);
             var peReader = peModule.Module.PEReaderOpt;
 

@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 guidStreamLengthAdded:=previousGeneration.GuidStreamLengthAdded,
                 anonymousTypeMap:=anonymousTypeMap,
                 localsForMethodsAddedOrChanged:=previousGeneration.LocalsForMethodsAddedOrChanged,
-                localNames:=previousGeneration.LocalNames)
+                debugInformationProvider:=previousGeneration.DebugInformationProvider)
         End Function
 
         Friend ReadOnly Property PreviousGeneration As EmitBaseline

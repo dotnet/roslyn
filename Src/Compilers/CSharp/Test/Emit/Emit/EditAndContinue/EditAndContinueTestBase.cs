@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -11,24 +12,26 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities.Pdb;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public abstract class EditAndContinueTestBase : EmitMetadataTestBase
     {
-        internal static readonly LocalVariableNameProvider EmptyLocalsProvider = token => ImmutableArray<string>.Empty;
+        internal static readonly Func<MethodHandle, EditAndContinueMethodDebugInformation> EmptyLocalsProvider = handle => default(EditAndContinueMethodDebugInformation);
 
         internal static ImmutableArray<SyntaxNode> GetAllLocals(MethodSymbol method)
         {
-            return CSharpDefinitionMap.LocalVariableDeclaratorsCollector.GetDeclarators(method);
-        }
+            var sourceMethod = method as SourceMethodSymbol;
+            if (sourceMethod == null)
+            {
+                return ImmutableArray<SyntaxNode>.Empty;
+            }
 
-        internal static ImmutableArray<string> GetLocalNames(MethodSymbol method)
-        {
-            var locals = GetAllLocals(method);
-            return locals.SelectAsArray(GetLocalName);
+            return LocalVariableDeclaratorsCollector.GetDeclarators(sourceMethod);
         }
 
         internal static Func<SyntaxNode, SyntaxNode> GetSyntaxMapByKind(MethodSymbol method0, params SyntaxKind[] kinds)
@@ -85,12 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 default:
                     throw new NotImplementedException();
             }
-        }
-
-        internal static ImmutableArray<string> GetLocalNames(CompilationTestData.MethodData methodData)
-        {
-            var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
-            return locals.SelectAsArray(l => l.Name);
         }
 
         internal static StatementSyntax GetNearestStatement(SyntaxNode node)

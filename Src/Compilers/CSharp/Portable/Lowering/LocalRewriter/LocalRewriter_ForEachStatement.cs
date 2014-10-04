@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // string s;
             LocalSymbol stringVar = factory.SynthesizedLocal(stringType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
             // int p;
-            LocalSymbol positionVar = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex0);
+            LocalSymbol positionVar = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
 
             // Reference to s.
             BoundLocal boundStringVar = MakeBoundLocal(forEachSyntax, stringVar, stringType);
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundArrayVar = MakeBoundLocal(forEachSyntax, arrayVar, arrayType);
 
             // int p
-            LocalSymbol positionVar = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex0);
+            LocalSymbol positionVar = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
 
             // Reference to p.
             BoundLocal boundPositionVar = MakeBoundLocal(forEachSyntax, positionVar, intType);
@@ -668,22 +668,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement[] upperVarDecl = new BoundStatement[rank];
             for (int dimension = 0; dimension < rank; dimension++)
             {
-                // int q_/*dimension*/
-                upperVar[dimension] = factory.SynthesizedLocal(
-                    intType,
-                    syntax: forEachSyntax,
-                    kind: (SynthesizedLocalKind)((int)SynthesizedLocalKind.ForEachArrayLimit0 + dimension));
+                // int q_dimension
+                upperVar[dimension] = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayLimit);
                 boundUpperVar[dimension] = MakeBoundLocal(forEachSyntax, upperVar[dimension], intType);
 
-                ImmutableArray<BoundExpression> dimensionArgument = ImmutableArray.Create<BoundExpression>(
+                ImmutableArray<BoundExpression> dimensionArgument = ImmutableArray.Create(
                     MakeLiteral(forEachSyntax,
                         constantValue: ConstantValue.Create(dimension, ConstantValueTypeDiscriminator.Int32),
                         type: intType));
 
-                // a.GetUpperBound(/*dimension*/)
+                // a.GetUpperBound(dimension)
                 BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getUpperBoundMethod, dimensionArgument);
 
-                // int q_/*dimension*/ = a.GetUpperBound(/*dimension*/);
+                // int q_dimension = a.GetUpperBound(dimension);
                 upperVarDecl[dimension] = MakeLocalDeclaration(forEachSyntax, upperVar[dimension], currentDimensionUpperBound);
             }
 
@@ -692,10 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal[] boundPositionVar = new BoundLocal[rank];
             for (int dimension = 0; dimension < rank; dimension++)
             {
-                positionVar[dimension] = factory.SynthesizedLocal(
-                    intType,
-                    syntax: forEachSyntax,
-                    kind: (SynthesizedLocalKind)((int)SynthesizedLocalKind.ForEachArrayIndex0 + dimension));
+                positionVar[dimension] = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
                 boundPositionVar[dimension] = MakeBoundLocal(forEachSyntax, positionVar[dimension], intType);
             }
 
@@ -708,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: forEachSyntax,
                 rewrittenOperand: new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,
-                    indices: ImmutableArray.Create<BoundExpression>((BoundExpression[])boundPositionVar),
+                    indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
                     type: arrayType.ElementType),
                 conversion: node.ElementConversion,
                 rewrittenType: iterationVarType,
@@ -721,8 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // { V v = (V)a[p_0, p_1, ...]; /* node.Body */ }
             BoundStatement innermostLoopBody = new BoundBlock(forEachSyntax,
-                locals: ImmutableArray.Create<LocalSymbol>(iterationVar),
-                statements: ImmutableArray.Create<BoundStatement>(iterationVarDecl, rewrittenBody));
+                locals: ImmutableArray.Create(iterationVar),
+                statements: ImmutableArray.Create(iterationVarDecl, rewrittenBody));
 
             // work from most-nested to least-nested
             // for (int p_0 = a.GetLowerBound(0); p_0 <= q_0; p_0 = p_0 + 1)
@@ -732,22 +726,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement forLoop = null;
             for (int dimension = rank - 1; dimension >= 0; dimension--)
             {
-                ImmutableArray<BoundExpression> dimensionArgument = ImmutableArray.Create<BoundExpression>(
+                ImmutableArray<BoundExpression> dimensionArgument = ImmutableArray.Create(
                     MakeLiteral(forEachSyntax,
                         constantValue: ConstantValue.Create(dimension, ConstantValueTypeDiscriminator.Int32),
                         type: intType));
 
-                // a.GetLowerBound(/*dimension*/)
+                // a.GetLowerBound(dimension)
                 BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getLowerBoundMethod, dimensionArgument);
 
-                // int p_/*dimension*/ = a.GetLowerBound(/*dimension*/);
+                // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);
 
                 GeneratedLabelSymbol breakLabel = dimension == 0 // outermost for-loop
                     ? node.BreakLabel // i.e. the one that break statements will jump to
                     : new GeneratedLabelSymbol("break"); // Should not affect emitted code since unused
 
-                // p_/*dimension*/ <= q_/*dimension*/  //NB: OrEqual
+                // p_dimension <= q_dimension  //NB: OrEqual
                 BoundExpression exitCondition = new BoundBinaryOperator(
                     syntax: forEachSyntax,
                     operatorKind: BinaryOperatorKind.IntLessThanOrEqual,
@@ -758,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultKind: LookupResultKind.Viable,
                     type: boolType);
 
-                // p_/*dimension*/ = p_/*dimension*/ + 1;
+                // p_dimension = p_dimension + 1;
                 BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar[dimension], intType);
 
                 BoundStatement body;
@@ -794,8 +788,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement result = new BoundBlock(
                 forEachSyntax,
-                ImmutableArray.Create<LocalSymbol>(arrayVar).Concat(upperVar.AsImmutableOrNull()),
-                ImmutableArray.Create<BoundStatement>(arrayVarDecl).Concat(upperVarDecl.AsImmutableOrNull()).Add(forLoop));
+                ImmutableArray.Create(arrayVar).Concat(upperVar.AsImmutableOrNull()),
+                ImmutableArray.Create(arrayVarDecl).Concat(upperVarDecl.AsImmutableOrNull()).Add(forLoop));
 
             AddForEachKeywordSequencePoint(forEachSyntax, ref result);
 

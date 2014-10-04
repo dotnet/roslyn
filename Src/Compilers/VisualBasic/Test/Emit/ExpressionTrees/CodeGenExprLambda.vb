@@ -6239,7 +6239,7 @@ Lambda(
 
         <Fact, WorkItem(651996, "DevDiv")>
         Public Sub LocalVariableAccessIL()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -6253,13 +6253,13 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>).
-            VerifyIL("Module1.Main",
-            <![CDATA[
+</compilation>)
+
+            c.VerifyIL("Module1.Main", <![CDATA[
 {
   // Code size       88 (0x58)
   .maxstack  5
-  .locals init (Module1._Closure$__1 V_0, //$VB$Closure_1
+  .locals init (Module1._Closure$__1 V_0, //$VB$Closure_0
   System.Linq.Expressions.ParameterExpression V_1)
   IL_0000:  newobj     "Sub Module1._Closure$__1..ctor()"
   IL_0005:  stloc.0

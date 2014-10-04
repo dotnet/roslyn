@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGen;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -245,14 +244,18 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
+        /// TODO: use <see cref="Constraints"/> instead.
         /// True if the value referenced by the local must not be moved by the actions of the garbage collector.
         /// </summary>
         bool IsPinned { get; }
 
         /// <summary>
+        /// TODO: use <see cref="Constraints"/> instead.
         /// True if the local contains a managed pointer (for example a reference to a local variable or a reference to a field of an object).
         /// </summary>
         bool IsReference { get; }
+
+        LocalSlotConstraints Constraints { get; }
 
         /// <summary>
         /// True if the local variable is of type Dynamic.
@@ -299,6 +302,17 @@ namespace Microsoft.Cci
         /// Optional serialized local signature.
         /// </summary>
         byte[] Signature { get; }
+
+        /// <summary>
+        /// Local id, or <see cref="LocalDebugId.None"/> if this is a local constant, short-lived temp variable, 
+        /// or we are not emitting local variable ids (realese builds).
+        /// </summary>
+        LocalDebugId Id { get; }
+
+        /// <summary>
+        /// Local variable kind.
+        /// </summary>
+        SynthesizedLocalKind Kind { get; }
     }
 
     /// <summary>
@@ -326,6 +340,7 @@ namespace Microsoft.Cci
             ImmutableArray<int> resumeOffsets)
         {
             Debug.Assert(!yieldOffsets.IsDefault && !resumeOffsets.IsDefault && yieldOffsets.Length == resumeOffsets.Length);
+
             this.KickoffMethod = kickoffMethod;
             this.CatchHandlerOffset = catchHandlerOffset;
             this.YieldOffsets = yieldOffsets;
@@ -385,8 +400,10 @@ namespace Microsoft.Cci
             get;
         }
 
-        /// <summary> The additional info required by debugger  </summary>
-        AsyncMethodBodyDebugInfo AsyncMethodDebugInfo { get; }
+        /// <summary>
+        /// Debugging information associated with an async method to support EE.
+        /// </summary>
+        AsyncMethodBodyDebugInfo AsyncDebugInfo { get; }
 
         /// <summary>
         /// The maximum number of elements on the evaluation stack during the execution of the method.
@@ -406,7 +423,7 @@ namespace Microsoft.Cci
         /// them into the scopes list.
         /// This enum is used to distinguish which style to pick while writing the PDB information.
         /// </summary>
-        CustomDebugInfoKind CustomDebugInfoKind { get; }
+        NamespaceScopeEncoding NamespaceScopeEncoding { get; }
 
         /// <summary>
         /// Returns true if there is atleast one dynamic local within the MethodBody
@@ -448,10 +465,10 @@ namespace Microsoft.Cci
     /// <summary>
     /// This enum is used to distinguish which style to pick while writing the PDB information.
     /// </summary>
-    internal enum CustomDebugInfoKind
+    internal enum NamespaceScopeEncoding
     {
-        CSharpStyle,
-        VisualBasicStyle
+        InPlace,
+        Forwarding
     }
 
     /// <summary>

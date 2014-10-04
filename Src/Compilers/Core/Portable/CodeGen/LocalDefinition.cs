@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         //Local symbol, currently used by edit and continue and for the location.
         private readonly ILocalSymbol symbolOpt;
 
-        private readonly string nameOpt; // null if it is a temp.
+        private readonly string nameOpt;
 
         //data type associated with the local signature slot.
         private readonly Cci.ITypeReference type;
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         //Says if the local variable is Dynamic
         private readonly bool isDynamic;
 
-        //True if the variable was not declared in source.
-        private readonly CommonSynthesizedLocalKind synthesizedKind;
+        private readonly SynthesizedLocalKind synthesizedKind;
+        private readonly LocalDebugId id;
 
         /// <see cref="Cci.ILocalDefinition.PdbAttributes"/>.
         private readonly uint pdbAttributes;
@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="type">Type associated with the slot.</param>
         /// <param name="slot">Slot position in the signature.</param>
         /// <param name="dynamicTransformFlags">Contains the synthesized dynamic attributes of the local</param>
-        /// <param name="synthesizedKind">Synthesized local kind.</param>
+        /// <param name="synthesizedKind">Local kind.</param>
+        /// <param name="id">Local id.</param>
         /// <param name="pdbAttributes">Value to emit in the attributes field in the PDB.</param>
         /// <param name="constraints">Specifies whether slot type should have pinned modifier and whether slot should have byref constraint.</param>
         /// <param name="isDynamic">Specifies if the type is Dynamic.</param>
@@ -61,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string nameOpt,
             Cci.ITypeReference type,
             int slot,
-            CommonSynthesizedLocalKind synthesizedKind,
+            SynthesizedLocalKind synthesizedKind,
+            LocalDebugId id,
             uint pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
@@ -72,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.type = type;
             this.slot = slot;
             this.synthesizedKind = synthesizedKind;
+            this.id = id;
             this.pdbAttributes = pdbAttributes;
             this.dynamicTransformFlags = dynamicTransformFlags;
             this.constraints = constraints;
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return false; }
         }
 
-        internal LocalSlotConstraints Constraints
+        public LocalSlotConstraints Constraints
         {
             get { return this.constraints; }
         }
@@ -155,11 +158,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return this.pdbAttributes; }
         }
 
-        public CommonSynthesizedLocalKind SynthesizedLocalKind
-        {
-            get { return this.synthesizedKind; }
-        }
-
         public ImmutableArray<TypedConstant> DynamicTransformFlags
         {
             get { return this.dynamicTransformFlags; }
@@ -178,6 +176,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public byte[] Signature
         {
             get { return null; }
+        }
+
+        public SynthesizedLocalKind Kind
+        {
+            get { return synthesizedKind; }
+        }
+
+        public LocalDebugId Id
+        {
+            get { return id; }
         }
     }
 }

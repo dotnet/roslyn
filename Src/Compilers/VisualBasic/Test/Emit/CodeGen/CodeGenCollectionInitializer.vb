@@ -597,7 +597,7 @@ Hello World!
 {
   // Code size      102 (0x66)
   .maxstack  4
-  .locals init (C1._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (C1._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub C1._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -664,7 +664,7 @@ End Class
 {
   // Code size       53 (0x35)
   .maxstack  5
-  .locals init (C1._Closure$__1 V_0) //$VB$Closure_1
+  .locals init (C1._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub C1._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0

@@ -9,7 +9,36 @@ namespace Roslyn.Utilities.Pdb
     internal static class SymUnmanagedReaderExtensions
     {
         private const int E_FAIL = unchecked((int)0x80004005);
-        
+
+        // The name of the attribute containing the byte array of custom debug info.
+        // MSCUSTOMDEBUGINFO in Dev10.
+        private const string CdiAttributeName = "MD2"; 
+
+        /// <summary>
+        /// Get the blob of binary custom debug info for a given method.
+        /// </summary>
+        internal static byte[] GetCustomDebugInfo(this ISymUnmanagedReader symReader, int methodToken)
+        {
+            int bytesAvailable;
+            symReader.GetSymAttribute(methodToken, CdiAttributeName, 0, out bytesAvailable, buffer: null);
+
+            if (bytesAvailable <= 0)
+            {
+                return null;
+            }
+
+            var buffer = new byte[bytesAvailable];
+            int bytesRead;
+            symReader.GetSymAttribute(methodToken, CdiAttributeName, bytesAvailable, out bytesRead, buffer);
+
+            if (bytesAvailable != bytesRead)
+            {
+                return null;
+            }
+
+            return buffer;
+        }
+
         internal static ISymUnmanagedMethod GetBaselineMethod(this ISymUnmanagedReader reader, int methodToken)
         {
             return reader.GetMethodByVersion(methodToken, methodVersion: 1);

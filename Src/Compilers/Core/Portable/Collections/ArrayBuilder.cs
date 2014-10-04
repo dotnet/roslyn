@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.builder[index];
             }
+
             set
             {
                 this.builder[index] = value;
@@ -218,10 +219,8 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
+        #region Poolable
 
-        #region "Poolable"
-
-        //
         // To implement Poolable, you need two things:
         // 1) Expose Freeing primitive. 
         public void Free()
@@ -255,8 +254,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        //2) Expose the pool or the way to create a pool or the way to get an instance.
-        //       for now we will expose both and figure which way works better
+        // 2) Expose the pool or the way to create a pool or the way to get an instance.
+        //    for now we will expose both and figure which way works better
         private static readonly ObjectPool<ArrayBuilder<T>> PoolInstance = CreatePool();
         public static ArrayBuilder<T> GetInstance()
         {
@@ -299,9 +298,9 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        public ArrayBuilderEnumerator GetEnumerator()
+        public Enumerator GetEnumerator()
         {
-            return new ArrayBuilderEnumerator(this);
+            return new Enumerator(this);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()

@@ -788,9 +788,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Encapsulates information about the non-type members of a (i.e. this) type.
         ///   1) For non-initializers, symbols are created and stored in a list.
-        ///   2) For fields, the symbols are stored in (1) and the initializers are
-        ///        stored with other initialized fields from the same syntax tree with
-        ///        the same static-ness.
+        ///   2) For fields and properties, the symbols are stored in (1) and their initializers are
+        ///      stored with other initialized fields and properties from the same syntax tree with
+        ///      the same static-ness.
         ///   3) For indexers, syntax (weak) references are stored for later binding.
         /// </summary>
         /// <remarks>
@@ -836,6 +836,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return GetMembersAndInitializers().InstanceInitializers; }
         }
 
+        internal int CalculateLocalSyntaxOffsetInSynthesizedConstructor(int localPosition, SyntaxTree localTree, bool isStatic)
+        {
+            int aggregateLength;
+
+            if (IsScriptClass && !isStatic)
+            {
+                aggregateLength = 0;
+
+                foreach (var declaration in this.declaration.Declarations)
+                {
+                    var syntaxRef = declaration.SyntaxReference;
+                    if (localTree == syntaxRef.SyntaxTree)
+                    {
+                        return aggregateLength + localPosition;
+                    }
+
+                    aggregateLength += syntaxRef.Span.Length;
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+#if FEATURE_CSHARP6_CUT
+            int initializerStart;
+            if (TryFindDeclaringInitializerStart(localPosition, localTree, isStatic, out initializerStart, out aggregateLength))
+            {
+                return -aggregateLength + (localPosition - initializerStart);
+            }
+#endif
+            // an implicit constructor has no body and no initializer, so the variable has to be declared in a member initializer
+            throw ExceptionUtilities.Unreachable;
+        }
+
+#if FEATURE_CSHARP6_CUT
+        internal bool TryFindDeclaringInitializerStart(int position, SyntaxTree tree, bool isStatic, out int start, out int aggregateLength)
+        {
+            // In rare cases (local variable defined via a declartion expression)
+            // the local is defined in a member or constructor initializer.
+            // We do a linear search. If needed we can cache calculated spans
+            // and do a binary search for following variables.
+
+            aggregateLength = 0;
+            var siblingInitializers = isStatic ? StaticInitializers : InstanceInitializers;
+
+            for (int i = siblingInitializers.Length - 1; i >= 0; i--)
+            {
+                var typeDeclaration = siblingInitializers[i].TypeDeclarationSyntax;
+
+                if (tree == typeDeclaration.SyntaxTree)
+                {
+                    var initializers = siblingInitializers[i].Initializers;
+
+                    for (int j = initializers.Length - 1; j >= 0; j--)
+                    {
+                        TextSpan span = initializers[j].Syntax.Span;
+                        aggregateLength += span.Length;
+
+                        if (span.Contains(position))
+                        {
+                            start = span.Start;
+                            return true;
+                        }
+                    }
+
+                    // member initializer closure scope starts at the start of the containing type declaration:
+                    if (position == typeDeclaration.Span.Start)
+                    {
+                        start = position;
+                        return true;
+                    }
+                }
+            }
+
+            start = 0;
+            return false;
+        }
+#endif
         public override IEnumerable<string> MemberNames
         {
             get { return this.declaration.MemberNames; }

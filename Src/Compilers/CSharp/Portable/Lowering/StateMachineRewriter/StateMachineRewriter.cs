@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,12 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected readonly BoundStatement body;
         protected readonly MethodSymbol method;
-        protected readonly TypeCompilationState compilationState;
         protected readonly DiagnosticBag diagnostics;
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineType;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
-       
+
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected IReadOnlySet<Symbol> variablesCaptured;
@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.method = method;
             this.stateMachineType = stateMachineType;
             this.slotAllocatorOpt = slotAllocatorOpt;
-            this.compilationState = compilationState;
             this.diagnostics = diagnostics;
 
             this.F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // fields for the captured variables of the method
-            var variablesCaptured = IteratorAndAsyncCaptureWalker.Analyze(compilationState.ModuleBuilderOpt.Compilation, method, body);
+            var variablesCaptured = IteratorAndAsyncCaptureWalker.Analyze(F.CompilationState.ModuleBuilderOpt.Compilation, method, body);
             this.nonReusableLocalProxies = CreateNonReusableLocalProxies(variablesCaptured);
             this.variablesCaptured = variablesCaptured;
 
@@ -128,8 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (capturedVariable.Kind == SymbolKind.Local)
                 {
                     var local = (LocalSymbol)capturedVariable;
-                    if (local.SynthesizedLocalKind == SynthesizedLocalKind.None ||
-                        local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass)
+                    if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined ||
+                        local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                     {
                         // create proxies for user-defined variables and for lambda closures:
                         Debug.Assert(local.RefKind == RefKind.None);
@@ -198,8 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SynthesizedFieldSymbolBase MakeHoistedLocalField(TypeMap TypeMap, LocalSymbol local, TypeSymbol type)
         {
-            Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None ||
-                         local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass);
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined ||
+                         local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass);
 
             int index = nextLocalNumber++;
 
@@ -207,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and would have been hoisted for the state machine.  Basically, we just hoist the local containing
             // the instance of the lambda display class and retain its original name (rather than using an
             // iterator local name).  See FUNCBRECEE::ImportIteratorMethodInheritedLocals.
-            string fieldName = (local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass)
+            string fieldName = (local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 ? GeneratedNames.MakeLambdaDisplayClassStorageName(index)
                 : GeneratedNames.MakeHoistedLocalFieldName(local.Name, index);
 
@@ -249,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bodyBuilder.Add(GenerateReplacementBody(stateMachineVariable, frameType));
             return F.Block(
-                ImmutableArray.Create<LocalSymbol>(stateMachineVariable),
+                ImmutableArray.Create(stateMachineVariable),
                 bodyBuilder.ToImmutableAndFree());
         }
 
@@ -258,21 +257,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             string methodName = null,
             bool debuggerHidden = false,
             bool generateDebugInfo = true,
-            bool hasMethodBodyDependency = false,
-            MethodSymbol asyncKickoffMethod = null)
+            bool hasMethodBodyDependency = false)
         {
-            var result = new SynthesizedStateMachineMethod(methodName, methodToImplement, F.CurrentClass, asyncKickoffMethod, null, debuggerHidden, generateDebugInfo, hasMethodBodyDependency);
+            var result = new SynthesizedStateMachineMethod(methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentClass, null, debuggerHidden, generateDebugInfo, hasMethodBodyDependency);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, result);
             F.CurrentMethod = result;
             return result;
         }
 
         protected MethodSymbol OpenPropertyImplementation(
-            MethodSymbol getterToImplement, 
-            bool debuggerHidden = false, 
+            MethodSymbol getterToImplement,
+            bool debuggerHidden = false,
             bool hasMethodBodyDependency = false)
         {
-            var prop = new SynthesizedStateMachineProperty(getterToImplement, F.CurrentClass, debuggerHidden, hasMethodBodyDependency);
+            var prop = new SynthesizedStateMachineProperty(getterToImplement, (StateMachineTypeSymbol)F.CurrentClass, debuggerHidden, hasMethodBodyDependency);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, prop);
 
             var getter = prop.GetMethod;
@@ -284,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected bool IsDebuggerHidden(MethodSymbol method)
         {
-            var debuggerHiddenAttribute = this.compilationState.Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerHiddenAttribute);
+            var debuggerHiddenAttribute = F.Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerHiddenAttribute);
             foreach (var a in this.method.GetAttributes())
             {
                 if (a.AttributeClass == debuggerHiddenAttribute) return true;

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.Cci
 {
@@ -18,7 +20,10 @@ namespace Microsoft.Cci
         {
             // We should not create 0-length scopes as they are useless.
             // however we will allow the case of "begin == end" as that is how edge inclusive scopes of length 1 are represented.
-            
+
+            Debug.Assert(!locals.Any(l => l.Name == null));
+            Debug.Assert(!constants.Any(c => c.Name == null));
+
             this.offset = offset;
             this.length = length;
             this.constants = constants;

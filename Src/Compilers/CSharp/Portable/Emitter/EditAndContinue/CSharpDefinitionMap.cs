@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -105,6 +106,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+        private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodHandle handle)
+        {
+            if (this.TryGetMethodHandle(def, out handle))
+            {
+                return true;
+            }
+
+            def = (Cci.IMethodDefinition)this.mapToPrevious.MapDefinition(def);
+            if (def != null)
+            {
+                uint methodIndex;
+                if (baseline.MethodsAdded.TryGetValue(def, out methodIndex))
+                {
+                    handle = MetadataTokens.MethodHandle((int)methodIndex);
+                    return true;
+                }
+            }
+
+            handle = default(MethodHandle);
+            return false;
+        }
+
         internal override bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyHandle handle)
         {
             var other = this.mapToMetadata.MapDefinition(def) as PEPropertySymbol;
@@ -162,128 +185,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
-                var localNames = baseline.LocalNames(handle);
-                Debug.Assert(!localNames.IsDefault);
 
-                ImmutableArray<MetadataDecoder.LocalInfo> localInfo;
-                if (!metadataDecoder.TryGetLocals(handle, out localInfo))
+                ImmutableArray<MetadataDecoder.LocalInfo> slotMetadata;
+                if (!metadataDecoder.TryGetLocals(handle, out slotMetadata))
                 {
                     // TODO: Report error that metadata is not supported.
                     return null;
                 }
 
-                // The signature may have more locals than names if trailing locals are unnamed.
-                // (Locals in the middle of the signature may be unnamed too but since localNames
-                // is indexed by slot, unnamed locals before the last named local will be represented
-                // as null values in the array.)
-                Debug.Assert(localInfo.Length >= localNames.Length);
+                var debugInfo = baseline.DebugInformationProvider(handle);
 
-                previousLocals = GetLocalSlots(methodEntry.PreviousMethod, localNames, localInfo);
-                Debug.Assert(previousLocals.Length == localInfo.Length);
+                previousLocals = CreateLocalSlotMap(debugInfo, slotMetadata);
+                Debug.Assert(previousLocals.Length == slotMetadata.Length);
                 symbolMap = this.mapToMetadata;
             }
 
-            // Find declarators in previous method syntax.
-            // The locals are indices into this list.
-            var previousDeclarators = LocalVariableDeclaratorsCollector.GetDeclarators(methodEntry.PreviousMethod);
-
-            var syntaxMap = methodEntry.SyntaxMap;
-            if (syntaxMap == null)
-            {
-                // If there was no syntax map, the syntax structure has not changed,
-                // so we can map from current to previous syntax by declarator index.
-                Debug.Assert(methodEntry.PreserveLocalVariables);
-
-                // Create a map from declarator to declarator index.
-                var currentDeclarators = LocalVariableDeclaratorsCollector.GetDeclarators(method);
-                var currentDeclaratorToIndex = CreateDeclaratorToIndexMap(currentDeclarators);
-
-                syntaxMap = currentSyntax =>
-                {
-                    var currentIndex = currentDeclaratorToIndex[currentSyntax];
-                    return previousDeclarators[currentIndex];
-                };
-            }
-
-            return new EncVariableSlotAllocator(symbolMap, syntaxMap, previousDeclarators, previousLocals);
-        }
-
-        private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodHandle handle)
-        {
-            if (this.TryGetMethodHandle(def, out handle))
-            {
-                return true;
-            }
-
-            def = (Cci.IMethodDefinition)this.mapToPrevious.MapDefinition(def);
-            if (def != null)
-            {
-                uint methodIndex;
-                if (baseline.MethodsAdded.TryGetValue(def, out methodIndex))
-                {
-                    handle = MetadataTokens.MethodHandle((int)methodIndex);
-                    return true;
-                }
-            }
-
-            handle = default(MethodHandle);
-            return false;
-        }
-
-        private static IReadOnlyDictionary<SyntaxNode, int> CreateDeclaratorToIndexMap(ImmutableArray<SyntaxNode> declarators)
-        {
-            var declaratorToIndex = new Dictionary<SyntaxNode, int>();
-            for (int i = 0; i < declarators.Length; i++)
-            {
-                declaratorToIndex.Add(declarators[i], i);
-            }
-            return declaratorToIndex;
-        }
-
-        internal override ImmutableArray<EncLocalInfo> GetLocalInfo(
-            Cci.IMethodDefinition methodDef,
-            ImmutableArray<Cci.ILocalDefinition> localDefs,
-            ImmutableArray<byte[]> signatures)
-        {
-            if (localDefs.IsEmpty)
-            {
-                return ImmutableArray<EncLocalInfo>.Empty;
-            }
-
-            // Find declarators in current method syntax.
-            var declarators = LocalVariableDeclaratorsCollector.GetDeclarators((MethodSymbol)methodDef);
-
-            // Create a map from declarator to declarator index.
-            var declaratorToIndex = CreateDeclaratorToIndexMap(declarators);
-
-            return localDefs.SelectAsArray((localDef, i, arg) => GetLocalInfo(declaratorToIndex, localDef, signatures[i]), (object)null);
-        }
-
-        private static EncLocalInfo GetLocalInfo(
-            IReadOnlyDictionary<SyntaxNode, int> declaratorToIndex,
-            Cci.ILocalDefinition localDef,
-            byte[] signature)
-        {
-            var def = localDef as LocalDefinition;
-            if (def != null)
-            {
-                // Local symbol will be null for short-lived temporaries.
-                var local = def.SymbolOpt;
-                if ((object)local != null)
-                {
-                    var syntaxRefs = local.DeclaringSyntaxReferences;
-                    Debug.Assert(!syntaxRefs.IsDefault);
-
-                    if (!syntaxRefs.IsDefaultOrEmpty)
-                    {
-                        var syntax = syntaxRefs[0].GetSyntax();
-                        var offset = declaratorToIndex[syntax];
-                        return new EncLocalInfo(offset, localDef.Type, def.Constraints, def.SynthesizedLocalKind, signature);
-                    }
-                }
-            }
-
-            return new EncLocalInfo(signature);
+            return new EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals);
         }
 
         /// <summary>
@@ -291,37 +208,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// declaration to local slot. The names are indexed by slot and the
         /// assumption is that declarations are in the same order as slots.
         /// </summary>
-        private static ImmutableArray<EncLocalInfo> GetLocalSlots(
-            IMethodSymbol method,
-            ImmutableArray<string> localNames,
-            ImmutableArray<MetadataDecoder.LocalInfo> localInfo)
+        public static ImmutableArray<EncLocalInfo> CreateLocalSlotMap(
+            EditAndContinueMethodDebugInformation methodEncInfo,
+            ImmutableArray<MetadataDecoder.LocalInfo> slotMetadata)
         {
-            var syntaxRefs = method.DeclaringSyntaxReferences;
-
-            // No syntax refs for synthesized methods.
-            if (syntaxRefs.Length == 0)
+            var result = new EncLocalInfo[slotMetadata.Length];
+            
+            var localSlots = methodEncInfo.LocalSlots;
+            if (!localSlots.IsDefault)
             {
-                return ImmutableArray<EncLocalInfo>.Empty;
-            }
+                // In case of corrupted PDB or metadata, these lengths might not match.
+                // Let's guard against such case.
+                int slotCount = Math.Min(localSlots.Length, slotMetadata.Length);
 
-            var syntax = syntaxRefs[0].GetSyntax();
-            var map = LocalSlotMapBuilder.CreateMap(syntax, localNames, localInfo);
-            var locals = new EncLocalInfo[localInfo.Length];
-            foreach (var pair in map)
-            {
-                locals[pair.Value] = pair.Key;
-            }
+                var map = new Dictionary<EncLocalInfo, int>();
 
-            // Populate any remaining locals that were not matched to source.
-            for (int i = 0; i < locals.Length; i++)
-            {
-                if (locals[i].IsDefault)
+                for (int slotIndex = 0; slotIndex < slotCount; slotIndex++)
                 {
-                    locals[i] = new EncLocalInfo(localInfo[i].SignatureOpt);
+                    ValueTuple<SynthesizedLocalKind, LocalDebugId> slot = localSlots[slotIndex];
+                    if (slot.Item1.IsLongLived())
+                    {
+                        var metadata = slotMetadata[slotIndex];
+
+                        // We do not emit custom modifiers on locals so ignore the
+                        // previous version of the local if it had custom modifiers.
+                        if (metadata.CustomModifiers.IsDefaultOrEmpty)
+                        {
+                            var local = new EncLocalInfo(slot.Item2, (Cci.ITypeReference)metadata.Type, metadata.Constraints, slot.Item1, metadata.SignatureOpt);
+                            map.Add(local, slotIndex);
+                        }
+                    }
+                }
+
+                foreach (var pair in map)
+                {
+                    result[pair.Value] = pair.Key;
                 }
             }
 
-            return ImmutableArray.Create(locals);
+            // Populate any remaining locals that were not matched to source.
+            for (int i = 0; i < result.Length; i++)
+            {
+                if (result[i].IsDefault)
+                {
+                    result[i] = new EncLocalInfo(slotMetadata[i].SignatureOpt);
+                }
+            }
+
+            return ImmutableArray.Create(result);
         }
     }
 }

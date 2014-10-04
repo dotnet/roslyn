@@ -1,9 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
@@ -11,12 +10,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend Structure FieldOrPropertyInitializer
         ''' <summary>
-        ''' The field or property being initialized, or Nothing if this represents an executable statement in script code.
+        ''' The fields or a property being initialized, or Nothing if this represents an executable statement in script code.
         ''' </summary>
         Public ReadOnly FieldsOrProperty As ImmutableArray(Of Symbol)
 
         ''' <summary>
-        ''' A reference to <see cref="EqualsValueSyntax"/>.
+        ''' A reference to 
+        ''' <see cref="EqualsValueSyntax"/>, 
+        ''' <see cref="AsNewClauseSyntax"/>, 
+        ''' <see cref="ModifiedIdentifierSyntax"/>,
+        ''' <see cref="StatementSyntax"/> (top-level statement), or
+        ''' Nothing (enums field with an implicit value).
         ''' </summary>
         Public ReadOnly Syntax As SyntaxReference
 

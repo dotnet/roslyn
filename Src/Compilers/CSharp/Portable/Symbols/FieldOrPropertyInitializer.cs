@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal struct FieldOrPropertyInitializer
     {
         /// <summary>
-        /// The field being initialized or null if this is a global statement.
+        /// The field being initialized (possibly a backing field of a property), or null if this is a global statement.
         /// </summary>
         internal readonly FieldSymbol Field;
 

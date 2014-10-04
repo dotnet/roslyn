@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -77,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return false; }
         }
 
+        public LocalSlotConstraints Constraints
+        {
+            get { return LocalSlotConstraints.None; }
+        }
+
         public bool IsDynamic
         {
             get { return this.isDynamic; }
@@ -100,6 +107,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public byte[] Signature
         {
             get { return null; }
+        }
+
+        public LocalDebugId Id
+        {
+            get { return LocalDebugId.None; }
+        }
+
+        public SynthesizedLocalKind Kind
+        {
+            get { return SynthesizedLocalKind.UserDefined; }
         }
     }
 }

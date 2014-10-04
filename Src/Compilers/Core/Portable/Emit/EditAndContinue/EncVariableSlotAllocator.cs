@@ -12,30 +12,31 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class EncVariableSlotAllocator : VariableSlotAllocator
     {
+        // symbols:
         private readonly SymbolMatcher symbolMap;
-        private readonly Func<SyntaxNode, SyntaxNode> syntaxMap;
-        private readonly IReadOnlyDictionary<SyntaxNode, int> previousDeclaratorToOffset;
+
+        // syntax:
+        private readonly Func<SyntaxNode, SyntaxNode> syntaxMapOpt;
+        private readonly IMethodSymbolInternal previousMethod;
+
+        // locals:
         private readonly IReadOnlyDictionary<EncLocalInfo, int> previousLocalInfoToSlot;
         private readonly ImmutableArray<EncLocalInfo> previousLocals;
 
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
-            Func<SyntaxNode, SyntaxNode> syntaxMap,
-            ImmutableArray<SyntaxNode> previousDeclarators,
+            Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
+            IMethodSymbolInternal previousMethod,
             ImmutableArray<EncLocalInfo> previousLocals)
         {
+            Debug.Assert(symbolMap != null);
+            Debug.Assert(previousMethod != null);
+            Debug.Assert(!previousLocals.IsDefault);
+
             this.symbolMap = symbolMap;
-            this.syntaxMap = syntaxMap;
+            this.syntaxMapOpt = syntaxMapOpt;
             this.previousLocals = previousLocals;
-
-            // Create a map from declarator to declarator offset.
-            var previousDeclaratorToOffset = new Dictionary<SyntaxNode, int>();
-            for (int offset = 0; offset < previousDeclarators.Length; offset++)
-            {
-                previousDeclaratorToOffset.Add(previousDeclarators[offset], offset);
-            }
-
-            this.previousDeclaratorToOffset = previousDeclaratorToOffset;
+            this.previousMethod = previousMethod;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -61,53 +62,70 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         public override LocalDefinition GetPreviousLocal(
-            Cci.ITypeReference type,
-            ILocalSymbol symbol,
+            Cci.ITypeReference currentType,
+            ILocalSymbolInternal currentLocalSymbol,
             string nameOpt,
-            CommonSynthesizedLocalKind synthesizedKind,
+            SynthesizedLocalKind kind,
+            LocalDebugId id,
             uint pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
         {
-            var syntaxRefs = symbol.DeclaringSyntaxReferences;
-            Debug.Assert(!syntaxRefs.IsDefault);
-
-            if (!syntaxRefs.IsDefaultOrEmpty)
+            if (id.IsNone)
             {
-                var currentSyntax = syntaxRefs[0].GetSyntax();
-                var previousSyntax = syntaxMap(currentSyntax);
-                if (previousSyntax != null)
+                return null;
+            }
+            
+            LocalDebugId previousId;
+            var currentSyntax = currentLocalSymbol.GetDeclaratorSyntax();
+            if (syntaxMapOpt != null)
+            {
+                SyntaxNode previousSyntax = syntaxMapOpt(currentSyntax);
+                if (previousSyntax == null)
                 {
-                    int offset;
-                    if (previousDeclaratorToOffset.TryGetValue(previousSyntax, out offset))
-                    {
-                        var previousType = symbolMap.MapReference(type);
-                        if (previousType != null)
-                        {
-                            var localKey = new EncLocalInfo(offset, previousType, constraints, synthesizedKind, signature: null);
-                            int slot;
-                            // Should report a warning if the type of the local has changed
-                            // and the previous value will be dropped. (Bug #781309.)
-                            if (previousLocalInfoToSlot.TryGetValue(localKey, out slot))
-                            {
-                                return new LocalDefinition(
-                                    symbol,
-                                    nameOpt,
-                                    type,
-                                    slot,
-                                    synthesizedKind,
-                                    pdbAttributes,
-                                    constraints,
-                                    isDynamic,
-                                    dynamicTransformFlags);
-                            }
-                        }
-                    }
+                    return null;
                 }
+
+                int syntaxOffset = previousMethod.CalculateLocalSyntaxOffset(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+                previousId = new LocalDebugId(syntaxOffset, id.Ordinal, id.Subordinal);
+            }
+            else
+            {
+                // no syntax map 
+                // => the source of the current method is the same as the source of the previous method 
+                // => relative positions are the same 
+                // => synthesized ids are the same
+                previousId = id;
             }
 
-            return null;
+            var previousType = symbolMap.MapReference(currentType);
+            if (previousType == null)
+            {
+                return null;
+            }
+
+            // TODO (bug #781309): Should report a warning if the type of the local has changed
+            // and the previous value will be dropped.
+            var localKey = new EncLocalInfo(previousId, previousType, constraints, kind, signature: null);
+
+            int slot;
+            if (!previousLocalInfoToSlot.TryGetValue(localKey, out slot))
+            {
+                return null;
+            }
+
+            return new LocalDefinition(
+                currentLocalSymbol,
+                nameOpt,
+                currentType,
+                slot,
+                kind,
+                id,
+                pdbAttributes,
+                constraints,
+                isDynamic,
+                dynamicTransformFlags);
         }
     }
 }

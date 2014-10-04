@@ -15,18 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SynthesizedStateMachineProperty(
             MethodSymbol interfacePropertyGetter,
-            NamedTypeSymbol implementingType,
+            StateMachineTypeSymbol stateMachineType,
             bool debuggerHidden,
             bool hasMethodBodyDependency)
         {
             this.name = ExplicitInterfaceHelpers.GetMemberName(interfacePropertyGetter.AssociatedSymbol.Name, interfacePropertyGetter.ContainingType, aliasQualifierOpt: null);
             var getterName = ExplicitInterfaceHelpers.GetMemberName(interfacePropertyGetter.Name, interfacePropertyGetter.ContainingType, aliasQualifierOpt: null);
 
-            getter = new SynthesizedStateMachineMethod(
+            this.getter = new SynthesizedStateMachineMethod(
                 getterName,
                 interfacePropertyGetter,
-                implementingType,
-                asyncKickoffMethod: null,
+                stateMachineType,
                 associatedProperty: this,
                 debuggerHidden: debuggerHidden,
                 generateDebugInfo: !debuggerHidden,

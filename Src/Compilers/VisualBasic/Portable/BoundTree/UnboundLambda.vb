@@ -9,7 +9,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class UnboundLambda
+    Partial Friend NotInheritable Class UnboundLambda
+        Inherits BoundExpression
 
 #If DEBUG Then
         Private Sub Validate()
@@ -43,15 +44,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        ''' <summary>
-        ''' Should delegate relaxation behavior be allowed for this lambda.
-        ''' </summary>
-        Public Overridable ReadOnly Property AllowRelaxationSemantics As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
         Public Function Bind(target As TargetSignature) As BoundLambda
             Debug.Assert(target IsNot Nothing)
             Dim result As BoundLambda = _BindingCache.BoundLambdas.GetOrAdd(target, AddressOf DoBind)
@@ -67,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Me.ReturnType IsNot Nothing Then
                 Dim result = New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(If(Me.IsFunctionLambda AndAlso Me.ReturnType.IsVoidType(),
-                                                                               Microsoft.CodeAnalysis.VisualBasic.Symbols.LambdaSymbol.ReturnTypeVoidReplacement,
+                                                                               LambdaSymbol.ReturnTypeVoidReplacement,
                                                                          Me.ReturnType),
                                                                       Nothing)
 

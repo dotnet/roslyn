@@ -1,12 +1,5 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -2597,10 +2590,10 @@ End Module
   // Code size      154 (0x9a)
   .maxstack  3
   .locals init (System.Collections.Generic.List(Of System.Action) V_0, //actions
-  System.Collections.Generic.List(Of Integer) V_1, //values
-  System.Collections.Generic.List(Of Integer).Enumerator V_2,
-  m1._Closure$__1 V_3, //$VB$Closure_1
-  System.Collections.Generic.List(Of System.Action).Enumerator V_4)
+               System.Collections.Generic.List(Of Integer) V_1, //values
+               System.Collections.Generic.List(Of Integer).Enumerator V_2,
+               m1._Closure$__1 V_3, //$VB$Closure_0
+               System.Collections.Generic.List(Of System.Action).Enumerator V_4)
   IL_0000:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_0005:  stloc.0
   IL_0006:  newobj     "Sub System.Collections.Generic.List(Of Integer)..ctor()"
@@ -2706,10 +2699,10 @@ End Module
   // Code size       93 (0x5d)
   .maxstack  4
   .locals init (System.Action() V_0, //x
-  Integer() V_1,
-  Integer V_2,
-  m1._Closure$__2 V_3, //$VB$Closure_1
-  Integer V_4) //i
+                Integer() V_1,
+                Integer V_2,
+                m1._Closure$__2 V_3, //$VB$Closure_0
+                Integer V_4) //i
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "System.Action"
   IL_0007:  stloc.0
@@ -2809,7 +2802,7 @@ End Module
                 Integer V_1, //j
                 Integer V_2,
                 System.Collections.Generic.IEnumerator(Of Integer) V_3,
-                m1._Closure$__1 V_4, //$VB$Closure_1
+                m1._Closure$__1 V_4, //$VB$Closure_0
                 Integer V_5) //i
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "System.Action"
@@ -2931,11 +2924,11 @@ End Module
   // Code size      188 (0xbc)
   .maxstack  3
   .locals init (System.Collections.Generic.List(Of System.Action) V_0, //lambdas
-  Integer V_1, //y
-  Object() V_2,
-  Integer V_3,
-  m1._Closure$__2 V_4, //$VB$Closure_1
-  System.Collections.Generic.List(Of System.Action).Enumerator V_5)
+                Integer V_1, //y
+                Object() V_2,
+                Integer V_3,
+                m1._Closure$__2 V_4, //$VB$Closure_0
+                System.Collections.Generic.List(Of System.Action).Enumerator V_5)
   IL_0000:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0

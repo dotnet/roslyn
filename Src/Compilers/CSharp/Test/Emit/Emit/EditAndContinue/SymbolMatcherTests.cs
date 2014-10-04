@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,14 +52,14 @@ class B
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var builder = ArrayBuilder<Symbol>.GetInstance();
+            var builder = new List<Symbol>();
             var type = compilation1.GetMember<NamedTypeSymbol>("A");
             builder.Add(type);
             builder.AddRange(type.GetMembers());
             type = compilation1.GetMember<NamedTypeSymbol>("B");
             builder.Add(type);
             builder.AddRange(type.GetMembers());
-            var members = builder.ToImmutableAndFree();
+            var members = builder.ToImmutableArray();
             Assert.True(members.Length > 10);
 
             for (int i = 0; i < 10; i++)

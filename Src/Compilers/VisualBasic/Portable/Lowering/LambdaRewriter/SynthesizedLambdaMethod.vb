@@ -2,12 +2,8 @@
 
 Imports System
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -50,7 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="enclosingMethod">Method that contains lambda expression for which we do the rewrite.</param>
         ''' <param name="lambdaNode">Lambda expression which is represented by this method.</param>
         ''' <param name="isShared">Specifies whether lambda method should be shared.</param>
-        ''' <remarks></remarks>
         Friend Sub New(containingType As InstanceTypeSymbol,
                        enclosingMethod As MethodSymbol,
                        lambdaNode As BoundLambda,
@@ -241,6 +236,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
             Return False
+        End Function
+
+        Friend Shadows Function GetSyntax() As LambdaExpressionSyntax
+            Return DirectCast(Me.Syntax, LambdaExpressionSyntax)
+        End Function
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Dim syntax = Me.GetSyntax()
+
+            ' Assign -1 offset to all variables that are associated with the header.
+            ' We can't assign >=0 since user-defined variables defined in the first statement of the body have 0
+            ' and user-defined variables need to have a unique syntax offset.
+            If localPosition = syntax.Begin.SpanStart Then
+                Return -1
+            End If
+
+            ' All other locals are declared within the body of the lambda:
+            Debug.Assert(syntax.Span.Contains(localPosition))
+            Dim multiLine = TryCast(syntax, MultiLineLambdaExpressionSyntax)
+            Dim bodyStart = If(multiLine IsNot Nothing, multiLine.Statements.Span.Start, DirectCast(Me.Syntax, SingleLineLambdaExpressionSyntax).Body.SpanStart)
+
+            Debug.Assert(localPosition >= bodyStart)
+            Return localPosition - bodyStart
         End Function
 
     End Class

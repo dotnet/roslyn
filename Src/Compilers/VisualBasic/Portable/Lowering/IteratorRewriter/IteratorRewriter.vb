@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim managedThreadId As BoundExpression = Nothing  ' Thread.CurrentThread.ManagedThreadId
 
             ' Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
-            Dim disposeMethod = Me.StartMethodImplementation(SpecialMember.System_IDisposable__Dispose,
+            Dim disposeMethod = Me.OpenMethodImplementation(SpecialMember.System_IDisposable__Dispose,
                                                              "Dispose",
                                                              DebugAttributes.DebuggerNonUserCodeAttribute,
                                                              Accessibility.Private,
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim debuggerHidden = IsDebuggerHidden(Me.Method)
             Dim moveNextAttrs As DebugAttributes = DebugAttributes.CompilerGeneratedAttribute
             If debuggerHidden Then moveNextAttrs = moveNextAttrs Or DebugAttributes.DebuggerHiddenAttribute
-            Dim moveNextMethod = Me.StartMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
+            Dim moveNextMethod = Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
                                                              "MoveNext",
                                                              moveNextAttrs,
                                                              Accessibility.Private,
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '    result.parameter = this.parameterProxy; ' copy all of the parameter proxies
 
                 ' Add IEnumerator<int> IEnumerable<int>.GetEnumerator()
-                Dim getEnumeratorGeneric = Me.StartMethodImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(elementType),
+                Dim getEnumeratorGeneric = Me.OpenMethodImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(elementType),
                                                             SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator,
                                                             "GetEnumerator",
                                                             DebugAttributes.DebuggerNonUserCodeAttribute,
@@ -202,12 +202,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     F.If(
                     condition:=
                         F.LogicalAndAlso(
-                            F.IntEqual(F.Field(F.[Me](), StateField, False), F.Literal(StateMachineStates.FinishedStateMachine)),
-                            F.IntEqual(F.Field(F.[Me](), initialThreadIdField, False), managedThreadId)),
+                            F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineStates.FinishedStateMachine)),
+                            F.IntEqual(F.Field(F.Me, initialThreadIdField, False), managedThreadId)),
                     thenClause:=
                         F.Block(
-                            F.Assignment(F.Field(F.[Me](), StateField, True), F.Literal(StateMachineStates.FirstUnusedState)),
-                            F.Assignment(F.Local(resultVariable, True), F.[Me]()),
+                            F.Assignment(F.Field(F.Me, StateField, True), F.Literal(StateMachineStates.FirstUnusedState)),
+                            F.Assignment(F.Local(resultVariable, True), F.Me),
                             If(Method.IsShared OrElse Method.MeParameter.Type.IsReferenceType,
                                     F.Goto(thisInitialized),
                                     DirectCast(F.Block(), BoundStatement))
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         bodyBuilder.Add(
                             F.Assignment(
                                 F.Field(F.Local(resultVariable, True), proxy.AsMember(StateMachineClass), True),
-                                F.Field(F.[Me](), copySrc(Method.MeParameter).AsMember(F.CurrentType), False)))
+                                F.Field(F.Me, copySrc(Method.MeParameter).AsMember(F.CurrentType), False)))
                     End If
                 End If
 
@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         bodyBuilder.Add(
                             F.Assignment(
                                 F.Field(F.Local(resultVariable, True), proxy.AsMember(StateMachineClass), True),
-                                F.Field(F.[Me](), copySrc(parameter).AsMember(F.CurrentType), False)))
+                                F.Field(F.Me, copySrc(parameter).AsMember(F.CurrentType), False)))
                     End If
                 Next
 
@@ -251,31 +251,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       IEnumerable.GetEnumerator seems better -
                 '       it is clear why we have the property, and "Current" suffix will be shared in metadata with another Current.
                 '       It is also consistent with the naming of IEnumerable.Current (see below).
-                Me.StartMethodImplementation(SpecialMember.System_Collections_IEnumerable__GetEnumerator,
+                Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerable__GetEnumerator,
                                             "IEnumerable.GetEnumerator",
                                             DebugAttributes.DebuggerNonUserCodeAttribute,
                                             Accessibility.Private,
                                             False)
-                F.CloseMethod(F.Return(F.Call(F.[Me](), getEnumeratorGeneric)))
+                F.CloseMethod(F.Return(F.Call(F.Me, getEnumeratorGeneric)))
             End If
 
             ' Add T IEnumerator<T>.Current
-            Dim name =
-            Me.StartPropertyGetImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(elementType),
-                                                             SpecialMember.System_Collections_Generic_IEnumerator_T__Current,
-                                                             "Current",
-                                                             DebugAttributes.DebuggerNonUserCodeAttribute,
-                                                             Accessibility.Private,
-                                                             False)
+            Me.OpenPropertyImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(elementType),
+                                          SpecialMember.System_Collections_Generic_IEnumerator_T__Current,
+                                          "Current",
+                                          DebugAttributes.DebuggerNonUserCodeAttribute,
+                                          Accessibility.Private,
+                                          False)
 
-            F.CloseMethod(F.Return(F.Field(F.[Me](), currentField, False)))
+            F.CloseMethod(F.Return(F.Field(F.Me, currentField, False)))
 
             ' Add void IEnumerator.Reset()
-            Me.StartMethodImplementation(SpecialMember.System_Collections_IEnumerator__Reset,
-                            "Reset",
-                            DebugAttributes.DebuggerNonUserCodeAttribute,
-                            Accessibility.Private,
-                            False)
+            Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerator__Reset,
+                                        "Reset",
+                                        DebugAttributes.DebuggerNonUserCodeAttribute,
+                                        Accessibility.Private,
+                                        False)
             F.CloseMethod(F.Throw(F.[New](F.WellKnownType(WellKnownType.System_NotSupportedException))))
 
             ' Add object IEnumerator.Current
@@ -285,23 +284,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '       It may be an overkill and may lead to metadata bloat. 
             '       IEnumerable.Current seems better -
             '       it is clear why we have the property, and "Current" suffix will be shared in metadata with another Current.
-            Me.StartPropertyGetImplementation(SpecialMember.System_Collections_IEnumerator__Current,
-                                "IEnumerator.Current",
-                                DebugAttributes.DebuggerNonUserCodeAttribute,
-                                Accessibility.Private,
-                                False)
-            F.CloseMethod(F.Return(F.Field(F.[Me](), currentField, False)))
+            Me.OpenPropertyImplementation(SpecialMember.System_Collections_IEnumerator__Current,
+                                          "IEnumerator.Current",
+                                          DebugAttributes.DebuggerNonUserCodeAttribute,
+                                          Accessibility.Private,
+                                          False)
+            F.CloseMethod(F.Return(F.Field(F.Me, currentField, False)))
 
             ' Add a body for the constructor
             If True Then
                 F.CurrentMethod = StateMachineClass.Constructor
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
                 bodyBuilder.Add(F.BaseInitialization())
-                bodyBuilder.Add(F.Assignment(F.Field(F.[Me](), StateField, True), F.Parameter(F.CurrentMethod.Parameters(0)).MakeRValue))    ' this.state = state
+                bodyBuilder.Add(F.Assignment(F.Field(F.Me, StateField, True), F.Parameter(F.CurrentMethod.Parameters(0)).MakeRValue))    ' this.state = state
 
                 If isEnumerable Then
                     ' this.initialThreadId = Thread.CurrentThread.ManagedThreadId;
-                    bodyBuilder.Add(F.Assignment(F.Field(F.[Me](), initialThreadIdField, True), managedThreadId))
+                    bodyBuilder.Add(F.Assignment(F.Field(F.Me, initialThreadIdField, True), managedThreadId))
                 End If
 
                 bodyBuilder.Add(F.Return())
@@ -365,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   Me.StateMachineClass)
 
             Dim expression As BoundExpression = If(parameter.IsMe,
-                                                   DirectCast(Me.F.[Me](), BoundExpression),
+                                                   DirectCast(Me.F.Me, BoundExpression),
                                                    Me.F.Parameter(parameter).MakeRValue())
             initializers.Add(
                 Me.F.AssignmentExpression(

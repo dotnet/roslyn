@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -28,6 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public IteratorFinallyMethodSymbol(IteratorStateMachine stateMachineType, string name)
         {
+            Debug.Assert(stateMachineType != null);
+            Debug.Assert(name != null);
+
             this.stateMachineType = stateMachineType;
             this.name = name;
         }
@@ -222,12 +226,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
         {
-            get { return stateMachineType.IteratorMethod; }
+            get { return stateMachineType.KickoffMethod; }
         }
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {
             get { return true; }
+        }
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            return stateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
     }
 }

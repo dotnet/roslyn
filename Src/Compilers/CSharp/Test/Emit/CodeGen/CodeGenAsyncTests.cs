@@ -2231,9 +2231,9 @@ class Test
 {
   // Code size      205 (0xcd)
   .maxstack  3
-  .locals init (int V_0, //CS$524$0000
-                int V_1, //CS$523$0001
-                int V_2, //CS$530$0002
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
                 int V_4,
                 Test.<F>d__1 V_5,
@@ -3178,10 +3178,10 @@ class Test
 {
   // Code size      222 (0xde)
   .maxstack  3
-  .locals init (int V_0, //CS$524$0000
-                int V_1, //CS$523$0001
+  .locals init (int V_0,
+                int V_1,
                 S[] V_2, //array
-                int V_3, //CS$530$0002
+                int V_3,
                 S& V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_5,
                 int V_6,

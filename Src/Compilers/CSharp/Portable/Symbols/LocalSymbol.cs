@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// Represents a local variable in a method body.
     /// </summary>
-    internal abstract class LocalSymbol : Symbol, ILocalSymbol
+    internal abstract class LocalSymbol : Symbol, ILocalSymbolInternal
     {
         protected LocalSymbol()
         {
@@ -18,7 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal abstract SynthesizedLocalKind SynthesizedLocalKind
+        internal abstract SynthesizedLocalKind SynthesizedKind
+        {
+            get;
+        }
+
+        internal abstract bool IsImportedFromMetadata
         {
             get;
         }
@@ -240,6 +247,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Returns the syntax node that declares the variable.
+        /// </summary>
+        /// <remarks>
+        /// All user-defined and long-lived synthesized variables must return a reference to a node that is 
+        /// tracked by the EnC diffing algorithm. For example, for <see cref="LocalDeclarationKind.CatchVariable"/> variable
+        /// the declarator is the <see cref="CatchClauseSyntax"/> node.
+        /// 
+        /// The location of the declarator is used to calculate <see cref="LocalDebugId.SyntaxOffset"/> during emit.
+        /// </remarks>
+        internal abstract SyntaxNode GetDeclaratorSyntax();
+
         internal virtual bool IsWritable
         {
             get
@@ -341,6 +360,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitLocal(this);
+        }
+
+        #endregion
+
+        #region ILocalSymbolInternal Members
+
+        SynthesizedLocalKind ILocalSymbolInternal.SynthesizedKind
+        {
+            get
+            {
+                return this.SynthesizedKind;
+            }
+        }
+
+        bool ILocalSymbolInternal.IsImportedFromMetadata
+        {
+            get
+            {
+                return this.IsImportedFromMetadata;
+            }
+        }
+
+        SyntaxNode ILocalSymbolInternal.GetDeclaratorSyntax()
+        {
+            return this.GetDeclaratorSyntax();
         }
 
         #endregion

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<Cci.NamespaceScope> namespaceScopes;
         private readonly string iteratorClassName;
         private readonly ImmutableArray<Cci.LocalScope> iteratorScopes;
-        private readonly Cci.CustomDebugInfoKind customDebugInfoKind;
+        private readonly Cci.NamespaceScopeEncoding namespaceScopeEncoding;
         private readonly bool hasDynamicLocalVariables;
 
         public MethodBody(
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers,
             ImmutableArray<Cci.LocalScope> localScopes,
-            Cci.CustomDebugInfoKind customDebugInfoKind,
             bool hasDynamicLocalVariables,
-            ImmutableArray<Cci.NamespaceScope> namespaceScopes = default(ImmutableArray<Cci.NamespaceScope>),
-            string iteratorClassName = null,
-            ImmutableArray<Cci.LocalScope> iteratorScopes = default(ImmutableArray<Cci.LocalScope>),
-            Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo = null)
+            ImmutableArray<Cci.NamespaceScope> namespaceScopes,
+            Cci.NamespaceScopeEncoding namespaceScopeEncoding,
+            string iteratorClassName,
+            ImmutableArray<Cci.LocalScope> iteratorScopes,
+            Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo)
         {
             Debug.Assert(!locals.IsDefault);
             Debug.Assert(!exceptionHandlers.IsDefault);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.debugDocumentProvider = debugDocumentProvider;
             this.exceptionHandlers = exceptionHandlers;
             this.localScopes = localScopes;
-            this.customDebugInfoKind = customDebugInfoKind;
+            this.namespaceScopeEncoding = namespaceScopeEncoding;
             this.hasDynamicLocalVariables = hasDynamicLocalVariables;
             this.namespaceScopes = namespaceScopes.IsDefault ? ImmutableArray<Cci.NamespaceScope>.Empty : namespaceScopes;
             this.iteratorClassName = iteratorClassName;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return parent; }
         }
 
-        Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncMethodDebugInfo
+        Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo
         {
             get { return this.asyncMethodDebugInfo; }
         }
@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        public Cci.CustomDebugInfoKind CustomDebugInfoKind
+        public Cci.NamespaceScopeEncoding NamespaceScopeEncoding
         {
             get
             {
-                return this.customDebugInfoKind;
+                return this.namespaceScopeEncoding;
             }
         }
 

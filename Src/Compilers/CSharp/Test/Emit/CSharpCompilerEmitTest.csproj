@@ -167,7 +167,7 @@
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcherTests.cs" />
-    <Compile Include="Emit\EditAndContinue\SynthesizedLocalsTests.cs" />
+    <Compile Include="Emit\EditAndContinue\LocalSlotMappingTests.cs" />
     <Compile Include="Emit\EmitCustomModifiers.cs" />
     <Compile Include="Emit\EmitErrorTests.cs" />
     <Compile Include="Emit\EmitMetadata.cs" />

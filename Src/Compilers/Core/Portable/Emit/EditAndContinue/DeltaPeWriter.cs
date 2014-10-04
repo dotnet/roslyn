@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: (int)this.guidWriter.BaseStream.Length + this.previousGeneration.GuidStreamLengthAdded,
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
                 localsForMethodsAddedOrChanged: AddRange(locals, this.previousGeneration.LocalsForMethodsAddedOrChanged, replace: true),
-                localNames: baseline.LocalNames);
+                debugInformationProvider: baseline.DebugInformationProvider);
         }
 
         private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> a, IReadOnlyDictionary<K, V> b, bool replace = false)

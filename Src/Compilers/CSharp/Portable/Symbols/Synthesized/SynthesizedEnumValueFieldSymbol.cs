@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // no attributes should be emitted
         }
 
-        internal override int IteratorLocalIndex
+        internal override int UserDefinedHoistedLocalId
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

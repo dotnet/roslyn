@@ -23,14 +23,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.containingSymbol = containingSymbol;
         }
 
+        internal override bool IsImportedFromMetadata
+        {
+            get { return originalVariable.IsImportedFromMetadata; }
+        }
+
         internal override LocalDeclarationKind DeclarationKind
         {
             get { return originalVariable.DeclarationKind; }
         }
 
-        internal override SynthesizedLocalKind SynthesizedLocalKind
+        internal override SynthesizedLocalKind SynthesizedKind
         {
-            get { return originalVariable.SynthesizedLocalKind; }
+            get { return originalVariable.SynthesizedKind; }
         }
 
         public override string Name
@@ -46,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get { return originalVariable.DeclaringSyntaxReferences; }
+        }
+
+        internal override SyntaxNode GetDeclaratorSyntax()
+        {
+            return originalVariable.GetDeclaratorSyntax();
         }
 
         public override ImmutableArray<Location> Locations

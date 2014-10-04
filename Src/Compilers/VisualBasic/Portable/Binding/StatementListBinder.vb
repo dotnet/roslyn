@@ -46,16 +46,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim localDeclSyntax = DirectCast(statement, LocalDeclarationStatementSyntax)
 
-                    Dim DeclarationKind As LocalDeclarationKind = LocalDeclarationKind.Variable
+                    Dim declarationKind As LocalDeclarationKind = LocalDeclarationKind.Variable
 
                     For Each modifier In localDeclSyntax.Modifiers
                         Select Case modifier.VisualBasicKind
                             Case SyntaxKind.ConstKeyword
-                                DeclarationKind = LocalDeclarationKind.Constant
+                                declarationKind = LocalDeclarationKind.Constant
                                 Exit For
 
                             Case SyntaxKind.StaticKeyword
-                                DeclarationKind = LocalDeclarationKind.Static
+                                declarationKind = LocalDeclarationKind.Static
                         End Select
                     Next
 
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              If(isNotAsNewAndHasInitializer AndAlso i = names.Count - 1,
                                                                 declarator.Initializer,
                                                                 Nothing),
-                                                             DeclarationKind)
+                                                             declarationKind)
                             locals.Add(localVar)
                         Next
                     Next

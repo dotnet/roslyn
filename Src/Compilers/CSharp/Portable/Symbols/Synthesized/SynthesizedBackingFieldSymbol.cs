@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute());
         }
 
-        internal override int IteratorLocalIndex
+        internal override int UserDefinedHoistedLocalId
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

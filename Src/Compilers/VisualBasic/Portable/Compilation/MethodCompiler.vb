@@ -1339,25 +1339,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not diagnostics.HasAnyErrors)
 
                 Dim asyncDebugInfo As Cci.AsyncMethodBodyDebugInfo = Nothing
+                Dim codeGen = New CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs)
 
-                Dim asyncKickoffMethod As MethodSymbol = method.AsyncKickoffMethod
-                If asyncKickoffMethod Is Nothing Then
-                    CodeGen.CodeGenerator.Run(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs)
-                Else
+                ' We need to save additional debugging information for MoveNext of an async state machine.
+                Dim stateMachineMethod = TryCast(method, SynthesizedStateMachineMethod)
+                If stateMachineMethod IsNot Nothing AndAlso
+                   stateMachineMethod.StateMachineType.KickoffMethod.IsAsync AndAlso
+                   method.Name = WellKnownMemberNames.MoveNextMethodName Then
+
                     Dim asyncCatchHandlerOffset As Integer = -1
                     Dim asyncYieldPoints As ImmutableArray(Of Integer) = Nothing
                     Dim asyncResumePoints As ImmutableArray(Of Integer) = Nothing
 
-                    CodeGen.CodeGenerator.Run(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs,
-                                              asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints)
+                    codeGen.Generate(asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints)
 
-                    asyncKickoffMethod = If(asyncKickoffMethod.PartialDefinitionPart, asyncKickoffMethod)
+                    Dim kickoffMethod = stateMachineMethod.StateMachineType.KickoffMethod
 
-                    asyncDebugInfo = New Cci.AsyncMethodBodyDebugInfo(asyncKickoffMethod,
-                                                                      asyncCatchHandlerOffset,
-                                                                      asyncYieldPoints,
-                                                                      asyncResumePoints)
-
+                    ' In VB async method may be partial. Debug info needs to be associated with the emitted definition, 
+                    ' but the kickoff method is the method implementation (the part with body).
+                    asyncDebugInfo = New Cci.AsyncMethodBodyDebugInfo(If(kickoffMethod.PartialDefinitionPart, kickoffMethod), asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints)
+                Else
+                    codeGen.Generate()
                 End If
 
                 If diagnostics.HasAnyErrors() Then
@@ -1399,9 +1401,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       debugDocumentProvider,
                                       builder.RealizedExceptionHandlers,
                                       builder.GetAllScopes(edgeInclusive:=True),
-                                      Cci.CustomDebugInfoKind.VisualBasicStyle,
                                       hasDynamicLocalVariables:=False,
                                       namespaceScopes:=namespaceScopes,
+                                      namespaceScopeEncoding:=Cci.NamespaceScopeEncoding.Forwarding,
+                                      iteratorClassName:=Nothing,
+                                      iteratorScopes:=Nothing,
                                       asyncMethodDebugInfo:=asyncDebugInfo)
             Finally
                 ' Free resources used by the basic blocks in the builder.

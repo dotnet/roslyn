@@ -1488,7 +1488,7 @@ unsafe class C
   // Code size       34 (0x22)
   .maxstack  2
   .locals init (char* V_0, //p
-                pinned string V_1) //CS$519$0000
+                pinned string V_1)
  -IL_0000:  nop
   IL_0001:  ldstr      ""hello""
   IL_0006:  stloc.1
@@ -1546,9 +1546,9 @@ unsafe class C
   .maxstack  2
   .locals init (string V_0, //s
                 char* V_1, //p
-                pinned string V_2, //CS$519$0000
+                pinned string V_2,
                 char* V_3, //p
-                pinned string V_4) //CS$519$0001
+                pinned string V_4)
  -IL_0000:  nop
  -IL_0001:  ldstr      ""hello""
   IL_0006:  stloc.0
@@ -4458,7 +4458,7 @@ unsafe class C
                 pinned System.IntPtr& V_2, //q
                 void* V_3, //r
                 char[] V_4,
-                pinned string V_5) //CS$519$0000
+                pinned string V_5)
  -IL_0000:  nop
  -IL_0001:  nop
  -IL_0002:  newobj     ""C..ctor()""
@@ -4524,7 +4524,7 @@ unsafe class C
 ";
             var expectedOutput = @"970104";
             CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
-            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
+            CompileAndVerify(string.Format(template, "checked  "), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
         }
 
         [Fact]
@@ -9054,52 +9054,52 @@ public unsafe class C
 {
   // Code size       63 (0x3f)
   .maxstack  2
-  .locals init (bool V_0, //CS$4$0000
-           byte[] V_1,
-           byte[] V_2, //bytes
-           pinned byte& V_3, //pBytes
-           byte[] V_4)
- -IL_0000:  nop       
- -IL_0001:  ldarg.0   
-  IL_0002:  ldc.i4.0  
-  IL_0003:  ceq       
-  IL_0005:  stloc.0   
- ~IL_0006:  ldloc.0   
+  .locals init (bool V_0,
+                byte[] V_1,
+                byte[] V_2, //bytes
+                pinned byte& V_3, //pBytes
+                byte[] V_4)
+ -IL_0000:  nop
+ -IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ceq
+  IL_0005:  stloc.0
+ ~IL_0006:  ldloc.0
   IL_0007:  brfalse.s  IL_0012
- -IL_0009:  nop       
+ -IL_0009:  nop
  -IL_000a:  ldsfld     ""byte[] C._emptyArray""
-  IL_000f:  stloc.1   
+  IL_000f:  stloc.1
   IL_0010:  br.s       IL_003d
- -IL_0012:  nop       
- -IL_0013:  ldarg.0   
+ -IL_0012:  nop
+ -IL_0013:  ldarg.0
   IL_0014:  newarr     ""byte""
-  IL_0019:  stloc.2   
- -IL_001a:  ldloc.2   
-  IL_001b:  dup       
+  IL_0019:  stloc.2
+ -IL_001a:  ldloc.2
+  IL_001b:  dup
   IL_001c:  stloc.s    V_4
   IL_001e:  brfalse.s  IL_0026
   IL_0020:  ldloc.s    V_4
-  IL_0022:  ldlen     
-  IL_0023:  conv.i4   
+  IL_0022:  ldlen
+  IL_0023:  conv.i4
   IL_0024:  brtrue.s   IL_002b
-  IL_0026:  ldc.i4.0  
-  IL_0027:  conv.u    
-  IL_0028:  stloc.3   
+  IL_0026:  ldc.i4.0
+  IL_0027:  conv.u
+  IL_0028:  stloc.3
   IL_0029:  br.s       IL_0034
   IL_002b:  ldloc.s    V_4
-  IL_002d:  ldc.i4.0  
+  IL_002d:  ldc.i4.0
   IL_002e:  ldelema    ""byte""
-  IL_0033:  stloc.3   
- -IL_0034:  nop       
- -IL_0035:  nop       
- ~IL_0036:  ldc.i4.0  
-  IL_0037:  conv.u    
-  IL_0038:  stloc.3   
- -IL_0039:  ldloc.2   
-  IL_003a:  stloc.1   
+  IL_0033:  stloc.3
+ -IL_0034:  nop
+ -IL_0035:  nop
+ ~IL_0036:  ldc.i4.0
+  IL_0037:  conv.u
+  IL_0038:  stloc.3
+ -IL_0039:  ldloc.2
+  IL_003a:  stloc.1
   IL_003b:  br.s       IL_003d
- -IL_003d:  ldloc.1   
-  IL_003e:  ret       
+ -IL_003d:  ldloc.1
+  IL_003e:  ret
 }
 ", sequencePoints: "C.ToManagedByteArray");
         }

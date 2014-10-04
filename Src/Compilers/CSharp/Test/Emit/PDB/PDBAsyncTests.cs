@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -53,7 +54,9 @@ class Driver
         return Driver.Result;
     }
 }";
-            string expected = @"
+            var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
+            
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""DynamicMembers"" name=""get_Prop"" parameterNames="""">
@@ -109,8 +112,12 @@ class Driver
       <locals />
     </method>
     <method containingType=""Driver"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
+      <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""TestCase"" methodName="".cctor"" parameterNames="""" />
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+          <slot kind=""0"" offset=""15"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""6"">
         <entry il_offset=""0x0"" start_row=""30"" start_column=""5"" end_row=""30"" end_column=""6"" file_ref=""0"" />
@@ -128,8 +135,19 @@ class Driver
       </scope>
     </method>
     <method containingType=""TestCase+&lt;Run&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
+      <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""TestCase"" methodName="".cctor"" parameterNames="""" />
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""28"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""0"" offset=""26"" />
+          <slot kind=""0"" offset=""139"" />
+          <slot kind=""28"" offset=""146"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""1"" offset=""173"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""14"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -148,23 +166,13 @@ class Driver
         <entry il_offset=""0x103"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
         <local name=""dc2"" il_index=""1"" il_start=""0xe"" il_end=""0xe1"" attributes=""0"" />
         <local name=""rez2"" il_index=""2"" il_start=""0xe"" il_end=""0xe1"" attributes=""0"" />
-        <local name=""CS$530$0001"" il_index=""3"" il_start=""0x37"" il_end=""0xae"" attributes=""0"" />
-        <local name=""CS$4$0002"" il_index=""7"" il_start=""0xae"" il_end=""0xb8"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x110"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
         <scope startOffset=""0xe"" endOffset=""0xe1"">
           <local name=""dc2"" il_index=""1"" il_start=""0xe"" il_end=""0xe1"" attributes=""0"" />
           <local name=""rez2"" il_index=""2"" il_start=""0xe"" il_end=""0xe1"" attributes=""0"" />
-          <scope startOffset=""0x37"" endOffset=""0xae"">
-            <local name=""CS$530$0001"" il_index=""3"" il_start=""0x37"" il_end=""0xae"" attributes=""0"" />
-          </scope>
-          <scope startOffset=""0xae"" endOffset=""0xb8"">
-            <local name=""CS$4$0002"" il_index=""7"" il_start=""0xae"" il_end=""0xb8"" attributes=""1"" />
-          </scope>
         </scope>
       </scope>
       <async-info catch-IL-offset=""0xe3"">
@@ -173,6 +181,15 @@ class Driver
       </async-info>
     </method>
     <method containingType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" name=""MoveNext"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""20"" offset=""0"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
       <sequencepoints total=""8"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -183,25 +200,14 @@ class Driver
         <entry il_offset=""0x97"" start_row=""16"" start_column=""69"" end_row=""16"" end_column=""70"" file_ref=""0"" />
         <entry il_offset=""0x9f"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xad"" attributes=""0"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xad"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0xad"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xad"" attributes=""0"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xad"" attributes=""0"" />
-      </scope>
+      <locals />
       <async-info>
         <kickoff-method declaringType=""TestCase"" methodName=""&lt;Run&gt;b__0"" parameterNames="""" />
         <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
-</symbols>";
-
-            var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
-            string actual = GetPdbXml(compilation);
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -242,8 +248,8 @@ namespace ConsoleApplication1
         }
     }
 }";
-
-            string expected = @"
+            var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""ConsoleApplication1.Program"" name="".cctor"" parameterNames="""">
@@ -300,8 +306,14 @@ namespace ConsoleApplication1
       <locals />
     </method>
     <method containingType=""ConsoleApplication1.Program+&lt;QBar&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
+      <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""7"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -312,23 +324,29 @@ namespace ConsoleApplication1
         <entry il_offset=""0x93"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x9b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xa8"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0xa8"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xa8"" attributes=""0"" />
-      </scope>
+      <locals />
       <async-info catch-IL-offset=""0x7c"">
         <kickoff-method declaringType=""ConsoleApplication1.Program"" methodName=""QBar"" parameterNames="""" />
         <await yield=""0x32"" resume=""0x4d"" declaringType=""ConsoleApplication1.Program+&lt;QBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
     <method containingType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
+      <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
           <bucket startOffset=""0x11"" endOffset=""0x10d"" />
         </iteratorLocals>
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""24"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""20"" offset=""0"" />
+          <slot kind=""0"" offset=""61"" />
+          <slot kind=""0"" offset=""132"" />
+          <slot kind=""28"" offset=""141"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""18"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -351,22 +369,14 @@ namespace ConsoleApplication1
         <entry il_offset=""0x130"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x13e"" attributes=""0"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x13e"" attributes=""0"" />
         <local name=""z"" il_index=""2"" il_start=""0x41"" il_end=""0xdc"" attributes=""0"" />
         <local name=""newInt"" il_index=""3"" il_start=""0x4f"" il_end=""0xdc"" attributes=""0"" />
-        <local name=""CS$530$0002"" il_index=""4"" il_start=""0x50"" il_end=""0xce"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x13e"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x13e"" attributes=""0"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x13e"" attributes=""0"" />
         <scope startOffset=""0x41"" endOffset=""0xdc"">
           <local name=""z"" il_index=""2"" il_start=""0x41"" il_end=""0xdc"" attributes=""0"" />
           <scope startOffset=""0x4f"" endOffset=""0xdc"">
             <local name=""newInt"" il_index=""3"" il_start=""0x4f"" il_end=""0xdc"" attributes=""0"" />
-            <scope startOffset=""0x50"" endOffset=""0xce"">
-              <local name=""CS$530$0002"" il_index=""4"" il_start=""0x50"" il_end=""0xce"" attributes=""0"" />
-            </scope>
           </scope>
         </scope>
       </scope>
@@ -376,11 +386,7 @@ namespace ConsoleApplication1
       </async-info>
     </method>
   </methods>
-</symbols>";
-
-            var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
-            string actual = GetPdbXml(compilation);
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -395,15 +401,31 @@ class TestCase
         int rez = await d;
     }
 }";
+            var compilation = CreateCompilationWithMscorlib45(
+                    text,
+                    options: TestOptions.DebugDll,
+                    references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef })
+                .VerifyDiagnostics();
 
-            string expected = @"
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""TestCase+&lt;Await&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
+      <customDebugInfo version=""4"" count=""2"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""0"" />
         </using>
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""0"" offset=""15"" />
+          <slot kind=""28"" offset=""21"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""7"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -415,17 +437,11 @@ class TestCase
         <entry il_offset=""0x244"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x251"" attributes=""0"" />
         <local name=""rez"" il_index=""1"" il_start=""0x11"" il_end=""0x222"" attributes=""0"" />
-        <local name=""CS$530$0001"" il_index=""2"" il_start=""0x12"" il_end=""0x212"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x251"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x251"" attributes=""0"" />
         <scope startOffset=""0x11"" endOffset=""0x222"">
           <local name=""rez"" il_index=""1"" il_start=""0x11"" il_end=""0x222"" attributes=""0"" />
-          <scope startOffset=""0x12"" endOffset=""0x212"">
-            <local name=""CS$530$0001"" il_index=""2"" il_start=""0x12"" il_end=""0x212"" attributes=""0"" />
-          </scope>
         </scope>
       </scope>
       <async-info catch-IL-offset=""0x224"">
@@ -434,16 +450,7 @@ class TestCase
       </async-info>
     </method>
   </methods>
-</symbols>";
-
-            var compilation = CreateCompilationWithMscorlib45(
-                    text,
-                    options: TestOptions.DebugDll,
-                    references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef })
-                .VerifyDiagnostics();
-
-            string actual = GetPdbXml(compilation);
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [WorkItem(836491, "DevDiv")]
@@ -472,15 +479,20 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // One iterator local entry for the lambda local.
-            string expected = @"
+            comp.VerifyPdb("C+<M>d__1.MoveNext", @"
 <symbols>
   <methods>
     <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
+      <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__1"" parameterNames="""" />
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""14"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -498,12 +510,7 @@ class C
         <entry il_offset=""0x1df"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1e7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1f4"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x1f4"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1f4"" attributes=""0"" />
-      </scope>
+      <locals />
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
         <await yield=""0x99"" resume=""0xb7"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
@@ -512,8 +519,7 @@ class C
       </async-info>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -552,15 +558,21 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // No iterator local entries.
-            string expected = @"
+            comp.VerifyPdb("C+<M>d__1.MoveNext", @"
 <symbols>
   <methods>
     <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
+      <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__1"" parameterNames="""" />
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""30"" offset=""0"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""12"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -577,13 +589,11 @@ class C
         <entry il_offset=""0xcc"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xd9"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xa9"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""1"" il_start=""0xe"" il_end=""0xa9"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xd9"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xd9"" attributes=""0"" />
         <scope startOffset=""0xe"" endOffset=""0xa9"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xa9"" attributes=""0"" />
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""1"" il_start=""0xe"" il_end=""0xa9"" attributes=""0"" />
         </scope>
       </scope>
       <async-info>
@@ -592,8 +602,7 @@ class C
       </async-info>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -627,21 +636,28 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
-            string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
             // any locals when consumed by the EE (i.e. it has no effect).  See FUNCBRECEE::IsLocalDynamic.
-            string expected = @"
+            comp.VerifyPdb("C+<M>d__1.MoveNext", @"
 <symbols>
   <methods>
     <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
+      <customDebugInfo version=""4"" count=""3"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""2"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
           <bucket startOffset=""0x11"" endOffset=""0x27b"" />
         </iteratorLocals>
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""9"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -654,13 +670,10 @@ class C
         <entry il_offset=""0x296"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x29e"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2ab"" attributes=""0"" />
-      </locals>
+      <locals />
       <scope startOffset=""0x0"" endOffset=""0x2ab"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2ab"" attributes=""0"" />
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""o"" />
@@ -668,8 +681,7 @@ class C
       </async-info>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [WorkItem(836491, "DevDiv")]
@@ -691,20 +703,28 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
-            string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // One dynamic local entry for "d".
-            string expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
+            comp.VerifyPdb("C+<M>d__1.MoveNext", @"
 <symbols>
   <methods>
     <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
+      <customDebugInfo version=""4"" count=""3"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d"" />
         </dynamicLocals>
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""0"" offset=""19"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""8"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -717,13 +737,11 @@ class C
         <entry il_offset=""0x23d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x24a"" attributes=""0"" />
         <local name=""d"" il_index=""1"" il_start=""0x11"" il_end=""0x21a"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x24a"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x24a"" attributes=""0"" />
         <scope startOffset=""0x11"" endOffset=""0x21a"">
           <local name=""d"" il_index=""1"" il_start=""0x11"" il_end=""0x21a"" attributes=""0"" />
         </scope>
@@ -734,8 +752,7 @@ class C
       </async-info>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -770,11 +787,11 @@ class C
 {
   // Code size      267 (0x10b)
   .maxstack  3
-  .locals init (int V_0, //CS$524$0000
-                int V_1, //CS$523$0001
+  .locals init (int V_0,
+                int V_1,
                 int V_2, //x
                 object V_3,
-                int V_4, //CS$530$0002
+                int V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_5,
                 int V_6,
                 C.<G>d__1 V_7,
@@ -907,15 +924,25 @@ class C
   IL_010a:  ret
 }", sequencePoints: "C+<G>d__1.MoveNext");
 
-            string actual = GetPdbXml(comp, "C+<G>d__1.MoveNext");
-            string expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
+            comp.VerifyPdb("C+<G>d__1.MoveNext", @"
 <symbols>
   <methods>
     <method containingType=""C+&lt;G&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
+      <customDebugInfo version=""4"" count=""2"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""2"" />
         </using>
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""24"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""20"" offset=""0"" />
+          <slot kind=""0"" offset=""15"" />
+          <slot kind=""temp"" />
+          <slot kind=""28"" offset=""105"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""17"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -937,21 +964,13 @@ class C
         <entry il_offset=""0xfd"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x10b"" attributes=""0"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x10b"" attributes=""0"" />
         <local name=""x"" il_index=""2"" il_start=""0xe"" il_end=""0xda"" attributes=""0"" />
-        <local name=""CS$530$0002"" il_index=""4"" il_start=""0x2f"" il_end=""0xa2"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x10b"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x10b"" attributes=""0"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x10b"" attributes=""0"" />
         <scope startOffset=""0xe"" endOffset=""0xda"">
           <local name=""x"" il_index=""2"" il_start=""0xe"" il_end=""0xda"" attributes=""0"" />
-          <scope startOffset=""0x2f"" endOffset=""0xa2"">
-            <local name=""CS$530$0002"" il_index=""4"" il_start=""0x2f"" il_end=""0xa2"" attributes=""0"" />
-          </scope>
         </scope>
       </scope>
       <async-info>
@@ -960,9 +979,7 @@ class C
       </async-info>
     </method>
   </methods>
-</symbols>";
-
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
     }
 }

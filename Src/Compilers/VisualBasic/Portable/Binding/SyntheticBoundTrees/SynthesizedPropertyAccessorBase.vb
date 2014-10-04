@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -170,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         eventsToHookup.Add(New ValueTuple(Of EventSymbol, PropertySymbol)(
                                                            DirectCast(handledEvent.EventSymbol, EventSymbol),
                                                            DirectCast(handledEvent.WithEventsSourceProperty, PropertySymbol)))
-                                        Dim handlerLocal = New SynthesizedLocal(accessor, handledEvent.delegateCreation.Type, SynthesizedLocalKind.None)
+                                        Dim handlerLocal = New SynthesizedLocal(accessor, handledEvent.delegateCreation.Type, SynthesizedLocalKind.LoweringTemp)
                                         temps.Add(handlerLocal)
 
                                         Dim localAccess = New BoundLocal(syntax, handlerLocal, handlerLocal.Type)
@@ -206,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         withEventsValue = fieldAccess.MakeRValue()
                     End If
 
-                    Dim withEventsLocal = New SynthesizedLocal(accessor, withEventsValue.Type, SynthesizedLocalKind.None)
+                    Dim withEventsLocal = New SynthesizedLocal(accessor, withEventsValue.Type, SynthesizedLocalKind.LoweringTemp)
                     temps.Add(withEventsLocal)
 
                     withEventsLocalAccess = New BoundLocal(syntax, withEventsLocal, withEventsLocal.Type)

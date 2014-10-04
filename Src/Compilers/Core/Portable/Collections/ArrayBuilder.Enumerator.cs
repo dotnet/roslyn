@@ -4,17 +4,17 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class ArrayBuilder<T>
+    internal partial class ArrayBuilder<T>
     {
         /// <summary>
         /// struct enumerator used in foreach.
         /// </summary>
-        internal struct ArrayBuilderEnumerator : IEnumerator<T>
+        internal struct Enumerator : IEnumerator<T>
         {
             private readonly ArrayBuilder<T> builder;
             private int index;
 
-            public ArrayBuilderEnumerator(ArrayBuilder<T> builder)
+            public Enumerator(ArrayBuilder<T> builder)
             {
                 this.builder = builder;
                 this.index = -1;

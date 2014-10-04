@@ -8115,7 +8115,7 @@ End Class
 
         Private Shared Sub CheckPropertyAccessibility([property] As PropertySymbol, propertyAccessibility As Accessibility, getterAccessibility As Accessibility, setterAccessibility As Accessibility)
             Dim type = [property].Type
-            Assert.NotEqual(type.PrimitiveTypeCode, Microsoft.Cci.PrimitiveTypeCode.Void)
+            Assert.NotEqual(type.PrimitiveTypeCode, Cci.PrimitiveTypeCode.Void)
             Assert.Equal(propertyAccessibility, [property].DeclaredAccessibility)
             CheckPropertyAccessorAccessibility([property], propertyAccessibility, [property].GetMethod, getterAccessibility)
             CheckPropertyAccessorAccessibility([property], propertyAccessibility, [property].SetMethod, setterAccessibility)
@@ -8195,7 +8195,7 @@ End Class
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single())
             Assert.Equal(interfacePropertySetter, classPropertySetter.ExplicitInterfaceImplementations.Single())
 
-            Dim typeDef = DirectCast([class], Microsoft.Cci.ITypeDefinition)
+            Dim typeDef = DirectCast([class], Cci.ITypeDefinition)
             Dim [module] = New PEAssemblyBuilder(DirectCast([class].ContainingAssembly, SourceAssemblySymbol), Nothing, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription)())
 
             Dim context = New EmitContext([module], Nothing, New DiagnosticBag())

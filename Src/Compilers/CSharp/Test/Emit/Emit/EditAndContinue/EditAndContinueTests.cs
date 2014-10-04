@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -11,6 +14,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -1566,9 +1570,13 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(Parse(source1, "a.cs"), options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray();
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), token => ImmutableArray.Create("a"));
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                ModuleMetadata.CreateFromImage(bytes0),
+                testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -2359,7 +2367,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.Main");
             var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(methodData0));
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
             testData0.GetMethodData("C.Main").VerifyIL(
 @"
 {
@@ -2436,7 +2444,7 @@ class C
 
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(methodData0));
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -2526,7 +2534,7 @@ class C
 }");
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(methodData0));
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
@@ -2820,7 +2828,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.F");
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(methodData0));
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             // Should have generated call to ComputeStringHash and
             // added the method to <PrivateImplementationDetails>.
@@ -3049,6 +3057,8 @@ class B : A<B>
         M(b);
     }
 }";
+            var methodNames0 = new[] { "A<T>..ctor", "B.F", "B.M", "B.N" };
+
             var source1 =
 @"class A<T> { }
 class B : A<B>
@@ -3127,22 +3137,11 @@ class B : A<B>
             var method0 = compilation0.GetMember<MethodSymbol>("B.M");
             var methodN = compilation0.GetMember<MethodSymbol>("B.N");
 
-            // Verify full metadata contains expected rows.
-            LocalVariableNameProvider getLocalNames = handle =>
-                {
-                    switch (MetadataTokens.GetRowNumber(handle))
-                    {
-                        case 3:
-                            return GetLocalNames(method0);
-                        case 4:
-                            return GetLocalNames(methodN);
-                        default:
-                            return default(ImmutableArray<string>);
-                    }
-                };
-
-            var bytes0 = compilation0.EmitToArray();
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), getLocalNames);
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                ModuleMetadata.CreateFromImage(bytes0), 
+                m => testData0.GetMethodData(methodNames0[MetadataTokens.GetRowNumber(m) - 1]).GetEncDebugInfo());
 
             #region Gen1 
 
@@ -3377,8 +3376,7 @@ class B : A<B>
   IL_0008:  stloc.1
   IL_0009:  ret
 }");
-            diff2.VerifyPdb(new[] { 0x06000002U },
-@"<?xml version=""1.0"" encoding=""utf-16""?>
+            diff2.VerifyPdb(new[] { 0x06000002U }, @"
 <symbols>
   <methods>
     <method token=""0x6000002"">
@@ -3439,8 +3437,11 @@ class B : A<B>
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
-            var bytes0 = compilation0.EmitToArray();
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(method0));
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.Main").EncDebugInfoProvider());
+
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
@@ -3486,7 +3487,9 @@ class B : A<B>
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(testData0.GetMethodData("C.M")));
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                ModuleMetadata.CreateFromImage(bytes0), 
+                testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1a = compilation1.EmitDifference(
@@ -3497,44 +3500,44 @@ class B : A<B>
 {
   // Code size       44 (0x2c)
   .maxstack  1
-  .locals init (System.IDisposable V_0, //CS$3$0000
-           System.IDisposable V_1) //x
-  IL_0000:  nop       
+  .locals init (System.IDisposable V_0,
+                System.IDisposable V_1) //x
+  IL_0000:  nop
   IL_0001:  call       ""System.IDisposable C.F()""
-  IL_0006:  stloc.0   
+  IL_0006:  stloc.0
   .try
   {
-    IL_0007:  nop       
-    IL_0008:  nop       
+    IL_0007:  nop
+    IL_0008:  nop
     IL_0009:  leave.s    IL_0016
   }
   finally
   {
-    IL_000b:  ldloc.0   
+    IL_000b:  ldloc.0
     IL_000c:  brfalse.s  IL_0015
-    IL_000e:  ldloc.0   
+    IL_000e:  ldloc.0
     IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0014:  nop       
+    IL_0014:  nop
     IL_0015:  endfinally
   }
   IL_0016:  call       ""System.IDisposable C.F()""
-  IL_001b:  stloc.1   
+  IL_001b:  stloc.1
   .try
   {
-    IL_001c:  nop       
-    IL_001d:  nop       
+    IL_001c:  nop
+    IL_001d:  nop
     IL_001e:  leave.s    IL_002b
   }
   finally
   {
-    IL_0020:  ldloc.1   
+    IL_0020:  ldloc.1
     IL_0021:  brfalse.s  IL_002a
-    IL_0023:  ldloc.1   
+    IL_0023:  ldloc.1
     IL_0024:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0029:  nop       
+    IL_0029:  nop
     IL_002a:  endfinally
   }
-  IL_002b:  ret       
+  IL_002b:  ret
 }
 ");
 
@@ -3546,44 +3549,44 @@ class B : A<B>
 @"{
   // Code size       44 (0x2c)
   .maxstack  1
-  .locals init (System.IDisposable V_0, //CS$3$0000
-           System.IDisposable V_1) //x
-  IL_0000:  nop       
+  .locals init (System.IDisposable V_0,
+                System.IDisposable V_1) //x
+  IL_0000:  nop
   IL_0001:  call       ""System.IDisposable C.F()""
-  IL_0006:  stloc.0   
+  IL_0006:  stloc.0
   .try
   {
-    IL_0007:  nop       
-    IL_0008:  nop       
+    IL_0007:  nop
+    IL_0008:  nop
     IL_0009:  leave.s    IL_0016
   }
   finally
   {
-    IL_000b:  ldloc.0   
+    IL_000b:  ldloc.0
     IL_000c:  brfalse.s  IL_0015
-    IL_000e:  ldloc.0   
+    IL_000e:  ldloc.0
     IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0014:  nop       
+    IL_0014:  nop
     IL_0015:  endfinally
   }
   IL_0016:  call       ""System.IDisposable C.F()""
-  IL_001b:  stloc.1   
+  IL_001b:  stloc.1
   .try
   {
-    IL_001c:  nop       
-    IL_001d:  nop       
+    IL_001c:  nop
+    IL_001d:  nop
     IL_001e:  leave.s    IL_002b
   }
   finally
   {
-    IL_0020:  ldloc.1   
+    IL_0020:  ldloc.1
     IL_0021:  brfalse.s  IL_002a
-    IL_0023:  ldloc.1   
+    IL_0023:  ldloc.1
     IL_0024:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0029:  nop       
+    IL_0029:  nop
     IL_002a:  endfinally
   }
-  IL_002b:  ret       
+  IL_002b:  ret
 }");
         }
 
@@ -3682,7 +3685,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M1");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(methodData0));
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M1");
             var diff1 = compilation1.EmitDifference(
@@ -3823,12 +3826,13 @@ namespace M
             var compilation0 = CreateCompilationWithMscorlib(source0, options: compOptions);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: compOptions);
 
-            var bytes0 = compilation0.EmitToArray();
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var generation0 = EmitBaseline.CreateInitialBaseline(
-                    md0,
-                    m => ImmutableArray.Create("x", "y", "z"));
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, testData0.GetMethodData("M.B.M").EncDebugInfoProvider());
+
                 var method0 = compilation0.GetMember<MethodSymbol>("M.B.M");
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "<>f__AnonymousType2", "B", "A");
@@ -3936,9 +3940,7 @@ namespace M
 
             var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadata()).GetModules()[0];
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-            moduleMetadata0,
-                m => ImmutableArray.Create<string>());
+            var generation0 = EmitBaseline.CreateInitialBaseline(moduleMetadata0, m => default(EditAndContinueMethodDebugInformation));
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
@@ -4044,13 +4046,24 @@ class B
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
             var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
-
-            var bytes0 = compilation0.EmitToArray();
+                        
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(
                     md0,
-                    m => ImmutableArray.Create("x"));
+                    m =>
+                    {
+                        switch (md0.MetadataReader.GetString(md0.MetadataReader.GetMethod(m).Name))
+                        {
+                            case "F": return testData0.GetMethodData("B.F").GetEncDebugInfo();
+                            case "G": return testData0.GetMethodData("B.G").GetEncDebugInfo();
+                        }
+
+                        return default(EditAndContinueMethodDebugInformation);
+                    });
+
                 var method0 = compilation0.GetMember<MethodSymbol>("B.G");
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`1", "A", "B");
@@ -4224,12 +4237,23 @@ class B
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
             var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray();
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(
                     md0,
-                    m => ImmutableArray.Create("x"));
+                    m =>
+                    {
+                        switch (md0.MetadataReader.GetString(md0.MetadataReader.GetMethod(m).Name))
+                        {
+                            case "F": return testData0.GetMethodData("C.F").GetEncDebugInfo();
+                            case "G": return testData0.GetMethodData("C.G").GetEncDebugInfo();
+                        }
+
+                        return default(EditAndContinueMethodDebugInformation);
+                    });
+
                 var method0F = compilation0.GetMember<MethodSymbol>("C.F");
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`1", "C");
@@ -4332,12 +4356,12 @@ class B
             var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
             var compilation4 = CreateCompilationWithMscorlib(source4, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray();
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var generation0 = EmitBaseline.CreateInitialBaseline(
-                    md0,
-                    m => ImmutableArray.Create("x", "y"));
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, testData0.GetMethodData("C.F").EncDebugInfoProvider());
+
                 var method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
@@ -4496,7 +4520,7 @@ class B
         /// Should not re-use locals if the method metadata
         /// signature is unsupported.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "TODO")]
         public void LocalType_UnsupportedSignatureContent()
         {
             // Equivalent to C#, but with extra local and required modifier on
@@ -4555,7 +4579,7 @@ class B
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => ImmutableArray.Create(null, "o"));
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => default(EditAndContinueMethodDebugInformation));
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M1");
             var diff1 = compilation1.EmitDifference(
@@ -4576,11 +4600,11 @@ class B
   IL_000e:  ret
 }");
         }
-
+        
         /// <summary>
         /// Should not re-use locals with custom modifiers.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "TODO")]
         public void LocalType_CustomModifiers()
         {
             // Equivalent method signature to C#, but
@@ -4597,9 +4621,9 @@ class B
   .method public static object F(class [mscorlib]System.IDisposable d)
   {
     .locals init ([0] class C modopt(int32) c,
-             [1] class [mscorlib]System.IDisposable modopt(object) CS$3$0000,
-             [2] bool V_2,
-             [3] object V_3)
+                  [1] class [mscorlib]System.IDisposable modopt(object),
+                  [2] bool V_2,
+                  [3] object V_3)
     ldnull
     ret
   }
@@ -4627,7 +4651,7 @@ class B
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 moduleMetadata0,
-                m => ImmutableArray.Create("c", "CS$3$0000", null, null));
+                m => default(EditAndContinueMethodDebugInformation));
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
@@ -4643,7 +4667,7 @@ class B
                 [bool] V_2,
                 [object] V_3,
                 C V_4, //c
-                System.IDisposable V_5, //CS$3$0000
+                System.IDisposable V_5,
                 object V_6)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
@@ -4674,7 +4698,6 @@ class B
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 
-
         /// <summary>
         /// Temporaries for locals used within a single
         /// statement should not be preserved.
@@ -4703,7 +4726,7 @@ class B
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
+                methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -4771,7 +4794,7 @@ class B
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 ModuleMetadata.CreateFromImage(bytes0),
-                m => ImmutableArray.Create("o"));
+                testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             testData0.GetMethodData("C.M").VerifyIL(@"
 {
@@ -4955,7 +4978,7 @@ class B
             var modMeta = ModuleMetadata.CreateFromImage(bytes0);
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 modMeta,
-                m => GetLocalNames(methodData0));
+                methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -5021,7 +5044,7 @@ class B
             {
                 // Source method with dynamic operations.
                 var methodData0 = testData0.GetMethodData("A.M");
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => GetLocalNames(methodData0));
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 var method0 = compilation0.GetMember<MethodSymbol>("A.M");
                 var method1 = compilation1.GetMember<MethodSymbol>("A.M");
                 var diff1 = compilation1.EmitDifference(
@@ -5034,7 +5057,7 @@ class B
 
                 // Source method with no dynamic operations.
                 methodData0 = testData0.GetMethodData("A.N");
-                generation0 = EmitBaseline.CreateInitialBaseline(md0, m => GetLocalNames(methodData0));
+                generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 method0 = compilation0.GetMember<MethodSymbol>("A.N");
                 method1 = compilation1.GetMember<MethodSymbol>("A.N");
                 diff1 = compilation1.EmitDifference(
@@ -5044,7 +5067,7 @@ class B
 
                 // Explicit .ctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("A..ctor");
-                generation0 = EmitBaseline.CreateInitialBaseline(md0, m => GetLocalNames(methodData0));
+                generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 method0 = compilation0.GetMember<MethodSymbol>("A..ctor");
                 method1 = compilation1.GetMember<MethodSymbol>("A..ctor");
                 diff1 = compilation1.EmitDifference(
@@ -5057,7 +5080,7 @@ class B
 
                 // Explicit .cctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("A..cctor");
-                generation0 = EmitBaseline.CreateInitialBaseline(md0, m => GetLocalNames(methodData0));
+                generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 method0 = compilation0.GetMember<MethodSymbol>("A..cctor");
                 method1 = compilation1.GetMember<MethodSymbol>("A..cctor");
                 diff1 = compilation1.EmitDifference(
@@ -5070,7 +5093,7 @@ class B
 
                 // Implicit .ctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("B..ctor");
-                generation0 = EmitBaseline.CreateInitialBaseline(md0, m => GetLocalNames(methodData0));
+                generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 method0 = compilation0.GetMember<MethodSymbol>("B..ctor");
                 method1 = compilation1.GetMember<MethodSymbol>("B..ctor");
                 diff1 = compilation1.EmitDifference(
@@ -5083,7 +5106,7 @@ class B
 
                 // Implicit .cctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("B..cctor");
-                generation0 = EmitBaseline.CreateInitialBaseline(md0, m => GetLocalNames(methodData0));
+                generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 method0 = compilation0.GetMember<MethodSymbol>("B..cctor");
                 method1 = compilation1.GetMember<MethodSymbol>("B..cctor");
                 diff1 = compilation1.EmitDifference(
@@ -5138,7 +5161,7 @@ public interface I
             var methodData0 = testData0.GetMethodData("C.M");
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => GetLocalNames(methodData0));
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 var method0 = compilation0.GetMember<MethodSymbol>("C.M");
                 var method1 = compilation1.GetMember<MethodSymbol>("C.M");
                 var diff1 = compilation1.EmitDifference(
@@ -5237,7 +5260,7 @@ public struct S
             {
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C`1", "IA", "IC", "S");
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => GetLocalNames(methodData0));
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
 
                 // Disallow edits that require NoPIA references.
@@ -5318,7 +5341,7 @@ public interface IB
             var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => ImmutableArray.Create<string>());
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => default(EditAndContinueMethodDebugInformation));
                 var method0 = compilation0.GetMember<MethodSymbol>("C.M");
                 var method1 = compilation1.GetMember<MethodSymbol>("C.M");
                 var diff1 = compilation1.EmitDifference(
@@ -5373,22 +5396,23 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray();
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.M");
+
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib");
                 var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-                // Use empty LocalVariableNameProvider for original locals and
-                // use preserveLocalVariables: true for the edit so that existing
-                // locals are retained even though all are unrecognized.
-                var generation0 = EmitBaseline.CreateInitialBaseline(
-                    md0,
-                    EmptyLocalsProvider);
                 var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
+
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, syntaxMap: s => null, preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
                 using (var md1 = diff1.GetMetadata())
                 {
                     var reader1 = md1.Reader;
@@ -5406,6 +5430,28 @@ class C
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.AssemblyRef));
                 }
+
+                diff1.VerifyIL("C.M", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (E V_0) //e
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  nop
+    IL_0002:  nop
+    IL_0003:  leave.s    IL_000a
+  }
+  catch E
+  {
+    IL_0005:  stloc.0
+    IL_0006:  nop
+    IL_0007:  nop
+    IL_0008:  leave.s    IL_000a
+  }
+  IL_000a:  ret
+}");
             }
         }
 

@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const SynthesizedLocalKindForEachArray As String = "VB$ForEachArray"
         Friend Const SynthesizedLocalKindForEachArrayIndex As String = "VB$ForEachArrayIndex"
         Friend Const SynthesizedLocalKindLockTaken As String = "VB$LockTaken"
-        Friend Const SynthesizedLocalKindWith As String = "VB$With"
+        Friend Const SynthesizedLocalKindWith As String = "VB$With_"
 
         Friend Const ForLimit As String = "VB$ForLimit"
         Friend Const ForStep As String = "VB$ForStep"

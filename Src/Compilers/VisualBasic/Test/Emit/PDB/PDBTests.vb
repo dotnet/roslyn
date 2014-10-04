@@ -29,9 +29,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
-            Dim actual = GetPdbXml(compilation)
-
-            Dim expected =
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="C1" name="Method" parameterNames="">
@@ -57,6 +55,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_Computer" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="121" start_column="13" end_row="121" end_column="16" file_ref="0"/>
                 <entry il_offset="0x1" start_row="122" start_column="17" end_row="122" end_column="62" file_ref="0"/>
@@ -71,6 +74,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_Application" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="133" start_column="13" end_row="133" end_column="16" file_ref="0"/>
                 <entry il_offset="0x1" start_row="134" start_column="17" end_row="134" end_column="57" file_ref="0"/>
@@ -85,6 +93,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_User" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="144" start_column="13" end_row="144" end_column="16" file_ref="0"/>
                 <entry il_offset="0x1" start_row="145" start_column="17" end_row="145" end_column="58" file_ref="0"/>
@@ -99,6 +112,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_WebServices" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="237" start_column="14" end_row="237" end_column="17" file_ref="0"/>
                 <entry il_offset="0x1" start_row="238" start_column="17" end_row="238" end_column="67" file_ref="0"/>
@@ -125,6 +143,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Equals" parameterNames="o">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="247" start_column="13" end_row="247" end_column="75" file_ref="0"/>
                 <entry il_offset="0x1" start_row="248" start_column="17" end_row="248" end_column="40" file_ref="0"/>
@@ -139,6 +162,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="GetHashCode" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="251" start_column="13" end_row="251" end_column="63" file_ref="0"/>
                 <entry il_offset="0x1" start_row="252" start_column="17" end_row="252" end_column="42" file_ref="0"/>
@@ -153,6 +181,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="GetType" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="255" start_column="13" end_row="255" end_column="72" file_ref="0"/>
                 <entry il_offset="0x1" start_row="256" start_column="17" end_row="256" end_column="46" file_ref="0"/>
@@ -167,6 +200,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="ToString" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="259" start_column="13" end_row="259" end_column="59" file_ref="0"/>
                 <entry il_offset="0x1" start_row="260" start_column="17" end_row="260" end_column="39" file_ref="0"/>
@@ -181,6 +219,12 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Create__Instance__" parameterNames="instance">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="6">
                 <entry il_offset="0x0" start_row="264" start_column="12" end_row="264" end_column="95" file_ref="0"/>
                 <entry il_offset="0x1" start_row="265" start_column="17" end_row="265" end_column="44" file_ref="0"/>
@@ -220,6 +264,12 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name="get_GetInstance" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="5">
                 <entry il_offset="0x0" start_row="341" start_column="17" end_row="341" end_column="20" file_ref="0"/>
                 <entry il_offset="0x1" start_row="342" start_column="21" end_row="342" end_column="59" file_ref="0"/>
@@ -247,9 +297,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -287,17 +335,23 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "M1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("M1.Main",
 <symbols>
     <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="M1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="24">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="51"/>
+                    <slot kind="temp"/>
+                    <slot kind="0" offset="182"/>
+                    <slot kind="0" offset="221"/>
+                    <slot kind="0" offset="351"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="22">
                 <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="22" file_ref="0"/>
                 <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
@@ -348,8 +402,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -389,13 +442,20 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "M1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("M1.Main",
 <symbols>
     <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="M1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="51"/>
+                    <slot kind="0" offset="119"/>
+                    <slot kind="0" offset="188"/>
+                    <slot kind="0" offset="318"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="21">
                 <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="22" file_ref="0"/>
                 <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
@@ -445,8 +505,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -472,13 +531,18 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="65"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="8">
                 <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="5" start_column="13" end_row="5" end_column="29" file_ref="0"/>
@@ -502,9 +566,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -522,9 +584,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
-            Dim actual = GetPdbXml(compilation, "C1..ctor")
-
-            Dim expected =
+            compilation.VerifyPdb("C1..ctor",
 <symbols>
     <methods>
         <method containingType="C1" name=".ctor" parameterNames="">
@@ -539,9 +599,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -563,9 +621,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
-            Dim actual = GetPdbXml(compilation, "C1..ctor")
-
-            Dim expected =
+            compilation.VerifyPdb("C1..ctor",
 <symbols>
     <methods>
         <method containingType="C1" name=".ctor" parameterNames="">
@@ -582,9 +638,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -627,13 +681,24 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="32">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="22"/>
+                    <slot kind="temp"/>
+                    <slot kind="0" offset="71"/>
+                    <slot kind="0" offset="255"/>
+                    <slot kind="0" offset="753"/>
+                    <slot kind="0" offset="444"/>
+                    <slot kind="0" offset="555"/>
+                    <slot kind="0" offset="653"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="36">
                 <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
                 <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
@@ -708,9 +773,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -749,13 +812,21 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="24">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="474"/>
+                    <slot kind="temp"/>
+                    <slot kind="0" offset="165"/>
+                    <slot kind="0" offset="276"/>
+                    <slot kind="0" offset="374"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="23">
                 <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
                 <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
@@ -807,9 +878,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -851,13 +920,21 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="24">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="464"/>
+                    <slot kind="temp"/>
+                    <slot kind="0" offset="155"/>
+                    <slot kind="0" offset="266"/>
+                    <slot kind="0" offset="364"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="22">
                 <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
                 <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
@@ -908,9 +985,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact, WorkItem(651996, "DevDiv")>
@@ -953,16 +1028,27 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
 
             ' kick-off method doesn't have any user code and hence doesn't need debug info
-            AssertXmlEqual(
+            compilation.VerifyPdb("Module1.F",
 <symbols>
     <methods/>
-</symbols>,
-GetPdbXml(compilation, "Module1.F"))
+</symbols>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb("Module1+VB$StateMachine_0_F.MoveNext",
 <symbols>
     <methods>
         <method containingType="Module1+VB$StateMachine_0_F" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+                    <slot kind="20" offset="-1"/>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="21" offset="-1"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="9">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -974,22 +1060,9 @@ GetPdbXml(compilation, "Module1.F"))
                 <entry il_offset="0xa8" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
                 <entry il_offset="0xb2" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
-            <locals>
-                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0xc0" attributes="0"/>
-                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0xc0" attributes="0"/>
-                <local name="VB$FRV" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
-                <local name="$ex" il_index="7" il_start="0x83" il_end="0xa7" attributes="0"/>
-            </locals>
+            <locals/>
             <scope startOffset="0x0" endOffset="0xc0">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0xc0" attributes="0"/>
-                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0xc0" attributes="0"/>
-                <scope startOffset="0xf" endOffset="0x82">
-                    <local name="VB$FRV" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
-                </scope>
-                <scope startOffset="0x83" endOffset="0xa7">
-                    <local name="$ex" il_index="7" il_start="0x83" il_end="0xa7" attributes="0"/>
-                </scope>
             </scope>
             <async-info>
                 <kickoff-method declaringType="Module1" methodName="F" parameterNames="a"/>
@@ -997,20 +1070,36 @@ GetPdbXml(compilation, "Module1.F"))
             </async-info>
         </method>
     </methods>
-</symbols>,
-            GetPdbXml(compilation, "Module1+VB$StateMachine_0_F.MoveNext"))
+</symbols>)
 
             ' kick-off method doesn't have any user code and hence doesn't need debug info
-            AssertXmlEqual(
+            compilation.VerifyPdb("Module1.Test",
 <symbols>
     <methods/>
-</symbols>,
-GetPdbXml(compilation, "Module1.Test"))
+</symbols>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_Test.MoveNext",
 <symbols>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Test" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="24">
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="17">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -1030,16 +1119,9 @@ GetPdbXml(compilation, "Module1.Test"))
                 <entry il_offset="0x51c" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="0"/>
                 <entry il_offset="0x526" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
-            <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x533" attributes="0"/>
-                <local name="$ex" il_index="13" il_start="0x4f7" il_end="0x51b" attributes="0"/>
-            </locals>
+            <locals/>
             <scope startOffset="0x0" endOffset="0x533">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x533" attributes="0"/>
-                <scope startOffset="0x4f7" endOffset="0x51b">
-                    <local name="$ex" il_index="13" il_start="0x4f7" il_end="0x51b" attributes="0"/>
-                </scope>
             </scope>
             <async-info>
                 <kickoff-method declaringType="Module1" methodName="Test" parameterNames=""/>
@@ -1055,20 +1137,28 @@ GetPdbXml(compilation, "Module1.Test"))
             </async-info>
         </method>
     </methods>
-</symbols>,
-            GetPdbXml(compilation, "Module1+VB$StateMachine_1_Test.MoveNext"))
+</symbols>)
 
             ' kick-off method doesn't have any user code and hence doesn't need debug info
-            AssertXmlEqual(
+            compilation.VerifyPdb("Module1.S",
 <symbols>
     <methods/>
-</symbols>,
-GetPdbXml(compilation, "Module1.S"))
+</symbols>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb("Module1+VB$StateMachine_2_S.MoveNext",
 <symbols>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_S" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="9">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -1080,16 +1170,9 @@ GetPdbXml(compilation, "Module1.S"))
                 <entry il_offset="0xa3" start_row="28" start_column="5" end_row="28" end_column="12" file_ref="0"/>
                 <entry il_offset="0xad" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
-            <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xba" attributes="0"/>
-                <local name="$ex" il_index="5" il_start="0x7e" il_end="0xa2" attributes="0"/>
-            </locals>
+            <locals/>
             <scope startOffset="0x0" endOffset="0xba">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xba" attributes="0"/>
-                <scope startOffset="0x7e" endOffset="0xa2">
-                    <local name="$ex" il_index="5" il_start="0x7e" il_end="0xa2" attributes="0"/>
-                </scope>
             </scope>
             <async-info catch-IL-offset="0x86">
                 <kickoff-method declaringType="Module1" methodName="S" parameterNames=""/>
@@ -1097,8 +1180,7 @@ GetPdbXml(compilation, "Module1.S"))
             </async-info>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation, "Module1+VB$StateMachine_2_S.MoveNext"))
+</symbols>)
         End Sub
 
         <Fact()>
@@ -1125,13 +1207,17 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="52"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="6">
                 <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
                 <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
@@ -1154,9 +1240,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <WorkItem(527647, "DevDiv")>
@@ -1186,9 +1270,7 @@ End Module
                     TestOptions.DebugExe)
 
             ' By Design (better than Dev10): <entry il_offset="0x19" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
-            Dim actual = GetPdbXml(compilation, "MyMod.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("MyMod.Main",
 <symbols>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames="args"/>
     <methods>
@@ -1210,9 +1292,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <WorkItem(538821, "DevDiv")>
@@ -1248,9 +1328,7 @@ End Module
                     TestOptions.DebugExe)
 
 
-            Dim actual = GetPdbXml(compilation, "MyMod.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("MyMod.Main",
 <symbols>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames=""/>
     <methods>
@@ -1276,9 +1354,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -1326,13 +1402,18 @@ End Module
                     TestOptions.DebugExe)
 
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="temp"/>
+                    <slot kind="0" offset="33"/>
+                    <slot kind="0" offset="172"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="19">
                 <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="8" start_column="9" end_row="8" end_column="24" file_ref="0"/>
@@ -1370,9 +1451,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <WorkItem(538944, "DevDiv")>
@@ -1424,13 +1503,24 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "MyMod.Main")
             ' start_row="33"
-            Dim expected =
+            compilation.VerifyPdb("MyMod.Main",
 <symbols>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="MyMod" name="Main" parameterNames="args">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="24">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="7"/>
+                    <slot kind="0" offset="10"/>
+                    <slot kind="0" offset="22"/>
+                    <slot kind="0" offset="25"/>
+                    <slot kind="0" offset="28"/>
+                    <slot kind="0" offset="145"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="32">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="31" file_ref="0"/>
                 <entry il_offset="0x1" start_row="8" start_column="9" end_row="8" end_column="15" file_ref="0"/>
@@ -1487,8 +1577,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -1539,13 +1628,18 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "M1+C1`1+_Closure$__2`2._Lambda$__3")
-
-            Dim expected =
+            compilation.VerifyPdb("M1+C1`1+_Closure$__2`2._Lambda$__3",
 <symbols>
     <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="M1+C1`1+_Closure$__2`2" name="_Lambda$__3" parameterNames="lifted, notLifted">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="30" offset="-1"/>
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="111"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="7">
                 <entry il_offset="0x0" start_row="16" start_column="17" end_row="16" end_column="61" file_ref="0"/>
                 <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -1556,21 +1650,19 @@ End Module
                 <entry il_offset="0x3f" start_row="27" start_column="17" end_row="27" end_column="24" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="$VB$Closure_1" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
+                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
                 <local name="iii" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
                 <local name="d2" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x40">
                 <importsforward declaringType="M1" methodName="Main" parameterNames=""/>
-                <local name="$VB$Closure_1" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
+                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
                 <local name="iii" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
                 <local name="d2" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -1602,13 +1694,20 @@ End Module
                                 source,
                                 TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+                    <slot kind="0" offset="0"/>
+                    <slot kind="0" offset="56"/>
+                    <slot kind="0" offset="180"/>
+                    <slot kind="0" offset="25"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="12">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="20" file_ref="0"/>
@@ -1639,9 +1738,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -1671,13 +1768,17 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="123"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="7">
                 <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
                 <entry il_offset="0x1" start_row="5" start_column="13" end_row="6" end_column="74" file_ref="0"/>
@@ -1699,9 +1800,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -1722,13 +1821,16 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="5">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
@@ -1746,9 +1848,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
@@ -1776,13 +1876,16 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="9">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
@@ -1804,9 +1907,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
@@ -1833,13 +1934,18 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="9">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
@@ -1861,9 +1967,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
@@ -1892,13 +1996,16 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="12">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
@@ -1923,9 +2030,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
@@ -1956,13 +2061,17 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="13">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
@@ -1988,9 +2097,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
@@ -2020,13 +2127,18 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="11">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
@@ -2050,9 +2162,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
@@ -2083,13 +2193,18 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="12">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
@@ -2114,9 +2229,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
@@ -2146,13 +2259,17 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="12">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="0"/>
@@ -2177,9 +2294,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
@@ -2208,13 +2323,16 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="11">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="0"/>
@@ -2238,9 +2356,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
@@ -2268,13 +2384,19 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "Module1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.Main",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="10">
                 <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="0"/>
@@ -2297,9 +2419,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
 
             CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
@@ -2319,12 +2439,15 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
-            Dim actual = GetPdbXml(compilation)
-
-            Dim expected =
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="C1" name="Method" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="17" file_ref="0"/>
                 <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="36" file_ref="0"/>
@@ -2339,9 +2462,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact()>
@@ -2359,12 +2480,15 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
-            Dim actual = GetPdbXml(compilation)
-
-            Dim expected =
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="C1" name="Method" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="17" file_ref="0"/>
                 <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="40" file_ref="0"/>
@@ -2379,9 +2503,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <WorkItem(727419, "DevDiv")>
@@ -2431,13 +2553,23 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "FooDerived.ComputeMatrix")
-
-            Dim expected =
+            compilation.VerifyPdb("FooDerived.ComputeMatrix",
 <symbols>
     <entryPoint declaringType="Variety" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="FooDerived" name="ComputeMatrix" parameterNames="rank">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="28">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="30"/>
+                    <slot kind="0" offset="53"/>
+                    <slot kind="0" offset="78"/>
+                    <slot kind="0" offset="105"/>
+                    <slot kind="13" offset="271"/>
+                    <slot kind="11" offset="271"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="12">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="52" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="15" end_row="14" end_column="22" file_ref="0"/>
@@ -2458,8 +2590,6 @@ End Module
                 <local name="q" il_index="2" il_start="0x0" il_end="0x59" attributes="0"/>
                 <local name="count" il_index="3" il_start="0x0" il_end="0x59" attributes="0"/>
                 <local name="dims" il_index="4" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="VB$LoopObject" il_index="5" il_start="0x17" il_end="0x57" attributes="1"/>
-                <local name="VB$ForLimit" il_index="6" il_start="0x17" il_end="0x57" attributes="1"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x59">
                 <namespace name="System" importlevel="file"/>
@@ -2469,16 +2599,10 @@ End Module
                 <local name="q" il_index="2" il_start="0x0" il_end="0x59" attributes="0"/>
                 <local name="count" il_index="3" il_start="0x0" il_end="0x59" attributes="0"/>
                 <local name="dims" il_index="4" il_start="0x0" il_end="0x59" attributes="0"/>
-                <scope startOffset="0x17" endOffset="0x57">
-                    <local name="VB$LoopObject" il_index="5" il_start="0x17" il_end="0x57" attributes="1"/>
-                    <local name="VB$ForLimit" il_index="6" il_start="0x17" il_end="0x57" attributes="1"/>
-                </scope>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <WorkItem(722627, "DevDiv")>
@@ -2505,9 +2629,7 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            Dim actual = GetPdbXml(compilation, "SubMod.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("SubMod.Main",
 <symbols>
     <entryPoint declaringType="SubMod" methodName="Main" parameterNames=""/>
     <methods>
@@ -2529,10 +2651,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <WorkItem(543703, "DevDiv")>
@@ -2557,9 +2676,8 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
-            Dim actual = GetPdbXml(compilation)
 
-            Dim expected =
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="M1" name="Main" parameterNames="">
@@ -2585,10 +2703,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(529300, "DevDiv")>
@@ -2621,12 +2736,17 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
-            Dim actual = GetPdbXml(compilation)
 
-            Dim expected =
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="35"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="17" start_column="5" end_row="17" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="18" start_column="13" end_row="18" end_column="30" file_ref="0"/>
@@ -2644,20 +2764,6 @@ End Module
                 <local name="b2" il_index="1" il_start="0x0" il_end="0xc" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+B2" name="op_Implicit" parameterNames="x">
-            <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="12" start_column="9" end_row="12" end_column="59" file_ref="0"/>
-                <entry il_offset="0x1" start_row="13" start_column="13" end_row="13" end_column="29" file_ref="0"/>
-                <entry il_offset="0xa" start_row="14" start_column="9" end_row="14" end_column="21" file_ref="0"/>
-            </sequencepoints>
-            <locals>
-                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xc">
-                <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </scope>
-        </method>
         <method containingType="Module1+B2" name=".ctor" parameterNames="x">
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="8" start_column="9" end_row="8" end_column="37" file_ref="0"/>
@@ -2669,11 +2775,24 @@ End Module
                 <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
             </scope>
         </method>
+        <method containingType="Module1+B2" name="op_Implicit" parameterNames="x">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencepoints total="3">
+                <entry il_offset="0x0" start_row="12" start_column="9" end_row="12" end_column="59" file_ref="0"/>
+                <entry il_offset="0x1" start_row="13" start_column="13" end_row="13" end_column="29" file_ref="0"/>
+                <entry il_offset="0xa" start_row="14" start_column="9" end_row="14" end_column="21" file_ref="0"/>
+            </sequencepoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0xc">
+                <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
+            </scope>
+        </method>
     </methods>
-</symbols>
-
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -2721,33 +2840,34 @@ End Module
 </file>
             </compilation>
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            Dim actual As XElement = GetPdbXml(compilation, "Module1._Lambda$__1")
 
-            Dim expected =
-                <symbols>
-                    <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
-                    <methods>
-                        <method containingType="Module1" name="_Lambda$__1" parameterNames="">
-                            <sequencepoints total="4">
-                                <entry il_offset="0x0" start_row="5" start_column="17" end_row="5" end_column="27" file_ref="0"/>
-                                <entry il_offset="0x1" start_row="6" start_column="25" end_row="6" end_column="31" file_ref="0"/>
-                                <entry il_offset="0x4" start_row="7" start_column="21" end_row="7" end_column="29" file_ref="0"/>
-                                <entry il_offset="0x8" start_row="8" start_column="12" end_row="8" end_column="24" file_ref="0"/>
-                            </sequencepoints>
-                            <locals>
-                                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0xa" attributes="0"/>
-                                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
-                            </locals>
-                            <scope startOffset="0x0" endOffset="0xa">
-                                <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0xa" attributes="0"/>
-                                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
-                            </scope>
-                        </method>
-                    </methods>
-                </symbols>
-
-            AssertXmlEqual(expected, actual)
+            compilation.VerifyPdb("Module1._Lambda$__1",
+<symbols>
+    <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
+    <methods>
+        <method containingType="Module1" name="_Lambda$__1" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="21" offset="-1"/>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencepoints total="4">
+                <entry il_offset="0x0" start_row="5" start_column="17" end_row="5" end_column="27" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="25" end_row="6" end_column="31" file_ref="0"/>
+                <entry il_offset="0x4" start_row="7" start_column="21" end_row="7" end_column="29" file_ref="0"/>
+                <entry il_offset="0x8" start_row="8" start_column="12" end_row="8" end_column="24" file_ref="0"/>
+            </sequencepoints>
+            <locals>
+                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0xa">
+                <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
+                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
         End Sub
 
         <WorkItem(760994, "DevDiv")>
@@ -2782,9 +2902,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
-            Dim actual = GetPdbXml(compilation, "CLAZZ..ctor")
-
-            Dim expected =
+            compilation.VerifyPdb("CLAZZ..ctor",
 <symbols>
     <methods>
         <method containingType="CLAZZ" name=".ctor" parameterNames="">
@@ -2801,9 +2919,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -2869,33 +2985,34 @@ End Class
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
-            Dim actual As XElement = GetPdbXml(compilation)
 
             ' Dev11 generates debug info for embedded symbols. There is no reason to do so since the source code is not available to the user.
 
-            Dim expected =
-               <symbols>
-                   <methods>
-                       <method containingType="C" name="F" parameterNames="z">
-                           <sequencepoints total="3">
-                               <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="51" file_ref="0"/>
-                               <entry il_offset="0x1" start_row="5" start_column="9" end_row="5" end_column="23" file_ref="0"/>
-                               <entry il_offset="0xa" start_row="6" start_column="5" end_row="6" end_column="17" file_ref="0"/>
-                           </sequencepoints>
-                           <locals>
-                               <local name="F" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-                           </locals>
-                           <scope startOffset="0x0" endOffset="0xc">
-                               <type name="Microsoft.VisualBasic.Strings" importlevel="file"/>
-                               <currentnamespace name=""/>
-                               <local name="F" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-                           </scope>
-                       </method>
-                   </methods>
-               </symbols>
-
-            AssertXmlEqual(expected, actual)
-
+            compilation.VerifyPdb(
+<symbols>
+    <methods>
+        <method containingType="C" name="F" parameterNames="z">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencepoints total="3">
+                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="51" file_ref="0"/>
+                <entry il_offset="0x1" start_row="5" start_column="9" end_row="5" end_column="23" file_ref="0"/>
+                <entry il_offset="0xa" start_row="6" start_column="5" end_row="6" end_column="17" file_ref="0"/>
+            </sequencepoints>
+            <locals>
+                <local name="F" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0xc">
+                <type name="Microsoft.VisualBasic.Strings" importlevel="file"/>
+                <currentnamespace name=""/>
+                <local name="F" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(797482, "DevDiv")>
@@ -2920,12 +3037,16 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
-            Dim actual = GetPdbXml(compilation, "Module1.MakeIncrementer")
-
-            Dim expected =
+            compilation.VerifyPdb("Module1.MakeIncrementer",
 <symbols>
     <methods>
         <method containingType="Module1" name="MakeIncrementer" parameterNames="n">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="30" offset="-1"/>
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="7" start_column="5" end_row="7" end_column="72" file_ref="0"/>
                 <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -2933,19 +3054,17 @@ End Module
                 <entry il_offset="0x1d" start_row="11" start_column="5" end_row="11" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="$VB$Closure_1" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
                 <local name="MakeIncrementer" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                <local name="$VB$Closure_1" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
                 <local name="MakeIncrementer" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         ''' <summary>
@@ -2964,8 +3083,10 @@ Class C
 End Class
 ]]></file>
 </compilation>
+
             Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
-            AssertXmlEqual(
+
+            compilation.VerifyPdb("C..ctor",
 <symbols>
     <methods>
         <method containingType="C" name=".ctor" parameterNames="">
@@ -2979,8 +3100,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation, "C..ctor"))
+</symbols>)
         End Sub
 
         ''' <summary>
@@ -3004,7 +3124,8 @@ End Module
 ]]></file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
-            AssertXmlEqual(
+
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="M" name=".cctor" parameterNames="">
@@ -3018,6 +3139,13 @@ End Module
             </scope>
         </method>
         <method containingType="M" name="_Lambda$__2" parameterNames="x">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="21" offset="-1"/>
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="67"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="5">
                 <entry il_offset="0x0" start_row="3" start_column="46" end_row="3" end_column="57" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="17" end_row="4" end_column="62" file_ref="0"/>
@@ -3026,62 +3154,67 @@ End Module
                 <entry il_offset="0x53" start_row="7" start_column="9" end_row="7" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x55" attributes="0"/>
                 <local name="f" il_index="1" il_start="0x0" il_end="0x55" attributes="0"/>
                 <local name="g" il_index="2" il_start="0x0" il_end="0x55" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x55">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
-                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x55" attributes="0"/>
                 <local name="f" il_index="1" il_start="0x0" il_end="0x55" attributes="0"/>
                 <local name="g" il_index="2" il_start="0x0" il_end="0x55" attributes="0"/>
             </scope>
         </method>
         <method containingType="M" name="_Lambda$__3" parameterNames="o">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="4" start_column="49" end_row="4" end_column="60" file_ref="0"/>
                 <entry il_offset="0x1" start_row="4" start_column="61" end_row="4" end_column="62" file_ref="0"/>
             </sequencepoints>
-            <locals>
-                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x7" attributes="0"/>
-            </locals>
+            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
-                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x7" attributes="0"/>
             </scope>
         </method>
         <method containingType="M" name="_Lambda$__5" parameterNames="h">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="30" offset="-1"/>
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="5" start_column="84" end_row="5" end_column="95" file_ref="0"/>
                 <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0xe" start_row="5" start_column="96" end_row="5" end_column="112" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="$VB$Closure_1" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-                <local name="VB$FRV" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
-                <local name="$VB$Closure_1" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-                <local name="VB$FRV" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
             </scope>
         </method>
         <method containingType="M+_Closure$__1" name="_Lambda$__6" parameterNames="y">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="5" start_column="96" end_row="5" end_column="107" file_ref="0"/>
                 <entry il_offset="0x1" start_row="5" start_column="108" end_row="5" end_column="112" file_ref="0"/>
             </sequencepoints>
-            <locals>
-                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
-            </locals>
+            <locals/>
             <scope startOffset="0x0" endOffset="0x17">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
-                <local name="VB$FRV" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3118,12 +3251,17 @@ End Module
 </compilation>
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
-            compilation.AssertTheseDiagnostics(<expected></expected>)
+            compilation.VerifyDiagnostics()
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="25" file_ref="0"/>
@@ -3140,6 +3278,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="0" offset="54"/>
+                    <slot kind="0" offset="286"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="6">
                 <entry il_offset="0x0" start_row="9" start_column="5" end_row="9" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="12" start_column="13" end_row="15" end_column="64" file_ref="0"/>
@@ -3234,8 +3378,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3265,12 +3408,17 @@ End Module
 </compilation>
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
-            compilation.AssertTheseDiagnostics(<expected></expected>)
+            compilation.VerifyDiagnostics()
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3288,6 +3436,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="14" end_column="37" file_ref="0"/>
@@ -3305,8 +3459,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3336,12 +3489,17 @@ End Module
 </compilation>
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
-            compilation.AssertTheseDiagnostics(<expected></expected>)
+            compilation.VerifyDiagnostics()
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3359,6 +3517,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="14" end_column="74" file_ref="0"/>
@@ -3403,8 +3567,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3437,10 +3600,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3458,6 +3626,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="42" file_ref="0"/>
@@ -3485,8 +3659,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3519,10 +3692,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3540,6 +3718,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="85" file_ref="0"/>
@@ -3577,8 +3761,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3609,12 +3792,17 @@ End Module
 </compilation>
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
-            compilation.AssertTheseDiagnostics(<expected></expected>)
+            compilation.VerifyDiagnostics()
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3632,6 +3820,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="45" file_ref="0"/>
@@ -3658,8 +3852,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3692,10 +3885,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3713,6 +3911,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="33" file_ref="0"/>
@@ -3739,8 +3943,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3773,10 +3976,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3794,6 +4002,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="72" file_ref="0"/>
@@ -3821,8 +4035,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3855,10 +4068,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3876,6 +4094,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="67" file_ref="0"/>
@@ -3920,8 +4144,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -3956,10 +4179,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -3977,6 +4205,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="106" file_ref="0"/>
@@ -4032,8 +4266,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4067,10 +4300,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4088,6 +4326,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="48" file_ref="0"/>
@@ -4132,8 +4376,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4170,10 +4413,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4191,6 +4439,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="19" end_column="57" file_ref="0"/>
@@ -4300,8 +4554,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4335,10 +4588,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4356,6 +4614,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="79" file_ref="0"/>
@@ -4413,8 +4677,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4447,10 +4710,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4468,6 +4736,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="73" file_ref="0"/>
@@ -4503,8 +4777,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4537,10 +4810,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4558,6 +4836,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="78" file_ref="0"/>
@@ -4593,8 +4877,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4627,10 +4910,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4648,6 +4936,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="78" file_ref="0"/>
@@ -4683,8 +4977,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4717,10 +5010,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4738,6 +5036,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="19" file_ref="0"/>
@@ -4755,8 +5059,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4789,10 +5092,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4810,6 +5118,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="19" file_ref="0"/>
@@ -4827,8 +5141,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4862,10 +5175,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4883,6 +5201,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="23" file_ref="0"/>
@@ -4918,8 +5242,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -4953,10 +5276,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -4974,6 +5302,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="32" file_ref="0"/>
@@ -5028,8 +5362,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5063,10 +5396,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5084,6 +5422,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="54" file_ref="0"/>
@@ -5140,8 +5484,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5175,10 +5518,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5196,6 +5544,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="36" file_ref="0"/>
@@ -5240,8 +5594,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5275,10 +5628,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5296,6 +5654,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="50" file_ref="0"/>
@@ -5349,8 +5713,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5385,10 +5748,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5406,6 +5774,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="36" file_ref="0"/>
@@ -5459,8 +5833,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5494,10 +5867,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5515,6 +5893,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="0"/>
@@ -5561,8 +5945,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5596,10 +5979,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5617,6 +6005,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="0"/>
@@ -5681,8 +6075,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5716,10 +6109,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5737,6 +6135,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="0"/>
@@ -5810,8 +6214,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5846,10 +6249,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5867,6 +6275,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="0"/>
@@ -5921,8 +6335,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -5957,10 +6370,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -5978,6 +6396,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="0"/>
@@ -6050,8 +6474,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -6086,10 +6509,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -6107,6 +6535,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="4">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="0"/>
@@ -6188,8 +6622,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -6219,10 +6652,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -6240,6 +6678,11 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="12" start_column="9" end_row="13" end_column="36" file_ref="0"/>
@@ -6272,8 +6715,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(824944, "DevDiv")>
@@ -6303,10 +6745,15 @@ End Module
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
-            AssertXmlEqual(
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
                 <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
@@ -6324,6 +6771,12 @@ End Module
             </scope>
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="4"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
                 <entry il_offset="0x1" start_row="12" start_column="9" end_row="13" end_column="47" file_ref="0"/>
@@ -6365,8 +6818,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>,
-GetPdbXml(compilation))
+</symbols>)
         End Sub
 
         <WorkItem(846228, "DevDiv")>
@@ -6397,9 +6849,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
-            Dim actual = GetPdbXml(compilation)
-
-            Dim expected =
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="IntervalUpdate" name="Update" parameterNames="">
@@ -6436,6 +6886,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_Computer" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="121" start_column="13" end_row="121" end_column="16" file_ref="0"/>
                 <entry il_offset="0x1" start_row="122" start_column="17" end_row="122" end_column="62" file_ref="0"/>
@@ -6450,6 +6905,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_Application" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="133" start_column="13" end_row="133" end_column="16" file_ref="0"/>
                 <entry il_offset="0x1" start_row="134" start_column="17" end_row="134" end_column="57" file_ref="0"/>
@@ -6464,6 +6924,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_User" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="144" start_column="13" end_row="144" end_column="16" file_ref="0"/>
                 <entry il_offset="0x1" start_row="145" start_column="17" end_row="145" end_column="58" file_ref="0"/>
@@ -6478,6 +6943,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_WebServices" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="237" start_column="14" end_row="237" end_column="17" file_ref="0"/>
                 <entry il_offset="0x1" start_row="238" start_column="17" end_row="238" end_column="67" file_ref="0"/>
@@ -6504,6 +6974,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Equals" parameterNames="o">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="247" start_column="13" end_row="247" end_column="75" file_ref="0"/>
                 <entry il_offset="0x1" start_row="248" start_column="17" end_row="248" end_column="40" file_ref="0"/>
@@ -6518,6 +6993,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="GetHashCode" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="251" start_column="13" end_row="251" end_column="63" file_ref="0"/>
                 <entry il_offset="0x1" start_row="252" start_column="17" end_row="252" end_column="42" file_ref="0"/>
@@ -6532,6 +7012,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="GetType" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="255" start_column="13" end_row="255" end_column="72" file_ref="0"/>
                 <entry il_offset="0x1" start_row="256" start_column="17" end_row="256" end_column="46" file_ref="0"/>
@@ -6546,6 +7031,11 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="ToString" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="3">
                 <entry il_offset="0x0" start_row="259" start_column="13" end_row="259" end_column="59" file_ref="0"/>
                 <entry il_offset="0x1" start_row="260" start_column="17" end_row="260" end_column="39" file_ref="0"/>
@@ -6560,6 +7050,12 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Create__Instance__" parameterNames="instance">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="6">
                 <entry il_offset="0x0" start_row="264" start_column="12" end_row="264" end_column="95" file_ref="0"/>
                 <entry il_offset="0x1" start_row="265" start_column="17" end_row="265" end_column="44" file_ref="0"/>
@@ -6599,6 +7095,12 @@ End Class
             </scope>
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name="get_GetInstance" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                    <slot kind="0" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="5">
                 <entry il_offset="0x0" start_row="341" start_column="17" end_row="341" end_column="20" file_ref="0"/>
                 <entry il_offset="0x1" start_row="342" start_column="21" end_row="342" end_column="59" file_ref="0"/>
@@ -6626,9 +7128,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
@@ -6659,13 +7159,22 @@ End Class
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_0_Async_Lambda_Hoisted.MoveNext")
-
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_2$1".
-            Dim expected =
+            compilation.VerifyPdb("C+VB$StateMachine_0_Async_Lambda_Hoisted.MoveNext",
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_0_Async_Lambda_Hoisted" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="0" offset="66"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="15">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -6684,22 +7193,16 @@ End Class
                 <entry il_offset="0x12d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x13a" attributes="0"/>
                 <local name="a" il_index="1" il_start="0x12" il_end="0xfd" attributes="0"/>
-                <local name="$VB$ResumableLocal_$VB$Closure_2$1" il_index="0" il_start="0x12" il_end="0xfd" attributes="0" reusingslot="True"/>
-                <local name="$ex" il_index="6" il_start="0xfe" il_end="0x122" attributes="0"/>
+                <local name="$VB$ResumableLocal_$VB$Closure_2$1" il_index="0" il_start="0x12" il_end="0xfd" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x13a">
                 <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x13a" attributes="0"/>
                 <scope startOffset="0x12" endOffset="0xfd">
                     <local name="a" il_index="1" il_start="0x12" il_end="0xfd" attributes="0"/>
                     <scope startOffset="0x12" endOffset="0xfd">
                         <local name="$VB$ResumableLocal_$VB$Closure_2$1" il_index="0" il_start="0x12" il_end="0xfd" attributes="0"/>
                     </scope>
-                </scope>
-                <scope startOffset="0xfe" endOffset="0x122">
-                    <local name="$ex" il_index="6" il_start="0xfe" il_end="0x122" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
@@ -6708,9 +7211,7 @@ End Class
             </async-info>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
@@ -6739,13 +7240,23 @@ End Class
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_0_Async_Lambda_NotHoisted.MoveNext")
-
             ' Goal: We're looking for the single-mangled name "$VB$Closure_1".
-            Dim expected =
+            compilation.VerifyPdb("C+VB$StateMachine_0_Async_Lambda_NotHoisted.MoveNext",
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_0_Async_Lambda_NotHoisted" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="30" offset="-1"/>
+                    <slot kind="0" offset="66"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="13">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -6762,20 +7273,14 @@ End Class
                 <entry il_offset="0xe8" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xf5" attributes="0"/>
-                <local name="$VB$Closure_1" il_index="1" il_start="0xf" il_end="0xb8" attributes="0"/>
+                <local name="$VB$Closure_0" il_index="1" il_start="0xf" il_end="0xb8" attributes="0"/>
                 <local name="a" il_index="2" il_start="0xf" il_end="0xb8" attributes="0"/>
-                <local name="$ex" il_index="7" il_start="0xb9" il_end="0xdd" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xf5">
                 <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xf5" attributes="0"/>
                 <scope startOffset="0xf" endOffset="0xb8">
-                    <local name="$VB$Closure_1" il_index="1" il_start="0xf" il_end="0xb8" attributes="0"/>
+                    <local name="$VB$Closure_0" il_index="1" il_start="0xf" il_end="0xb8" attributes="0"/>
                     <local name="a" il_index="2" il_start="0xf" il_end="0xb8" attributes="0"/>
-                </scope>
-                <scope startOffset="0xb9" endOffset="0xdd">
-                    <local name="$ex" il_index="7" il_start="0xb9" il_end="0xdd" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
@@ -6784,9 +7289,7 @@ End Class
             </async-info>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
@@ -6815,13 +7318,21 @@ End Class
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_0_Async_NoLambda_Hoisted.MoveNext")
-
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
-            Dim expected =
+            compilation.VerifyPdb("C+VB$StateMachine_0_Async_NoLambda_Hoisted.MoveNext",
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_0_Async_NoLambda_Hoisted" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="13">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -6838,22 +7349,16 @@ End Class
                 <entry il_offset="0xed" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xfa" attributes="0"/>
-                <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0xf" il_end="0xbd" attributes="0" reusingslot="True"/>
+                <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
                 <local name="$VB$ResumableLocal_y$2" il_index="0" il_start="0xf" il_end="0xbd" attributes="0" reusingslot="True"/>
-                <local name="$ex" il_index="5" il_start="0xbe" il_end="0xe2" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xfa">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xfa" attributes="0"/>
                 <scope startOffset="0xf" endOffset="0xbd">
                     <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
                     <local name="$VB$ResumableLocal_y$2" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
-                </scope>
-                <scope startOffset="0xbe" endOffset="0xe2">
-                    <local name="$ex" il_index="5" il_start="0xbe" il_end="0xe2" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
@@ -6862,9 +7367,7 @@ End Class
             </async-info>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
@@ -6891,13 +7394,23 @@ End Class
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_0_Async_NoLambda_NotHoisted.MoveNext")
-
             ' Goal: We're looking for the unmangled names "x" and "y".
-            Dim expected =
+            compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_0_Async_NoLambda_NotHoisted" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="34"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencepoints total="11">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -6912,22 +7425,16 @@ End Class
                 <entry il_offset="0xc1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xce" attributes="0"/>
                 <local name="x" il_index="1" il_start="0xf" il_end="0x91" attributes="0"/>
                 <local name="y" il_index="2" il_start="0xf" il_end="0x91" attributes="0"/>
-                <local name="$ex" il_index="7" il_start="0x92" il_end="0xb6" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xce">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xce" attributes="0"/>
                 <scope startOffset="0xf" endOffset="0x91">
                     <local name="x" il_index="1" il_start="0xf" il_end="0x91" attributes="0"/>
                     <local name="y" il_index="2" il_start="0xf" il_end="0x91" attributes="0"/>
-                </scope>
-                <scope startOffset="0x92" endOffset="0xb6">
-                    <local name="$ex" il_index="7" il_start="0x92" il_end="0xb6" attributes="0"/>
                 </scope>
             </scope>
             <async-info>
@@ -6936,9 +7443,7 @@ End Class
             </async-info>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <WorkItem(876518)>
@@ -6994,12 +7499,10 @@ End Class
                 parseOptions:=parseOptions,
                 mainTypeName:="My.MyApplication")
             Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemWindowsFormsRef}, compOptions)
-            AssertNoErrors(comp)
-
-            Dim actual = PDBTests.GetPdbXml(comp, "My.MyApplication.Main")
+            comp.VerifyDiagnostics()
 
             ' Just care that there's at least one non-hidden sequence point.
-            Dim expected =
+            comp.VerifyPdb("My.MyApplication.Main",
 <symbols>
     <entryPoint declaringType="My.MyApplication" methodName="Main" parameterNames="Args"/>
     <methods>
@@ -7019,9 +7522,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
     End Class

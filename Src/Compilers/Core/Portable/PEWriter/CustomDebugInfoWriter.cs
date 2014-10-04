@@ -5,6 +5,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -32,7 +34,7 @@ namespace Microsoft.Cci
             {
                 // SerializeNamespaceScopeMetadata will do the actual forwarding in case this is a CSharp method.
                 // VB on the other hand adds a "@methodtoken" to the scopes instead.
-                if (methodBody.CustomDebugInfoKind == CustomDebugInfoKind.VisualBasicStyle)
+                if (methodBody.NamespaceScopeEncoding == NamespaceScopeEncoding.Forwarding)
                 {
                     forwardToMethod = this.previousMethodBodyWithUsingInfo.MethodDefinition;
                 }
@@ -50,7 +52,7 @@ namespace Microsoft.Cci
             return false;
         }
 
-        public byte[] SerializeMethodDebugInfo(IModule module, IMethodBody methodBody, uint methodToken, out bool emitExternNamespaces)
+        public byte[] SerializeMethodDebugInfo(IModule module, IMethodBody methodBody, uint methodToken, bool isEncDelta, out bool emitExternNamespaces)
         {
             emitExternNamespaces = false;
 
@@ -92,18 +94,26 @@ namespace Microsoft.Cci
 
             SerializeDynamicLocalInfo(methodBody, customDebugInfo);
 
-            byte[] result;
-            if (methodBody.CustomDebugInfoKind == CustomDebugInfoKind.CSharpStyle)
+            // delta doesn't need this information - we use information recorded by previous generation emit
+            if (!isEncDelta)
             {
-                result = SerializeCustomDebugMetadata(customDebugInfo);
-            }
-            else
-            {
-                result = null;
+                GetEncDebugInfo(methodBody.LocalVariables).SerializeCustomDebugInformation(customDebugInfo);
             }
 
+            byte[] result = SerializeCustomDebugMetadata(customDebugInfo);
             customDebugInfo.Free();
             return result;
+        }
+
+        public static EditAndContinueMethodDebugInformation GetEncDebugInfo(ImmutableArray<ILocalDefinition> locals)
+        {
+            if (!locals.Any(localDef => !localDef.Id.IsNone))
+            {
+                return default(EditAndContinueMethodDebugInformation);
+            }
+
+            return new EditAndContinueMethodDebugInformation(
+                locals.SelectAsArray(localDef => ValueTuple.Create(localDef.Kind, localDef.Id.IsNone ? new LocalDebugId(0) : localDef.Id)));
         }
 
         private static void SerializeIteratorClassMetadata(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
@@ -269,6 +279,11 @@ namespace Microsoft.Cci
 
         private void SerializeNamespaceScopeMetadata(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
         {
+            if (methodBody.NamespaceScopeEncoding == NamespaceScopeEncoding.Forwarding)
+            {
+                return;
+            }
+
             if (ShouldForwardToPreviousMethodWithUsingInfo(methodBody))
             {
                 Debug.Assert(!ReferenceEquals(this.previousMethodBodyWithUsingInfo, methodBody));

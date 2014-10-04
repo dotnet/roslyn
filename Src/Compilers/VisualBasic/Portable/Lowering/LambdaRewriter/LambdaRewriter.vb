@@ -195,11 +195,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  Not DirectCast(captured, LocalSymbol).IsForEach OrElse
                                  copyConstructor)
 
-                    Dim containingType As NamedTypeSymbol = _topLevelMethod.ContainingType
-                    frame = New LambdaFrame(node.Syntax, containingType, _topLevelMethod, copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured), CompilationState.GenerateTempNumber())
+                    frame = New LambdaFrame(CompilationState,
+                                            _topLevelMethod,
+                                            node.Syntax,
+                                            copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured))
                     frames(node) = frame
                     If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, frame)
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, frame.Constructor)
                     End If
                 End If
@@ -365,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Optional origLambda As LambdaSymbol = Nothing) As BoundNode
 
             Dim frameType As NamedTypeSymbol = ConstructFrameType(frame, currentTypeParameters)
-            Dim framePointer = New SynthesizedLocal(Me._topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass)
+            Dim framePointer = New SynthesizedLocal(Me._topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntax)
 
             CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
             Dim prologue = ArrayBuilder(Of BoundExpression).GetInstance()

@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -132,7 +133,7 @@ class C
         [Fact]
         public void TestIteratorLocalConstants()
         {
-            var text = @"
+            var source = @"
 using System.Collections.Generic;
 
 class C
@@ -152,18 +153,25 @@ class C
             // all of the changes look reasonable.  The main thing for this test is that 
             // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
             // do that - the <constant> in the <scope> is sufficient.
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
+      <customDebugInfo version=""4"" count=""3"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""1"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
           <bucket startOffset=""0x22"" endOffset=""0x6b"" />
         </iteratorLocals>
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""1"" offset=""37"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencepoints total=""12"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -180,28 +188,21 @@ class C
         <entry il_offset=""0x6b"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6f"" attributes=""0"" />
         <constant name=""x"" value=""1"" type=""Int32"" />
         <constant name=""y"" value=""2"" type=""Int32"" />
-        <local name=""CS$4$0001"" il_index=""3"" il_start=""0x5d"" il_end=""0x6b"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x6f"">
         <namespace name=""System.Collections.Generic"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6f"" attributes=""0"" />
         <scope startOffset=""0x21"" endOffset=""0x6f"">
           <constant name=""x"" value=""1"" type=""Int32"" />
           <scope startOffset=""0x2b"" endOffset=""0x4d"">
             <constant name=""y"" value=""2"" type=""Int32"" />
           </scope>
-          <scope startOffset=""0x5d"" endOffset=""0x6b"">
-            <local name=""CS$4$0001"" il_index=""3"" il_start=""0x5d"" il_end=""0x6b"" attributes=""1"" />
-          </scope>
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]

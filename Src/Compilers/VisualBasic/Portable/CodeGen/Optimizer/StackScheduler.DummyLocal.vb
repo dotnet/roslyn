@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Inherits SynthesizedLocal
 
             Public Sub New(container As Symbol)
-                MyBase.New(container, Nothing, SynthesizedLocalKind.None)
+                MyBase.New(container, Nothing, SynthesizedLocalKind.OptimizerTemp)
             End Sub
 
             Friend Overrides Function ComputeType(Optional containingBinder As Binder = Nothing) As TypeSymbol

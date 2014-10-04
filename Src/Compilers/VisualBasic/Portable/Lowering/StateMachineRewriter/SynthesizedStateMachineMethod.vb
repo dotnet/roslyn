@@ -1,28 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-
-    <Flags()>
-    Friend Enum DebugAttributes As Byte
-        None = 0
-        CompilerGeneratedAttribute = 1
-        DebuggerHiddenAttribute = 2
-        DebuggerNonUserCodeAttribute = 4
-    End Enum
-
     ''' <summary>
     ''' This class represents a type symbol for compiler generated implementation methods,
     ''' the method being implemented is passed as a parameter and is used to build
@@ -40,9 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _enableDebugInfo As Boolean
         Private ReadOnly _hasMethodBodyDependency As Boolean
         Private ReadOnly _associatedProperty As PropertySymbol
-        Private ReadOnly _asyncKickoffMethod As MethodSymbol
 
-        Friend Sub New(containingType As NamedTypeSymbol,
+        Friend Sub New(stateMachineType As StateMachineTypeSymbol,
                        name As String,
                        interfaceMethod As MethodSymbol,
                        syntax As VisualBasicSyntaxNode,
@@ -50,12 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        declaredAccessibility As Accessibility,
                        enableDebugInfo As Boolean,
                        hasMethodBodyDependency As Boolean,
-                       Optional associatedProperty As PropertySymbol = Nothing,
-                       Optional asyncKickoffMethod As MethodSymbol = Nothing)
+                       Optional associatedProperty As PropertySymbol = Nothing)
 
-            MyBase.New(syntax, containingType, name, isShared:=False)
+            MyBase.New(syntax, stateMachineType, name, isShared:=False)
 
-            Me._locations = ImmutableArray.Create(Of Location)(syntax.GetLocation())
+            Me._locations = ImmutableArray.Create(syntax.GetLocation())
             Me._debugAttributes = attributes
             Me._accessibility = declaredAccessibility
             Me._enableDebugInfo = enableDebugInfo
@@ -74,8 +53,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._parameters = params.AsImmutableOrNull()
 
             Me._associatedProperty = associatedProperty
-            Me._asyncKickoffMethod = asyncKickoffMethod
         End Sub
+
+        Public ReadOnly Property StateMachineType As StateMachineTypeSymbol
+            Get
+                Return DirectCast(ContainingSymbol, StateMachineTypeSymbol)
+            End Get
+        End Property
 
         Friend Overrides ReadOnly Property TypeMap As TypeSubstitution
             Get
@@ -198,12 +182,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property AsyncKickoffMethod As MethodSymbol
-            Get
-                Return Me._asyncKickoffMethod
-            End Get
-        End Property
-
         Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
             Return True
         End Function
@@ -216,9 +194,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
             Get
-                Return DirectCast(ContainingSymbol, ISynthesizedMethodBodyImplementationSymbol).Method
+                Return StateMachineType.KickoffMethod
             End Get
         End Property
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Return Me.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree)
+        End Function
     End Class
 
 End Namespace

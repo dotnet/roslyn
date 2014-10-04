@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool debuggerHidden;
         private readonly bool generateDebugInfo;
         private readonly PropertySymbol associatedProperty;
-        private readonly MethodSymbol asyncKickoffMethod;
 
         //computed
         private readonly ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
@@ -31,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name = null,
             bool debuggerHidden = false,
             bool generateDebugInfo = true,
-            PropertySymbol associatedProperty = null,
-            MethodSymbol asyncKickoffMethod = null)
+            PropertySymbol associatedProperty = null)
         {
             //it does not make sense to add methods to substituted types
             Debug.Assert(implementingType.IsDefinition);
@@ -44,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.generateDebugInfo = generateDebugInfo;
             this.associatedProperty = associatedProperty;
             this.explicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(interfaceMethod);
-            this.asyncKickoffMethod = asyncKickoffMethod;
 
             // alpha-rename to get the implementation's type parameters
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
@@ -280,11 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             return ImmutableArray<string>.Empty;
-        }
-
-        internal override MethodSymbol AsyncKickoffMethod
-        {
-            get { return this.asyncKickoffMethod; }
         }
     }
 }

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+        internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -232,9 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override Microsoft.Cci.CallingConvention CallingConvention
+        internal sealed override Cci.CallingConvention CallingConvention
         {
-            get { return Microsoft.Cci.CallingConvention.HasThis; }
+            get { return Cci.CallingConvention.HasThis; }
         }
 
         internal sealed override bool IsExplicitInterfaceImplementation
@@ -245,6 +245,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
+        }
+
+        internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
+            return containingType.CalculateLocalSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
         }
 
         #endregion

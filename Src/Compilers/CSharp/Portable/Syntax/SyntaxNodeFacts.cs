@@ -1,22 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public static partial class SyntaxFacts
     {
-
         /// <summary>
         /// Returns true if the node is the alias of an AliasQualifiedNameSyntax
         /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
         public static bool IsAliasQualifier(SyntaxNode node)
         {
             var p = node.Parent as AliasQualifiedNameSyntax;
@@ -378,5 +370,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Returns true if the specified <paramref name="node"/> is a body of an anonymous method, lambda, 
+        /// or a part of a query clause that is syntactically translated to a lambda body.
+        /// </summary>
+        public static bool IsLambdaBody(SyntaxNode node)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var parent = node.Parent;
+            if (parent == null)
+            {
+                return false;
+            }
+
+            switch (parent.CSharpKind())
+            {
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                    return true;
+
+                case SyntaxKind.FromClause:
+                    var fromClause = (FromClauseSyntax)parent;
+                    return fromClause.Expression == node && fromClause.Parent is QueryBodySyntax;
+
+                case SyntaxKind.JoinClause:
+                    var joinClause = (JoinClauseSyntax)parent;
+                    return joinClause.LeftExpression == node || joinClause.RightExpression == node;
+
+                case SyntaxKind.LetClause:
+                    var letClause = (LetClauseSyntax)parent;
+                    return letClause.Expression == node;
+
+                case SyntaxKind.WhereClause:
+                    var whereClause = (WhereClauseSyntax)parent;
+                    return whereClause.Condition == node;
+
+                case SyntaxKind.AscendingOrdering:
+                case SyntaxKind.DescendingOrdering:
+                    var ordering = (OrderingSyntax)parent;
+                    return ordering.Expression == node;
+
+                case SyntaxKind.SelectClause:
+                    var selectClause = (SelectClauseSyntax)parent;
+                    return selectClause.Expression == node;
+
+                case SyntaxKind.GroupClause:
+                    var groupClause = (GroupClauseSyntax)parent;
+                    return groupClause.GroupExpression == node || groupClause.ByExpression == node;
+            }
+
+            return false;
+        }
     }
 }

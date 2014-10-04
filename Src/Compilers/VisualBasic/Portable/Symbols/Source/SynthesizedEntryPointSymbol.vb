@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(ctor.ParameterCount = 2)
 
             Dim submissionResultType = ctor.Parameters(1).Type
-            Dim resultLocal = New SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.None)
+            Dim resultLocal = New SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.LoweringTemp)
             Dim localReference = New BoundLocal(syntax, localSymbol:=resultLocal, isLValue:=True, type:=submissionResultType)
 
             Dim submissionResult As BoundExpression = localReference

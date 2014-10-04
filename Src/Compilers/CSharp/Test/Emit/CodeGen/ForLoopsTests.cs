@@ -509,9 +509,8 @@ class C
                  VerifyIL("C.Main", expectedIL);
         }
 
-        // Empty of  ‘for‘ statement body
         [Fact]
-        public void EmptyOfFor()
+        public void EmptyForBody()
         {
             var text =
 @"
@@ -523,7 +522,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+            CompileAndVerify(text).VerifyIL("C.Main", @"{
   // Code size       15 (0xf)
   .maxstack  2
   .locals init (int V_0) //i
@@ -539,9 +538,7 @@ class C
   IL_000c:  blt.s      IL_0005
   IL_000e:  ret       
 }
-";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
+");
         }
 
         // Nested for Loops 
@@ -1911,11 +1908,13 @@ class Program
 }
 ";
 
-            string expectedIL = @"
+            var c = CompileAndVerify(text, options: TestOptions.DebugExe);
+
+            c.VerifyIL("Program.Main", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (bool V_0) //CS$4$0000
+  .locals init (bool V_0)
   IL_0000:  nop
   IL_0001:  br.s       IL_0010
   IL_0003:  nop
@@ -1926,9 +1925,7 @@ class Program
   IL_0010:  ldc.i4.1
   IL_0011:  stloc.0
   IL_0012:  br.s       IL_0003
-}";
-            CompileAndVerify(text, options: TestOptions.DebugExe).
-                VerifyIL("Program.Main", expectedIL);
+}");
         }
 
     }

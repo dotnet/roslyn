@@ -54,6 +54,7 @@
     <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
+      <Aliases>PDB</Aliases>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
@@ -138,6 +139,7 @@
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="MockSymWriter.cs" />
     <Compile Include="ObjectReference.cs" />
+    <Compile Include="PdbTestUtilities.cs" />
     <Compile Include="PinnedMetadata.cs" />
     <Compile Include="ProcessLauncher.cs" />
     <Compile Include="ProcessResult.cs" />

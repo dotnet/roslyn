@@ -116,7 +116,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns true if writing full metadata, false if writing delta.
         /// </summary>
-        private bool IsFullMetadata
+        internal bool IsFullMetadata
         {
             get { return this.Generation == 0; }
         }

@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 locals = ImmutableArray.Create(Of LocalSymbol)(tempLockObjectLocal, boundLockTakenLocal.LocalSymbol)
                 statements.Add(tempLockTakenAssignment)
                 tryStatements = ImmutableArray.Create(Of BoundStatement)(boundMonitorEnterCallStatement,
-                                                                            DirectCast(Visit(node.Body), BoundBlock))
+                                                      DirectCast(Visit(node.Body), BoundBlock))
             Else
                 locals = ImmutableArray.Create(tempLockObjectLocal)
                 statements.Add(boundMonitorEnterCallStatement)

@@ -40,41 +40,50 @@ End Class
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
-            Dim expected = <symbols>
-                               <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
-                               <methods>
-                                   <method containingType="C1" name="Main" parameterNames="">
-                                       <sequencepoints total="13">
-                                           <entry il_offset="0x0" start_row="16" start_column="5" end_row="16" end_column="29" file_ref="0"/>
-                                           <entry il_offset="0x1" start_row="18" start_column="9" end_row="18" end_column="101" file_ref="0"/>
-                                           <entry il_offset="0x2" start_row="18" start_column="15" end_row="18" end_column="41" file_ref="0"/>
-                                           <entry il_offset="0x8" start_row="18" start_column="43" end_row="18" end_column="69" file_ref="0"/>
-                                           <entry il_offset="0xe" start_row="18" start_column="71" end_row="18" end_column="101" file_ref="0"/>
-                                           <entry il_offset="0x10" start_row="19" start_column="13" end_row="19" end_column="47" file_ref="0"/>
-                                           <entry il_offset="0x1b" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                                           <entry il_offset="0x1d" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
-                                           <entry il_offset="0x2e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                                           <entry il_offset="0x30" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
-                                           <entry il_offset="0x41" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                                           <entry il_offset="0x43" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
-                                           <entry il_offset="0x54" start_row="21" start_column="5" end_row="21" end_column="12" file_ref="0"/>
-                                       </sequencepoints>
-                                       <locals>
-                                           <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
-                                           <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
-                                           <local name="foo3" il_index="2" il_start="0x2" il_end="0x53" attributes="0"/>
-                                       </locals>
-                                       <scope startOffset="0x0" endOffset="0x55">
-                                           <importsforward declaringType="MyDisposable" methodName="Dispose" parameterNames=""/>
-                                           <scope startOffset="0x2" endOffset="0x53">
-                                               <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
-                                               <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
-                                               <local name="foo3" il_index="2" il_start="0x2" il_end="0x53" attributes="0"/>
-                                           </scope>
-                                       </scope>
-                                   </method>
-                               </methods>
-                           </symbols>
+            Dim expected =
+<symbols>
+    <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
+    <methods>
+        <method containingType="C1" name="Main" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="0" offset="6"/>
+                    <slot kind="0" offset="34"/>
+                    <slot kind="0" offset="62"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencepoints total="13">
+                <entry il_offset="0x0" start_row="16" start_column="5" end_row="16" end_column="29" file_ref="0"/>
+                <entry il_offset="0x1" start_row="18" start_column="9" end_row="18" end_column="101" file_ref="0"/>
+                <entry il_offset="0x2" start_row="18" start_column="15" end_row="18" end_column="41" file_ref="0"/>
+                <entry il_offset="0x8" start_row="18" start_column="43" end_row="18" end_column="69" file_ref="0"/>
+                <entry il_offset="0xe" start_row="18" start_column="71" end_row="18" end_column="101" file_ref="0"/>
+                <entry il_offset="0x10" start_row="19" start_column="13" end_row="19" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1b" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x1d" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
+                <entry il_offset="0x2e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x30" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
+                <entry il_offset="0x41" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x43" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
+                <entry il_offset="0x54" start_row="21" start_column="5" end_row="21" end_column="12" file_ref="0"/>
+            </sequencepoints>
+            <locals>
+                <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
+                <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
+                <local name="foo3" il_index="2" il_start="0x2" il_end="0x53" attributes="0"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0x55">
+                <importsforward declaringType="MyDisposable" methodName="Dispose" parameterNames=""/>
+                <scope startOffset="0x2" endOffset="0x53">
+                    <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
+                    <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
+                    <local name="foo3" il_index="2" il_start="0x2" il_end="0x53" attributes="0"/>
+                </scope>
+            </scope>
+        </method>
+    </methods>
+</symbols>
 
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub

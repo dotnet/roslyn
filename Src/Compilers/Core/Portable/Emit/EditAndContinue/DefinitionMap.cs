@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -13,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         protected struct MethodDefinitionEntry
         {
-            public MethodDefinitionEntry(IMethodSymbol previousMethod, bool preserveLocalVariables, Func<SyntaxNode, SyntaxNode> syntaxMap)
+            public MethodDefinitionEntry(IMethodSymbolInternal previousMethod, bool preserveLocalVariables, Func<SyntaxNode, SyntaxNode> syntaxMap)
             {
                 this.PreviousMethod = previousMethod;
                 this.PreserveLocalVariables = preserveLocalVariables;
                 this.SyntaxMap = syntaxMap;
             }
 
-            public readonly IMethodSymbol PreviousMethod;
+            public readonly IMethodSymbolInternal PreviousMethod;
             public readonly bool PreserveLocalVariables;
             public readonly Func<SyntaxNode, SyntaxNode> SyntaxMap;
         }
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (method != null)
                     {
                         methodMap.Add(method, new MethodDefinitionEntry(
-                            (IMethodSymbol)edit.OldSymbol,
+                            (IMethodSymbolInternal)edit.OldSymbol,
                             edit.PreserveLocalVariables,
                             edit.SyntaxMap));
                     }
@@ -66,10 +67,25 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method);
 
-        internal abstract ImmutableArray<EncLocalInfo> GetLocalInfo(
-            Cci.IMethodDefinition def,
-            ImmutableArray<Cci.ILocalDefinition> localDefs,
-            ImmutableArray<byte[]> signatures);
+        internal ImmutableArray<EncLocalInfo> GetLocalInfo(Cci.IMethodDefinition methodDef, ImmutableArray<Cci.ILocalDefinition> localDefs, ImmutableArray<byte[]> signatures)
+        {
+            if (localDefs.IsEmpty)
+            {
+                return ImmutableArray<EncLocalInfo>.Empty;
+            }
+
+            return localDefs.SelectAsArray((localDef, i, _) => GetLocalInfo(localDef, signatures[i]), (object)null);
+        }
+
+        private static EncLocalInfo GetLocalInfo(Cci.ILocalDefinition localDef, byte[] signature)
+        {
+            if (localDef.Id.IsNone)
+            {
+                return new EncLocalInfo(signature);
+            }
+
+            return new EncLocalInfo(localDef.Id, localDef.Type, localDef.Constraints, localDef.Kind, signature);
+        }
 
         internal abstract bool DefinitionExists(Cci.IDefinition def);
     }

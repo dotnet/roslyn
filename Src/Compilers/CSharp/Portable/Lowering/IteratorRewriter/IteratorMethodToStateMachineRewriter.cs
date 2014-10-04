@@ -457,24 +457,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return yieldsInTryAnalysis.ContainsYields(statement);
         }
 
-
         private IteratorFinallyMethodSymbol MakeSynthesizedFinally(int state)
         {
-            // we can pick any name, but we will try to do
-            // <>m__Finally1
-            // <>m__Finally2
-            // <>m__Finally3
-            // . . . 
-            // that will roughly match native naming scheme and may also be easier when need to debug.
-            string name = "<>m__Finally" + Math.Abs(state + 2);
-
             var stateMachineType = (IteratorStateMachine)F.CurrentClass;
-            Debug.Assert(stateMachineType != null);
-
-            var finallyMethod = new IteratorFinallyMethodSymbol(stateMachineType, name);
+            var finallyMethod = new IteratorFinallyMethodSymbol(stateMachineType, GeneratedNames.MakeIteratorFinallyMethodName(state));
 
             F.ModuleBuilderOpt.AddSynthesizedDefinition(stateMachineType, finallyMethod);
-
             return finallyMethod;
         }
 

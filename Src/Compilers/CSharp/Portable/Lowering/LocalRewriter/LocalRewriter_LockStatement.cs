@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundAssignmentOperator assignmentToLockTemp;
-            BoundLocal boundLockTemp = this.factory.StoreToTemp(rewrittenArgument, out assignmentToLockTemp, kind: SynthesizedLocalKind.Lock);
+            BoundLocal boundLockTemp = this.factory.StoreToTemp(rewrittenArgument, out assignmentToLockTemp, syntaxOpt: lockSyntax, kind: SynthesizedLocalKind.Lock);
 
             BoundStatement boundLockTempInit = new BoundExpressionStatement(lockSyntax, assignmentToLockTemp);
             if (this.GenerateDebugInfo)
@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 exitCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
             }
 
-            BoundStatement exitCall = new BoundExpressionStatement(
-                lockSyntax,
-                exitCallExpr);
+            BoundStatement exitCall = new BoundExpressionStatement(lockSyntax, exitCallExpr);
 
             MethodSymbol enterMethod;
 
@@ -121,10 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol boolType = this.compilation.GetSpecialType(SpecialType.System_Boolean);
                 BoundAssignmentOperator assignmentToTemp;
+
                 BoundLocal boundFlagTemp = this.factory.StoreToTemp(
                     MakeLiteral(rewrittenArgument.Syntax, ConstantValue.False, boolType),
-                    kind: SynthesizedLocalKind.LockTaken,
-                    store: out assignmentToTemp);
+                    store: out assignmentToTemp,
+                    syntaxOpt: lockSyntax,
+                    kind: SynthesizedLocalKind.LockTaken);
 
                 BoundStatement boundFlagTempInit = new BoundExpressionStatement(lockSyntax, assignmentToTemp);
                 if (this.GenerateDebugInfo)

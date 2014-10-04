@@ -129,8 +129,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
             {
-                var disposeMethod = OpenMethodImplementation(IDisposable_Dispose, debuggerHidden: true, generateDebugInfo: false, hasMethodBodyDependency: true);
-                var moveNextMethod = OpenMethodImplementation(IEnumerator_MoveNext, methodName: WellKnownMemberNames.MoveNextMethodName, hasMethodBodyDependency: true, debuggerHidden: IsDebuggerHidden(this.method));
+                var disposeMethod = OpenMethodImplementation(
+                    IDisposable_Dispose, 
+                    debuggerHidden: true, 
+                    generateDebugInfo: false, 
+                    hasMethodBodyDependency: true);
+
+                var moveNextMethod = OpenMethodImplementation(
+                    IEnumerator_MoveNext, 
+                    methodName: WellKnownMemberNames.MoveNextMethodName, 
+                    debuggerHidden: IsDebuggerHidden(this.method),
+                    hasMethodBodyDependency: true);
+
                 GenerateMoveNextAndDispose(moveNextMethod, disposeMethod);
             }
 
@@ -179,7 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp
              
             // The implementation doesn't depend on the method body of the iterator method.
             // Only on it's parameters and staticness.
-            var getEnumeratorGeneric = OpenMethodImplementation(IEnumerableOfElementType_GetEnumerator, debuggerHidden: true, generateDebugInfo: false, hasMethodBodyDependency: false);
+            var getEnumeratorGeneric = OpenMethodImplementation(
+                IEnumerableOfElementType_GetEnumerator, 
+                debuggerHidden: true, 
+                generateDebugInfo: false,
+                hasMethodBodyDependency: false);
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             var resultVariable = F.SynthesizedLocal(stateMachineType, null);      // iteratorClass result;
