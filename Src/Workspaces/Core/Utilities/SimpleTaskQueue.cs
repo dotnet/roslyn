@@ -72,5 +72,13 @@ namespace Roslyn.Utilities
                 delay => this.latestTask.ContinueWithAfterDelay(
                     t => taskFunc(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler).Unwrap());
         }
+
+        public Task LastScheduledTask
+        {
+            get
+            {
+                return this.latestTask;
+            }
+        }
     }
 }
