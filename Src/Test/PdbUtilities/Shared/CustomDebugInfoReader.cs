@@ -57,21 +57,42 @@ namespace Roslyn.Utilities.Pdb
 
         internal static ImmutableArray<byte> TryGetCustomDebugInfoRecord(byte[] customDebugInfo, CustomDebugInfoKind recordKind)
         {
+            if (customDebugInfo.Length < CdiGlobalHeaderSize)
+            {
+                return default(ImmutableArray<byte>);
+            }
+
             int offset = 0;
 
             byte globalVersion;
             byte globalCount;
             ReadGlobalHeader(customDebugInfo, ref offset, out globalVersion, out globalCount);
 
-            while (offset < customDebugInfo.Length)
+            if (globalVersion != CdiVersion)
+            {
+                return default(ImmutableArray<byte>);
+            }
+
+            while (offset <= customDebugInfo.Length - CdiRecordHeaderSize)
             {
                 byte version;
                 CustomDebugInfoKind kind;
                 int size;
 
                 ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size);
+                if (size < CdiRecordHeaderSize)
+                {
+                    // invalid header
+                    break;
+                }
 
                 int bodySize = size - CdiRecordHeaderSize;
+                if (offset > customDebugInfo.Length - bodySize)
+                {
+                    // invalid header
+                    break;
+                }
+
                 if (version != CdiVersion || kind != recordKind)
                 {
                     offset += bodySize;

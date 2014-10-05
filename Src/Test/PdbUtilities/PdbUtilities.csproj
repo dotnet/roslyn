@@ -111,6 +111,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

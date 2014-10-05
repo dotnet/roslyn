@@ -24,12 +24,14 @@
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
     <Compile Include="AnalyzerFileReferenceTests.cs" />
+    <Compile Include="Emit\CustomDebugInfoReaderTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
+      <Aliases>PDB</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\TestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
