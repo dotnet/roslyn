@@ -869,7 +869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function NamespaceImportDeclaration(name As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.MembersImportsClause(DirectCast(name, NameSyntax))))
+            Return SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.SimpleImportsClause(DirectCast(name, NameSyntax))))
         End Function
 
         Public Overrides Function NamespaceDeclaration(name As SyntaxNode, nestedDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode

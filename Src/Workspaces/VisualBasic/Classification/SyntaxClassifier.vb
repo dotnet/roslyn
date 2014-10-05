@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Public ReadOnly DefaultSyntaxClassifiers As IEnumerable(Of ISyntaxClassifier) =
             ImmutableArray.Create(Of ISyntaxClassifier)(
                 New NameSyntaxClassifier(),
-                New AliasImportsClauseSyntaxClassifier()
+                New ImportAliasClauseSyntaxClassifier()
             )
     End Module
 End Namespace

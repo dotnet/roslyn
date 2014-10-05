@@ -1160,7 +1160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the corresponding AliasSymbol for a specified AliasImportsClauseSyntax.
         ''' </summary>
         <Extension>
-        Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As AliasImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
+        Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As SimpleImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
             Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)

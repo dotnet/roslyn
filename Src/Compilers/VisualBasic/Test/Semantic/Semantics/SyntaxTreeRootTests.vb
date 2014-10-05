@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub SyntaxTreeCreateAcceptsAnySyntaxNode()
-            Dim node As VisualBasicSyntaxNode = SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.MembersImportsClause(SyntaxFactory.IdentifierName("Blah"))))
+            Dim node As VisualBasicSyntaxNode = SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.SimpleImportsClause(SyntaxFactory.IdentifierName("Blah"))))
             Dim tree = VisualBasicSyntaxTree.Create(node)
             CheckTree(tree)
         End Sub

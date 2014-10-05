@@ -690,9 +690,9 @@ End Namespace
     </compilation>)
 
             Dim tree = comp.SyntaxTrees(0)
-            CheckDeclaringSyntax(Of AliasImportsClauseSyntax)(comp, tree, "ConsoleAlias", SymbolKind.Alias)
-            CheckDeclaringSyntax(Of AliasImportsClauseSyntax)(comp, tree, "FooAlias", SymbolKind.Alias)
-            CheckDeclaringSyntax(Of AliasImportsClauseSyntax)(comp, tree, "ListOfIntAlias", SymbolKind.Alias)
+            CheckDeclaringSyntax(Of SimpleImportsClauseSyntax)(comp, tree, "ConsoleAlias", SymbolKind.Alias)
+            CheckDeclaringSyntax(Of SimpleImportsClauseSyntax)(comp, tree, "FooAlias", SymbolKind.Alias)
+            CheckDeclaringSyntax(Of SimpleImportsClauseSyntax)(comp, tree, "ListOfIntAlias", SymbolKind.Alias)
         End Sub
 
         <Fact>

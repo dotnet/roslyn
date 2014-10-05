@@ -1520,7 +1520,7 @@ End Class
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AliasImportsClause, 1).AsNode(), AliasImportsClauseSyntax)
+            Dim importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 1).AsNode(), SimpleImportsClauseSyntax)
             Dim aliasSymbol = DirectCast(model.GetDeclaredSymbol(importsClause), AliasSymbol)
             Assert.NotNull(aliasSymbol)
             Assert.Equal("M", aliasSymbol.Name)
@@ -1532,30 +1532,28 @@ End Class
             Assert.False(aliasSymbol.IsOverridable)
             Assert.False(aliasSymbol.IsShared)
             Assert.Equal(1, aliasSymbol.DeclaringSyntaxReferences.Length)
-            Assert.Equal(SyntaxKind.AliasImportsClause, aliasSymbol.DeclaringSyntaxReferences.First.GetSyntax().VisualBasicKind)
+            Assert.Equal(SyntaxKind.SimpleImportsClause, aliasSymbol.DeclaringSyntaxReferences.First.GetSyntax().VisualBasicKind)
             Assert.Equal(Accessibility.NotApplicable, aliasSymbol.DeclaredAccessibility)
             Dim x8 As Symbol = aliasSymbol.ContainingSymbol
             Assert.Equal(aliasSymbol.Locations.Item(0).GetHashCode, aliasSymbol.GetHashCode)
             Assert.Equal(aliasSymbol, aliasSymbol)
             Assert.NotNull(aliasSymbol)
-            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AliasImportsClause, 2).AsNode(), AliasImportsClauseSyntax)
+            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 2).AsNode(), SimpleImportsClauseSyntax)
             Assert.Equal("MS_=Microsoft", model.GetDeclaredSymbol(importsClause).ToTestDisplayString())
-            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AliasImportsClause, 3).AsNode(), AliasImportsClauseSyntax)
+            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 3).AsNode(), SimpleImportsClauseSyntax)
             Assert.Equal("Sys=System.Collections", model.GetDeclaredSymbol(importsClause).ToTestDisplayString())
-            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AliasImportsClause, 4).AsNode(), AliasImportsClauseSyntax)
+            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 4).AsNode(), SimpleImportsClauseSyntax)
             Assert.Equal("Sys_Collections=System", model.GetDeclaredSymbol(importsClause).ToTestDisplayString())
-            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AliasImportsClause, 5).AsNode(), AliasImportsClauseSyntax)
+            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 5).AsNode(), SimpleImportsClauseSyntax)
             Assert.Equal("Sys_Collections_BitArray=System.Collections.BitArray", model.GetDeclaredSymbol(importsClause).ToTestDisplayString())
-            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AliasImportsClause, 6).AsNode(), AliasImportsClauseSyntax)
+            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 6).AsNode(), SimpleImportsClauseSyntax)
             Assert.Equal("MS_=System.Collections", model.GetDeclaredSymbol(importsClause).ToTestDisplayString())
-            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AliasImportsClause, 7).AsNode(), AliasImportsClauseSyntax)
+            importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 7).AsNode(), SimpleImportsClauseSyntax)
             Assert.Equal("M=System.Collections", model.GetDeclaredSymbol(importsClause).ToTestDisplayString())
 
-            Dim genericSyntax = tree.FindNodeOrTokenByKind(SyntaxKind.AliasImportsClause, 7).AsNode()
+            Dim genericSyntax = tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 7).AsNode()
             Assert.Equal("M=System.Collections", model.GetDeclaredSymbolFromSyntaxNode(genericSyntax).ToTestDisplayString())
         End Sub
-
-
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolForOnErrorGotoLabels()
@@ -1632,10 +1630,10 @@ Imports VB6 = Microsoft.VisualBasic
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
-            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("VB6")).Parent
+            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("VB6")).Parent.Parent
             Dim symbol = bindingsA.GetDeclaredSymbol(node)
 
-            Assert.Equal(SyntaxKind.AliasImportsClause, node.VisualBasicKind)
+            Assert.Equal(SyntaxKind.SimpleImportsClause, node.VisualBasicKind)
             Assert.Null(symbol)
 
         End Sub

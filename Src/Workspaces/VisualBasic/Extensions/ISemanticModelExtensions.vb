@@ -194,7 +194,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function GetImportNamespacesInScope(semanticModel As SemanticModel, location As SyntaxNode) As ISet(Of INamespaceSymbol)
             Dim q =
                 From u In location.GetAncestorOrThis(Of CompilationUnitSyntax).Imports
-                From importClause In u.ImportsClauses.OfType(Of MembersImportsClauseSyntax)()
+                From importClause In u.ImportsClauses.OfType(Of SimpleImportsClauseSyntax)()
+                Where importClause.Alias Is Nothing
                 Let info = semanticModel.GetSymbolInfo(importClause.Name)
                 Let ns = TryCast(info.Symbol, INamespaceSymbol)
                 Where ns IsNot Nothing

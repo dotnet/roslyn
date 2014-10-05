@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             For Each importsClause In root.GetAliasImportsClauses()
-                importsClause.Alias.ValueText.AppendToAliasNameSet(builder)
+                importsClause.Alias.Identifier.ValueText.AppendToAliasNameSet(builder)
             Next
 
             Return builder.ToImmutable()

@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             ' Simple cases first
-            If token.IsChildToken(Of AliasImportsClauseSyntax)(Function(aliasImportsClause) aliasImportsClause.EqualsToken) OrElse
+            If token.IsChildToken(Of ImportAliasClauseSyntax)(Function(importAliasClause) importAliasClause.EqualsToken) OrElse
                token.IsChildToken(Of ArrayCreationExpressionSyntax)(Function(arrayCreation) arrayCreation.NewKeyword) OrElse
                token.IsChildToken(Of AsNewClauseSyntax)(Function(asNewClause) asNewClause.NewExpression.NewKeyword) OrElse
                token.IsChildToken(Of InheritsStatementSyntax)(Function(node) node.InheritsKeyword) OrElse

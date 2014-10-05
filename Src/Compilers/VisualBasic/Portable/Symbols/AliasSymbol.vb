@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(Of AliasImportsClauseSyntax)(Locations)
+                Return GetDeclaringSyntaxReferenceHelper(Of SimpleImportsClauseSyntax)(Locations)
             End Get
         End Property
 

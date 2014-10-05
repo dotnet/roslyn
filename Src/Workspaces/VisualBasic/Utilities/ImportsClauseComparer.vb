@@ -22,12 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Friend Shared Function CompareClauses(x As ImportsClauseSyntax, y As ImportsClauseSyntax, nameComparer As IComparer(Of NameSyntax)) As Integer
-            Dim imports1 = TryCast(x, MembersImportsClauseSyntax)
-            Dim imports2 = TryCast(y, MembersImportsClauseSyntax)
+            Dim imports1 = TryCast(x, SimpleImportsClauseSyntax)
+            Dim imports2 = TryCast(y, SimpleImportsClauseSyntax)
             Dim xml1 = TryCast(x, XmlNamespaceImportsClauseSyntax)
             Dim xml2 = TryCast(y, XmlNamespaceImportsClauseSyntax)
-            Dim alias1 = TryCast(x, AliasImportsClauseSyntax)
-            Dim alias2 = TryCast(y, AliasImportsClauseSyntax)
 
             If xml1 IsNot Nothing AndAlso xml2 Is Nothing Then
                 Return 1
@@ -37,14 +35,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Return CompareXmlNames(
                     DirectCast(xml1.XmlNamespace.Name, XmlNameSyntax),
                     DirectCast(xml2.XmlNamespace.Name, XmlNameSyntax))
-            ElseIf alias1 IsNot Nothing AndAlso alias2 Is Nothing Then
-                Return 1
-            ElseIf alias1 Is Nothing AndAlso alias2 IsNot Nothing Then
-                Return -1
-            ElseIf alias1 IsNot Nothing AndAlso alias2 IsNot Nothing Then
-                Return TokenComparer.NormalInstance.Compare(alias1.Alias, alias2.Alias)
             ElseIf imports1 IsNot Nothing AndAlso imports2 IsNot Nothing Then
-                Return nameComparer.Compare(imports1.Name, imports2.Name)
+                If imports1.Alias IsNot Nothing AndAlso imports2.Alias Is Nothing Then
+                    Return 1
+                ElseIf imports1.Alias Is Nothing AndAlso imports2.Alias IsNot Nothing Then
+                    Return -1
+                ElseIf imports1.Alias IsNot Nothing AndAlso imports2.Alias IsNot Nothing Then
+                    Return TokenComparer.NormalInstance.Compare(imports1.Alias.Identifier, imports2.Alias.Identifier)
+                Else
+                    Return nameComparer.Compare(imports1.Name, imports2.Name)
+                End If
             End If
 
             Return 0

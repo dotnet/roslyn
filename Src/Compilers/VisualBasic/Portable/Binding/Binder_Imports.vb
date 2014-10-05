@@ -53,11 +53,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      data As ImportData,
                                                      diagBag As DiagnosticBag)
                 Select Case importClauseSyntax.Kind
-                    Case SyntaxKind.AliasImportsClause
-                        BindAliasImportsClause(DirectCast(importClauseSyntax, AliasImportsClauseSyntax), binder, data, diagBag)
+                    Case SyntaxKind.SimpleImportsClause
 
-                    Case SyntaxKind.MembersImportsClause
-                        BindMembersImportsClause(DirectCast(importClauseSyntax, MembersImportsClauseSyntax), binder, data, diagBag)
+                        Dim simpleImportsClause = DirectCast(importClauseSyntax, SimpleImportsClauseSyntax)
+
+                        If simpleImportsClause.Alias Is Nothing Then
+                            BindMembersImportsClause(simpleImportsClause, binder, data, diagBag)
+                        Else
+                            BindAliasImportsClause(simpleImportsClause, binder, data, diagBag)
+                        End If
 
                     Case SyntaxKind.XmlNamespaceImportsClause
                         BindXmlNamespaceImportsClause(DirectCast(importClauseSyntax, XmlNamespaceImportsClauseSyntax), binder, data, diagBag)
@@ -67,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             ' Bind an alias imports clause. If it is OK, and also unique, add it to the dictionary.
-            Private Shared Sub BindAliasImportsClause(aliasImportSyntax As AliasImportsClauseSyntax,
+            Private Shared Sub BindAliasImportsClause(aliasImportSyntax As SimpleImportsClauseSyntax,
                                                       binder As Binder,
                                                       data As ImportData,
                                                       diagBag As DiagnosticBag)
@@ -78,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim type = TryCast(aliasTarget, TypeSymbol)
 
                     If type Is Nothing OrElse type.IsDelegateType Then
-                        binder.ReportDiagnostic(diagBag,
+                        Binder.ReportDiagnostic(diagBag,
                                                 aliasImportSyntax,
                                                 ERRID.ERR_InvalidTypeForAliasesImport2,
                                                 aliasTarget,
@@ -87,13 +91,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If aliasTarget.Kind <> SymbolKind.ErrorType Then
-                    Dim aliasIdentifier = aliasImportSyntax.Alias
+                    Dim aliasIdentifier = aliasImportSyntax.Alias.Identifier
                     Dim aliasText = aliasIdentifier.ValueText
                     ' Parser checks for type characters on alias text, so don't need to check again here.
 
                     ' Check for duplicate symbol.
                     If data.Aliases.ContainsKey(aliasText) Then
-                        binder.ReportDiagnostic(diagBag, aliasIdentifier, ERRID.ERR_DuplicateNamedImportAlias1, aliasText)
+                        Binder.ReportDiagnostic(diagBag, aliasIdentifier, ERRID.ERR_DuplicateNamedImportAlias1, aliasText)
                     Else
                         ' Make sure that the Import's alias doesn't have the same name as a type or a namespace in the global namespace
                         Dim conflictsWith = binder.Compilation.GlobalNamespace.GetMembers(aliasText)
@@ -101,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If Not conflictsWith.IsEmpty Then
                             ' TODO: Note that symbol's name in this error message is supposed to include Class/Namespace word at the beginning.
                             '       Might need to use special format for that parameter in the error message. 
-                            binder.ReportDiagnostic(diagBag,
+                            Binder.ReportDiagnostic(diagBag,
                                                     aliasImportSyntax,
                                                     ERRID.ERR_ImportAliasConflictsWithType2,
                                                     aliasText,
@@ -111,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             '       alias 'declaration' fails in case the symbol has errors.
                             Dim useSiteErrorInfo As DiagnosticInfo = aliasTarget.GetUseSiteErrorInfo()
                             If Not AllowAliasWithUseSiteError(useSiteErrorInfo) Then
-                                binder.ReportDiagnostic(diagBag, aliasImportSyntax, useSiteErrorInfo)
+                                Binder.ReportDiagnostic(diagBag, aliasImportSyntax, useSiteErrorInfo)
                                 ' NOTE: Do not create an alias!!!
 
                             Else
@@ -139,10 +143,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             ' Bind a members imports clause. If it is OK, and also unique, add it to the members imports set.
-            Private Shared Sub BindMembersImportsClause(membersImportsSyntax As MembersImportsClauseSyntax,
+            Private Shared Sub BindMembersImportsClause(membersImportsSyntax As SimpleImportsClauseSyntax,
                                                         binder As Binder,
                                                         data As ImportData,
                                                         diagBag As DiagnosticBag)
+                Debug.Assert(membersImportsSyntax.Alias Is Nothing)
                 Dim importsName = membersImportsSyntax.Name
                 Dim importedSymbol As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(importsName, diagBag)
 

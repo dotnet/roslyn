@@ -2723,7 +2723,7 @@ _Default:
         ''' </summary>
         ''' <param name="declarationSyntax">The import statement syntax node.</param>
         ''' <returns>The alias symbol that was declared or Nothing if no alias symbol was declared.</returns>
-        Public MustOverride Overloads Function GetDeclaredSymbol(declarationSyntax As AliasImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
+        Public MustOverride Overloads Function GetDeclaredSymbol(declarationSyntax As SimpleImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
 
         ''' <summary>
         ''' Given a field declaration syntax, get the corresponding symbols.
@@ -3240,8 +3240,8 @@ _Default:
             Dim node = DirectCast(declaration, VisualBasicSyntaxNode)
 
             Select Case node.Kind
-                Case SyntaxKind.AliasImportsClause
-                    Return Me.GetDeclaredSymbol(DirectCast(node, AliasImportsClauseSyntax), cancellationToken)
+                Case SyntaxKind.SimpleImportsClause
+                    Return Me.GetDeclaredSymbol(DirectCast(node, SimpleImportsClauseSyntax), cancellationToken)
 
                 Case SyntaxKind.ModifiedIdentifier
                     Return Me.GetDeclaredSymbol(DirectCast(node, ModifiedIdentifierSyntax), cancellationToken)

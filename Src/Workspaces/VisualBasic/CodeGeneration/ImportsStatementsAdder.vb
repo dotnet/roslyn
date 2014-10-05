@@ -58,7 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Overloads Function GetExistingNamespaces(semanticModel As SemanticModel, compilationUnit As CompilationUnitSyntax, cancellationToken As CancellationToken) As IList(Of INamespaceSymbol)
             Dim memberImports =
                 From i In compilationUnit.Imports
-                From c In i.ImportsClauses.OfType(Of MembersImportsClauseSyntax)()
+                From c In i.ImportsClauses.OfType(Of SimpleImportsClauseSyntax)()
+                Where c.Alias Is Nothing
                 Let symbol = TryCast(semanticModel.GetSymbolInfo(c.Name, cancellationToken).Symbol, INamespaceSymbol)
                 Where symbol IsNot Nothing AndAlso Not symbol.IsGlobalNamespace
                 Select symbol
@@ -92,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 From n In importsContainerToMissingNamespaces.Values.Flatten
                 Let name = DirectCast(n.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
                 Select SyntaxFactory.ImportsStatement(
-                    importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.MembersImportsClause(name)))
+                    importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.SimpleImportsClause(name)))
 
             Dim newRoot = root.AddImportsStatements(
                 usingDirectives.ToList(), placeSystemNamespaceFirst,

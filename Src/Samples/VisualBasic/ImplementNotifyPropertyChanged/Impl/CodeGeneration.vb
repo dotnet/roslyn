@@ -73,9 +73,9 @@ Friend Module CodeGeneration
     Private Function WithImport(root As CompilationUnitSyntax, name As String) As CompilationUnitSyntax
         If Not root.Imports _
             .SelectMany(Function(i) i.ImportsClauses) _
-            .Any(Function(i) i.IsKind(SyntaxKind.MembersImportsClause) AndAlso DirectCast(i, MembersImportsClauseSyntax).Name.ToString() = name) Then
+            .Any(Function(i) i.IsKind(SyntaxKind.SimpleImportsClause) AndAlso DirectCast(i, SimpleImportsClauseSyntax).Name.ToString() = name) Then
 
-            Dim clause As ImportsClauseSyntax = SyntaxFactory.MembersImportsClause(SyntaxFactory.ParseName(name).NormalizeWhitespace(elasticTrivia:=True))
+            Dim clause As ImportsClauseSyntax = SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName(name).NormalizeWhitespace(elasticTrivia:=True))
             Dim clauseList = SyntaxFactory.SeparatedList({clause})
             Dim statement = SyntaxFactory.ImportsStatement(clauseList)
             statement = statement.WithAdditionalAnnotations(Formatter.Annotation)

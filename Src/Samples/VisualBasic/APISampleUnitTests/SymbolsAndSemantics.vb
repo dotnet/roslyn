@@ -53,7 +53,7 @@ End Class
         Dim code = New TestCodeContainer("Imports System")
         Dim compilationUnit = CType(code.SyntaxTree.GetRoot(), CompilationUnitSyntax)
 
-        Dim name = CType(compilationUnit.Imports(0).ImportsClauses.First(), MembersImportsClauseSyntax).Name
+        Dim name = CType(compilationUnit.Imports(0).ImportsClauses.First(), SimpleImportsClauseSyntax).Name
         Assert.AreEqual("System", name.ToString())
 
         Dim nameInfo = code.SemanticModel.GetSymbolInfo(name)

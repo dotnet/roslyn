@@ -108,14 +108,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 If name IsNot Nothing Then
                     Return SyntaxFactory.ImportsStatement(
                         SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(
-                            SyntaxFactory.AliasImportsClause([alias].Name.ToIdentifierToken, name)))
+                            SyntaxFactory.SimpleImportsClause(SyntaxFactory.ImportAliasClause([alias].Name.ToIdentifierToken), name)))
                 End If
             ElseIf TypeOf import Is INamespaceOrTypeSymbol Then
                 Dim name = GenerateName(DirectCast(import, INamespaceOrTypeSymbol))
                 If name IsNot Nothing Then
                     Return SyntaxFactory.ImportsStatement(
                         SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(
-                            SyntaxFactory.MembersImportsClause(name)))
+                            SyntaxFactory.SimpleImportsClause(name)))
                 End If
             End If
 

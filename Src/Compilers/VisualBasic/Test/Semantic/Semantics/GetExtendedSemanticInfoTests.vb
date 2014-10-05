@@ -8592,7 +8592,7 @@ End Module
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
-            Dim aliases = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of AliasImportsClauseSyntax).ToArray()
+            Dim aliases = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of SimpleImportsClauseSyntax).ToArray()
 
             Assert.Equal(2, aliases.Length)
 

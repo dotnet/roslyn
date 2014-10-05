@@ -154,9 +154,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Function IsUsingDirectiveName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingDirectiveName
-            Return _
-                (node.IsParentKind(SyntaxKind.AliasImportsClause) AndAlso DirectCast(node.Parent, AliasImportsClauseSyntax).Name Is node) OrElse
-                (node.IsParentKind(SyntaxKind.MembersImportsClause) AndAlso DirectCast(node.Parent, MembersImportsClauseSyntax).Name Is node)
+            Return node.IsParentKind(SyntaxKind.SimpleImportsClause) AndAlso
+                   DirectCast(node.Parent, SimpleImportsClauseSyntax).Name Is node
         End Function
 
         Public Function IsForEachStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsForEachStatement

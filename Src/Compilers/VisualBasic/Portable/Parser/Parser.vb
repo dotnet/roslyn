@@ -4654,7 +4654,7 @@ checkNullable:
                         allowGlobalNameSpace:=False,
                         allowGenericArguments:=True,
                         allowGenericsWithoutOf:=True)
-                    importsClause = SyntaxFactory.AliasImportsClause(aliasIdentifier, equalsToken, name)
+                    importsClause = SyntaxFactory.SimpleImportsClause(SyntaxFactory.ImportAliasClause(aliasIdentifier, equalsToken), name)
                 Else
                     Dim name = ParseName(
                         requireQualification:=False,
@@ -4662,7 +4662,7 @@ checkNullable:
                         allowGenericArguments:=True,
                         allowGenericsWithoutOf:=True)
 
-                    importsClause = SyntaxFactory.MembersImportsClause(name)
+                    importsClause = SyntaxFactory.SimpleImportsClause(Nothing, name)
                 End If
 
             End If

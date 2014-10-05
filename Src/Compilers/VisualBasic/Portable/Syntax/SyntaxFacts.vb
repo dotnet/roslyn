@@ -786,17 +786,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Is this node in a place where is must bind to either a namespace or a type.
         Public Shared Function IsInNamespaceOrTypeContext(node As SyntaxNode) As Boolean
             If node IsNot Nothing Then
-                If Not TypeOf node Is TypeSyntax Then
+                If TypeOf node IsNot TypeSyntax Then
                     Return False ' Only nodes deriving from TypeSyntax could possible be in type or namespace context.
                 End If
 
                 Dim parent = node.Parent
                 If parent IsNot Nothing Then
                     Select Case parent.VisualBasicKind()
-                        Case SyntaxKind.AliasImportsClause
-                            Return DirectCast(parent, AliasImportsClauseSyntax).Name Is node
-                        Case SyntaxKind.MembersImportsClause
-                            Return DirectCast(parent, MembersImportsClauseSyntax).Name Is node
+                        Case SyntaxKind.SimpleImportsClause
+                            Return DirectCast(parent, SimpleImportsClauseSyntax).Name Is node
                         Case SyntaxKind.NamespaceStatement
                             Return DirectCast(parent, NamespaceStatementSyntax).Name Is node
                         Case SyntaxKind.QualifiedName

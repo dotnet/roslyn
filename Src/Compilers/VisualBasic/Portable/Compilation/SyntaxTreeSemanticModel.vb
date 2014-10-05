@@ -1307,7 +1307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="declarationSyntax">The import statement syntax node.</param>
         ''' <returns>The alias symbol that was declared or Nothing if no alias symbol was declared.</returns>
-        Public Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As AliasImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
+        Public Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As SimpleImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
             Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetDeclaredSymbol, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
                 If declarationSyntax Is Nothing Then
                     Throw New ArgumentNullException("declarationSyntax")
@@ -1317,7 +1317,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw New ArgumentException(VBResources.DeclarationSyntaxNotWithinTree)
                 End If
 
-                Dim aliasName As String = declarationSyntax.Alias.ValueText
+                If declarationSyntax.Alias Is Nothing Then
+                    Return Nothing
+                End If
+
+                Dim aliasName As String = declarationSyntax.Alias.Identifier.ValueText
 
                 If Not String.IsNullOrEmpty(aliasName) Then
                     Dim sourceFile = Me._sourceModule.GetSourceFile(Me.SyntaxTree)

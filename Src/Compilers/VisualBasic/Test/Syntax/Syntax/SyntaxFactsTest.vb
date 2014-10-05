@@ -840,7 +840,7 @@ End Namespace
         Assert.True(SyntaxFacts.IsPunctuationOrKeyword(SyntaxKind.AddHandlerKeyword))
         Assert.True(SyntaxFacts.IsPunctuationOrKeyword(SyntaxKind.EndOfXmlToken))
         Assert.False(SyntaxFacts.IsPunctuationOrKeyword(SyntaxKind.XmlNameToken))
-        Assert.False(SyntaxFacts.IsPunctuationOrKeyword(SyntaxKind.AliasImportsClause))
+        Assert.False(SyntaxFacts.IsPunctuationOrKeyword(SyntaxKind.ImportAliasClause))
         Assert.False(SyntaxFacts.IsPunctuationOrKeyword(SyntaxKind.ForStatement))
     End Sub
 

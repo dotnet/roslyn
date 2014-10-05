@@ -323,8 +323,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Now process alias imports
             For Each globalImport In Options.GlobalImports
-                If globalImport.Clause.Kind = SyntaxKind.AliasImportsClause Then
-                    checker.AddAlias(DirectCast(globalImport.Clause, AliasImportsClauseSyntax))
+                If globalImport.Clause.Kind = SyntaxKind.SimpleImportsClause Then
+                    Dim simpleImportsClause = DirectCast(globalImport.Clause, SimpleImportsClauseSyntax)
+
+                    If simpleImportsClause.Alias IsNot Nothing Then
+                        checker.AddAlias(simpleImportsClause)
+                    End If
                 End If
             Next
 

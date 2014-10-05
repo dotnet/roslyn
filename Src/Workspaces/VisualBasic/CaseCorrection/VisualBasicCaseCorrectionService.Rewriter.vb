@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
                     Dim [set] = ImmutableHashSet.CreateBuilder(Of String)(StringComparer.OrdinalIgnoreCase)
                     For Each importsClause In root.GetAliasImportsClauses()
-                        If Not String.IsNullOrWhiteSpace(importsClause.Alias.ValueText) Then
-                            [set].Add(importsClause.Alias.ValueText)
+                        If Not String.IsNullOrWhiteSpace(importsClause.Alias.Identifier.ValueText) Then
+                            [set].Add(importsClause.Alias.Identifier.ValueText)
                         End If
                     Next
 

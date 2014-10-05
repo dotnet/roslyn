@@ -1634,7 +1634,7 @@ Imports System.Runtime
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim root = tree.GetCompilationUnitRoot()
             Dim importsStatement = root.Imports(0)
-            Dim importsClause = DirectCast(importsStatement.ImportsClauses(0), MembersImportsClauseSyntax)
+            Dim importsClause = DirectCast(importsStatement.ImportsClauses(0), SimpleImportsClauseSyntax)
             Dim model = compilation.GetSemanticModel(tree)
 
             Dim speculatedTypeExpression = SyntaxFactory.ParseName("System.Collections")
@@ -1654,7 +1654,7 @@ Imports A = System.Exception
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim root = tree.GetCompilationUnitRoot()
             Dim importsStatement = root.Imports(0)
-            Dim importsClause = DirectCast(importsStatement.ImportsClauses(0), AliasImportsClauseSyntax)
+            Dim importsClause = DirectCast(importsStatement.ImportsClauses(0), SimpleImportsClauseSyntax)
             Dim model = compilation.GetSemanticModel(tree)
 
             Dim speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException")

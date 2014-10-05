@@ -121,10 +121,11 @@ Imports Roslyn.Compilers.Common
         VerifySyntaxKinds(tree.GetRoot().DescendantNodes.OfType(Of ImportsStatementSyntax).First,
                           SyntaxKind.ImportsStatement,
                                 SyntaxKind.ImportsKeyword,
-                                SyntaxKind.AliasImportsClause,
-                                         SyntaxKind.IdentifierToken,
-                                         SyntaxKind.EqualsToken,
-                                         SyntaxKind.IdentifierName,
+                                SyntaxKind.SimpleImportsClause,
+                                      SyntaxKind.ImportAliasClause,
+                                            SyntaxKind.IdentifierToken,
+                                            SyntaxKind.EqualsToken,
+                                      SyntaxKind.IdentifierName,
                                             SyntaxKind.IdentifierToken)
     End Sub
 
@@ -141,11 +142,11 @@ Imports Roslyn.Compilers.Common
         VerifySyntaxKinds(tree.GetRoot().DescendantNodes.OfType(Of ImportsStatementSyntax).First,
                           SyntaxKind.ImportsStatement,
                                 SyntaxKind.ImportsKeyword,
-                                SyntaxKind.MembersImportsClause,
+                                SyntaxKind.SimpleImportsClause,
                                         SyntaxKind.IdentifierName,
                                             SyntaxKind.IdentifierToken,
                                 SyntaxKind.CommaToken,
-                                SyntaxKind.MembersImportsClause,
+                                SyntaxKind.SimpleImportsClause,
                                         SyntaxKind.IdentifierName,
                                             SyntaxKind.IdentifierToken)
     End Sub

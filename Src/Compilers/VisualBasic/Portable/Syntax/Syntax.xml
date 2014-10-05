@@ -453,58 +453,44 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--********************
-      -  AliasImportsNode
+      -  SimpleImportsClause
       **********************-->
-    <node-structure name="AliasImportsClauseSyntax" parent="ImportsClauseSyntax">
-      <description>Represents the clause of an Imports statement that defines an alias for a namespace or type.</description>
-      <lm-equiv name="ImportAliasNode"></lm-equiv>
-      <native-equiv name="AliasImportDirective"></native-equiv>
-      <spec-section>6.3.1</spec-section>
-      <grammar>AliasImportsClause</grammar>
-
-      <node-kind name="AliasImportsClause">
-        <lm-equiv name="ImportAlias" />
-        <native-equiv name="Modes.Alias" />
-      </node-kind>
-
-      <child name="Alias" kind="IdentifierToken">
-        <description>The identifier that the alias is being defined for.</description>
-        <lm-equiv name="Alias"></lm-equiv>
-        <native-equiv name="Alias"></native-equiv>
-      </child>
-
-      <child name="EqualsToken" kind="EqualsToken">
-        <description>The equals sign token.</description>
-        <lm-equiv name="Equal"></lm-equiv>
-        <native-equiv name="Equals"></native-equiv>
-      </child>
-
-      <child name="Name" kind="@NameSyntax">
-        <!-- TODO: Is this the right node type -->
-        <description>The namespace or type the alias refers to.</description>
-        <lm-equiv name="Name"></lm-equiv>
-        <native-equiv name="ImportedName"></native-equiv>
-      </child>
-    </node-structure>
-
-    <!--********************
-      -  MembersImportsClause
-      **********************-->
-    <node-structure name="MembersImportsClauseSyntax" parent="ImportsClauseSyntax">
-      <description>Represents the clause of an Imports statement that imports all members of a namespace.</description>
+    <node-structure name="SimpleImportsClauseSyntax" parent="ImportsClauseSyntax">
+      <description>Represents the clause of an Imports statement that imports all members of a type or namespace or aliases a type or namespace.</description>
       <lm-equiv name="ImportNameNode"></lm-equiv>
       <native-equiv name="NamespaceImportDirective"></native-equiv>
 
-      <node-kind name="MembersImportsClause">
+      <node-kind name="SimpleImportsClause">
         <lm-equiv name="ImportName" />
         <native-equiv name="Modes.XmlNamespace" />
         <!-- REVIEW: This looks wrong. -->
       </node-kind>
 
+      <child name="Alias" kind="ImportAliasClause" optional="true">
+        <description>An optional alias for the namespace or type being imported.</description>
+      </child>
+
       <child name="Name" kind="@NameSyntax">
         <description>The namespace or type being imported.</description>
         <lm-equiv name="Name"></lm-equiv>
         <native-equiv name="ImportedName"></native-equiv>
+      </child>
+    </node-structure>
+  
+    <!--********************
+      -  ImportAliasClauseSyntax
+      **********************-->
+    <node-structure name="ImportAliasClauseSyntax" parent="VisualBasicSyntaxNode">
+      <description>Represents an alias identifier followed by an "=" token in an Imports clause.</description>
+
+      <node-kind name="ImportAliasClause" />
+
+      <child name="Identifier" kind="IdentifierToken">
+        <description>The identifier being introduced.</description>
+      </child>
+
+      <child name="EqualsToken" kind="EqualsToken">
+        <description>The "=" token.</description>
       </child>
     </node-structure>
 

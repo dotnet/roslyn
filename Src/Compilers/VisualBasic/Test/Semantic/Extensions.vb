@@ -20,7 +20,7 @@ Friend Module Extensions
         If Not (
             TypeOf node Is AggregationRangeVariableSyntax OrElse
             TypeOf node Is AnonymousObjectCreationExpressionSyntax OrElse
-            TypeOf node Is AliasImportsClauseSyntax OrElse
+            TypeOf node Is SimpleImportsClauseSyntax OrElse
             TypeOf node Is CatchStatementSyntax OrElse
             TypeOf node Is CollectionRangeVariableSyntax OrElse
             TypeOf node Is EnumBlockSyntax OrElse

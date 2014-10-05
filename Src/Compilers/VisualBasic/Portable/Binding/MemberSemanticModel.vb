@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="declarationSyntax">The import statement syntax node.</param>
         ''' <returns>The alias symbol that was declared or Nothing if no alias symbol was declared.</returns>
-        Public Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As AliasImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
+        Public Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As SimpleImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
             ' Can't define alias inside member
             Return Nothing
         End Function

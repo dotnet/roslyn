@@ -1086,15 +1086,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Iterator Function GetAliasImportsClauses(root As CompilationUnitSyntax) As IEnumerable(Of AliasImportsClauseSyntax)
+        Public Iterator Function GetAliasImportsClauses(root As CompilationUnitSyntax) As IEnumerable(Of SimpleImportsClauseSyntax)
             For i = 0 To root.Imports.Count - 1
                 Dim statement = root.Imports(i)
 
                 For j = 0 To statement.ImportsClauses.Count - 1
                     Dim importsClause = statement.ImportsClauses(j)
 
-                    If importsClause.VisualBasicKind = SyntaxKind.AliasImportsClause Then
-                        Yield DirectCast(importsClause, AliasImportsClauseSyntax)
+                    If importsClause.VisualBasicKind = SyntaxKind.SimpleImportsClause Then
+                        Dim simpleImportsClause = DirectCast(importsClause, SimpleImportsClauseSyntax)
+
+                        If simpleImportsClause.Alias IsNot Nothing Then
+                            Yield simpleImportsClause
+                        End If
                     End If
                 Next
             Next

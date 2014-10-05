@@ -118,16 +118,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an Imports statement, which has one or more imports clauses.
         ''' </summary>
         ImportsStatement = 42                    ' ImportsStatementSyntax : DeclarationStatementSyntax : StatementSyntax
+
+        ' AliasImportsClause = 43                ' Removed.
+
         ''' <summary>
-        ''' Represents the clause of an Imports statement that defines an alias for a
-        ''' namespace or type.
+        ''' Represents the clause of an Imports statement that imports all members of a type or namespace or aliases a type or namespace.
         ''' </summary>
-        AliasImportsClause = 43                  ' AliasImportsClauseSyntax : ImportsClauseSyntax
-        ''' <summary>
-        ''' Represents the clause of an Imports statement that imports all members of a
-        ''' namespace.
-        ''' </summary>
-        MembersImportsClause = 44                ' MembersImportsClauseSyntax : ImportsClauseSyntax
+        SimpleImportsClause = 44                ' SimpleImportsClauseSyntax : ImportsClauseSyntax
         ''' <summary>
         ''' Defines a XML namespace for XML expressions.
         ''' </summary>
@@ -3077,6 +3074,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' directive.
         ''' </summary>
         BadDirectiveTrivia = 753                 ' BadDirectiveTriviaSyntax : DirectiveTriviaSyntax : StructuredTriviaSyntax
+
+        ''' <summary>
+        ''' Represents an alias identifier followed by an "=" token in an Imports clause.
+        ''' </summary>
+        ImportAliasClause = 754                   ' ImportAliasClauseSyntax : VisualBasicSyntaxNode
+
     End Enum
 
 End Namespace
