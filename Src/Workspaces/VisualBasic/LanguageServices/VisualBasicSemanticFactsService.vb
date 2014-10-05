@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     info.ElementType)
             End If
 
-            Dim vbForBlock = TryCast(forEachStatement, ForBlockSyntax)
+            Dim vbForBlock = TryCast(forEachStatement, ForEachBlockSyntax)
             If vbForBlock IsNot Nothing Then
                 Dim info = model.GetForEachStatementInfo(vbForBlock)
                 Return New ForEachSymbols(

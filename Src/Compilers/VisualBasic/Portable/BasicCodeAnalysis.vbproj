@@ -164,7 +164,7 @@
     <Compile Include="Binding\EarlyWellKnownAttributeBinder.vb" />
     <Compile Include="Binding\ExecutableCodeBinder.vb" />
     <Compile Include="Binding\FinallyBlockBinder.vb" />
-    <Compile Include="Binding\ForBlockBinder.vb" />
+    <Compile Include="Binding\ForOrForEachBlockBinder.vb" />
     <Compile Include="Binding\ForEachEnumeratorInfo.vb" />
     <Compile Include="Binding\GetTypeBinder.vb" />
     <Compile Include="Binding\IgnoreBaseClassesBinder.vb" />
@@ -830,6 +830,7 @@
     <Compile Include="Syntax\BeginOfBlockSyntaxReference.vb" />
     <Compile Include="Syntax\CompilationUnitSyntax.vb" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.vb" />
+    <Compile Include="Syntax\ForOrForEachBlockSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\BadTokenSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\ComplexIdentifierSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\DocumentationCommentTriviaSyntax.vb" />

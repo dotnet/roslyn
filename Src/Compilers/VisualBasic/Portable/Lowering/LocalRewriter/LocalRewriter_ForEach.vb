@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             collectionExpression As BoundExpression
         )
 
-            Dim syntaxNode = DirectCast(node.Syntax, ForBlockSyntax)
+            Dim syntaxNode = DirectCast(node.Syntax, ForOrForEachBlockSyntax)
 
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
 
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Dim collectionCopy As C = c
             Dim boundCollectionLocal As BoundLocal = Nothing
-            Dim boundCollectionAssignment = CreateLocalAndAssignment(syntaxNode.Begin,
+            Dim boundCollectionAssignment = CreateLocalAndAssignment(syntaxNode.ForOrForEachStatement,
                                                                      collectionExpression.MakeRValue(),
                                                                      boundCollectionLocal,
                                                                      locals,
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If GenerateDebugInfo Then
                 ' first sequence point to highlight the for each statement
-                boundCollectionAssignment = New BoundSequencePoint(DirectCast(node.Syntax, ForBlockSyntax).Begin, boundCollectionAssignment)
+                boundCollectionAssignment = New BoundSequencePoint(DirectCast(node.Syntax, ForOrForEachBlockSyntax).ForOrForEachStatement, boundCollectionAssignment)
             End If
 
             statements.Add(boundCollectionAssignment)
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Dim collectionIndex As Integer = 0
             Dim boundIndex As BoundLocal = Nothing
             Dim integerType = GetSpecialTypeWithUseSiteDiagnostics(SpecialType.System_Int32, syntaxNode)
-            Dim boundIndexInitialization = CreateLocalAndAssignment(syntaxNode.Begin,
+            Dim boundIndexInitialization = CreateLocalAndAssignment(syntaxNode.ForOrForEachStatement,
                                                                     New BoundLiteral(syntaxNode,
                                                                                      ConstantValue.Default(SpecialType.System_Int32),
                                                                                      integerType),
@@ -429,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As BoundStatementList
 
             Dim body = DirectCast(Visit(node.Body), BoundStatement)
-            Dim endSyntax = DirectCast(syntaxNode, ForBlockSyntax).NextStatement
+            Dim endSyntax = DirectCast(syntaxNode, ForEachBlockSyntax).NextStatement
 
             If generateUnstructuredExceptionHandlingResumeCode Then
                 If GenerateDebugInfo AndAlso endSyntax IsNot Nothing Then
@@ -540,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             statements As ArrayBuilder(Of BoundStatement),
             locals As ArrayBuilder(Of LocalSymbol)
         )
-            Dim syntaxNode = DirectCast(node.Syntax, ForBlockSyntax)
+            Dim syntaxNode = DirectCast(node.Syntax, ForOrForEachBlockSyntax)
             Dim enumeratorInfo = node.EnumeratorInfo
 
             ' We don't wrap the loop with a Try block if On Error is present.
@@ -570,7 +570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Get Enumerator and store it in a temporary
             ' FYI: The GetEnumerator call accesses the collection and does not contain a placeholder.
             Dim boundEnumeratorLocal As BoundLocal = Nothing
-            Dim boundEnumeratorAssignment = CreateLocalAndAssignment(syntaxNode.Begin,
+            Dim boundEnumeratorAssignment = CreateLocalAndAssignment(syntaxNode.ForOrForEachStatement,
                                                                      enumeratorInfo.GetEnumerator,
                                                                      boundEnumeratorLocal,
                                                                      locals,
@@ -582,7 +582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If GenerateDebugInfo Then
                 ' first sequence point; highlight for each statement
-                boundEnumeratorAssignment = New BoundSequencePoint(DirectCast(node.Syntax, ForBlockSyntax).Begin, boundEnumeratorAssignment)
+                boundEnumeratorAssignment = New BoundSequencePoint(DirectCast(node.Syntax, ForOrForEachBlockSyntax).ForOrForEachStatement, boundEnumeratorAssignment)
             End If
 
             Debug.Assert(enumeratorInfo.EnumeratorPlaceholder IsNot Nothing)
@@ -619,7 +619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If GenerateDebugInfo Then
-                Dim statementEndSyntax = DirectCast(syntaxNode, ForBlockSyntax).NextStatement
+                Dim statementEndSyntax = DirectCast(syntaxNode, ForEachBlockSyntax).NextStatement
                 If statementEndSyntax IsNot Nothing Then
                     bodyEpilogue = New BoundSequencePoint(statementEndSyntax, bodyEpilogue)
                 End If

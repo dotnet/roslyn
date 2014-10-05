@@ -1832,7 +1832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(forBlockOrStatement.Kind <> SyntaxKind.ForStatement)
             Debug.Assert(forBlockOrStatement.Kind <> SyntaxKind.ForEachStatement)
 
-            Dim forBlock = TryCast(forBlockOrStatement, ForBlockSyntax)
+            Dim forBlock = TryCast(forBlockOrStatement, ForOrForEachBlockSyntax)
             If forBlock Is Nothing Then
                 Return False
             End If
@@ -1853,7 +1853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End If
 
-                Dim lastStatement = TryCast(forBlock.Statements.Last(), ForBlockSyntax)
+                Dim lastStatement = TryCast(forBlock.Statements.Last(), ForOrForEachBlockSyntax)
                 If lastStatement Is Nothing Then
                     Return True
                 End If
@@ -1874,7 +1874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the semantic information of a for each statement.
         ''' </summary>
         ''' <param name="node">The for each syntax node.</param>
-        Friend Overrides Function GetForEachStatementInfoWorker(node As ForBlockSyntax) As ForEachStatementInfo
+        Friend Overrides Function GetForEachStatementInfoWorker(node As ForEachBlockSyntax) As ForEachStatementInfo
             Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then

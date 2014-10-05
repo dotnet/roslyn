@@ -121,11 +121,9 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         End If
 
         If TypeOf node Is ForEachStatementSyntax Then
-            Return semanticModel.GetForEachStatementInfo(TryCast(node, ForEachStatementSyntax))
-        ElseIf TypeOf node Is ForBlockSyntax Then
-            If node.VisualBasicKind = SyntaxKind.ForEachBlock Then
-                Return semanticModel.GetForEachStatementInfo(TryCast(node, ForBlockSyntax))
-            End If
+            Return semanticModel.GetForEachStatementInfo(DirectCast(node, ForEachStatementSyntax))
+        ElseIf TypeOf node Is ForEachBlockSyntax Then
+            Return semanticModel.GetForEachStatementInfo(DirectCast(node, ForEachBlockSyntax).ForEachStatement)
         End If
 
         Throw New NotSupportedException("Type of syntax node is not supported by GetExtendedSemanticInfoForTest")

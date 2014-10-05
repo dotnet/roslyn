@@ -4200,11 +4200,33 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--****************
+      -  ForOrForEachBlock
+      ******************-->
+    <node-structure name="ForOrForEachBlockSyntax" abstract="true" parent="ExecutableStatementSyntax">
+      <description>Represents a For or For Each block.</description>
+    
+      <child name="Statements" optional="true" list="true" kind="@StatementSyntax" order="20">
+        <description>The statements contained in the For or For Each loop. This might be an empty list.</description>
+        <lm-equiv name="BlockNode.Contents"></lm-equiv>
+        <native-equiv name="BlockStatement.Children"></native-equiv>
+      </child>
+
+      <child name="NextStatement" optional="true" kind="NextStatement" order="30">
+        <description>
+          The Next statement that ends the block. If two For or For Each statements are ended by a single Next statement,
+          the inner For will not have a Next statement.
+        </description>
+        <lm-equiv name="EndBlock"></lm-equiv>
+        <native-equiv name="TerminatingConstruct"></native-equiv>
+      </child>
+    </node-structure>
+
+    <!--****************
       -  ForBlock
       ******************-->
-    <node-structure name="ForBlockSyntax" parent="ExecutableStatementSyntax">
+    <node-structure name="ForBlockSyntax" parent="ForOrForEachBlockSyntax">
       <description>
-        Represents a For or For Each block, including the introducting statement,
+        Represents a For block, including the introducting statement,
         the body and the "Next" (which can be omitted if a containing For has a Next with
         multiple variables).
       </description>
@@ -4218,38 +4240,67 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statements.Opcodes.ForFromTo" />
       </node-kind>
 
+      <child name="ForStatement" kind="ForStatement" order="10">
+        <description>The For statement that begins the block. </description>
+        <lm-equiv name=""></lm-equiv>
+        <native-equiv name=""></native-equiv>
+      </child>
+
+    </node-structure>
+    
+    <!--****************
+      -  ForEachBlock
+      ******************-->
+    <node-structure name="ForEachBlockSyntax" parent="ForOrForEachBlockSyntax">
+      <description>
+        Represents a For Each block, including the introducting statement,
+        the body and the "Next" (which can be omitted if a containing For has a Next with
+        multiple variables).
+      </description>
+
+      <lm-equiv name="BlockNode"></lm-equiv>
+      <native-equiv name="BlockStatement"></native-equiv>
+      <native-equiv name="HiddenBlockStatement">TODO: Describe how these map!</native-equiv>
+
       <node-kind name="ForEachBlock">
         <lm-equiv name="ForEach" />
         <native-equiv name="Statements.Opcodes.ForEachIn" />
       </node-kind>
 
-      <child name="Begin" kind="ForStatement|ForEachStatement">
-        <description>The For or For Each statement that begins the block. </description>
+      <child name="ForEachStatement" kind="ForEachStatement" order="10">
+        <description>The For Each statement that begins the block. </description>
         <lm-equiv name=""></lm-equiv>
         <native-equiv name=""></native-equiv>
       </child>
+    </node-structure>
+  
+    <!--****************
+      -  ForOrForEachStatement
+      ******************-->
+    <node-structure name="ForOrForEachStatementSyntax" abstract="true" parent="StatementSyntax">
+      <description>Represents a For or For Each statement.</description>
 
-      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
-        <description>The statements contained in the For or For Each loop. This might be an empty list.</description>
-        <lm-equiv name="BlockNode.Contents"></lm-equiv>
-        <native-equiv name="BlockStatement.Children"></native-equiv>
+      <child name="ForKeyword" kind="ForKeyword" order="10">
+        <description>The "For" keyword.</description>
+        <lm-equiv name="ForKeyword"></lm-equiv>
+        <native-equiv name="ForStatement.ControlVariable"></native-equiv>
       </child>
 
-      <child name="NextStatement" optional="true" kind="NextStatement">
+      <child name="ControlVariable" kind="@ExpressionSyntax|VariableDeclarator" order="30">
         <description>
-          The Next statement that ends the block. If two For statements are ended by a single Next statement,
-          the inner For will not have an EndStatement.
+          If the For or For Each statement is of a form that does not declare a new loop control variable, this is the
+          expression that denotes the loop control variable. If this loop is of a form that does declare a new control variable,
+          this is a VariableDeclarator that has the variable being declared.
         </description>
-        <lm-equiv name="EndBlock"></lm-equiv>
-        <native-equiv name="TerminatingConstruct"></native-equiv>
+        <lm-equiv name="Variable"></lm-equiv>
+        <native-equiv name="ForStatement.ControlVariable"></native-equiv>
       </child>
     </node-structure>
 
-
     <!--****************
-      -  For
+      -  ForStatement
       ******************-->
-    <node-structure name="ForStatementSyntax" parent="StatementSyntax">
+    <node-structure name="ForStatementSyntax" parent="ForOrForEachStatementSyntax">
       <description>
         The For statement that begins a For-Next block. This statement always occurs as the Begin
         of a ForBlock. Most of the time, the End
@@ -4265,48 +4316,32 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="For" />
         <native-equiv name="Statement.Opcodes.ForFromTo" />
       </node-kind>
-
-      <child name="ForKeyword" kind="ForKeyword">
-        <description>The "For" keyword.</description>
-        <lm-equiv name="ForKeyword"></lm-equiv>
-        <native-equiv name="ForStatement.ControlVariable"></native-equiv>
-      </child>
-
-      <child name="ControlVariable" kind="@ExpressionSyntax|VariableDeclarator">
-        <description>
-          If the For or For Each statement is of a form that does not declare a new loop control variable, this is the
-          expression that denotes the loop control variable. If this loop is of a form that does declare a new control variable,
-          this is a VariableDeclarator that has the variable being declared.
-        </description>
-        <lm-equiv name="Variable"></lm-equiv>
-        <native-equiv name="ForStatement.ControlVariable"></native-equiv>
-      </child>
-
-      <child name="EqualsToken" kind="EqualsToken">
+      
+      <child name="EqualsToken" kind="EqualsToken" order="40">
         <description>The "=" token.</description>
         <lm-equiv name="Equal"></lm-equiv>
         <native-equiv name="Equals"></native-equiv>
       </child>
 
-      <child name="FromValue" kind="@ExpressionSyntax">
+      <child name="FromValue" kind="@ExpressionSyntax" order="50">
         <description>The expression denoting the initial value of the iteration.</description>
         <lm-equiv name="From"></lm-equiv>
         <native-equiv name="InitialValue"></native-equiv>
       </child>
 
-      <child name="ToKeyword" kind="ToKeyword">
+      <child name="ToKeyword" kind="ToKeyword" order="60">
         <description>The "To" keyword.</description>
         <lm-equiv name="ToKeyword"></lm-equiv>
         <native-equiv name="To"></native-equiv>
       </child>
 
-      <child name="ToValue" kind="@ExpressionSyntax">
+      <child name="ToValue" kind="@ExpressionSyntax" order="70">
         <description>The expression denoting the final value of the iteration.</description>
         <lm-equiv name="To"></lm-equiv>
         <native-equiv name="FinalValue"></native-equiv>
       </child>
 
-      <child name="StepClause" optional="true" kind="ForStepClause">
+      <child name="StepClause" optional="true" kind="ForStepClause" order="80">
         <description>The optional Step clause.</description>
       </child>
 
@@ -4340,7 +4375,7 @@ Unify Enum declarations with other block type declarations.
     <!--****************
       -  ForEach
       ******************-->
-    <node-structure name="ForEachStatementSyntax" parent="StatementSyntax">
+    <node-structure name="ForEachStatementSyntax" parent="ForOrForEachStatementSyntax">
       <description>
         The For Each statement that begins a For Each-Next block. This statement always occurs as the Begin
         of a ForBlock,
@@ -4357,42 +4392,25 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statements.Opcodes.ForEachIn" />
       </node-kind>
 
-      <child name="ForKeyword" kind="ForKeyword">
-        <description>The "For" keyword.</description>
-        <lm-equiv name="ForKeyword"></lm-equiv>
-        <native-equiv name="ForStatement.ControlVariable"></native-equiv>
-      </child>
-
       <!-- Ensure For i and For each i are ordered correctly -->
-      <child name="EachKeyword" kind="EachKeyword">
+      <child name="EachKeyword" kind="EachKeyword" order="20">
         <description>The "Each" keyword.</description>
         <lm-equiv name="EachKeyword"></lm-equiv>
         <native-equiv name="Each"></native-equiv>
       </child>
 
-      <child name="ControlVariable" kind="@ExpressionSyntax|VariableDeclarator">
-        <description>
-          If the For or For Each statement is of a form that does not declare a new loop control variable, this is the
-          expression that denotes the loop control variable. If this loop is of a form that does declare a new control variable,
-          this is a VariableDeclarator that has the variable being declared.
-        </description>
-        <lm-equiv name="Variable"></lm-equiv>
-        <native-equiv name="ForStatement.ControlVariable"></native-equiv>
-      </child>
-
-      <child name="InKeyword" kind="InKeyword">
+      <child name="InKeyword" kind="InKeyword" order="40">
         <description>The "In" keyword.</description>
         <lm-equiv name="InKeyword"></lm-equiv>
         <native-equiv name="In"></native-equiv>
       </child>
 
-      <child name="Expression" kind="@ExpressionSyntax">
+      <child name="Expression" kind="@ExpressionSyntax" order="50">
         <description>The expression denoting the collection to iterate over.</description>
         <lm-equiv name="Collection"></lm-equiv>
         <native-equiv name="Collection"></native-equiv>
       </child>
     </node-structure>
-
 
     <!--****************
       -  Next

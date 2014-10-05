@@ -672,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the semantic information of a for each statement.
         ''' </summary>
         ''' <param name="node">The for each syntax node.</param>
-        Friend Overrides Function GetForEachStatementInfoWorker(node As ForBlockSyntax) As ForEachStatementInfo
+        Friend Overrides Function GetForEachStatementInfoWorker(node As ForEachBlockSyntax) As ForEachStatementInfo
             Dim boundForEach = DirectCast(GetUpperBoundNode(node), BoundForEachStatement)
 
             If boundForEach IsNot Nothing Then

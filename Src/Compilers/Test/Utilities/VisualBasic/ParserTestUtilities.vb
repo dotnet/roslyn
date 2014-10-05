@@ -853,6 +853,11 @@ Public Module VerificationHelpers
             MyBase.VisitForBlock(node)
         End Sub
 
+        Public Overrides Sub VisitForEachBlock(node As ForEachBlockSyntax)
+            IncrementTypeCounter(node, node.Kind.ToString)
+            MyBase.VisitForEachBlock(node)
+        End Sub
+
         Public Overrides Sub VisitConstDirectiveTrivia(node As ConstDirectiveTriviaSyntax)
             IncrementTypeCounter(node, node.Kind.ToString)
             MyBase.VisitConstDirectiveTrivia(node)

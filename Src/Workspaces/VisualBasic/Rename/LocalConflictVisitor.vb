@@ -123,13 +123,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         End Sub
 
         Public Overrides Sub VisitForBlock(node As ForBlockSyntax)
+            VisitForOrForEachBlock(node)
+        End Sub
+
+        Public Overrides Sub VisitForEachBlock(node As ForEachBlockSyntax)
+            VisitForOrForEachBlock(node)
+        End Sub
+
+        Private Sub VisitForOrForEachBlock(node As ForOrForEachBlockSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
             Dim controlVariable As SyntaxNode
-            If node.Begin.VisualBasicKind = SyntaxKind.ForEachStatement Then
-                controlVariable = DirectCast(node.Begin, ForEachStatementSyntax).ControlVariable
+            If node.ForOrForEachStatement.VisualBasicKind = SyntaxKind.ForEachStatement Then
+                controlVariable = DirectCast(node.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable
             Else
-                controlVariable = DirectCast(node.Begin, ForStatementSyntax).ControlVariable
+                controlVariable = DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable
             End If
 
             If controlVariable.VisualBasicKind = SyntaxKind.VariableDeclarator Then

@@ -12,13 +12,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' It hosts the control variable (if one is declared) 
     ''' and inherits ExitableStatementBinder to provide Continue/Exit labels if needed. 
     ''' </summary>
-    Friend NotInheritable Class ForBlockBinder
+    Friend NotInheritable Class ForOrForEachBlockBinder
         Inherits ExitableStatementBinder
 
-        Private ReadOnly _syntax As ForBlockSyntax
+        Private ReadOnly _syntax As ForOrForEachBlockSyntax
         Private _locals As ImmutableArray(Of LocalSymbol) = Nothing
 
-        Public Sub New(enclosing As Binder, syntax As ForBlockSyntax)
+        Public Sub New(enclosing As Binder, syntax As ForOrForEachBlockSyntax)
             MyBase.New(enclosing, SyntaxKind.ContinueForStatement, SyntaxKind.ExitForStatement)
 
             Debug.Assert(syntax IsNot Nothing)
@@ -42,9 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim controlVariableSyntax As VisualBasicSyntaxNode
 
             If _syntax.Kind = SyntaxKind.ForBlock Then
-                controlVariableSyntax = DirectCast(_syntax.Begin, ForStatementSyntax).ControlVariable
+                controlVariableSyntax = DirectCast(_syntax.ForOrForEachStatement, ForStatementSyntax).ControlVariable
             Else
-                controlVariableSyntax = DirectCast(_syntax.Begin, ForEachStatementSyntax).ControlVariable
+                controlVariableSyntax = DirectCast(_syntax.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable
             End If
 
             Dim declarator = TryCast(controlVariableSyntax, VariableDeclaratorSyntax)
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function CreateLocalSymbol(identifier As SyntaxToken) As LocalSymbol
             If _syntax.Kind = SyntaxKind.ForBlock Then
-                Dim forStatementSyntax = DirectCast(_syntax.Begin, ForStatementSyntax)
+                Dim forStatementSyntax = DirectCast(_syntax.ForOrForEachStatement, ForStatementSyntax)
 
                 Dim localVar = LocalSymbol.CreateInferredForFromTo(Me.ContainingMember,
                                                      Me,
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return localVar
             Else
-                Dim forEachStatementSyntax = DirectCast(_syntax.Begin, ForEachStatementSyntax)
+                Dim forEachStatementSyntax = DirectCast(_syntax.ForOrForEachStatement, ForEachStatementSyntax)
 
                 Dim localVar = LocalSymbol.CreateInferredForEach(Me.ContainingMember,
                                                          Me,

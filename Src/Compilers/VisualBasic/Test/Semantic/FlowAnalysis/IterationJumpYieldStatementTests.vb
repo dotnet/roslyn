@@ -1353,7 +1353,7 @@ End Module
                                           syntaxTrees:={tree},
                                           references:={MsvbRef, MscorlibRef})
             Dim semanticModel = comp.GetSemanticModel(tree)
-            Dim foreachBlock = tree.GetRoot.DescendantNodes.OfType(Of ForBlockSyntax).Single
+            Dim foreachBlock = tree.GetRoot.DescendantNodes.OfType(Of ForEachBlockSyntax).Single
             Dim flow = semanticModel.AnalyzeDataFlow(foreachBlock)
             Assert.Equal(2, flow.VariablesDeclared.Count)
             Assert.Equal(True, flow.VariablesDeclared.Any(Function(s) s.Name = "b"))

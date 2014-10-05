@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return doLoopBlock.Statements
             End If
 
-            Dim forBlock = TryCast(node, ForBlockSyntax)
+            Dim forBlock = TryCast(node, ForOrForEachBlockSyntax)
             If forBlock IsNot Nothing Then
                 Return forBlock.Statements
             End If
@@ -559,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If node IsNot Nothing Then
                 If TypeOf node Is MethodBlockBaseSyntax OrElse
                    TypeOf node Is DoLoopBlockSyntax OrElse
-                   TypeOf node Is ForBlockSyntax OrElse
+                   TypeOf node Is ForOrForEachBlockSyntax OrElse
                    TypeOf node Is MultiLineLambdaExpressionSyntax Then
                     Return True
                 End If
@@ -619,8 +619,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, MethodBlockBaseSyntax).Statements
                 ElseIf TypeOf node Is DoLoopBlockSyntax Then
                     Return DirectCast(node, DoLoopBlockSyntax).Statements
-                ElseIf TypeOf node Is ForBlockSyntax Then
-                    Return DirectCast(node, ForBlockSyntax).Statements
+                ElseIf TypeOf node Is ForOrForEachBlockSyntax Then
+                    Return DirectCast(node, ForOrForEachBlockSyntax).Statements
                 ElseIf TypeOf node Is MultiLineLambdaExpressionSyntax Then
                     Return DirectCast(node, MultiLineLambdaExpressionSyntax).Statements
                 End If
@@ -759,6 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Function(x As AccessorBlockSyntax) x.WithStatements(statements),
                 Function(x As DoLoopBlockSyntax) x.WithStatements(statements),
                 Function(x As ForBlockSyntax) x.WithStatements(statements),
+                Function(x As ForEachBlockSyntax) x.WithStatements(statements),
                 Function(x As MultiLineLambdaExpressionSyntax) x.WithStatements(statements),
                 Function(x As WhileBlockSyntax) x.WithStatements(statements),
                 Function(x As UsingBlockSyntax) x.WithStatements(statements),

@@ -1186,7 +1186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the corresponding ForEachStatementInfo containing semantic info for a specified ForBlockSyntax.
         ''' </summary>
         <Extension>
-        Public Function GetForEachStatementInfo(semanticModel As SemanticModel, node As ForBlockSyntax) As ForEachStatementInfo
+        Public Function GetForEachStatementInfo(semanticModel As SemanticModel, node As ForEachBlockSyntax) As ForEachStatementInfo
             Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetForEachStatementInfo(node)

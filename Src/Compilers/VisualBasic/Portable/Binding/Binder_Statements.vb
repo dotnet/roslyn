@@ -83,10 +83,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return BindWhileBlock(DirectCast(node, WhileBlockSyntax), diagnostics)
 
                 Case SyntaxKind.ForBlock
-                    Return BindForToBlock(DirectCast(node, ForBlockSyntax), diagnostics)
+                    Return BindForToBlock(DirectCast(node, ForOrForEachBlockSyntax), diagnostics)
 
                 Case SyntaxKind.ForEachBlock
-                    Return BindForEachBlock(DirectCast(node, ForBlockSyntax), diagnostics)
+                    Return BindForEachBlock(DirectCast(node, ForOrForEachBlockSyntax), diagnostics)
 
                 Case SyntaxKind.WithBlock
                     Return BindWithBlock(DirectCast(node, WithBlockSyntax), diagnostics)
@@ -1704,7 +1704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' next
                             ' Does not give a BC30288 "Local variable 'r' is already declared in the current block.", but a
                             ' BC30616 "Variable 'r' hides a variable in an enclosing block." with the same location.
-                            ' The reason is the binder hierarchy, where the ForBlockBinder and the StatementListBinder both have
+                            ' The reason is the binder hierarchy, where the ForOrForEachBlockBinder and the StatementListBinder both have
                             ' r in their locals set. When looking up the symbol one gets the inner symbol and then the FullSpans match
                             ' which then does not trigger the condition above.
                         End If
@@ -2759,7 +2759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             exitLabel:=loopBodyBinder.GetExitLabel(SyntaxKind.ExitWhileStatement))
         End Function
 
-        Public Function BindForToBlock(node As ForBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Public Function BindForToBlock(node As ForOrForEachBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
             ' For statement has its own binding scope since it may introduce iteration variable
             ' that is visible through the entire For block. It also needs to support Continue/Exit
             ' Interestingly, control variable is in scope when Limit and Step or the collection are bound,
@@ -2774,7 +2774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' bind common parts of a for block
             hasErrors = loopBinder.BindForBlockParts(node,
-                                                     DirectCast(node.Begin, ForStatementSyntax).ControlVariable,
+                                                     node.ForOrForEachStatement.ControlVariable,
                                                      declaredOrInferredLocalOpt,
                                                      controlVariable,
                                                      isInferredLocal,
@@ -2789,7 +2789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   diagnostics)
         End Function
 
-        Public Function BindForEachBlock(node As ForBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Public Function BindForEachBlock(node As ForOrForEachBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
             ' For statement has its own binding scope since it may introduce iteration variable
             ' that is visible through the entire For block. It also needs to support Continue/Exit
             ' Interestingly, control variable is in scope when Limit and Step or the collection are bound,
@@ -2806,7 +2806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' bind common parts of a for block
             hasErrors = loopBinder.BindForBlockParts(node,
-                                                     DirectCast(node.Begin, ForEachStatementSyntax).ControlVariable,
+                                                     DirectCast(node.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                      declaredOrInferredLocalOpt,
                                                      controlVariable,
                                                      isInferredLocal,
@@ -2829,7 +2829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="controlVariable">The control variable.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
         ''' <returns>true if there were errors; otherwise false</returns>
-        Private Function BindForBlockParts(node As ForBlockSyntax,
+        Private Function BindForBlockParts(node As ForOrForEachBlockSyntax,
                                            controlVariableSyntax As VisualBasicSyntaxNode,
                                            <Out()> ByRef declaredOrInferredLocalOpt As LocalSymbol,
                                            <Out()> ByRef controlVariable As BoundExpression,
@@ -2931,7 +2931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="loopBody">The loop body.</param>
         ''' <param name="nextVariables">The next variables.</param>
         Private Sub BindForLoopBodyAndNextControlVariables(
-            node As ForBlockSyntax,
+            node As ForOrForEachBlockSyntax,
             <Out()> ByRef nextVariables As ImmutableArray(Of BoundExpression),
             <Out()> ByRef loopBody As BoundBlock,
             diagnostics As DiagnosticBag)
@@ -2977,7 +2977,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             currentBinder = currentBinder.ContainingBinder
                         End If
 
-                        If Not TypeOf currentBinder Is ForBlockBinder Then
+                        If Not TypeOf currentBinder Is ForOrForEachBlockBinder Then
                             ' this happens for broken code, e.g.
                             ' for each a in arr1
                             '   if foo() then
@@ -2994,14 +2994,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function BindForToBlockParts(
-            node As ForBlockSyntax,
+            node As ForOrForEachBlockSyntax,
             declaredOrInferredLocalOpt As LocalSymbol,
             controlVariableOpt As BoundExpression,
             isInferredLocal As Boolean,
             hasErrors As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundForStatement
-            Dim forStatement = DirectCast(node.Begin, ForStatementSyntax)
+            Dim forStatement = DirectCast(node.ForOrForEachStatement, ForStatementSyntax)
 
             Dim initialValue As BoundExpression = Nothing
             Dim limit As BoundExpression = Nothing
@@ -3088,7 +3088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not (initialValue.HasErrors OrElse limit.HasErrors OrElse stepValue.HasErrors) AndAlso
                    targetType.CanContainUserDefinedOperators(useSiteDiagnostics) Then
                     ' Bind user-defined operators that we need.
-                    Dim syntax As VisualBasicSyntaxNode = node.Begin
+                    Dim syntax As VisualBasicSyntaxNode = node.ForOrForEachStatement
 
                     Dim leftOperandPlaceholder = New BoundRValuePlaceholder(syntax, targetType).MakeCompilerGenerated()
                     Dim rightOperandPlaceholder = New BoundRValuePlaceholder(syntax, targetType).MakeCompilerGenerated()
@@ -3209,7 +3209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Verify that control variable can actually be used as a control variable
-        Private Function IsValidForControlVariableType(node As ForBlockSyntax,
+        Private Function IsValidForControlVariableType(node As ForOrForEachBlockSyntax,
                                     targetType As TypeSymbol,
                                     diagnostics As DiagnosticBag) As Boolean
 
@@ -3229,25 +3229,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
             If targetType.IsIntrinsicOrEnumType OrElse Not targetType.CanContainUserDefinedOperators(useSiteDiagnostics) Then
-                diagnostics.Add(DirectCast(node.Begin, ForStatementSyntax).ControlVariable, useSiteDiagnostics)
-                ReportDiagnostic(diagnostics, DirectCast(node.Begin, ForStatementSyntax).ControlVariable, ERRID.ERR_ForLoopType1, targetType)
+                diagnostics.Add(DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, useSiteDiagnostics)
+                ReportDiagnostic(diagnostics, DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, ERRID.ERR_ForLoopType1, targetType)
 
                 Return False
             End If
 
-            diagnostics.Add(DirectCast(node.Begin, ForStatementSyntax).ControlVariable, useSiteDiagnostics)
+            diagnostics.Add(DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, useSiteDiagnostics)
 
             Return True
         End Function
 
         Private Function BindForEachBlockParts(
-            node As ForBlockSyntax,
+            node As ForOrForEachBlockSyntax,
             declaredOrInferredLocalOpt As LocalSymbol,
             controlVariableOpt As BoundExpression,
             isInferredLocal As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundForEachStatement
-            Dim forEachStatement = DirectCast(node.Begin, ForEachStatementSyntax)
+            Dim forEachStatement = DirectCast(node.ForOrForEachStatement, ForEachStatementSyntax)
 
             Dim currentType As TypeSymbol = Nothing
             Dim isEnumerable As Boolean = False

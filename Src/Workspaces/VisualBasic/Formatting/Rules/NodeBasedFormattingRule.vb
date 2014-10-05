@@ -466,15 +466,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     [do].LoopStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
             End If
 
-            Dim [for] = TryCast(node, ForBlockSyntax)
+            Dim [for] = TryCast(node, ForOrForEachBlockSyntax)
             If [for] IsNot Nothing Then
-                Return ValueTuple.Create([for].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True), GetEndTokenForForBlock([for]))
+                Return ValueTuple.Create([for].ForOrForEachStatement.GetLastToken().GetNextToken(includeZeroWidth:=True), GetEndTokenForForBlock([for]))
             End If
 
             Return Nothing
         End Function
 
-        Private Function GetEndTokenForForBlock(node As ForBlockSyntax) As SyntaxToken
+        Private Function GetEndTokenForForBlock(node As ForOrForEachBlockSyntax) As SyntaxToken
             If node.NextStatement IsNot Nothing Then
                 Return node.NextStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True)
             End If
@@ -489,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' get all enclosing forblock statements
-            Dim forBlocks = nextStatement.GetAncestors(Of ForBlockSyntax)()
+            Dim forBlocks = nextStatement.GetAncestors(Of ForOrForEachBlockSyntax)()
 
             ' get count of the for blocks
             Dim forCount = GetForBlockCount(node, forBlocks)
@@ -502,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return node.GetLastToken(includeZeroWidth:=True)
         End Function
 
-        Private Function GetForBlockCount(node As ForBlockSyntax, forBlocks As IEnumerable(Of ForBlockSyntax)) As Integer
+        Private Function GetForBlockCount(node As ForOrForEachBlockSyntax, forBlocks As IEnumerable(Of ForOrForEachBlockSyntax)) As Integer
             Dim count As Integer = 0
             For Each forBlock In forBlocks
                 If forBlock Is node Then

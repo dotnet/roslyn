@@ -1394,10 +1394,10 @@ End Module
             Return ForEachStatement
         End Function
 
-        Private Function GetForEachBlock(compilation As VisualBasicCompilation, index As Integer) As ForBlockSyntax
+        Private Function GetForEachBlock(compilation As VisualBasicCompilation, index As Integer) As ForEachBlockSyntax
             Dim tree = compilation.SyntaxTrees.First
             Dim node = tree.FindNodeOrTokenByKind(SyntaxKind.ForEachBlock, index).AsNode()
-            Return DirectCast(node, ForBlockSyntax)
+            Return DirectCast(node, ForEachBlockSyntax)
         End Function
 
         Private Function VerifyForeachSemanticInfo(compilation As VisualBasicCompilation, Optional index As Integer = 1) As ForEachStatementInfo

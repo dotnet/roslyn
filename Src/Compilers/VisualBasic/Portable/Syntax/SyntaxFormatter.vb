@@ -959,7 +959,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitForBlock(node As ForBlockSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+            VisitForOrForEachBlock(node)
+
+            Return MyBase.VisitForBlock(node)
+        End Function
+
+        Public Overrides Function VisitForEachBlock(node As ForEachBlockSyntax) As SyntaxNode
+            VisitForOrForEachBlock(node)
+
+            Return MyBase.VisitForEachBlock(node)
+        End Function
+
+        Private Sub VisitForOrForEachBlock(node As ForOrForEachBlockSyntax)
+            AddLinebreaksAfterTokenIfNeeded(node.ForOrForEachStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
@@ -972,9 +984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     AddLinebreaksAfterTokenIfNeeded(node.NextStatement.GetLastToken(), 1)
                 End If
             End If
-
-            Return MyBase.VisitForBlock(node)
-        End Function
+        End Sub
 
         Public Overrides Function VisitUsingBlock(node As UsingBlockSyntax) As SyntaxNode
             AddLinebreaksAfterTokenIfNeeded(node.UsingStatement.GetLastToken(), 1)

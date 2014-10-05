@@ -46,13 +46,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               rewrittenLimit As BoundExpression,
                                               rewrittenStep As BoundExpression) As BoundBlock
 
-            Dim syntax = DirectCast(node.Syntax, ForBlockSyntax)
+            Dim syntax = DirectCast(node.Syntax, ForOrForEachBlockSyntax)
             Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
 
             ' Force unused "ForLoopObject" local here. 
             ' It will mark the start of the For loop locals in EnC
             ' The type is irrelevant since this local will not be used and in optimized builds will be removed.
-            locals.Add(New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenInitialValue.Type, SynthesizedLocalKind.ForLoopObject, syntax.Begin))
+            locals.Add(New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenInitialValue.Type, SynthesizedLocalKind.ForLoopObject, syntax.ForOrForEachStatement))
 
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
 
@@ -76,8 +76,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             'NOTE the order of the following initializations is important!!!!
             'Values are evaluated before hoisting and it must be done in the order of declaration (value, limit, step).
-            rewrittenLimit = CacheToTempIfNotConst(rewrittenLimit, locals, cacheAssignments, SynthesizedLocalKind.ForLimit, syntax.Begin)
-            rewrittenStep = CacheToTempIfNotConst(rewrittenStep, locals, cacheAssignments, SynthesizedLocalKind.ForStep, syntax.Begin)
+            rewrittenLimit = CacheToTempIfNotConst(rewrittenLimit, locals, cacheAssignments, SynthesizedLocalKind.ForLimit, syntax.ForOrForEachStatement)
+            rewrittenStep = CacheToTempIfNotConst(rewrittenStep, locals, cacheAssignments, SynthesizedLocalKind.ForStep, syntax.ForOrForEachStatement)
 
             Dim positiveFlag As SynthesizedLocal = Nothing
 
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim greaterThanOrEqual = VisitExpressionNode(node.OperatorsOpt.GreaterThanOrEqual)
 
-                positiveFlag = New SynthesizedLocal(currentMethodOrLambda, greaterThanOrEqual.Type, SynthesizedLocalKind.ForDirection, syntax.Begin)
+                positiveFlag = New SynthesizedLocal(currentMethodOrLambda, greaterThanOrEqual.Type, SynthesizedLocalKind.ForDirection, syntax.ForOrForEachStatement)
                 locals.Add(positiveFlag)
 
                 cacheAssignments.Add(New BoundAssignmentOperator(node.OperatorsOpt.Syntax,
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             isUp)
                     End If
 
-                    positiveFlag = New SynthesizedLocal(currentMethodOrLambda, isUp.Type, SynthesizedLocalKind.ForDirection, syntax.Begin)
+                    positiveFlag = New SynthesizedLocal(currentMethodOrLambda, isUp.Type, SynthesizedLocalKind.ForDirection, syntax.ForOrForEachStatement)
                     locals.Add(positiveFlag)
 
                     cacheAssignments.Add(New BoundAssignmentOperator(isUp.Syntax,
@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If GenerateDebugInfo Then
                 ' first sequence point to highlight the for statement
-                rewrittenInitializer = New BoundSequencePoint(syntax.Begin, rewrittenInitializer)
+                rewrittenInitializer = New BoundSequencePoint(syntax.ForOrForEachStatement, rewrittenInitializer)
             End If
 
             Dim rewrittenBody = DirectCast(Visit(node.Body), BoundStatement)
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       rewrittenStep As BoundExpression) As BoundBlock
 
             Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
-            Dim syntax = DirectCast(node.Syntax, ForBlockSyntax)
+            Dim syntax = DirectCast(node.Syntax, ForOrForEachBlockSyntax)
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
 
             ' For i as Object = 3 To 6 step 2
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Compilation.GetSpecialType(SpecialType.System_Object) Is rewrittenControlVariable.Type)
             Dim objType = rewrittenControlVariable.Type
-            Dim loopObjLocal = New SynthesizedLocal(Me.currentMethodOrLambda, objType, SynthesizedLocalKind.ForLoopObject, syntax.Begin)
+            Dim loopObjLocal = New SynthesizedLocal(Me.currentMethodOrLambda, objType, SynthesizedLocalKind.ForLoopObject, syntax.ForOrForEachStatement)
             locals.Add(loopObjLocal)
 
             Dim loopObj = New BoundLocal(syntax, loopObjLocal, isLValue:=True, type:=loopObjLocal.Type)
@@ -458,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If GenerateDebugInfo Then
                 ' first sequence point to highlight the for each statement
-                ifNotInitObjExit = New BoundSequencePoint(DirectCast(syntax, ForBlockSyntax).Begin, ifNotInitObjExit)
+                ifNotInitObjExit = New BoundSequencePoint(syntax.ForOrForEachStatement, ifNotInitObjExit)
             End If
 
             '### body

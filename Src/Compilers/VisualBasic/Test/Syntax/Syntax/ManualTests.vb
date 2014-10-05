@@ -148,11 +148,6 @@ End Module
         <WorkItem(546586, "DevDiv")>
         <Fact()>
         Public Sub KindsWithSameNameAsTypeShouldNotDropKindWhenUpdating_Bug16244()
-
-            Dim forEachBlock = GeneratedTests.GenerateRedForEachBlock()
-            Dim newForEachBlock = forEachBlock.Update(forEachBlock.Kind, GeneratedTests.GenerateRedForEachStatement(), Nothing, Nothing)
-            Assert.Equal(forEachBlock.Kind, newForEachBlock.Kind)
-
             Dim assignmentStatement = GeneratedTests.GenerateRedAddAssignmentStatement()
             Dim newAssignmentStatement = assignmentStatement.Update(assignmentStatement.Kind, GeneratedTests.GenerateRedAddExpression(), SyntaxFactory.Token(SyntaxKind.PlusEqualsToken), GeneratedTests.GenerateRedAddExpression())
             Assert.Equal(assignmentStatement.Kind, newAssignmentStatement.Kind)

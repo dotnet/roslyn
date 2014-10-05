@@ -1008,8 +1008,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
 
                 Case SyntaxKind.ForBlock, SyntaxKind.ForEachBlock
-                    Dim forBlock = DirectCast(possibleBlock, ForBlockSyntax)
-                    beginStatement = forBlock.Begin
+                    Dim forBlock = DirectCast(possibleBlock, ForOrForEachBlockSyntax)
+                    beginStatement = forBlock.ForOrForEachStatement
                     body = forBlock.Statements
                     endStatement = forBlock.NextStatement
                     Return True

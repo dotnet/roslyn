@@ -193,8 +193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                IsBeginStatement(Of EnumStatementSyntax, EnumBlockSyntax)(currentStatement) OrElse
                IsBeginStatement(Of NamespaceStatementSyntax, NamespaceBlockSyntax)(currentStatement) OrElse
                IsBeginStatement(Of DoStatementSyntax, DoLoopBlockSyntax)(currentStatement) OrElse
-               IsBeginStatement(Of ForStatementSyntax, ForBlockSyntax)(currentStatement) OrElse
-               IsBeginStatement(Of ForEachStatementSyntax, ForBlockSyntax)(currentStatement) OrElse
+               IsBeginStatement(Of ForStatementSyntax, ForOrForEachBlockSyntax)(currentStatement) OrElse
+               IsBeginStatement(Of ForEachStatementSyntax, ForOrForEachBlockSyntax)(currentStatement) OrElse
                IsBeginStatement(Of IfStatementSyntax, MultiLineIfBlockSyntax)(currentStatement) OrElse
                IsBeginStatement(Of SelectStatementSyntax, SelectBlockSyntax)(currentStatement) OrElse
                IsBeginStatement(Of SyncLockStatementSyntax, SyncLockBlockSyntax)(currentStatement) OrElse

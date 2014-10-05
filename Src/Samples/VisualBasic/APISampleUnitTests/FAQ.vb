@@ -2050,7 +2050,7 @@ End Module
             If node IsNot Nothing Then
                 If TypeOf node Is MethodBlockBaseSyntax OrElse
                    TypeOf node Is DoLoopBlockSyntax OrElse
-                   TypeOf node Is ForBlockSyntax OrElse
+                   TypeOf node Is ForOrForEachBlockSyntax OrElse
                    TypeOf node Is MultiLineLambdaExpressionSyntax Then
 
                     Return True

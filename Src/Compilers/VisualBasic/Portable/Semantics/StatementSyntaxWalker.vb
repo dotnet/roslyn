@@ -194,7 +194,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitForBlock(ByVal node As ForBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.ForStatement)
+            VisitList(node.Statements)
+        End Sub
+
+        Public Overrides Sub VisitForEachBlock(ByVal node As ForEachBlockSyntax)
+            Visit(node.ForEachStatement)
             VisitList(node.Statements)
         End Sub
     End Class

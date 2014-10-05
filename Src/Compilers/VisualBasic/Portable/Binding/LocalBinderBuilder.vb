@@ -304,7 +304,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitForBlock(node As ForBlockSyntax)
-            containingBinder = New ForBlockBinder(containingBinder, node)
+            containingBinder = New ForOrForEachBlockBinder(containingBinder, node)
+
+            RememberBinder(node, containingBinder)
+
+            CreateBinderFromStatementList(node.Statements, containingBinder)
+        End Sub
+
+        Public Overrides Sub VisitForEachBlock(node As ForEachBlockSyntax)
+            containingBinder = New ForOrForEachBlockBinder(containingBinder, node)
 
             RememberBinder(node, containingBinder)
 

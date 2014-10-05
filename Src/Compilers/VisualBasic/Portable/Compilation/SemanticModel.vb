@@ -2867,7 +2867,7 @@ _Default:
         Public Shadows Function GetForEachStatementInfo(node As ForEachStatementSyntax) As ForEachStatementInfo
             Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetForEachStatementInfo, message:=Me.SyntaxTree.FilePath)
                 If node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.ForEachBlock Then
-                    Return GetForEachStatementInfoWorker(DirectCast(node.Parent, ForBlockSyntax))
+                    Return GetForEachStatementInfoWorker(DirectCast(node.Parent, ForEachBlockSyntax))
                 End If
 
                 Return Nothing
@@ -2878,7 +2878,7 @@ _Default:
         ''' Gets the semantic information of a for each statement.
         ''' </summary>
         ''' <param name="node">The for block syntax node.</param>
-        Public Shadows Function GetForEachStatementInfo(node As ForBlockSyntax) As ForEachStatementInfo
+        Public Shadows Function GetForEachStatementInfo(node As ForEachBlockSyntax) As ForEachStatementInfo
             Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetForEachStatementInfo, message:=Me.SyntaxTree.FilePath)
                 If node.Kind = SyntaxKind.ForEachBlock Then
                     Return GetForEachStatementInfoWorker(node)
@@ -2892,7 +2892,7 @@ _Default:
         ''' Gets the semantic information of a for each statement.
         ''' </summary>
         ''' <param name="node">The for each syntax node.</param>
-        Friend MustOverride Function GetForEachStatementInfoWorker(node As ForBlockSyntax) As ForEachStatementInfo
+        Friend MustOverride Function GetForEachStatementInfoWorker(node As ForEachBlockSyntax) As ForEachStatementInfo
 
 
         ''' <summary>
