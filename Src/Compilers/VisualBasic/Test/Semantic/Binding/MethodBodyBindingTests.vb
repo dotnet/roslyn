@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports System.Text
@@ -124,8 +124,8 @@ End Namespace
             Assert.Equal("q", context.Locals(0).Name)
 
             Dim ifBlock = DirectCast(meth1Stmts(1), MultiLineIfBlockSyntax)
-            Dim ifPartStmts = ifBlock.IfPart.Statements
-            Dim elsePartStmts = ifBlock.ElsePart.Statements
+            Dim ifPartStmts = ifBlock.Statements
+            Dim elsePartStmts = ifBlock.ElseBlock.Statements
             Dim ifContext = DirectCast(meth1Binding.RootBinder.GetBinder(ifPartStmts), BlockBaseBinder)
             Assert.Equal(2, ifContext.Locals.Length)
             Assert.Equal("y", ifContext.Locals(0).Name)

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -152,10 +152,6 @@ End Module
             Dim forEachBlock = GeneratedTests.GenerateRedForEachBlock()
             Dim newForEachBlock = forEachBlock.Update(forEachBlock.Kind, GeneratedTests.GenerateRedForEachStatement(), Nothing, Nothing)
             Assert.Equal(forEachBlock.Kind, newForEachBlock.Kind)
-
-            Dim elseIfPart = GeneratedTests.GenerateRedElseIfPart()
-            Dim newElseIfPart = elseIfPart.Update(elseIfPart.Kind, GeneratedTests.GenerateRedIfStatement(), Nothing)
-            Assert.Equal(elseIfPart.Kind, newElseIfPart.Kind)
 
             Dim assignmentStatement = GeneratedTests.GenerateRedAddAssignmentStatement()
             Dim newAssignmentStatement = assignmentStatement.Update(assignmentStatement.Kind, GeneratedTests.GenerateRedAddExpression(), SyntaxFactory.Token(SyntaxKind.PlusEqualsToken), GeneratedTests.GenerateRedAddExpression())

@@ -96,7 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forEachStatement As ForEachStatementSyntax) InferTypeInForEachStatement(forEachStatement, expression),
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause),
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, expression),
-                    Function(ifStatement As IfStatementSyntax) InferTypeInIfStatement(),
+                    Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(),
+                    Function(ifStatement As ElseIfStatementSyntax) InferTypeInIfOrElseIfStatement(),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer),
                     Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda),
@@ -151,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forEachStatement As ForEachStatementSyntax) InferTypeInForEachStatement(forEachStatement, previousToken:=token),
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
-                    Function(ifStatement As IfStatementSyntax) InferTypeInIfStatement(token),
+                    Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
                     Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression, token),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda, token),
@@ -587,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
-            Private Function InferTypeInIfStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of INamedTypeSymbol)
+            Private Function InferTypeInIfOrElseIfStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of INamedTypeSymbol)
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
             End Function
 

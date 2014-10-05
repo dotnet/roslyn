@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -8,20 +8,21 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
+    ' TODO: Rename this to ElseOrElseIfBlockContext.
     Friend NotInheritable Class IfPartContext
         Inherits ExecutableStatementContext
 
         Friend Sub New(kind As SyntaxKind, statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(kind, statement, prevContext)
 
-            Debug.Assert(kind = SyntaxKind.ElseIfPart OrElse kind = SyntaxKind.ElsePart)
+            Debug.Assert(kind = SyntaxKind.ElseIfBlock OrElse kind = SyntaxKind.ElseBlock)
         End Sub
 
         Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
 
             Select Case node.Kind
                 Case SyntaxKind.ElseIfStatement, SyntaxKind.ElseStatement
-                    If BlockKind = SyntaxKind.ElseIfPart Then
+                    If BlockKind = SyntaxKind.ElseIfBlock Then
                         Dim context = PrevBlock.ProcessSyntax(CreateBlockSyntax(Nothing))
                         Debug.Assert(context Is PrevBlock)
                         Return context.ProcessSyntax(node)
@@ -52,9 +53,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim result As VisualBasicSyntaxNode
             If BeginStatement.Kind = SyntaxKind.ElseStatement Then
-                result = SyntaxFactory.ElsePart(DirectCast(BeginStatement, ElseStatementSyntax), Body())
+                result = SyntaxFactory.ElseBlock(DirectCast(BeginStatement, ElseStatementSyntax), Body())
             Else
-                result = SyntaxFactory.ElseIfPart(DirectCast(BeginStatement, IfStatementSyntax), Body())
+                result = SyntaxFactory.ElseIfBlock(DirectCast(BeginStatement, ElseIfStatementSyntax), Body())
             End If
 
             FreeStatements()

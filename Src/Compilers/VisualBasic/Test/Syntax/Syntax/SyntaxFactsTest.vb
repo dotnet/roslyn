@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -94,18 +94,12 @@ Public Class SyntaxFactsTests
         Assert.Equal("For", SyntaxFacts.GetBlockName(SyntaxKind.ForBlock))
         Assert.Equal("For Each", SyntaxFacts.GetBlockName(SyntaxKind.ForEachBlock))
         Assert.Equal("Select", SyntaxFacts.GetBlockName(SyntaxKind.SelectBlock))
-        Assert.Equal("If", SyntaxFacts.GetBlockName(SyntaxKind.SingleLineIfStatement))
         Assert.Equal("If", SyntaxFacts.GetBlockName(SyntaxKind.MultiLineIfBlock))
-        Assert.Equal("Else If", SyntaxFacts.GetBlockName(SyntaxKind.ElseIfPart))
-        Assert.Equal("Else", SyntaxFacts.GetBlockName(SyntaxKind.SingleLineElsePart))
-        Assert.Equal("Else", SyntaxFacts.GetBlockName(SyntaxKind.ElsePart))
+        Assert.Equal("Else If", SyntaxFacts.GetBlockName(SyntaxKind.ElseIfBlock))
+        Assert.Equal("Else", SyntaxFacts.GetBlockName(SyntaxKind.ElseBlock))
         Assert.Equal("Try", SyntaxFacts.GetBlockName(SyntaxKind.TryBlock))
-        Assert.Equal("Catch", SyntaxFacts.GetBlockName(SyntaxKind.CatchPart))
-        Assert.Equal("Finally", SyntaxFacts.GetBlockName(SyntaxKind.FinallyPart))
-
-        Assert.Throws(Of ArgumentOutOfRangeException)(Sub()
-                                                          Dim i = SyntaxFacts.GetBlockName(SyntaxKind.TryPart)
-                                                      End Sub)
+        Assert.Equal("Catch", SyntaxFacts.GetBlockName(SyntaxKind.CatchBlock))
+        Assert.Equal("Finally", SyntaxFacts.GetBlockName(SyntaxKind.FinallyBlock))
     End Sub
 
     <Fact>
@@ -519,36 +513,6 @@ End Namespace
         Next
         Assert.False(SyntaxFacts.IsIfDirectiveTriviaIfOrElseIfKeyword(SyntaxKind.ExitKeyword))
         Assert.False(SyntaxFacts.IsIfDirectiveTriviaIfOrElseIfKeyword(SyntaxKind.None))
-    End Sub
-
-    <Fact>
-    Public Sub IsIfPart()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IfPart, SyntaxKind.ElseIfPart}
-            Assert.True(SyntaxFacts.IsIfPart(item))
-        Next
-        Assert.False(SyntaxFacts.IsIfPart(SyntaxKind.ExitKeyword))
-        Assert.False(SyntaxFacts.IsIfPart(SyntaxKind.None))
-    End Sub
-
-    <Fact>
-    Public Sub IsIfStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IfStatement, SyntaxKind.ElseIfStatement}
-            Assert.True(SyntaxFacts.IsIfStatement(item))
-        Next
-        Assert.False(SyntaxFacts.IsIfStatement(SyntaxKind.ExitKeyword))
-        Assert.False(SyntaxFacts.IsIfStatement(SyntaxKind.None))
-    End Sub
-
-    <Fact>
-    Public Sub IsIfStatementIfOrElseIfKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IfKeyword, SyntaxKind.ElseIfKeyword}
-            Assert.True(SyntaxFacts.IsIfStatementIfOrElseIfKeyword(item))
-        Next
-        Assert.False(SyntaxFacts.IsIfStatementIfOrElseIfKeyword(SyntaxKind.ExitKeyword))
-        Assert.False(SyntaxFacts.IsIfStatementIfOrElseIfKeyword(SyntaxKind.None))
     End Sub
 
     <Fact>

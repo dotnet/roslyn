@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.ObjectModel
 Imports System.Text
@@ -2537,8 +2537,8 @@ End Class
         Dim newText = oldText.Replace(start:=position, length:=toReplace.Length, newText:="Property")
         Dim newTree = oldTree.WithChangedText(newText)
         Dim diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree)
-        ' The ElseIfParts should have been reused.
-        Assert.False(diffs.Any(Function(n) n.IsKind(SyntaxKind.ElseIfPart)))
+        ' The ElseIfBlocks should have been reused.
+        Assert.False(diffs.Any(Function(n) n.IsKind(SyntaxKind.ElseIfBlock)))
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 

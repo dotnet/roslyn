@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
@@ -389,7 +389,7 @@ End Module
             Assert.DoesNotContain(symbolInfo.Symbol, expressionAnalysis.WrittenInside)
             Assert.Contains(symbolInfo.Symbol, expressionAnalysis.WrittenOutside)
 
-            Dim statementDataAnalysis = semantics.AnalyzeDataFlow(CType(typeOfExpressions(4).Parent.Parent.Parent, StatementSyntax))
+            Dim statementDataAnalysis = semantics.AnalyzeDataFlow(CType(typeOfExpressions(4).Parent.Parent, StatementSyntax))
 
             AssertSequenceEqual(expressionAnalysis.AlwaysAssigned, statementDataAnalysis.AlwaysAssigned)
             AssertSequenceEqual(expressionAnalysis.Captured, statementDataAnalysis.Captured)

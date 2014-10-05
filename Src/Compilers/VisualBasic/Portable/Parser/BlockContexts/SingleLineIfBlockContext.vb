@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 '-----------------------------------------------------------------------------
@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class SingleLineIfBlockContext
         Inherits SingleLineIfOrElseBlockContext
 
-        Private _optionalElsePart As SingleLineElsePartSyntax
+        Private _optionalElseClause As SingleLineElseClauseSyntax
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(SyntaxKind.SingleLineIfStatement, statement, prevContext)
@@ -31,30 +31,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case SyntaxKind.ElseIfStatement
-                    Dim elseIfStmt = DirectCast(node, IfStatementSyntax)
-
-                    If elseIfStmt.ElseKeyword IsNot Nothing Then
-                        ' The parser always parses "else if" as an elseif statement.
-                        ' Decompose this into an else statement and an if statement.
-                        Dim elseStmt = SyntaxFactory.ElseStatement(elseIfStmt.ElseKeyword)
-                        Dim ifStmt = SyntaxFactory.IfStatement(Nothing, elseIfStmt.IfOrElseIfKeyword, elseIfStmt.Condition, elseIfStmt.ThenKeyword)
-
-                        ' Create else context
-                        Dim context = New SingleLineElseContext(SyntaxKind.SingleLineElsePart, elseStmt, Me)
-
-                        ' Let the else context process the if.
-                        Return context.ProcessSyntax(ifStmt)
-                    Else
-                        'ElseIf is unsupported in line if. End the line if and report expected end of statement per Dev10
-                        Add(Parser.ReportSyntaxError(node, ERRID.ERR_ExpectedEOS))
-                        Return Me.EndBlock(Nothing)
-                    End If
+                    'ElseIf is unsupported in line if. End the line if and report expected end of statement per Dev10
+                    Add(Parser.ReportSyntaxError(node, ERRID.ERR_ExpectedEOS))
+                    Return Me.EndBlock(Nothing)
 
                 Case SyntaxKind.ElseStatement
-                    Return New SingleLineElseContext(SyntaxKind.SingleLineElsePart, DirectCast(node, StatementSyntax), Me)
+                    Return New SingleLineElseContext(SyntaxKind.SingleLineElseClause, DirectCast(node, StatementSyntax), Me)
 
-                Case SyntaxKind.SingleLineElsePart
-                    _optionalElsePart = DirectCast(node, SingleLineElsePartSyntax)
+                Case SyntaxKind.SingleLineElseClause
+                    _optionalElseClause = DirectCast(node, SingleLineElseClauseSyntax)
                     Return Me
 
                 Case SyntaxKind.CatchStatement, SyntaxKind.FinallyStatement
@@ -75,7 +60,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function CreateIfBlockSyntax() As SingleLineIfStatementSyntax
             Debug.Assert(BeginStatement IsNot Nothing)
 
-            Dim result = SyntaxFactory.SingleLineIfStatement(SyntaxFactory.SingleLineIfPart(DirectCast(BeginStatement, IfStatementSyntax), Body()), _optionalElsePart)
+            Dim ifStatement = DirectCast(BeginStatement, IfStatementSyntax)
+
+
+            Dim result = SyntaxFactory.SingleLineIfStatement(ifStatement.IfKeyword, ifStatement.Condition, ifStatement.ThenKeyword, Body(), _optionalElseClause)
 
             FreeStatements()
 

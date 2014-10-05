@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
@@ -227,51 +227,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitSingleLineIfStatement(node As SingleLineIfStatementSyntax)
-            MakeBinder(node.IfPart, containingBinder)
-            MakeBinder(node.ElsePart, containingBinder)
-        End Sub
-
-        Public Overrides Sub VisitSingleLineIfPart(node As SingleLineIfPartSyntax)
             CreateBinderFromStatementList(node.Statements, containingBinder)
+            MakeBinder(node.ElseClause, containingBinder)
         End Sub
 
-        Public Overrides Sub VisitSingleLineElsePart(node As SingleLineElsePartSyntax)
+        Public Overrides Sub VisitSingleLineElseClause(node As SingleLineElseClauseSyntax)
             CreateBinderFromStatementList(node.Statements, containingBinder)
         End Sub
 
         Public Overrides Sub VisitMultiLineIfBlock(node As MultiLineIfBlockSyntax)
-            MakeBinder(node.IfPart, containingBinder)
-            For Each elseifPart In node.ElseIfParts
-                MakeBinder(elseifPart, containingBinder)
+            CreateBinderFromStatementList(node.Statements, containingBinder)
+
+            For Each elseifBlock In node.ElseIfBlocks
+                MakeBinder(elseifBlock, containingBinder)
             Next
-            MakeBinder(node.ElsePart, containingBinder)
+
+            MakeBinder(node.ElseBlock, containingBinder)
         End Sub
 
-        Public Overrides Sub VisitIfPart(node As IfPartSyntax)
+        Public Overrides Sub VisitElseBlock(node As ElseBlockSyntax)
             CreateBinderFromStatementList(node.Statements, containingBinder)
         End Sub
 
-        Public Overrides Sub VisitElsePart(node As ElsePartSyntax)
+        Public Overrides Sub VisitElseIfBlock(node As ElseIfBlockSyntax)
             CreateBinderFromStatementList(node.Statements, containingBinder)
         End Sub
 
         Public Overrides Sub VisitTryBlock(node As TryBlockSyntax)
             containingBinder = New ExitableStatementBinder(containingBinder,
-                                                           continueKind:=SyntaxKind.NothingKeyword, exitKind:=SyntaxKind.ExitTryStatement)
+                                                           continueKind:=SyntaxKind.None, exitKind:=SyntaxKind.ExitTryStatement)
             RememberBinder(node, containingBinder)
 
-            MakeBinder(node.TryPart, containingBinder)
-            For Each catchPart In node.CatchParts
-                MakeBinder(catchPart, containingBinder)
-            Next
-            MakeBinder(node.FinallyPart, containingBinder)
-        End Sub
-
-        Public Overrides Sub VisitTryPart(node As TryPartSyntax)
             CreateBinderFromStatementList(node.Statements, containingBinder)
+            For Each catchBlock In node.CatchBlocks
+                MakeBinder(catchBlock, containingBinder)
+            Next
+            MakeBinder(node.FinallyBlock, containingBinder)
         End Sub
 
-        Public Overrides Sub VisitCatchPart(node As CatchPartSyntax)
+        Public Overrides Sub VisitCatchBlock(node As CatchBlockSyntax)
             containingBinder = New CatchBlockBinder(containingBinder, node)
 
             RememberBinder(node, containingBinder)
@@ -279,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             CreateBinderFromStatementList(node.Statements, containingBinder)
         End Sub
 
-        Public Overrides Sub VisitFinallyPart(node As FinallyPartSyntax)
+        Public Overrides Sub VisitFinallyBlock(node As FinallyBlockSyntax)
             containingBinder = New FinallyBlockBinder(containingBinder)
 
             RememberBinder(node, containingBinder)

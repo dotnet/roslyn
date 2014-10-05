@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq
 Imports System.Runtime.CompilerServices
@@ -117,39 +117,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return withBlock.Statements
             End If
 
-            Dim singleLineIfPart = TryCast(node, SingleLineIfPartSyntax)
-            If singleLineIfPart IsNot Nothing Then
-                Return singleLineIfPart.Statements
+            Dim singleLineIfStatement = TryCast(node, SingleLineIfStatementSyntax)
+            If singleLineIfStatement IsNot Nothing Then
+                Return singleLineIfStatement.Statements
             End If
 
-            Dim singleLineElsePart = TryCast(node, SingleLineElsePartSyntax)
-            If singleLineElsePart IsNot Nothing Then
-                Return singleLineElsePart.Statements
+            Dim singleLineElseClause = TryCast(node, SingleLineElseClauseSyntax)
+            If singleLineElseClause IsNot Nothing Then
+                Return singleLineElseClause.Statements
             End If
 
-            Dim ifPart = TryCast(node, IfPartSyntax)
-            If ifPart IsNot Nothing Then
-                Return ifPart.Statements
+            Dim ifBlock = TryCast(node, MultiLineIfBlockSyntax)
+            If ifBlock IsNot Nothing Then
+                Return ifBlock.Statements
             End If
 
-            Dim elsePart = TryCast(node, ElsePartSyntax)
-            If elsePart IsNot Nothing Then
-                Return elsePart.Statements
+            Dim elseBlock = TryCast(node, ElseBlockSyntax)
+            If elseBlock IsNot Nothing Then
+                Return elseBlock.Statements
             End If
 
-            Dim tryPart = TryCast(node, TryPartSyntax)
-            If tryPart IsNot Nothing Then
-                Return tryPart.Statements
+            Dim tryBlock = TryCast(node, TryBlockSyntax)
+            If tryBlock IsNot Nothing Then
+                Return tryBlock.Statements
             End If
 
-            Dim catchPart = TryCast(node, CatchPartSyntax)
-            If catchPart IsNot Nothing Then
-                Return catchPart.Statements
+            Dim catchBlock = TryCast(node, CatchBlockSyntax)
+            If catchBlock IsNot Nothing Then
+                Return catchBlock.Statements
             End If
 
-            Dim finallyPart = TryCast(node, FinallyPartSyntax)
-            If finallyPart IsNot Nothing Then
-                Return finallyPart.Statements
+            Dim finallyBlock = TryCast(node, FinallyBlockSyntax)
+            If finallyBlock IsNot Nothing Then
+                Return finallyBlock.Statements
             End If
 
             Dim caseBlock = TryCast(node, CaseBlockSyntax)
@@ -569,14 +569,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                          SyntaxKind.UsingBlock,
                          SyntaxKind.SyncLockBlock,
                          SyntaxKind.WithBlock,
-                         SyntaxKind.SingleLineIfPart,
-                         SyntaxKind.SingleLineElsePart,
+                         SyntaxKind.SingleLineIfStatement,
+                         SyntaxKind.SingleLineElseClause,
                          SyntaxKind.SingleLineSubLambdaExpression,
-                         SyntaxKind.IfPart,
-                         SyntaxKind.ElsePart,
-                         SyntaxKind.TryPart,
-                         SyntaxKind.CatchPart,
-                         SyntaxKind.FinallyPart,
+                         SyntaxKind.MultiLineIfBlock,
+                         SyntaxKind.ElseBlock,
+                         SyntaxKind.TryBlock,
+                         SyntaxKind.CatchBlock,
+                         SyntaxKind.FinallyBlock,
                          SyntaxKind.CaseBlock,
                          SyntaxKind.CaseElseBlock
                         Return True
@@ -634,22 +634,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Return DirectCast(node, SyncLockBlockSyntax).Statements
                     Case SyntaxKind.WithBlock
                         Return DirectCast(node, WithBlockSyntax).Statements
-                    Case SyntaxKind.SingleLineIfPart
-                        Return DirectCast(node, SingleLineIfPartSyntax).Statements
-                    Case SyntaxKind.SingleLineElsePart
-                        Return DirectCast(node, SingleLineElsePartSyntax).Statements
+                    Case SyntaxKind.SingleLineIfStatement
+                        Return DirectCast(node, SingleLineIfStatementSyntax).Statements
+                    Case SyntaxKind.SingleLineElseClause
+                        Return DirectCast(node, SingleLineElseClauseSyntax).Statements
                     Case SyntaxKind.SingleLineSubLambdaExpression
                         Return SyntaxFactory.SingletonList(DirectCast(DirectCast(node, SingleLineLambdaExpressionSyntax).Body, StatementSyntax))
-                    Case SyntaxKind.IfPart
-                        Return DirectCast(node, IfPartSyntax).Statements
-                    Case SyntaxKind.ElsePart
-                        Return DirectCast(node, ElsePartSyntax).Statements
-                    Case SyntaxKind.TryPart
-                        Return DirectCast(node, TryPartSyntax).Statements
-                    Case SyntaxKind.CatchPart
-                        Return DirectCast(node, CatchPartSyntax).Statements
-                    Case SyntaxKind.FinallyPart
-                        Return DirectCast(node, FinallyPartSyntax).Statements
+                    Case SyntaxKind.MultiLineIfBlock
+                        Return DirectCast(node, MultiLineIfBlockSyntax).Statements
+                    Case SyntaxKind.ElseBlock
+                        Return DirectCast(node, ElseBlockSyntax).Statements
+                    Case SyntaxKind.TryBlock
+                        Return DirectCast(node, TryBlockSyntax).Statements
+                    Case SyntaxKind.CatchBlock
+                        Return DirectCast(node, CatchBlockSyntax).Statements
+                    Case SyntaxKind.FinallyBlock
+                        Return DirectCast(node, FinallyBlockSyntax).Statements
                     Case SyntaxKind.CaseBlock, SyntaxKind.CaseElseBlock
                         Return DirectCast(node, CaseBlockSyntax).Statements
                 End Select
@@ -764,14 +764,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Function(x As UsingBlockSyntax) x.WithStatements(statements),
                 Function(x As SyncLockBlockSyntax) x.WithStatements(statements),
                 Function(x As WithBlockSyntax) x.WithStatements(statements),
-                Function(x As SingleLineIfPartSyntax) x.WithStatements(statements),
-                Function(x As SingleLineElsePartSyntax) x.WithStatements(statements),
+                Function(x As SingleLineIfStatementSyntax) x.WithStatements(statements),
+                Function(x As SingleLineElseClauseSyntax) x.WithStatements(statements),
                 Function(x As SingleLineLambdaExpressionSyntax) ReplaceSingleLineLambdaExpressionStatements(x, statements, annotations),
-                Function(x As IfPartSyntax) x.WithStatements(statements),
-                Function(x As ElsePartSyntax) x.WithStatements(statements),
-                Function(x As TryPartSyntax) x.WithStatements(statements),
-                Function(x As CatchPartSyntax) x.WithStatements(statements),
-                Function(x As FinallyPartSyntax) x.WithStatements(statements),
+                Function(x As MultiLineIfBlockSyntax) x.WithStatements(statements),
+                Function(x As ElseBlockSyntax) x.WithStatements(statements),
+                Function(x As TryBlockSyntax) x.WithStatements(statements),
+                Function(x As CatchBlockSyntax) x.WithStatements(statements),
+                Function(x As FinallyBlockSyntax) x.WithStatements(statements),
                 Function(x As CaseBlockSyntax) x.WithStatements(statements))
         End Function
 
@@ -820,8 +820,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function IsSingleLineExecutableBlock(executableBlock As SyntaxNode) As Boolean
             Select Case executableBlock.VisualBasicKind
-                Case SyntaxKind.SingleLineElsePart,
-                     SyntaxKind.SingleLineIfPart,
+                Case SyntaxKind.SingleLineElseClause,
+                     SyntaxKind.SingleLineIfStatement,
                      SyntaxKind.SingleLineSubLambdaExpression
                     Return executableBlock.GetExecutableBlockStatements().Count = 1
                 Case Else
@@ -835,41 +835,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Sub UpdateStatements(executableBlock As SyntaxNode,
-                                     statements As SyntaxList(Of StatementSyntax),
+                                     newStatements As SyntaxList(Of StatementSyntax),
                                      annotations As SyntaxAnnotation(),
                                      ByRef singleLineIf As SingleLineIfStatementSyntax,
                                      ByRef multiLineIf As MultiLineIfBlockSyntax)
-            Dim [endIf] = DirectCast(SyntaxFactory.EndIfStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword), SyntaxFactory.Token(SyntaxKind.IfKeyword)).
-                WithAdditionalAnnotations(annotations), EndBlockStatementSyntax)
+
+            Dim ifStatements As SyntaxList(Of StatementSyntax)
+            Dim elseStatements As SyntaxList(Of StatementSyntax)
 
             Select Case executableBlock.VisualBasicKind
-                Case SyntaxKind.SingleLineIfPart
-                    Dim ifPart = DirectCast(executableBlock, SingleLineIfPartSyntax)
+                Case SyntaxKind.SingleLineIfStatement
+                    singleLineIf = DirectCast(executableBlock, SingleLineIfStatementSyntax)
+                    ifStatements = newStatements
+                    elseStatements = If(singleLineIf.ElseClause Is Nothing, Nothing, singleLineIf.ElseClause.Statements)
+                Case SyntaxKind.SingleLineElseClause
                     singleLineIf = DirectCast(executableBlock.Parent, SingleLineIfStatementSyntax)
-                    Dim elsePartOpt = If(singleLineIf.ElsePart Is Nothing, Nothing,
-                                      SyntaxFactory.ElsePart(singleLineIf.ElsePart.Begin.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker),
-                                                      singleLineIf.ElsePart.Statements).
-                                                            WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker))
-
-                    multiLineIf = DirectCast(SyntaxFactory.MultiLineIfBlock(
-                            SyntaxFactory.IfPart(ifPart.Begin.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker), statements).
-                                WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)) _
-                        .WithElsePart(elsePart:=elsePartOpt) _
-                        .WithEnd([endIf]) _
-                        .WithAdditionalAnnotations(annotations), MultiLineIfBlockSyntax)
-                Case SyntaxKind.SingleLineElsePart
-                    singleLineIf = DirectCast(executableBlock.Parent, SingleLineIfStatementSyntax)
-                    Dim ifPart = singleLineIf.IfPart
-
-                    multiLineIf = DirectCast(SyntaxFactory.MultiLineIfBlock(
-                        SyntaxFactory.IfPart(ifPart.Begin.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker),
-                                      ifPart.Statements).
-                                            WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).
-                                            WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)) _
-                        .WithElsePart(SyntaxFactory.ElsePart(statements).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)) _
-                        .WithEnd([endIf]) _
-                        .WithAdditionalAnnotations(annotations), MultiLineIfBlockSyntax)
+                    ifStatements = singleLineIf.Statements
+                    elseStatements = newStatements
+                Case Else
+                    Return
             End Select
+
+            Dim ifStatement = SyntaxFactory.IfStatement(singleLineIf.IfKeyword, singleLineIf.Condition, singleLineIf.ThenKeyword) _
+                                           .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
+
+            Dim elseBlockOpt = If(singleLineIf.ElseClause Is Nothing,
+                                  Nothing,
+                                  SyntaxFactory.ElseBlock(
+                                                    SyntaxFactory.ElseStatement(singleLineIf.ElseClause.ElseKeyword).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker),
+                                                    elseStatements) _
+                                               .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker))
+
+            Dim [endIf] = SyntaxFactory.EndIfStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword), SyntaxFactory.Token(SyntaxKind.IfKeyword)) _
+                                       .WithAdditionalAnnotations(annotations)
+
+            multiLineIf = SyntaxFactory.MultiLineIfBlock(
+                                            SyntaxFactory.IfStatement(singleLineIf.IfKeyword, singleLineIf.Condition, singleLineIf.ThenKeyword) _
+                                                         .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker),
+                                            ifStatements,
+                                            Nothing,
+                                            elseBlockOpt,
+                                            [endIf]) _
+                                       .WithAdditionalAnnotations(annotations)
         End Sub
 
         <Extension()>
@@ -884,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim current = block
             While current.IsSingleLineExecutableBlock()
-                If current.VisualBasicKind = SyntaxKind.SingleLineIfPart OrElse current.VisualBasicKind = SyntaxKind.SingleLineElsePart Then
+                If current.VisualBasicKind = SyntaxKind.SingleLineIfStatement OrElse current.VisualBasicKind = SyntaxKind.SingleLineElseClause Then
                     Dim singleLineIf As SingleLineIfStatementSyntax = Nothing
                     Dim multiLineIf As MultiLineIfBlockSyntax = Nothing
                     UpdateStatements(current, statements, annotations, singleLineIf, multiLineIf)

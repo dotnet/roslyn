@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -174,14 +174,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     SyntaxKind.InterfaceBlock,
                     SyntaxKind.CaseBlock,
                     SyntaxKind.CaseElseBlock,
-                    SyntaxKind.TryPart,
-                    SyntaxKind.CatchPart,
-                    SyntaxKind.FinallyPart,
-                    SyntaxKind.IfPart,
-                    SyntaxKind.ElsePart,
-                    SyntaxKind.ElseIfPart,
-                    SyntaxKind.SingleLineIfPart,
-                    SyntaxKind.SingleLineElsePart,
+                    SyntaxKind.CatchBlock,
+                    SyntaxKind.FinallyBlock,
+                    SyntaxKind.ElseBlock,
+                    SyntaxKind.ElseIfBlock,
+                    SyntaxKind.SingleLineElseClause,
                     SyntaxKind.AttributeList,
                     SyntaxKind.ConstructorBlock,
                     SyntaxKind.FieldDeclaration

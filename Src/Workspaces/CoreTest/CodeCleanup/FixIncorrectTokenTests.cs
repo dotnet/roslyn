@@ -96,7 +96,7 @@ End Class
             Verify(code, expected);
         }
 
-        [Fact]
+        [Fact(Skip = "889521")]
         [WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public void FixEndIfKeyword_SameLineAsIf()

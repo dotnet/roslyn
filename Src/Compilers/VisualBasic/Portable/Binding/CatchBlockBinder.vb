@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Collections
@@ -15,10 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class CatchBlockBinder
         Inherits BlockBaseBinder
 
-        Private ReadOnly _syntax As CatchPartSyntax
+        Private ReadOnly _syntax As CatchBlockSyntax
         Private _locals As ImmutableArray(Of LocalSymbol) = Nothing
 
-        Public Sub New(enclosing As Binder, syntax As CatchPartSyntax)
+        Public Sub New(enclosing As Binder, syntax As CatchBlockSyntax)
             MyBase.New(enclosing)
 
             Debug.Assert(syntax IsNot Nothing)
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Build a read only array of all the local variables declared By the Catch declaration statement.
         ' There can only be 0 or 1 variable.
         Private Function BuildLocals() As ImmutableArray(Of LocalSymbol)
-            Dim catchStatement = _syntax.Begin
+            Dim catchStatement = _syntax.CatchStatement
 
             Dim asClauseOptSyntax = catchStatement.AsClause
 

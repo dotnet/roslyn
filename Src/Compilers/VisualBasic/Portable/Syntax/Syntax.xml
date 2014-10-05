@@ -3066,187 +3066,115 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Value"></lm-equiv>
         <native-equiv name="Operand"></native-equiv>
       </child>
-    </node-structure>
-
+    </node-structure>      
 
     <!--****************
       -  SingleLineIfStatement
       ******************-->
     <node-structure name="SingleLineIfStatementSyntax" parent="ExecutableStatementSyntax">
       <description>
-        Represents a  line If-Then-Else statement.
+        Represents a single-line "If ... Then ... Else ..." statement.
       </description>
       <spec-section>10.8.1</spec-section>
       <grammar>IfStatement</grammar>
 
-      <node-kind name="SingleLineIfStatement"></node-kind>
+      <node-kind name="SingleLineIfStatement" />
 
-      <child name="IfPart" kind="SingleLineIfPart">
-        <description>The If part of the statement.</description>
+      <child name="IfKeyword" kind="IfKeyword">
+        <description>The "If" keyword.</description>
+        <lm-equiv name="IfKeyword" />
+        <native-equiv name="" />
       </child>
 
-      <child name="ElsePart" optional="true" kind="SingleLineElsePart">
-        <description>The Else part of the statement. If there is no Else part, Nothing is returned.</description>
+      <child name="Condition" kind="@ExpressionSyntax">
+        <description>The condition expression to be evaluated.</description>
+        <lm-equiv name="Condition" />
+        <native-equiv name="Operand" />
       </child>
 
-    </node-structure>
-
-    <!--****************
-      -  SingleLineIfPart
-      ******************-->
-    <node-structure name="SingleLineIfPartSyntax" parent="VisualBasicSyntaxNode">
-      <description>
-        Represents part of a single line If statement, consisting of a beginning if-statement, followed
-        by a body of statement controlled by that beginning statement. The Kind property returns if this is an SingleLineIf.
-      </description>
-      <lm-equiv name="IfNode">An IfStatementPart (with Kind=IfPart) exactly corresponds to an IfNode -- the If statement and its following body.</lm-equiv>
-      <lm-equiv name="ElseIfNode">An IfStatementPart (with Kind=ElseIfPart) exactly corresponds to an ElseIfNode -- the ElseIf statement and its following body.</lm-equiv>
-      <native-equiv name="IfStatement">An IfStatementPart (with Kind=IfPart) exactly corresponds to an IfStatement -- the If statement and its following body.</native-equiv>
-      <native-equiv name="ElseIfStatement">An IfStatementPart (with Kind=ElseIfPart) exactly corresponds to an ElseIfStatement -- the ElseIf statement and its following body.</native-equiv>
-      <spec-section>10.8.1</spec-section>
-      <grammar>IfStatement</grammar>
-      <grammar>ElseIfStatement</grammar>
-
-      <node-kind name="SingleLineIfPart">
-        <lm-equiv name="If" />
-        <native-equiv name="Statement.Opcodes.BlockIf" />
-        <native-equiv name="Statement.Opcodes.LineIf" />
-      </node-kind>
-
-      <child name="Begin" kind="IfStatement">
-        <description>The statement that introduces this part of the If...Then...Else...End If. This must be an IfStatement.</description>
+      <child name="ThenKeyword" kind="ThenKeyword">
+        <description>The "Then" keyword.</description>
+        <lm-equiv name="ThenKeyword" />
+        <native-equiv name="Then" />
       </child>
 
       <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
-        <description>The statements controlled by this If or Else If. This might be an empty list.</description>
-        <lm-equiv name="BlockNode.Contents"></lm-equiv>
-        <native-equiv name="BlockStatement.Children"></native-equiv>
+        <description>A list of statements to be executed if the condition expression evaluates as true. Multiple statements must be separated by colons.</description>
+        <lm-equiv name="BlockNode.Contents" />
+        <native-equiv name="BlockStatement.Children" />
+      </child>    
+
+      <child name="ElseClause" optional="true" kind="SingleLineElseClause">
+        <description>An "Else" clause to be executed if the condition expression evalues as false.</description>
       </child>
+
     </node-structure>
 
     <!--****************
-      -  SingleLineElsePart
+      -  SingleLineElseClause
       ******************-->
-    <node-structure name="SingleLineElsePartSyntax" parent="VisualBasicSyntaxNode">
+    <node-structure name="SingleLineElseClauseSyntax" parent="VisualBasicSyntaxNode">
       <description>
-        Represents the Else part of an If statement, consisting of a Else statement, followed
-        by a body of statement controlled by that Else.
+        Represents the "Else ..." clause of a single-line "If" statement.
       </description>
-      <lm-equiv name="ElseNode">An ElsePart exactly corresponds to an ElseNode -- the Else statement and its following body.</lm-equiv>
-      <native-equiv name="ElseStatement">An ElsePart exactly corresponds to an ElseStatement -- the Else statement and its following body.</native-equiv>
+      <lm-equiv name="ElseNode">A SingleLineElseClause exactly corresponds to an ElseNode -- the Else statement and its following body.</lm-equiv>
+      <native-equiv name="ElseStatement">A SingleLineElseClause exactly corresponds to an ElseStatement -- the Else statement and its following body.</native-equiv>
       <spec-section>10.8.1</spec-section>
       <grammar>ElseStatement</grammar>
 
-      <node-kind name="SingleLineElsePart">
+      <node-kind name="SingleLineElseClause">
         <lm-equiv name="Else" />
         <native-equiv name="Statement.Opcodes.LineElse" />
       </node-kind>
 
-      <child name="Begin" kind="ElseStatement">
-        <description>The Else statement that introduces this part.</description>
+      <child name="ElseKeyword" kind="ElseKeyword">
+        <description>The "Else" keyword.</description>
+        <lm-equiv name="ElseKeyword" />
+        <native-equiv name="Else" />
       </child>
 
       <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
-        <description>The statements controlled by the Else.This might be an empty list.</description>
+        <description>A list of statements to be executed. Multiple statements must be separated by colons.</description>
         <lm-equiv name="BlockNode.Contents"></lm-equiv>
         <native-equiv name="BlockStatement.Children"></native-equiv>
       </child>
-    </node-structure>
 
+    </node-structure>
 
     <!--****************
       -  MultiLineIfBlock
       ******************-->
     <node-structure name="MultiLineIfBlockSyntax" parent="ExecutableStatementSyntax">
       <description>
-        Represents a block If...Then...Else...EndIf Statement. The Kind property can be used
-        to determine if it is a block or line If.
+        Represents a multi-line "If ... Then ... ElseIf ... Then ... Else ... End If" block.
       </description>
       <spec-section>10.8.1</spec-section>
       <grammar>IfStatement</grammar>
+      <lm-equiv name="IfNode">A MultiLineIfBlock corresponds to an IfNode -- the If statement and its following body.</lm-equiv>
+      <native-equiv name="IfStatement">A MultiLineIfBlock corresponds to an IfStatement -- the If statement and its following body.</native-equiv>
 
-      <node-kind name="MultiLineIfBlock"></node-kind>
+      <node-kind name="MultiLineIfBlock" />
 
-      <child name="IfPart" kind="IfPart">
-        <description>The If part of the statement.</description>
-      </child>
-
-      <child name="ElseIfParts" optional="true" list="true" kind="ElseIfPart">
-        <description>A list of the "ElseIf" parts of the statement. If there are no ElseIf parts, then an empty list is returned.</description>
-      </child>
-
-      <child name="ElsePart" optional="true" kind="ElsePart">
-        <description>The Else part of the statement. If there is no Else part, Nothing is returned.</description>
-      </child>
-
-      <child name="End" kind="EndIfStatement">
-        <description>If this is a block if, returns the "End If" statement.</description>
-      </child>
-    </node-structure>
-
-    <!--****************
-      -  IfPart
-      ******************-->
-    <node-structure name="IfPartSyntax" parent="VisualBasicSyntaxNode">
-      <description>
-        Represents part of an If statement, consisting of a beginning statement (If or ElseIf), followed
-        by a body of statement controlled by that beginning statement. The Kind property returns if this is an If or ElseIf.
-      </description>
-      <lm-equiv name="IfNode">An IfStatementPart (with Kind=IfPart) exactly corresponds to an IfNode -- the If statement and its following body.</lm-equiv>
-      <lm-equiv name="ElseIfNode">An IfStatementPart (with Kind=ElseIfPart) exactly corresponds to an ElseIfNode -- the ElseIf statement and its following body.</lm-equiv>
-      <native-equiv name="IfStatement">An IfStatementPart (with Kind=IfPart) exactly corresponds to an IfStatement -- the If statement and its following body.</native-equiv>
-      <native-equiv name="ElseIfStatement">An IfStatementPart (with Kind=ElseIfPart) exactly corresponds to an ElseIfStatement -- the ElseIf statement and its following body.</native-equiv>
-      <spec-section>10.8.1</spec-section>
-      <grammar>IfStatement</grammar>
-      <grammar>ElseIfStatement</grammar>
-
-      <node-kind name="IfPart">
-        <lm-equiv name="If" />
-        <native-equiv name="Statement.Opcodes.BlockIf" />
-        <native-equiv name="Statement.Opcodes.LineIf" />
-      </node-kind>
-      <node-kind name="ElseIfPart">
-        <lm-equiv name="ElseIf" />
-        <native-equiv name="Statement.Opcodes.ElseIf" />
-      </node-kind>
-
-      <child name="Begin" kind="IfStatement|ElseIfStatement">
-        <description>The statement that introduces this part of the If...Then...Else...End If. This must be an IfStatement.</description>
+      <child name="IfStatement" kind="IfStatement">
+        <description>The "If" statement that begins the "If" block.</description>
       </child>
 
       <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
-        <description>The statements controlled by this If or Else If. This might be an empty list.</description>
+        <description>A list of statements to be executed if the condition expression evaluates as true.</description>
         <lm-equiv name="BlockNode.Contents"></lm-equiv>
         <native-equiv name="BlockStatement.Children"></native-equiv>
-      </child>
-    </node-structure>
+      </child>                  
 
-    <!--****************
-      -  ElsePart
-      ******************-->
-    <node-structure name="ElsePartSyntax" parent="VisualBasicSyntaxNode">
-      <description>
-        Represents the Else part of an If statement, consisting of a Else statement, followed
-        by a body of statement controlled by that Else.
-      </description>
-      <lm-equiv name="ElseNode">An ElsePart exactly corresponds to an ElseNode -- the Else statement and its following body.</lm-equiv>
-      <native-equiv name="ElseStatement">An ElsePart exactly corresponds to an ElseStatement -- the Else statement and its following body.</native-equiv>
-      <spec-section>10.8.1</spec-section>
-      <grammar>ElseStatement</grammar>
-
-      <node-kind name="ElsePart">
-        <lm-equiv name="Else" />
-        <native-equiv name="Statement.Opcodes.BlockElse" />
-      </node-kind>
-
-      <child name="Begin" kind="ElseStatement">
-        <description>The Else statement that introduces this part.</description>
+      <child name="ElseIfBlocks" optional="true" list="true" kind="ElseIfBlock">
+        <description>A list of "ElseIf" blocks to be evaluated, in order, if the condition expression of the "If" statement evaluates as false.</description>
       </child>
 
-      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
-        <description>The statements controlled by the Else. This might be an empty list.</description>
-        <lm-equiv name="BlockNode.Contents"></lm-equiv>
-        <native-equiv name="BlockStatement.Children"></native-equiv>
+      <child name="ElseBlock" optional="true" kind="ElseBlock">
+        <description>An "Else" block to be executed if the condition expression of the "If" statement and all "ElseIf" blocks evaluate as false.</description>
+      </child>
+
+      <child name="EndIfStatement" kind="EndIfStatement">
+        <description>Then "End If" statement.</description>
       </child>
     </node-structure>
 
@@ -3255,16 +3183,12 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="IfStatementSyntax" parent="StatementSyntax">
       <description>
-        Represents the If part or ElseIf part of a If...End If block (or line If). This statement is always the Begin of a IfPart.
-        The Kind can be examined to determine if this is an If or an ElseIf statement.
+        Represents the "If ... Then" statement that begins a multi-line "If" block.
       </description>
       <lm-equiv name="IfNode">An IfStatement represents just the header statement, not the body of the If.</lm-equiv>
-      <lm-equiv name="ElseIfNode">An IfStatement represents just the header statement, not the body of the ElseIf.</lm-equiv>
       <native-equiv name="IfStatement">An IfStatement represents just the header statement, not the body of the If.</native-equiv>
-      <native-equiv name="ElseIfStatement">An IfStatement represents just the header statement, not the body of the ElseIf.</native-equiv>
       <spec-section>10.8.1</spec-section>
       <grammar>IfStatement</grammar>
-      <grammar>ElseIfStatement</grammar>
 
       <node-kind name="IfStatement">
         <lm-equiv name="If" />
@@ -3272,26 +3196,14 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.LineIf" />
       </node-kind>
 
-      <node-kind name="ElseIfStatement">
-        <lm-equiv name="ElseIf" />
-        <native-equiv name="Statement.Opcodes.ElseIf" />
-      </node-kind>
-
-      <child name="ElseKeyword" optional="true" kind="ElseKeyword">
-        <description>
-          If this ElseIf was written as "Else If", contains the "Else" keyword. Otherwise returns
-          Nothing.
-        </description>
-      </child>
-
-      <child name="IfOrElseIfKeyword" kind="IfKeyword|ElseIfKeyword">
-        <description>The "If" or "ElseIf" keyword.</description>
+      <child name="IfKeyword" kind="IfKeyword">
+        <description>The "If" keyword.</description>
         <lm-equiv name="IfKeyword"></lm-equiv>
         <native-equiv name=""></native-equiv>
       </child>
 
       <child name="Condition" kind="@ExpressionSyntax">
-        <description>The boolean expression that is being tested.</description>
+        <description>The condition expression to be evaluated.</description>
         <lm-equiv name="Condition"></lm-equiv>
         <native-equiv name="Operand"></native-equiv>
       </child>
@@ -3304,11 +3216,98 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--****************
+      -  ElseIfBlock
+      ******************-->
+    <node-structure name="ElseIfBlockSyntax" parent="VisualBasicSyntaxNode">
+      <description>
+        Represents an "ElseIf ... Then ..." block.
+      </description>
+      <lm-equiv name="ElseIfNode">ElseIfBlock exactly corresponds to an ElseIfNode -- the ElseIf statement and its following body.</lm-equiv>
+      <native-equiv name="ElseIfStatement">ElseIfBlock exactly corresponds to an ElseIfStatement -- the ElseIf statement and its following body.</native-equiv>
+      <spec-section>10.8.1</spec-section>
+      <grammar>ElseIfStatement</grammar>
+
+      <node-kind name="ElseIfBlock">
+        <lm-equiv name="ElseIf" />
+        <native-equiv name="Statement.Opcodes.ElseIf" />
+      </node-kind>
+
+      <child name="ElseIfStatement" kind="ElseIfStatement">
+        <description>The "ElseIf ... Then" statement the begins the "ElseIf" block.</description>
+      </child>
+
+      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
+        <description>A list of statements to be executed if the condition expression of the "ElseIf" statement evaluates as true.</description>
+        <lm-equiv name="BlockNode.Contents"></lm-equiv>
+        <native-equiv name="BlockStatement.Children"></native-equiv>
+      </child>
+    </node-structure>
+
+    <!--****************
+      -  ElseIfStatement
+      ******************-->
+    <node-structure name="ElseIfStatementSyntax" parent="StatementSyntax">
+      <description>
+        Represents the "ElseIf ... Then" statement that begins an "ElseIf" block.
+      </description>
+      <lm-equiv name="ElseIfNode">An IfStatement represents just the header statement, not the body of the ElseIf.</lm-equiv>
+      <native-equiv name="ElseIfStatement">An IfStatement represents just the header statement, not the body of the ElseIf.</native-equiv>
+      <spec-section>10.8.1</spec-section>
+      <grammar>ElseIfStatement</grammar>
+
+      <node-kind name="ElseIfStatement" />
+
+      <child name="ElseIfKeyword" kind="ElseIfKeyword">
+        <description>The "ElseIf" keyword.</description>
+      </child>
+
+      <child name="Condition" kind="@ExpressionSyntax">
+        <description>The condition expression to be evaluated.</description>
+        <lm-equiv name="Condition"></lm-equiv>
+        <native-equiv name="Operand"></native-equiv>
+      </child>
+
+      <child name="ThenKeyword" optional="true" kind="ThenKeyword">
+        <description>The "Then" keyword.</description>
+        <lm-equiv name="ThenKeyword"></lm-equiv>
+        <native-equiv name="Then"></native-equiv>
+      </child>
+    </node-structure>
+
+    <!--****************
+      -  ElseBlock
+      ******************-->
+    <node-structure name="ElseBlockSyntax" parent="VisualBasicSyntaxNode">
+      <description>
+        Represents an "Else ..." block.
+      </description>
+      <lm-equiv name="ElseNode">An ElseBlock exactly corresponds to an ElseNode -- the Else statement and its following body.</lm-equiv>
+      <native-equiv name="ElseStatement">An ElseBlock exactly corresponds to an ElseStatement -- the Else statement and its following body.</native-equiv>
+      <spec-section>10.8.1</spec-section>
+      <grammar>ElseStatement</grammar>
+
+      <node-kind name="ElseBlock">
+        <lm-equiv name="Else" />
+        <native-equiv name="Statement.Opcodes.BlockElse" />
+      </node-kind>
+
+      <child name="ElseStatement" kind="ElseStatement">
+        <description>The "Else" statement that begins the "Else" block.</description>
+      </child>
+
+      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
+        <description>A list of statements to be executed.</description>
+        <lm-equiv name="BlockNode.Contents"></lm-equiv>
+        <native-equiv name="BlockStatement.Children"></native-equiv>
+      </child>
+    </node-structure>
+
+    <!--****************
       -  Else
       ******************-->
     <node-structure name="ElseStatementSyntax" parent="StatementSyntax">
       <description>
-        Represents the Else part of a If...End If block (or line If). This statement is always the Begin of a ElsePart.
+        Represents the "Else" statement that begins an "Else" block.
       </description>
       <lm-equiv name="ElseNode">An ElseStatement represents just the header statement, not the body of the Else.</lm-equiv>
       <native-equiv name="ElseStatement">An ElseStatement represents just the header statement, not the body of the Else.</native-equiv>
@@ -3322,7 +3321,7 @@ Unify Enum declarations with other block type declarations.
       </node-kind>
 
       <child name="ElseKeyword" kind="ElseKeyword">
-        <description>The "Else" keyword</description>
+        <description>The "Else" keyword.</description>
         <lm-equiv name="ElseKeyword"></lm-equiv>
         <native-equiv name=""></native-equiv>
       </child>
@@ -3332,119 +3331,36 @@ Unify Enum declarations with other block type declarations.
       -  TryBlock
       ******************-->
     <node-structure name="TryBlockSyntax" parent="ExecutableStatementSyntax">
-      <description>Represents an entire Try...Catch...Finally...End Try statement. </description>
+      <description>
+        Represents a "Try ... Catch ... Finally ... End Try" block.
+      </description>
+      <lm-equiv name="TryNode">A TryBlock corresponds to an TryNode -- the Try statement and its following body.</lm-equiv>
+      <native-equiv name="ExecutableBlockStatement">A TryBlock corresponds to a Try statement and its following body.</native-equiv>
       <spec-section>10.10.1</spec-section>
       <grammar>TryStatement</grammar>
-
+          
       <node-kind name="TryBlock" />
 
-      <child name="TryPart" kind="TryPart">
-        <description>The Try part of the statement.</description>
+      <child name="TryStatement" kind="TryStatement">
+        <description>The "Try" statement that begins the "Try" block. </description>
       </child>
 
-      <child name="CatchParts" optional="true" list="true" kind="CatchPart">
-        <description>A list of the Catch parts of the statement. If there are no Catch parts, then an empty list is returned.</description>
+      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
+        <description>A list of statements to be executed.</description>
+        <lm-equiv name="BlockNode.Contents"></lm-equiv>
+        <native-equiv name="BlockStatement.Children"></native-equiv>
       </child>
 
-      <child name="FinallyPart" optional="true" kind="FinallyPart">
-        <description>The Finally part of the statement, if present.</description>
+      <child name="CatchBlocks" optional="true" list="true" kind="CatchBlock">
+        <description>A list of "Catch" blocks which may be executed if an exception is thrown while executing the statements in the "Try" block.</description>
       </child>
 
-      <child name="End" kind="EndTryStatement">
+      <child name="FinallyBlock" optional="true" kind="FinallyBlock">
+        <description>A "Finally" block to be executed before execution leaves the "Try" block.</description>
+      </child>
+
+      <child name="EndTryStatement" kind="EndTryStatement">
         <description>The "End Try" statement.</description>
-      </child>
-    </node-structure>
-
-    <!--****************
-      -  TryPart
-      ******************-->
-    <node-structure name="TryPartSyntax" parent="VisualBasicSyntaxNode">
-      <description>
-        Represents part of an Try...Catch...Finally...End Try statement, consisting of a beginning statement (Try, Catch or Finally), followed
-        by a body of statements controlled by that beginning statement. The Kind property returns which kind of part this is.
-      </description>
-      <lm-equiv name="TryNode">An TryPart exactly corresponds to an TryNode -- the Try statement and its following body.</lm-equiv>
-      <native-equiv name="ExecutableBlockStatement">An TryPart corresponds to a Try statement and its following body.</native-equiv>
-      <spec-section>10.10.1</spec-section>
-      <grammar>TryStatement&gt;</grammar>
-
-      <node-kind name="TryPart">
-        <lm-equiv name="Try" />
-        <native-equiv name="Statement.Opcodes.Try" />
-      </node-kind>
-
-      <child name="Begin" kind="TryStatement">
-        <description>The TryStatement that introduces this part of the Try...Catch...Finally...End Try. </description>
-      </child>
-
-      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
-        <description>The statements inside the Try part of the Try...Catch...Finally...End Try. This might be an empty list.</description>
-        <lm-equiv name="BlockNode.Contents"></lm-equiv>
-        <native-equiv name="BlockStatement.Children"></native-equiv>
-      </child>
-
-    </node-structure>
-
-    <!--****************
-      -  CatchPart
-      ******************-->
-    <node-structure name="CatchPartSyntax" parent="VisualBasicSyntaxNode">
-      <description>
-        Represents a Catch part of an Try...Catch...Finally...End Try statement, consisting of a Catch statement, followed
-        by a body of statements controlled by that Catch statement. The Kind property returns which kind of part this is.
-      </description>
-      <lm-equiv name="CatchNode">An CatchPart exactly corresponds to an CatchNode -- the Catch statement and its following body.</lm-equiv>
-      <native-equiv name="CatchStatement">An CatchPart exactly corresponds to an ElseIfStatement -- the ElseIf statement and its following body.</native-equiv>
-      <spec-section>10.10.1</spec-section>
-      <grammar>TryStatement&gt;</grammar>
-
-      <node-kind name="CatchPart">
-        <lm-equiv name="Catch" />
-        <native-equiv name="Statement.Opcodes.Catch" />
-      </node-kind>
-
-      <child name="Begin" kind="CatchStatement">
-        <description>
-          The CatchStatement that introduces this part.
-        </description>
-      </child>
-
-      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
-        <description>The statements controlled by the Catch statement. This might be an empty list.</description>
-        <lm-equiv name="BlockNode.Contents"></lm-equiv>
-        <native-equiv name="BlockStatement.Children"></native-equiv>
-      </child>
-
-    </node-structure>
-
-    <!--****************
-      -  FinallyPart
-      ******************-->
-    <node-structure name="FinallyPartSyntax" parent="VisualBasicSyntaxNode">
-      <description>
-        Represents the Finally part of an Try...Catch...Finally...End Try statement, consisting of a Finally statement, followed
-        by a body of statements controlled by the Finally.
-      </description>
-      <lm-equiv name="FinallyNode">An FinallyPart exactly corresponds to an FinallyNode -- the Finally statement and its following body.</lm-equiv>
-      <native-equiv name="FinallyStatement">An FinallyPart (with Kind=FinallyPart) exactly corresponds to an ElseStatement -- the Finally statement and its following body.</native-equiv>
-      <spec-section>10.10.1</spec-section>
-      <grammar>TryStatement&gt;</grammar>
-
-      <node-kind name="FinallyPart">
-        <lm-equiv name="Finally" />
-        <native-equiv name="Statement.Opcodes.Finally" />
-      </node-kind>
-
-      <child name="Begin" kind="FinallyStatement">
-        <description>
-          The FinallyStatement that introduces the Finally part of a Try.
-        </description>
-      </child>
-
-      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
-        <description>The statements inside the Finally part of the Try...Catch...Finally...End Try. This might be an empty list.</description>
-        <lm-equiv name="BlockNode.Contents"></lm-equiv>
-        <native-equiv name="BlockStatement.Children"></native-equiv>
       </child>
     </node-structure>
 
@@ -3453,7 +3369,7 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="TryStatementSyntax" parent="StatementSyntax">
       <description>
-        Represents the Try part part of a Try...Catch...Finally...End Try. This statement is always the Begin of a TryPart.
+        Represents the "Try" statement that begins a "Try" block.
       </description>
       <lm-equiv name="TryNode"></lm-equiv>
       <native-equiv name="ExecutableBlockStatement"></native-equiv>
@@ -3466,10 +3382,41 @@ Unify Enum declarations with other block type declarations.
       </node-kind>
 
       <child name="TryKeyword" kind="TryKeyword">
-        <description>The "Try" keyword</description>
+        <description>The "Try" keyword.</description>
         <lm-equiv name="TryKeyword"></lm-equiv>
         <native-equiv name=""></native-equiv>
       </child>
+    </node-structure>
+
+    <!--****************
+      -  CatchBlock
+      ******************-->
+    <node-structure name="CatchBlockSyntax" parent="VisualBasicSyntaxNode">
+      <description>
+        Represents a "Catch ..." block.
+      </description>
+      <lm-equiv name="CatchNode">A CatchBlock exactly corresponds to an CatchNode -- the Catch statement and its following body.</lm-equiv>
+      <native-equiv name="CatchStatement">A CatchBlock exactly corresponds to an ElseIfStatement -- the ElseIf statement and its following body.</native-equiv>
+      <spec-section>10.10.1</spec-section>
+      <grammar>TryStatement&gt;</grammar>
+
+      <node-kind name="CatchBlock">
+        <lm-equiv name="Catch" />
+        <native-equiv name="Statement.Opcodes.Catch" />
+      </node-kind>
+
+      <child name="CatchStatement" kind="CatchStatement">
+        <description>
+          The "Catch" statement that begins the "Catch" block.
+        </description>
+      </child>
+
+      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
+        <description>A list of statements to be executed if an exception is caught by the "Catch" block.</description>
+        <lm-equiv name="BlockNode.Contents"></lm-equiv>
+        <native-equiv name="BlockStatement.Children"></native-equiv>
+      </child>
+
     </node-structure>
 
     <!--****************
@@ -3477,7 +3424,7 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="CatchStatementSyntax" parent="StatementSyntax">
       <description>
-        Represents the Catch part part of a Try...Catch...Finally...End Try. This statement is always the Begin of a CatchPart.
+        Represents the "Catch ... When ..." statement that begins a "Catch" block.
       </description>
       <lm-equiv name="CatchNode"></lm-equiv>
       <native-equiv name="CatchStatement"></native-equiv>
@@ -3496,20 +3443,20 @@ Unify Enum declarations with other block type declarations.
       </child>
 
       <child name="IdentifierName" optional="true" kind="IdentifierName">
-        <description>The identifier representing the exception that was caught, if present.</description>
+        <description>An identifier declaring a new variable or naming an existing variable to store the exception caught by the "Catch" statement.</description>
         <lm-equiv name="Name"></lm-equiv>
         <native-equiv name="Name"></native-equiv>
       </child>
 
       <child name="AsClause" optional="true" kind="SimpleAsClause">
-        <description>The As clause that defines the type of exception being caught.</description>
+        <description>A simple "As" clause specifying the type of exception to catch.</description>
         <lm-equiv name="AsKeyword"></lm-equiv>
         <lm-equiv name="ExceptionType"></lm-equiv>
         <native-equiv name="Type"></native-equiv>
       </child>
 
       <child name="WhenClause" optional="true" kind="CatchFilterClause">
-        <description>The "When" clause, if present.</description>
+        <description>A "When" clause to filter exceptions before catching.</description>
       </child>
 
     </node-structure>
@@ -3519,22 +3466,51 @@ Unify Enum declarations with other block type declarations.
       ***********************-->
     <node-structure name="CatchFilterClauseSyntax" parent="VisualBasicSyntaxNode">
       <description>
-        Represents the When/Filter clause of a Catch statement
+        Represents the "When ..." clause of a "Catch" statement.
       </description>
 
-      <node-kind name="CatchFilterClause">
-      </node-kind>
+      <node-kind name="CatchFilterClause" />
 
       <child name="WhenKeyword" kind="WhenKeyword">
-        <description>The "When" keyword</description>
+        <description>The "When" keyword.</description>
         <lm-equiv name="WhenKeyword"></lm-equiv>
         <native-equiv name="When"></native-equiv>
       </child>
 
       <child name="Filter" kind="@ExpressionSyntax">
-        <description>The filter expression</description>
+        <description>The filter expression to be evaluated.</description>
         <lm-equiv name="Filter"></lm-equiv>
         <native-equiv name="WhenClause"></native-equiv>
+      </child>
+    </node-structure>
+
+    <!--****************
+      -  FinallyBlock
+      ******************-->
+    <node-structure name="FinallyBlockSyntax" parent="VisualBasicSyntaxNode">
+      <description>
+        Represents a "Finally ..." block of a "Try" block.
+      </description>
+      <lm-equiv name="FinallyNode">A FinallyBlock exactly corresponds to an FinallyNode -- the Finally statement and its following body.</lm-equiv>
+      <native-equiv name="FinallyStatement">A FinallyBlock exactly corresponds to an FinallyStatement -- the Finally statement and its following body.</native-equiv>
+      <spec-section>10.10.1</spec-section>
+      <grammar>TryStatement&gt;</grammar>
+
+      <node-kind name="FinallyBlock">
+        <lm-equiv name="Finally" />
+        <native-equiv name="Statement.Opcodes.Finally" />
+      </node-kind>
+
+      <child name="FinallyStatement" kind="FinallyStatement">
+        <description>
+          The "Finally" statement that begins the "Finally" block.
+        </description>
+      </child>
+
+      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
+        <description>A list of statements to be executed.</description>
+        <lm-equiv name="BlockNode.Contents"></lm-equiv>
+        <native-equiv name="BlockStatement.Children"></native-equiv>
       </child>
     </node-structure>
 
@@ -3543,7 +3519,7 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="FinallyStatementSyntax" parent="StatementSyntax">
       <description>
-        Represents the Finally part part of a Try...Catch...Finally...End Try. This statement is always the Begin of a FinallyPart.
+        Represents the "Finally" statement that begins a "Finally" block.
       </description>
       <lm-equiv name="FinallyNode"></lm-equiv>
       <native-equiv name="FinallyStatement"></native-equiv>
@@ -3589,7 +3565,6 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Operand"></native-equiv>
       </child>
     </node-structure>
-
 
     <!--****************
       -  OnErrorGoto

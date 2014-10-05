@@ -656,29 +656,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents the Else part of an If statement, consisting of a Else statement,
         ''' followed by a body of statement controlled by that Else.
         ''' </summary>
-        SingleLineElsePart = 172                 ' SingleLineElsePartSyntax
+        SingleLineElseClause = 172                 ' SingleLineElseClauseSyntax
         ''' <summary>
         ''' Represents a block If...Then...Else...EndIf Statement. The Kind property can be
         ''' used to determine if it is a block or line If.
         ''' </summary>
         MultiLineIfBlock = 173                   ' MultiLineIfBlockSyntax : ExecutableStatementSyntax : StatementSyntax
+
+        ' IfPart = 179                           ' This node was removed.
+
         ''' <summary>
         ''' Represents part of an If statement, consisting of a beginning statement (If or
         ''' ElseIf), followed by a body of statement controlled by that beginning
         ''' statement. The Kind property returns if this is an If or ElseIf.
         ''' </summary>
-        IfPart = 179                             ' IfPartSyntax
-        ''' <summary>
-        ''' Represents part of an If statement, consisting of a beginning statement (If or
-        ''' ElseIf), followed by a body of statement controlled by that beginning
-        ''' statement. The Kind property returns if this is an If or ElseIf.
-        ''' </summary>
-        ElseIfPart = 180                         ' IfPartSyntax
+        ElseIfBlock = 180                         ' ElseIfBlockSyntax
         ''' <summary>
         ''' Represents the Else part of an If statement, consisting of a Else statement,
         ''' followed by a body of statement controlled by that Else.
         ''' </summary>
-        ElsePart = 181                           ' ElsePartSyntax
+        ElseBlock = 181                           ' ElseBlockSyntax
         ''' <summary>
         ''' Represents the If part or ElseIf part of a If...End If block (or line If). This
         ''' statement is always the Begin of a IfPart. The Kind can be examined to
@@ -700,25 +697,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an entire Try...Catch...Finally...End Try statement.
         ''' </summary>
         TryBlock = 185                           ' TryBlockSyntax : ExecutableStatementSyntax : StatementSyntax
-        ''' <summary>
-        ''' Represents part of an Try...Catch...Finally...End Try statement, consisting of
-        ''' a beginning statement (Try, Catch or Finally), followed by a body of statements
-        ''' controlled by that beginning statement. The Kind property returns which kind of
-        ''' part this is.
-        ''' </summary>
-        TryPart = 186                            ' TryPartSyntax
+
+        ' TryPart = 186                            ' This node was removed.
+
         ''' <summary>
         ''' Represents a Catch part of an Try...Catch...Finally...End Try statement,
         ''' consisting of a Catch statement, followed by a body of statements controlled by
         ''' that Catch statement. The Kind property returns which kind of part this is.
         ''' </summary>
-        CatchPart = 187                          ' CatchPartSyntax
+        CatchBlock = 187                          ' CatchBlockSyntax
         ''' <summary>
         ''' Represents the Finally part of an Try...Catch...Finally...End Try statement,
         ''' consisting of a Finally statement, followed by a body of statements controlled
         ''' by the Finally.
         ''' </summary>
-        FinallyPart = 188                        ' FinallyPartSyntax
+        FinallyBlock = 188                        ' FinallyBlockSyntax
         ''' <summary>
         ''' Represents the Try part part of a Try...Catch...Finally...End Try. This
         ''' statement is always the Begin of a TryPart.

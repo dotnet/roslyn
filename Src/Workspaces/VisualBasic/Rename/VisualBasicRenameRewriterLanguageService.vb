@@ -756,11 +756,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Dim possibleSpecialStatement = token.FirstAncestorOrSelf(Function(n) n.VisualBasicKind = SyntaxKind.ForStatement OrElse
                                                                                  n.VisualBasicKind = SyntaxKind.ForEachStatement OrElse
                                                                                  n.VisualBasicKind = SyntaxKind.UsingStatement OrElse
-                                                                                 n.VisualBasicKind = SyntaxKind.CatchPart)
+                                                                                 n.VisualBasicKind = SyntaxKind.CatchBlock)
             If possibleSpecialStatement IsNot Nothing Then
                 If enclosingStatement Is possibleSpecialStatement.Parent Then
-                    enclosingStatement = If(possibleSpecialStatement.VisualBasicKind = SyntaxKind.CatchPart,
-                                                DirectCast(possibleSpecialStatement, CatchPartSyntax).Begin,
+                    enclosingStatement = If(possibleSpecialStatement.VisualBasicKind = SyntaxKind.CatchBlock,
+                                                DirectCast(possibleSpecialStatement, CatchBlockSyntax).CatchStatement,
                                                 possibleSpecialStatement)
                 End If
             End If

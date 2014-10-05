@@ -2748,9 +2748,6 @@ BC30099: 'Exit Select' can only appear inside a 'Select' statement.
 BC30101: Branching out of a 'Finally' is not valid.
                     GoTo Label1
                          ~~~~~~
-BC30754: 'GoTo Label1' is not valid because 'Label1' is inside a 'Try', 'Catch' or 'Finally' statement that does not contain this statement.
-                    GoTo Label1
-                         ~~~~~~
 </expected>)
         End Sub
 

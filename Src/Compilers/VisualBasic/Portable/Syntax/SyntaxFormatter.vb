@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports Microsoft.CodeAnalysis.Text
@@ -822,21 +822,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Public Overrides Function VisitMultiLineIfBlock(node As MultiLineIfBlockSyntax) As SyntaxNode
-            Dim previousPart = node.IfPart
 
-            For Each elseIfPart In (node.ElseIfParts)
-                AddLinebreaksAfterTokenIfNeeded(previousPart.GetLastToken(), 1)
-                previousPart = elseIfPart
+            AddLinebreaksAfterTokenIfNeeded(node.IfStatement.GetLastToken(), 1)
+
+            AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
+
+            MarkLastStatementIfNeeded(node.Statements)
+
+            Dim previousNode As VisualBasicSyntaxNode
+
+            If node.Statements.Any() Then
+                previousNode = node.Statements.Last()
+            Else
+                previousNode = node.IfStatement
+            End If
+
+            For Each elseIfBlock In node.ElseIfBlocks
+                AddLinebreaksAfterTokenIfNeeded(previousNode.GetLastToken(), 1)
+                previousNode = elseIfBlock
             Next
 
-            If node.ElsePart IsNot Nothing Then
-                AddLinebreaksAfterTokenIfNeeded(previousPart.GetLastToken(), 1)
+            If node.ElseBlock IsNot Nothing Then
+                AddLinebreaksAfterTokenIfNeeded(previousNode.GetLastToken(), 1)
             End If
 
             If Not lastStatementsInBlocks.Contains(node) Then
-                AddLinebreaksAfterTokenIfNeeded(node.End.GetLastToken(), 2)
+                AddLinebreaksAfterTokenIfNeeded(node.EndIfStatement.GetLastToken(), 2)
             Else
-                AddLinebreaksAfterTokenIfNeeded(node.End.GetLastToken(), 1)
+                AddLinebreaksAfterTokenIfNeeded(node.EndIfStatement.GetLastToken(), 1)
             End If
 
             Return MyBase.VisitMultiLineIfBlock(node)
@@ -1014,47 +1027,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Overrides Function VisitTryBlock(node As TryBlockSyntax) As SyntaxNode
 
+            AddLinebreaksAfterTokenIfNeeded(node.TryStatement.GetLastToken(), 1)
+
+            AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
+
+            MarkLastStatementIfNeeded(node.Statements)
+
             If Not lastStatementsInBlocks.Contains(node) Then
-                AddLinebreaksAfterTokenIfNeeded(node.End.GetLastToken(), 2)
+                AddLinebreaksAfterTokenIfNeeded(node.EndTryStatement.GetLastToken(), 2)
             Else
-                AddLinebreaksAfterTokenIfNeeded(node.End.GetLastToken(), 1)
+                AddLinebreaksAfterTokenIfNeeded(node.EndTryStatement.GetLastToken(), 1)
             End If
 
             Return MyBase.VisitTryBlock(node)
         End Function
 
-        Public Overrides Function VisitTryPart(node As TryPartSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+        Public Overrides Function VisitCatchBlock(node As CatchBlockSyntax) As SyntaxNode
+            AddLinebreaksAfterTokenIfNeeded(node.CatchStatement.GetLastToken(), 1)
+
+            AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
+
+            Return MyBase.VisitCatchBlock(node)
+        End Function
+
+        Public Overrides Function VisitFinallyBlock(node As FinallyBlockSyntax) As SyntaxNode
+            AddLinebreaksAfterTokenIfNeeded(node.FinallyStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            Dim result = MyBase.VisitTryPart(node)
-            indentationDepth -= 1
-            Return result
-        End Function
-
-        Public Overrides Function VisitCatchPart(node As CatchPartSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
-
-            AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
-
-            Dim result = MyBase.VisitCatchPart(node)
-            indentationDepth -= 1
-            Return result
-        End Function
-
-        Public Overrides Function VisitFinallyPart(node As FinallyPartSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
-
-            AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
-
-            MarkLastStatementIfNeeded(node.Statements)
-
-            Dim result = MyBase.VisitFinallyPart(node)
-            indentationDepth -= 1
-            Return result
+            Return MyBase.VisitFinallyBlock(node)
         End Function
 
         Public Overrides Function VisitPropertyBlock(node As PropertyBlockSyntax) As SyntaxNode
@@ -1065,28 +1068,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return MyBase.VisitPropertyBlock(node)
         End Function
 
-        Public Overrides Function VisitIfPart(node As IfPartSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+        Public Overrides Function VisitElseBlock(node As ElseBlockSyntax) As SyntaxNode
+            AddLinebreaksAfterTokenIfNeeded(node.ElseStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            Dim result = MyBase.VisitIfPart(node)
-            indentationDepth -= 1
-            Return result
+            Return MyBase.VisitElseBlock(node)
         End Function
 
-        Public Overrides Function VisitElsePart(node As ElsePartSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+        Public Overrides Function VisitElseIfBlock(node As ElseIfBlockSyntax) As SyntaxNode
+            AddLinebreaksAfterTokenIfNeeded(node.ElseIfStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            Dim result = MyBase.VisitElsePart(node)
-            indentationDepth -= 1
-            Return result
+            Return MyBase.VisitElseIfBlock(node)
         End Function
 
         Public Overrides Function VisitMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax) As SyntaxNode
@@ -1193,17 +1192,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitEndBlockStatement(node As EndBlockStatementSyntax) As SyntaxNode
-            ' the parts of try and if blocks are responsible to reduce the indentation, so in that case
-            ' don't do anything here.
-            If node.Kind <> SyntaxKind.EndTryStatement AndAlso node.Kind <> SyntaxKind.EndIfStatement Then
-                indentationDepth -= 1
-            End If
+            indentationDepth -= 1
 
             Return MyBase.VisitEndBlockStatement(node)
         End Function
 
         Public Overrides Function VisitElseStatement(node As ElseStatementSyntax) As SyntaxNode
+            indentationDepth -= 1
             Dim result = MyBase.VisitElseStatement(node)
+            indentationDepth += 1
+
+            Return result
+        End Function
+
+        Public Overrides Function VisitElseIfStatement(node As ElseIfStatementSyntax) As SyntaxNode
+            indentationDepth -= 1
+            Dim result = MyBase.VisitElseIfStatement(node)
             indentationDepth += 1
 
             Return result
@@ -1328,6 +1332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitCatchStatement(node As CatchStatementSyntax) As SyntaxNode
+            indentationDepth -= 1
             Dim result = MyBase.VisitCatchStatement(node)
             indentationDepth += 1
 
@@ -1335,6 +1340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitFinallyStatement(node As FinallyStatementSyntax) As SyntaxNode
+            indentationDepth -= 1
             Dim result = MyBase.VisitFinallyStatement(node)
             indentationDepth += 1
 

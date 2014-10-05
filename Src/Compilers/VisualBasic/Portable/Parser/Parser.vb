@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -361,6 +361,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             node = DirectCast(redNode.Green, T)
 
             Return node
+        End Function
+        Private Shared Function MergeTokenText(firstToken As SyntaxToken, secondToken As SyntaxToken) As String
+
+            ' grab the part that doesn't contain the preceding and trailing trivia.
+
+            Dim builder = Collections.PooledStringBuilder.GetInstance()
+            Dim writer As New IO.StringWriter(builder)
+
+            firstToken.WriteTo(writer)
+            secondToken.WriteTo(writer)
+
+            Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
+            Dim trailingWidth = secondToken.GetTrailingTriviaWidth()
+            Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth
+
+            Debug.Assert(builder.Length = fullWidth)
+            Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
+
+            Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
+
+        End Function
+
+        Private Shared Function MergeTokenText(firstToken As SyntaxToken, secondToken As SyntaxToken, thirdToken As SyntaxToken) As String
+
+            ' grab the part that doesn't contain the preceding and trailing trivia.
+
+            Dim builder = Collections.PooledStringBuilder.GetInstance()
+            Dim writer As New IO.StringWriter(builder)
+
+            firstToken.WriteTo(writer)
+            secondToken.WriteTo(writer)
+            thirdToken.WriteTo(writer)
+
+            Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
+            Dim trailingWidth = thirdToken.GetTrailingTriviaWidth()
+            Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth + thirdToken.FullWidth
+
+            Debug.Assert(builder.Length = fullWidth)
+            Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
+
+            Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
+
         End Function
 
         Private Function GetCurrentSyntaxNodeIfApplicable(<Out()> ByRef curSyntaxNode As VisualBasicSyntaxNode) As BlockContext
@@ -5647,7 +5689,7 @@ checkNullable:
                     Case SyntaxKind.CatchKeyword,
                         SyntaxKind.FinallyKeyword
                         ' Check if catch/finally close a try containing the lambda
-                        Dim closedContext = context.FindNearest(SyntaxKind.TryBlock, SyntaxKind.CatchPart)
+                        Dim closedContext = context.FindNearest(SyntaxKind.TryBlock, SyntaxKind.CatchBlock)
                         Return closedContext Is Nothing OrElse closedContext.Level >= lambdaContext.Level
 
                     Case SyntaxKind.ElseKeyword,

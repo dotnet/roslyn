@@ -104,29 +104,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function IfStatement(condition As SyntaxNode, trueStatements As IEnumerable(Of SyntaxNode), Optional falseStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
-            Dim ifPart = SyntaxFactory.IfPart(
-                    SyntaxFactory.IfStatement(SyntaxKind.IfStatement, Nothing, SyntaxFactory.Token(SyntaxKind.IfKeyword), DirectCast(condition, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ThenKeyword)),
-                    GetStatements(trueStatements))
+            Dim ifStmt = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword),
+                                                   DirectCast(condition, ExpressionSyntax),
+                                                   SyntaxFactory.Token(SyntaxKind.ThenKeyword))
 
             If falseStatements Is Nothing Then
-                Return SyntaxFactory.MultiLineIfBlock(ifPart, Nothing, Nothing)
+                Return SyntaxFactory.MultiLineIfBlock(
+                           ifStmt,
+                           GetStatements(trueStatements),
+                           Nothing,
+                           Nothing
+                       )
             End If
 
             ' convert nested if-blocks into else-if parts
             Dim statements = falseStatements.ToList()
-            If (statements.Count = 1 AndAlso TypeOf statements(0) Is MultiLineIfBlockSyntax) Then
+            If statements.Count = 1 AndAlso TypeOf statements(0) Is MultiLineIfBlockSyntax Then
                 Dim mifBlock = DirectCast(statements(0), MultiLineIfBlockSyntax)
 
                 ' insert block's if-part onto head of elseIf-parts
-                Dim elseIfParts = mifBlock.ElseIfParts.Insert(0,
-                    SyntaxFactory.IfPart(
-                        SyntaxFactory.IfStatement(SyntaxKind.ElseIfStatement, Nothing, SyntaxFactory.Token(SyntaxKind.ElseIfKeyword), mifBlock.IfPart.Begin.Condition, SyntaxFactory.Token(SyntaxKind.ThenKeyword)),
-                        mifBlock.IfPart.Statements))
+                Dim elseIfBlocks = mifBlock.ElseIfBlocks.Insert(0,
+                    SyntaxFactory.ElseIfBlock(
+                        SyntaxFactory.ElseIfStatement(SyntaxFactory.Token(SyntaxKind.ElseIfKeyword), mifBlock.IfStatement.Condition, SyntaxFactory.Token(SyntaxKind.ThenKeyword)),
+                        mifBlock.Statements)
+                    )
 
-                Return SyntaxFactory.MultiLineIfBlock(ifPart, elseIfParts, mifBlock.ElsePart)
+                Return SyntaxFactory.MultiLineIfBlock(
+                           ifStmt,
+                           GetStatements(trueStatements),
+                           elseIfBlocks,
+                           mifBlock.ElseBlock
+                       )
             End If
 
-            Return SyntaxFactory.MultiLineIfBlock(ifPart, Nothing, SyntaxFactory.ElsePart(GetStatements(statements)))
+            Return SyntaxFactory.MultiLineIfBlock(
+                       ifStmt,
+                       GetStatements(trueStatements),
+                       Nothing,
+                       SyntaxFactory.ElseBlock(GetStatements(falseStatements))
+                   )
         End Function
 
         Private Function GetStatements(nodes As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
@@ -175,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
         Private Function ParenthesizeLeft(expression As SyntaxNode) As ExpressionSyntax
-            Dim expressionSyntax = DirectCast(expression, ExpressionSyntax)
+            Dim expressionSyntax = DirectCast(expression, expressionSyntax)
             If TypeOf expressionSyntax Is TypeSyntax _
                OrElse expressionSyntax.IsMeMyBaseOrMyClass() _
                OrElse expressionSyntax.IsKind(SyntaxKind.ParenthesizedExpression) _
@@ -233,37 +249,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TypeExpression(specialType As SpecialType) As SyntaxNode
             Select Case specialType
-                Case SpecialType.System_Boolean
+                Case specialType.System_Boolean
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BooleanKeyword))
-                Case SpecialType.System_Byte
+                Case specialType.System_Byte
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ByteKeyword))
-                Case SpecialType.System_Char
+                Case specialType.System_Char
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.CharKeyword))
-                Case SpecialType.System_Decimal
+                Case specialType.System_Decimal
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword))
-                Case SpecialType.System_Double
+                Case specialType.System_Double
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword))
-                Case SpecialType.System_Int16
+                Case specialType.System_Int16
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ShortKeyword))
-                Case SpecialType.System_Int32
+                Case specialType.System_Int32
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword))
-                Case SpecialType.System_Int64
+                Case specialType.System_Int64
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword))
-                Case SpecialType.System_Object
+                Case specialType.System_Object
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))
-                Case SpecialType.System_SByte
+                Case specialType.System_SByte
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SByteKeyword))
-                Case SpecialType.System_Single
+                Case specialType.System_Single
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SingleKeyword))
-                Case SpecialType.System_String
+                Case specialType.System_String
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                Case SpecialType.System_UInt16
+                Case specialType.System_UInt16
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UShortKeyword))
-                Case SpecialType.System_UInt32
+                Case specialType.System_UInt32
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntegerKeyword))
-                Case SpecialType.System_UInt64
+                Case specialType.System_UInt64
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword))
-                Case SpecialType.System_DateTime
+                Case specialType.System_DateTime
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DateKeyword))
                 Case Else
                     Throw New NotSupportedException("Unsupported SpecialType")
@@ -459,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If initializer IsNot Nothing Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword))
             End If
-            If refKind <> RefKind.None Then
+            If refKind <> refKind.None Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword))
             End If
             Return tokens
@@ -950,17 +966,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Select Case (accessibility)
-                Case Accessibility.Internal
+                Case accessibility.Internal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
-                Case Accessibility.Public
+                Case accessibility.Public
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                Case Accessibility.Private
+                Case accessibility.Private
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                Case Accessibility.Protected
+                Case accessibility.Protected
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case Accessibility.ProtectedOrInternal
+                Case accessibility.ProtectedOrInternal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case Accessibility.NotApplicable
+                Case accessibility.NotApplicable
                 Case Else
                     Throw New NotSupportedException(String.Format("Accessibility '{0}' not supported.", accessibility))
             End Select
@@ -1023,7 +1039,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
-            accessibility = Accessibility.NotApplicable
+            accessibility = accessibility.NotApplicable
             modifiers = DeclarationModifiers.None
             isDefault = False
 
@@ -1032,20 +1048,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.DefaultKeyword
                         isDefault = True
                     Case SyntaxKind.PublicKeyword
-                        accessibility = Accessibility.Public
+                        accessibility = accessibility.Public
                     Case SyntaxKind.PrivateKeyword
-                        accessibility = Accessibility.Private
+                        accessibility = accessibility.Private
                     Case SyntaxKind.FriendKeyword
-                        If accessibility = Accessibility.Protected Then
-                            accessibility = Accessibility.ProtectedOrFriend
+                        If accessibility = accessibility.Protected Then
+                            accessibility = accessibility.ProtectedOrFriend
                         Else
-                            accessibility = Accessibility.Friend
+                            accessibility = accessibility.Friend
                         End If
                     Case SyntaxKind.ProtectedKeyword
-                        If accessibility = Accessibility.Friend Then
-                            accessibility = Accessibility.ProtectedOrFriend
+                        If accessibility = accessibility.Friend Then
+                            accessibility = accessibility.ProtectedOrFriend
                         Else
-                            accessibility = Accessibility.Protected
+                            accessibility = accessibility.Protected
                         End If
                     Case SyntaxKind.MustInheritKeyword
                         modifiers = modifiers Or DeclarationModifiers.Abstract
@@ -1234,18 +1250,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TryCatchStatement(tryStatements As IEnumerable(Of SyntaxNode), catchClauses As IEnumerable(Of SyntaxNode), Optional finallyStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
             Return SyntaxFactory.TryBlock(
-                SyntaxFactory.TryPart(GetStatements(tryStatements)),
-                If(catchClauses IsNot Nothing, SyntaxFactory.List(catchClauses.Cast(Of CatchPartSyntax)()), Nothing),
-                If(finallyStatements IsNot Nothing, SyntaxFactory.FinallyPart(GetStatements(finallyStatements)), Nothing))
+                       GetStatements(tryStatements),
+                       If(catchClauses IsNot Nothing, SyntaxFactory.List(catchClauses.Cast(Of CatchBlockSyntax)()), Nothing),
+                       If(finallyStatements IsNot Nothing, SyntaxFactory.FinallyBlock(GetStatements(finallyStatements)), Nothing)
+                   )
         End Function
 
         Public Overrides Function CatchClause(type As SyntaxNode, identifier As String, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.CatchPart(
-                SyntaxFactory.CatchStatement(
-                    SyntaxFactory.IdentifierName(identifier),
-                    SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)),
-                    whenClause:=Nothing),
-                GetStatements(statements))
+            Return SyntaxFactory.CatchBlock(
+                       SyntaxFactory.CatchStatement(
+                           SyntaxFactory.IdentifierName(identifier),
+                           SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)),
+                           whenClause:=Nothing
+                       ),
+                       GetStatements(statements)
+                   )
         End Function
 
         Public Overrides Function WhileStatement(condition As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode

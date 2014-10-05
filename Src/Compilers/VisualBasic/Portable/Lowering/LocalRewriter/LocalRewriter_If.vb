@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -42,27 +42,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case syntax.Kind
                     Case SyntaxKind.MultiLineIfBlock
                         Dim asMultiline = DirectCast(syntax, MultiLineIfBlockSyntax)
-                        conditionSyntax = asMultiline.IfPart.Begin
+                        conditionSyntax = asMultiline.IfStatement
                         newConsequence = InsertBlockEpilogue(newConsequence,
                                                              If(generateUnstructuredExceptionHandlingResumeCode,
                                                                 RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newConsequence.Syntax),
                                                                 Nothing),
-                                                             asMultiline.End)
+                                                             asMultiline.EndIfStatement)
                         finishConsequenceWithResumeTarget = False
 
-                    Case SyntaxKind.ElseIfPart
-                        Dim asIfPart = DirectCast(syntax, IfPartSyntax)
-                        conditionSyntax = asIfPart.Begin
+                    Case SyntaxKind.ElseIfBlock
+                        Dim asElseIfBlock = DirectCast(syntax, ElseIfBlockSyntax)
+                        conditionSyntax = asElseIfBlock.ElseIfStatement
                         newConsequence = InsertBlockEpilogue(newConsequence,
                                                              If(generateUnstructuredExceptionHandlingResumeCode,
                                                                 RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newConsequence.Syntax),
                                                                 Nothing),
-                                                             DirectCast(syntax.Parent, MultiLineIfBlockSyntax).End)
+                                                             DirectCast(syntax.Parent, MultiLineIfBlockSyntax).EndIfStatement)
                         finishConsequenceWithResumeTarget = False
 
                     Case SyntaxKind.SingleLineIfStatement
                         Dim asSingleLine = DirectCast(syntax, SingleLineIfStatementSyntax)
-                        conditionSyntax = asSingleLine.IfPart.Begin
+                        conditionSyntax = asSingleLine
                         ' single line if has no EndIf
                 End Select
             End If
@@ -76,20 +76,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If GenerateDebugInfo AndAlso newAlternative IsNot Nothing Then
                 If syntax.Kind <> SyntaxKind.SingleLineIfStatement Then
-                    Dim asElse = TryCast(node.AlternativeOpt.Syntax, ElsePartSyntax)
+                    Dim asElse = TryCast(node.AlternativeOpt.Syntax, ElseBlockSyntax)
                     If asElse IsNot Nothing Then
                         ' Update the resume table to make sure that we are in the right scope when we Resume Next on [End If].
                         newAlternative = InsertBlockEpilogue(newAlternative,
                                                              If(generateUnstructuredExceptionHandlingResumeCode,
                                                                 RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newAlternative.Syntax),
                                                                 Nothing),
-                                                             DirectCast(asElse.Parent, MultiLineIfBlockSyntax).End)
-                        newAlternative = PrependWithSequencePoint(newAlternative, asElse.Begin)
+                                                             DirectCast(asElse.Parent, MultiLineIfBlockSyntax).EndIfStatement)
+                        newAlternative = PrependWithSequencePoint(newAlternative, asElse.ElseStatement)
                     End If
                 Else
-                    Dim asElse = TryCast(node.AlternativeOpt.Syntax, SingleLineElsePartSyntax)
+                    Dim asElse = TryCast(node.AlternativeOpt.Syntax, SingleLineElseClauseSyntax)
                     If asElse IsNot Nothing Then
-                        newAlternative = PrependWithSequencePoint(newAlternative, asElse.Begin)
+                        newAlternative = PrependWithSequencePoint(newAlternative, asElse, asElse.ElseKeyword.Span)
                         ' single line if has no EndIf
                     End If
                 End If
@@ -138,16 +138,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Me.GenerateDebugInfo AndAlso generateDebugInfo Then
-                    condGoto = New BoundSequencePoint(conditionSyntax, condGoto)
 
-                    Dim asMultiline = TryCast(syntaxNode, MultiLineIfBlockSyntax)
-                    If asMultiline IsNot Nothing Then
-                        ' if it is a multiline If and there is no else, associate afterIf with EndIf
-                        afterIfStatement = New BoundSequencePoint(asMultiline.End, afterIfStatement)
-                    Else
-                        ' otherwise hide afterif (so that it does not associate with if body.
-                        afterIfStatement = New BoundSequencePoint(Nothing, afterIfStatement)
-                    End If
+                    Select Case syntaxNode.Kind
+                        Case SyntaxKind.MultiLineIfBlock
+                            Dim asMultiline = DirectCast(syntaxNode, MultiLineIfBlockSyntax)
+
+                            condGoto = New BoundSequencePoint(conditionSyntax, condGoto)
+
+                            ' If it is a multiline If and there is no else, associate afterIf with EndIf
+                            afterIfStatement = New BoundSequencePoint(asMultiline.EndIfStatement, afterIfStatement)
+                        Case SyntaxKind.SingleLineIfStatement
+                            Dim asSingleLine = DirectCast(syntaxNode, SingleLineIfStatementSyntax)
+
+                            condGoto = New BoundSequencePointWithSpan(conditionSyntax, condGoto, TextSpan.FromBounds(asSingleLine.IfKeyword.SpanStart, asSingleLine.ThenKeyword.EndPosition - 1))
+
+                            ' otherwise hide afterif (so that it does not associate with if body).
+                            afterIfStatement = New BoundSequencePoint(Nothing, afterIfStatement)
+                        Case Else
+                            condGoto = New BoundSequencePoint(conditionSyntax, condGoto)
+
+                            ' otherwise hide afterif (so that it does not associate with if body).
+                            afterIfStatement = New BoundSequencePoint(Nothing, afterIfStatement)
+                    End Select
                 End If
 
                 Return New BoundStatementList(syntaxNode, ImmutableArray.Create(condGoto, rewrittenConsequence, afterIfStatement))
@@ -174,7 +186,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Me.GenerateDebugInfo AndAlso generateDebugInfo Then
-                    condGoto = New BoundSequencePoint(conditionSyntax, condGoto)
+                    If syntaxNode.Kind = SyntaxKind.SingleLineIfStatement Then
+                        Dim asSingleLine = DirectCast(syntaxNode, SingleLineIfStatementSyntax)
+
+                        condGoto = New BoundSequencePointWithSpan(conditionSyntax, condGoto, TextSpan.FromBounds(asSingleLine.IfKeyword.SpanStart, asSingleLine.ThenKeyword.EndPosition - 1))
+                    Else
+
+                        condGoto = New BoundSequencePoint(conditionSyntax, condGoto)
+                    End If
                 End If
 
                 Return New BoundStatementList(syntaxNode, ImmutableArray.Create(Of BoundStatement)(

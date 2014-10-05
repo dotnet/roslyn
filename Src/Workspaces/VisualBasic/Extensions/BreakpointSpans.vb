@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case SyntaxKind.PropertyStatement
                     Return TryCreateSpanForPropertyStatement(DirectCast(node, PropertyStatementSyntax))
 
-                    ' Statements that are not executable yet marked with sequence points
+                ' Statements that are not executable yet marked with sequence points
                 Case SyntaxKind.IfStatement,
                      SyntaxKind.ElseIfStatement,
                      SyntaxKind.ElseStatement,
@@ -127,6 +127,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                      SyntaxKind.RemoveHandlerAccessorStatement,
                      SyntaxKind.RaiseEventAccessorStatement
                     Return CreateSpanForMethodBase(DirectCast(node, MethodBaseSyntax))
+
+                Case SyntaxKind.SingleLineIfStatement
+                    Dim asSingleLine = DirectCast(node, SingleLineIfStatementSyntax)
+
+                    If position >= asSingleLine.IfKeyword.SpanStart AndAlso position < asSingleLine.ThenKeyword.Span.End Then
+                        Return TextSpan.FromBounds(asSingleLine.IfKeyword.SpanStart, asSingleLine.ThenKeyword.Span.End)
+                    Else
+                        Return CreateSpan(node)
+                    End If
+
+                Case SyntaxKind.SingleLineElseClause
+                    Dim asSingleLineElse = DirectCast(node, SingleLineElseClauseSyntax)
+
+                    Return asSingleLineElse.ElseKeyword.Span
 
                 Case SyntaxKind.FunctionAggregation
                     Return TryCreateSpanForFunctionAggregation(DirectCast(node, FunctionAggregationSyntax))

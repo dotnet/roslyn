@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class IfBlockContext
         Inherits ExecutableStatementContext
 
-        Private _elseParts As SyntaxListBuilder(Of IfPartSyntax)
-        Private _optionalElsePart As ElsePartSyntax
+        Private _elseIfBlocks As SyntaxListBuilder(Of ElseIfBlockSyntax)
+        Private _optionalElseBlock As ElseBlockSyntax
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(SyntaxKind.MultiLineIfBlock, statement, prevContext)
@@ -22,26 +22,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(statement.Kind = SyntaxKind.IfStatement OrElse
                          (statement.Kind = SyntaxKind.ElseIfStatement AndAlso PrevBlock.BlockKind = SyntaxKind.SingleLineIfStatement))
 
-            _elseParts = _parser._pool.Allocate(Of IfPartSyntax)()
+            _elseIfBlocks = _parser._pool.Allocate(Of ElseIfBlockSyntax)()
         End Sub
 
         Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
 
             Select Case node.Kind
                 Case SyntaxKind.ElseIfStatement
-                    Return New IfPartContext(SyntaxKind.ElseIfPart, DirectCast(node, StatementSyntax), Me)
 
-                Case SyntaxKind.ElseIfPart
-                    _elseParts.Add(DirectCast(node, IfPartSyntax))
+                    Return New IfPartContext(SyntaxKind.ElseIfBlock, DirectCast(node, StatementSyntax), Me)
 
-                Case SyntaxKind.ElsePart
-                    _optionalElsePart = DirectCast(node, ElsePartSyntax)
+                Case SyntaxKind.ElseIfBlock
+                    _elseIfBlocks.Add(DirectCast(node, ElseIfBlockSyntax))
+
+                Case SyntaxKind.ElseStatement
+
+                    Return New IfPartContext(SyntaxKind.ElseBlock, DirectCast(node, StatementSyntax), Me)
+
+                Case SyntaxKind.ElseBlock
+                    _optionalElseBlock = DirectCast(node, ElseBlockSyntax)
 
                 Case Else
-                    If node.Kind = SyntaxKind.ElseStatement Then
-                        Return New IfPartContext(SyntaxKind.ElsePart, DirectCast(node, StatementSyntax), Me)
-                    End If
-
                     Return MyBase.ProcessSyntax(node)
             End Select
 
@@ -58,8 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return UseSyntax(node, newContext)
 
                 Case _
-                    SyntaxKind.ElseIfPart,
-                    SyntaxKind.ElsePart
+                    SyntaxKind.ElseIfBlock,
+                    SyntaxKind.ElseBlock
                     ' Skip terminator because these are not statements
                     Return UseSyntax(node, newContext) Or LinkResult.SkipTerminator
 
@@ -78,11 +79,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 endStmt = SyntaxFactory.EndIfStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.EndKeyword), InternalSyntaxFactory.MissingKeyword(SyntaxKind.IfKeyword))
             End If
 
-            Dim ifPart = SyntaxFactory.IfPart(DirectCast(begin, IfStatementSyntax), Body())
+            Dim result = SyntaxFactory.MultiLineIfBlock(DirectCast(begin, IfStatementSyntax), Body(), _elseIfBlocks.ToList(), _optionalElseBlock, DirectCast(endStmt, EndBlockStatementSyntax))
 
-            Dim result = SyntaxFactory.MultiLineIfBlock(ifPart, _elseParts.ToList, _optionalElsePart, DirectCast(endStmt, EndBlockStatementSyntax))
-
-            _parser._pool.Free(_elseParts)
+            _parser._pool.Free(_elseIfBlocks)
             FreeStatements()
 
             Return result

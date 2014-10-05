@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -63,9 +63,7 @@ Dim x As Integer
 Public Function f(ByVal a As Boolean) As Integer
 Dim r = 1, s = 4
 Try
-If a Then
 r = 4
-Else
 r = 3
 s = f(True)
 If a Then
@@ -97,7 +95,7 @@ End Namespace
                            ]]>.Value
 
         expected = expected.Replace(vbLf, vbCrLf).Trim()
-        Dim actual = writer.ToString().Trim
+        Dim actual = writer.ToString().Trim()
 
         Assert.Equal(expected, actual)
     End Sub

@@ -786,9 +786,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException("expression")
             End If
 
-            expression = SyntaxFactory.GetStandaloneExpression(expression)
+            Dim standalone = SyntaxFactory.GetStandaloneExpression(expression)
 
-            Dim bnode = Me.GetSpeculativelyBoundNode(position, expression, bindingOption, binder)
+            Dim bnode = Me.GetSpeculativelyBoundNode(position, standalone, bindingOption, binder)
             If bnode IsNot Nothing Then
                 Debug.Assert(binder IsNot Nothing)
                 Return New BoundNodeSummary(bnode, bnode, Nothing)

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -916,7 +916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If endStatement Is Nothing Then
                     Select Case possibleBlock.VisualBasicKind
-                        Case SyntaxKind.SingleLineIfPart, SyntaxKind.SingleLineElsePart
+                        Case SyntaxKind.SingleLineIfStatement, SyntaxKind.SingleLineElseClause
                             ' No expected end statement. These are "single" line blocks, check based on last statement in block instead.
                             If body.Count > 0 Then
                                 Dim lastStatement = body(body.Count - 1)
@@ -1056,54 +1056,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     endStatement = Nothing ' doesn't fit
                     Return True
 
-                Case SyntaxKind.IfPart, SyntaxKind.ElseIfPart
-                    Dim ifPart = DirectCast(possibleBlock, IfPartSyntax)
-                    beginStatement = ifPart.Begin
-                    body = ifPart.Statements
-                    endStatement = Nothing ' doesn't have an end.
-                    Return True
-
-                Case SyntaxKind.ElsePart
-                    Dim elsePart = DirectCast(possibleBlock, ElsePartSyntax)
-                    beginStatement = elsePart.Begin
-                    body = elsePart.Statements
-                    endStatement = Nothing ' doesn't have an end.
-                    Return True
-
-                Case SyntaxKind.SingleLineIfPart
-                    Dim ifStatement = DirectCast(possibleBlock, SingleLineIfPartSyntax)
-                    beginStatement = ifStatement.Begin
-                    beginTerminator = ifStatement.Begin.ThenKeyword
+                Case SyntaxKind.SingleLineIfStatement
+                    Dim ifStatement = DirectCast(possibleBlock, SingleLineIfStatementSyntax)
+                    beginStatement = Nothing ' doesn't fit
+                    beginTerminator = ifStatement.ThenKeyword
                     body = ifStatement.Statements
                     endStatement = Nothing ' doesn't have an end.
                     Return True
 
-                Case SyntaxKind.SingleLineElsePart
-                    Dim singleLineElsePart = DirectCast(possibleBlock, SingleLineElsePartSyntax)
-                    beginStatement = singleLineElsePart.Begin
-                    beginTerminator = singleLineElsePart.Begin.ElseKeyword
-                    body = singleLineElsePart.Statements
-                    endStatement = Nothing
-                    Return True
-
-                Case SyntaxKind.TryPart
-                    Dim tryPart = DirectCast(possibleBlock, TryPartSyntax)
-                    beginStatement = tryPart.Begin
-                    body = tryPart.Statements
+                Case SyntaxKind.SingleLineElseClause
+                    Dim elseClause = DirectCast(possibleBlock, SingleLineElseClauseSyntax)
+                    beginStatement = Nothing ' doesn't fit
+                    beginTerminator = elseClause.ElseKeyword
+                    body = elseClause.Statements
                     endStatement = Nothing ' doesn't have an end.
                     Return True
 
-                Case SyntaxKind.CatchPart
-                    Dim catchPart = DirectCast(possibleBlock, CatchPartSyntax)
-                    beginStatement = catchPart.Begin
-                    body = catchPart.Statements
+                Case SyntaxKind.MultiLineIfBlock
+                    Dim ifBlock = DirectCast(possibleBlock, MultiLineIfBlockSyntax)
+                    beginStatement = ifBlock.IfStatement
+                    body = ifBlock.Statements
+                    endStatement = ifBlock.EndIfStatement
+                    Return True
+
+                Case SyntaxKind.ElseIfBlock
+                    Dim elseIfBlock = DirectCast(possibleBlock, ElseIfBlockSyntax)
+                    beginStatement = elseIfBlock.ElseIfStatement
+                    body = elseIfBlock.Statements
                     endStatement = Nothing ' doesn't have an end.
                     Return True
 
-                Case SyntaxKind.FinallyPart
-                    Dim finallyPart = DirectCast(possibleBlock, FinallyPartSyntax)
-                    beginStatement = finallyPart.Begin
-                    body = finallyPart.Statements
+                Case SyntaxKind.ElseBlock
+                    Dim elseBlock = DirectCast(possibleBlock, ElseBlockSyntax)
+                    beginStatement = elseBlock.ElseStatement
+                    body = elseBlock.Statements
+                    endStatement = Nothing ' doesn't have an end.
+                    Return True
+
+                Case SyntaxKind.TryBlock
+                    Dim tryBlock = DirectCast(possibleBlock, TryBlockSyntax)
+                    beginStatement = tryBlock.TryStatement
+                    body = tryBlock.Statements
+                    endStatement = tryBlock.EndTryStatement
+                    Return True
+
+                Case SyntaxKind.CatchBlock
+                    Dim catchBlock = DirectCast(possibleBlock, CatchBlockSyntax)
+                    beginStatement = catchBlock.CatchStatement
+                    body = catchBlock.Statements
+                    endStatement = Nothing ' doesn't have an end.
+                    Return True
+
+                Case SyntaxKind.FinallyBlock
+                    Dim finallyBlock = DirectCast(possibleBlock, FinallyBlockSyntax)
+                    beginStatement = finallyBlock.FinallyStatement
+                    body = finallyBlock.Statements
                     endStatement = Nothing ' doesn't have an end.
                     Return True
 
@@ -1567,22 +1574,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SelectBlock
                     Return "Select"
 
-                Case SyntaxKind.SingleLineIfStatement, SyntaxKind.MultiLineIfBlock
+                Case SyntaxKind.MultiLineIfBlock
                     Return "If"
 
-                Case SyntaxKind.ElseIfPart
+                Case SyntaxKind.ElseIfBlock
                     Return "Else If"
 
-                Case SyntaxKind.SingleLineElsePart, SyntaxKind.ElsePart
+                Case SyntaxKind.ElseBlock
                     Return "Else"
 
                 Case SyntaxKind.TryBlock
                     Return "Try"
 
-                Case SyntaxKind.CatchPart
+                Case SyntaxKind.CatchBlock
                     Return "Catch"
 
-                Case SyntaxKind.FinallyPart
+                Case SyntaxKind.FinallyBlock
                     Return "Finally"
 
                 Case Else

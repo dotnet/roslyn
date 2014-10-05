@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis
@@ -1283,7 +1283,7 @@ End If</x>.Value), MultiLineIfBlockSyntax)
 </x>.Value)
 
             '' replace first with multiple
-            Dim newBlock = ifBlock.ReplaceNode(ifBlock.IfPart.Statements(0), {stmt1, stmt2})
+            Dim newBlock = ifBlock.ReplaceNode(ifBlock.Statements(0), {stmt1, stmt2})
             Assert.Equal(
 <x>If a != b Then
 Dim z = 30
@@ -1292,7 +1292,7 @@ Dim y = 20
 End If</x>.Value, newBlock.ToFullString())
 
             '' replace second with multiple
-            newBlock = ifBlock.ReplaceNode(ifBlock.IfPart.Statements(1), {stmt1, stmt2})
+            newBlock = ifBlock.ReplaceNode(ifBlock.Statements(1), {stmt1, stmt2})
             Assert.Equal(
 <x>If a != b Then
 Dim x = 10
@@ -1301,14 +1301,14 @@ Dim q = 40
 End If</x>.Value, newBlock.ToFullString())
 
             ' replace first with empty list
-            newBlock = ifBlock.ReplaceNode(ifBlock.IfPart.Statements(0), New SyntaxNode() {})
+            newBlock = ifBlock.ReplaceNode(ifBlock.Statements(0), New SyntaxNode() {})
             Assert.Equal(
 <x>If a != b Then
 Dim y = 20
 End If</x>.Value, newBlock.ToFullString())
 
             ' replace second with empty list
-            newBlock = ifBlock.ReplaceNode(ifBlock.IfPart.Statements(1), New SyntaxNode() {})
+            newBlock = ifBlock.ReplaceNode(ifBlock.Statements(1), New SyntaxNode() {})
             Assert.Equal(
 <x>If a != b Then
 Dim x = 10
@@ -1331,7 +1331,7 @@ End If</x>.Value), MultiLineIfBlockSyntax)
 </x>.Value)
 
             ' insert before first
-            Dim newBlock = ifBlock.InsertNodesBefore(ifBlock.IfPart.Statements(0), {stmt1, stmt2})
+            Dim newBlock = ifBlock.InsertNodesBefore(ifBlock.Statements(0), {stmt1, stmt2})
             Assert.Equal(
 <x>If a != b Then
 Dim z = 30
@@ -1341,7 +1341,7 @@ Dim y = 20
 End If</x>.Value, newBlock.ToFullString())
 
             ' insert after first
-            newBlock = ifBlock.InsertNodesAfter(ifBlock.IfPart.Statements(0), {stmt1, stmt2})
+            newBlock = ifBlock.InsertNodesAfter(ifBlock.Statements(0), {stmt1, stmt2})
             Assert.Equal(
 <x>If a != b Then
 Dim x = 10
@@ -1351,7 +1351,7 @@ Dim y = 20
 End If</x>.Value, newBlock.ToFullString())
 
             ' insert before last
-            newBlock = ifBlock.InsertNodesBefore(ifBlock.IfPart.Statements(1), {stmt1, stmt2})
+            newBlock = ifBlock.InsertNodesBefore(ifBlock.Statements(1), {stmt1, stmt2})
             Assert.Equal(
 <x>If a != b Then
 Dim x = 10
@@ -1361,7 +1361,7 @@ Dim y = 20
 End If</x>.Value, newBlock.ToFullString())
 
             ' insert after last
-            newBlock = ifBlock.InsertNodesAfter(ifBlock.IfPart.Statements(1), {stmt1, stmt2})
+            newBlock = ifBlock.InsertNodesAfter(ifBlock.Statements(1), {stmt1, stmt2})
             Assert.Equal(
 <x>If a != b Then
 Dim x = 10

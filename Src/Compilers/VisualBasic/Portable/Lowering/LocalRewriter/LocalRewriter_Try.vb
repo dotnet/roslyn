@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     newTry = New BoundStatementList(syntaxNode,
                                                     ImmutableArray.Create(Of BoundStatement)(
                                                         newTry,
-                                                        New BoundSequencePoint(syntax.End, Nothing)
+                                                        New BoundSequencePoint(syntax.EndTryStatement, Nothing)
                                                     )
                                                 )
                 End If
@@ -60,10 +60,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim newFinally = DirectCast(Visit(node), BoundBlock)
 
             If GenerateDebugInfo Then
-                Dim syntax = TryCast(node.Syntax, FinallyPartSyntax)
+                Dim syntax = TryCast(node.Syntax, FinallyBlockSyntax)
 
                 If syntax IsNot Nothing Then
-                    newFinally = PrependWithSequencePoint(newFinally, syntax.Begin)
+                    newFinally = PrependWithSequencePoint(newFinally, syntax.FinallyStatement)
                 End If
             End If
 
@@ -74,10 +74,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim newTry = DirectCast(Visit(node), BoundBlock)
 
             If GenerateDebugInfo Then
-                Dim syntax = TryCast(node.Syntax, TryPartSyntax)
+                Dim syntax = TryCast(node.Syntax, TryBlockSyntax)
 
                 If syntax IsNot Nothing Then
-                    newTry = PrependWithSequencePoint(newTry, syntax.Begin)
+                    newTry = PrependWithSequencePoint(newTry, syntax.TryStatement)
                 End If
             End If
 
@@ -91,17 +91,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim newCatchBody As BoundBlock = DirectCast(Visit(node.Body), BoundBlock)
 
             If GenerateDebugInfo Then
-                Dim syntax = TryCast(node.Syntax, CatchPartSyntax)
+                Dim syntax = TryCast(node.Syntax, CatchBlockSyntax)
 
                 If syntax IsNot Nothing Then
                     If newFilter IsNot Nothing Then
                         ' if we have a filter, we want to stop before the filter expression
                         ' and associate the sequence point with whole Catch statement
-                        newFilter = New BoundSequencePointExpression(syntax.Begin,
+                        newFilter = New BoundSequencePointExpression(syntax.CatchStatement,
                                                                      newFilter,
                                                                      newFilter.Type)
                     Else
-                        newCatchBody = PrependWithSequencePoint(newCatchBody, syntax.Begin)
+                        newCatchBody = PrependWithSequencePoint(newCatchBody, syntax.CatchStatement)
                     End If
                 End If
             End If

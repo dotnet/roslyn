@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Inherits ExecutableStatementContext
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
-            MyBase.New(SyntaxKind.CatchPart, statement, prevContext)
+            MyBase.New(SyntaxKind.CatchBlock, statement, prevContext)
 
             Debug.Assert(statement.Kind = SyntaxKind.CatchStatement)
         End Sub
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(statement Is Nothing)
             Debug.Assert(BeginStatement IsNot Nothing)
 
-            Dim result = SyntaxFactory.CatchPart(DirectCast(BeginStatement, CatchStatementSyntax), Me.Body())
+            Dim result = SyntaxFactory.CatchBlock(DirectCast(BeginStatement, CatchStatementSyntax), Me.Body())
 
             FreeStatements()
 

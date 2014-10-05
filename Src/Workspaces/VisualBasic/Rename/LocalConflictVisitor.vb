@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -172,11 +172,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             _tracker.RemoveIdentifiers(tokens)
         End Sub
 
-        Public Overrides Sub VisitCatchPart(node As CatchPartSyntax)
+        Public Overrides Sub VisitCatchBlock(node As CatchBlockSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
             Dim semanticModel = _newSolution.GetDocument(node.SyntaxTree).GetSemanticModelAsync(_cancellationToken).Result
-            Dim identifierToken = node.Begin.IdentifierName.Identifier
+            Dim identifierToken = node.CatchStatement.IdentifierName.Identifier
             Dim symbol = semanticModel.GetSymbolInfo(identifierToken).Symbol
 
             ' if it is a field we don't care

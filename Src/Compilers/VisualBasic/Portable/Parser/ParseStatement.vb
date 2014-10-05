@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Parser
@@ -415,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim thenKeyword As KeywordSyntax = Nothing
             TryGetToken(SyntaxKind.ThenKeyword, thenKeyword)
 
-            Dim statement = SyntaxFactory.IfStatement(Nothing, ifKeyword, condition, thenKeyword)
+            Dim statement = SyntaxFactory.IfStatement(ifKeyword, condition, thenKeyword)
 
             Return statement
 
@@ -435,20 +435,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseElseIfStatement() As StatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ElseKeyword OrElse CurrentToken.Kind = SyntaxKind.ElseIfKeyword, "ParseIfConstruct called on wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.ElseIfKeyword OrElse (CurrentToken.Kind = SyntaxKind.ElseKeyword AndAlso PeekToken(1).Kind = SyntaxKind.IfKeyword),
+                         "ParseIfConstruct called on wrong token.")
 
-            Dim optionalElseKeyword As KeywordSyntax = Nothing
-            Dim IfOrElseIfKeyword As KeywordSyntax = Nothing
+            Dim elseIfKeyword As KeywordSyntax = Nothing
 
-            If CurrentToken.Kind = SyntaxKind.ElseKeyword Then
-                Debug.Assert(PeekToken(1).Kind = SyntaxKind.IfKeyword, "Parser was sure it would see an Else If.")
-                optionalElseKeyword = DirectCast(CurrentToken, KeywordSyntax)
+            If CurrentToken.Kind = SyntaxKind.ElseIfKeyword Then
+                elseIfKeyword = DirectCast(CurrentToken, KeywordSyntax)
+
                 GetNextToken()
-            End If
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ElseIfKeyword OrElse CurrentToken.Kind = SyntaxKind.IfKeyword, "Parser was sure it would see an ElseIf.")
-            IfOrElseIfKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            GetNextToken()
+            ElseIf CurrentToken.Kind = SyntaxKind.ElseKeyword Then
+                ' When written as 'Else If' we need to merged the two keywords together.
+
+                Dim elseKeyword = DirectCast(CurrentToken, KeywordSyntax)
+                GetNextToken()
+
+                If Context.IsSingleLine Then
+                    ' But inside of a single-line If this isn't allowed. We parse as an Else statement
+                    ' so that the SingleLineIfBlockContext can parse the rest as a separate If statement.
+
+                    Return SyntaxFactory.ElseStatement(elseKeyword)
+                End If
+
+                Dim ifKeyword = DirectCast(CurrentToken, KeywordSyntax)
+                GetNextToken()
+
+                elseIfKeyword = New KeywordSyntax(SyntaxKind.ElseIfKeyword, MergeTokenText(elseKeyword, ifKeyword), elseKeyword.GetLeadingTrivia(), ifKeyword.GetTrailingTrivia())
+            End If
 
             Dim condition = ParseExpression(OperatorPrecedence.PrecedenceNone)
 
@@ -459,10 +473,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim thenKeyword As KeywordSyntax = Nothing
             TryGetToken(SyntaxKind.ThenKeyword, thenKeyword)
 
-            Dim statement = SyntaxFactory.ElseIfStatement(optionalElseKeyword, IfOrElseIfKeyword, condition, thenKeyword)
+            Dim statement = SyntaxFactory.ElseIfStatement(elseIfKeyword, condition, thenKeyword)
 
             Return statement
-
         End Function
 
         Private Function ParseAnachronisticStatement() As StatementSyntax

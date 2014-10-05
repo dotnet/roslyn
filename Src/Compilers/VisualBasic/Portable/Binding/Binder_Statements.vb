@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -192,8 +192,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    node.Parent.Kind = SyntaxKind.RemoveHandlerBlock OrElse
                                    node.Parent.Kind = SyntaxKind.RaiseEventBlock OrElse
                                    node.Parent.Kind = SyntaxKind.MultiLineIfBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.ElseIfPart OrElse
-                                   node.Parent.Kind = SyntaxKind.ElsePart OrElse
+                                   node.Parent.Kind = SyntaxKind.ElseIfBlock OrElse
+                                   node.Parent.Kind = SyntaxKind.ElseBlock OrElse
                                    node.Parent.Kind = SyntaxKind.DoLoopForeverBlock OrElse
                                    node.Parent.Kind = SyntaxKind.DoLoopTopTestBlock OrElse
                                    node.Parent.Kind = SyntaxKind.WhileBlock OrElse
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.CatchStatement
                     ' a catch statement is legal as long as it is part of a catch block
-                    If Not node.Parent.Kind = SyntaxKind.CatchPart Then
+                    If Not node.Parent.Kind = SyntaxKind.CatchBlock Then
                         Debug.Assert(node.ContainsDiagnostics)
                         Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
                     End If
@@ -774,9 +774,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         SyntaxKind.MultiLineSubLambdaExpression
                         Exit While
 
-                    Case SyntaxKind.TryPart,
-                        SyntaxKind.CatchPart,
-                        SyntaxKind.FinallyPart
+                    Case SyntaxKind.TryBlock,
+                        SyntaxKind.CatchBlock,
+                        SyntaxKind.FinallyBlock
                         errorID = ERRID.ERR_GotoIntoTryHandler
 
                     Case SyntaxKind.UsingBlock
@@ -809,9 +809,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function IsValidBranchTarget(block As VisualBasicSyntaxNode, labelSyntax As LabelSyntax) As Boolean
-            Debug.Assert(block.Kind = SyntaxKind.TryPart OrElse
-                         block.Kind = SyntaxKind.CatchPart OrElse
-                         block.Kind = SyntaxKind.FinallyPart OrElse
+            Debug.Assert(block.Kind = SyntaxKind.TryBlock OrElse
+                         block.Kind = SyntaxKind.CatchBlock OrElse
+                         block.Kind = SyntaxKind.FinallyBlock OrElse
                          block.Kind = SyntaxKind.UsingBlock OrElse
                          block.Kind = SyntaxKind.SyncLockBlock OrElse
                          block.Kind = SyntaxKind.WithBlock OrElse
@@ -821,17 +821,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parent = labelSyntax.Parent
             While parent IsNot Nothing
                 If parent Is block Then
-                    Return True
-                End If
-
-                ' It is allowed for a goto in a catch part to jump into the try block of the same nesting level
-                ' Note: This needs to be checked separately because the try part cannot be found by using the parent property
-                ' of the catch part.
-                If parent.Kind = SyntaxKind.CatchPart AndAlso
-                    parent.Parent IsNot Nothing AndAlso
-                    parent.Parent.Kind = SyntaxKind.TryBlock AndAlso
-                    DirectCast(parent.Parent, TryBlockSyntax).TryPart Is block Then
-
                     Return True
                 End If
 
@@ -2667,10 +2656,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim consequence As BoundBlock
             Dim alternative As BoundStatement = Nothing
 
-            condition = BindBooleanExpression(node.IfPart.Begin.Condition, diagnostics)
-            consequence = BindBlock(node.IfPart, node.IfPart.Statements, diagnostics)
-            If node.ElsePart IsNot Nothing Then
-                alternative = BindBlock(node.ElsePart, node.ElsePart.Statements, diagnostics)
+            condition = BindBooleanExpression(node.Condition, diagnostics)
+            consequence = BindBlock(node, node.Statements, diagnostics)
+            If node.ElseClause IsNot Nothing Then
+                alternative = BindBlock(node.ElseClause, node.ElseClause.Statements, diagnostics)
             End If
 
             Return New BoundIfStatement(node, condition, consequence, alternative)
@@ -2685,19 +2674,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim blocks As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance()
             Dim conditions As ArrayBuilder(Of BoundExpression) = ArrayBuilder(Of BoundExpression).GetInstance()
 
-            conditions.Add(BindBooleanExpression(node.IfPart.Begin.Condition, diagnostics))
-            blocks.Add(BindBlock(node.IfPart, node.IfPart.Statements, diagnostics))
+            conditions.Add(BindBooleanExpression(node.IfStatement.Condition, diagnostics))
+            blocks.Add(BindBlock(node, node.Statements, diagnostics))
 
-            For i = 0 To node.ElseIfParts.Count - 1
-                Dim elseIfPart = node.ElseIfParts(i)
-                conditions.Add(BindBooleanExpression(elseIfPart.Begin.Condition, diagnostics))
-                blocks.Add(BindBlock(elseIfPart, elseIfPart.Statements, diagnostics))
+            For i = 0 To node.ElseIfBlocks.Count - 1
+                Dim elseIfBlock = node.ElseIfBlocks(i)
+                conditions.Add(BindBooleanExpression(elseIfBlock.ElseIfStatement.Condition, diagnostics))
+                blocks.Add(BindBlock(elseIfBlock, elseIfBlock.Statements, diagnostics))
             Next
 
             Dim currentAlternative As BoundStatement = Nothing
 
-            If node.ElsePart IsNot Nothing Then
-                currentAlternative = BindBlock(node.ElsePart, node.ElsePart.Statements, diagnostics)
+            If node.ElseBlock IsNot Nothing Then
+                currentAlternative = BindBlock(node.ElseBlock, node.ElseBlock.Statements, diagnostics)
             End If
 
             For i = conditions.Count - 1 To 0 Step -1
@@ -2705,7 +2694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If i = 0 Then
                     syntax = node
                 Else
-                    syntax = node.ElseIfParts(i - 1)
+                    syntax = node.ElseIfBlocks(i - 1)
                 End If
 
                 currentAlternative = New BoundIfStatement(syntax, conditions(i), blocks(i), currentAlternative)
@@ -4606,26 +4595,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function BindTryBlock(node As TryBlockSyntax, diagnostics As DiagnosticBag) As BoundTryStatement
             Debug.Assert(node IsNot Nothing)
 
-            Dim tryBlock As BoundBlock = BindBlock(node.TryPart, node.TryPart.Statements, diagnostics)
-            Dim catchBlocks As ImmutableArray(Of BoundCatchBlock) = BindCatchBlocks(node.CatchParts, diagnostics)
+            Dim tryBlock As BoundBlock = BindBlock(node, node.Statements, diagnostics)
+            Dim catchBlocks As ImmutableArray(Of BoundCatchBlock) = BindCatchBlocks(node.CatchBlocks, diagnostics)
 
             Dim finallyBlockOpt As BoundBlock
-            If node.FinallyPart IsNot Nothing Then
-                Dim finallyBinder = GetBinder(node.FinallyPart)
-                finallyBlockOpt = finallyBinder.BindBlock(node.FinallyPart, node.FinallyPart.Statements, diagnostics)
+            If node.FinallyBlock IsNot Nothing Then
+                Dim finallyBinder = GetBinder(node.FinallyBlock)
+                finallyBlockOpt = finallyBinder.BindBlock(node.FinallyBlock, node.FinallyBlock.Statements, diagnostics)
             Else
                 finallyBlockOpt = Nothing
             End If
 
             If catchBlocks.IsEmpty AndAlso finallyBlockOpt Is Nothing Then
-                ReportDiagnostic(diagnostics, node.TryPart.Begin, ERRID.ERR_TryWithoutCatchOrFinally)
+                ReportDiagnostic(diagnostics, node.TryStatement, ERRID.ERR_TryWithoutCatchOrFinally)
             End If
 
             Dim tryBinder As Binder = GetBinder(node)
             Return New BoundTryStatement(node, tryBlock, catchBlocks, finallyBlockOpt, tryBinder.GetExitLabel(SyntaxKind.ExitTryStatement))
         End Function
 
-        Public Function BindCatchBlocks(catchClauses As SyntaxList(Of CatchPartSyntax), diagnostics As DiagnosticBag) As ImmutableArray(Of BoundCatchBlock)
+        Public Function BindCatchBlocks(catchClauses As SyntaxList(Of CatchBlockSyntax), diagnostics As DiagnosticBag) As ImmutableArray(Of BoundCatchBlock)
             Dim n As Integer = catchClauses.Count
             If n = 0 Then
                 Return ImmutableArray(Of BoundCatchBlock).Empty
@@ -4642,7 +4631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return catchBlocks.ToImmutableAndFree
         End Function
 
-        Private Function BindCatchBlock(node As CatchPartSyntax, previousBlocks As ArrayBuilder(Of BoundCatchBlock), diagnostics As DiagnosticBag) As BoundCatchBlock
+        Private Function BindCatchBlock(node As CatchBlockSyntax, previousBlocks As ArrayBuilder(Of BoundCatchBlock), diagnostics As DiagnosticBag) As BoundCatchBlock
 
             ' we need to compute the following parts
             Dim catchLocal As LocalSymbol = Nothing
@@ -4651,7 +4640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim exceptionType As TypeSymbol
             Dim hasError = False
-            Dim declaration = node.Begin
+            Dim declaration = node.CatchStatement
 
             Dim name As IdentifierNameSyntax = declaration.IdentifierName
 
@@ -5039,11 +5028,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 While curSyntax IsNot Nothing
                     Select Case curSyntax.Kind
-                        Case SyntaxKind.CatchPart
+                        Case SyntaxKind.CatchBlock
                             canRethrow = True
                             Exit While
 
-                        Case SyntaxKind.FinallyPart
+                        Case SyntaxKind.FinallyBlock
                             ' CLI spec (with Microsoft specific implementation notes).
                             ' 12.4.2.8.2.2 rethrow:
                             ' The Microsoft implementation requires that either the catch handler is the innermost enclosing

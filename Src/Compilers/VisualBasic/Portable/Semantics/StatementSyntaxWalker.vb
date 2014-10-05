@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -132,57 +132,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitSingleLineIfStatement(ByVal node As SingleLineIfStatementSyntax)
-            Visit(node.IfPart)
-            Visit(node.ElsePart)
-        End Sub
-
-
-        Public Overrides Sub VisitSingleLineIfPart(ByVal node As SingleLineIfPartSyntax)
-            Visit(node.Begin)
             VisitList(node.Statements)
+            Visit(node.ElseClause)
         End Sub
 
-        Public Overrides Sub VisitSingleLineElsePart(ByVal node As SingleLineElsePartSyntax)
-            Visit(node.Begin)
+        Public Overrides Sub VisitSingleLineElseClause(ByVal node As SingleLineElseClauseSyntax)
             VisitList(node.Statements)
         End Sub
 
         Public Overrides Sub VisitMultiLineIfBlock(ByVal node As MultiLineIfBlockSyntax)
-            Visit(node.IfPart)
-            VisitList(node.ElseIfParts)
-            Visit(node.ElsePart)
-            Visit(node.End)
+            Visit(node.IfStatement)
+            VisitList(node.Statements)
+            VisitList(node.ElseIfBlocks)
+            Visit(node.ElseBlock)
+            Visit(node.EndIfStatement)
         End Sub
 
-        Public Overrides Sub VisitIfPart(ByVal node As IfPartSyntax)
-            Visit(node.Begin)
+        Public Overrides Sub VisitElseIfBlock(ByVal node As ElseIfBlockSyntax)
+            Visit(node.ElseIfStatement)
             VisitList(node.Statements)
         End Sub
 
-        Public Overrides Sub VisitElsePart(ByVal node As ElsePartSyntax)
-            Visit(node.Begin)
+        Public Overrides Sub VisitElseBlock(ByVal node As ElseBlockSyntax)
+            Visit(node.ElseStatement)
             VisitList(node.Statements)
         End Sub
 
         Public Overrides Sub VisitTryBlock(ByVal node As TryBlockSyntax)
-            Visit(node.TryPart)
-            VisitList(node.CatchParts)
-            Visit(node.FinallyPart)
-            Visit(node.End)
+            Visit(node.TryStatement)
+            VisitList(node.Statements)
+            VisitList(node.CatchBlocks)
+            Visit(node.FinallyBlock)
+            Visit(node.EndTryStatement)
         End Sub
 
-        Public Overrides Sub VisitTryPart(ByVal node As TryPartSyntax)
-            Visit(node.Begin)
+        Public Overrides Sub VisitCatchBlock(ByVal node As CatchBlockSyntax)
+            Visit(node.CatchStatement)
             VisitList(node.Statements)
         End Sub
 
-        Public Overrides Sub VisitCatchPart(ByVal node As CatchPartSyntax)
-            Visit(node.Begin)
-            VisitList(node.Statements)
-        End Sub
-
-        Public Overrides Sub VisitFinallyPart(ByVal node As FinallyPartSyntax)
-            Visit(node.Begin)
+        Public Overrides Sub VisitFinallyBlock(ByVal node As FinallyBlockSyntax)
+            Visit(node.FinallyStatement)
             VisitList(node.Statements)
         End Sub
 

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting.Rules
@@ -391,38 +391,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     [with].EndWithStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
             End If
 
-            Dim [ifpart] = TryCast(node, IfPartSyntax)
-            If [ifpart] IsNot Nothing Then
-                Return ValueTuple.Create(
-                    [ifpart].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
-                    [ifpart].GetLastToken(includeZeroWidth:=True))
+            Dim [ifBlock] = TryCast(node, MultiLineIfBlockSyntax)
+            If [ifBlock] IsNot Nothing Then
+                If ifBlock.Statements.Count > 0 Then
+                    Return ValueTuple.Create(
+                        [ifBlock].IfStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                        [ifBlock].Statements.Last().GetLastToken(includeZeroWidth:=True))
+                Else
+                    Return ValueTuple.Create(
+                        [ifBlock].IfStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                        [ifBlock].IfStatement.GetLastToken(includeZeroWidth:=True))
+                End If
             End If
 
-            Dim [elsepart] = TryCast(node, ElsePartSyntax)
-            If [elsepart] IsNot Nothing Then
+            Dim [elseif] = TryCast(node, ElseIfBlockSyntax)
+            If [elseif] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [elsepart].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
-                    [elsepart].GetLastToken(includeZeroWidth:=True))
+                    [elseif].ElseIfStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [elseif].GetLastToken(includeZeroWidth:=True))
             End If
 
-            Dim [trypart] = TryCast(node, TryPartSyntax)
-            If [trypart] IsNot Nothing Then
+            Dim [else] = TryCast(node, ElseBlockSyntax)
+            If [else] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [trypart].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
-                    [trypart].GetLastToken(includeZeroWidth:=True))
+                    [else].ElseStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [else].GetLastToken(includeZeroWidth:=True))
             End If
 
-            Dim [catch] = TryCast(node, CatchPartSyntax)
+            Dim [try] = TryCast(node, TryBlockSyntax)
+            If [try] IsNot Nothing Then
+                If [try].Statements.Count > 0 Then
+                    Return ValueTuple.Create(
+                        [try].TryStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                        [try].Statements.Last().GetLastToken(includeZeroWidth:=True))
+                Else
+                    Return ValueTuple.Create(
+                        [try].TryStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                        [try].TryStatement.GetLastToken(includeZeroWidth:=True))
+                End If
+            End If
+
+            Dim [catch] = TryCast(node, CatchBlockSyntax)
             If [catch] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [catch].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [catch].CatchStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
                     [catch].GetLastToken(includeZeroWidth:=True))
             End If
 
-            Dim [finally] = TryCast(node, FinallyPartSyntax)
+            Dim [finally] = TryCast(node, FinallyBlockSyntax)
             If [finally] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [finally].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [finally].FinallyStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
                     [finally].GetLastToken(includeZeroWidth:=True))
             End If
 

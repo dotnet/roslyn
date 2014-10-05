@@ -742,7 +742,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
             Dim ifStatement = DirectCast(speculatedStatement, MultiLineIfBlockSyntax)
 
-            Dim declStatement = DirectCast(ifStatement.IfPart.Statements(0), LocalDeclarationStatementSyntax)
+            Dim declStatement = DirectCast(ifStatement.Statements(0), LocalDeclarationStatementSyntax)
             Dim varDecl = declStatement.Declarators(0).Names(0)
             Dim local = speculativeModel.GetDeclaredSymbol(varDecl)
             Assert.NotNull(local)
@@ -754,14 +754,14 @@ End If]]>.Value), ExecutableStatementSyntax)
             Assert.NotNull(typeInfo.Type)
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
 
-            Dim call1 = DirectCast(ifStatement.IfPart.Statements(1), ExpressionStatementSyntax)
+            Dim call1 = DirectCast(ifStatement.Statements(1), ExpressionStatementSyntax)
             Dim arg = DirectCast(DirectCast(call1.Expression, InvocationExpressionSyntax).ArgumentList.Arguments(0), SimpleArgumentSyntax).Expression
             Dim argSymbolInfo = speculativeModel.GetSymbolInfo(arg)
             Assert.NotNull(argSymbolInfo.Symbol)
             Assert.Equal("z", argSymbolInfo.Symbol.Name)
             Assert.Equal(SymbolKind.Local, argSymbolInfo.Symbol.Kind)
 
-            Dim call2 = DirectCast(ifStatement.IfPart.Statements(2), ExpressionStatementSyntax)
+            Dim call2 = DirectCast(ifStatement.Statements(2), ExpressionStatementSyntax)
             arg = DirectCast(DirectCast(call2.Expression, InvocationExpressionSyntax).ArgumentList.Arguments(0), SimpleArgumentSyntax).Expression
             argSymbolInfo = speculativeModel.GetSymbolInfo(arg)
             Assert.NotNull(argSymbolInfo.Symbol)
@@ -1300,7 +1300,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
             Dim ifStatement = DirectCast(speculatedStatement, MultiLineIfBlockSyntax)
 
-            Dim speculatedMethod = methodBlock.WithStatements(ifStatement.IfPart.Statements)
+            Dim speculatedMethod = methodBlock.WithStatements(ifStatement.Statements)
 
             Dim speculativeModel As SemanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)
@@ -1370,7 +1370,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
             Dim ifStatement = DirectCast(speculatedStatement, MultiLineIfBlockSyntax)
 
-            Dim speculatedMethod = methodBlock.WithStatements(ifStatement.IfPart.Statements)
+            Dim speculatedMethod = methodBlock.WithStatements(ifStatement.Statements)
 
             Dim speculativeModel As SemanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)
@@ -1419,7 +1419,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
             Dim ifStatement = DirectCast(speculatedStatement, MultiLineIfBlockSyntax)
 
-            Dim speculatedMethod = methodBlock.WithStatements(ifStatement.IfPart.Statements)
+            Dim speculatedMethod = methodBlock.WithStatements(ifStatement.Statements)
 
             Dim speculativeModel As SemanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)

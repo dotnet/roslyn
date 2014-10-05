@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend ReadOnly Property IsLineIf As Boolean
             Get
-                Return _kind = SyntaxKind.SingleLineIfStatement OrElse _kind = SyntaxKind.SingleLineElsePart
+                Return _kind = SyntaxKind.SingleLineIfStatement OrElse _kind = SyntaxKind.SingleLineElseClause
             End Get
         End Property
 
@@ -505,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return New TryBlockContext(DirectCast(node, StatementSyntax), Me)
 
                 Case SyntaxKind.CatchStatement, SyntaxKind.FinallyStatement
-                    Dim context = FindNearestInSameMethodScope(SyntaxKind.TryBlock, SyntaxKind.CatchPart, SyntaxKind.FinallyPart)
+                    Dim context = FindNearestInSameMethodScope(SyntaxKind.TryBlock, SyntaxKind.CatchBlock, SyntaxKind.FinallyBlock)
                     If context IsNot Nothing Then
                         RecoverFromMissingEnd(context)
                         Return context.ProcessSyntax(DirectCast(node, StatementSyntax))
@@ -561,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return UseSyntax(node, newContext, DirectCast(node, UsingBlockSyntax).EndUsingStatement.IsMissing)
 
                 Case SyntaxKind.TryBlock
-                    Return UseSyntax(node, newContext, DirectCast(node, TryBlockSyntax).End.IsMissing)
+                    Return UseSyntax(node, newContext, DirectCast(node, TryBlockSyntax).EndTryStatement.IsMissing)
 
                 Case _
                     SyntaxKind.DoLoopBottomTestBlock,
@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return UseSyntax(node, newContext)
 
                 Case SyntaxKind.MultiLineIfBlock
-                    Return UseSyntax(node, newContext, DirectCast(node, MultiLineIfBlockSyntax).End.IsMissing)
+                    Return UseSyntax(node, newContext, DirectCast(node, MultiLineIfBlockSyntax).EndIfStatement.IsMissing)
 
                 Case SyntaxKind.NextStatement
                     ' Don't reuse a next statement. The parser matches the variable list with the for context blocks.
@@ -684,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     endStmt = SyntaxFactory.EndRaiseEventStatement(missingEndKeyword, InternalSyntaxFactory.MissingKeyword(SyntaxKind.RaiseEventKeyword))
                     errorId = ERRID.ERR_MissingEndRaiseEvent
 
-                Case SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfPart, SyntaxKind.ElsePart
+                Case SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock, SyntaxKind.ElseBlock
                     endStmt = SyntaxFactory.EndIfStatement(missingEndKeyword, InternalSyntaxFactory.MissingKeyword(SyntaxKind.IfKeyword))
                     errorId = ERRID.ERR_ExpectedEndIf
 
@@ -785,10 +785,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.RaiseEventBlock
                     Return SyntaxKind.EndRaiseEventStatement
 
-                Case SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfPart, SyntaxKind.ElsePart
+                Case SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock, SyntaxKind.ElseBlock
                     Return SyntaxKind.EndIfStatement
 
-                Case SyntaxKind.SingleLineIfStatement, SyntaxKind.SingleLineElsePart
+                Case SyntaxKind.SingleLineIfStatement, SyntaxKind.SingleLineElseClause
                     Return SyntaxKind.None
 
                 Case SyntaxKind.DoLoopForeverBlock, SyntaxKind.DoLoopTopTestBlock
@@ -809,7 +809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.SelectBlock, SyntaxKind.CaseBlock, SyntaxKind.CaseElseBlock
                     Return SyntaxKind.EndSelectStatement
 
-                Case SyntaxKind.TryBlock, SyntaxKind.CatchPart, SyntaxKind.FinallyPart
+                Case SyntaxKind.TryBlock, SyntaxKind.CatchBlock, SyntaxKind.FinallyBlock
                     Return SyntaxKind.EndTryStatement
 
                 Case SyntaxKind.UsingBlock

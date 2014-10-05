@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -463,7 +463,7 @@ Done:
                     Debug.Assert(TypeOf statement.Syntax Is ExpressionSyntax)
                 Else
                     Select Case statement.Syntax.Kind
-                        Case SyntaxKind.ElseIfPart
+                        Case SyntaxKind.ElseIfBlock
                             If statement.Kind <> BoundKind.IfStatement Then
                                 Return False
                             End If
@@ -503,7 +503,7 @@ Done:
                 If Not (TypeOf statement.Syntax Is ExecutableStatementSyntax) Then
                     Select Case statement.Kind
                         Case BoundKind.IfStatement
-                            Debug.Assert(statement.Syntax.Kind = SyntaxKind.ElseIfPart AndAlso
+                            Debug.Assert(statement.Syntax.Kind = SyntaxKind.ElseIfBlock AndAlso
                                          statement.Syntax.Parent IsNot Nothing AndAlso
                                          statement.Syntax.Parent.Kind = SyntaxKind.MultiLineIfBlock AndAlso
                                          unstructuredExceptionHandlingResumableStatements.ContainsKey(statement.Syntax.Parent))

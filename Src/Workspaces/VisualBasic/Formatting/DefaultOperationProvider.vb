@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim lastTrivia = combinedTrivia.LastOrDefault(AddressOf ColonOrLineContinuationTrivia)
             If lastTrivia.RawKind = SyntaxKind.ColonTrivia Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
-            ElseIf lastTrivia.RawKind = SyntaxKind.LineContinuationTrivia AndAlso previousToken.Parent.GetAncestorsOrThis(Of SyntaxNode)().Any(AddressOf isSinglePartIfOrElsePartSyntax) Then
+            ElseIf lastTrivia.RawKind = SyntaxKind.LineContinuationTrivia AndAlso previousToken.Parent.GetAncestorsOrThis(Of SyntaxNode)().Any(AddressOf IsSingleLineIfOrElseClauseSyntax) Then
                 Return Nothing
             End If
 
@@ -75,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function isSinglePartIfOrElsePartSyntax(node As SyntaxNode) As Boolean
-            Return TypeOf node Is SingleLineIfPartSyntax OrElse TypeOf node Is SingleLineElsePartSyntax
+        Private Function IsSingleLineIfOrElseClauseSyntax(node As SyntaxNode) As Boolean
+            Return TypeOf node Is SingleLineIfStatementSyntax OrElse TypeOf node Is SingleLineElseClauseSyntax
         End Function
 
         Private Function ColonOrLineContinuationTrivia(trivia As SyntaxTrivia) As Boolean

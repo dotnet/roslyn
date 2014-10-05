@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -117,30 +117,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If node.VisualBasicKind = SyntaxKind.CompilationUnit OrElse IsStatementLike(node) Then
-                While True
+                Do
                     Dim child = node.ChildThatContainsPosition(position).AsNode()
                     If child Is Nothing OrElse Not IsStatementLike(child) Then
                         Return node.FullSpan
                     End If
                     node = child
-                End While
+                Loop
             End If
 
             Return rootFullSpan
         End Function
 
         Private Shared Function IsStatementLike(node As SyntaxNode) As Boolean
-            Select Case (node.VisualBasicKind)
-                Case SyntaxKind.IfPart,
-                        SyntaxKind.ElseIfPart,
-                        SyntaxKind.ElsePart,
-                        SyntaxKind.TryPart,
-                        SyntaxKind.CatchPart,
-                        SyntaxKind.FinallyPart
+            Select Case node.VisualBasicKind
+                Case SyntaxKind.ElseIfBlock,
+                     SyntaxKind.ElseBlock,
+                     SyntaxKind.CatchBlock,
+                     SyntaxKind.FinallyBlock
+
                     Return node.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia)
                 Case SyntaxKind.SingleLineIfStatement,
-                        SyntaxKind.SingleLineIfPart,
-                        SyntaxKind.SingleLineElsePart
+                     SyntaxKind.SingleLineElseClause
                     ' Steer clear of single-line if's because they they have custom handling of statement 
                     ' terminators that may make it difficult to reuse sub-statements.
                     Return False
@@ -309,8 +307,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Select Case node.Kind
-                Case SyntaxKind.SingleLineIfPart,
-                    SyntaxKind.SingleLineElsePart
+                Case SyntaxKind.SingleLineIfStatement,
+                    SyntaxKind.SingleLineElseClause
                     ' Parsing of single line If is particularly complicated
                     ' since the statement may contain colon separated or
                     ' multi-line statements. Avoid re-using child nodes.

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Text
@@ -305,7 +305,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                targetToken.IsChildToken(Of GetTypeExpressionSyntax)(Function(getTypeExpression) getTypeExpression.OpenParenToken) OrElse
                targetToken.IsChildToken(Of GroupByClauseSyntax)(Function(groupBy) groupBy.GroupKeyword) OrElse
                targetToken.IsChildToken(Of GroupByClauseSyntax)(Function(groupBy) groupBy.ByKeyword) OrElse
-               targetToken.IsChildToken(Of IfStatementSyntax)(Function(ifStatement) ifStatement.IfOrElseIfKeyword) OrElse
+               targetToken.IsChildToken(Of IfStatementSyntax)(Function(ifStatement) ifStatement.IfKeyword) OrElse
+               targetToken.IsChildToken(Of ElseIfStatementSyntax)(Function(elseIfStatement) elseIfStatement.ElseIfKeyword) OrElse
                targetToken.IsChildToken(Of InferredFieldInitializerSyntax)(Function(inferredField) inferredField.KeyKeyword) OrElse
                targetToken.IsChildToken(Of EqualsValueSyntax)(Function(initializer) initializer.EqualsToken) OrElse
                targetToken.IsChildToken(Of JoinClauseSyntax)(Function(joinQuery) joinQuery.OnKeyword) OrElse
@@ -520,8 +521,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             ' We might be after the Then or Else of a single-line if statement
             Dim singleLineIf = targetToken.GetAncestor(Of SingleLineIfStatementSyntax)()
             If singleLineIf IsNot Nothing AndAlso
-              (targetToken.IsChildToken(Of IfStatementSyntax)(Function(n) n.ThenKeyword) OrElse
-               targetToken.IsChildToken(Of ElseStatementSyntax)(Function(n) n.ElseKeyword)) Then
+              (targetToken.IsChildToken(Of SingleLineIfStatementSyntax)(Function(n) n.ThenKeyword) OrElse
+               targetToken.IsChildToken(Of SingleLineElseClauseSyntax)(Function(n) n.ElseKeyword)) Then
 
                 Return True
             End If

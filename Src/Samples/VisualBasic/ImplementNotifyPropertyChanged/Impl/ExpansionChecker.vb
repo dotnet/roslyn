@@ -235,22 +235,22 @@ Friend Class ExpansionChecker
                                                                    ByRef condition As ExpressionSyntax) As Boolean
         Dim multiLineIfStatement = TryCast(ifStatement, MultiLineIfBlockSyntax)
         If multiLineIfStatement IsNot Nothing Then
-            If multiLineIfStatement.IfPart.Statements.Count <> 1 Then
+            If multiLineIfStatement.Statements.Count <> 1 Then
                 Return False
             End If
 
-            statement = multiLineIfStatement.IfPart.Statements.First()
-            condition = multiLineIfStatement.IfPart.Begin.Condition
+            statement = multiLineIfStatement.Statements.First()
+            condition = multiLineIfStatement.IfStatement.Condition
             Return True
         Else
             Dim singleLineIfStatement = TryCast(ifStatement, SingleLineIfStatementSyntax)
             If singleLineIfStatement IsNot Nothing Then
-                If singleLineIfStatement.IfPart.Statements.Count <> 1 Then
+                If singleLineIfStatement.Statements.Count <> 1 Then
                     Return False
                 End If
 
-                statement = singleLineIfStatement.IfPart.Statements.First()
-                condition = singleLineIfStatement.IfPart.Begin.Condition
+                statement = singleLineIfStatement.Statements.First()
+                condition = singleLineIfStatement.Condition
                 Return True
             End If
             Return False

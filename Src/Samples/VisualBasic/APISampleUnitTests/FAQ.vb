@@ -2061,11 +2061,11 @@ End Module
                          SyntaxKind.UsingBlock,
                          SyntaxKind.SyncLockBlock,
                          SyntaxKind.WithBlock,
-                         SyntaxKind.IfPart,
-                         SyntaxKind.ElsePart,
-                         SyntaxKind.TryPart,
-                         SyntaxKind.CatchPart,
-                         SyntaxKind.FinallyPart,
+                         SyntaxKind.MultiLineIfBlock,
+                         SyntaxKind.ElseBlock,
+                         SyntaxKind.TryBlock,
+                         SyntaxKind.CatchBlock,
+                         SyntaxKind.FinallyBlock,
                          SyntaxKind.CaseBlock
 
                         Return True
@@ -2299,9 +2299,14 @@ End Module
 
                     updatedNode =
                         SyntaxFactory.MultiLineIfBlock(
-                            SyntaxFactory.IfPart(
-                                SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), SyntaxFactory.TrueLiteralExpression(SyntaxFactory.Token(SyntaxKind.TrueKeyword))),
-                                statementPair)).
+                            SyntaxFactory.IfStatement(
+                                SyntaxFactory.Token(SyntaxKind.IfKeyword),
+                                SyntaxFactory.TrueLiteralExpression(SyntaxFactory.Token(SyntaxKind.TrueKeyword)),
+                                SyntaxFactory.Token(SyntaxKind.ThenKeyword)
+                            ),
+                            statementPair,
+                            Nothing,
+                            Nothing).
                         WithLeadingTrivia(node.GetLeadingTrivia()).
                         WithTrailingTrivia(node.GetTrailingTrivia()) ' Attach leading and trailing trivia (that we removed from the original node above) to the updated node.
                 End If

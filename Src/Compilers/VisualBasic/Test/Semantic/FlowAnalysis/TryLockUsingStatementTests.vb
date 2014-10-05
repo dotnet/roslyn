@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -1633,15 +1633,15 @@ End Module
 
             Dim tryBlock = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.TryBlock).AsNode(), TryBlockSyntax)
 
-            Dim statement As StatementSyntax = tryBlock.TryPart.Begin
+            Dim statement As StatementSyntax = tryBlock.TryStatement
             Assert.False(model.AnalyzeControlFlow(statement, statement).Succeeded)
             Assert.False(model.AnalyzeDataFlow(statement, statement).Succeeded)
 
-            statement = tryBlock.CatchParts(0).Begin
+            statement = tryBlock.CatchBlocks(0).CatchStatement
             Assert.False(model.AnalyzeControlFlow(statement, statement).Succeeded)
             Assert.False(model.AnalyzeDataFlow(statement, statement).Succeeded)
 
-            statement = tryBlock.FinallyPart.Begin
+            statement = tryBlock.FinallyBlock.FinallyStatement
             Assert.False(model.AnalyzeControlFlow(statement, statement).Succeeded)
             Assert.False(model.AnalyzeDataFlow(statement, statement).Succeeded)
         End Sub

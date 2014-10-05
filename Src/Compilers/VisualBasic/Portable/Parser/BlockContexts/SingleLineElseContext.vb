@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 '-----------------------------------------------------------------------------
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(kind As SyntaxKind, statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(kind, statement, prevContext)
 
-            Debug.Assert(kind = SyntaxKind.SingleLineElsePart)
+            Debug.Assert(kind = SyntaxKind.SingleLineElseClause)
         End Sub
 
         Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
@@ -53,10 +53,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return CreateElseBlockSyntax()
         End Function
 
-        Private Function CreateElseBlockSyntax() As SingleLineElsePartSyntax
+        Private Function CreateElseBlockSyntax() As SingleLineElseClauseSyntax
             Debug.Assert(BeginStatement IsNot Nothing)
 
-            Dim result = SyntaxFactory.SingleLineElsePart(DirectCast(BeginStatement, ElseStatementSyntax), OptionalBody())
+            Dim elseStatement = DirectCast(BeginStatement, ElseStatementSyntax)
+
+            Dim result = SyntaxFactory.SingleLineElseClause(elseStatement.ElseKeyword, OptionalBody())
 
             FreeStatements()
 

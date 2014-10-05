@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -410,20 +410,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return statement
         End Function
 
-        Private Function PrependWithSequencePoint(statement As BoundBlock, spSyntax As VisualBasicSyntaxNode) As BoundBlock
+        ''' <summary>
+        ''' Adds a sequence point with the specified span before stepping on the statement.
+        ''' </summary>
+        ''' <remarks>
+        ''' If the statement is a block the sequence point will be outside of the scope.
+        ''' </remarks>
+        Private Function PrependWithSequencePoint(statement As BoundStatement, syntax As VisualBasicSyntaxNode, span As Text.TextSpan) As BoundStatement
             If Not GenerateDebugInfo Then
                 Return statement
             End If
 
-            Dim consequenceWithEnd(1) As BoundStatement
-            consequenceWithEnd(0) = New BoundSequencePoint(spSyntax, Nothing)
-            consequenceWithEnd(1) = statement
+            Return New BoundStatementList(
+                statement.Syntax,
+                ImmutableArray.Create(New BoundSequencePointWithSpan(syntax, Nothing, span),
+                                      statement))
+        End Function
 
-            statement = New BoundBlock(statement.Syntax,
-                                       Nothing,
-                                       ImmutableArray(Of LocalSymbol).Empty,
-                                       consequenceWithEnd.AsImmutableOrNull)
-            Return statement
+        Private Function PrependWithSequencePoint(statement As BoundBlock, syntax As VisualBasicSyntaxNode) As BoundBlock
+            If Not GenerateDebugInfo Then
+                Return statement
+            End If
+
+            Return New BoundBlock(
+                statement.Syntax,
+                Nothing,
+                ImmutableArray(Of LocalSymbol).Empty,
+                ImmutableArray.Create(Of BoundStatement)(New BoundSequencePoint(syntax, Nothing), statement))
         End Function
 
         Public Overrides Function VisitSequencePointWithSpan(node As BoundSequencePointWithSpan) As BoundNode

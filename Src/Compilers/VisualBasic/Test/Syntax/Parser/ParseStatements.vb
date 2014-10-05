@@ -360,7 +360,7 @@ End Module
         Dim moduleM = TryCast(compUnit.ChildNodesAndTokens()(0).AsNode, TypeBlockSyntax)
         Dim subMain = TryCast(moduleM.ChildNodesAndTokens()(1).AsNode, MethodBlockSyntax)
         Dim ifStmt = TryCast(subMain.ChildNodesAndTokens()(1).AsNode, SingleLineIfStatementSyntax)
-        Dim foo = ifStmt.IfPart.Statements(0)
+        Dim foo = ifStmt.Statements(0)
         Assert.Equal(SyntaxKind.ExpressionStatement, foo.Kind)
         Assert.Equal(SyntaxKind.InvocationExpression, DirectCast(foo, ExpressionStatementSyntax).Expression.Kind)
     End Sub
@@ -2185,14 +2185,14 @@ End Module
         Dim ifBlock =
                 CType(CType(CType(compilation.Members(0), TypeBlockSyntax).Members(0), MethodBlockSyntax).Statements(0), MultiLineIfBlockSyntax)
 
-        Assert.Equal(1, ifBlock.ElseIfParts.Count)
-        Dim statements = ifBlock.ElseIfParts(0).Statements
+        Assert.Equal(1, ifBlock.ElseIfBlocks.Count)
+        Dim statements = ifBlock.ElseIfBlocks(0).Statements
         Assert.Equal(1, statements.Count)
         Assert.IsType(Of ExpressionStatementSyntax)(statements(0))
         Assert.IsType(Of InvocationExpressionSyntax)(DirectCast(statements(0), ExpressionStatementSyntax).Expression)
 
-        Assert.Equal(1, ifBlock.IfPart.Statements.Count)
-        Assert.IsType(Of LocalDeclarationStatementSyntax)(ifBlock.IfPart.Statements(0))
+        Assert.Equal(1, ifBlock.Statements.Count)
+        Assert.IsType(Of LocalDeclarationStatementSyntax)(ifBlock.Statements(0))
 
     End Sub
 
@@ -2224,14 +2224,14 @@ End Module
         Dim ifBlock =
                 CType(CType(CType(compilation.Members(0), TypeBlockSyntax).Members(0), MethodBlockSyntax).Statements(0), MultiLineIfBlockSyntax)
 
-        Assert.Equal(1, ifBlock.ElseIfParts.Count)
-        Dim statements = ifBlock.ElseIfParts(0).Statements
+        Assert.Equal(1, ifBlock.ElseIfBlocks.Count)
+        Dim statements = ifBlock.ElseIfBlocks(0).Statements
         Assert.Equal(1, statements.Count)
         Assert.IsType(Of ExpressionStatementSyntax)(statements(0))
         Assert.IsType(Of InvocationExpressionSyntax)(DirectCast(statements(0), ExpressionStatementSyntax).Expression)
 
-        Assert.Equal(1, ifBlock.IfPart.Statements.Count)
-        Assert.IsType(Of LocalDeclarationStatementSyntax)(ifBlock.IfPart.Statements(0))
+        Assert.Equal(1, ifBlock.Statements.Count)
+        Assert.IsType(Of LocalDeclarationStatementSyntax)(ifBlock.Statements(0))
 
     End Sub
     <WorkItem(540669, "DevDiv")>
@@ -2259,11 +2259,11 @@ End Module
         Dim singleLineIf =
                 CType(CType(CType(compilation.Members(0), TypeBlockSyntax).Members(0), MethodBlockSyntax).Statements(0), SingleLineIfStatementSyntax)
 
-        Dim statements = singleLineIf.ElsePart.Statements
+        Dim statements = singleLineIf.ElseClause.Statements
         Assert.Equal(2, statements.Count)
         Assert.IsType(Of ExpressionStatementSyntax)(statements(0))
         Assert.IsType(Of InvocationExpressionSyntax)(DirectCast(statements(0), ExpressionStatementSyntax).Expression)
-        Assert.IsType(Of SingleLineIfStatementSyntax)(singleLineIf.ElsePart.Statements(1))
+        Assert.IsType(Of SingleLineIfStatementSyntax)(singleLineIf.ElseClause.Statements(1))
 
     End Sub
 
@@ -7250,9 +7250,6 @@ End Module
             SyntaxKind.WhitespaceTrivia,
             SyntaxKind.SingleLineIfStatement,
             SyntaxKind.EndOfLineTrivia,
-            SyntaxKind.WhitespaceTrivia,
-            SyntaxKind.IfStatement,
-            SyntaxKind.WhitespaceTrivia,
             SyntaxKind.ReturnStatement,
             SyntaxKind.WhitespaceTrivia,
             SyntaxKind.ColonTrivia,
@@ -7287,9 +7284,6 @@ End Module
             SyntaxKind.WhitespaceTrivia,
             SyntaxKind.SingleLineIfStatement,
             SyntaxKind.EndOfLineTrivia,
-            SyntaxKind.WhitespaceTrivia,
-            SyntaxKind.IfStatement,
-            SyntaxKind.WhitespaceTrivia,
             SyntaxKind.ReturnStatement,
             SyntaxKind.WhitespaceTrivia,
             SyntaxKind.ColonTrivia,

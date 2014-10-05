@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -529,15 +529,14 @@ end module
             Dim generatedLeftLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, generatedLeftLiteralToken)
             Dim generatedRightLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, generatedRightLiteralToken)
             Dim generatedRedLiteratalExpression = SyntaxFactory.GreaterThanExpression(generatedLeftLiteralExpression, SyntaxFactory.Token(SyntaxKind.GreaterThanToken), generatedRightLiteralExpression)
-            Dim generatedRedIfStatement = SyntaxFactory.IfStatement(Nothing, SyntaxFactory.Token(SyntaxKind.IfKeyword), generatedRedLiteratalExpression, SyntaxFactory.Token(SyntaxKind.ThenKeyword, "THeN"))
+            Dim generatedRedIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), generatedRedLiteratalExpression, SyntaxFactory.Token(SyntaxKind.ThenKeyword, "THeN"))
             Dim expression As ExpressionSyntax = SyntaxFactory.StringLiteralExpression(SyntaxFactory.StringLiteralToken("foo", "foo"))
             Dim callexpression = SyntaxFactory.InvocationExpression(expression:=expression)
             Dim callstatement = SyntaxFactory.CallStatement(SyntaxFactory.Token(SyntaxKind.CallKeyword), callexpression)
             Dim stmtlist = SyntaxFactory.List(Of StatementSyntax)({CType(callstatement, StatementSyntax), CType(callstatement, StatementSyntax)})
-            Dim generatedRedIfPart = SyntaxFactory.IfPart(generatedRedIfStatement, stmtlist)
             Dim generatedEndIfStatment = SyntaxFactory.EndIfStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword), SyntaxFactory.Token(SyntaxKind.IfKeyword))
 
-            Dim mlib = SyntaxFactory.MultiLineIfBlock(generatedRedIfPart, Nothing, Nothing, generatedEndIfStatment)
+            Dim mlib = SyntaxFactory.MultiLineIfBlock(generatedRedIfStatement, stmtlist, Nothing, Nothing, generatedEndIfStatment)
             Dim str = mlib.NormalizeWhitespace("  ").ToFullString()
             Assert.Equal("If 42 > 23 THeN" + vbCrLf + "  Call foo" + vbCrLf + "  Call foo" + vbCrLf + "End If", str)
         End Sub

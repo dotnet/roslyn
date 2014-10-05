@@ -112,28 +112,28 @@ Friend Module CodeGeneration
         End If
 
         Dim returnFieldStatement = SyntaxFactory.ParseExecutableStatement(String.Format("Return {0}", backingFieldName))
-        getter = getter.WithStatements(SyntaxFactory.SingletonList(returnFieldStatement))
+            getter = getter.WithStatements(SyntaxFactory.SingletonList(returnFieldStatement))
 
-        If setter Is Nothing Then
-            Dim propertyTypeText = DirectCast(propertyStatement.AsClause, SimpleAsClauseSyntax).Type.ToString()
-            Dim parameterList = SyntaxFactory.ParseParameterList(String.Format("(value As {0})", propertyTypeText))
-            setter = SyntaxFactory.AccessorBlock(SyntaxKind.PropertySetBlock,
-                                        SyntaxFactory.AccessorStatement(SyntaxKind.SetAccessorStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)).
-                                                                 WithParameterList(parameterList),
-                                        SyntaxFactory.EndBlockStatement(SyntaxKind.EndSetStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)))
-        End If
+            If setter Is Nothing Then
+                Dim propertyTypeText = DirectCast(propertyStatement.AsClause, SimpleAsClauseSyntax).Type.ToString()
+                Dim parameterList = SyntaxFactory.ParseParameterList(String.Format("(value As {0})", propertyTypeText))
+                setter = SyntaxFactory.AccessorBlock(SyntaxKind.PropertySetBlock,
+                                            SyntaxFactory.AccessorStatement(SyntaxKind.SetAccessorStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)).
+                                                                     WithParameterList(parameterList),
+                                            SyntaxFactory.EndBlockStatement(SyntaxKind.EndSetStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)))
+            End If
 
-        Dim setPropertyStatement = SyntaxFactory.ParseExecutableStatement(String.Format("SetProperty({0}, value, ""{1}"")", backingFieldName, propertyStatement.Identifier.ValueText))
-        setter = setter.WithStatements(SyntaxFactory.SingletonList(setPropertyStatement))
+            Dim setPropertyStatement = SyntaxFactory.ParseExecutableStatement(String.Format("SetProperty({0}, value, ""{1}"")", backingFieldName, propertyStatement.Identifier.ValueText))
+            setter = setter.WithStatements(SyntaxFactory.SingletonList(setPropertyStatement))
 
-        Dim newPropertyBlock As PropertyBlockSyntax = propertyBlock
-        If newPropertyBlock Is Nothing Then
-            newPropertyBlock = SyntaxFactory.PropertyBlock(propertyStatement, SyntaxFactory.List(Of AccessorBlockSyntax)())
-        End If
+            Dim newPropertyBlock As PropertyBlockSyntax = propertyBlock
+            If newPropertyBlock Is Nothing Then
+                newPropertyBlock = SyntaxFactory.PropertyBlock(propertyStatement, SyntaxFactory.List(Of AccessorBlockSyntax)())
+            End If
 
-        newPropertyBlock = newPropertyBlock.WithAccessors(SyntaxFactory.List({getter, setter}))
+            newPropertyBlock = newPropertyBlock.WithAccessors(SyntaxFactory.List({getter, setter}))
 
-        Return newPropertyBlock
+            Return newPropertyBlock
     End Function
 
     Private Function ExpandType(
