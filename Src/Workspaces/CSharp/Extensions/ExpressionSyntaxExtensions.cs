@@ -515,6 +515,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            if (expression.Parent is AwaitExpressionSyntax)
+            {
+                return true;
+            }
+
             var parentNonExpression = expression.GetAncestors().SkipWhile(n => n is ExpressionSyntax).FirstOrDefault();
             var topExpression = expression;
             while (topExpression.Parent is TypeSyntax)

@@ -7603,7 +7603,7 @@ Unify Enum declarations with other block type declarations.
       -  AwaitExpression
       ******************-->
     <node-structure name="AwaitExpressionSyntax" parent="ExpressionSyntax">
-      <description>Represent a Await expression.</description>
+      <description>Represents an Await expression.</description>
       <lm-equiv name="AwaitExpressionNode"></lm-equiv>
       <native-equiv name="AwaitExpression"></native-equiv>
 

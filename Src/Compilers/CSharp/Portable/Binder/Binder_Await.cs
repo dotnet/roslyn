@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        private BoundExpression BindAwait(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindAwait(AwaitExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression expression = BindValue(node.Operand, diagnostics, BindValueKind.RValue);
+            BoundExpression expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
             return BindAwait(expression, node, diagnostics);
         }

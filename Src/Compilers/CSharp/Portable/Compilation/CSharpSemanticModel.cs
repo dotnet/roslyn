@@ -4101,7 +4101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets await expression info.
         /// </summary>
         /// <param name="node">The node.</param>
-        public abstract AwaitExpressionInfo GetAwaitExpressionInfo(PrefixUnaryExpressionSyntax node);
+        public abstract AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node);
 
         /// <summary>
         /// If the given node is within a preprocessing directive, gets the preprocessing symbol info for it.

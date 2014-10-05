@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return bound == null ? null : bound.DefinedSymbol;
         }
 
-        public override AwaitExpressionInfo GetAwaitExpressionInfo(PrefixUnaryExpressionSyntax node)
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node)
         {
             if (node.Kind != SyntaxKind.AwaitExpression)
             {

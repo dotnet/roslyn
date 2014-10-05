@@ -1666,6 +1666,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.Kind == SyntaxKind.PlusPlusToken ||
                 token.Kind == SyntaxKind.DashDashToken)
 #endif
+            // await |
+            if (token.Parent is AwaitExpressionSyntax)
+            {
+                var awaitExpression = token.Parent as AwaitExpressionSyntax;
+                return awaitExpression.AwaitKeyword == token;
+            }
+
             // Check for binary operators.
             // Note:
             //   - We handle < specially as it can be ambiguous with generics.

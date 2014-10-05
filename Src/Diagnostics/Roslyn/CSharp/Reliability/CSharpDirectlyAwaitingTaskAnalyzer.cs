@@ -26,7 +26,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.Reliability
         
         protected override SyntaxNode GetAwaitedExpression(SyntaxNode awaitNode)
         {
-            return ((PrefixUnaryExpressionSyntax)awaitNode).Operand;
+            return ((AwaitExpressionSyntax)awaitNode).Expression;
         }
     }
 }

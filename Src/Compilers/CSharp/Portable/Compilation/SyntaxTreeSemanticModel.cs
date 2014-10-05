@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetDeclaredMember(container, declarationSyntax.Span, name);
         }
 
-        public override AwaitExpressionInfo GetAwaitExpressionInfo(PrefixUnaryExpressionSyntax node)
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node)
         {
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetAwaitExpressionInfo, message: this.SyntaxTree.FilePath))
             {

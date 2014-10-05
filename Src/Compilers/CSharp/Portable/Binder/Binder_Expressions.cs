@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindRefValue((RefValueExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.AwaitExpression:
-                    return BindAwait((PrefixUnaryExpressionSyntax)node, diagnostics);
+                    return BindAwait((AwaitExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.OmittedArraySizeExpression:
                 case SyntaxKind.OmittedTypeArgument:

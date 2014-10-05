@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression),
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary),
                     (PrefixUnaryExpressionSyntax prefixUnary) => InferTypeInPrefixUnaryExpression(prefixUnary),
+                    (AwaitExpressionSyntax awaitExpression) => InferTypeInAwaitExpression(awaitExpression),
                     (ReturnStatementSyntax returnStatement) => InferTypeForReturnStatement(returnStatement),
                     (SimpleLambdaExpressionSyntax simpleLambdaExpression) => InferTypeInSimpleLambdaExpression(simpleLambdaExpression),
                     (SwitchLabelSyntax switchLabel) => InferTypeInSwitchLabel(switchLabel),
@@ -264,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token),
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     (PrefixUnaryExpressionSyntax prefixUnary) => InferTypeInPrefixUnaryExpression(prefixUnary, token),
+                    (AwaitExpressionSyntax awaitExpression) => InferTypeInAwaitExpression(awaitExpression, token),
                     (ReturnStatementSyntax returnStatement) => InferTypeForReturnStatement(returnStatement, token),
                     (SimpleLambdaExpressionSyntax simpleLambdaExpression) => InferTypeInSimpleLambdaExpression(simpleLambdaExpression, token),
                     (SwitchLabelSyntax switchLabel) => InferTypeInSwitchLabel(switchLabel, token),
@@ -1264,25 +1266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (prefixUnaryExpression.CSharpKind())
                 {
-                    case SyntaxKind.AwaitExpression:
-                        // await <expression>
-                        var types = InferTypes(prefixUnaryExpression);
-
-                        var task = this.Compilation.TaskType();
-                        var taskOfT = this.Compilation.TaskOfTType();
-
-                        if (task == null || taskOfT == null)
-                        {
-                            break;
-                        }
-
-                        if (!types.Any())
-                        {
-                            return SpecializedCollections.SingletonEnumerable(task);
-                        }
-
-                        return types.Select(t => t.SpecialType == SpecialType.System_Void ? task : taskOfT.Construct(t));
-
                     case SyntaxKind.PreDecrementExpression:
                     case SyntaxKind.PreIncrementExpression:
                     case SyntaxKind.UnaryPlusExpression:
@@ -1297,6 +1280,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeInAwaitExpression(AwaitExpressionSyntax awaitExpression, SyntaxToken? previousToken = null)
+            {
+                // If we have a position, then we must be after the prefix token.
+                Contract.ThrowIfTrue(previousToken.HasValue && previousToken.Value != awaitExpression.AwaitKeyword);
+
+                // await <expression>
+                var types = InferTypes(awaitExpression);
+
+                var task = this.Compilation.TaskType();
+                var taskOfT = this.Compilation.TaskOfTType();
+
+                if (task == null || taskOfT == null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                }
+
+                if (!types.Any())
+                {
+                    return SpecializedCollections.SingletonEnumerable(task);
+                }
+
+                return types.Select(t => t.SpecialType == SpecialType.System_Void ? task : taskOfT.Construct(t));
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInYieldStatement(YieldStatementSyntax yieldStatement, SyntaxToken? previousToken = null)

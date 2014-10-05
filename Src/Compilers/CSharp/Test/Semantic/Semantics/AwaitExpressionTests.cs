@@ -40,32 +40,9 @@ class C
             var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             var comp = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }, new MetadataReference[] { SystemRef });
             comp.VerifyDiagnostics(diagnostics);
-            var syntaxNode = (PrefixUnaryExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
             var treeModel = comp.GetSemanticModel(tree);
             return treeModel.GetAwaitExpressionInfo(syntaxNode);
-        }
-
-        [Fact]
-        [WorkItem(711413, "DevDiv")]
-        public void TestAwaitInfoWrongSyntaxKind()
-        {
-            var text =
-@"
-class C
-{
-    int Foo(int t)
-    {
-        return + t;
-    }
-}";
-            var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
-            var comp = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }, new MetadataReference[] { SystemRef });
-            comp.VerifyDiagnostics();
-            var syntaxNode = (PrefixUnaryExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.UnaryPlusExpression).AsNode();
-            var treeModel = comp.GetSemanticModel(tree);
-            Assert.Throws<System.ArgumentException>(() => {
-                var info = treeModel.GetAwaitExpressionInfo(syntaxNode);
-            });
         }
 
         [Fact]

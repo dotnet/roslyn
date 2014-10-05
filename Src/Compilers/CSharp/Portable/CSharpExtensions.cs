@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel semanticModel, PrefixUnaryExpressionSyntax awaitExpression)
+        public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel semanticModel, AwaitExpressionSyntax awaitExpression)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
