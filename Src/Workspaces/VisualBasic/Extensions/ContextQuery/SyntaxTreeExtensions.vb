@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                targetToken.IsChildToken(Of VariableNameEqualsSyntax)(Function(variableNameEquals) variableNameEquals.EqualsToken) OrElse
                targetToken.IsChildToken(Of WhereClauseSyntax)(Function(whereClause) whereClause.WhereKeyword) OrElse
                targetToken.IsChildToken(Of WhileStatementSyntax)(Function(whileStatement) whileStatement.WhileKeyword) OrElse
-               targetToken.IsChildToken(Of WhileUntilClauseSyntax)(Function(whileUntilClause) whileUntilClause.WhileOrUntilKeyword) OrElse
+               targetToken.IsChildToken(Of WhileOrUntilClauseSyntax)(Function(whileUntilClause) whileUntilClause.WhileOrUntilKeyword) OrElse
                targetToken.IsChildToken(Of WithStatementSyntax)(Function(withStatement) withStatement.WithKeyword) OrElse
                targetToken.IsChildToken(Of XmlEmbeddedExpressionSyntax)(Function(xmlEmbeddedExpression) xmlEmbeddedExpression.LessThanPercentEqualsToken) OrElse
                targetToken.IsChildToken(Of YieldStatementSyntax)(Function(yieldStatement) yieldStatement.YieldKeyword) Then

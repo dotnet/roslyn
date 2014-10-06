@@ -376,7 +376,7 @@ HandleMethodBase:
                 Case SyntaxKind.EndWhileStatement
                     ErrorId = ERRID.ERR_EndWhileNoWhile
 
-                Case SyntaxKind.LoopStatement
+                Case SyntaxKind.SimpleLoopStatement, SyntaxKind.LoopWhileStatement, SyntaxKind.LoopUntilStatement
                     ErrorId = ERRID.ERR_LoopNoMatchingDo
 
                 Case SyntaxKind.NextStatement

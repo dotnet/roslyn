@@ -580,7 +580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Parent type checks
             If TypeOf expression.Parent Is BinaryExpressionSyntax OrElse
                TypeOf expression.Parent Is AssignmentStatementSyntax OrElse
-               TypeOf expression.Parent Is WhileUntilClauseSyntax OrElse
+               TypeOf expression.Parent Is WhileOrUntilClauseSyntax OrElse
                TypeOf expression.Parent Is SingleLineLambdaExpressionSyntax OrElse
                TypeOf expression.Parent Is AwaitExpressionSyntax Then
                 Return True

@@ -13,7 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Inherits ExecutableStatementContext
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
-            MyBase.New(If(DirectCast(statement, DoStatementSyntax).WhileUntilClause Is Nothing, SyntaxKind.DoLoopForeverBlock, SyntaxKind.DoLoopTopTestBlock),
+            MyBase.New(If(DirectCast(statement, DoStatementSyntax).WhileOrUntilClause Is Nothing,
+                          SyntaxKind.SimpleDoLoopBlock,
+                          SyntaxKind.DoWhileLoopBlock),
                        statement,
                        prevContext)
         End Sub
@@ -26,27 +28,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim kind As SyntaxKind = BlockKind
 
-            If kind = SyntaxKind.DoLoopTopTestBlock AndAlso
-               loopStmt.WhileUntilClause IsNot Nothing Then
+            If kind = SyntaxKind.DoWhileLoopBlock AndAlso
+               loopStmt.WhileOrUntilClause IsNot Nothing Then
 
-                Dim whileUntilClause = loopStmt.WhileUntilClause
+                Dim whileUntilClause = loopStmt.WhileOrUntilClause
 
                 ' Error: the loop has a condition in both header and trailer.
                 Dim keyword = Parser.ReportSyntaxError(whileUntilClause.WhileOrUntilKeyword, ERRID.ERR_LoopDoubleCondition)
                 Dim errors = whileUntilClause.GetDiagnostics
 
-                whileUntilClause = SyntaxFactory.WhileUntilClause(whileUntilClause.Kind, DirectCast(keyword, KeywordSyntax), whileUntilClause.Condition)
+                whileUntilClause = SyntaxFactory.WhileOrUntilClause(whileUntilClause.Kind, DirectCast(keyword, KeywordSyntax), whileUntilClause.Condition)
 
                 If errors IsNot Nothing Then
-                    whileUntilClause = DirectCast(whileUntilClause.SetDiagnostics(errors), WhileUntilClauseSyntax)
+                    whileUntilClause = DirectCast(whileUntilClause.SetDiagnostics(errors), WhileOrUntilClauseSyntax)
                 End If
 
-                loopStmt = SyntaxFactory.LoopStatement(loopStmt.LoopKeyword, whileUntilClause)
+                loopStmt = SyntaxFactory.LoopStatement(loopStmt.Kind, loopStmt.LoopKeyword, whileUntilClause)
             End If
 
-            If kind = SyntaxKind.DoLoopForeverBlock AndAlso loopStmt.WhileUntilClause IsNot Nothing Then
+            If kind = SyntaxKind.SimpleDoLoopBlock AndAlso loopStmt.WhileOrUntilClause IsNot Nothing Then
                 ' Set the Do Loop kind now that the bottom is known.
-                kind = SyntaxKind.DoLoopBottomTestBlock
+                kind = If(loopStmt.Kind = SyntaxKind.LoopWhileStatement, SyntaxKind.DoLoopWhileBlock, SyntaxKind.DoLoopUntilBlock)
+            ElseIf doStmt.WhileOrUntilClause IsNot Nothing Then
+                kind = If(doStmt.Kind = SyntaxKind.DoWhileStatement, SyntaxKind.DoWhileLoopBlock, SyntaxKind.DoUntilLoopBlock)
             End If
 
             Dim result = SyntaxFactory.DoLoopBlock(kind, doStmt, Body(), loopStmt)
@@ -54,6 +58,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             FreeStatements()
 
             Return result
+        End Function
+
+        Friend Overrides Function KindEndsBlock(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case SyntaxKind.SimpleLoopStatement,
+                     SyntaxKind.LoopWhileStatement,
+                     SyntaxKind.LoopUntilStatement
+                    Return True
+                Case Else
+                    Return False
+            End Select
         End Function
 
     End Class

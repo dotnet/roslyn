@@ -76,7 +76,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LocalDeclarationStatement
                     Return BindLocalDeclaration(DirectCast(node, LocalDeclarationStatementSyntax), diagnostics)
 
-                Case SyntaxKind.DoLoopTopTestBlock, SyntaxKind.DoLoopBottomTestBlock, SyntaxKind.DoLoopForeverBlock
+                Case SyntaxKind.SimpleDoLoopBlock,
+                     SyntaxKind.DoWhileLoopBlock,
+                     SyntaxKind.DoUntilLoopBlock,
+                     SyntaxKind.DoLoopWhileBlock,
+                     SyntaxKind.DoLoopUntilBlock
                     Return BindDoLoop(DirectCast(node, DoLoopBlockSyntax), diagnostics)
 
                 Case SyntaxKind.WhileBlock
@@ -129,14 +133,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New BoundNoOpStatement(node)
 
                 Case SyntaxKind.SubBlock,
-                    SyntaxKind.FunctionBlock,
-                    SyntaxKind.ConstructorBlock,
-                    SyntaxKind.PropertyGetBlock,
-                    SyntaxKind.PropertySetBlock,
-                    SyntaxKind.AddHandlerBlock,
-                    SyntaxKind.RemoveHandlerBlock,
-                    SyntaxKind.RaiseEventBlock,
-                    SyntaxKind.OperatorBlock
+                     SyntaxKind.FunctionBlock,
+                     SyntaxKind.ConstructorBlock,
+                     SyntaxKind.PropertyGetBlock,
+                     SyntaxKind.PropertySetBlock,
+                     SyntaxKind.AddHandlerBlock,
+                     SyntaxKind.RemoveHandlerBlock,
+                     SyntaxKind.RaiseEventBlock,
+                     SyntaxKind.OperatorBlock
                     Return BindMethodBlock(DirectCast(node, MethodBlockBaseSyntax), diagnostics)
 
                 Case SyntaxKind.ReDimStatement, SyntaxKind.ReDimPreserveStatement
@@ -194,8 +198,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    node.Parent.Kind = SyntaxKind.MultiLineIfBlock OrElse
                                    node.Parent.Kind = SyntaxKind.ElseIfBlock OrElse
                                    node.Parent.Kind = SyntaxKind.ElseBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.DoLoopForeverBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.DoLoopTopTestBlock OrElse
+                                   node.Parent.Kind = SyntaxKind.SimpleDoLoopBlock OrElse
+                                   node.Parent.Kind = SyntaxKind.DoWhileLoopBlock OrElse
+                                   node.Parent.Kind = SyntaxKind.DoUntilLoopBlock OrElse
                                    node.Parent.Kind = SyntaxKind.WhileBlock OrElse
                                    node.Parent.Kind = SyntaxKind.WithBlock OrElse
                                    node.Parent.Kind = SyntaxKind.ForBlock OrElse
@@ -207,7 +212,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
 
-                Case SyntaxKind.LoopStatement
+                Case SyntaxKind.SimpleLoopStatement,
+                     SyntaxKind.LoopWhileStatement,
+                     SyntaxKind.LoopUntilStatement
+
                     ' a loop statement is legal as long as it is part of a do loop block
                     If Not SyntaxFacts.IsDoLoopBlock(node.Parent.Kind) Then
                         Debug.Assert(node.ContainsDiagnostics)
@@ -2715,7 +2723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isBottomUntil As Boolean = False
 
             ' Bind the top condition, if any.
-            Dim topConditionSyntax = node.DoStatement.WhileUntilClause
+            Dim topConditionSyntax = node.DoStatement.WhileOrUntilClause
             If topConditionSyntax IsNot Nothing Then
                 topCondition = BindBooleanExpression(topConditionSyntax.Condition, diagnostics)
                 isTopUntil = (topConditionSyntax.Kind = SyntaxKind.UntilClause)
@@ -2728,7 +2736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim loopBody As BoundBlock = loopBodyBinder.BindBlock(node, node.Statements, diagnostics)
 
             ' Bind the bottom condition, if any.
-            Dim bottomConditionSyntax = node.LoopStatement.WhileUntilClause
+            Dim bottomConditionSyntax = node.LoopStatement.WhileOrUntilClause
             If bottomConditionSyntax IsNot Nothing Then
                 bottomCondition = BindBooleanExpression(bottomConditionSyntax.Condition, diagnostics)
                 isBottomUntil = (bottomConditionSyntax.Kind = SyntaxKind.UntilClause)

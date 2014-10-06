@@ -58,7 +58,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If loopContext IsNot Nothing Then
 
                         Select Case loopContext.BlockKind
-                            Case SyntaxKind.DoLoopTopTestBlock, SyntaxKind.DoLoopForeverBlock, SyntaxKind.DoLoopTopTestBlock
+                            Case SyntaxKind.SimpleDoLoopBlock,
+                                 SyntaxKind.DoWhileLoopBlock
+
                                 kind = SyntaxKind.ContinueDoStatement
                                 blockKeyword = InternalSyntaxFactory.MissingKeyword(SyntaxKind.DoKeyword)
 
@@ -157,7 +159,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         Select Case loopContext.BlockKind
 
-                            Case SyntaxKind.DoLoopTopTestBlock, SyntaxKind.DoLoopForeverBlock, SyntaxKind.DoLoopTopTestBlock
+                            Case SyntaxKind.SimpleDoLoopBlock,
+                                 SyntaxKind.DoWhileLoopBlock
+
                                 kind = SyntaxKind.ExitDoStatement
                                 blockKeyword = InternalSyntaxFactory.MissingKeyword(SyntaxKind.DoKeyword)
 
@@ -526,11 +530,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Consume the Do.
             GetNextToken()
 
-            Dim optionalWhileUntilClause As WhileUntilClauseSyntax = Nothing
+            Dim optionalWhileOrUntilClause As WhileOrUntilClauseSyntax = Nothing
 
-            TryParseOptionalWhileUntilClause(doKeyword, optionalWhileUntilClause)
+            TryParseOptionalWhileOrUntilClause(doKeyword, optionalWhileOrUntilClause)
 
-            Dim statement As DoStatementSyntax = SyntaxFactory.DoStatement(doKeyword, optionalWhileUntilClause)
+            Dim kind As SyntaxKind
+            If optionalWhileOrUntilClause Is Nothing Then
+                kind = SyntaxKind.SimpleDoStatement
+            ElseIf optionalWhileOrUntilClause.Kind = SyntaxKind.WhileClause Then
+                kind = SyntaxKind.DoWhileStatement
+            Else
+                kind = SyntaxKind.DoUntilStatement
+            End If
+
+            Dim statement As DoStatementSyntax = SyntaxFactory.DoStatement(kind, doKeyword, optionalWhileOrUntilClause)
 
             Return statement
         End Function
@@ -542,12 +555,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim loopKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
 
-            ' Moved ERRID.ERR_LoopDoubleCondition to TryParseOptionalWhileUntilClause
-            Dim optionalWhileUntilClause As WhileUntilClauseSyntax = Nothing
+            ' Moved ERRID.ERR_LoopDoubleCondition to TryParseOptionalWhileOrUntilClause
+            Dim optionalWhileOrUntilClause As WhileOrUntilClauseSyntax = Nothing
 
-            TryParseOptionalWhileUntilClause(loopKeyword, optionalWhileUntilClause)
+            TryParseOptionalWhileOrUntilClause(loopKeyword, optionalWhileOrUntilClause)
 
-            Dim statement As LoopStatementSyntax = SyntaxFactory.LoopStatement(loopKeyword, optionalWhileUntilClause)
+            Dim kind As SyntaxKind
+            If optionalWhileOrUntilClause Is Nothing Then
+                kind = SyntaxKind.SimpleLoopStatement
+            ElseIf optionalWhileOrUntilClause.Kind = SyntaxKind.WhileClause Then
+                kind = SyntaxKind.LoopWhileStatement
+            Else
+                kind = SyntaxKind.LoopUntilStatement
+            End If
+
+            Dim statement As LoopStatementSyntax = SyntaxFactory.LoopStatement(kind, loopKeyword, optionalWhileOrUntilClause)
 
             Return statement
         End Function
@@ -1653,9 +1675,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Out
         ' File: Parser.cpp
         ' Lines: 16887 - 16887
-        ' Expression* .Parser::ParseOptionalWhileUntilClause( [ _Out_ bool* IsWhile ] [ _Inout_ bool& ErrorInConstruct ] )
+        ' Expression* .Parser::ParseOptionalWhileOrUntilClause( [ _Out_ bool* IsWhile ] [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function TryParseOptionalWhileUntilClause(precedingKeyword As KeywordSyntax, ByRef optionalWhileUntilClause As WhileUntilClauseSyntax) As Boolean
+        Private Function TryParseOptionalWhileOrUntilClause(precedingKeyword As KeywordSyntax, ByRef optionalWhileOrUntilClause As WhileOrUntilClauseSyntax) As Boolean
             If Not CanFollowStatement(CurrentToken) Then
 
                 Dim keyword As KeywordSyntax = Nothing
@@ -1683,7 +1705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         kind = SyntaxKind.UntilClause
                     End If
 
-                    optionalWhileUntilClause = SyntaxFactory.WhileUntilClause(kind, keyword, condition)
+                    optionalWhileOrUntilClause = SyntaxFactory.WhileOrUntilClause(kind, keyword, condition)
                     Return True
 
                 Else
@@ -1696,11 +1718,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         keyword = InternalSyntaxFactory.MissingKeyword(SyntaxKind.WhileKeyword)
                     End If
 
-                    Dim clause As WhileUntilClauseSyntax = SyntaxFactory.WhileUntilClause(kind, keyword, InternalSyntaxFactory.MissingExpression)
+                    Dim clause As WhileOrUntilClauseSyntax = SyntaxFactory.WhileOrUntilClause(kind, keyword, InternalSyntaxFactory.MissingExpression)
 
                     ' Dev10 places the error only on the current token. 
                     ' This marks the entire clause which seems better.
-                    optionalWhileUntilClause = ReportSyntaxError(ResyncAt(clause), ERRID.ERR_Syntax)
+                    optionalWhileOrUntilClause = ReportSyntaxError(ResyncAt(clause), ERRID.ERR_Syntax)
                     Return True
                 End If
             End If

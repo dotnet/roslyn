@@ -4015,36 +4015,50 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="DoLoopBlockSyntax" parent="ExecutableStatementSyntax">
       <description>
-        Represents a Do-Loop block. The Kind
-        property can be used to determine if this is a top-test, bottom-test
-        or infinite loop.
+        Represents a Do-Loop block. The Kind property can be used to determine 
+        if this is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
       </description>
 
       <lm-equiv name="BlockNode"></lm-equiv>
       <native-equiv name="BlockStatement"></native-equiv>
       <native-equiv name="HiddenBlockStatement">TODO: Describe how these map!</native-equiv>
 
-      <node-kind name="DoLoopTopTestBlock">
-        <lm-equiv name="DoLoop" />
-        <native-equiv name="DoWhileTopTest" />
-        <native-equiv name="DoUnitTopTest" />
-      </node-kind>
-
-      <node-kind name="DoLoopBottomTestBlock">
-        <lm-equiv name="DoLoop" />
-        <native-equiv name="DoWhileBottomTest" />
-        <native-equiv name="DoUntilBottomTest" />
-      </node-kind>
-
-      <node-kind name="DoLoopForeverBlock">
+      <node-kind name="SimpleDoLoopBlock">
         <lm-equiv name="DoLoop" />
         <native-equiv name="DoForever" />
       </node-kind>
 
-      <child name="DoStatement" kind="DoStatement">
-        <description>The Do statement that begins the block. </description>
-        <lm-equiv name=""></lm-equiv>
-        <native-equiv name=""></native-equiv>
+      <node-kind name="DoWhileLoopBlock">
+        <lm-equiv name="DoLoop" />
+        <native-equiv name="DoWhileTopTest" />
+      </node-kind>
+
+      <node-kind name="DoUntilLoopBlock">
+        <lm-equiv name="DoLoop" />
+        <native-equiv name="DoUnitTopTest" />
+      </node-kind>
+
+      <node-kind name="DoLoopWhileBlock">
+        <lm-equiv name="DoLoop" />
+        <native-equiv name="DoWhileBottomTest" />
+      </node-kind>
+
+      <node-kind name="DoLoopUntilBlock">
+        <lm-equiv name="DoLoop" />
+        <native-equiv name="DoUntilBottomTest" />
+      </node-kind>
+
+      <child name="DoStatement">
+        <description>The Do statement that begins the block.</description>
+        <lm-equiv name="DoLoopNode.Operator" />
+        <lm-equiv name="EndLoopNode.Operator" />
+        <native-equiv name="TopTestDoStatement.WhileOrUntil" />
+        <native-equiv name="BottomTestDoStatement.WhileOrUntil" />
+        <kind name="SimpleDoStatement" node-kind="SimpleDoLoopBlock" />
+        <kind name="DoWhileStatement" node-kind="DoWhileLoopBlock" />
+        <kind name="DoUntilStatement" node-kind="DoUntilLoopBlock" />
+        <kind name="SimpleDoStatement" node-kind="DoLoopWhileBlock" />
+        <kind name="SimpleDoStatement" node-kind="DoLoopUntilBlock" />
       </child>
 
       <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
@@ -4053,12 +4067,15 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="BlockStatement.Children"></native-equiv>
       </child>
 
-      <child name="LoopStatement" kind="LoopStatement">
-        <description>
-          The Loop statement that ends the block.
-        </description>
-        <lm-equiv name="EndBlock"></lm-equiv>
-        <native-equiv name="TerminatingConstruct"></native-equiv>
+      <child name="LoopStatement">
+        <description>The Loop statement that ends the block.</description>
+        <lm-equiv name="EndLoopNode.Operator" />
+        <native-equiv name="BottomTestDoStatement.WhileOrUntil" />
+        <kind name="SimpleLoopStatement" node-kind="SimpleDoLoopBlock" />
+        <kind name="SimpleLoopStatement" node-kind="DoWhileLoopBlock" />
+        <kind name="SimpleLoopStatement" node-kind="DoUntilLoopBlock" />
+        <kind name="LoopWhileStatement" node-kind="DoLoopWhileBlock" />
+        <kind name="LoopUntilStatement" node-kind="DoLoopUntilBlock" />
       </child>
     </node-structure>
 
@@ -4067,32 +4084,21 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="DoStatementSyntax" parent="StatementSyntax">
       <description>
-        The Do statement that begins a Do-Loop block. This statement always occurs as the Begin
-        of a DoLoopBlock.
+        The Do statement that begins a Do-Loop block.
       </description>
-      <lm-equiv name="DoLoopNode"></lm-equiv>
-      <native-equiv name="ExpressionBlockStatement">
-        The "Do" statement which contained both the do statement and the
-        contained statements become a BlockStatement which contains a Do statement, Body and Loop statement.
-      </native-equiv>
 
-      <node-kind name="DoStatement">
-        <lm-equiv name="DoLoop" />
-        <native-equiv name="DoWhileTopTest" />
-        <native-equiv name="DoUnitTopTest" />
-        <native-equiv name="DoWhileBottomTest" />
-        <native-equiv name="DoUntilBottomTest" />
-        <native-equiv name="DoForever" />
-      </node-kind>
+      <node-kind name="SimpleDoStatement" />
+      <node-kind name="DoWhileStatement" />
+      <node-kind name="DoUntilStatement" />
 
       <child name="DoKeyword" kind="DoKeyword">
         <description>The "Do" keyword.</description>
-        <lm-equiv name="DoKeyword"></lm-equiv>
-        <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="WhileUntilClause" optional="true" kind="WhileClause|UntilClause">
-        <description>The "While expression" or "Until expression" part of the Do statement, if present.</description>
+      <child name="WhileOrUntilClause" optional="true" kind="WhileClause|UntilClause">
+        <description>The "While expression" or "Until expression" clause of the Do statement, if present.</description>
+        <kind name="WhileClause" node-kind="DoWhileStatement" />
+        <kind name="UntilClause" node-kind="DoUntilStatement" />
       </child>
     </node-structure>
 
@@ -4101,34 +4107,28 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="LoopStatementSyntax" parent="StatementSyntax">
       <description>
-        The Loop statement that ends a Do-Loop block. This statement always occurs as the End
-        of a DoLoopBlock.
+        The Loop statement that begins a Do-Loop block.
       </description>
-      <lm-equiv name="EndLoopNode"></lm-equiv>
-      <native-equiv name="BottomTestLoopStatement"></native-equiv>
 
-      <node-kind name="LoopStatement">
-        <lm-equiv name="EndLoop" />
-        <native-equiv name="Statement.Opcodes.EndLoopWhile" />
-        <native-equiv name="Statement.Opcodes.EndLoopUntil" />
-        <native-equiv name="Statement.Opcodes.EndLoop" />
-      </node-kind>
+      <node-kind name="SimpleLoopStatement" />
+      <node-kind name="LoopWhileStatement" />
+      <node-kind name="LoopUntilStatement" />
 
       <child name="LoopKeyword" kind="LoopKeyword">
         <description>The "Loop" keyword.</description>
-        <lm-equiv name="LoopKeyword"></lm-equiv>
-        <native-equiv name="WhileOrUntil"></native-equiv>
       </child>
 
-      <child name="WhileUntilClause" optional="true" kind="WhileClause|UntilClause">
-        <description>The "While expression" or "Until expression" part of the Loop statement, if present.</description>
+      <child name="WhileOrUntilClause" optional="true" kind="WhileClause|UntilClause">
+        <description>The "While expression" or "Until expression" clause of the Loop statement, if present.</description>
+        <kind name="WhileClause" node-kind="LoopWhileStatement" />
+        <kind name="UntilClause" node-kind="LoopUntilStatement" />
       </child>
     </node-structure>
 
     <!--****************
-      -  WhileUntilClause
+      -  WhileOrUntilClause
       ******************-->
-    <node-structure name="WhileUntilClauseSyntax" parent="VBSyntaxNode">
+    <node-structure name="WhileOrUntilClauseSyntax" parent="VBSyntaxNode">
       <description>
         Represents a "While expression" or "Until expression" in a Do or Loop statement. The Kind
         of the clause can be "WhileClause" or "UntilClause" to indicate which kind of clause.
@@ -4153,8 +4153,6 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="ExpressionStatement.Operand"></native-equiv>
       </child>
     </node-structure>
-
-
 
     <!--****************
       -  WhileStatement

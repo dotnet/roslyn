@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Friend Function KindEndsBlock(kind As SyntaxKind) As Boolean
+        Friend Overridable Function KindEndsBlock(kind As SyntaxKind) As Boolean
             Return _endKind = kind
         End Function
 
@@ -468,7 +468,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Add(Parser.ReportSyntaxError(node, ERRID.ERR_ElseIfNoMatchingIf))
 
-                Case SyntaxKind.DoStatement
+                Case SyntaxKind.SimpleDoStatement,
+                     SyntaxKind.DoWhileStatement,
+                     SyntaxKind.DoUntilStatement
                     Return New DoLoopBlockContext(DirectCast(node, StatementSyntax), Me)
 
                 Case SyntaxKind.ForStatement, SyntaxKind.ForEachStatement
@@ -515,20 +517,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' If needed this error can be moved to ParseCatchStatement.
                     Add(Parser.ReportSyntaxError(node, If(node.Kind = SyntaxKind.CatchStatement, ERRID.ERR_CatchNoMatchingTry, ERRID.ERR_FinallyNoMatchingTry)))
 
-                Case _
-                    SyntaxKind.SelectBlock,
-                    SyntaxKind.WhileBlock,
-                    SyntaxKind.WithBlock,
-                    SyntaxKind.SyncLockBlock,
-                    SyntaxKind.UsingBlock,
-                    SyntaxKind.TryBlock,
-                    SyntaxKind.DoLoopBottomTestBlock,
-                    SyntaxKind.DoLoopTopTestBlock,
-                    SyntaxKind.DoLoopForeverBlock,
-                    SyntaxKind.ForBlock,
-                    SyntaxKind.ForEachBlock,
-                    SyntaxKind.SingleLineIfStatement,
-                    SyntaxKind.MultiLineIfBlock
+                Case SyntaxKind.SelectBlock,
+                     SyntaxKind.WhileBlock,
+                     SyntaxKind.WithBlock,
+                     SyntaxKind.SyncLockBlock,
+                     SyntaxKind.UsingBlock,
+                     SyntaxKind.TryBlock,
+                     SyntaxKind.SimpleDoLoopBlock,
+                     SyntaxKind.DoWhileLoopBlock,
+                     SyntaxKind.DoUntilLoopBlock,
+                     SyntaxKind.DoLoopWhileBlock,
+                     SyntaxKind.DoLoopUntilBlock,
+                     SyntaxKind.ForBlock,
+                     SyntaxKind.ForEachBlock,
+                     SyntaxKind.SingleLineIfStatement,
+                     SyntaxKind.MultiLineIfBlock
                     ' Handle any block that can be created by this context
                     Add(node)
 
@@ -563,15 +566,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.TryBlock
                     Return UseSyntax(node, newContext, DirectCast(node, TryBlockSyntax).EndTryStatement.IsMissing)
 
-                Case _
-                    SyntaxKind.DoLoopBottomTestBlock,
-                    SyntaxKind.DoLoopTopTestBlock,
-                    SyntaxKind.DoLoopForeverBlock
+                Case SyntaxKind.SimpleDoLoopBlock,
+                     SyntaxKind.DoWhileLoopBlock,
+                     SyntaxKind.DoUntilLoopBlock,
+                     SyntaxKind.DoLoopWhileBlock,
+                     SyntaxKind.DoLoopUntilBlock
+
                     Return UseSyntax(node, newContext, DirectCast(node, DoLoopBlockSyntax).LoopStatement.IsMissing)
 
-                Case _
-                    SyntaxKind.ForBlock,
-                    SyntaxKind.ForEachBlock
+                Case SyntaxKind.ForBlock,
+                     SyntaxKind.ForEachBlock
 
                     Dim forBlock = DirectCast(node, ForBlockSyntax)
                     ' The EndOpt syntax can influence the next context in case it contains
@@ -688,8 +692,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     endStmt = SyntaxFactory.EndIfStatement(missingEndKeyword, InternalSyntaxFactory.MissingKeyword(SyntaxKind.IfKeyword))
                     errorId = ERRID.ERR_ExpectedEndIf
 
-                Case SyntaxKind.DoLoopForeverBlock, SyntaxKind.DoLoopTopTestBlock
-                    endStmt = SyntaxFactory.LoopStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.LoopKeyword), Nothing)
+                Case SyntaxKind.SimpleDoLoopBlock, SyntaxKind.DoWhileLoopBlock
+                    endStmt = SyntaxFactory.SimpleLoopStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.LoopKeyword), Nothing)
                     errorId = ERRID.ERR_ExpectedLoop
 
                 Case SyntaxKind.WhileBlock
@@ -791,8 +795,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.SingleLineIfStatement, SyntaxKind.SingleLineElseClause
                     Return SyntaxKind.None
 
-                Case SyntaxKind.DoLoopForeverBlock, SyntaxKind.DoLoopTopTestBlock
-                    Return SyntaxKind.LoopStatement
+                Case SyntaxKind.SimpleDoLoopBlock,
+                     SyntaxKind.DoWhileLoopBlock
+                    Return SyntaxKind.SimpleLoopStatement
 
                 Case SyntaxKind.WhileBlock
                     Return SyntaxKind.EndWhileStatement

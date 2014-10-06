@@ -834,47 +834,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' of a SyncLockBlock.
         ''' </summary>
         SyncLockStatement = 226                  ' SyncLockStatementSyntax : StatementSyntax
-        ''' <summary>
-        ''' Represents a Do-Loop block. The Kind property can be used to determine if this
-        ''' is a top-test, bottom-test or infinite loop.
-        ''' </summary>
-        DoLoopTopTestBlock = 227                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : StatementSyntax
-        ''' <summary>
-        ''' Represents a Do-Loop block. The Kind property can be used to determine if this
-        ''' is a top-test, bottom-test or infinite loop.
-        ''' </summary>
-        DoLoopBottomTestBlock = 228              ' DoLoopBlockSyntax : ExecutableStatementSyntax : StatementSyntax
-        ''' <summary>
-        ''' Represents a Do-Loop block. The Kind property can be used to determine if this
-        ''' is a top-test, bottom-test or infinite loop.
-        ''' </summary>
-        DoLoopForeverBlock = 229                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : StatementSyntax
-        ''' <summary>
-        ''' The Do statement that begins a Do-Loop block. This statement always occurs as
-        ''' the Begin of a DoLoopBlock.
-        ''' </summary>
-        DoStatement = 230                        ' DoStatementSyntax : StatementSyntax
-        ''' <summary>
-        ''' The Loop statement that ends a Do-Loop block. This statement always occurs as
-        ''' the End of a DoLoopBlock.
-        ''' </summary>
-        LoopStatement = 231                      ' LoopStatementSyntax : StatementSyntax
-        ''' <summary>
-        ''' Represents a "While expression" or "Until expression" in a Do or Loop
-        ''' statement. The Kind of the clause can be "WhileClause" or "UntilClause" to
-        ''' indicate which kind of clause.
-        ''' </summary>
-        WhileClause = 232                        ' WhileUntilClauseSyntax
-        ''' <summary>
-        ''' Represents a "While expression" or "Until expression" in a Do or Loop
-        ''' statement. The Kind of the clause can be "WhileClause" or "UntilClause" to
-        ''' indicate which kind of clause.
-        ''' </summary>
-        UntilClause = 233                        ' WhileUntilClauseSyntax
-        ''' <summary>
-        ''' The While statement that begins a While...End While block. This statement
-        ''' always occurs as the Begin of a WhileBlock.
-        ''' </summary>
+
+        'DoLoopTopTestBlock = 227                'Removed
+
+        'DoLoopBottomTestBlock = 228             'Removed
+
+        'DoLoopForeverBlock = 229                'Removed
+
+        'DoStatement = 230                       'Removed
+
+        'LoopStatement = 231                     'Removed
+
+        'WhileClause = 232                       'Removed
+
+        'UntilClause = 233                       'Removed
+
         WhileStatement = 234                     ' WhileStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents a For or For Each block, including the introducting statement, the
@@ -3083,6 +3057,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an identifier name followed by a ":=" token in a named argument.
         ''' </summary>
         NameColonEquals = 755
+
+        ''' <summary>
+        ''' Represents a "Do ... Loop" block.
+        ''' </summary>
+        SimpleDoLoopBlock = 756                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "Do ... Loop" block.
+        ''' </summary>
+        DoWhileLoopBlock = 757                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "Do ... Loop" block.
+        ''' </summary>
+        DoUntilLoopBlock = 758                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "Do ... Loop" block.
+        ''' </summary>
+        DoLoopWhileBlock = 759                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "Do ... Loop" block.
+        ''' </summary>
+        DoLoopUntilBlock = 760                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a simple "Do" statement that begins a "Do ... Loop" block.
+        ''' </summary>
+        SimpleDoStatement = 770                 ' DoStatement : StatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "Do While" statement that begins a "Do ... Loop" block.
+        ''' </summary>
+        DoWhileStatement = 771                 ' DoStatement : StatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "Do Until" statement that begins a "Do ... Loop" block.
+        ''' </summary>
+        DoUntilStatement = 772                 ' DoStatement : StatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a simple "Loop" statement that end a "Do ... Loop" block.
+        ''' </summary>
+        SimpleLoopStatement = 773               ' LoopStatement : StatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "Loop While" statement that end a "Do ... Loop" block.
+        ''' </summary>
+        LoopWhileStatement = 774               ' LoopStatement : StatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "Loop Until" statement that end a "Do ... Loop" block.
+        ''' </summary>
+        LoopUntilStatement = 775               ' LoopStatement : StatementSyntax : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents a "While ..." clause of a "Do" or "Loop" statement.
+        ''' </summary>
+        WhileClause = 776                       ' WhileOrUntilClause : VBSyntaxNode
+
+        ''' <summary>
+        ''' Represents an "Until ..." clause of a "Do" or "Loop" statement.
+        ''' </summary>
+        UntilClause = 777                       ' WhileOrUntilClause : VBSyntaxNode
 
     End Enum
 

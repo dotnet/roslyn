@@ -85,8 +85,11 @@ Public Class SyntaxFactsTests
     <Fact>
     Public Sub GetBlockName()
         Assert.Equal("Case", SyntaxFacts.GetBlockName(SyntaxKind.CaseBlock))
-        Assert.Equal("Do Loop", SyntaxFacts.GetBlockName(SyntaxKind.DoLoopForeverBlock))
-        Assert.Equal("Do Loop", SyntaxFacts.GetBlockName(SyntaxKind.DoLoopTopTestBlock))
+        Assert.Equal("Do Loop", SyntaxFacts.GetBlockName(SyntaxKind.SimpleDoLoopBlock))
+        Assert.Equal("Do Loop", SyntaxFacts.GetBlockName(SyntaxKind.DoWhileLoopBlock))
+        Assert.Equal("Do Loop", SyntaxFacts.GetBlockName(SyntaxKind.DoUntilLoopBlock))
+        Assert.Equal("Do Loop", SyntaxFacts.GetBlockName(SyntaxKind.DoLoopWhileBlock))
+        Assert.Equal("Do Loop", SyntaxFacts.GetBlockName(SyntaxKind.DoLoopUntilBlock))
         Assert.Equal("While", SyntaxFacts.GetBlockName(SyntaxKind.WhileBlock))
         Assert.Equal("With", SyntaxFacts.GetBlockName(SyntaxKind.WithBlock))
         Assert.Equal("SyncLock", SyntaxFacts.GetBlockName(SyntaxKind.SyncLockBlock))
@@ -449,7 +452,9 @@ End Namespace
     <Fact>
     Public Sub IsDoLoopBlock()
         Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.DoLoopTopTestBlock, SyntaxKind.DoLoopBottomTestBlock, SyntaxKind.DoLoopForeverBlock}
+        For Each item In New SyntaxKind() {SyntaxKind.SimpleDoLoopBlock,
+                                           SyntaxKind.DoWhileLoopBlock, SyntaxKind.DoUntilLoopBlock,
+                                           SyntaxKind.DoLoopWhileBlock, SyntaxKind.DoLoopUntilBlock}
             Assert.True(SyntaxFacts.IsDoLoopBlock(item))
         Next
         Assert.False(SyntaxFacts.IsDoLoopBlock(SyntaxKind.ExitKeyword))
@@ -993,23 +998,23 @@ End Namespace
     End Sub
 
     <Fact>
-    Public Sub IsWhileUntilClause()
+    Public Sub IsWhileOrUntilClause()
         Dim item As SyntaxKind
         For Each item In New SyntaxKind() {SyntaxKind.WhileClause, SyntaxKind.UntilClause}
-            Assert.True(SyntaxFacts.IsWhileUntilClause(item))
+            Assert.True(SyntaxFacts.IsWhileOrUntilClause(item))
         Next
-        Assert.False(SyntaxFacts.IsWhileUntilClause(SyntaxKind.ExitKeyword))
-        Assert.False(SyntaxFacts.IsWhileUntilClause(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsWhileOrUntilClause(SyntaxKind.ExitKeyword))
+        Assert.False(SyntaxFacts.IsWhileOrUntilClause(SyntaxKind.None))
     End Sub
 
     <Fact>
-    Public Sub IsWhileUntilClauseWhileOrUntilKeyword()
+    Public Sub IsWhileOrUntilClauseWhileOrUntilKeyword()
         Dim item As SyntaxKind
         For Each item In New SyntaxKind() {SyntaxKind.WhileKeyword, SyntaxKind.UntilKeyword}
-            Assert.True(SyntaxFacts.IsWhileUntilClauseWhileOrUntilKeyword(item))
+            Assert.True(SyntaxFacts.IsWhileOrUntilClauseWhileOrUntilKeyword(item))
         Next
-        Assert.False(SyntaxFacts.IsWhileUntilClauseWhileOrUntilKeyword(SyntaxKind.ExitKeyword))
-        Assert.False(SyntaxFacts.IsWhileUntilClauseWhileOrUntilKeyword(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsWhileOrUntilClauseWhileOrUntilKeyword(SyntaxKind.ExitKeyword))
+        Assert.False(SyntaxFacts.IsWhileOrUntilClauseWhileOrUntilKeyword(SyntaxKind.None))
     End Sub
 
     <Fact>

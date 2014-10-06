@@ -775,7 +775,9 @@ TryAgain:
                      SyntaxKind.SelectStatement,
                      SyntaxKind.CaseStatement,
                      SyntaxKind.CaseElseStatement,
-                     SyntaxKind.DoStatement,
+                     SyntaxKind.SimpleDoStatement,
+                     SyntaxKind.DoWhileStatement,
+                     SyntaxKind.DoUntilStatement,
                      SyntaxKind.ForStatement,
                      SyntaxKind.ForEachStatement
                     Return True

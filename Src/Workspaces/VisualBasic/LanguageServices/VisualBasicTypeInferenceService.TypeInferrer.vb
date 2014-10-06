@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(throwStatement As ThrowStatementSyntax) InferTypeInThrowStatement(),
                     Function(usingStatement As UsingStatementSyntax) InferTypeInUsingStatement(usingStatement),
                     Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
-                    Function(whileStatement As WhileUntilClauseSyntax) InferTypeInWhileUntilClause(),
+                    Function(whileStatement As WhileOrUntilClauseSyntax) InferTypeInWhileOrUntilClause(),
                     Function(yieldStatement As YieldStatementSyntax) InferTypeInYieldStatement(yieldStatement),
                     Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
                     Function(x) SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(throwStatement As ThrowStatementSyntax) InferTypeInThrowStatement(),
                     Function(usingStatement As UsingStatementSyntax) InferTypeInUsingStatement(usingStatement),
                     Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
-                    Function(whileStatement As WhileUntilClauseSyntax) InferTypeInWhileUntilClause(),
+                    Function(whileStatement As WhileOrUntilClauseSyntax) InferTypeInWhileOrUntilClause(),
                     Function(yieldStatement As YieldStatementSyntax) InferTypeInYieldStatement(yieldStatement, token),
                     Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
                     Function(parameterListSyntax As ParameterListSyntax) If(parameterListSyntax.Parent IsNot Nothing,
@@ -767,7 +767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
             End Function
 
-            Private Function InferTypeInWhileUntilClause(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
+            Private Function InferTypeInWhileOrUntilClause(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
             End Function
 

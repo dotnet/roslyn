@@ -960,6 +960,14 @@ CaseLabel2:
                 i += 1
             Loop While i &lt; 10
 
+            Do
+                i += 1
+            Loop Until i &gt; 20
+
+            Do
+                Exit Do
+            Loop
+
             For j As Integer = 0 To 99
                 Console.WriteLine(j)
             Next j
@@ -1974,6 +1982,15 @@ CaseLabel2:
             Do
                 i += 1
             Loop While i &lt; 10
+            
+            Do
+                i += 1
+            Loop Until i &gt; 20
+
+            Do
+                Exit Do
+            Loop
+
             For j As Integer = 0 To 99
                 Console.WriteLine(j)
             Next j

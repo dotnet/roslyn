@@ -1703,7 +1703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case PeekToken(i).Kind
 
                 Case SyntaxKind.LoopKeyword
-                    Return SyntaxKind.LoopStatement
+                    Return SyntaxKind.SimpleLoopStatement
 
                 Case SyntaxKind.NextKeyword
                     Return SyntaxKind.NextStatement

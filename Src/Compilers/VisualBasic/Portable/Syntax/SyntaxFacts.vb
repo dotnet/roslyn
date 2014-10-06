@@ -572,13 +572,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function SupportsContinueStatement(kind As SyntaxKind) As Boolean
             Select Case kind
-                Case _
-                    SyntaxKind.WhileBlock,
-                    SyntaxKind.ForBlock,
-                    SyntaxKind.ForEachBlock,
-                    SyntaxKind.DoLoopTopTestBlock,
-                    SyntaxKind.DoLoopForeverBlock,
-                    SyntaxKind.DoLoopTopTestBlock
+                Case SyntaxKind.WhileBlock,
+                     SyntaxKind.ForBlock,
+                     SyntaxKind.ForEachBlock,
+                     SyntaxKind.SimpleDoLoopBlock,
+                     SyntaxKind.DoWhileLoopBlock,
+                     SyntaxKind.DoUntilLoopBlock
+
                     Return True
             End Select
             Return False
@@ -586,21 +586,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function SupportsExitStatement(kind As SyntaxKind) As Boolean
             Select Case kind
-                Case _
-                    SyntaxKind.WhileBlock,
-                    SyntaxKind.ForBlock,
-                    SyntaxKind.ForEachBlock,
-                    SyntaxKind.DoLoopTopTestBlock,
-                    SyntaxKind.DoLoopForeverBlock,
-                    SyntaxKind.DoLoopTopTestBlock,
-                    SyntaxKind.SelectBlock,
-                    SyntaxKind.SubBlock,
-                    SyntaxKind.SingleLineSubLambdaExpression,
-                    SyntaxKind.MultiLineSubLambdaExpression,
-                    SyntaxKind.FunctionBlock,
-                    SyntaxKind.MultiLineFunctionLambdaExpression,
-                    SyntaxKind.PropertyBlock,
-                    SyntaxKind.TryBlock
+                Case SyntaxKind.WhileBlock,
+                     SyntaxKind.ForBlock,
+                     SyntaxKind.ForEachBlock,
+                     SyntaxKind.SimpleDoLoopBlock,
+                     SyntaxKind.DoWhileLoopBlock,
+                     SyntaxKind.DoUntilLoopBlock,
+                     SyntaxKind.SelectBlock,
+                     SyntaxKind.SubBlock,
+                     SyntaxKind.SingleLineSubLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression,
+                     SyntaxKind.FunctionBlock,
+                     SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.PropertyBlock,
+                     SyntaxKind.TryBlock
                     Return True
             End Select
             Return False
@@ -609,30 +608,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function IsEndBlockLoopOrNextStatement(kind As SyntaxKind) As Boolean
             Select Case (kind)
                 Case SyntaxKind.EndIfStatement,
-                SyntaxKind.EndWithStatement,
-                SyntaxKind.EndSelectStatement,
-                SyntaxKind.EndWhileStatement,
-                SyntaxKind.LoopStatement,
-                SyntaxKind.NextStatement,
-                SyntaxKind.EndStructureStatement,
-                SyntaxKind.EndEnumStatement,
-                SyntaxKind.EndPropertyStatement,
-                SyntaxKind.EndEventStatement,
-                SyntaxKind.EndInterfaceStatement,
-                SyntaxKind.EndTryStatement,
-                SyntaxKind.EndClassStatement,
-                SyntaxKind.EndModuleStatement,
-                SyntaxKind.EndNamespaceStatement,
-                SyntaxKind.EndUsingStatement,
-                SyntaxKind.EndSyncLockStatement,
-                SyntaxKind.EndSubStatement,
-                SyntaxKind.EndFunctionStatement,
-                SyntaxKind.EndOperatorStatement,
-                SyntaxKind.EndGetStatement,
-                SyntaxKind.EndSetStatement,
-                SyntaxKind.EndAddHandlerStatement,
-                SyntaxKind.EndRemoveHandlerStatement,
-                SyntaxKind.EndRaiseEventStatement
+                     SyntaxKind.EndWithStatement,
+                     SyntaxKind.EndSelectStatement,
+                     SyntaxKind.EndWhileStatement,
+                     SyntaxKind.SimpleLoopStatement, SyntaxKind.LoopWhileStatement, SyntaxKind.LoopUntilStatement,
+                     SyntaxKind.NextStatement,
+                     SyntaxKind.EndStructureStatement,
+                     SyntaxKind.EndEnumStatement,
+                     SyntaxKind.EndPropertyStatement,
+                     SyntaxKind.EndEventStatement,
+                     SyntaxKind.EndInterfaceStatement,
+                     SyntaxKind.EndTryStatement,
+                     SyntaxKind.EndClassStatement,
+                     SyntaxKind.EndModuleStatement,
+                     SyntaxKind.EndNamespaceStatement,
+                     SyntaxKind.EndUsingStatement,
+                     SyntaxKind.EndSyncLockStatement,
+                     SyntaxKind.EndSubStatement,
+                     SyntaxKind.EndFunctionStatement,
+                     SyntaxKind.EndOperatorStatement,
+                     SyntaxKind.EndGetStatement,
+                     SyntaxKind.EndSetStatement,
+                     SyntaxKind.EndAddHandlerStatement,
+                     SyntaxKind.EndRemoveHandlerStatement,
+                     SyntaxKind.EndRaiseEventStatement
                     Return True
 
                 Case Else
@@ -1012,7 +1011,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     endStatement = forBlock.NextStatement
                     Return True
 
-                Case SyntaxKind.DoLoopTopTestBlock, SyntaxKind.DoLoopBottomTestBlock, SyntaxKind.DoLoopForeverBlock
+                Case SyntaxKind.SimpleDoLoopBlock,
+                     SyntaxKind.DoWhileLoopBlock,
+                     SyntaxKind.DoUntilLoopBlock,
+                     SyntaxKind.DoLoopWhileBlock,
+                     SyntaxKind.DoLoopUntilBlock
+
                     Dim doBlock = DirectCast(possibleBlock, DoLoopBlockSyntax)
                     beginStatement = doBlock.DoStatement
                     body = doBlock.Statements
@@ -1544,7 +1548,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CaseBlock
                     Return "Case"
 
-                Case SyntaxKind.DoLoopForeverBlock, SyntaxKind.DoLoopTopTestBlock
+                Case SyntaxKind.SimpleDoLoopBlock,
+                     SyntaxKind.DoWhileLoopBlock,
+                     SyntaxKind.DoUntilLoopBlock,
+                     SyntaxKind.DoLoopWhileBlock,
+                     SyntaxKind.DoLoopUntilBlock
                     Return "Do Loop"
 
                 Case SyntaxKind.WhileBlock
