@@ -6529,7 +6529,8 @@ using System.Diagnostics; // Unused.
             var expectedExitCode = expectedErrorCount > 0 ? 1 : 0;
             Assert.True(
                 expectedExitCode == exitCode, 
-                string.Format("Expected exit code to be '{0}' was '{1}'.\nOutput:\n{2}", expectedExitCode, exitCode, output));
+                string.Format("Expected exit code to be '{0}' was '{1}'.{2} Output:{3}{4}", 
+                expectedExitCode, exitCode, Environment.NewLine, Environment.NewLine, output));
 
             Assert.DoesNotContain("hidden", output);
 
@@ -6721,120 +6722,134 @@ using System.Diagnostics; // Unused.
             // diagnostics for the #pragma warning restore directives present in the compilations created in this test.
             var source = @"using System;
 #pragma warning restore";
-            var dir = Temp.CreateDirectory();
-            var file = dir.CreateFile("a.cs");
-            file.WriteAllText(source);
-
-            var output = VerifyOutput(dir, file, expectedWarningCount: 1, expectedInfoCount: 1);
+            var name = "a.cs";
+            string output;
+            output = GetOutput(name, source, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that custom info diagnostic Info01 can be individually suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that custom info diagnostic Info01 can never be promoted to an error via /warnaserror+.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that custom info diagnostic Info01 is still reported as an info when /warnaserror- is used.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that custom info diagnostic Info01 can be individually promoted to an error via /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that custom info diagnostic Info01 is still reported as an info when passed to /warnaserror-:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify /nowarn overrides /warnaserror.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Info01", "/nowarn:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/nowarn:Info01" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify /nowarn overrides /warnaserror.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror:Info01" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify /nowarn overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Info01", "/nowarn:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/nowarn:Info01" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify /nowarn overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0", "/warnaserror:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0", "/warnaserror:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Info01", "/warn:0" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/warn:0" }, expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror+" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror+" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
+        }
 
+        private string GetOutput(
+            string name, 
+            string source,
+            bool includeCurrentAssemblyAsAnalyzerReferecne = true,
+            string[] additionalFlags = null,
+            int expectedInfoCount = 0,
+            int expectedWarningCount = 0,
+            int expectedErrorCount = 0)
+        {
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(name);
+            file.WriteAllText(source);
+
+            var output =  VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount);
             CleanupAllGeneratedFiles(file.Path);
+            return output;
         }
 
         [WorkItem(899050)]
