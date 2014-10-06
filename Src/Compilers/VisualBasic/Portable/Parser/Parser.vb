@@ -1133,7 +1133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.GetKeyword
                     If (IsValidStatementTerminator(PeekToken(1)) OrElse PeekToken(1).Kind = SyntaxKind.OpenParenToken) AndAlso
-                       Context.IsWithin(SyntaxKind.PropertySetBlock, SyntaxKind.PropertyGetBlock) Then
+                       Context.IsWithin(SyntaxKind.SetAccessorBlock, SyntaxKind.GetAccessorBlock) Then
 
                         Return ParsePropertyOrEventAccessor(SyntaxKind.GetAccessorStatement, Nothing, Nothing)
                     Else

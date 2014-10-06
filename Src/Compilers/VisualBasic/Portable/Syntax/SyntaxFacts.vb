@@ -975,8 +975,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
 
                 Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
-                     SyntaxKind.OperatorBlock, SyntaxKind.PropertyGetBlock, SyntaxKind.PropertySetBlock,
-                     SyntaxKind.AddHandlerBlock, SyntaxKind.RemoveHandlerBlock, SyntaxKind.RaiseEventBlock
+                     SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
                     Dim methodBlock = DirectCast(possibleBlock, MethodBlockBaseSyntax)
                     beginStatement = methodBlock.Begin
                     body = methodBlock.Statements

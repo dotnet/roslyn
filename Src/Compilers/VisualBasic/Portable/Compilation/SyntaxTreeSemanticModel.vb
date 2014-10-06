@@ -993,13 +993,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     End If
                                 End If
                             End If
-                        Case SyntaxKind.PropertyGetBlock, SyntaxKind.PropertySetBlock, SyntaxKind.AddHandlerBlock, SyntaxKind.RemoveHandlerBlock, SyntaxKind.RaiseEventBlock
+                        Case SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock, SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
                             '  redirect to upper property or event symbol
                             If statementSyntax.Parent IsNot Nothing Then
                                 parentTypeBlock = TryCast(statementSyntax.Parent.Parent, TypeBlockSyntax)
                             End If
 
-                        Case SyntaxKind.AddHandlerBlock, SyntaxKind.RemoveHandlerBlock
+                        Case SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock
                             '  redirect to upper event symbol
                             If statementSyntax.Parent IsNot Nothing Then
                                 parentTypeBlock = TryCast(statementSyntax.Parent.Parent, TypeBlockSyntax)

@@ -3830,7 +3830,7 @@ End Module
         <WorkItem(530601, "DevDiv")>
         Sub TestElasticFormattingPropertySetter()
             Dim parameterList = SyntaxFactory.ParseParameterList(String.Format("(value As {0})", "Integer"))
-            Dim setter = SyntaxFactory.AccessorBlock(SyntaxKind.PropertySetBlock,
+            Dim setter = SyntaxFactory.AccessorBlock(SyntaxKind.SetAccessorBlock,
                                                    SyntaxFactory.AccessorStatement(SyntaxKind.SetAccessorStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)).
                                                                  WithParameterList(parameterList),
                                                    SyntaxFactory.EndBlockStatement(SyntaxKind.EndSetStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)))

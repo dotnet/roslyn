@@ -265,31 +265,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
-        PropertyGetBlock = 83                    ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
+        GetAccessorBlock = 83                    ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents an accessor block member declaration: A declaration that has a
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
-        PropertySetBlock = 84                    ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
+        SetAccessorBlock = 84                    ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents an accessor block member declaration: A declaration that has a
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
-        AddHandlerBlock = 85                     ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
+        AddHandlerAccessorBlock = 85                     ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents an accessor block member declaration: A declaration that has a
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
-        RemoveHandlerBlock = 86                  ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
+        RemoveHandlerAccessorBlock = 86                  ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents an accessor block member declaration: A declaration that has a
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
-        RaiseEventBlock = 87                     ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
+        RaiseEventAccessorBlock = 87                     ' AccessorBlockSyntax : MethodBlockBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents a block property declaration: A declaration that has a beginning
         ''' declaration, some get or set accessor blocks and an end statement.

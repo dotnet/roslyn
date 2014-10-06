@@ -106,7 +106,7 @@ Friend Module CodeGeneration
         End If
 
         If getter Is Nothing Then
-            getter = SyntaxFactory.AccessorBlock(SyntaxKind.PropertyGetBlock,
+            getter = SyntaxFactory.AccessorBlock(SyntaxKind.GetAccessorBlock,
                                         SyntaxFactory.AccessorStatement(SyntaxKind.GetAccessorStatement, SyntaxFactory.Token(SyntaxKind.GetKeyword)),
                                         SyntaxFactory.EndBlockStatement(SyntaxKind.EndGetStatement, SyntaxFactory.Token(SyntaxKind.GetKeyword)))
         End If
@@ -117,7 +117,7 @@ Friend Module CodeGeneration
             If setter Is Nothing Then
                 Dim propertyTypeText = DirectCast(propertyStatement.AsClause, SimpleAsClauseSyntax).Type.ToString()
                 Dim parameterList = SyntaxFactory.ParseParameterList(String.Format("(value As {0})", propertyTypeText))
-                setter = SyntaxFactory.AccessorBlock(SyntaxKind.PropertySetBlock,
+                setter = SyntaxFactory.AccessorBlock(SyntaxKind.SetAccessorBlock,
                                             SyntaxFactory.AccessorStatement(SyntaxKind.SetAccessorStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)).
                                                                      WithParameterList(parameterList),
                                             SyntaxFactory.EndBlockStatement(SyntaxKind.EndSetStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)))

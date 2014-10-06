@@ -135,11 +135,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
                      SyntaxKind.ConstructorBlock,
-                     SyntaxKind.PropertyGetBlock,
-                     SyntaxKind.PropertySetBlock,
-                     SyntaxKind.AddHandlerBlock,
-                     SyntaxKind.RemoveHandlerBlock,
-                     SyntaxKind.RaiseEventBlock,
+                     SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.RaiseEventAccessorBlock,
                      SyntaxKind.OperatorBlock
                     Return BindMethodBlock(DirectCast(node, MethodBlockBaseSyntax), diagnostics)
 
@@ -192,9 +192,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  (node.IsMissing AndAlso
                                   (node.Parent.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
                                    node.Parent.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse
-                                   node.Parent.Kind = SyntaxKind.AddHandlerBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.RemoveHandlerBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.RaiseEventBlock OrElse
+                                   node.Parent.Kind = SyntaxKind.AddHandlerAccessorBlock OrElse
+                                   node.Parent.Kind = SyntaxKind.RemoveHandlerAccessorBlock OrElse
+                                   node.Parent.Kind = SyntaxKind.RaiseEventAccessorBlock OrElse
                                    node.Parent.Kind = SyntaxKind.MultiLineIfBlock OrElse
                                    node.Parent.Kind = SyntaxKind.ElseIfBlock OrElse
                                    node.Parent.Kind = SyntaxKind.ElseBlock OrElse

@@ -123,15 +123,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Dim statementKind = If(isGetter, SyntaxKind.GetAccessorStatement, SyntaxKind.SetAccessorStatement)
-            Dim blockKind = If(isGetter, SyntaxKind.PropertyGetBlock, SyntaxKind.PropertySetBlock)
+            Dim blockKind = If(isGetter, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock)
 
             If isGetter Then
-                Return SyntaxFactory.PropertyGetBlock(
+                Return SyntaxFactory.GetAccessorBlock(
                     SyntaxFactory.GetAccessorStatement().WithModifiers(GenerateAccessorModifiers([property], accessor, destination, options)),
                     GenerateAccessorStatements(accessor),
                     SyntaxFactory.EndGetStatement())
             Else
-                Return SyntaxFactory.PropertySetBlock(
+                Return SyntaxFactory.SetAccessorBlock(
                     SyntaxFactory.SetAccessorStatement() _
                           .WithModifiers(GenerateAccessorModifiers([property], accessor, destination, options)) _
                           .WithParameterList(SyntaxFactory.ParameterList(parameters:=SyntaxFactory.SingletonSeparatedList(

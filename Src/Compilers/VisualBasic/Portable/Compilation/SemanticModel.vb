@@ -3302,8 +3302,8 @@ _Default:
                     Return Me.GetDeclaredSymbol(DirectCast(node, EnumBlockSyntax), cancellationToken)
 
                 Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock,
-                 SyntaxKind.PropertyGetBlock, SyntaxKind.PropertySetBlock,
-                 SyntaxKind.AddHandlerBlock, SyntaxKind.RemoveHandlerBlock, SyntaxKind.RaiseEventBlock
+                 SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                 SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
                     Return Me.GetDeclaredSymbol(DirectCast(node, MethodBlockBaseSyntax), cancellationToken)
 
                 Case SyntaxKind.PropertyBlock
@@ -3586,11 +3586,11 @@ _Default:
                     Dim codeBlocks = propertyInitializers.Concat(t.Initializer)
                     builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks))
                     Return
-                Case SyntaxKind.PropertyGetBlock,
-                     SyntaxKind.PropertySetBlock,
-                     SyntaxKind.AddHandlerBlock,
-                     SyntaxKind.RemoveHandlerBlock,
-                     SyntaxKind.RaiseEventBlock,
+                Case SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.RaiseEventAccessorBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
                      SyntaxKind.OperatorBlock,

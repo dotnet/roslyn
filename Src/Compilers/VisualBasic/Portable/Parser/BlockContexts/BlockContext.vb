@@ -52,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     _isWithinIteratorMethodOrLambdaOrProperty = DirectCast(statement, PropertyStatementSyntax).Modifiers.Any(SyntaxKind.IteratorKeyword)
 
-                Case SyntaxKind.PropertyGetBlock,
-                     SyntaxKind.PropertySetBlock
+                Case SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock
 
                     Debug.Assert(_prev IsNot Nothing)
                     _isWithinIteratorMethodOrLambdaOrProperty = _prev.IsWithinIteratorMethodOrLambdaOrProperty
@@ -663,11 +663,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     'TODO rename this enum for consistency ERRID_MissingEndProperty
                     errorId = ERRID.ERR_EndProp
 
-                Case SyntaxKind.PropertyGetBlock
+                Case SyntaxKind.GetAccessorBlock
                     endStmt = SyntaxFactory.EndGetStatement(missingEndKeyword, InternalSyntaxFactory.MissingKeyword(SyntaxKind.GetKeyword))
                     errorId = ERRID.ERR_MissingEndGet
 
-                Case SyntaxKind.PropertySetBlock
+                Case SyntaxKind.SetAccessorBlock
                     endStmt = SyntaxFactory.EndSetStatement(missingEndKeyword, InternalSyntaxFactory.MissingKeyword(SyntaxKind.SetKeyword))
                     errorId = ERRID.ERR_MissingEndSet
 
@@ -676,15 +676,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     'TODO rename this enum for consistency ERRID_MissingEndProperty
                     errorId = ERRID.ERR_MissingEndEvent
 
-                Case SyntaxKind.AddHandlerBlock
+                Case SyntaxKind.AddHandlerAccessorBlock
                     endStmt = SyntaxFactory.EndAddHandlerStatement(missingEndKeyword, InternalSyntaxFactory.MissingKeyword(SyntaxKind.AddHandlerKeyword))
                     errorId = ERRID.ERR_MissingEndAddHandler
 
-                Case SyntaxKind.RemoveHandlerBlock
+                Case SyntaxKind.RemoveHandlerAccessorBlock
                     endStmt = SyntaxFactory.EndRemoveHandlerStatement(missingEndKeyword, InternalSyntaxFactory.MissingKeyword(SyntaxKind.RemoveHandlerKeyword))
                     errorId = ERRID.ERR_MissingEndRemoveHandler
 
-                Case SyntaxKind.RaiseEventBlock
+                Case SyntaxKind.RaiseEventAccessorBlock
                     endStmt = SyntaxFactory.EndRaiseEventStatement(missingEndKeyword, InternalSyntaxFactory.MissingKeyword(SyntaxKind.RaiseEventKeyword))
                     errorId = ERRID.ERR_MissingEndRaiseEvent
 
@@ -771,22 +771,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.PropertyBlock
                     Return SyntaxKind.EndPropertyStatement
 
-                Case SyntaxKind.PropertyGetBlock
+                Case SyntaxKind.GetAccessorBlock
                     Return SyntaxKind.EndGetStatement
 
-                Case SyntaxKind.PropertySetBlock
+                Case SyntaxKind.SetAccessorBlock
                     Return SyntaxKind.EndSetStatement
 
                 Case SyntaxKind.EventBlock
                     Return SyntaxKind.EndEventStatement
 
-                Case SyntaxKind.AddHandlerBlock
+                Case SyntaxKind.AddHandlerAccessorBlock
                     Return SyntaxKind.EndAddHandlerStatement
 
-                Case SyntaxKind.RemoveHandlerBlock
+                Case SyntaxKind.RemoveHandlerAccessorBlock
                     Return SyntaxKind.EndRemoveHandlerStatement
 
-                Case SyntaxKind.RaiseEventBlock
+                Case SyntaxKind.RaiseEventAccessorBlock
                     Return SyntaxKind.EndRaiseEventStatement
 
                 Case SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock, SyntaxKind.ElseBlock

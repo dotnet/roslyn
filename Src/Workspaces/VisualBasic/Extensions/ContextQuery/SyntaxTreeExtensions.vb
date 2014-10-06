@@ -487,11 +487,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             SyntaxKind.MultiLineSubLambdaExpression,
             SyntaxKind.SubBlock,
             SyntaxKind.FunctionBlock,
-            SyntaxKind.PropertyGetBlock,
-            SyntaxKind.PropertySetBlock,
-            SyntaxKind.AddHandlerBlock,
-            SyntaxKind.RemoveHandlerBlock,
-            SyntaxKind.RaiseEventBlock,
+            SyntaxKind.GetAccessorBlock,
+            SyntaxKind.SetAccessorBlock,
+            SyntaxKind.AddHandlerAccessorBlock,
+            SyntaxKind.RemoveHandlerAccessorBlock,
+            SyntaxKind.RaiseEventAccessorBlock,
             SyntaxKind.ConstructorBlock,
             SyntaxKind.OperatorBlock
         }, SyntaxKind())

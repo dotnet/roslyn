@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Note, it is an error if a parameter has the same name as the function.  
                     Return LocalSymbol.Create(methodSymbol, Me, begin.Identifier, LocalDeclarationKind.FunctionValue, methodSymbol.ReturnType)
 
-                Case SyntaxKind.PropertyGetBlock
+                Case SyntaxKind.GetAccessorBlock
                     If methodBlock.Parent IsNot Nothing AndAlso
                        methodBlock.Parent.Kind = SyntaxKind.PropertyBlock Then
 
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Function Return Value variable isn't accessible within an operator body
                     Return New SynthesizedLocal(methodSymbol, methodSymbol.ReturnType, SynthesizedLocalKind.FunctionReturnValue, DirectCast(methodBlock, OperatorBlockSyntax).Begin)
 
-                Case SyntaxKind.AddHandlerBlock
+                Case SyntaxKind.AddHandlerAccessorBlock
                     If DirectCast(methodSymbol.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent AndAlso
                        methodBlock.Parent IsNot Nothing AndAlso
                        methodBlock.Parent.Kind = SyntaxKind.EventBlock Then

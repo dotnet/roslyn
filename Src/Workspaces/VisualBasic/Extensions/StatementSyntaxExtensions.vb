@@ -46,11 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.SubBlock,
                         SyntaxKind.ConstructorBlock,
                         SyntaxKind.OperatorBlock,
-                        SyntaxKind.PropertyGetBlock,
-                        SyntaxKind.PropertySetBlock,
-                        SyntaxKind.AddHandlerBlock,
-                        SyntaxKind.RemoveHandlerBlock,
-                        SyntaxKind.RaiseEventBlock
+                        SyntaxKind.GetAccessorBlock,
+                        SyntaxKind.SetAccessorBlock,
+                        SyntaxKind.AddHandlerAccessorBlock,
+                        SyntaxKind.RemoveHandlerAccessorBlock,
+                        SyntaxKind.RaiseEventAccessorBlock
                         Return DirectCast(member, MethodBlockBaseSyntax).Begin.AttributeLists
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement,
@@ -117,11 +117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.SubBlock,
                         SyntaxKind.ConstructorBlock,
                         SyntaxKind.OperatorBlock,
-                        SyntaxKind.PropertyGetBlock,
-                        SyntaxKind.PropertySetBlock,
-                        SyntaxKind.AddHandlerBlock,
-                        SyntaxKind.RemoveHandlerBlock,
-                        SyntaxKind.RaiseEventBlock
+                        SyntaxKind.GetAccessorBlock,
+                        SyntaxKind.SetAccessorBlock,
+                        SyntaxKind.AddHandlerAccessorBlock,
+                        SyntaxKind.RemoveHandlerAccessorBlock,
+                        SyntaxKind.RaiseEventAccessorBlock
                         Dim methodBlock = DirectCast(member, MethodBlockBaseSyntax)
                         Dim newBegin = methodBlock.Begin.WithAttributeLists(attributeLists)
                         Return methodBlock.ReplaceNode(methodBlock.Begin, newBegin)
@@ -189,11 +189,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.SubBlock,
                         SyntaxKind.ConstructorBlock,
                         SyntaxKind.OperatorBlock,
-                        SyntaxKind.PropertyGetBlock,
-                        SyntaxKind.PropertySetBlock,
-                        SyntaxKind.AddHandlerBlock,
-                        SyntaxKind.RemoveHandlerBlock,
-                        SyntaxKind.RaiseEventBlock
+                        SyntaxKind.GetAccessorBlock,
+                        SyntaxKind.SetAccessorBlock,
+                        SyntaxKind.AddHandlerAccessorBlock,
+                        SyntaxKind.RemoveHandlerAccessorBlock,
+                        SyntaxKind.RaiseEventAccessorBlock
                         Return DirectCast(member, MethodBlockBaseSyntax).Begin.Modifiers
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement,
@@ -266,11 +266,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Case SyntaxKind.OperatorBlock
                         Dim methodBlock = DirectCast(member, OperatorBlockSyntax)
                         Return methodBlock.WithBegin(DirectCast(methodBlock.Begin.WithModifiers(modifiers), OperatorStatementSyntax))
-                    Case SyntaxKind.PropertyGetBlock,
-                        SyntaxKind.PropertySetBlock,
-                        SyntaxKind.AddHandlerBlock,
-                        SyntaxKind.RemoveHandlerBlock,
-                        SyntaxKind.RaiseEventBlock
+                    Case SyntaxKind.GetAccessorBlock,
+                        SyntaxKind.SetAccessorBlock,
+                        SyntaxKind.AddHandlerAccessorBlock,
+                        SyntaxKind.RemoveHandlerAccessorBlock,
+                        SyntaxKind.RaiseEventAccessorBlock
                         Dim methodBlock = DirectCast(member, AccessorBlockSyntax)
                         Return methodBlock.WithBegin(DirectCast(methodBlock.Begin.WithModifiers(modifiers), AccessorStatementSyntax))
                     Case SyntaxKind.SubStatement,
@@ -386,11 +386,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.FunctionBlock,
                         SyntaxKind.ConstructorBlock,
                         SyntaxKind.OperatorBlock,
-                        SyntaxKind.PropertyGetBlock,
-                        SyntaxKind.PropertySetBlock,
-                        SyntaxKind.AddHandlerBlock,
-                        SyntaxKind.RemoveHandlerBlock,
-                        SyntaxKind.RaiseEventBlock
+                        SyntaxKind.GetAccessorBlock,
+                        SyntaxKind.SetAccessorBlock,
+                        SyntaxKind.AddHandlerAccessorBlock,
+                        SyntaxKind.RemoveHandlerAccessorBlock,
+                        SyntaxKind.RaiseEventAccessorBlock
                         Return DirectCast(member, MethodBlockBaseSyntax).Begin.ParameterList
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement,

@@ -239,11 +239,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.ConstructorBlock
                         result = DirectCast(methodBlock, ConstructorBlockSyntax).WithBegin(DirectCast(finalStatement, SubNewStatementSyntax))
 
-                    Case SyntaxKind.PropertyGetBlock,
-                        SyntaxKind.PropertySetBlock,
-                        SyntaxKind.AddHandlerBlock,
-                        SyntaxKind.RemoveHandlerBlock,
-                        SyntaxKind.RaiseEventBlock
+                    Case SyntaxKind.GetAccessorBlock,
+                        SyntaxKind.SetAccessorBlock,
+                        SyntaxKind.AddHandlerAccessorBlock,
+                        SyntaxKind.RemoveHandlerAccessorBlock,
+                        SyntaxKind.RaiseEventAccessorBlock
                         result = DirectCast(methodBlock, AccessorBlockSyntax).WithBegin(DirectCast(finalStatement, AccessorStatementSyntax))
 
                     Case Else

@@ -49,14 +49,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Select Case node.Kind
                 Case SyntaxKind.GetAccessorStatement
-                    Return New MethodBlockContext(SyntaxKind.PropertyGetBlock, DirectCast(node, StatementSyntax), Me)
+                    Return New MethodBlockContext(SyntaxKind.GetAccessorBlock, DirectCast(node, StatementSyntax), Me)
 
                 Case SyntaxKind.SetAccessorStatement
                     ' Checks for duplicate GET/SET are deferred to declared per Dev10 code
-                    Return New MethodBlockContext(SyntaxKind.PropertySetBlock, DirectCast(node, StatementSyntax), Me)
+                    Return New MethodBlockContext(SyntaxKind.SetAccessorBlock, DirectCast(node, StatementSyntax), Me)
 
-                Case SyntaxKind.PropertyGetBlock,
-                    SyntaxKind.PropertySetBlock
+                Case SyntaxKind.GetAccessorBlock,
+                    SyntaxKind.SetAccessorBlock
                     ' Handle any block created by this context
                     Add(node)
 
@@ -94,8 +94,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     SyntaxKind.SetAccessorStatement
                     Return UseSyntax(node, newContext)
 
-                Case SyntaxKind.PropertyGetBlock,
-                    SyntaxKind.PropertySetBlock
+                Case SyntaxKind.GetAccessorBlock,
+                    SyntaxKind.SetAccessorBlock
                     Return UseSyntax(node, newContext, DirectCast(node, AccessorBlockSyntax).End.IsMissing)
 
                 Case Else

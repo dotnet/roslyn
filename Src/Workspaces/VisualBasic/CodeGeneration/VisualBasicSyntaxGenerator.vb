@@ -555,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GetAccessorBlock(statements As IEnumerable(Of SyntaxNode)) As AccessorBlockSyntax
             Return SyntaxFactory.AccessorBlock(
-                SyntaxKind.PropertyGetBlock,
+                SyntaxKind.GetAccessorBlock,
                 SyntaxFactory.AccessorStatement(SyntaxKind.GetAccessorStatement, SyntaxFactory.Token(SyntaxKind.GetKeyword)),
                 GetStatements(statements),
                 SyntaxFactory.EndBlockStatement(SyntaxKind.EndGetStatement, SyntaxFactory.Token(SyntaxKind.GetKeyword)))
@@ -572,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         [default]:=Nothing)
 
             Return SyntaxFactory.AccessorBlock(
-                SyntaxKind.PropertySetBlock,
+                SyntaxKind.SetAccessorBlock,
                 SyntaxFactory.AccessorStatement(
                     kind:=SyntaxKind.SetAccessorStatement,
                     attributeLists:=Nothing,

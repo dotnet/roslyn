@@ -21,17 +21,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Select Case node.Kind
                 Case SyntaxKind.AddHandlerAccessorStatement
-                    Return New MethodBlockContext(SyntaxKind.AddHandlerBlock, DirectCast(node, StatementSyntax), Me)
+                    Return New MethodBlockContext(SyntaxKind.AddHandlerAccessorBlock, DirectCast(node, StatementSyntax), Me)
 
                 Case SyntaxKind.RemoveHandlerAccessorStatement
-                    Return New MethodBlockContext(SyntaxKind.RemoveHandlerBlock, DirectCast(node, StatementSyntax), Me)
+                    Return New MethodBlockContext(SyntaxKind.RemoveHandlerAccessorBlock, DirectCast(node, StatementSyntax), Me)
 
                 Case SyntaxKind.RaiseEventAccessorStatement
-                    Return New MethodBlockContext(SyntaxKind.RaiseEventBlock, DirectCast(node, StatementSyntax), Me)
+                    Return New MethodBlockContext(SyntaxKind.RaiseEventAccessorBlock, DirectCast(node, StatementSyntax), Me)
 
-                Case SyntaxKind.AddHandlerBlock,
-                    SyntaxKind.RemoveHandlerBlock,
-                    SyntaxKind.RaiseEventBlock
+                Case SyntaxKind.AddHandlerAccessorBlock,
+                    SyntaxKind.RemoveHandlerAccessorBlock,
+                    SyntaxKind.RaiseEventAccessorBlock
                     ' Handle any block created by this context
                     Add(node)
 
@@ -65,9 +65,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return UseSyntax(node, newContext)
 
                 Case _
-                    SyntaxKind.AddHandlerBlock,
-                    SyntaxKind.RemoveHandlerBlock,
-                    SyntaxKind.RaiseEventBlock
+                    SyntaxKind.AddHandlerAccessorBlock,
+                    SyntaxKind.RemoveHandlerAccessorBlock,
+                    SyntaxKind.RaiseEventAccessorBlock
                     Return UseSyntax(node, newContext, DirectCast(node, AccessorBlockSyntax).End.IsMissing)
 
                 Case Else

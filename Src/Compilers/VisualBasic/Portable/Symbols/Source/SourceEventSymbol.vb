@@ -337,13 +337,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' All event accessors are subs.
             Select Case blockSyntax.Kind
-                Case SyntaxKind.AddHandlerBlock
+                Case SyntaxKind.AddHandlerAccessorBlock
                     flags = flags Or SourceMemberFlags.MethodKindEventAdd Or SourceMemberFlags.MethodIsSub
 
-                Case SyntaxKind.RemoveHandlerBlock
+                Case SyntaxKind.RemoveHandlerAccessorBlock
                     flags = flags Or SourceMemberFlags.MethodKindEventRemove Or SourceMemberFlags.MethodIsSub
 
-                Case SyntaxKind.RaiseEventBlock
+                Case SyntaxKind.RaiseEventAccessorBlock
                     flags = flags Or SourceMemberFlags.MethodKindEventRaise Or SourceMemberFlags.MethodIsSub
 
                 Case Else

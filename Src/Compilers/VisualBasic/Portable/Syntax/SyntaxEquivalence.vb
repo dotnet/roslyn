@@ -84,11 +84,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                          SyntaxKind.FunctionBlock,
                          SyntaxKind.ConstructorBlock,
                          SyntaxKind.OperatorBlock,
-                         SyntaxKind.PropertyGetBlock,
-                         SyntaxKind.PropertySetBlock,
-                         SyntaxKind.AddHandlerBlock,
-                         SyntaxKind.RemoveHandlerBlock,
-                         SyntaxKind.RaiseEventBlock
+                         SyntaxKind.GetAccessorBlock,
+                         SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock,
+                         SyntaxKind.RemoveHandlerAccessorBlock,
+                         SyntaxKind.RaiseEventAccessorBlock
                         ' Once we get down to the block level we need to only compare the header
                         Return AreEquivalentRecursive(DirectCast(before, Green.MethodBlockBaseSyntax).Begin,
                                                       DirectCast(after, Green.MethodBlockBaseSyntax).Begin,

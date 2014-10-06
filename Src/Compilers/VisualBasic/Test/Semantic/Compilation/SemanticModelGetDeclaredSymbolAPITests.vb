@@ -1478,12 +1478,12 @@ End Class
             Dim regularPropBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.PropertyBlock, 2).AsNode(), PropertyBlockSyntax)
             Assert.Equal(regularPropSymbol, model.GetDeclaredSymbol(regularPropBlockSyntax))
 
-            Dim defPropGetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.PropertyGetBlock, 1).AsNode(), AccessorBlockSyntax)
+            Dim defPropGetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.GetAccessorBlock, 1).AsNode(), AccessorBlockSyntax)
             Assert.Equal("Public Overridable Property Get DefProp(p As Integer) As String", model.GetDeclaredSymbol(defPropGetBlockSyntax).ToString())
             Assert.True(TypeOf (model.GetDeclaredSymbol(defPropGetBlockSyntax)) Is MethodSymbol, "API should return a MethodSymbol")
-            Dim defPropSetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.PropertySetBlock, 1).AsNode(), AccessorBlockSyntax)
+            Dim defPropSetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SetAccessorBlock, 1).AsNode(), AccessorBlockSyntax)
             Assert.Equal("Public Overridable Property Set DefProp(p As Integer, value As String)", model.GetDeclaredSymbol(defPropSetBlockSyntax).ToString())
-            Dim regularPropSetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.PropertySetBlock, 2).AsNode(), AccessorBlockSyntax)
+            Dim regularPropSetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SetAccessorBlock, 2).AsNode(), AccessorBlockSyntax)
             Assert.Equal("Public Property Set RegularProp(value As String)", model.GetDeclaredSymbol(regularPropSetBlockSyntax).ToString())
 
             Dim defPropGetSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.GetAccessorStatement, 1).AsNode(), MethodBaseSyntax)

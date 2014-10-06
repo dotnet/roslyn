@@ -621,11 +621,11 @@ End Namespace
             Assert.True(SyntaxFacts.IsMethodBlock(item))
         Next
 
-        For Each item In New SyntaxKind() {SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock, SyntaxKind.PropertyGetBlock, SyntaxKind.PropertySetBlock, SyntaxKind.AddHandlerBlock, SyntaxKind.RemoveHandlerBlock, SyntaxKind.RaiseEventBlock}
+        For Each item In New SyntaxKind() {SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock, SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock}
             Assert.False(SyntaxFacts.IsMethodBlock(item))
         Next
 
-        For Each item In New SyntaxKind() {SyntaxKind.PropertyGetBlock, SyntaxKind.PropertySetBlock, SyntaxKind.AddHandlerBlock, SyntaxKind.RemoveHandlerBlock, SyntaxKind.RaiseEventBlock}
+        For Each item In New SyntaxKind() {SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock, SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock}
             Assert.True(SyntaxFacts.IsAccessorBlock(item))
         Next
 

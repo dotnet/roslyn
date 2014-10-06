@@ -45,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
 
                     Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
-                         SyntaxKind.OperatorBlock, SyntaxKind.PropertyGetBlock, SyntaxKind.PropertySetBlock,
-                         SyntaxKind.AddHandlerBlock, SyntaxKind.RemoveHandlerBlock, SyntaxKind.RaiseEventBlock
+                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
                         begin = DirectCast(parent, MethodBlockBaseSyntax).Begin
 
                     Case SyntaxKind.PropertyBlock

@@ -1426,7 +1426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If CurrentToken.Kind = SyntaxKind.SetKeyword AndAlso
                 (IsValidStatementTerminator(PeekToken(1)) OrElse PeekToken(1).Kind = SyntaxKind.OpenParenToken) AndAlso
-                Context.IsWithin(SyntaxKind.PropertySetBlock, SyntaxKind.PropertyGetBlock) Then
+                Context.IsWithin(SyntaxKind.SetAccessorBlock, SyntaxKind.GetAccessorBlock) Then
                 ' If this is a set parse it as a property accessor and then mark it with an error
                 ' so that the Set will terminate a Get context.
                 Return ParsePropertyOrEventAccessor(SyntaxKind.SetAccessorStatement, Nothing, Nothing)

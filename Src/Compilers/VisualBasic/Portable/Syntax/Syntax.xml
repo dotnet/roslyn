@@ -1209,11 +1209,11 @@ Unify Enum declarations with other block type declarations.
         <kind name="FunctionStatement" node-kind="FunctionBlock"/>
         <kind name="SubNewStatement" node-kind="ConstructorBlock"/>
         <kind name="OperatorStatement" node-kind="OperatorBlock"/>
-        <kind name="GetAccessorStatement" node-kind="PropertyGetBlock"/>
-        <kind name="SetAccessorStatement" node-kind="PropertySetBlock"/>
-        <kind name="AddHandlerAccessorStatement" node-kind="AddHandlerBlock"/>
-        <kind name="RemoveHandlerAccessorStatement" node-kind="RemoveHandlerBlock"/>
-        <kind name="RaiseEventAccessorStatement" node-kind="RaiseEventBlock"/>
+        <kind name="GetAccessorStatement" node-kind="GetAccessorBlock"/>
+        <kind name="SetAccessorStatement" node-kind="SetAccessorBlock"/>
+        <kind name="AddHandlerAccessorStatement" node-kind="AddHandlerAccessorBlock"/>
+        <kind name="RemoveHandlerAccessorStatement" node-kind="RemoveHandlerAccessorBlock"/>
+        <kind name="RaiseEventAccessorStatement" node-kind="RaiseEventAccessorBlock"/>
       </child>
 
       <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
@@ -1234,11 +1234,11 @@ Unify Enum declarations with other block type declarations.
         <kind name="EndFunctionStatement" node-kind="FunctionBlock"/>
         <kind name="EndSubStatement" node-kind="ConstructorBlock"/>
         <kind name="EndOperatorStatement" node-kind="OperatorBlock"/>
-        <kind name="EndGetStatement" node-kind="PropertyGetBlock"/>
-        <kind name="EndSetStatement" node-kind="PropertySetBlock"/>
-        <kind name="EndAddHandlerStatement" node-kind="AddHandlerBlock"/>
-        <kind name="EndRemoveHandlerStatement" node-kind="RemoveHandlerBlock"/>
-        <kind name="EndRaiseEventStatement" node-kind="RaiseEventBlock"/>
+        <kind name="EndGetStatement" node-kind="GetAccessorBlock"/>
+        <kind name="EndSetStatement" node-kind="SetAccessorBlock"/>
+        <kind name="EndAddHandlerStatement" node-kind="AddHandlerAccessorBlock"/>
+        <kind name="EndRemoveHandlerStatement" node-kind="RemoveHandlerAccessorBlock"/>
+        <kind name="EndRaiseEventStatement" node-kind="RaiseEventAccessorBlock"/>
       </child>
     </node-structure>
 
@@ -1302,27 +1302,27 @@ Unify Enum declarations with other block type declarations.
         property accessors and custom event accessors.
       </description>
 
-      <node-kind name="PropertyGetBlock">
+      <node-kind name="GetAccessorBlock">
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.PropertyGetBody" />
       </node-kind>
 
-      <node-kind name="PropertySetBlock">
+      <node-kind name="SetAccessorBlock">
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.PropertySetBody" />
       </node-kind>
 
-      <node-kind name="AddHandlerBlock">
+      <node-kind name="AddHandlerAccessorBlock">
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.AddHandlerBody" />
       </node-kind>
 
-      <node-kind name="RemoveHandlerBlock">
+      <node-kind name="RemoveHandlerAccessorBlock">
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.RemoveHandlerBody" />
       </node-kind>
 
-      <node-kind name="RaiseEventBlock">
+      <node-kind name="RaiseEventAccessorBlock">
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.RaiseEventBody" />
       </node-kind>
@@ -1351,7 +1351,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Accessors" list="true"  kind="PropertyGetBlock|PropertySetBlock">
+      <child name="Accessors" list="true"  kind="GetAccessorBlock|SetAccessorBlock">
         <description>
           The accessor blocks contained in the property, between the Property and
           the End Property statements.
@@ -1392,7 +1392,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Accessors" list="true"  kind="AddHandlerBlock|RemoveHandlerBlock|RaiseEventBlock">
+      <child name="Accessors" list="true"  kind="AddHandlerAccessorBlock|RemoveHandlerAccessorBlock|RaiseEventAccessorBlock">
         <description>
           The accessor blocks contained in the custom event declaration, between the Event statement and
           the End Event statement.

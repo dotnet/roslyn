@@ -4065,7 +4065,7 @@ End Module
                            Assert.True(sourceMethod0.BlockSyntax.Begin.IsKind(SyntaxKind.FunctionStatement))
                            Return sourceMethod0.BlockSyntax.Begin
                        ElseIf s.IsKind(SyntaxKind.PropertyStatement) Then
-                           Assert.True(sourceMethod0.BlockSyntax.IsKind(SyntaxKind.PropertyGetBlock))
+                           Assert.True(sourceMethod0.BlockSyntax.IsKind(SyntaxKind.GetAccessorBlock))
                            Return DirectCast(sourceMethod0.BlockSyntax.Parent, PropertyBlockSyntax).PropertyStatement
                        End If
 
