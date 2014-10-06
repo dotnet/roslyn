@@ -2241,16 +2241,20 @@ class Program
         public string Execute(Compilation comp)
         {
             var output = new StringBuilder();
-            string exeFilename = "OutputCS.exe", outputName = null, pdbFilename = "OutputCS.pdb", xmlCommentsFilename = "OutputCS.xml";
+            string exeFilename = "OutputCS.exe", pdbFilename = "OutputCS.pdb", xmlCommentsFilename = "OutputCS.xml";
             EmitResult emitResult = null;
 
             using (var ilStream = new FileStream(exeFilename, FileMode.OpenOrCreate))
+            {
                 using (var pdbStream = new FileStream(pdbFilename, FileMode.OpenOrCreate))
+                {
                     using (var xmlCommentsStream = new FileStream(xmlCommentsFilename, FileMode.OpenOrCreate))
                     {
                         // Emit IL, PDB and xml documentation comments for the compilation to disk.
-                        emitResult = comp.Emit(ilStream, outputName, pdbFilename, pdbStream, xmlCommentsStream);
+                        emitResult = comp.Emit(ilStream, pdbStream, xmlCommentsStream);
                     }
+                }
+            }
 
             if (emitResult.Success)
             {

@@ -2325,7 +2325,7 @@ End Module
                   pdbStream = New FileStream(pdbFilename, FileMode.OpenOrCreate),
                   xmlCommentsStream = New FileStream(xmlCommentsFilename, FileMode.OpenOrCreate)
                 ' Emit IL, PDB and xml documentation comments for the compilation to disk.
-                emitResult = comp.Emit(ilStream, exeFilename, pdbFilename, pdbStream, xmlCommentsStream)
+                emitResult = comp.Emit(ilStream, pdbStream, xmlCommentsStream)
             End Using
 
             If emitResult.Success Then
