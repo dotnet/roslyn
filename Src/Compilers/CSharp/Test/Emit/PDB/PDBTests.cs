@@ -3850,7 +3850,7 @@ class C
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();
-            var result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+            var result = compilation.Emit(exebits, pdbbits);
             result.Diagnostics.Verify();
 
             /*
@@ -4138,14 +4138,12 @@ public class C
             {
                 var result = compilation.Emit(
                     peStream: peStream,
-                    outputName: null,
-                    pdbFilePath: null,
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     cancellationToken: default(CancellationToken),
                     win32Resources: null,
                     manifestResources: null,
-                    metadataOnly: false,
+                    options: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(

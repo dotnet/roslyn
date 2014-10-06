@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
 using Microsoft.CodeAnalysis.Text;
@@ -2416,7 +2417,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/platform:x64", @"/baseaddress:0x8000000000011111", "a.cs" }, baseDirectory);
             Assert.False(parsedArgs.Errors.Any());
-            Assert.Equal(0x8000000000011111ul, parsedArgs.CompilationOptions.BaseAddress);
+            Assert.Equal(0x8000000000011111ul, parsedArgs.EmitOptions.BaseAddress);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/platform:x86", @"/baseaddress:0x8000000000011111", "a.cs" }, baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
@@ -2431,7 +2432,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Equal((int)ErrorCode.ERR_BadBaseNumber, parsedArgs.Errors.First().Code);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/platform:x64", @"/baseaddress:01777777777777777777777", "a.cs" }, baseDirectory);
-            Assert.Equal(ulong.MaxValue, parsedArgs.CompilationOptions.BaseAddress);
+            Assert.Equal(ulong.MaxValue, parsedArgs.EmitOptions.BaseAddress);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/platform:x64", @"/baseaddress:0x0000000100000000", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
@@ -2473,15 +2474,15 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/filealign:x64", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2024: Invalid file section alignment number 'x64'
-                Diagnostic(ErrorCode.ERR_BadFileAlignment).WithArguments("x64"));
+                Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("x64"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/filealign:0x200", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(0x200, parsedArgs.CompilationOptions.FileAlignment);
+            Assert.Equal(0x200, parsedArgs.EmitOptions.FileAlignment);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/filealign:512", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(512, parsedArgs.CompilationOptions.FileAlignment);
+            Assert.Equal(512, parsedArgs.EmitOptions.FileAlignment);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/filealign:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
@@ -2491,21 +2492,21 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/filealign:-23", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2024: Invalid file section alignment number '-23'
-                Diagnostic(ErrorCode.ERR_BadFileAlignment).WithArguments("-23"));
+                Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("-23"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/filealign:020000", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(8192, parsedArgs.CompilationOptions.FileAlignment);
+            Assert.Equal(8192, parsedArgs.EmitOptions.FileAlignment);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/filealign:0", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2024: Invalid file section alignment number '0'
-                Diagnostic(ErrorCode.ERR_BadFileAlignment).WithArguments("0"));
+                Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("0"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/filealign:123", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2024: Invalid file section alignment number '123'
-                Diagnostic(ErrorCode.ERR_BadFileAlignment).WithArguments("123"));
+                Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("123"));
         }
 
         [Fact]
@@ -2606,25 +2607,25 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/highentropyva", "a.cs" }, baseDirectory);
             Assert.False(parsedArgs.Errors.Any());
-            Assert.True(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace);
+            Assert.True(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace);
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/highentropyva+", "a.cs" }, baseDirectory);
             Assert.False(parsedArgs.Errors.Any());
-            Assert.True(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace);
+            Assert.True(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace);
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/highentropyva-", "a.cs" }, baseDirectory);
             Assert.False(parsedArgs.Errors.Any());
-            Assert.False(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace);
+            Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace);
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/highentropyva:-", "a.cs" }, baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal(new CSharpCompilationOptions(OutputKind.ConsoleApplication).HighEntropyVirtualAddressSpace, parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace);
+            Assert.Equal(EmitOptions.Default.HighEntropyVirtualAddressSpace, parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/highentropyva:", "a.cs" }, baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal(new CSharpCompilationOptions(OutputKind.ConsoleApplication).HighEntropyVirtualAddressSpace, parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace);
+            Assert.Equal(EmitOptions.Default.HighEntropyVirtualAddressSpace, parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace);
 
             //last one wins
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/highenTROPyva+", @"/HIGHentropyva-", "a.cs" }, baseDirectory);
             Assert.False(parsedArgs.Errors.Any());
-            Assert.False(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace);
+            Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace);
         }
 
         [Fact]
@@ -2955,25 +2956,25 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         {
             CSharpCommandLineArguments parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:4.0", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(SubsystemVersion.Create(4, 0), parsedArgs.CompilationOptions.SubsystemVersion);
+            Assert.Equal(SubsystemVersion.Create(4, 0), parsedArgs.EmitOptions.SubsystemVersion);
 
             // wrongly supported subsystem version. CompilationOptions data will be faithful to the user input.
             // It is normalized at the time of emit.
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:0.0", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(); // no error in Dev11
-            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.CompilationOptions.SubsystemVersion);
+            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.EmitOptions.SubsystemVersion);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:0", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(); // no error in Dev11
-            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.CompilationOptions.SubsystemVersion);
+            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.EmitOptions.SubsystemVersion);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:3.99", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(); // no error in Dev11
-            Assert.Equal(SubsystemVersion.Create(3, 99), parsedArgs.CompilationOptions.SubsystemVersion);
+            Assert.Equal(SubsystemVersion.Create(3, 99), parsedArgs.EmitOptions.SubsystemVersion);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:4.0", "/SUBsystemversion:5.333", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(SubsystemVersion.Create(5, 333), parsedArgs.CompilationOptions.SubsystemVersion);
+            Assert.Equal(SubsystemVersion.Create(5, 333), parsedArgs.EmitOptions.SubsystemVersion);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "subsystemversion"));
@@ -2988,34 +2989,34 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "subsystemversion"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion: 4.1", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments(" 4.1"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments(" 4.1"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:4 .0", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments("4 .0"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("4 .0"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:4. 0", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments("4. 0"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("4. 0"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:.", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments("."));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("."));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:4.", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments("4."));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("4."));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:.0", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments(".0"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments(".0"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:4.2 ", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:4.65536", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments("4.65536"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("4.65536"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:65536.0", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments("65536.0"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("65536.0"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/subsystemversion:-4.0", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSubsystemVersion).WithArguments("-4.0"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("-4.0"));
 
             // TODO: incompatibilities: versions lower than '6.2' and 'arm', 'winmdobj', 'appcontainer'
         }
@@ -4278,8 +4279,8 @@ public class C
         [Fact]
         public void EmittedSubsystemVersion()
         {
-            var compilation = CSharpCompilation.Create("a.dll", options: TestOptions.ReleaseDll.WithSubsystemVersion(SubsystemVersion.Create(5, 1)));
-            var peHeaders = new PEHeaders(compilation.EmitToStream());
+            var compilation = CSharpCompilation.Create("a.dll", references: new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(subsystemVersion: SubsystemVersion.Create(5, 1))));
             Assert.Equal(5, peHeaders.PEHeader.MajorSubsystemVersion);
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
         }
@@ -6233,19 +6234,17 @@ using System.Diagnostics; // Unused.
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "a.cs", "/runtimemetadataversion:v4.0.30319" }, baseDirectory);
             Assert.Equal(0, parsedArgs.Errors.Length);
-            Assert.Equal("v4.0.30319", parsedArgs.CompilationOptions.RuntimeMetadataVersion);
+            Assert.Equal("v4.0.30319", parsedArgs.EmitOptions.RuntimeMetadataVersion);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "a.cs", "/runtimemetadataversion:-_+@%#*^" }, baseDirectory);
             Assert.Equal(0, parsedArgs.Errors.Length);
-            Assert.Equal("-_+@%#*^", parsedArgs.CompilationOptions.RuntimeMetadataVersion);
+            Assert.Equal("-_+@%#*^", parsedArgs.EmitOptions.RuntimeMetadataVersion);
 
-            var comp = CreateCompilation(string.Empty,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, runtimeMetadataVersion: "v4.0.30319"));
-            Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray()).Module.MetadataVersion, "v4.0.30319");
+            var comp = CreateCompilation(string.Empty);
+            Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "v4.0.30319"))).Module.MetadataVersion, "v4.0.30319");
 
-            comp = CreateCompilation(string.Empty,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, runtimeMetadataVersion: "_+@%#*^"));
-            Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray()).Module.MetadataVersion, "_+@%#*^");
+            comp = CreateCompilation(string.Empty);
+            Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion, "_+@%#*^");
         }
 
         [WorkItem(715339, "DevDiv")]

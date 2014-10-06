@@ -95,6 +95,8 @@
     <Compile Include="Collections\IdentifierCollection.cs" />
     <Compile Include="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
+    <Compile Include="Emit\DebugInformationFormat.cs" />
+    <Compile Include="Emit\EmitOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AsyncQueue.TaskCompletionSourceWithCancellation.cs" />
     <Compile Include="Emit\EditAndContinue\EncVariableSlotAllocator.cs" />
     <Compile Include="InternalUtilities\AssemblyLocationLightUp.cs" />
@@ -123,7 +125,6 @@
     <Compile Include="Compilation\DeclarationInfo.cs" />
     <Compile Include="Compilation\EmitResult.cs" />
     <Compile Include="Compilation\Extensions.cs" />
-    <Compile Include="Compilation\MetadataOnlyEmitOptions.cs" />
     <Compile Include="Compilation\OptimizationLevel.cs" />
     <Compile Include="Compilation\ParseOptions.cs" />
     <Compile Include="Compilation\Platform.cs" />

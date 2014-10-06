@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -2270,33 +2271,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override CommonPEModuleBuilder CreateModuleBuilder(
-            string outputName,
+            EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CancellationToken cancellationToken,
             CompilationTestData testData,
-            DiagnosticBag diagnostics,
-            bool metadataOnly)
+            DiagnosticBag diagnostics)
         {
             return this.CreateModuleBuilder(
-                outputName,
+                emitOptions,
                 manifestResources,
                 assemblySymbolMapper,
                 cancellationToken,
                 testData,
                 diagnostics,
-                metadataOnly,
                 ImmutableArray<NamedTypeSymbol>.Empty);
         }
 
         internal CommonPEModuleBuilder CreateModuleBuilder(
-            string outputName,
+            EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
-            bool metadataOnly,
             ImmutableArray<NamedTypeSymbol> additionalTypes)
         {
             // Do not waste a slot in the submission chain for submissions that contain no executable code
@@ -2306,13 +2304,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            string runtimeMDVersion = GetRuntimeMetadataVersion(diagnostics);
+            string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions, diagnostics);
             if (runtimeMDVersion == null)
             {
                 return null;
             }
 
-            var moduleProps = ConstructModuleSerializationProperties(runtimeMDVersion);
+            var moduleProps = ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion);
 
             if (manifestResources == null)
             {
@@ -2320,29 +2318,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             PEModuleBuilder moduleBeingBuilt;
-            if (options.OutputKind.IsNetModule())
+            if (this.options.OutputKind.IsNetModule())
             {
                 Debug.Assert(additionalTypes.IsEmpty);
 
                 moduleBeingBuilt = new PENetModuleBuilder(
                     (SourceModuleSymbol)SourceModule,
-                    outputName,
+                    emitOptions,
                     moduleProps,
-                    manifestResources,
-                    metadataOnly);
+                    manifestResources);
             }
             else
             {
-                var kind = options.OutputKind.IsValid() ? options.OutputKind : OutputKind.DynamicallyLinkedLibrary;
+                var kind = this.options.OutputKind.IsValid() ? this.options.OutputKind : OutputKind.DynamicallyLinkedLibrary;
                 moduleBeingBuilt = new PEAssemblyBuilder(
                     SourceAssembly,
-                    outputName,
+                    emitOptions,
                     kind,
                     moduleProps,
                     manifestResources,
                     assemblySymbolMapper,
-                    additionalTypes,
-                    metadataOnly);
+                    additionalTypes);
             }
 
             // testData is only passed when running tests.
@@ -2357,7 +2353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool CompileImpl(
             CommonPEModuleBuilder moduleBuilder,
-            string outputName,
             Stream win32Resources,
             Stream xmlDocStream,
             CancellationToken cancellationToken,
@@ -2374,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
 
-            if (moduleBeingBuilt.MetadataOnly)
+            if (moduleBeingBuilt.EmitOptions.EmitMetadataOnly)
             {
                 if (hasDeclarationErrors)
                 {
@@ -2429,7 +2424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag xmlDiagnostics = DiagnosticBag.GetInstance();
 
-            string assemblyName = FileNameUtilities.ChangeExtension(outputName, extension: null);
+            string assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputName, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
             if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics))
@@ -2528,7 +2523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<uint> updatedMethodTokens,
+            ICollection<MethodHandle> updatedMethods,
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
@@ -2539,14 +2534,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethodTokens,
+                updatedMethods,
                 testData,
                 cancellationToken);
         }
 
-        internal string GetRuntimeMetadataVersion(DiagnosticBag diagnostics)
+        internal string GetRuntimeMetadataVersion(EmitOptions emitOptions, DiagnosticBag diagnostics)
         {
-            string runtimeMDVersion = GetRuntimeMetadataVersion();
+            string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions);
             if (runtimeMDVersion != null)
             {
                 return runtimeMDVersion;
@@ -2562,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return string.Empty; //prevent emitter from crashing.
         }
 
-        private string GetRuntimeMetadataVersion()
+        private string GetRuntimeMetadataVersion(EmitOptions emitOptions)
         {
             var corAssembly = Assembly.CorLibrary as Symbols.Metadata.PE.PEAssemblySymbol;
 
@@ -2571,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return corAssembly.Assembly.ManifestModule.MetadataVersion;
             }
 
-            return Options.RuntimeMetadataVersion;
+            return emitOptions.RuntimeMetadataVersion;
         }
 
         private static void AddDebugSourceDocumentsForChecksumDirectives(

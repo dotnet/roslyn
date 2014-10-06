@@ -5,6 +5,7 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -763,7 +764,7 @@ End Namespace
 
                     End Sub
 
-                    ' Verify attributes from source and then load metadata to see attributes are written correctly.
+            ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator(True), symbolValidator:=attributeValidator(False))
         End Sub
 
@@ -1826,7 +1827,7 @@ End Class
         Public Sub AttributeArgumentAsEnumFromMetadata()
             Dim metadata1 = VBCompilation.Create("bar.dll",
                                                references:={MscorlibRef},
-                                               syntaxTrees:={Parse("Public Enum Bar : Baz : End Enum")}).EmitToArray(metadataOnly:=True)
+                                               syntaxTrees:={Parse("Public Enum Bar : Baz : End Enum")}).EmitToArray(New EmitOptions(metadataOnly:=True))
 
             Dim ref1 = MetadataReference.CreateFromImage(metadata1)
 
@@ -1841,7 +1842,7 @@ End Class
                                         End Class
                                         <Ca(Bar.Baz)>
                                         Public Class Foo
-                                        End Class]]>.Value)}).EmitToArray(metadataOnly:=True)
+                                        End Class]]>.Value)}).EmitToArray(options:=New EmitOptions(metadataOnly:=True))
 
             Dim ref2 = MetadataReference.CreateFromImage(metadata2)
 

@@ -38,20 +38,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public PEAssemblyBuilderBase(
             SourceAssemblySymbol sourceAssembly,
-            string outputName,
+            EmitOptions emitOptions,
             OutputKind outputKind,
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            ImmutableArray<NamedTypeSymbol> additionalTypes,
-            bool metadataOnly)
-            : base((SourceModuleSymbol)sourceAssembly.Modules[0], outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, metadataOnly)
+            ImmutableArray<NamedTypeSymbol> additionalTypes)
+            : base((SourceModuleSymbol)sourceAssembly.Modules[0], emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper)
         {
             Debug.Assert((object)sourceAssembly != null);
 
             this.sourceAssembly = sourceAssembly;
             this.additionalTypes = additionalTypes.NullToEmpty();
-            this.metadataName = outputName == null ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(outputName, extension: null);
+            this.metadataName = (emitOptions.OutputName == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputName, extension: null);
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
@@ -215,14 +214,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         public PEAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
-            string outputName,
+            EmitOptions emitOptions,
             OutputKind outputKind,
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper = null,
-            ImmutableArray<NamedTypeSymbol> additionalTypes = default(ImmutableArray<NamedTypeSymbol>),
-            bool metadataOnly = false)
-            : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes, metadataOnly)
+            ImmutableArray<NamedTypeSymbol> additionalTypes = default(ImmutableArray<NamedTypeSymbol>))
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
         {
         }
     }

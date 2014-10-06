@@ -25,28 +25,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly m_MetadataName As String
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
-                       outputName As String,
+                       emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
                        assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
-                       additionalTypes As ImmutableArray(Of NamedTypeSymbol),
-                       metadataOnly As Boolean)
+                       additionalTypes As ImmutableArray(Of NamedTypeSymbol))
 
             MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol),
-                       outputName,
+                       emitOptions,
                        outputKind,
                        serializationProperties,
                        manifestResources,
-                       assemblySymbolMapper,
-                       metadataOnly)
+                       assemblySymbolMapper)
 
             Debug.Assert(sourceAssembly IsNot Nothing)
             Debug.Assert(manifestResources IsNot Nothing)
 
             Me.m_SourceAssembly = sourceAssembly
             Me.m_AdditionalTypes = additionalTypes.NullToEmpty()
-            Me.m_MetadataName = If(outputName Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(outputName, extension:=Nothing))
+            Me.m_MetadataName = If(emitOptions.OutputName Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputName, extension:=Nothing))
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
 
@@ -186,15 +184,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEAssemblyBuilderBase
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
-                       outputName As String,
+                       emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
                        Optional assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity) = Nothing,
-                       Optional additionalTypes As ImmutableArray(Of NamedTypeSymbol) = Nothing,
-                       Optional metadataOnly As Boolean = False)
+                       Optional additionalTypes As ImmutableArray(Of NamedTypeSymbol) = Nothing)
 
-            MyBase.New(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes, metadataOnly)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
         End Sub
     End Class
 

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private const string AllowUnsafeString = "AllowUnsafe";
         private const string UsingsString = "Usings";
-        private const string RuntimeMetadataVersionString = "RuntimeMetadataVersion";
 
         private readonly CSharpCompilationOptions options; 
 
@@ -41,15 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 optimizationLevel: (OptimizationLevel)info.GetInt32(OptimizeString),
                 checkOverflow: info.GetBoolean(CheckOverflowString),
                 allowUnsafe: info.GetBoolean(AllowUnsafeString),
-                fileAlignment: info.GetInt32(FileAlignmentString),
-                baseAddress: info.GetUInt64(BaseAddressString),
                 platform: (Platform)info.GetInt32(PlatformString),
                 generalDiagnosticOption: (ReportDiagnostic)info.GetInt32(GeneralDiagnosticOptionString),
                 warningLevel: info.GetInt32(WarningLevelString),
                 specificDiagnosticOptions: ((Dictionary<string, ReportDiagnostic>)info.GetValue(SpecificDiagnosticOptionsString, typeof(Dictionary<string, ReportDiagnostic>))).ToImmutableDictionary(),
-                highEntropyVirtualAddressSpace: info.GetBoolean(HighEntropyVirtualAddressSpaceString),
-                subsystemVersion: SubsystemVersion.Create(info.GetInt32(SubsystemVersionMajorString), info.GetInt32(SubsystemVersionMinorString)),
-                runtimeMetadataVersion: info.GetString(RuntimeMetadataVersionString),
                 concurrentBuild: info.GetBoolean(ConcurrentBuildString),
                 xmlReferenceResolver: XmlFileResolver.Default,
                 sourceReferenceResolver: SourceFileResolver.Default,
@@ -67,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             info.AddValue(UsingsString, options.Usings.ToArray());
             info.AddValue(AllowUnsafeString, options.AllowUnsafe);
-            info.AddValue(RuntimeMetadataVersionString, options.RuntimeMetadataVersion);
         }
 
         public new CSharpCompilationOptions Options

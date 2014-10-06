@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2499,7 +2500,7 @@ class Program
         {
             var metadataStream1 = CSharpCompilation.Create("bar.dll",
                 references: new[] { MscorlibRef },
-                syntaxTrees: new[] { Parse("public enum Bar { Baz }") }).EmitToStream(metadataOnly: true);
+                syntaxTrees: new[] { Parse("public enum Bar { Baz }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
 
             var ref1 = MetadataReference.CreateFromStream(metadataStream1);
 
@@ -2508,7 +2509,7 @@ class Program
                     SyntaxFactory.ParseSyntaxTree(
                         "public class Ca : System.Attribute { public Ca(object o) { } } " +
                         "[Ca(Bar.Baz)]" +
-                        "public class Foo { }") }).EmitToStream(metadataOnly: true);
+                        "public class Foo { }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
 
             var ref2 = MetadataReference.CreateFromStream(metadataStream2);
 

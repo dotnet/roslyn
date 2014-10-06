@@ -12,6 +12,7 @@ using System.Reflection.Metadata;
 using Xunit;
 using MemoryStream = System.IO.MemoryStream;
 using System;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -127,7 +128,7 @@ class UsePia
 
             using (var executableStream = new MemoryStream())
             {
-                var result = compilation.EmitMetadataOnly(executableStream);
+                var result = compilation.Emit(executableStream, options: new EmitOptions(metadataOnly: true));
 
                 if (metadataOnlyShouldSucceed)
                 {

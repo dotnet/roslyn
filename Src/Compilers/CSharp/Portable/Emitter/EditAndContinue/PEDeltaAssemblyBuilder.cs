@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public PEDeltaAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
-            string outputName,
+            EmitOptions emitOptions,
             OutputKind outputKind,
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             EmitBaseline previousGeneration,
             IEnumerable<SemanticEdit> edits)
-            : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty, metadataOnly: false)
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
             var context = new EmitContext(this, null, new DiagnosticBag());
             var module = previousGeneration.OriginalMetadata;

@@ -69,7 +69,7 @@ End Module
     </compilation>, {SystemCoreRef})
             Dim executableStream = New MemoryStream()
             Dim pdbStream = New MemoryStream()
-            Dim result = comp1.Emit(executableStream, Nothing, "test.pdb", pdbStream)
+            Dim result = comp1.Emit(executableStream, pdbStream)
             Assert.Equal(1, result.Diagnostics.Where(Function(x) x.Code = 31522).Count())
         End Sub
 
@@ -301,7 +301,7 @@ End Module
     </compilation>)
             Dim executableStream = New MemoryStream()
             Dim pdbStream = New MemoryStream()
-            Dim result = comp1.Emit(executableStream, Nothing, "test.pdb", pdbStream)
+            Dim result = comp1.Emit(executableStream, pdbStream)
         End Sub
 
         <WorkItem(6999, "DevDiv_Projects/Roslyn")>
@@ -486,7 +486,7 @@ End Module
 
             ' using VerifyEmitDiagnostics would not test this issue, because it calls GetAll...Errors internally.
             ' the error was about using emit directly, which resulted in a NRE.
-            comp1.Emit(New MemoryStream(), "Test.exe", "Test.pdb", New MemoryStream()).Diagnostics.Verify(
+            comp1.Emit(New MemoryStream(), New MemoryStream()).Diagnostics.Verify(
                     Diagnostic(ERRID.ERR_CircularEvaluation1, "A").WithArguments("A")
                 )
         End Sub

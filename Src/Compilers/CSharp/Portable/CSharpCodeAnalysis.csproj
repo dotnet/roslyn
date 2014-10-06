@@ -836,6 +836,7 @@
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Roslyn.Scripting.CSharp" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />

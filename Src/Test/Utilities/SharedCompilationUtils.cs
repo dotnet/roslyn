@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 using (var pdbbits = new MemoryStream())
                 {
-                    compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+                    compilation.Emit(exebits, pdbbits);
 
                     pdbbits.Position = 0;
                     exebits.Position = 0;

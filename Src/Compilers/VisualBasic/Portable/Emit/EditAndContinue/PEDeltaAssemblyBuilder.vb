@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly m_Changes As SymbolChanges
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
-                       outputName As String,
+                       emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        previousGeneration As EmitBaseline,
                        edits As IEnumerable(Of SemanticEdit))
 
-            MyBase.New(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty, metadataOnly:=False)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
             Dim [module] = previousGeneration.OriginalMetadata

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -753,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadSubsystemVersion, value);
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidSubsystemVersion, value);
                                 }
 
                                 continue;
@@ -812,11 +813,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else if (!TryParseUInt16(value, out newAlignment))
                                 {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadFileAlignment, value);
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidFileAlignment, value);
                                 }
                                 else if (!CompilationOptions.IsValidFileAlignment(newAlignment))
                                 {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadFileAlignment, value);
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidFileAlignment, value);
                                 }
                                 else
                                 {
@@ -1032,16 +1033,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     cryptoKeyContainer: keyContainerSetting,
                     cryptoKeyFile: keyFileSetting,
                     delaySign: delaySignSetting,
-                    fileAlignment: fileAlignment,
-                    baseAddress: baseAddress,
                     platform: platform,
                     generalDiagnosticOption: generalDiagnosticOption,
                     warningLevel: warningLevel,
-                    specificDiagnosticOptions: diagnosticOptions,
+                    specificDiagnosticOptions: diagnosticOptions
+                ).WithFeatures(features.AsImmutable());
+
+                var emitOptions = new EmitOptions
+                (
+                    metadataOnly: false,
+                    debugInformationFormat: DebugInformationFormat.Pdb,
+                    pdbFilePath: null, // to be determined later
+                    outputName: null, // to be determined later
+                    baseAddress: baseAddress,
                     highEntropyVirtualAddressSpace: highEntropyVA,
+                    fileAlignment: fileAlignment,
                     subsystemVersion: subsystemVersion,
                     runtimeMetadataVersion: runtimeMetadataVersion
-                ).WithFeatures(features.AsImmutable());
+                );
 
                 // add option incompatibility errors if any
                 diagnostics.AddRange(options.Errors);
@@ -1077,6 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ManifestResources = managedResources.AsImmutable(),
                     CompilationOptions = options,
                     ParseOptions = IsInteractive ? scriptParseOptions : parseOptions,
+                    EmitOptions = emitOptions,
                     ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                     TouchedFilesPath = touchedFilesPath,
                     PrintFullPaths = printFullPaths,

@@ -3,6 +3,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -412,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 m_embeddedTrees = embeddedTrees
                 m_declarationTable = declarationTable
                 m_anonymousTypeManager = New AnonymousTypeManager(Me)
-                m_languageVersion = CommonLanguageVersion(syntaxTrees)
+                m_LanguageVersion = CommonLanguageVersion(syntaxTrees)
 
                 m_scriptClass = New Lazy(Of ImplicitNamedTypeSymbol)(AddressOf BindScriptClass)
 
@@ -2104,33 +2105,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Function CreateModuleBuilder(
-            outputName As String,
+            emitOptions As EmitOptions,
             manifestResources As IEnumerable(Of ResourceDescription),
             assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
             cancellationToken As CancellationToken,
             testData As CompilationTestData,
-            diagnostics As DiagnosticBag,
-            metadataOnly As Boolean) As CommonPEModuleBuilder
+            diagnostics As DiagnosticBag) As CommonPEModuleBuilder
 
             Return CreateModuleBuilder(
-                outputName,
+                emitOptions,
                 manifestResources,
                 assemblySymbolMapper,
                 cancellationToken,
                 testData,
                 diagnostics,
-                metadataOnly,
                 ImmutableArray(Of NamedTypeSymbol).Empty)
         End Function
 
         Friend Overloads Function CreateModuleBuilder(
-            outputName As String,
+            emitOptions As EmitOptions,
             manifestResources As IEnumerable(Of ResourceDescription),
             assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
             cancellationToken As CancellationToken,
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
-            metadataOnly As Boolean,
             additionalTypes As ImmutableArray(Of NamedTypeSymbol)) As CommonPEModuleBuilder
 
             Debug.Assert(diagnostics.IsEmptyWithoutResolution) ' True, but not required.
@@ -2144,7 +2142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
             Dim runtimeMetadataVersion = GetRuntimeMetadataVersion()
 
-            Dim moduleSerializationProperties = ConstructModuleSerializationProperties(runtimeMetadataVersion)
+            Dim moduleSerializationProperties = ConstructModuleSerializationProperties(emitOptions, runtimeMetadataVersion)
             If manifestResources Is Nothing Then
                 manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
             End If
@@ -2156,21 +2154,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 moduleBeingBuilt = New PENetModuleBuilder(
                     DirectCast(Me.SourceModule, SourceModuleSymbol),
-                    outputName,
+                    emitOptions,
                     moduleSerializationProperties,
-                    manifestResources,
-                    metadataOnly)
+                    manifestResources)
             Else
                 Dim kind = If(Options.OutputKind.IsValid(), Options.OutputKind, OutputKind.DynamicallyLinkedLibrary)
                 moduleBeingBuilt = New PEAssemblyBuilder(
                         SourceAssembly,
-                        outputName,
+                        emitOptions,
                         kind,
                         moduleSerializationProperties,
                         manifestResources,
                         assemblySymbolMapper,
-                        additionalTypes,
-                        metadataOnly)
+                        additionalTypes)
             End If
 
             If testData IsNot Nothing Then
@@ -2183,7 +2179,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function CompileImpl(
             moduleBuilder As CommonPEModuleBuilder,
-            outputName As String,
             win32Resources As Stream,
             xmlDocStream As Stream,
             cancellationToken As CancellationToken,
@@ -2199,7 +2194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(Me)
 
-            If moduleBeingBuilt.MetadataOnly Then
+            If moduleBeingBuilt.EmitOptions.EmitMetadataOnly Then
                 If hasDeclarationErrors Then
                     Return False
                 End If
@@ -2230,7 +2225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     cancellationToken)
 
 
-                Dim assemblyName = FileNameUtilities.ChangeExtension(outputName, extension:=Nothing)
+                Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputName, extension:=Nothing)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
                 Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)
@@ -2316,7 +2311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
-            updatedMethodTokens As ICollection(Of UInteger),
+            updatedMethods As ICollection(Of MethodHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -2327,7 +2322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethodTokens,
+                updatedMethods,
                 testData,
                 cancellationToken)
         End Function

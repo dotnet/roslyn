@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
             TestProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
             TestProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
-            TestProperty((old, value) => old.WithFileAlignment(value), opt => opt.FileAlignment, 2048);
-            TestProperty((old, value) => old.WithBaseAddress(value), opt => opt.BaseAddress, 100UL);
             TestProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
             TestProperty((old, value) => old.WithGeneralDiagnosticOption(value), opt => opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress);
             TestProperty((old, value) => old.WithWarningLevel(value), opt => opt.WarningLevel, 3);
@@ -80,9 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithSpecificDiagnosticOptions(value), opt => opt.SpecificDiagnosticOptions,
                 new Dictionary<string, ReportDiagnostic> { { "CS0001", ReportDiagnostic.Error } }.ToImmutableDictionary());
 
-            TestProperty((old, value) => old.WithHighEntropyVirtualAddressSpace(value), opt => opt.HighEntropyVirtualAddressSpace, true);
-            TestProperty((old, value) => old.WithSubsystemVersion(value), opt => opt.SubsystemVersion, SubsystemVersion.Windows2000);
-            TestProperty((old, value) => old.WithRuntimeMetadataVersion(value), opt => opt.RuntimeMetadataVersion, "v12345");
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
 
             TestProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
@@ -131,10 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel((OptimizationLevel)Int32.MinValue).VerifyErrors(
                 // error CS7088: Invalid 'OptimizationLevel' value: 'Int32.MinValue'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OptimizationLevel", Int32.MinValue.ToString()));
-
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithFileAlignment(513).VerifyErrors(
-                // error CS2024: Invalid file section alignment number '513'
-                Diagnostic(ErrorCode.ERR_BadFileAlignment).WithArguments("513"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithPlatform((Platform)Int32.MaxValue).VerifyErrors(
                 // error CS1672: Invalid option 'Int32.MaxValue' for /platform; must be anycpu, x86, Itanium or x64
@@ -265,9 +256,7 @@ Parameter name: ModuleName")
                 // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0foo"));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: null).VerifyErrors(
-                // error CS7088: Invalid 'ScriptClassName' value: 'null'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "null"));
+            Assert.Equal("Script", new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: null).ScriptClassName);
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "blah\0foo").VerifyErrors(
                 // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
@@ -301,14 +290,6 @@ Parameter name: ModuleName")
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: (OptimizationLevel)Int32.MinValue).VerifyErrors(
                 // error CS7088: Invalid 'OptimizationLevel' value: 'Int32.MinValue'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OptimizationLevel", Int32.MinValue.ToString()));
-
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, fileAlignment: 513).VerifyErrors(
-                // error CS2024: Invalid file section alignment number '513'
-                Diagnostic(ErrorCode.ERR_BadFileAlignment).WithArguments("513"));
-
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, platform: (Platform)Int32.MaxValue).VerifyErrors(
-                // error CS1672: Invalid option 'Int32.MaxValue' for /platform; must be anycpu, x86, Itanium or x64
-                Diagnostic(ErrorCode.ERR_BadPlatformType).WithArguments(Int32.MaxValue.ToString()));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, platform: (Platform)Int32.MinValue).VerifyErrors(
                 // error CS1672: Invalid option 'Int32.MinValue' for /platform; must be anycpu, x86, Itanium or x64
@@ -345,7 +326,6 @@ Parameter name: ModuleName")
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CSharpCompilationOptions),
                 "AllowUnsafe",
-                "RuntimeMetadataVersion",
                 "Usings");
         }
 
@@ -367,15 +347,10 @@ Parameter name: ModuleName")
             string cryptoKeyContainer = null;
             string cryptoKeyFile = null;
             bool? delaySign = null;
-            int fileAlignment = 0;
-            ulong baseAddress = 0;
             Platform platform = 0;
             ReportDiagnostic generalDiagnosticOption = 0;
             int warningLevel = 0;
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
-            bool highEntropyVirtualAddressSpace = false;
-            SubsystemVersion subsystemVersion = default(SubsystemVersion);
-            string runtimeMetadataVersion = null;
             bool concurrentBuild = false;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
             SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
@@ -386,9 +361,9 @@ Parameter name: ModuleName")
             MetadataImportOptions metadataImportOptions = 0;
             ImmutableArray<string> features = ImmutableArray<string>.Empty;
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, moduleName, mainTypeName, scriptClassName, usings,
-                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress,
-                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, 
-                subsystemVersion, runtimeMetadataVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider,
+                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, 
+                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,  
+                concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features);
         }
 
@@ -399,8 +374,7 @@ Parameter name: ModuleName")
                 outputKind: OutputKind.WindowsApplication,
                 usings: new[] { "F", "G" },
                 generalDiagnosticOption: ReportDiagnostic.Hidden,
-                specificDiagnosticOptions: new[] { KeyValuePair.Create("CS0001", ReportDiagnostic.Suppress) },
-                subsystemVersion: SubsystemVersion.Windows2000)));
+                specificDiagnosticOptions: new[] { KeyValuePair.Create("CS0001", ReportDiagnostic.Suppress) })));
         }
     }
 }

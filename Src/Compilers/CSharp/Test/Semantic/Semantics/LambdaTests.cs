@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -444,7 +445,7 @@ class Program
 }
 ";
             var metadataStream = new MemoryStream();
-            var emitResult = vbProject.EmitMetadataOnly(metadataStream);
+            var emitResult = vbProject.Emit(metadataStream, options:new EmitOptions(metadataOnly:true));
             Assert.True(emitResult.Success);
 
             var csProject = CreateCompilationWithMscorlib(
@@ -493,7 +494,7 @@ class Program
     }
 }
 ";
-            var vbMetadata = vbProject.EmitToArray(metadataOnly: true);
+            var vbMetadata = vbProject.EmitToArray(options: new EmitOptions(metadataOnly: true));
             var csProject = CreateCompilationWithMscorlib(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
 
             var diagnostics = csProject.GetDiagnostics().Select(DumpDiagnostic);

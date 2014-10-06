@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -184,7 +185,7 @@ public class B
 
             using (var executableStream = new MemoryStream())
             {
-                var result = compilation2.EmitMetadataOnly(executableStream);
+                var result = compilation2.Emit(executableStream, options: new EmitOptions(metadataOnly: true));
                 Assert.True(result.Success);
                 result.Diagnostics.Verify();
             }

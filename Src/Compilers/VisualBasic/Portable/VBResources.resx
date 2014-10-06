@@ -2244,6 +2244,15 @@
   <data name="ERR_InvalidSubsystemVersion" xml:space="preserve">
     <value>The value '{0}' is not a valid subsystem version. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise.</value>
   </data>
+  <data name="ERR_InvalidFileAlignment" xml:space="preserve">
+    <value>Invalid file section alignment '{0}'</value>
+  </data>
+  <data name="ERR_InvalidOutputName" xml:space="preserve">
+    <value>Invalid output name: {0}</value>
+  </data>
+  <data name="ERR_InvalidDebugInformationFormat" xml:space="preserve">
+    <value>Invalid debug information format: {0}</value>
+  </data>
   <data name="ERR_LibAnycpu32bitPreferredConflict" xml:space="preserve">
     <value>/platform:anycpu32bitpreferred can only be used with /t:exe, /t:winexe and /t:appcontainerexe.</value>
   </data>

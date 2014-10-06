@@ -2377,7 +2377,7 @@ End Class";
             Assert.Equal(interfacePropertySetter, classPropertySetter.ExplicitInterfaceImplementations.Single());
 
             var typeDef = (Microsoft.Cci.ITypeDefinition)@class;
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
+            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag());

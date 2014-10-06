@@ -182,22 +182,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             using (var executableStream = new MemoryStream())
             {
                 MemoryStream pdbStream = new MemoryStream();
-                string pdbFilePath = compilation.AssemblyName + ".pdb";
 
                 EmitResult result;
                 try
                 {
                     result = compilation.Emit(
                         executableStream,
-                        outputName: null,
-                        pdbFilePath: pdbFilePath,
                         pdbStream: pdbStream,
                         xmlDocumentationStream: null,
-                        cancellationToken: default(CancellationToken),
                         win32Resources: null,
                         manifestResources: manifestResources,
-                        metadataOnly: false,
-                        testData: testData);
+                        options: EmitOptions.Default,
+                        testData: testData,
+                        cancellationToken: default(CancellationToken));
                 }
                 finally
                 {

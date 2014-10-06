@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -539,16 +540,8 @@ class Query
                     tasks[j] = Task.Run(() =>
                     {
                         var stream = new MemoryStream();
-                        if (j % 2 == 0)
-                        {
-                            var result = compilation.EmitMetadataOnly(stream);
-                            result.Diagnostics.Verify();
-                        }
-                        else
-                        {
-                            var result = compilation.Emit(stream);
-                            result.Diagnostics.Verify();
-                        }
+                        var result = compilation.Emit(stream, options: new EmitOptions(metadataOnly: j % 2 == 0));
+                        result.Diagnostics.Verify();
                     });
                 }
 

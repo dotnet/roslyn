@@ -26,15 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public ImmutableArray<string> Usings { get; private set; }
 
-        internal string RuntimeMetadataVersion { get; private set; }
-
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
         public CSharpCompilationOptions(
             OutputKind outputKind,
             string moduleName = null,
             string mainTypeName = null,
-            string scriptClassName = WellKnownMemberNames.DefaultScriptClassName,
+            string scriptClassName = null,
             IEnumerable<string> usings = null,
             OptimizationLevel optimizationLevel = OptimizationLevel.Debug,
             bool checkOverflow = false,
@@ -42,15 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             string cryptoKeyContainer = null,
             string cryptoKeyFile = null,
             bool? delaySign = null,
-            int fileAlignment = 0,
-            ulong baseAddress = 0,
             Platform platform = Platform.AnyCpu,
             ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default,
             int warningLevel = 4,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null,
-            bool highEntropyVirtualAddressSpace = false,
-            SubsystemVersion subsystemVersion = default(SubsystemVersion),
-            string runtimeMetadataVersion = null,
             bool concurrentBuild = true,
             XmlReferenceResolver xmlReferenceResolver = null,
             SourceReferenceResolver sourceReferenceResolver = null,
@@ -59,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblyIdentityComparer assemblyIdentityComparer = null,
             StrongNameProvider strongNameProvider = null)
             : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
-                   cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress, platform, generalDiagnosticOption, warningLevel,
-                   specificDiagnosticOptions, highEntropyVirtualAddressSpace, subsystemVersion, runtimeMetadataVersion, concurrentBuild,
+                   cryptoKeyContainer, cryptoKeyFile, delaySign, platform, generalDiagnosticOption, warningLevel,
+                   specificDiagnosticOptions, concurrentBuild,
                    xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: ImmutableArray<string>.Empty)
         {
         }
@@ -78,15 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             string cryptoKeyContainer,
             string cryptoKeyFile,
             bool? delaySign,
-            int fileAlignment,
-            ulong baseAddress,
             Platform platform,
             ReportDiagnostic generalDiagnosticOption,
             int warningLevel,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
-            bool highEntropyVirtualAddressSpace,
-            SubsystemVersion subsystemVersion,
-            string runtimeMetadataVersion,
             bool concurrentBuild,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
@@ -96,13 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
             ImmutableArray<string> features)
-            : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimizationLevel, checkOverflow, fileAlignment, baseAddress,
-                   platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(), highEntropyVirtualAddressSpace,
-                   subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features)
+            : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimizationLevel, checkOverflow, 
+                   platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
+                   concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, 
+                   strongNameProvider, metadataImportOptions, features)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
-            this.RuntimeMetadataVersion = runtimeMetadataVersion;
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -117,15 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             cryptoKeyContainer: other.CryptoKeyContainer,
             cryptoKeyFile: other.CryptoKeyFile,
             delaySign: other.DelaySign,
-            fileAlignment: other.FileAlignment,
-            baseAddress: other.BaseAddress,
             platform: other.Platform,
             generalDiagnosticOption: other.GeneralDiagnosticOption,
             warningLevel: other.WarningLevel,
             specificDiagnosticOptions: other.SpecificDiagnosticOptions,
-            highEntropyVirtualAddressSpace: other.HighEntropyVirtualAddressSpace,
-            subsystemVersion: other.SubsystemVersion,
-            runtimeMetadataVersion: other.RuntimeMetadataVersion,
             concurrentBuild: other.ConcurrentBuild,
             xmlReferenceResolver: other.XmlReferenceResolver,
             sourceReferenceResolver: other.SourceReferenceResolver,
@@ -156,16 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { ModuleName = moduleName };
-        }
-
-        public CSharpCompilationOptions WithSubsystemVersion(SubsystemVersion subsystemVersion)
-        {
-            if (subsystemVersion.Equals(this.SubsystemVersion))
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { SubsystemVersion = subsystemVersion };
         }
 
         public CSharpCompilationOptions WithScriptClassName(string name)
@@ -268,30 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { AllowUnsafe = enabled };
         }
 
-        /// <summary>
-        /// Sets the byte alignment for portable executable file sections.
-        /// </summary>
-        /// <param name="value">Can be one of the following values: 0, 512, 1024, 2048, 4096, 8192</param>
-        public CSharpCompilationOptions WithFileAlignment(int value)
-        {
-            if (this.FileAlignment == value)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { FileAlignment = value };
-        }
-
-        public CSharpCompilationOptions WithBaseAddress(ulong value)
-        {
-            if (this.BaseAddress == value)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { BaseAddress = value };
-        }
-
         public new CSharpCompilationOptions WithPlatform(Platform platform)
         {
             if (this.Platform == platform)
@@ -300,16 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { Platform = platform };
-        }
-
-        public CSharpCompilationOptions WithHighEntropyVirtualAddressSpace(bool value)
-        {
-            if (this.HighEntropyVirtualAddressSpace == value)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { HighEntropyVirtualAddressSpace = value };
         }
 
         protected override CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value)
@@ -395,16 +334,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { Features = features };
-        }
-
-        internal CSharpCompilationOptions WithRuntimeMetadataVersion(string version)
-        {
-            if (RuntimeMetadataVersion == version)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { RuntimeMetadataVersion = version };
         }
 
         public new CSharpCompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
@@ -535,11 +464,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (FileAlignment != 0 && !IsValidFileAlignment(FileAlignment))
-            {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadFileAlignment, FileAlignment));
-            }
-
             if (!Platform.IsValid())
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadPlatformType, Platform.ToString()));
@@ -562,11 +486,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!OptimizationLevel.IsValid())
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "OptimizationLevel", OptimizationLevel.ToString()));
-            }
-
-            if (!SubsystemVersion.Equals(SubsystemVersion.None) && !SubsystemVersion.IsValid)
-            {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadSubsystemVersion, SubsystemVersion.ToString()));
             }
 
             if (ScriptClassName == null || !ScriptClassName.IsValidClrTypeName())
@@ -607,7 +526,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return this.AllowUnsafe == other.AllowUnsafe &&
-                   this.RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
                    (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal));
         }
 
@@ -620,8 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(base.GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
-                   Hash.Combine(this.RuntimeMetadataVersion,
-                   Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal), 0))));
+                   Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal), 0)));
         }
     }
 }

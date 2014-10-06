@@ -48,26 +48,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
-            string outputName,
+            EmitOptions emitOptions,
             OutputKind outputKind,
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
-            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            bool metadataOnly)
+            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper)
             : base(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
                    sourceModule, 
                    serializationProperties, 
                    manifestResources,
                    outputKind,
-                   assemblySymbolMapper, 
-                   metadataOnly,
+                   assemblySymbolMapper,
+                   emitOptions,
                    new ModuleCompilationState())
         {
             var specifiedName = sourceModule.MetadataName;
 
             metadataName = specifiedName != Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName ?
                             specifiedName :
-                            outputName ?? specifiedName;
+                            emitOptions.OutputName ?? specifiedName;
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, this);
 
@@ -338,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
         {
-            if (MetadataOnly)
+            if (EmitOptions.EmitMetadataOnly)
             {
                 return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
             }

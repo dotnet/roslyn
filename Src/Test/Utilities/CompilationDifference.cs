@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public readonly Stream PdbDelta;
         public readonly CompilationTestData TestData;
         public readonly EmitDifferenceResult EmitResult;
-        public readonly ImmutableArray<uint> UpdatedMethods;
+        public readonly ImmutableArray<MethodHandle> UpdatedMethods;
 
         public CompilationDifference(
             ImmutableArray<byte> metadata, 
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitBaseline nextGeneration,
             CompilationTestData testData,
             EmitDifferenceResult result,
-            ImmutableArray<uint> methodTokens)
+            ImmutableArray<MethodHandle> methodHandles)
         {
             this.MetadataDelta = metadata;
             this.ILDelta = il;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.NextGeneration = nextGeneration;
             this.TestData = testData;
             this.EmitResult = result;
-            this.UpdatedMethods = methodTokens;
+            this.UpdatedMethods = methodHandles;
         }
 
         public PinnedMetadata GetMetadata()
@@ -60,16 +61,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName, 
             string expectedIL, 
             Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null, 
-            uint methodToken = 0,
+            MethodHandle methodToken = default(MethodHandle),
             [CallerFilePath]string callerPath = null, 
             [CallerLineNumber]int callerLine = 0)
         {
             var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
 
             Dictionary<int, string> sequencePointMarkers = null;
-            if (methodToken != 0)
+            if (!methodToken.IsNil)
             {
-                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, new[] { methodToken });
+                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, new[] { (uint)MetadataTokens.GetToken(methodToken) });
                 sequencePointMarkers = TestBase.GetSequencePointMarkers(actualPdb);
             }
 

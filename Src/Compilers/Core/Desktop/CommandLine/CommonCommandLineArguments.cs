@@ -9,6 +9,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -53,6 +54,11 @@ namespace Microsoft.CodeAnalysis
         /// Compilation name or null if not specified.
         /// </summary>
         public string CompilationName { get; internal set; }
+
+        /// <summary>
+        /// Gets the emit options.
+        /// </summary>
+        public EmitOptions EmitOptions { get; internal set; }
 
         /// <summary>
         /// Name of the output file or null if not specified.

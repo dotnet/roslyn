@@ -2,7 +2,9 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection.Metadata
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 
@@ -17,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
-            updatedMethodTokens As ICollection(Of UInteger),
+            updatedMethods As ICollection(Of MethodHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -31,13 +33,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb")
             Dim diagnostics = DiagnosticBag.GetInstance()
+
+            Dim emitOpts = EmitOptions.Default
             Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
-            Dim serializationProperties = compilation.ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId)
+            Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, moduleVersionId)
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
 
             Dim moduleBeingBuilt = New PEDeltaAssemblyBuilder(
                     compilation.SourceAssembly,
-                    outputName:=Nothing,
+                    emitOptions:=emitOpts,
                     outputKind:=compilation.Options.OutputKind,
                     serializationProperties:=serializationProperties,
                     manifestResources:=manifestResources,
@@ -56,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim changes = moduleBeingBuilt.Changes
 
             If compilation.Compile(moduleBeingBuilt,
-                                   outputName:=Nothing,
                                    win32Resources:=Nothing,
                                    xmlDocStream:=Nothing,
                                    cancellationToken:=cancellationToken,
@@ -86,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                         Dim metadataSizes As Cci.MetadataSizes = Nothing
                         writer.WriteMetadataAndIL(metadataStream, ilStream, metadataSizes)
-                        writer.GetMethodTokens(updatedMethodTokens)
+                        writer.GetMethodTokens(updatedMethods)
 
                         Return New EmitDifferenceResult(
                             success:=True,

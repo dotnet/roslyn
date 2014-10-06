@@ -10,12 +10,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Sub New(
                sourceModule As SourceModuleSymbol,
-               outputName As String,
+               emitOptions As EmitOptions,
                serializationProperties As ModulePropertiesForSerialization,
-               manifestResources As IEnumerable(Of ResourceDescription),
-               metadataOnly As Boolean)
+               manifestResources As IEnumerable(Of ResourceDescription))
 
-            MyBase.New(sourceModule, outputName, CodeAnalysis.OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing, metadataOnly:=metadataOnly)
+            MyBase.New(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing)
         End Sub
 
         Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)

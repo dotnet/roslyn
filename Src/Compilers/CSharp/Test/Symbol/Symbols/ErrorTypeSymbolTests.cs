@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "91AB32B7-DDDF-4E50-87EF-4E8B0A664A41");
             compilation1.VerifyDiagnostics();
-            var reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray(true));
+            var reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray(options: new EmitOptions(metadataOnly: true)));
 
             // Binding types in source, no missing types.
             var source2 =
@@ -37,7 +38,7 @@ class C7 : A<string>.B<object> { }";
             var compilation2 = CreateCompilationWithMscorlib(source2, references: new[] { reference1 }, assemblyName: "91AB32B7-DDDF-4E50-87EF-4E8B0A664A42");
             compilation2.VerifyDiagnostics();
             CompareConstructedErrorTypes(compilation2, missingTypes: false, fromSource: true);
-            var reference2 = MetadataReference.CreateFromImage(compilation2.EmitToArray(true));
+            var reference2 = MetadataReference.CreateFromImage(compilation2.EmitToArray(options: new EmitOptions(metadataOnly: true)));
 
             // Loading types from metadata, no missing types.
             var source3 =

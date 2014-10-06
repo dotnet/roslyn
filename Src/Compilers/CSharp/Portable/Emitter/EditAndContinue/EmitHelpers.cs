@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<uint> updatedMethodTokens,
+            ICollection<MethodHandle> updatedMethods,
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
@@ -32,19 +33,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             catch (BadImageFormatException)
             {
+                // TODO:
                 // return MakeEmitResult(success: false, diagnostics: ..., baseline: null);
                 throw;
             }
 
             var pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb");
             var diagnostics = DiagnosticBag.GetInstance();
-            string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(diagnostics);
-            var serializationProperties = compilation.ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId);
+
+            var emitOptions = EmitOptions.Default;
+            string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
+            var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, moduleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
             var moduleBeingBuilt = new PEDeltaAssemblyBuilder(
                 compilation.SourceAssembly,
-                outputName: null,
+                emitOptions: emitOptions,
                 outputKind: compilation.Options.OutputKind,
                 serializationProperties: serializationProperties,
                 manifestResources: manifestResources,
@@ -65,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (compilation.Compile(
                 moduleBeingBuilt,
-                outputName: null,
                 win32Resources: null,
                 xmlDocStream: null,
                 cancellationToken: cancellationToken,
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                         Cci.MetadataSizes metadataSizes;
                         writer.WriteMetadataAndIL(metadataStream, ilStream, out metadataSizes);
-                        writer.GetMethodTokens(updatedMethodTokens);
+                        writer.GetMethodTokens(updatedMethods);
 
                         return new EmitDifferenceResult(
                             success: true,

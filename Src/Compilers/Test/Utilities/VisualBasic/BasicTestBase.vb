@@ -35,7 +35,7 @@ Public MustInherit Class BasicTestBase
         End If
     End Function
 
-    ' TODO (tomat): EmitOptions.All
+    ' TODO (tomat): TestEmitOptions.All
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         expectedOutput As XCData,
@@ -72,7 +72,7 @@ Public MustInherit Class BasicTestBase
             verify)
     End Function
 
-    ' TODO (tomat): remove - here only to override EmitOptions default
+    ' TODO (tomat): remove - here only to override TestEmitOptions default
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
@@ -231,7 +231,7 @@ Public MustInherit Class BasicTestBase
             verify:=OSVersion.IsWin8)
     End Function
 
-    ' TODO (tomat): EmitOptions.All
+    ' TODO (tomat): TestEmitOptions.All
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         expectedOutput As XCData,

@@ -1022,7 +1022,7 @@ public class A { }";
             {
                 using (var outputPdb = pdb1.Open())
                 {
-                    c1.Emit(output, null, pdb1.Path, outputPdb, null);
+                    c1.Emit(output, outputPdb);
                 }
             }
 
@@ -1030,7 +1030,7 @@ public class A { }";
             {
                 using (var outputPdb = pdb2.Open())
                 {
-                    c1.Emit(output, null, pdb2.Path, outputPdb, null);
+                    c1.Emit(output, outputPdb);
                 }
             }
 

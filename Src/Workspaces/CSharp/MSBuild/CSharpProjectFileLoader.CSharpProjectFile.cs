@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetHighEntropyVA(bool highEntropyVA)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithHighEntropyVirtualAddressSpace(highEntropyVA);
+                    // we don't capture emit options
                     return true;
                 }
 
@@ -360,19 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetSubsystemVersion(string subsystemVersion)
                 {
-                    SubsystemVersion parsedVersion;
-
-                    if (!string.IsNullOrEmpty(subsystemVersion))
-                    {
-                        if (SubsystemVersion.TryParse(subsystemVersion, out parsedVersion))
-                        {
-                            this.CompilationOptions = this.CompilationOptions.WithSubsystemVersion(parsedVersion);
-                        }
-
-                        return true;
-                    }
-
-                    return false;
+                    // we don't capture emit options
+                    return true;
                 }
 
                 public bool SetApplicationConfiguration(string applicationConfiguration)
@@ -431,14 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetBaseAddress(string baseAddress)
                 {
-                    ulong addr;
-                    if (ulong.TryParse(baseAddress, out addr))
-                    {
-                        this.CompilationOptions = this.CompilationOptions.WithBaseAddress(addr);
-                        return true;
-                    }
-
-                    return false;
+                    // we don't capture emit options
+                    return true;
                 }
 
                 public bool SetCheckForOverflowUnderflow(bool checkForOverflowUnderflow)
@@ -523,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetFileAlignment(int fileAlignment)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithFileAlignment(fileAlignment);
+                    // we don't capture emit options
                     return true;
                 }
 

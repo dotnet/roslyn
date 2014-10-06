@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 Imports Roslyn.Test.Utilities
-
+Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class BaseClassTests
@@ -2232,7 +2232,7 @@ End Class
             compilation.VerifyDiagnostics()
             c2.VerifyDiagnostics()
 
-            Dim compilationImage = compilation.EmitToArray(metadataOnly:=True)
+            Dim compilationImage = compilation.EmitToArray(options:=New EmitOptions(metadataOnly:=True))
             CompilationUtils.CreateCompilationWithMscorlibAndReferences(c2Source, {MetadataReference.CreateFromImage(compilationImage)}).VerifyDiagnostics()
         End Sub
 

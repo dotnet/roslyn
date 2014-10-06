@@ -11,6 +11,7 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -324,7 +325,15 @@ public class en_US
                 //       I verified that the actual assemblies being compiled only differ by MVID before/after, so I don't think
                 //       it's a product issue.  I *think* that one of the CompileAndVerify calls above may have been writing the
                 //       neutral assembly to disk somewhere that Fusion could find and load it (perhaps RefEmit wrote it to disk?).
-                dependencies: new[] { new ModuleData(neutral.Assembly.Identity, OutputKind.DynamicallyLinkedLibrary, neutral.EmitToArray(metadataOnly: true), pdb: default(ImmutableArray<byte>), inMemoryModule: true) },
+                dependencies: new[]
+                {
+                    new ModuleData(
+                        neutral.Assembly.Identity,
+                        OutputKind.DynamicallyLinkedLibrary, 
+                        neutral.EmitToArray(options: new EmitOptions(metadataOnly: true)), 
+                        pdb: default(ImmutableArray<byte>), 
+                        inMemoryModule: true)
+                },
                 sourceSymbolValidator: m =>
                     {
                         Assert.Equal(1, m.GetReferencedAssemblySymbols().Length);

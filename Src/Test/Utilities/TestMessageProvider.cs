@@ -291,5 +291,37 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
+
+        public override int ERR_InvalidDebugInformationFormat
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override int ERR_InvalidFileAlignment
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override int ERR_InvalidSubsystemVersion
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override int ERR_InvalidOutputName
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }

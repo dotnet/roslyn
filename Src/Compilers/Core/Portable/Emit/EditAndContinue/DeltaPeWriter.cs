@@ -209,13 +209,13 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Return tokens for all modified methods.
         /// </summary>
-        public void GetMethodTokens(ICollection<uint> methods)
+        public void GetMethodTokens(ICollection<MethodHandle> methods)
         {
             foreach (var def in this.methodDefs.GetRows())
             {
                 if (!this.methodDefs.IsAddedNotChanged(def))
                 {
-                    methods.Add(TokenTypeIds.MethodDef | this.methodDefs[def]);
+                    methods.Add(MetadataTokens.MethodHandle((int)this.methodDefs[def]));
                 }
             }
         }

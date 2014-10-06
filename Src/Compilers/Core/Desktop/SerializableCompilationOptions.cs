@@ -21,18 +21,13 @@ namespace Microsoft.CodeAnalysis
         protected const string CryptoKeyFileString = "CryptoKeyFile";
         protected const string DelaySignString = "DelaySign";
         protected const string CheckOverflowString = "CheckOverflow";
-        protected const string FileAlignmentString = "FileAlignment";
-        protected const string BaseAddressString = "BaseAddress";
         protected const string PlatformString = "Platform";
         protected const string GeneralDiagnosticOptionString = "GeneralDiagnosticOption";
         protected const string WarningLevelString = "WarningLevel";
         protected const string SpecificDiagnosticOptionsString = "SpecificDiagnosticOptions";
-        protected const string HighEntropyVirtualAddressSpaceString = "HighEntropyVirtualAddressSpace";
         protected const string DebugInformationKindString = "DebugInformationKind";
         protected const string OptimizeString = "Optimize";
         protected const string ConcurrentBuildString = "ConcurrentBuild";
-        protected const string SubsystemVersionMajorString = "SubsystemVersionMajor";
-        protected const string SubsystemVersionMinorString = "SubsystemVersionMinor";
         protected const string MetadataImportOptionsString = "MetadataImportOptions";
         protected const string FeaturesString = "Features";
 
@@ -50,16 +45,11 @@ namespace Microsoft.CodeAnalysis
             info.AddValue(CryptoKeyFileString, options.CryptoKeyFile);
             info.AddValue(DelaySignString, options.DelaySign);
             info.AddValue(CheckOverflowString, options.CheckOverflow);
-            info.AddValue(FileAlignmentString, options.FileAlignment);
-            info.AddValue(BaseAddressString, options.BaseAddress);
             info.AddValue(PlatformString, (int)options.Platform);
             info.AddValue(GeneralDiagnosticOptionString, (int)options.GeneralDiagnosticOption);
             info.AddValue(WarningLevelString, options.WarningLevel);
             info.AddValue(SpecificDiagnosticOptionsString, new Dictionary<string, ReportDiagnostic>(options.SpecificDiagnosticOptions));
-            info.AddValue(HighEntropyVirtualAddressSpaceString, options.HighEntropyVirtualAddressSpace);
             info.AddValue(OptimizeString, (int)options.OptimizationLevel);
-            info.AddValue(SubsystemVersionMajorString, options.SubsystemVersion.Major);
-            info.AddValue(SubsystemVersionMinorString, options.SubsystemVersion.Minor);
             info.AddValue(ConcurrentBuildString, options.ConcurrentBuild);
             info.AddValue(MetadataImportOptionsString, (byte)options.MetadataImportOptions);
             info.AddValue(FeaturesString, options.Features.ToArray());

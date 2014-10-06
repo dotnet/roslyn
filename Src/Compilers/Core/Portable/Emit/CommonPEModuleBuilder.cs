@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class CommonPEModuleBuilder
     {
+        internal abstract EmitOptions EmitOptions { get; }
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference EntryPoint { get; }
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly TSourceModuleSymbol sourceModule;
         private readonly TCompilation compilation;
         private readonly OutputKind outputKind;
+        private readonly EmitOptions emitOptions;
         private readonly ModulePropertiesForSerialization serializationProperties;
         private readonly ConcurrentCache<ValueTuple<string, string>, string> normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
         
@@ -69,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal Cci.ResourceSection Win32ResourceSection { set; private get; }
 
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
-        internal readonly bool MetadataOnly;
         internal readonly TModuleCompilationState CompilationState;
 
         // This is a map from the document "name" to the document.
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IEnumerable<ResourceDescription> manifestResources,
             OutputKind outputKind,
             Func<TAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            bool metadataOnly,
+            EmitOptions emitOptions,
             TModuleCompilationState compilationState)
         {
             Debug.Assert(sourceModule != null);
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.ManifestResources = manifestResources;
             this.outputKind = outputKind;
             this.assemblySymbolMapper = assemblySymbolMapper;
-            this.MetadataOnly = metadataOnly;
+            this.emitOptions = emitOptions;
             this.CompilationState = compilationState;
 
             if (compilation.IsCaseSensitive)
@@ -119,6 +120,11 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed override void CompilationFinished()
         {
             this.CompilationState.Freeze();
+        }
+
+        internal override EmitOptions EmitOptions
+        {
+            get { return emitOptions; }
         }
 
         internal abstract string ModuleName { get; }

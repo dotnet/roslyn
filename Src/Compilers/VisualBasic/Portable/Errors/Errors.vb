@@ -978,6 +978,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BaseTypeReferences2 = 31448
         ERR_IllegalBaseTypeReferences3 = 31449
         ERR_InvalidCoClass1 = 31450
+        ERR_InvalidOutputName = 31451
+        ERR_InvalidFileAlignment = 31452
+        ERR_InvalidDebugInformationFormat = 31453
 
         '// NOTE: If you add any new errors that may be attached to a symbol during meta-import when it is marked as bad,
         '//       particularly if it applies to method symbols, please appropriately modify Bindable::ResolveOverloadingShouldSkipBadMember.

@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -12504,10 +12505,9 @@ expectedOutput: "-100");
             var diagnostics = DiagnosticBag.GetInstance();
 
             var assembly = (SourceAssemblySymbol)compilation.Assembly;
-            var outputName = GetUniqueName();
             var module = new PEAssemblyBuilder(
                 assembly,
-                outputName,
+                EmitOptions.Default,
                 options.OutputKind,
                 GetDefaultModulePropertiesForSerialization(),
                 new ResourceDescription[0],

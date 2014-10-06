@@ -2676,7 +2676,7 @@
   <data name="ERR_ExpressionExpected" xml:space="preserve">
     <value>Expected expression</value>
   </data>
-  <data name="ERR_BadSubsystemVersion" xml:space="preserve">
+  <data name="ERR_InvalidSubsystemVersion" xml:space="preserve">
     <value>Invalid version {0} for /subsystemversion. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise</value>
   </data>
   <data name="ERR_InteropMethodWithBody" xml:space="preserve">
@@ -2874,8 +2874,14 @@
   <data name="WRN_NoConfigNotOnCommandLine" xml:space="preserve">
     <value>Ignoring /noconfig option because it was specified in a response file</value>
   </data>
-  <data name="ERR_BadFileAlignment" xml:space="preserve">
-    <value>Invalid file section alignment number '{0}'</value>
+  <data name="ERR_InvalidFileAlignment" xml:space="preserve">
+    <value>Invalid file section alignment '{0}'</value>
+  </data>
+  <data name="ERR_InvalidOutputName" xml:space="preserve">
+    <value>Invalid output name: {0}</value>
+  </data>
+  <data name="ERR_InvalidDebugInformationFormat" xml:space="preserve">
+    <value>Invalid debug information format: {0}</value>
   </data>
   <data name="WRN_DefineIdentifierRequired" xml:space="preserve">
     <value>Invalid value for '/define'; '{0}' is not a valid identifier</value>

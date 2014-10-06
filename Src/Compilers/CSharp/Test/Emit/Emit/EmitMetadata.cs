@@ -206,7 +206,7 @@ public class Test : Class2
 
             PEAssemblyBuilder assembly = new PEAssemblyBuilder(
                 (SourceAssemblySymbol)compilation.Assembly,
-                null,
+                EmitOptions.Default,
                 compilation.Options.OutputKind,
                 GetDefaultModulePropertiesForSerialization(),
                 Enumerable.Empty<ResourceDescription>(),
@@ -1410,7 +1410,7 @@ class C : B<string>
                 Assert.Equal(field.DeclaredAccessibility, Accessibility.Public); // Dev10: value__ is public
                 Assert.Equal(field.Type, type.EnumUnderlyingType);
 
-                var module = new PEAssemblyBuilder((SourceAssemblySymbol)sourceType.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
+                var module = new PEAssemblyBuilder((SourceAssemblySymbol)sourceType.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                     GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
                 var context = new EmitContext(module, null, new DiagnosticBag());

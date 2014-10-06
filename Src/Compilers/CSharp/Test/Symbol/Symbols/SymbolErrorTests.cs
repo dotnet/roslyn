@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -95,12 +96,12 @@ class Test
 
             var module2 = CreateCompilationWithMscorlib(text2,
                 options: TestOptions.ReleaseModule,
-                references: new[] { ModuleMetadata.CreateFromImage(module1.EmitToArray(metadataOnly: true)).GetReference() });
+                references: new[] { ModuleMetadata.CreateFromImage(module1.EmitToArray(options: new EmitOptions(metadataOnly: true))).GetReference() });
 
             // use ref2 only
             var comp = CreateCompilationWithMscorlib(text,
                 options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>() { { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_UnreferencedField), ReportDiagnostic.Suppress } }),
-                references: new[] { ModuleMetadata.CreateFromImage(module2.EmitToArray(metadataOnly: true)).GetReference() });
+                references: new[] { ModuleMetadata.CreateFromImage(module2.EmitToArray(options: new EmitOptions(metadataOnly: true))).GetReference() });
 
             comp.VerifyDiagnostics(
                 // error CS8014: Reference to '1b2d660e-e892-4338-a4e7-f78ce7960ce9.netmodule' netmodule missing.

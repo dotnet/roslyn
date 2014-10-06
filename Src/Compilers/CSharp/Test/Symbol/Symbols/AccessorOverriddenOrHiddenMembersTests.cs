@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -830,7 +831,7 @@ public class G<T>
 }
 ", references: new MetadataReference[] { compref }, assemblyName: "ACCImpGen");
 
-            var mtdata = comp1.EmitToArray(true);
+            var mtdata = comp1.EmitToArray(options: new EmitOptions(metadataOnly: true));
             var mtref = MetadataReference.CreateFromImage(mtdata);
             var comp2 = CreateCompilationWithMscorlib(@"", references: new MetadataReference[] { mtref }, assemblyName: "META");
 

@@ -2523,7 +2523,7 @@ internal static class C
 
                 // Validate Extension attribute.
                 var sourceModule = (SourceModuleSymbol)module;
-                var emitModule = new PEAssemblyBuilder(sourceModule.ContainingSourceAssembly, null, OutputKind.ConsoleApplication, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+                var emitModule = new PEAssemblyBuilder(sourceModule.ContainingSourceAssembly, EmitOptions.Default, OutputKind.ConsoleApplication, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
                 var attrs = method.GetSynthesizedAttributes();
                 Assert.Equal(1, attrs.Length);
                 var attr = (Microsoft.Cci.ICustomAttribute)attrs.First();

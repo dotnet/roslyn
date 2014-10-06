@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // Provide an Emit.Module so that the lowering passes will be run
                 var module = new PEAssemblyBuilder(
                     (SourceAssemblySymbol)compilation.Assembly,
-                    null,
+                    EmitOptions.Default,
                     OutputKind.ConsoleApplication,
                     GetDefaultModulePropertiesForSerialization(),
                     Enumerable.Empty<ResourceDescription>(),

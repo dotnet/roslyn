@@ -5649,6 +5649,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Invalid debug information format: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidDebugInformationFormat() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidDebugInformationFormat", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;End AddHandler&apos; must be preceded by a matching &apos;AddHandler&apos; declaration..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidEndAddHandler() As String
@@ -5762,6 +5771,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InvalidEnumBase() As String
             Get
                 Return ResourceManager.GetString("ERR_InvalidEnumBase", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invalid file section alignment &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidFileAlignment() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidFileAlignment", resourceCulture)
             End Get
         End Property
         
@@ -5960,6 +5978,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InvalidOptionStrictCustom() As String
             Get
                 Return ResourceManager.GetString("ERR_InvalidOptionStrictCustom", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invalid output name: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidOutputName() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidOutputName", resourceCulture)
             End Get
         End Property
         

@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoConversionForNubDefaultParam = 1770,
         //ERR_MemberWithGenericsUsedAcrossAssemblies = 1771,
         //ERR_GenericsUsedInBaseTypeAcrossAssemblies = 1772,
-        ERR_BadSubsystemVersion = 1773,
+        ERR_InvalidSubsystemVersion = 1773,
         ERR_InteropMethodWithBody = 1774,
         // unused 1775-1899
         ERR_BadWarningLevel = 1900,
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         FTL_InputFileNameTooLong = 2021,
         //ERR_NoSourcesInLastInputSet = 2022,       Roslyn doesn't support building two binaries at once!
         WRN_NoConfigNotOnCommandLine = 2023,
-        ERR_BadFileAlignment = 2024,
+        ERR_InvalidFileAlignment = 2024,
         //ERR_NoDebugSwitchSourceMap = 2026,    no sourcemap support in Roslyn.
         //ERR_SourceMapFileBinary = 2027,
         WRN_DefineIdentifierRequired = 2029,
@@ -1052,7 +1052,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_BadUILang = 2038,
         ERR_InvalidFormatForGuidForOption = 2039,
         ERR_MissingGuidForOption = 2040,
-        // unused 2041-2999
+        ERR_InvalidOutputName = 2041,
+        ERR_InvalidDebugInformationFormat = 2042,
+        // unused 2043-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,

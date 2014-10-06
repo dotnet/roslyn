@@ -393,7 +393,11 @@ namespace Microsoft.CodeAnalysis
                         finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalOutputPath, ".pdb");
 
                         // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
-                        emitResult = compilation.Emit(output, outputName, finalPdbFilePath, pdb, xml, win32Res, Arguments.ManifestResources, cancellationToken);
+                        var emitOptions = Arguments.EmitOptions.
+                            WithOutputName(outputName).
+                            WithPdbFilePath(finalPdbFilePath);
+
+                        emitResult = compilation.Emit(output, pdb, xml, win32Res, Arguments.ManifestResources, emitOptions, cancellationToken);
                     }
                 }
 

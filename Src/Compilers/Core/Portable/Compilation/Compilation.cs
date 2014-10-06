@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -1104,11 +1105,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
         /// </summary>
-        internal ModulePropertiesForSerialization ConstructModuleSerializationProperties(string targetRuntimeVersion, Guid moduleVersionId = default(Guid))
+        internal ModulePropertiesForSerialization ConstructModuleSerializationProperties(
+            EmitOptions emitOptions,
+            string targetRuntimeVersion, 
+            Guid moduleVersionId = default(Guid))
         {
-            CompilationOptions options = this.Options;
-
-            Platform platform = options.Platform;
+            CompilationOptions compilationOptions = this.Options;
+            Platform platform = compilationOptions.Platform;
 
             if (!platform.IsValid())
             {
@@ -1118,7 +1121,7 @@ namespace Microsoft.CodeAnalysis
             bool requires64bits = platform.Requires64Bit();
 
             ushort fileAlignment;
-            if (options.FileAlignment == 0 || !CompilationOptions.IsValidFileAlignment(options.FileAlignment))
+            if (emitOptions.FileAlignment == 0 || !CompilationOptions.IsValidFileAlignment(emitOptions.FileAlignment))
             {
                 fileAlignment = requires64bits
                     ? ModulePropertiesForSerialization.DefaultFileAlignment64Bit
@@ -1126,15 +1129,15 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                fileAlignment = (ushort)options.FileAlignment;
+                fileAlignment = (ushort)emitOptions.FileAlignment;
             }
 
-            ulong baseAddress = unchecked(options.BaseAddress + 0x8000) & (requires64bits ? 0xffffffffffff0000 : 0x00000000ffff0000);
+            ulong baseAddress = unchecked(emitOptions.BaseAddress + 0x8000) & (requires64bits ? 0xffffffffffff0000 : 0x00000000ffff0000);
 
             // cover values smaller than 0x8000, overflow and default value 0):
             if (baseAddress == 0)
             {
-                OutputKind outputKind = options.OutputKind;
+                OutputKind outputKind = compilationOptions.OutputKind;
 
                 if (outputKind == OutputKind.ConsoleApplication ||
                     outputKind == OutputKind.WindowsApplication ||
@@ -1164,9 +1167,9 @@ namespace Microsoft.CodeAnalysis
                 ? ModulePropertiesForSerialization.DefaultSizeOfStackCommit64Bit
                 : ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit;
 
-            SubsystemVersion subsystemVer = (options.SubsystemVersion.Equals(SubsystemVersion.None) || !options.SubsystemVersion.IsValid)
-                ? SubsystemVersion.Default(options.OutputKind.IsValid() ? options.OutputKind : OutputKind.DynamicallyLinkedLibrary, platform)
-                : options.SubsystemVersion;
+            SubsystemVersion subsystemVer = (emitOptions.SubsystemVersion.Equals(SubsystemVersion.None) || !emitOptions.SubsystemVersion.IsValid)
+                ? SubsystemVersion.Default(compilationOptions.OutputKind.IsValid() ? compilationOptions.OutputKind : OutputKind.DynamicallyLinkedLibrary, platform)
+                : emitOptions.SubsystemVersion;
 
             return new ModulePropertiesForSerialization(
                 persistentIdentifier: moduleVersionId,
@@ -1179,9 +1182,9 @@ namespace Microsoft.CodeAnalysis
                 sizeOfHeapCommit: sizeOfHeapCommit,
                 sizeOfStackReserve: sizeOfStackReserve,
                 sizeOfStackCommit: sizeOfStackCommit,
-                enableHighEntropyVA: options.HighEntropyVirtualAddressSpace,
+                enableHighEntropyVA: emitOptions.HighEntropyVirtualAddressSpace,
                 strongNameSigned: this.ShouldBeSigned,
-                configureToExecuteInAppContainer: options.OutputKind == OutputKind.WindowsRuntimeApplication,
+                configureToExecuteInAppContainer: compilationOptions.OutputKind == OutputKind.WindowsRuntimeApplication,
                 subsystemVersion: subsystemVer);
         }
 
@@ -1211,18 +1214,16 @@ namespace Microsoft.CodeAnalysis
         internal abstract FunctionId EmitFunctionId { get; }
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
-            string outputName,
+            EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CancellationToken cancellationToken,
             CompilationTestData testData,
-            DiagnosticBag diagnostics,
-            bool metadataOnly);
+            DiagnosticBag diagnostics);
 
         // TODO: private protected
         internal abstract bool CompileImpl(
             CommonPEModuleBuilder moduleBuilder,
-            string outputName,
             Stream win32Resources,
             Stream xmlDocStream,
             CancellationToken cancellationToken,
@@ -1232,7 +1233,6 @@ namespace Microsoft.CodeAnalysis
 
         internal bool Compile(
             CommonPEModuleBuilder moduleBuilder,
-            string outputName,
             Stream win32Resources,
             Stream xmlDocStream,
             CancellationToken cancellationToken,
@@ -1244,7 +1244,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return CompileImpl(
                     moduleBuilder,
-                    outputName,
                     win32Resources,
                     xmlDocStream,
                     cancellationToken,
@@ -1267,19 +1266,17 @@ namespace Microsoft.CodeAnalysis
                     var discardedDiagnostics = DiagnosticBag.GetInstance();
 
                     var moduleBeingBuilt = this.CreateModuleBuilder(
-                        outputName: null,
+                        emitOptions: EmitOptions.Default,
                         manifestResources: null,
                         assemblySymbolMapper: null,
                         cancellationToken: cancellationToken,
                         testData: null,
-                        diagnostics: discardedDiagnostics,
-                        metadataOnly: false);
+                        diagnostics: discardedDiagnostics);
 
                     if (moduleBeingBuilt != null)
                     {
                         Compile(
                             moduleBeingBuilt,
-                            outputName: null,
                             win32Resources: null,
                             xmlDocStream: null,
                             cancellationToken: cancellationToken,
@@ -1303,90 +1300,34 @@ namespace Microsoft.CodeAnalysis
         /// Emit the IL for the compiled source code into the specified stream.
         /// </summary>
         /// <param name="peStream">Stream to which the compilation will be written.</param>
-        /// <param name="outputName">Name of the compilation: file name and extension.  Null to use the compilation name.
-        /// CAUTION: If this is set to a (non-null) value other than the existing compilation output name, then internals-visible-to
-        /// and assembly references may not work as expected.  In particular, things that were visible at bind time, based on the 
-        /// name of the compilation, may not be visible at runtime and vice-versa.
-        /// </param>
-        /// <param name="pdbFilePath">
-        /// The name of the PDB file embedded in the PE image. 
-        /// If not specified, the file name of the source module with an extension changed to "pdb" is used.
-        /// Ignored unless <paramref name="pdbStream"/> is non-null.
-        /// </param>
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
         /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
-        /// <param name="cancellationToken">To cancel the emit process.</param>
         /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
         /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
         /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
+        /// <param name="options">Emit options.</param>
+        /// <param name="cancellationToken">To cancel the emit process.</param>
         public EmitResult Emit(
             Stream peStream,
-            string outputName = null,
-            string pdbFilePath = null,
             Stream pdbStream = null,
             Stream xmlDocumentationStream = null,
             Stream win32Resources = null,
             IEnumerable<ResourceDescription> manifestResources = null,
+            EmitOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
             {
-                throw new ArgumentNullException("peStream");
+                throw new ArgumentNullException(nameof(peStream));
             }
 
             return Emit(
                 peStream,
-                outputName,
-                pdbFilePath,
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
                 manifestResources,
-                metadataOnly: false,
-                testData: null,
-                cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        /// Emits the IL for the symbol declarations into the specified stream. Useful for emitting
-        /// information for cross-language modeling of code. This emits what it can even if there
-        /// are errors.
-        /// </summary>
-        /// <param name="peStream">Stream to which the PE image with metadata will be written.</param>
-        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
-        /// <param name="outputName">Name of the compilation: file name and extension.  Null to use the existing output name.
-        /// CAUTION: If this is set to a (non-null) value other than the existing compilation output name, then internals-visible-to
-        /// and assembly references may not work as expected.  In particular, things that were visible at bind time, based on the 
-        /// name of the compilation, may not be visible at runtime and vice-versa.
-        /// </param>
-        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
-        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
-        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
-        /// <param name="emitOptions">Options controlling the emitted metadata.</param>
-        /// <param name="cancellationToken">To cancel the emit process.</param>
-        public EmitResult EmitMetadataOnly(
-            Stream peStream,
-            string outputName = null,
-            Stream xmlDocumentationStream = null,
-            Stream win32Resources = null,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            MetadataOnlyEmitOptions emitOptions = default(MetadataOnlyEmitOptions),
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (peStream == null)
-            {
-                throw new ArgumentNullException("peStream");
-            }
-
-            return Emit(
-                peStream,
-                outputName,
-                pdbFilePath: null,
-                pdbStream: null,
-                xmlDocumentationStream: xmlDocumentationStream,
-                win32Resources: win32Resources,
-                manifestResources: manifestResources,
-                metadataOnly: true,
+                options,
                 testData: null,
                 cancellationToken: cancellationToken);
         }
@@ -1404,12 +1345,12 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<uint> updatedMethodTokens,
+            ICollection<MethodHandle> updatedMethods,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (baseline == null)
             {
-                throw new ArgumentNullException("baseline");
+                throw new ArgumentNullException(nameof(baseline));
             }
 
             // TODO: check if baseline is an assembly manifest module/netmodule
@@ -1417,25 +1358,25 @@ namespace Microsoft.CodeAnalysis
 
             if (edits == null)
             {
-                throw new ArgumentNullException("edits");
+                throw new ArgumentNullException(nameof(edits));
             }
 
             if (metadataStream == null)
             {
-                throw new ArgumentNullException("metadataStream");
+                throw new ArgumentNullException(nameof(metadataStream));
             }
 
             if (ilStream == null)
             {
-                throw new ArgumentNullException("ilStream");
+                throw new ArgumentNullException(nameof(ilStream));
             }
 
             if (pdbStream == null)
             {
-                throw new ArgumentNullException("pdbStream");
+                throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, metadataStream, ilStream, pdbStream, updatedMethodTokens, null, cancellationToken);
+            return this.EmitDifference(baseline, edits, metadataStream, ilStream, pdbStream, updatedMethods, null, cancellationToken);
         }
 
         internal abstract EmitDifferenceResult EmitDifference(
@@ -1444,7 +1385,7 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<uint> updatedMethodTokens,
+            ICollection<MethodHandle> updatedMethodHandles,
             CompilationTestData testData,
             CancellationToken cancellationToken);
 
@@ -1455,13 +1396,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if emit succeeded.</returns>
         internal EmitResult Emit(
             Stream peStream,
-            string outputName,
-            string pdbFilePath,
             Stream pdbStream,
             Stream xmlDocumentationStream,
             Stream win32Resources,
             IEnumerable<ResourceDescription> manifestResources,
-            bool metadataOnly,
+            EmitOptions options,
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
@@ -1469,12 +1408,16 @@ namespace Microsoft.CodeAnalysis
 
             using (Logger.LogBlock(EmitFunctionId, message: this.AssemblyName, cancellationToken: cancellationToken))
             {
-                if (outputName != null)
+                DiagnosticBag diagnostics = new DiagnosticBag();
+                if (options != null)
                 {
-                    MetadataHelpers.ValidateAssemblyOrModuleName(outputName, "outputName");
+                    options.ValidateOptions(diagnostics, this.MessageProvider);
+                }
+                else
+                {
+                    options = EmitOptions.Default;
                 }
 
-                DiagnosticBag diagnostics = new DiagnosticBag();
                 if (Options.OutputKind == OutputKind.NetModule && manifestResources != null)
                 {
                     foreach (ResourceDescription res in manifestResources)
@@ -1483,20 +1426,22 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Modules can have only embedded resources, not linked ones.
                             diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_ResourceInModule, Location.None));
-
-                            return ToEmitResultAndFree(diagnostics, success: false);
                         }
                     }
                 }
 
+                if (diagnostics.HasAnyErrors())
+                {
+                    return ToEmitResultAndFree(diagnostics, success: false);
+                }
+
                 var moduleBeingBuilt = this.CreateModuleBuilder(
-                    outputName,
+                    options,
                     manifestResources,
                     null,
                     cancellationToken,
                     testData,
-                    diagnostics,
-                    metadataOnly);
+                    diagnostics);
 
                 if (moduleBeingBuilt == null)
                 {
@@ -1505,7 +1450,6 @@ namespace Microsoft.CodeAnalysis
 
                 if (!this.Compile(
                     moduleBeingBuilt,
-                    outputName,
                     win32Resources,
                     xmlDocumentationStream,
                     cancellationToken,
@@ -1519,12 +1463,12 @@ namespace Microsoft.CodeAnalysis
                 bool success = SerializeToPeStream(
                     (Cci.IModule)moduleBeingBuilt,
                     peStream,
-                    pdbFilePath,
+                    options.PdbFilePath,
                     pdbStream,
                     (testData != null) ? testData.SymWriterFactory : null,
                     diagnostics,
-                    metadataOnly,
-                    cancellationToken);
+                    metadataOnly: options.EmitMetadataOnly,
+                    cancellationToken: cancellationToken);
 
                 return ToEmitResultAndFree(diagnostics, success);
             }

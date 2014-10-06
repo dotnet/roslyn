@@ -204,7 +204,7 @@ namespace Foo.Bar
 
             using (var output = new MemoryStream()) 
             {
-                emitResult = comp.EmitMetadataOnly(output, null);
+                emitResult = comp.Emit(output, options: new EmitOptions(metadataOnly: true));
                 mdOnlyImage = output.ToArray();
             }
 
@@ -273,7 +273,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             byte[] dllImage;
             using (var output = new MemoryStream())
             {
-                emitResult = libComp.EmitMetadataOnly(output);
+                emitResult = libComp.Emit(output, options: new EmitOptions(metadataOnly: true));
                 dllImage = output.ToArray();
             }
 
@@ -288,7 +288,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             // We would prefer to check that the module used by Compiler.Emit does the right thing,
             // but we don't have access to that object, so we'll create our own and manipulate it
             // in the same way.
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)class1.ContainingAssembly, null,
+            var module = new PEAssemblyBuilder((SourceAssemblySymbol)class1.ContainingAssembly, EmitOptions.Default,
                 OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             SynthesizedMetadataCompiler.ProcessSynthesizedMembers(libComp, module, default(CancellationToken));
 
@@ -1286,8 +1286,8 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithHighEntropyVirtualAddressSpace(true));
-            var peHeaders = new PEHeaders(compilation.EmitToStream());
+            var compilation = CreateCompilationWithMscorlib(source);
+            var peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(highEntropyVirtualAddressSpace: true)));
 
             //interesting COFF bits
             Assert.Equal(0x8560u, (ushort)peHeaders.PEHeader.DllCharacteristics);  //DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
@@ -1322,47 +1322,47 @@ class C
     }
 }";
             // last four hex digits get zero'ed
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithBaseAddress(0x0000000010111111));
-            var peHeaders = new PEHeaders(compilation.EmitToStream());
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0x0000000010111111)));
             Assert.Equal(0x10110000ul, peHeaders.PEHeader.ImageBase);
 
             // test rounding up of values
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithBaseAddress(0x8000));
-            peHeaders = new PEHeaders(compilation.EmitToStream());
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0x8000)));
             Assert.Equal(0x10000ul, peHeaders.PEHeader.ImageBase);
 
             // values less than 0x8000 get default baseaddress
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithBaseAddress(0x7fff));
-            peHeaders = new PEHeaders(compilation.EmitToStream());
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0x7fff)));
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
             // default for 32bit
             compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
-            peHeaders = new PEHeaders(compilation.EmitToStream());
+            peHeaders = new PEHeaders(compilation.EmitToStream(options: EmitOptions.Default));
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
             // max for 32bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86).WithBaseAddress(0xffff7fff));
-            peHeaders = new PEHeaders(compilation.EmitToStream());
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
+            peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0xffff7fff)));
             Assert.Equal(0xffff0000ul, peHeaders.PEHeader.ImageBase);
 
             // max+1 for 32bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86).WithBaseAddress(0xffff8000));
-            peHeaders = new PEHeaders(compilation.EmitToStream());
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
+            peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0xffff8000)));
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
             compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
-            peHeaders = new PEHeaders(compilation.EmitToStream());
+            peHeaders = new PEHeaders(compilation.EmitToStream(options: EmitOptions.Default));
             Assert.Equal(0x0000000140000000u, peHeaders.PEHeader.ImageBase);
 
             // max for 64bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64).WithBaseAddress(0xffffffffffff7fff));
-            peHeaders = new PEHeaders(compilation.EmitToStream());
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
+            peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0xffffffffffff7fff)));
             Assert.Equal(0xffffffffffff0000ul, peHeaders.PEHeader.ImageBase);
 
             // max+1 for 64bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64).WithBaseAddress(0xffffffffffff8000));
-            peHeaders = new PEHeaders(compilation.EmitToStream());
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
+            peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0xffffffffffff8000)));
             Assert.Equal(0x0000000140000000u, peHeaders.PEHeader.ImageBase);
         }
 
@@ -1376,8 +1376,8 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithFileAlignment(1024));
-            var peHeaders = new PEHeaders(compilation.EmitToStream());
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(fileAlignment: 1024)));
             Assert.Equal(1024, peHeaders.PEHeader.FileAlignment);
         }
 
@@ -1589,7 +1589,7 @@ public class Test
             Assert.Equal(nameWithExtension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, nameWithExtension).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameWithExtension)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1620,7 +1620,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, outputName + extension).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: outputName + extension)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1650,7 +1650,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, nameOverride + extension).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameOverride + extension)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1681,7 +1681,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, nameOverride).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameOverride)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1712,7 +1712,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, nameOverride + extension).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameOverride + extension)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1743,7 +1743,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, nameOverride).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameOverride)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1794,7 +1794,12 @@ public sealed class ContentType
             var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
-            Assert.Throws<ArgumentException>(() => compilation.Emit(new MemoryStream(), outputName: " "));
+            var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputName: "x\0x"));
+            result.Diagnostics.Verify(
+                // error CS2041: Invalid output name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments("Name contains invalid characters."));
+
+            Assert.False(result.Success);
         }
 
         // Verify via MetadataReader - comp option
@@ -2211,13 +2216,15 @@ class Program
         [Fact]
         public void PlatformMismatch_01()
         {
+            var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
-            refCompilation.VerifyEmitDiagnostics();
+            refCompilation.VerifyEmitDiagnostics(emitOptions);
             var compRef = new CSharpCompilationReference(refCompilation);
             var imageRef = refCompilation.EmitToImageReference();
 
@@ -2229,81 +2236,79 @@ public interface IUsePlatform
 ";
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
 
-            useCompilation.VerifyEmitDiagnostics();
-
-            useCompilation = CreateCompilation(useSource,
-                new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
-
-            useCompilation.VerifyEmitDiagnostics();
-
-            useCompilation = CreateCompilation(useSource,
-                new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
-
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
-    Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
-    Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
 
-            useCompilation.VerifyEmitDiagnostics(
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
-    Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+                Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
 
-            useCompilation.VerifyEmitDiagnostics(
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
-    Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+                Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            useCompilation = CreateCompilation(useSource,
+                new MetadataReference[] { compRef },
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.X86));
+
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
+                Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            useCompilation = CreateCompilation(useSource,
+                new MetadataReference[] { imageRef },
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.X86));
+
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
+                Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
             var warnings = new System.Collections.Generic.Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
             useCompilation = useCompilation.WithOptions(useCompilation.Options.WithSpecificDiagnosticOptions(warnings));
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
         [Fact]
         public void PlatformMismatch_02()
         {
+            var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch" );
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch" );
 
-            refCompilation.VerifyEmitDiagnostics();
+            refCompilation.VerifyEmitDiagnostics(emitOptions);
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"
@@ -2314,40 +2319,40 @@ public interface IUsePlatform
 ";
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // error CS8010: Agnostic assembly cannot have a processor specific module 'PlatformMismatch.netmodule'.
-    Diagnostic(ErrorCode.ERR_AgnosticToMachineModule).WithArguments("PlatformMismatch.netmodule")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // error CS8010: Agnostic assembly cannot have a processor specific module 'PlatformMismatch.netmodule'.
+                Diagnostic(ErrorCode.ERR_AgnosticToMachineModule).WithArguments("PlatformMismatch.netmodule"));
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // error CS8011: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
-    Diagnostic(ErrorCode.ERR_ConflictingMachineModule).WithArguments("PlatformMismatch.netmodule")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // error CS8011: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
+                Diagnostic(ErrorCode.ERR_ConflictingMachineModule).WithArguments("PlatformMismatch.netmodule"));
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] {imageRef},
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
 
             // no CS8010 when building a module and adding a module that has a conflict.
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
         [Fact]
         public void PlatformMismatch_03()
         {
+            var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.X86), assemblyName: "PlatformMismatch");
 
-            refCompilation.VerifyEmitDiagnostics();
+            refCompilation.VerifyEmitDiagnostics(emitOptions);
             var compRef = new CSharpCompilationReference(refCompilation);
             var imageRef = refCompilation.EmitToImageReference();
 
@@ -2360,51 +2365,49 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
-    Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
+                Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
-    Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
+                Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
-    Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
+                Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
-    Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
+                Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
         [Fact]
         public void PlatformMismatch_04()
         {
+            var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.X86), assemblyName: "PlatformMismatch");
 
-            refCompilation.VerifyEmitDiagnostics();
+            refCompilation.VerifyEmitDiagnostics(emitOptions);
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"
@@ -2416,24 +2419,25 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics(
-    // error CS8011: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
-    Diagnostic(ErrorCode.ERR_ConflictingMachineModule).WithArguments("PlatformMismatch.netmodule")
-                );
+            useCompilation.VerifyEmitDiagnostics(emitOptions,
+                // error CS8011: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
+                Diagnostic(ErrorCode.ERR_ConflictingMachineModule).WithArguments("PlatformMismatch.netmodule"));
         }
 
         [Fact]
         public void PlatformMismatch_05()
         {
+            var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu), assemblyName: "PlatformMismatch");
 
-            refCompilation.VerifyEmitDiagnostics();
+            refCompilation.VerifyEmitDiagnostics(emitOptions);
             var compRef = new CSharpCompilationReference(refCompilation);
             var imageRef = refCompilation.EmitToImageReference();
 
@@ -2446,39 +2450,41 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
         [Fact]
         public void PlatformMismatch_06()
         {
+            var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu), assemblyName: "PlatformMismatch");
 
-            refCompilation.VerifyEmitDiagnostics();
+            refCompilation.VerifyEmitDiagnostics(emitOptions);
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"
@@ -2490,21 +2496,23 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
         [Fact]
         public void PlatformMismatch_07()
         {
+            var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
-            refCompilation.VerifyEmitDiagnostics();
+            refCompilation.VerifyEmitDiagnostics(emitOptions);
             var compRef = new CSharpCompilationReference(refCompilation);
             var imageRef = refCompilation.EmitToImageReference();
 
@@ -2517,39 +2525,41 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
         [Fact]
         public void PlatformMismatch_08()
         {
+            var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
-            refCompilation.VerifyEmitDiagnostics();
+            refCompilation.VerifyEmitDiagnostics(emitOptions);
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"
@@ -2561,9 +2571,9 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
-            useCompilation.VerifyEmitDiagnostics();
+            useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
         [Fact, WorkItem(769741, "DevDiv")]
@@ -2650,12 +2660,12 @@ class Viewable
             var output = new MemoryStream();
             var pdb = new BrokenStream();
             pdb.BreakHow = 2;
-            var result = compilation.Emit(output, GetUniqueName(), GetUniqueName(), pdb);
+            var result = compilation.Emit(output, pdb);
             result.Diagnostics.Verify(
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")
             );
 
-            Func<EmitResult> f = () => compilation.Emit(output, GetUniqueName(), GetUniqueName(), pdb);
+            Func<EmitResult> f = () => compilation.Emit(output, pdb);
             pdb.Dispose();
             result = f();
 

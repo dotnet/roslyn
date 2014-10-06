@@ -198,6 +198,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        ' emit options:
+
+        Public Overrides ReadOnly Property ERR_InvalidDebugInformationFormat As Integer
+            Get
+                Return ERRID.ERR_InvalidDebugInformationFormat
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_InvalidOutputName As Integer
+            Get
+                Return ERRID.ERR_InvalidOutputName
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_InvalidFileAlignment As Integer
+            Get
+                Return ERRID.ERR_InvalidFileAlignment
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_InvalidSubsystemVersion As Integer
+            Get
+                Return ERRID.ERR_InvalidSubsystemVersion
+            End Get
+        End Property
+
+
         ' reference manager:
         Public Overrides ReadOnly Property ERR_MetadataFileNotAssembly As Integer
             Get

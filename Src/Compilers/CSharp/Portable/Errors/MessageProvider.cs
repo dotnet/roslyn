@@ -100,6 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int INF_UnableToLoadSomeTypesInAnalyzer { get { return (int)ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer; } }
         public override int ERR_CantReadRulesetFile { get { return (int)ErrorCode.ERR_CantReadRulesetFile; } }
 
+        // emit options:
+        public override int ERR_InvalidDebugInformationFormat { get { return (int)ErrorCode.ERR_InvalidDebugInformationFormat; } }
+        public override int ERR_InvalidOutputName { get { return (int)ErrorCode.ERR_InvalidOutputName; } }
+        public override int ERR_InvalidFileAlignment { get { return (int)ErrorCode.ERR_InvalidFileAlignment; } }
+        public override int ERR_InvalidSubsystemVersion { get { return (int)ErrorCode.ERR_InvalidSubsystemVersion; } }
+
         // reference manager:
         public override int ERR_MetadataFileNotAssembly { get { return (int)ErrorCode.ERR_ImportNonAssembly; } }
         public override int ERR_MetadataFileNotModule { get { return (int)ErrorCode.ERR_AddModuleAssembly; } }

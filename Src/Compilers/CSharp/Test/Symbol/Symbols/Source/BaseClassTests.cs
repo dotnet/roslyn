@@ -1442,7 +1442,7 @@ class C : I2 { }
             Assert.True(@class.AllInterfaces.SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
 
             var typeDef = (Cci.ITypeDefinition)@class;
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
+            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag());
             var cciInterfaces = typeDef.Interfaces(context).Cast<NamedTypeSymbol>().AsImmutable();
@@ -1487,7 +1487,7 @@ class Z
             Assert.Equal(0, c1.GetDiagnostics().Count());
             Assert.Equal(0, c2.GetDiagnostics().Count());
 
-            var metadata1 = c1.EmitToArray(metadataOnly: true);
+            var metadata1 = c1.EmitToArray(options: new EmitOptions(metadataOnly: true));
             c2 = CreateCompilationWithMscorlib(textB, new[] { MetadataReference.CreateFromImage(metadata1) });
 
             Assert.Equal(0, c2.GetDiagnostics().Count());

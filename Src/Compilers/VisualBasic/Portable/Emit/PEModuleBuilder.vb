@@ -28,12 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private m_TestDataOperatorKeyFormat As SymbolDisplayFormat
 
         Friend Sub New(sourceModule As SourceModuleSymbol,
-                       outputName As String,
+                       emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
-                       metadataOnly As Boolean)
+                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity))
 
             MyBase.New(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
                        sourceModule,
@@ -41,14 +40,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        manifestResources,
                        outputKind,
                        assemblySymbolMapper,
-                       metadataOnly,
+                       emitOptions,
                        New ModuleCompilationState())
 
             Dim specifiedName = sourceModule.MetadataName
 
             m_MetadataName = If(specifiedName <> Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName,
                                 specifiedName,
-                                If(outputName, specifiedName))
+                                If(emitOptions.OutputName, specifiedName))
 
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, Me)
 
@@ -306,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function GetAnonymousTypes() As ImmutableArray(Of Cci.INamespaceTypeDefinition)
-            If MetadataOnly Then
+            If EmitOptions.EmitMetadataOnly Then
                 Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
             End If
 

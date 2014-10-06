@@ -8196,7 +8196,7 @@ End Class
             Assert.Equal(interfacePropertySetter, classPropertySetter.ExplicitInterfaceImplementations.Single())
 
             Dim typeDef = DirectCast([class], Cci.ITypeDefinition)
-            Dim [module] = New PEAssemblyBuilder(DirectCast([class].ContainingAssembly, SourceAssemblySymbol), Nothing, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription)())
+            Dim [module] = New PEAssemblyBuilder(DirectCast([class].ContainingAssembly, SourceAssemblySymbol), EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription)())
 
             Dim context = New EmitContext([module], Nothing, New DiagnosticBag())
             Dim explicitOverrides = typeDef.GetExplicitImplementationOverrides(context)

@@ -92,6 +92,12 @@ namespace Microsoft.CodeAnalysis
         public abstract int WRN_NoAnalyzerInAssembly { get; }
         public abstract int ERR_CantReadRulesetFile { get; }
 
+        // emit options:
+        public abstract int ERR_InvalidDebugInformationFormat { get; }
+        public abstract int ERR_InvalidFileAlignment { get; }
+        public abstract int ERR_InvalidSubsystemVersion { get; }
+        public abstract int ERR_InvalidOutputName { get; }
+
         // reference manager:
         public abstract int ERR_MetadataFileNotAssembly { get; }
         public abstract int ERR_MetadataFileNotModule { get; }

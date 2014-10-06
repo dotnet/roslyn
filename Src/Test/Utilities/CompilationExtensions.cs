@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation, 
-            bool metadataOnly = false,
+            EmitOptions options = null,
             CompilationTestData testData = null, 
             DiagnosticDescription[] expectedWarnings = null)
         {
@@ -23,15 +24,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var emitResult = compilation.Emit(
                 peStream: stream,
-                outputName: null,
-                pdbFilePath: null,
                 pdbStream: null,
                 xmlDocumentationStream: null,
-                cancellationToken: default(CancellationToken),
                 win32Resources: null,
                 manifestResources: null,
-                metadataOnly: metadataOnly,
-                testData: testData);
+                options: options,
+                testData: testData,
+                cancellationToken: default(CancellationToken));
 
             Assert.True(emitResult.Success, "Diagnostics:\r\n" + string.Join("\r\n, ", emitResult.Diagnostics.Select(d => d.ToString())));
 
@@ -43,10 +42,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return stream.ToImmutable();
         }
 
-        public static Stream EmitToStream(this Compilation compilation, bool metadataOnly = false, DiagnosticDescription[] expectedWarnings = null)
+        public static Stream EmitToStream(this Compilation compilation, EmitOptions options = null, DiagnosticDescription[] expectedWarnings = null)
         {
             var stream = new MemoryStream();
-            var emitResult = metadataOnly ? compilation.EmitMetadataOnly(stream) : compilation.Emit(stream);
+            var emitResult = compilation.Emit(stream, options: options);
             Assert.True(emitResult.Success, "Diagnostics: " + string.Join(", ", emitResult.Diagnostics.Select(d => d.ToString())));
 
             if (expectedWarnings != null)
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream())
             {
-                var updatedMethodTokens = new List<uint>();
+                var updatedMethods = new List<MethodHandle>();
 
                 var result = compilation.EmitDifference(
                     baseline,
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     mdStream,
                     ilStream,
                     pdbStream,
-                    updatedMethodTokens,
+                    updatedMethods,
                     testData,
                     default(CancellationToken));
 
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     result.Baseline,
                     testData,
                     result,
-                    updatedMethodTokens.ToImmutableArray());
+                    updatedMethods.ToImmutableArray());
             }
         }
     }

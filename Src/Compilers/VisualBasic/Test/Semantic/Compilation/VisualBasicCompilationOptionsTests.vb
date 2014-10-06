@@ -68,16 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "foo")
             TestProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "foo")
             TestProperty(Function(old, value) old.WithDelaySign(value), Function(opt) opt.DelaySign, True)
-            TestProperty(Function(old, value) old.WithBaseAddress(value), Function(opt) opt.BaseAddress, 100UL)
-            TestProperty(Function(old, value) old.WithFileAlignment(value), Function(opt) opt.FileAlignment, 2048)
             TestProperty(Function(old, value) old.WithPlatform(value), Function(opt) opt.Platform, Platform.X64)
             TestProperty(Function(old, value) old.WithGeneralDiagnosticOption(value), Function(opt) opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress)
 
             TestProperty(Function(old, value) old.WithSpecificDiagnosticOptions(value), Function(opt) opt.SpecificDiagnosticOptions,
                 New Dictionary(Of String, ReportDiagnostic) From {{"VB0001", ReportDiagnostic.Error}}.ToImmutableDictionary())
 
-            TestProperty(Function(old, value) old.WithHighEntropyVirtualAddressSpace(value), Function(opt) opt.HighEntropyVirtualAddressSpace, True)
-            TestProperty(Function(old, value) old.WithSubsystemVersion(value), Function(opt) opt.SubsystemVersion, SubsystemVersion.Windows2000)
             TestProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
 
             TestProperty(Function(old, value) old.WithXmlReferenceResolver(value), Function(opt) opt.XmlReferenceResolver, New XmlFileResolver(Nothing))
@@ -151,11 +147,6 @@ BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'DebugInformatio
 BC2014: the value '3' is invalid for option 'OptionStrict'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithFileAlignment(513).Errors,
-<expected>
-BC2014: the value '513' is invalid for option 'FileAlignment'
-</expected>)
-
             AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(CType(Int32.MaxValue, Platform)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'Platform'
@@ -206,10 +197,8 @@ Parameter name: ModuleName
 
         <Fact>
         Public Sub ConstructorValidation()
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:=Nothing).Errors,
-<expected>
-BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
-</expected>)
+            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:=Nothing)
+            Assert.Equal("Script", options.ScriptClassName)
 
             AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="blah" & ChrW(0) & "foo").Errors,
 <expected>
@@ -268,11 +257,6 @@ BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OptimizationLev
             AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=CType(3, OptionStrict)).Errors,
 <expected>
 BC2014: the value '3' is invalid for option 'OptionStrict'
-</expected>)
-
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, fileAlignment:=513).Errors,
-<expected>
-BC2014: the value '513' is invalid for option 'FileAlignment'
 </expected>)
 
             AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, platform:=CType(Int32.MaxValue, Platform)).Errors,
@@ -522,7 +506,6 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 outputKind:=OutputKind.WindowsApplication,
                 generalDiagnosticOption:=ReportDiagnostic.Hidden,
                 specificDiagnosticOptions:={KeyValuePair.Create("VB0001", ReportDiagnostic.Suppress)},
-                subsystemVersion:=SubsystemVersion.Windows2000,
                 globalImports:={GlobalImport.Parse("Foo.Bar")})))
         End Sub
 

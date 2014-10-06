@@ -48,14 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="cryptoKeyContainer">An optional parameter to specify a key container name for a key pair to give an assembly a strong name.</param>
         ''' <param name="cryptoKeyFile">An optional parameter to specify a file containing a key or key pair to give an assembly a strong name.</param>
         ''' <param name="delaySign">An optional parameter to specify whether the assembly will be fully or partially signed.</param>
-        ''' <param name="baseAddress">An optional parameter to specify a default base address when creating a DLL.</param>
-        ''' <param name="fileAlignment">An optional parameter to specify where to align the sections of the output file.</param>
         ''' <param name="platform">An optional parameter to specify which platform version of common language runtime (CLR) can run compilation. <see cref="CodeAnalysis.Platform"/></param>
         ''' <param name="generalDiagnosticOption">An optional parameter to specify the general warning level.</param>
         ''' <param name="specificDiagnosticOptions">An optional collection representing specific warnings that differ from general warning behavior.</param>
-        ''' <param name="highEntropyVirtualAddressSpace">An optional parameter to specify whether a 64-bit executable supports high entropy Address Space Layout Randomization (ASLR).</param>
         ''' <param name="optimizationLevel">An optional parameter to enabled/disable optimizations. </param>
-        ''' <param name="subsystemVersion">An optional parameter to specify an alternate subsystem version. <see cref="CodeAnalysis.SubsystemVersion"/> Specifies the minimum version of the subsystem on which the generated executable file can run, thereby determining the versions of Windows on which the executable file can run. Most commonly, this option ensures that the executable file can leverage particular security features that aren't available with older versions of Windows.</param>
         ''' <param name="parseOptions">An optional parameter to specify the parse options. <see cref="VBParseOptions"/></param>
         ''' <param name="xmlReferenceResolver">An optional parameter to specify the XML file resolver.</param>
         ''' <param name="sourceReferenceResolver">An optional parameter to specify the source file resolver.</param>
@@ -81,13 +77,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional cryptoKeyContainer As String = Nothing,
             Optional cryptoKeyFile As String = Nothing,
             Optional delaySign As Boolean? = Nothing,
-            Optional baseAddress As ULong = 0,
-            Optional fileAlignment As Integer = 0,
             Optional platform As Platform = Platform.AnyCpu,
             Optional generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default,
             Optional specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)) = Nothing,
-            Optional highEntropyVirtualAddressSpace As Boolean = False,
-            Optional subsystemVersion As SubsystemVersion = Nothing,
             Optional concurrentBuild As Boolean = True,
             Optional xmlReferenceResolver As XmlReferenceResolver = Nothing,
             Optional sourceReferenceResolver As SourceReferenceResolver = Nothing,
@@ -114,13 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyContainer,
                 cryptoKeyFile,
                 delaySign,
-                baseAddress,
-                fileAlignment,
                 platform,
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
-                highEntropyVirtualAddressSpace,
-                subsystemVersion,
                 concurrentBuild,
                 xmlReferenceResolver,
                 sourceReferenceResolver,
@@ -151,13 +139,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cryptoKeyContainer As String,
             cryptoKeyFile As String,
             delaySign As Boolean?,
-            baseAddress As ULong,
-            fileAlignment As Integer,
             platform As Platform,
             generalDiagnosticOption As ReportDiagnostic,
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
-            highEntropyVirtualAddressSpace As Boolean,
-            subsystemVersion As SubsystemVersion,
             concurrentBuild As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
@@ -178,14 +162,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 delaySign:=delaySign,
                 optimizationLevel:=optimizationLevel,
                 checkOverflow:=checkOverflow,
-                fileAlignment:=fileAlignment,
-                baseAddress:=baseAddress,
                 platform:=platform,
                 generalDiagnosticOption:=generalDiagnosticOption,
                 warningLevel:=1,
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
-                highEntropyVirtualAddressSpace:=highEntropyVirtualAddressSpace,
-                subsystemVersion:=subsystemVersion,
                 concurrentBuild:=concurrentBuild,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
@@ -225,13 +205,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyContainer:=other.CryptoKeyContainer,
                 cryptoKeyFile:=other.CryptoKeyFile,
                 delaySign:=other.DelaySign,
-                baseAddress:=other.BaseAddress,
-                fileAlignment:=other.FileAlignment,
                 platform:=other.Platform,
                 generalDiagnosticOption:=other.GeneralDiagnosticOption,
                 specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
-                highEntropyVirtualAddressSpace:=other.HighEntropyVirtualAddressSpace,
-                subsystemVersion:=other.SubsystemVersion,
                 concurrentBuild:=other.ConcurrentBuild,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
                 sourceReferenceResolver:=other.SourceReferenceResolver,
@@ -362,19 +338,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VBCompilationOptions(Me) With {.ModuleName = moduleName}
-        End Function
-
-        ''' <summary>
-        ''' Creates a new VBCompilationOptions instance With a different SubSystemVersion specified.
-        ''' </summary>
-        ''' <param name="value">The SubsystemVersion for the new instance.</param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the subsystem version build is different; otherwise current instance.</returns>        
-        Public Function WithSubsystemVersion(value As SubsystemVersion) As VBCompilationOptions
-            If value.Equals(Me.SubsystemVersion) Then
-                Return Me
-            End If
-
-            Return New VBCompilationOptions(Me) With {.SubsystemVersion = value}
         End Function
 
         ''' <summary>
@@ -578,33 +541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different base address specified.
-        ''' </summary>
-        ''' <param name="value">The base address setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the base address is different; otherwise current instance.</returns>        
-        Public Shadows Function WithBaseAddress(value As ULong) As VBCompilationOptions
-            If value = Me.BaseAddress Then
-                Return Me
-            End If
-
-            Return New VBCompilationOptions(Me) With {.BaseAddress = value}
-        End Function
-
-        ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different file alignment specified.
-        ''' </summary>
-        ''' <param name="value">The file alignment setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the file alignment is different; otherwise current instance.</returns>        
-        Public Shadows Function WithFileAlignment(value As Integer) As VBCompilationOptions
-            If value = Me.FileAlignment Then
-                Return Me
-            End If
-
-            Return New VBCompilationOptions(Me) With {.FileAlignment = value}
-        End Function
-
-        ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different platform specified.
+        ''' Creates a new <see cref="VBCompilationOptions"/> instance with a different platform specified.
         ''' </summary>
         ''' <param name="value">The platform setting. <see cref="Microsoft.CodeAnalysis.Platform"/></param>        
         ''' <returns>A new instance of VBCompilationOptions, if the platform is different; otherwise current instance.</returns>        
@@ -677,19 +614,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A new instance of VBCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
         Public Shadows Function WithSpecificDiagnosticOptions(value As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As VBCompilationOptions
             Return New VBCompilationOptions(Me) With {.SpecificDiagnosticOptions = value.ToImmutableDictionaryOrEmpty()}
-        End Function
-
-        ''' <summary>
-        ''' Creates a new <see cref="VBCompilationOptions"/> instance with a different high entropy virtual address space specified
-        ''' </summary>
-        ''' <param name="value">The high entropy virtual address space setting.</param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the high entropy virtual address space is different; otherwise current instance.</returns>        
-        Public Shadows Function WithHighEntropyVirtualAddressSpace(value As Boolean) As VBCompilationOptions
-            If value = Me.HighEntropyVirtualAddressSpace Then
-                Return Me
-            End If
-
-            Return New VBCompilationOptions(Me) With {.HighEntropyVirtualAddressSpace = value}
         End Function
 
         ''' <summary>
@@ -816,10 +740,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_VBCoreNetModuleConflict))
             End If
 
-            If FileAlignment <> 0 AndAlso Not IsValidFileAlignment(FileAlignment) Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, FileAlignment, "FileAlignment"))
-            End If
-
             If Not Platform.IsValid() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, Platform.ToString(), "Platform"))
             End If
@@ -837,10 +757,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not OptimizationLevel.IsValid() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OptimizationLevel.ToString(), "OptimizationLevel"))
-            End If
-
-            If Not SubsystemVersion.Equals(SubsystemVersion.None) AndAlso Not SubsystemVersion.IsValid Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSubsystemVersion, SubsystemVersion.ToString()))
             End If
 
             If ScriptClassName Is Nothing OrElse Not ScriptClassName.IsValidClrTypeName() Then

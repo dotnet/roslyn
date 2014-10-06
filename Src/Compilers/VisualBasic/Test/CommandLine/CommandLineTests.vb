@@ -11,6 +11,7 @@ Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
 Imports Microsoft.CodeAnalysis.Text
@@ -818,7 +819,7 @@ a.vb
         <Fact>
         Public Sub ManagedResourceOptions()
             Dim parsedArgs As VBCommandLineArguments
-            Dim resourceDescription As ResourceDescription
+            Dim resourceDescription As resourceDescription
 
             parsedArgs = VBCommandLineParser.Default.Parse({"/resource:a", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -1221,25 +1222,25 @@ a.vb
         Public Sub SubsystemVersionTests()
             Dim parsedArgs = VBCommandLineParser.Default.Parse({"/subsystemversion:4.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(SubsystemVersion.Create(4, 0), parsedArgs.CompilationOptions.SubsystemVersion)
+            Assert.Equal(SubsystemVersion.Create(4, 0), parsedArgs.EmitOptions.SubsystemVersion)
 
             ' wrongly supported subsystem version. CompilationOptions data will be faithful to the user input.
             ' It is normalized at the time of emit.
             parsedArgs = VBCommandLineParser.Default.Parse({"/subsystemversion:0.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify() ' no error in Dev11
-            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.CompilationOptions.SubsystemVersion)
+            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.EmitOptions.SubsystemVersion)
 
             parsedArgs = VBCommandLineParser.Default.Parse({"/subsystemversion:0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify() ' no error in Dev11
-            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.CompilationOptions.SubsystemVersion)
+            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.EmitOptions.SubsystemVersion)
 
             parsedArgs = VBCommandLineParser.Default.Parse({"/subsystemversion:3.99", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify() ' no warning in Dev11
-            Assert.Equal(SubsystemVersion.Create(3, 99), parsedArgs.CompilationOptions.SubsystemVersion)
+            Assert.Equal(SubsystemVersion.Create(3, 99), parsedArgs.EmitOptions.SubsystemVersion)
 
             parsedArgs = VBCommandLineParser.Default.Parse({"/subsystemversion:4.0", "/subsystemversion:5.333", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(SubsystemVersion.Create(5, 333), parsedArgs.CompilationOptions.SubsystemVersion)
+            Assert.Equal(SubsystemVersion.Create(5, 333), parsedArgs.EmitOptions.SubsystemVersion)
 
             parsedArgs = VBCommandLineParser.Default.Parse({"/subsystemversion:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("subsystemversion", ":<version>"))
@@ -3116,43 +3117,43 @@ End Class
         Public Sub FileAlignment()
             ' test recognizing all options
             Dim parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:512", "a.vb"}, _baseDirectory)
-            Assert.Equal(512, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(512, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:1024", "a.vb"}, _baseDirectory)
-            Assert.Equal(1024, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(1024, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:2048", "a.vb"}, _baseDirectory)
-            Assert.Equal(2048, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(2048, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:4096", "a.vb"}, _baseDirectory)
-            Assert.Equal(4096, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(4096, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:8192", "a.vb"}, _baseDirectory)
-            Assert.Equal(8192, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(8192, parsedArgs.EmitOptions.FileAlignment)
 
             ' test oct values
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:01000", "a.vb"}, _baseDirectory)
-            Assert.Equal(512, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(512, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:02000", "a.vb"}, _baseDirectory)
-            Assert.Equal(1024, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(1024, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:04000", "a.vb"}, _baseDirectory)
-            Assert.Equal(2048, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(2048, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:010000", "a.vb"}, _baseDirectory)
-            Assert.Equal(4096, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(4096, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:020000", "a.vb"}, _baseDirectory)
-            Assert.Equal(8192, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(8192, parsedArgs.EmitOptions.FileAlignment)
 
             ' test hex values
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:0x200", "a.vb"}, _baseDirectory)
-            Assert.Equal(512, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(512, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:0x400", "a.vb"}, _baseDirectory)
-            Assert.Equal(1024, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(1024, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:0x800", "a.vb"}, _baseDirectory)
-            Assert.Equal(2048, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(2048, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:0x1000", "a.vb"}, _baseDirectory)
-            Assert.Equal(4096, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(4096, parsedArgs.EmitOptions.FileAlignment)
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:0x2000", "a.vb"}, _baseDirectory)
-            Assert.Equal(8192, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(8192, parsedArgs.EmitOptions.FileAlignment)
 
             ' test default (no value)
             parsedArgs = VBCommandLineParser.Default.Parse({"/platform:x86", "a.vb"}, _baseDirectory)
-            Assert.Equal(0, parsedArgs.CompilationOptions.FileAlignment)
+            Assert.Equal(0, parsedArgs.EmitOptions.FileAlignment)
 
             ' test missing 
             parsedArgs = VBCommandLineParser.Default.Parse({"/filealign:", "a.vb"}, _baseDirectory)
@@ -3206,45 +3207,45 @@ End Class
 
             ' test decimal values being treated as hex
             Dim parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:0", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(0, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(0, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:1024", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H1024, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H1024, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:2048", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H2048, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H2048, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:4096", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H4096, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H4096, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:8192", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H8192, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H8192, ULong), parsedArgs.EmitOptions.BaseAddress)
 
             ' test hex values being treated as hex
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:0x200", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H200, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H200, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:0x400", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H400, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H400, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:0x800", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H800, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H800, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:0x1000", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H1000, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H1000, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:0xFFFFFFFFFFFFFFFF", "a.vb"}, _baseDirectory)
-            Assert.Equal(ULong.MaxValue, parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(ULong.MaxValue, parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:FFFFFFFFFFFFFFFF", "a.vb"}, _baseDirectory)
-            Assert.Equal(ULong.MaxValue, parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(ULong.MaxValue, parsedArgs.EmitOptions.BaseAddress)
 
             ' test octal values being treated as hex
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:00", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(0, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(0, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:01024", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H1024, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H1024, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:02048", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H2048, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H2048, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:04096", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H4096, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H4096, ULong), parsedArgs.EmitOptions.BaseAddress)
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:08192", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(&H8192, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(&H8192, ULong), parsedArgs.EmitOptions.BaseAddress)
 
             ' test default (no value)
             parsedArgs = VBCommandLineParser.Default.Parse({"/platform:x86", "a.vb"}, _baseDirectory)
-            Assert.Equal(CType(0, ULong), parsedArgs.CompilationOptions.BaseAddress)
+            Assert.Equal(CType(0, ULong), parsedArgs.EmitOptions.BaseAddress)
 
             ' test missing 
             parsedArgs = VBCommandLineParser.Default.Parse({"/baseaddress:", "a.vb"}, _baseDirectory)
@@ -3680,19 +3681,19 @@ Class C
         <Fact()>
         Public Sub HighEntropyVirtualAddressSpace()
             Dim parsedArgs = VBCommandLineParser.Default.Parse({"/highentropyva", "a.vb"}, _baseDirectory)
-            Assert.True(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace)
+            Assert.True(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
             parsedArgs = VBCommandLineParser.Default.Parse({"/highentropyva+", "a.vb"}, _baseDirectory)
-            Assert.True(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace)
+            Assert.True(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
             parsedArgs = VBCommandLineParser.Default.Parse({"/highentropyva-", "a.vb"}, _baseDirectory)
-            Assert.False(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace)
+            Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
             parsedArgs = VBCommandLineParser.Default.Parse({"/highentropyva:+", "a.vb"}, _baseDirectory)
-            Assert.False(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace)
+            Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/highentropyva:+"))
             parsedArgs = VBCommandLineParser.Default.Parse({"/highentropyva:", "a.vb"}, _baseDirectory)
-            Assert.False(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace)
+            Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/highentropyva:"))
             parsedArgs = VBCommandLineParser.Default.Parse({"/highentropyva+ /highentropyva-", "a.vb"}, _baseDirectory)
-            Assert.False(parsedArgs.CompilationOptions.HighEntropyVirtualAddressSpace)
+            Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
         End Sub
 
         <Fact>
@@ -4789,8 +4790,8 @@ Class ??
     End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim comp = VBCompilation.Create("a.dll", options:=TestOptions.ReleaseDll.WithSubsystemVersion(SubsystemVersion.Create(5, 1)))
-            Dim peHeaders = New PEHeaders(comp.EmitToStream())
+            Dim comp = VBCompilation.Create("a.dll", options:=TestOptions.ReleaseDll)
+            Dim peHeaders = New PEHeaders(comp.EmitToStream(New EmitOptions(subsystemVersion:=SubsystemVersion.Create(5, 1))))
             Assert.Equal(5, peHeaders.PEHeader.MajorSubsystemVersion)
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion)
 
@@ -5102,22 +5103,22 @@ End Module
             Dim outputFileName As String
             Dim target As String
             Select Case outputKind
-                Case OutputKind.ConsoleApplication
+                Case outputKind.ConsoleApplication
                     outputFileName = "Test.exe"
                     target = "exe"
-                Case OutputKind.WindowsApplication
+                Case outputKind.WindowsApplication
                     outputFileName = "Test.exe"
                     target = "winexe"
-                Case OutputKind.DynamicallyLinkedLibrary
+                Case outputKind.DynamicallyLinkedLibrary
                     outputFileName = "Test.dll"
                     target = "library"
-                Case OutputKind.NetModule
+                Case outputKind.NetModule
                     outputFileName = "Test.netmodule"
                     target = "module"
-                Case OutputKind.WindowsRuntimeMetadata
+                Case outputKind.WindowsRuntimeMetadata
                     outputFileName = "Test.winmdobj"
                     target = "winmdobj"
-                Case OutputKind.WindowsRuntimeApplication
+                Case outputKind.WindowsRuntimeApplication
                     outputFileName = "Test.exe"
                     target = "appcontainerexe"
                 Case Else
@@ -5151,7 +5152,7 @@ End Module
             End If
 
             Const resourceType As String = "#24"
-            Dim resourceId As String = If(outputKind = OutputKind.DynamicallyLinkedLibrary, "#2", "#1")
+            Dim resourceId As String = If(outputKind = outputKind.DynamicallyLinkedLibrary, "#2", "#1")
 
             Dim manifestSize As UInteger = Nothing
             If expectedManifest Is Nothing Then

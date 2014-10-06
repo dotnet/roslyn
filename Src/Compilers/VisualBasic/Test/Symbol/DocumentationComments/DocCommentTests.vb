@@ -12075,7 +12075,7 @@ xmlDoc)
 
             Using output = New MemoryStream()
                 Using xml = New MemoryStream()
-                    Dim emitResult = compilation.Emit(output, Nothing, Nothing, Nothing, xmlDocumentationStream:=xml)
+                    Dim emitResult = compilation.Emit(output, xmlDocumentationStream:=xml)
 
                     xml.Seek(0, SeekOrigin.Begin)
                     Dim xmlDoc = New StreamReader(xml).ReadToEnd().Trim()

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
@@ -58,7 +59,7 @@ class C
             var mdStream = new MemoryStream();
             var ilStream = new MemoryStream();
             var pdbStream = new MemoryStream();
-            var updatedMethodTokens = new List<uint>();
+            var updatedMethods = new List<MethodHandle>();
 
             c2.EmitDifference(baseline, new[]
             {
@@ -66,7 +67,7 @@ class C
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
-            }, mdStream, ilStream, pdbStream, updatedMethodTokens);
+            }, mdStream, ilStream, pdbStream, updatedMethods);
 
             var actualIL = ilStream.ToArray().GetMethodIL();
             var expectedIL = @"
@@ -127,7 +128,7 @@ class C
             var mdStream = new MemoryStream();
             var ilStream = new MemoryStream();
             var pdbStream = new MemoryStream();
-            var updatedMethodTokens = new List<uint>();
+            var updatedMethods = new List<MethodHandle>();
 
             c2.EmitDifference(baseline, new[]
             {
@@ -135,7 +136,7 @@ class C
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
-            }, mdStream, ilStream, pdbStream, updatedMethodTokens);
+            }, mdStream, ilStream, pdbStream, updatedMethods);
 
             var actualIL = ilStream.ToArray().GetMethodIL();
 

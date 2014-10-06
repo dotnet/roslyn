@@ -11,6 +11,7 @@ Imports System.Reflection
 Imports System.Xml.Linq
 Imports Xunit
 Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -509,7 +510,7 @@ BC36923: Type 'D1(Of T)' cannot be embedded because it has generic argument. Con
                 errors = <errors/>
             End If
             Using executableStream As New MemoryStream()
-                Dim result = compilation.EmitMetadataOnly(executableStream)
+                Dim result = compilation.Emit(executableStream, options:=New EmitOptions(metadataOnly:=True))
                 result.Diagnostics.AssertTheseDiagnostics(errors)
             End Using
         End Sub

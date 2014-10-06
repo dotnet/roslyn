@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Equal(expected, parameter.IsParams);
 
-            var emitModule = new PEAssemblyBuilder(module.ContainingSourceAssembly, null, outputKind, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+            var emitModule = new PEAssemblyBuilder(module.ContainingSourceAssembly, EmitOptions.Default, outputKind, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var paramArrayAttributeCtor = (MethodSymbol)emitModule.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ParamArrayAttribute__ctor);
             bool found = false;
 

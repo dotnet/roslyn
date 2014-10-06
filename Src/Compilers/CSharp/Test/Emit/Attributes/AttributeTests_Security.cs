@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -630,8 +631,8 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilation(source, null, TestOptions.ReleaseDll.WithRuntimeMetadataVersion("v4.0.31019"));
-            CompileAndVerify(comp, verify: false, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.EmitToArray(options: new EmitOptions(runtimeMetadataVersion: "v4.0.31019"), expectedWarnings: new DiagnosticDescription[0]);
         }
 
         #endregion

@@ -12,11 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         internal PENetModuleBuilder(
             SourceModuleSymbol sourceModule, 
-            string outputName, 
+            EmitOptions emitOptions, 
             ModulePropertiesForSerialization serializationProperties, 
-            IEnumerable<ResourceDescription> manifestResources,
-            bool metadataOnly)
-            : base(sourceModule, outputName, OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper: null, metadataOnly: metadataOnly)
+            IEnumerable<ResourceDescription> manifestResources)
+            : base(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper: null)
         {
         }
 

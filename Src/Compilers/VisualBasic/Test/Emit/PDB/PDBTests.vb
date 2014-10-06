@@ -2947,7 +2947,7 @@ End Module
 
             Dim exebits = New IO.MemoryStream()
             Dim pdbbits = New IO.MemoryStream()
-            Dim result = compilation.Emit(exebits, Nothing, "DontCare", pdbbits, Nothing)
+            Dim result = compilation.Emit(exebits, pdbbits)
             result.Diagnostics.Verify()
 
             'this new warning was abandoned

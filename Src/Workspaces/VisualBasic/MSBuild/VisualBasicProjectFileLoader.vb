@@ -412,13 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetBaseAddress(targetType As String, baseAddress As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetBaseAddress
-                    If Not String.IsNullOrEmpty(baseAddress) Then
-                        Dim baseAddressValue As ULong
-                        If ULong.TryParse(baseAddress, baseAddressValue) Then
-                            Me._compilationOptions = Me._compilationOptions.WithBaseAddress(baseAddressValue)
-                            Return True
-                        End If
-                    End If
+                    ' we don't capture emit options
                     Return True
                 End Function
 
@@ -469,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetFileAlignment(fileAlignment As Integer) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetFileAlignment
-                    Me._compilationOptions = Me._compilationOptions.WithFileAlignment(fileAlignment)
+                    ' we don't capture emit options
                     Return True
                 End Function
 
@@ -769,21 +763,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetHighEntropyVA(highEntropyVA As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject5.SetHighEntropyVA
-                    Me._compilationOptions = Me._compilationOptions.WithHighEntropyVirtualAddressSpace(highEntropyVA)
+                    ' we don't capture emit options
                     Return True
                 End Function
 
                 Public Function SetSubsystemVersion(subsystemVersion As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject5.SetSubsystemVersion
-                    If Not String.IsNullOrEmpty(subsystemVersion) Then
-                        Dim parsedVersion As SubsystemVersion
-
-                        If CodeAnalysis.SubsystemVersion.TryParse(subsystemVersion, parsedVersion) Then
-                            Me._compilationOptions = Me._compilationOptions.WithSubsystemVersion(parsedVersion)
-                        End If
-
-                        Return True
-                    End If
-                    Return False
+                    ' we don't capture emit options
+                    Return True
                 End Function
 
                 Public Function Compile1() As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObjectFreeThreaded.Compile

@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -181,38 +182,36 @@ End Namespace
 
         <Fact>
         Public Sub EmitToMemoryStreams()
-            Const pdbPath As String = "Foo.pdb"
-            Const outputName As String = Nothing
             Dim comp = VBCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
 
             Using output = New MemoryStream()
                 Using outputPdb = New MemoryStream()
                     Using outputxml = New MemoryStream()
-                        Dim result = comp.Emit(output, outputName, pdbPath, outputPdb, Nothing)
+                        Dim result = comp.Emit(output, outputPdb, Nothing)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, pdbPath, outputPdb)
+                        result = comp.Emit(output, outputPdb)
                         Assert.True(result.Success)
-                        result = comp.Emit(peStream:=output, outputName:=outputName, pdbFilePath:=pdbPath, pdbStream:=outputPdb, xmlDocumentationStream:=Nothing, cancellationToken:=Nothing)
+                        result = comp.Emit(peStream:=output, pdbStream:=outputPdb, xmlDocumentationStream:=Nothing, cancellationToken:=Nothing)
                         Assert.True(result.Success)
-                        result = comp.Emit(peStream:=output, outputName:=outputName, pdbFilePath:=pdbPath, pdbStream:=outputPdb, cancellationToken:=Nothing)
+                        result = comp.Emit(peStream:=output, pdbStream:=outputPdb, cancellationToken:=Nothing)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, pdbPath, outputPdb)
+                        result = comp.Emit(output, outputPdb)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, pdbPath, outputPdb)
+                        result = comp.Emit(output, outputPdb)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, pdbPath, outputPdb, outputxml)
+                        result = comp.Emit(output, outputPdb, outputxml)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, Nothing, Nothing, Nothing)
+                        result = comp.Emit(output, Nothing, Nothing, Nothing)
                         Assert.True(result.Success)
                         result = comp.Emit(output)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, Nothing, Nothing, outputxml)
+                        result = comp.Emit(output, Nothing, outputxml)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, xmlDocumentationStream:=outputxml)
+                        result = comp.Emit(output, xmlDocumentationStream:=outputxml)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, pdbPath, Nothing, outputxml)
+                        result = comp.Emit(output, Nothing, outputxml)
                         Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, pdbPath, xmlDocumentationStream:=outputxml)
+                        result = comp.Emit(output, xmlDocumentationStream:=outputxml)
                         Assert.True(result.Success)
                     End Using
                 End Using
@@ -220,39 +219,25 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(538169, "DevDiv")>
-        Public Sub EmitToFileStreams()
-            Dim ops1 = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"})).WithRootNamespace("")
-            Dim comp = VBCompilation.Create("compilation", options:=ops1)
+        Public Sub EmitOptionsDiagnostics()
+            Dim c = CreateCompilationWithMscorlib({"class C {}"})
+            Dim stream = New MemoryStream()
 
-            ' Emit test
-            Dim dll = Temp.CreateFile()
-            Dim pdb = Temp.CreateFile()
-            Dim xml = Temp.CreateFile()
-            Const outputName As String = Nothing
+            Dim options = New EmitOptions(
+                debugInformationFormat:=CType(-1, DebugInformationFormat),
+                outputName:=" ",
+                fileAlignment:=513,
+                subsystemVersion:=SubsystemVersion.Create(1000000, -1000000))
 
-            Using output = dll.Open()
-                Using outputPdb = pdb.Open()
-                    Using outputXml = xml.Open()
-                        Dim result = comp.Emit(output, outputName, pdb.Path, outputPdb, Nothing)
-                        Assert.True(result.Success)
-                        result = comp.Emit(peStream:=output, outputName:=outputName, pdbFilePath:=pdb.Path, pdbStream:=outputPdb, xmlDocumentationStream:=Nothing)
-                        Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, pdb.Path, outputPdb, Nothing)
-                        Assert.True(result.Success)
-                        result = comp.Emit(peStream:=output, outputName:=outputName, pdbFilePath:=pdb.Path, pdbStream:=outputPdb, xmlDocumentationStream:=Nothing)
-                        Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, Nothing, Nothing, Nothing)
-                        Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, Nothing, Nothing, outputXml)
-                        Assert.True(result.Success)
-                        result = comp.Emit(output, outputName, pdb.Path, Nothing, outputXml)
-                        Assert.True(result.Success)
-                        result = comp.Emit(output, Nothing, Nothing, outputPdb, outputXml)
-                        Assert.True(result.Success)
-                    End Using
-                End Using
-            End Using
+            Dim result = c.Emit(stream, options:=options)
+
+            result.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
+                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments("Name cannot start with whitespace."),
+                Diagnostic(ERRID.ERR_InvalidFileAlignment).WithArguments("513"),
+                Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"))
+
+            Assert.False(result.Success)
         End Sub
 
         <Fact>
@@ -1363,9 +1348,6 @@ End Class
             c2 = c1.WithOptions(New VBCompilationOptions(OutputKind.WindowsApplication))
             Assert.True(c1.ReferenceManagerEquals(c2))
 
-            c2 = c1.WithOptions(TestOptions.ReleaseDll.WithHighEntropyVirtualAddressSpace(True))
-            Assert.True(c1.ReferenceManagerEquals(c2))
-
             c2 = c1.WithOptions(TestOptions.ReleaseModule)
             Assert.False(c1.ReferenceManagerEquals(c2))
 
@@ -1380,9 +1362,6 @@ End Class
 
             c2 = c1.WithOptions(New VBCompilationOptions(OutputKind.WindowsApplication))
             Assert.False(c1.ReferenceManagerEquals(c2))
-
-            c2 = c1.WithOptions(TestOptions.ReleaseModule.WithHighEntropyVirtualAddressSpace(True))
-            Assert.True(c1.ReferenceManagerEquals(c2))
         End Sub
 
         <Fact>

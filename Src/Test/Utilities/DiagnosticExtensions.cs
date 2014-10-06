@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -227,11 +228,17 @@ namespace Microsoft.CodeAnalysis
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, (exception, throwingAnalyzer) => true);
         }
 
+        public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)
+            where TCompilation : Compilation
+        {
+            c.Emit(new MemoryStream(), pdbStream: new MemoryStream(), options: options).Diagnostics.Verify(expected);
+            return c;
+        }
+
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            c.Emit(new MemoryStream(), pdbStream: new MemoryStream()).Diagnostics.Verify(expected);
-            return c;
+            return VerifyEmitDiagnostics(c, EmitOptions.Default, expected);
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, IEnumerable<ResourceDescription> manifestResources, params DiagnosticDescription[] expected)

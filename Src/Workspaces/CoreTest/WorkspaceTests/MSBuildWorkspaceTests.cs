@@ -1002,20 +1002,6 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCompilationOptions_CSharp_BaseAddress_Default()
-        {
-            CreateCSharpFiles();
-            AssertOptions(0ul, options => options.BaseAddress);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TTestCompilationOptions_CSharp_BaseAddress_Custom()
-        {
-            CreateCSharpFilesWith("BaseAddress", "8388608");
-            AssertOptions(8388608ul, options => options.BaseAddress);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TTestCompilationOptions_CSharp_DebugType_Full()
         {
             CreateCSharpFilesWith("DebugType", "full");
@@ -1062,20 +1048,6 @@ class C1
         {
             CreateCSharpFilesWith("OutputType", "Module");
             AssertOptions(OutputKind.NetModule, options => options.OutputKind);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCompilationOptions_CSharp_FileAlignment_Missing()
-        {
-            CreateCSharpFiles();
-            AssertOptions((ushort)512, options => options.FileAlignment);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCompilationOptions_CSharp_FileAlignment_8192()
-        {
-            CreateCSharpFilesWith("FileAlignment", "8192");
-            AssertOptions((ushort)8192, options => options.FileAlignment);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

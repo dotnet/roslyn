@@ -6,6 +6,7 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1116,15 +1117,22 @@ lVbRuntimePlus:
                         cryptoKeyContainer:=keyContainerSetting,
                         cryptoKeyFile:=keyFileSetting,
                         delaySign:=delaySignSetting,
-                        fileAlignment:=fileAlignment,
-                        baseAddress:=baseAddress,
                         platform:=platform,
                         generalDiagnosticOption:=generalDiagnosticOption,
                         specificDiagnosticOptions:=specificDiagnosticOptions,
-                        highEntropyVirtualAddressSpace:=highEntropyVA,
                         optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
-                        subsystemVersion:=ssVersion,
                         parseOptions:=parseOptions).WithFeatures(features.AsImmutable())
+
+                Dim emitOptions = New EmitOptions(
+                    metadataOnly:=False,
+                    debugInformationFormat:=DebugInformationFormat.Pdb,
+                    pdbFilePath:=Nothing, ' to be determined later
+                    outputName:=Nothing,  ' to be determined later
+                    fileAlignment:=fileAlignment,
+                    baseAddress:=baseAddress,
+                    highEntropyVirtualAddressSpace:=highEntropyVA,
+                    subsystemVersion:=ssVersion,
+                    runtimeMetadataVersion:=Nothing)
 
                 ' add option incompatibility errors if any
                 diagnostics.AddRange(options.Errors)
@@ -1162,6 +1170,7 @@ lVbRuntimePlus:
                     .ManifestResources = managedResources.AsImmutable(),
                     .CompilationOptions = options,
                     .ParseOptions = If(IsInteractive, scriptParseOptions, parseOptions),
+                    .EmitOptions = emitOptions,
                     .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                     .TouchedFilesPath = touchedFilesPath,
                     .OutputLevel = outputLevel,

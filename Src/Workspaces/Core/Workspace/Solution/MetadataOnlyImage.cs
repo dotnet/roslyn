@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis
     internal class MetadataOnlyImage
     {
         public static readonly MetadataOnlyImage Empty = new MetadataOnlyImage(storage: null, assemblyName: string.Empty);
+        private static readonly EmitOptions EmitOptions = new EmitOptions(metadataOnly: true);
 
         private readonly ITemporaryStorage storage;
         private readonly string assemblyName;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // note: cloning compilation so we don't retain all the generated symbols after its emitted.
                     // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().EmitMetadataOnly(stream, cancellationToken: cancellationToken);
+                    var emitResult = compilation.Clone().Emit(stream, options: EmitOptions, cancellationToken: cancellationToken);
 
                     if (emitResult.Success)
                     {

@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -438,10 +439,7 @@ class C
             {
                 var metadataOnly = metadataOnlyIfNonzero != 0;
                 Func<Compilation, Stream, ResourceDescription[], CodeAnalysis.Emit.EmitResult> emit;
-                if (metadataOnly)
-                    emit = (c, s, r) => c.EmitMetadataOnly(s, manifestResources: r);
-                else
-                    emit = (c, s, r) => c.Emit(s, manifestResources: r);
+                emit = (c, s, r) => c.Emit(s, manifestResources: r, options: new EmitOptions(metadataOnly: metadataOnly));
 
                 var sourceTree = SyntaxFactory.ParseSyntaxTree("");
 

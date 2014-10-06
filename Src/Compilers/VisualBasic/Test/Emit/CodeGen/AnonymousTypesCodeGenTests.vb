@@ -4,11 +4,8 @@ Imports System.IO
 Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
@@ -167,13 +164,8 @@ End Module
                     Dim j = jj
                     tasks(j) = Task.Run(Sub()
                                             Dim stream = New MemoryStream()
-                                            If (j Mod 2 = 0) Then
-                                                Dim result = compilation.EmitMetadataOnly(stream)
-                                                result.Diagnostics.Verify()
-                                            Else
-                                                Dim result = compilation.Emit(stream)
-                                                result.Diagnostics.Verify()
-                                            End If
+                                            Dim result = compilation.Emit(stream, options:=New EmitOptions(metadataOnly:=j Mod 2 = 0))
+                                            result.Diagnostics.Verify()
                                         End Sub)
                 Next
 
