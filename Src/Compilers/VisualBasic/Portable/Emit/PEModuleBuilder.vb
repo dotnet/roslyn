@@ -259,15 +259,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim span As FileLinePositionSpan = location.GetLineSpan()
 
             Dim doc As Cci.DebugSourceDocument = Me.TryGetDebugDocument(span.Path, basePath:=location.SourceTree.FilePath)
-            Debug.Assert(doc IsNot Nothing)
-
-            result.Add(doc,
+            If (doc IsNot Nothing) Then
+                result.Add(doc,
                        New Cci.DefinitionWithLocation(
                            definition,
                            span.StartLinePosition.Line,
                            span.StartLinePosition.Character,
                            span.EndLinePosition.Line,
                            span.EndLinePosition.Character))
+            End If
         End Sub
 
         Private Function GetSmallestSourceLocationOrNull(symbol As Symbol) As Location

@@ -283,15 +283,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             FileLinePositionSpan span = location.GetLineSpan();
 
             Cci.DebugSourceDocument doc = TryGetDebugDocument(span.Path, basePath: location.SourceTree.FilePath);
-            Debug.Assert(doc != null);
 
-            result.Add(doc,
-                       new Cci.DefinitionWithLocation(
-                           definition,
-                           span.StartLinePosition.Line,
-                           span.StartLinePosition.Character,
-                           span.EndLinePosition.Line,
-                           span.EndLinePosition.Character));
+            if (doc != null)
+            {
+                result.Add(doc,
+                           new Cci.DefinitionWithLocation(
+                               definition,
+                               span.StartLinePosition.Line,
+                               span.StartLinePosition.Character,
+                               span.EndLinePosition.Line,
+                               span.EndLinePosition.Character));
+            }
         }
 
         private Location GetSmallestSourceLocationOrNull(Symbol symbol)
