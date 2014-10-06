@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
             End Function
 
             Protected Overrides Function IsAssignableTo(compilation As Compilation, fromSymbol As ITypeSymbol, toSymbol As ITypeSymbol) As Boolean
-                Return fromSymbol IsNot Nothing AndAlso toSymbol IsNot Nothing AndAlso DirectCast(compilation, VisualBasicCompilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening
+                Return fromSymbol IsNot Nothing AndAlso toSymbol IsNot Nothing AndAlso DirectCast(compilation, VBCompilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening
             End Function
 
             Private Function IsEventHandler(type As ITypeSymbol) As Boolean

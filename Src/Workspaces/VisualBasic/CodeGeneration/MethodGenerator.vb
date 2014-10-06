@@ -118,13 +118,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Let children = expr2.ChildNodesAndTokens()
                         Where children.Count = 1 AndAlso children.ElementAt(0).IsToken
                         Let token = children.ElementAt(0).AsToken()
-                        Where token.VisualBasicKind = SyntaxKind.IdentifierToken OrElse
-                              token.VisualBasicKind = SyntaxKind.MyBaseKeyword OrElse
-                              token.VisualBasicKind = SyntaxKind.MyClassKeyword OrElse
-                              token.VisualBasicKind = SyntaxKind.MeKeyword
+                        Where token.VBKind = SyntaxKind.IdentifierToken OrElse
+                              token.VBKind = SyntaxKind.MyBaseKeyword OrElse
+                              token.VBKind = SyntaxKind.MyClassKeyword OrElse
+                              token.VBKind = SyntaxKind.MeKeyword
                         Where TypeOf def.Name Is IdentifierNameSyntax
                         Let identifier = def.Name.Identifier.ValueText.ToIdentifierName()
-                        Select SyntaxFactory.HandlesClauseItem(If(token.VisualBasicKind = SyntaxKind.IdentifierToken,
+                        Select SyntaxFactory.HandlesClauseItem(If(token.VBKind = SyntaxKind.IdentifierToken,
                                                            DirectCast(SyntaxFactory.WithEventsEventContainer(token.ValueText.ToIdentifierToken()), EventContainerSyntax),
                                                            SyntaxFactory.KeywordEventContainer(token)), identifier)
 

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend MustInherit Class IdentifierTokenSyntax
         Inherits SyntaxToken
 
-        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode)
+        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, precedingTrivia As VBSyntaxNode, followingTrivia As VBSyntaxNode)
             MyBase.New(kind, errors, annotations, text, precedingTrivia, followingTrivia)
         End Sub
 

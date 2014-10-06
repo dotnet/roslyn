@@ -254,7 +254,7 @@ Class RedNodeFactoryWriter
 
         If nodeStructure.IsToken Then
             ' tokens have trivia
-            _writer.Write(", DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)")
+            _writer.Write(", DirectCast(leadingTrivia.Node, InternalSyntax.VBSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VBSyntaxNode)")
         End If
 
         ' Generate parameters for each field and child
@@ -268,7 +268,7 @@ Class RedNodeFactoryWriter
             Else
                 If child.IsList Then
                     If KindTypeStructure(child.ChildKind).IsToken Then
-                        _writer.Write(", DirectCast({0}.Node, Syntax.InternalSyntax.VisualBasicSyntaxNode)", ChildParamName(child, factoryFunctionName))
+                        _writer.Write(", DirectCast({0}.Node, Syntax.InternalSyntax.VBSyntaxNode)", ChildParamName(child, factoryFunctionName))
                     Else
                         _writer.Write(", {0}.Node", ChildParamName(child, factoryFunctionName))
                     End If
@@ -457,7 +457,7 @@ Class RedNodeFactoryWriter
 
         If childNodeKind IsNot Nothing Then
             ' child can only ever be of one kind (and possibly None)
-            _writer.WriteLine("            Select Case {0}.VisualBasicKind()", paramName)
+            _writer.WriteLine("            Select Case {0}.VBKind()", paramName)
             _writer.Write("                Case SyntaxKind.{0}", childNodeKind.Name)
 
             _writer.WriteLine()
@@ -483,7 +483,7 @@ Class RedNodeFactoryWriter
             Else
 
                 ' otherwise child must be one of a specific set of kinds
-                _writer.WriteLine("            Select Case {0}.VisualBasicKind()", paramName)
+                _writer.WriteLine("            Select Case {0}.VBKind()", paramName)
 
                 Dim first = True
                 For Each childNodeKind In childNodeKinds
@@ -517,7 +517,7 @@ Class RedNodeFactoryWriter
 
         If childNodeKind IsNot Nothing Then
             ' child can only ever be of one kind (and possibly None)
-            _writer.WriteLine("            Select Case {0}.VisualBasicKind()", paramName)
+            _writer.WriteLine("            Select Case {0}.VBKind()", paramName)
             _writer.Write("                Case SyntaxKind.{0}", childNodeKind.Name)
 
             If child.IsOptional Then
@@ -548,7 +548,7 @@ Class RedNodeFactoryWriter
 
             Else
                 ' otherwise child must be one of a specific set of kinds
-                _writer.WriteLine("            Select Case {0}.VisualBasicKind()", paramName)
+                _writer.WriteLine("            Select Case {0}.VBKind()", paramName)
 
                 Dim needsComma = False
                 For Each childNodeKind In childNodeKinds

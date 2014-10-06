@@ -616,7 +616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function IsOrDerivedFromWellKnownClass(derivedType As TypeSymbol, wellKnownBaseType As WellKnownType, compilation As VisualBasicCompilation, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function IsOrDerivedFromWellKnownClass(derivedType As TypeSymbol, wellKnownBaseType As WellKnownType, compilation As VBCompilation, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Return derivedType.IsOrDerivedFrom(compilation.GetWellKnownType(wellKnownBaseType), useSiteDiagnostics)
         End Function
 
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function IsOrImplementsIEnumerableOfXElement(type As TypeSymbol, compilation As VisualBasicCompilation, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function IsOrImplementsIEnumerableOfXElement(type As TypeSymbol, compilation As VBCompilation, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Dim xmlType = compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement)
             Return type.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteDiagnostics)
         End Function
@@ -820,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' 3. one dimensional arrays of (1) and (2) above
         ''' </remarks>
         <Extension()>
-        Public Function IsValidTypeForAttributeArgument(type As TypeSymbol, compilation As VisualBasicCompilation) As Boolean
+        Public Function IsValidTypeForAttributeArgument(type As TypeSymbol, compilation As VBCompilation) As Boolean
             If type Is Nothing Then
                 Return False
             End If
@@ -973,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The passed-in compilation is used to find the well-known-type System.Linq.Expressions.Expression(Of T).
         ''' </summary>
         <Extension>
-        Public Function ExpressionTargetDelegate(type As TypeSymbol, compilation As VisualBasicCompilation) As NamedTypeSymbol
+        Public Function ExpressionTargetDelegate(type As TypeSymbol, compilation As VBCompilation) As NamedTypeSymbol
             If type.TypeKind = TypeKind.Class Then
                 Dim namedType = DirectCast(type, NamedTypeSymbol)
 

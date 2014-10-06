@@ -10,11 +10,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Structure SyntaxDiagnosticInfoList
         Implements IEnumerable(Of DiagnosticInfo), IEnumerable
-        Private ReadOnly _node As VisualBasicSyntaxNode
+        Private ReadOnly _node As VBSyntaxNode
         Private _count As Integer
         Private _list As List(Of DiagnosticInfo)
 
-        Friend Sub New(node As VisualBasicSyntaxNode)
+        Friend Sub New(node As VBSyntaxNode)
             Me._node = node
             Me._count = -1
             Me._list = Nothing
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private _count As Integer
             Private _current As DiagnosticInfo
 
-            Friend Sub New(node As VisualBasicSyntaxNode)
+            Friend Sub New(node As VBSyntaxNode)
 
                 If node IsNot Nothing AndAlso node.ContainsDiagnostics Then
                     Me._stack = New NodeIteration(8 - 1) {}

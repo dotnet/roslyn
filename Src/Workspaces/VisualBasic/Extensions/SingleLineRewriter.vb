@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Class SingleLineRewriter
-        Inherits VisualBasicSyntaxRewriter
+        Inherits VBSyntaxRewriter
 
         Private lastTokenEndedInWhitespace As Boolean
         Private Shared ReadOnly Space As SyntaxTriviaList = SyntaxTriviaList.Create(SyntaxFactory.WhitespaceTrivia(" "))

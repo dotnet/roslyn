@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Root As VBSyntaxNode
             Get
                 Return m_Root
             End Get
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function Bind(binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As VBSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Return m_parentSemanticModel.Bind(binder, node, diagnostics)
         End Function
 
@@ -86,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return m_bindingOption
         End Function
 
-        Friend Overrides Function GetExpressionSymbolInfo(node As ExpressionSyntax, options As VisualBasicSemanticModel.SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            If (options And VisualBasicSemanticModel.SymbolInfoOptions.PreserveAliases) <> 0 Then
+        Friend Overrides Function GetExpressionSymbolInfo(node As ExpressionSyntax, options As VBSemanticModel.SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+            If (options And VBSemanticModel.SymbolInfoOptions.PreserveAliases) <> 0 Then
                 Debug.Assert(TypeOf node Is IdentifierNameSyntax)
                 Dim aliasSymbol = m_parentSemanticModel.GetSpeculativeAliasInfo(m_position, DirectCast(node, IdentifierNameSyntax), Me.GetSpeculativeBindingOption(node))
                 Return SymbolInfoFactory.Create(ImmutableArray.Create(Of ISymbol)(aliasSymbol), If(aliasSymbol IsNot Nothing, LookupResultKind.Good, LookupResultKind.Empty))

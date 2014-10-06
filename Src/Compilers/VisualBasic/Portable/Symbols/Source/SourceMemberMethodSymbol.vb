@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
             If eventContainerKind = SyntaxKind.KeywordEventContainer Then
-                Select Case DirectCast(singleHandleClause.EventContainer, KeywordEventContainerSyntax).Keyword.VisualBasicKind
+                Select Case DirectCast(singleHandleClause.EventContainer, KeywordEventContainerSyntax).Keyword.VBKind
                     Case SyntaxKind.MeKeyword
                         handlesKind = HandledEventKind.Me
                         eventContainingType = Me.ContainingType
@@ -1035,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Shared Function ReturnsEventSource(prop As PropertySymbol, compilation As VisualBasicCompilation) As Boolean
+        Private Shared Function ReturnsEventSource(prop As PropertySymbol, compilation As VBCompilation) As Boolean
             Dim attrs = prop.GetAttributes()
             For Each attr In attrs
                 If attr.AttributeClass Is compilation.GetWellKnownType(WellKnownType.System_ComponentModel_DesignerSerializationVisibilityAttribute) Then

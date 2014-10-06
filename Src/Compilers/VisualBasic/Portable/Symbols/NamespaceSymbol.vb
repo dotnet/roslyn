@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' The containing compilation for compilation namespaces.
         ''' </summary>
-        Public ReadOnly Property ContainingCompilation As VisualBasicCompilation
+        Public ReadOnly Property ContainingCompilation As VBCompilation
             Get
                 Return If(Me.NamespaceKind = NamespaceKind.Compilation, Me.Extent.Compilation, Nothing)
             End Get

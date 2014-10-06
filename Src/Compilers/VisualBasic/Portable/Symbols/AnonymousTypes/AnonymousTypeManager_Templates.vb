@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Lazily create a template types cache
                 If Me._concurrentTypesCache Is Nothing Then
 
-                    Dim previousSubmission As VisualBasicCompilation = Me.Compilation.PreviousSubmission
+                    Dim previousSubmission As VBCompilation = Me.Compilation.PreviousSubmission
                     Dim previousCache = If(previousSubmission Is Nothing, Nothing,
                                        previousSubmission.AnonymousTypeManager._concurrentTypesCache)
 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property AnonymousDelegateTemplates As ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol)
             Get
                 If Me._concurrentDelegatesCache Is Nothing Then
-                    Dim previousSubmission As VisualBasicCompilation = Me.Compilation.PreviousSubmission
+                    Dim previousSubmission As VBCompilation = Me.Compilation.PreviousSubmission
                     Dim previousCache = If(previousSubmission Is Nothing, Nothing,
                                        previousSubmission.AnonymousTypeManager._concurrentDelegatesCache)
 
@@ -308,9 +308,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class AnonymousTypeComparer
             Implements IComparer(Of AnonymousTypeOrDelegateTemplateSymbol)
 
-            Private ReadOnly _compilation As VisualBasicCompilation
+            Private ReadOnly _compilation As VBCompilation
 
-            Friend Sub New(compilation As VisualBasicCompilation)
+            Friend Sub New(compilation As VBCompilation)
                 Me._compilation = compilation
             End Sub
 

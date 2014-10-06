@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Inherits SynthesizedRegularMethodBase
 
             Public Sub New(container As AnonymousTypeTemplateSymbol)
-                MyBase.New(VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot(), container, WellKnownMemberNames.ObjectGetHashCode)
+                MyBase.New(VisualBasic.VBSyntaxTree.Dummy.GetRoot(), container, WellKnownMemberNames.ObjectGetHashCode)
             End Sub
 
             Private ReadOnly Property AnonymousType As AnonymousTypeTemplateSymbol

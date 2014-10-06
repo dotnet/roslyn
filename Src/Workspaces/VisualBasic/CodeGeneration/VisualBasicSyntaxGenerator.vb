@@ -1044,7 +1044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             isDefault = False
 
             For Each token In modifierTokens
-                Select Case token.VisualBasicKind
+                Select Case token.VBKind
                     Case SyntaxKind.DefaultKeyword
                         isDefault = True
                     Case SyntaxKind.PublicKeyword
@@ -1206,7 +1206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return SyntaxFactory.QualifiedName(qname.Left, DirectCast(WithTypeArguments(qname.Right, typeArguments), SimpleNameSyntax))
             ElseIf name.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim sma = DirectCast(name, MemberAccessExpressionSyntax)
-                Return SyntaxFactory.MemberAccessExpression(name.VisualBasicKind(), sma.Expression, sma.OperatorToken, DirectCast(WithTypeArguments(sma.Name, typeArguments), SimpleNameSyntax))
+                Return SyntaxFactory.MemberAccessExpression(name.VBKind(), sma.Expression, sma.OperatorToken, DirectCast(WithTypeArguments(sma.Name, typeArguments), SimpleNameSyntax))
             Else
                 Throw New NotSupportedException()
             End If

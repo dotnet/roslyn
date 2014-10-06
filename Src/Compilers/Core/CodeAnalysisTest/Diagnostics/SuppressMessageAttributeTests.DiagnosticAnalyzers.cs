@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                 .Where(t =>
                                     t.CSharpKind() == CSharp.SyntaxKind.SingleLineCommentTrivia ||
                                     t.CSharpKind() == CSharp.SyntaxKind.MultiLineCommentTrivia ||
-                                    t.VisualBasicKind() == VisualBasic.SyntaxKind.CommentTrivia);
+                                    t.VBKind() == VisualBasic.SyntaxKind.CommentTrivia);
 
                             foreach (var comment in comments)
                             {

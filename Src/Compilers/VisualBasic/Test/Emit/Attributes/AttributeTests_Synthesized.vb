@@ -29,7 +29,7 @@ End Class
 </compilation>
 
             Dim reference = CreateCompilationWithMscorlibAndVBRuntime(source).EmitToImageReference()
-            Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            Dim comp = VBCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Where(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>")).Single(), NamedTypeSymbol)
             Dim expectedAttrs = {"CompilerGeneratedAttribute"}
@@ -632,7 +632,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
                 CompilationUtils.AssertNoErrors(compilation)
                 compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
 
@@ -672,7 +672,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
                 CompilationUtils.AssertNoErrors(compilation)
                 compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
 
@@ -716,7 +716,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
                 CompilationUtils.AssertNoErrors(compilation)
                 compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
 
@@ -761,7 +761,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
                 CompilationUtils.AssertNoErrors(compilation)
                 compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
 
@@ -808,7 +808,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
+                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
 
                 Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
 
@@ -867,7 +867,7 @@ End Class
                          </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(kind))
+                Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(kind))
 
                 If kind <> OutputKind.NetModule Then
                     CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -925,16 +925,16 @@ BC35000: Requested operation is not available because the runtime library functi
 
         Private Sub TestDebuggableAttributeCommon(
             source As String,
-            validator As Action(Of VisualBasicCompilation),
+            validator As Action(Of VBCompilation),
             includeMscorlibRef As Boolean,
             compileAndVerifyFlag As Boolean,
             outputKindFlag As OutputKind,
             optimizations As OptimizationLevel)
 
-            Dim compOptions = New VisualBasicCompilationOptions(outputKindFlag, optimizationLevel:=optimizations, moduleName:="comp")
+            Dim compOptions = New VBCompilationOptions(outputKindFlag, optimizationLevel:=optimizations, moduleName:="comp")
             Dim syntaxTrees = {Parse(source)}
             Dim refs As IEnumerable(Of MetadataReference) = If(includeMscorlibRef, SpecializedCollections.SingletonEnumerable(MscorlibRef), SpecializedCollections.EmptyEnumerable(Of MetadataReference)())
-            Dim comp = VisualBasicCompilation.Create("comp", syntaxTrees, refs, compOptions)
+            Dim comp = VBCompilation.Create("comp", syntaxTrees, refs, compOptions)
 
             comp.GetDeclarationDiagnostics()
             comp.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(comp)
@@ -949,7 +949,7 @@ BC35000: Requested operation is not available because the runtime library functi
             End If
         End Sub
 
-        Private Sub TestDebuggableAttributeMatrix(source As String, validator As Action(Of VisualBasicCompilation), Optional includeMscorlibRef As Boolean = True, Optional compileAndVerify As Boolean = True)
+        Private Sub TestDebuggableAttributeMatrix(source As String, validator As Action(Of VBCompilation), Optional includeMscorlibRef As Boolean = True, Optional compileAndVerify As Boolean = True)
             For Each outputKind As OutputKind In [Enum].GetValues(GetType(OutputKind))
                 For Each optimizations As OptimizationLevel In [Enum].GetValues(GetType(OptimizationLevel))
                     TestDebuggableAttributeCommon(source, validator, includeMscorlibRef, compileAndVerify, outputKind, optimizations)
@@ -972,11 +972,11 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) =
-                Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) =
+                Sub(compilation As VBCompilation)
                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Dim options As VisualBasicCompilationOptions = compilation.Options
+                    Dim options As VBCompilationOptions = compilation.Options
 
                     If Not options.OutputKind.IsNetModule() Then
                         ' Verify synthesized DebuggableAttribute based on compilation options.
@@ -1012,11 +1012,11 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) =
-                Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) =
+                Sub(compilation As VBCompilation)
                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Dim options As VisualBasicCompilationOptions = compilation.Options
+                    Dim options As VBCompilationOptions = compilation.Options
 
                     If Not options.OutputKind.IsNetModule() Then
                         ' Verify no synthesized DebuggableAttribute.
@@ -1056,11 +1056,11 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) =
-                Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) =
+                Sub(compilation As VBCompilation)
                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Dim options As VisualBasicCompilationOptions = compilation.Options
+                    Dim options As VBCompilationOptions = compilation.Options
 
                     If Not options.OutputKind.IsNetModule() Then
                         ' Verify no synthesized DebuggableAttribute.
@@ -1102,11 +1102,11 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) =
-                Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) =
+                Sub(compilation As VBCompilation)
                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Dim options As VisualBasicCompilationOptions = compilation.Options
+                    Dim options As VBCompilationOptions = compilation.Options
 
                     If Not options.OutputKind.IsNetModule() Then
                         ' Verify no synthesized DebuggableAttribute.
@@ -1148,7 +1148,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) = Sub(compilation As VBCompilation)
                                                                      CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30002: Type 'System.Void' is not defined.
@@ -1195,10 +1195,10 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) = Sub(compilation As VBCompilation)
                                                                      Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
                                                                      Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+                                                                     Dim options As VBCompilationOptions = compilation.Options
 
                                                                      If Not options.OutputKind.IsNetModule() Then
                                                                          ' Verify no synthesized DebuggableAttribute.
@@ -1248,10 +1248,10 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) = Sub(compilation As VBCompilation)
                                                                      Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
                                                                      Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+                                                                     Dim options As VBCompilationOptions = compilation.Options
 
                                                                      If Not options.OutputKind.IsNetModule() Then
                                                                          ' Verify no synthesized DebuggableAttribute.
@@ -1296,10 +1296,10 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) = Sub(compilation As VBCompilation)
                                                                      Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
                                                                      Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+                                                                     Dim options As VBCompilationOptions = compilation.Options
 
                                                                      If Not options.OutputKind.IsNetModule() Then
                                                                          ' Verify no synthesized DebuggableAttribute.
@@ -1346,10 +1346,10 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
+            Dim validator As Action(Of VBCompilation) = Sub(compilation As VBCompilation)
                                                                      Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
                                                                      Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+                                                                     Dim options As VBCompilationOptions = compilation.Options
 
                                                                      If Not options.OutputKind.IsNetModule() Then
                                                                          ' Verify no synthesized DebuggableAttribute.

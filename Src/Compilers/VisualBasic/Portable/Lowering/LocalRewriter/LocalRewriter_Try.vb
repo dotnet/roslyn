@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function RewriteTryStatement(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
             tryBlock As BoundBlock,
             catchBlocks As ImmutableArray(Of BoundCatchBlock),
             finallyBlockOpt As BoundBlock,

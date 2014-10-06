@@ -3905,7 +3905,7 @@ BC30179: delegate Class 'Del1' and delegate Class 'Del1' conflict in structure '
 
         <Fact>
         Public Sub BC30389ERR_InaccessibleSymbol2_AccessCheckCrossAssemblyDerived()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="AccessCheckCrossAssemblyDerived1">
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -3924,7 +3924,7 @@ End Class
 
             CompilationUtils.AssertNoErrors(other)
 
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim comp As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="AccessCheckCrossAssemblyDeiver2">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -9419,7 +9419,7 @@ BC31051: Namespace or type 'genclass(Of String)' has already been imported.
         Class C
         End Class
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
+    </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
                                 GlobalImport.Parse(
                                     {"System.Collections", "System.Collections"}
                                 )
@@ -9442,7 +9442,7 @@ BC31051: Namespace or type 'System.Collections' has already been imported.
         Class C
         End Class
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
+    </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
                                 GlobalImport.Parse(
                                     {"System.Collections", "System.Collections"}
                                 )
@@ -18979,7 +18979,7 @@ BC40035: 'Public Sub foo(Of t)(p1 As Integer()()()()())' is not CLS-compliant be
 
         <Fact>
         Public Sub BC40038WRN_RootNamespaceNotCLSCompliant1()
-            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("_CLS")
+            Dim opt = New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("_CLS")
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="RootNamespaceNotCLSCompliant1">
         <file name="a.vb"><![CDATA[
@@ -18997,7 +18997,7 @@ BC40038: Root namespace '_CLS' is not CLS-compliant.
 
         <Fact>
         Public Sub BC40039WRN_RootNamespaceNotCLSCompliant2()
-            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("A._B")
+            Dim opt = New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("A._B")
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="RootNamespaceNotCLSCompliant2">
         <file name="a.vb"><![CDATA[
@@ -19015,7 +19015,7 @@ BC40039: Name '_B' in the root namespace 'A._B' is not CLS-compliant.
 
         <Fact>
         Public Sub BC40041WRN_TypeNotCLSCompliant1()
-            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+            Dim opt = New VBCompilationOptions(OutputKind.ConsoleApplication)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="TypeNotCLSCompliant1">
         <file name="a.vb"><![CDATA[
@@ -19038,7 +19038,7 @@ BC40041: Type 'UInteger' is not CLS-compliant.
 
         <Fact>
         Public Sub BC40042WRN_OptionalValueNotCLSCompliant1()
-            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+            Dim opt = New VBCompilationOptions(OutputKind.ConsoleApplication)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="OptionalValueNotCLSCompliant1">
         <file name="a.vb"><![CDATA[
@@ -19340,7 +19340,7 @@ Namespace NS.Ab
                                         End Namespace
                                     End Namespace
                                                         ]]></file>
-                </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="ConsoleApplicationVB"))
+                </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="ConsoleApplicationVB"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC40055: Casing of namespace name 'CONSOLEAPPLICATIONVB' does not match casing of namespace name 'ConsoleApplicationVB' in '<project settings>'.
@@ -19359,7 +19359,7 @@ BC40055: Casing of namespace name 'CONSOLEAPPLICATIONVB' does not match casing o
                                         End Namespace
                                     End Namespace
                                                         ]]></file>
-                </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="CONSOLEAPPLICATIONVB"))
+                </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="CONSOLEAPPLICATIONVB"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC40055: Casing of namespace name 'consoleapplicationvb' does not match casing of namespace name 'CONSOLEAPPLICATIONVB' in '<project settings>'.
@@ -19380,7 +19380,7 @@ BC40055: Casing of namespace name 'consoleapplicationvb' does not match casing o
                             End Namespace
                         End Namespace
                                             ]]></file>
-                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.bar"))
+                            </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.bar"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC40055: Casing of namespace name 'BAR' does not match casing of namespace name 'bar' in '<project settings>'.
@@ -19400,7 +19400,7 @@ BC40055: Casing of namespace name 'BAR' does not match casing of namespace name 
                             End Namespace
                         End Namespace
                                             ]]></file>
-                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.BAR"))
+                            </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.BAR"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC40055: Casing of namespace name 'bar' does not match casing of namespace name 'BAR' in '<project settings>'.
@@ -19421,7 +19421,7 @@ Namespace Global
     End Namespace
 End Namespace
                     ]]></file>
-                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.BAR"))
+                            </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.BAR"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC40055: Casing of namespace name 'foo' does not match casing of namespace name 'FOO' in '<project settings>'.
@@ -19441,7 +19441,7 @@ Namespace Global
     End Namespace
 End Namespace
                     ]]></file>
-                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="foo.BAR"))
+                            </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="foo.BAR"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC40055: Casing of namespace name 'FOO' does not match casing of namespace name 'foo' in '<project settings>'.
@@ -19460,7 +19460,7 @@ Namespace Global
     End Namespace
 End Namespace
                     ]]></file>
-                </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="CONSOLEAPPLICATIONVB"))
+                </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="CONSOLEAPPLICATIONVB"))
             compilation.AssertNoErrors()
 
             ' no warnings if no root namespace is given
@@ -19496,7 +19496,7 @@ End Namespace
         <WorkItem(528713, "DevDiv")>
         <Fact>
         Public Sub BC40056WRN_UndefinedOrEmptyNamespaceOrClass1()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("BC40056WRN_UndefinedOrEmptyNamespaceOrClass1")
+            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("BC40056WRN_UndefinedOrEmptyNamespaceOrClass1")
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="UndefinedOrEmptyNamespaceOrClass1">
         <file name="a.vb"><![CDATA[
@@ -19581,7 +19581,7 @@ BC40057: Namespace or type specified in the project-level Imports 'N12 = Alias2'
                 End Operator
             End Class
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optionStrict:=OptionStrict.Custom))
+    </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optionStrict:=OptionStrict.Custom))
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC42021: Operator without an 'As' clause; type of Object assumed.
@@ -19727,7 +19727,7 @@ BC42020: Variable declaration without an 'As' clause; type of Object assumed.
                 End Sub
             End Module
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithOptionStrict(OptionStrict.Custom))
+    </compilation>, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors><![CDATA[
 BC42020: Static variable declared without an 'As' clause; type of Object assumed.
                     Static x = 3
@@ -19735,11 +19735,11 @@ BC42020: Static variable declared without an 'As' clause; type of Object assumed
                  ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
 
-            compilation1 = compilation1.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
+            compilation1 = compilation1.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
 
             CompilationUtils.AssertNoErrors(compilation1)
 
-            compilation1 = compilation1.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
+            compilation1 = compilation1.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected><![CDATA[
@@ -19812,7 +19812,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
             CompilationUtils.AssertTheseDiagnostics(compilation2, <errors/>)
 
-            compilation2 = compilation2.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
+            compilation2 = compilation2.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <errors><![CDATA[
@@ -19834,7 +19834,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
                 End Sub
             End Module
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
+    </compilation>, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors><![CDATA[
@@ -19883,7 +19883,7 @@ BC42022: Property without an 'As' clause; type of Object assumed.
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
 
-            compilation1 = compilation1.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off).WithOptionInfer(True))
+            compilation1 = compilation1.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off).WithOptionInfer(True))
             CompilationUtils.AssertNoErrors(compilation1)
         End Sub
 
@@ -19909,7 +19909,7 @@ BC42022: Property without an 'As' clause; type of Object assumed.
                 End Property
             End Module
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOptionInfer(True))
+    </compilation>, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOptionInfer(True))
             Dim expectedErrors1 = <errors><![CDATA[
 BC30210: Option Strict On requires all Function, Property, and Operator declarations to have an 'As' clause.
                 Function Func1()
@@ -19992,7 +19992,7 @@ End Class
 Class E
 End Class
 ]]></file>
-    </compilation>, parseOptions:=VisualBasic.VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+    </compilation>, parseOptions:=VisualBasic.VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim expectedErrors = <errors><![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'System.Collections.Generic.List(Of _)' that could not be resolved.
 ''' <see cref="System.Collections.Generic.List(Of _)"/>
@@ -20020,7 +20020,7 @@ End Class
 Class E
 End Class
         ]]></file>
-    </compilation>, parseOptions:=VisualBasic.VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+    </compilation>, parseOptions:=VisualBasic.VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim expectedErrors =
 <errors>
     <![CDATA[
@@ -20064,7 +20064,7 @@ BC42310: XML comment tag 'include' must have a 'path' attribute. XML comment wil
                 End Property
             End Class
         ]]></file>
-    </compilation>, parseOptions:=VisualBasic.VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+    </compilation>, parseOptions:=VisualBasic.VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <errors>
@@ -20112,7 +20112,7 @@ BC42304: XML documentation parse error: Expected beginning '<' for an XML tag. X
                 End Property
             End Class
         ]]></file>
-    </compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+    </compilation>, parseOptions:=VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim expectedErrors = <errors><![CDATA[
 BC42313: XML comment tag 'returns' is not permitted on a 'WriteOnly' Property.
                 ''' <returns></returns>
@@ -20198,7 +20198,7 @@ End Module
 partial Module M
 End Module
         ]]></file>
-    </compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+    </compilation>, parseOptions:=VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim expectedErrors = <errors><![CDATA[
 BC42314: XML comment cannot be applied more than once on a partial class. XML comments for this class will be ignored.
 ''' <summary>
@@ -20253,7 +20253,7 @@ Class C1(Of X)
 End Class
 ]]>
         </file>
-    </compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+    </compilation>, parseOptions:=VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim expectedErrors =
 <errors>
     <![CDATA[
@@ -20292,7 +20292,7 @@ Class C1(Of X)
 End Class
 ]]>
         </file>
-    </compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+    </compilation>, parseOptions:=VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim expectedErrors =
 <errors>
     <![CDATA[
@@ -20327,7 +20327,7 @@ Class Myexception
     End Sub
 End Class
         ]]></file>
-    </compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+    </compilation>, parseOptions:=VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim expectedErrors =
 <errors>
     <![CDATA[
@@ -20384,7 +20384,7 @@ BC42333: Interface 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XE
                 End Function
             End Module
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optionStrict:=OptionStrict.Custom))
+    </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optionStrict:=OptionStrict.Custom))
             Dim expectedErrors1 = <errors><![CDATA[
 BC42021: Function without an 'As' clause; return type of Object assumed.
                 Function Foo()

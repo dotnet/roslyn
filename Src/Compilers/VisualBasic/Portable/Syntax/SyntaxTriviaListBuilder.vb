@@ -90,14 +90,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Case 1
                     Return New SyntaxTriviaList(Nothing, Me._nodes(0).UnderlyingNode, 0, 0)
                 Case 2
-                    Return New SyntaxTriviaList(Nothing, InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(1).UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    Return New SyntaxTriviaList(Nothing, InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).UnderlyingNode, InternalSyntax.VBSyntaxNode), DirectCast(Me._nodes(1).UnderlyingNode, InternalSyntax.VBSyntaxNode)), 0, 0)
                 Case 3
-                    Return New SyntaxTriviaList(Nothing, InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(1).UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(2).UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    Return New SyntaxTriviaList(Nothing, InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).UnderlyingNode, InternalSyntax.VBSyntaxNode), DirectCast(Me._nodes(1).UnderlyingNode, InternalSyntax.VBSyntaxNode), DirectCast(Me._nodes(2).UnderlyingNode, InternalSyntax.VBSyntaxNode)), 0, 0)
             End Select
-            Dim tmp = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(Me._count - 1) {}
+            Dim tmp = New ArrayElement(Of InternalSyntax.VBSyntaxNode)(Me._count - 1) {}
             Dim i As Integer
             For i = 0 To Me._count - 1
-                tmp(i).Value = DirectCast(Me._nodes(i).UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)
+                tmp(i).Value = DirectCast(Me._nodes(i).UnderlyingNode, InternalSyntax.VBSyntaxNode)
             Next i
             Return New SyntaxTriviaList(Nothing, InternalSyntax.SyntaxList.List(tmp), 0, 0)
         End Function

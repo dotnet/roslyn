@@ -36,7 +36,7 @@ Module MetadataTestHelpers
                 Continue For
             End If
 
-            Dim c = TryCast(r, VisualBasicCompilation)
+            Dim c = TryCast(r, VBCompilation)
             If c IsNot Nothing Then
                 refs.Add(New VisualBasicCompilationReference(c))
                 Continue For
@@ -52,7 +52,7 @@ Module MetadataTestHelpers
         Next
 
         Dim options = If(importInternals, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), TestOptions.ReleaseDll)
-        Dim tc1 = VisualBasicCompilation.Create("Dummy", references:=refs, options:=options)
+        Dim tc1 = VBCompilation.Create("Dummy", references:=refs, options:=options)
 
         Return (From ref In refs Select tc1.GetReferencedAssemblySymbol(ref)).ToArray()
     End Function

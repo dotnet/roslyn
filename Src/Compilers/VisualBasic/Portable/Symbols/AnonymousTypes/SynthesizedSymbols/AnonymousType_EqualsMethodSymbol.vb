@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private ReadOnly m_iEquatableEqualsMethod As MethodSymbol
 
             Public Sub New(container As AnonymousTypeTemplateSymbol, iEquatableEqualsMethod As MethodSymbol)
-                MyBase.New(VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot(), container, WellKnownMemberNames.ObjectEquals)
+                MyBase.New(VisualBasic.VBSyntaxTree.Dummy.GetRoot(), container, WellKnownMemberNames.ObjectEquals)
 
                 m_parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSimpleSymbol(Me, container.Manager.System_Object, 0, "obj"))
                 m_iEquatableEqualsMethod = iEquatableEqualsMethod

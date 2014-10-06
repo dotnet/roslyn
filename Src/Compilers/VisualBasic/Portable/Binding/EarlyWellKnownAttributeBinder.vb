@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             Dim method = boundMethodGroup.Methods(0)
 
-                            Dim compilation As VisualBasicCompilation = memberAccessBinder.Compilation
+                            Dim compilation As VBCompilation = memberAccessBinder.Compilation
                             If method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__ChrWInt32Char) OrElse
                                 method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__ChrInt32Char) OrElse
                                 method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__AscWCharInt32) OrElse

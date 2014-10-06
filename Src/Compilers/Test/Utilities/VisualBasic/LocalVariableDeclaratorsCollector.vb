@@ -3,7 +3,7 @@
 Imports System.Collections.Immutable
 
 Friend NotInheritable Class LocalVariableDeclaratorsCollector
-    Inherits VisualBasicSyntaxWalker
+    Inherits VBSyntaxWalker
 
     Private ReadOnly builder As ArrayBuilder(Of SyntaxNode)
 

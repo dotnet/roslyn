@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Public Class VisualBasicCompilation
+    Partial Public Class VBCompilation
 
         Partial Friend Class DocumentationCommentCompiler
             Inherits VisualBasicSymbolVisitor

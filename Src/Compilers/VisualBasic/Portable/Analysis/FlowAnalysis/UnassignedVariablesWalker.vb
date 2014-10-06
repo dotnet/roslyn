@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Dim result As HashSet(Of Symbol) = New HashSet(Of Symbol)()
 
         Protected Overrides Sub ReportUnassigned(local As Symbol,
-                                                 node As VisualBasicSyntaxNode,
+                                                 node As VBSyntaxNode,
                                                  rwContext As ReadWriteContext,
                                                  Optional slot As Integer = SlotKind.NotTracked,
                                                  Optional boundFieldAccess As BoundFieldAccess = Nothing)

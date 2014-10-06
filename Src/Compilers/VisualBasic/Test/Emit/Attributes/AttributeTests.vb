@@ -1824,17 +1824,17 @@ End Class
         <WorkItem(542223, "DevDiv")>
         <Fact>
         Public Sub AttributeArgumentAsEnumFromMetadata()
-            Dim metadata1 = VisualBasicCompilation.Create("bar.dll",
+            Dim metadata1 = VBCompilation.Create("bar.dll",
                                                references:={MscorlibRef},
                                                syntaxTrees:={Parse("Public Enum Bar : Baz : End Enum")}).EmitToArray(metadataOnly:=True)
 
             Dim ref1 = MetadataReference.CreateFromImage(metadata1)
 
-            Dim metadata2 = VisualBasicCompilation.Create(
+            Dim metadata2 = VBCompilation.Create(
                                 "foo.dll",
                                 references:={MscorlibRef, ref1},
                                 syntaxTrees:={
-                                    VisualBasicSyntaxTree.ParseText(<![CDATA[
+                                    VBSyntaxTree.ParseText(<![CDATA[
                                         Public Class Ca : Inherits System.Attribute
                                             Public Sub New(o As Object)
                                             End Sub
@@ -1845,7 +1845,7 @@ End Class
 
             Dim ref2 = MetadataReference.CreateFromImage(metadata2)
 
-            Dim comp = VisualBasicCompilation.Create("moo.dll", references:={MscorlibRef, ref1, ref2})
+            Dim comp = VBCompilation.Create("moo.dll", references:={MscorlibRef, ref1, ref2})
 
             Dim foo = comp.GetTypeByMetadataName("Foo")
             Dim ca = foo.GetAttributes().First().CommonConstructorArguments.First()
@@ -1866,8 +1866,8 @@ End Namespace
 ]]>
     </file>
 
-            Dim compilation1 = VisualBasicCompilation.Create("library.dll",
-                                                             {VisualBasicSyntaxTree.ParseText(library.Value)},
+            Dim compilation1 = VBCompilation.Create("library.dll",
+                                                             {VBSyntaxTree.ParseText(library.Value)},
                                                              {MscorlibRef},
                                                              TestOptions.ReleaseDll)
 
@@ -1916,8 +1916,8 @@ End Namespace
 ]]>
     </file>
 
-            Dim compilation1 = VisualBasicCompilation.Create("library.dll",
-                                                             {VisualBasicSyntaxTree.ParseText(library.Value)},
+            Dim compilation1 = VBCompilation.Create("library.dll",
+                                                             {VBSyntaxTree.ParseText(library.Value)},
                                                              {MscorlibRef},
                                                              TestOptions.ReleaseDll)
 
@@ -2035,7 +2035,7 @@ BC30182: Type expected.
 
         <Fact()>
         Public Sub TestConstantValueInsideAttributes()
-            Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+            Dim tree = VBSyntaxTree.ParseText(<![CDATA[
 Class c1
     const A as integer = 1;
     const B as integer = 2;
@@ -2986,9 +2986,9 @@ Public Delegate Function D(<C>a As Integer, <C>ByRef b As Integer) As <B> Intege
             ]]></file>
 </compilation>
 
-            Dim compWithAAttribute = VisualBasicCompilation.Create(
+            Dim compWithAAttribute = VBCompilation.Create(
                 "library.dll",
-                {VisualBasicSyntaxTree.ParseText(sourceWithAAttribute.Value)},
+                {VBSyntaxTree.ParseText(sourceWithAAttribute.Value)},
                 {MsvbRef, MscorlibRef, SystemCoreRef},
                 TestOptions.ReleaseDll)
 
@@ -3121,7 +3121,7 @@ End Module]]>
         End Sub
     End Class
     ]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             CompileAndVerify(vbCompilation).VerifyDiagnostics()
         End Sub
 
@@ -3711,9 +3711,9 @@ End Structure
             ]]></file>
 </compilation>
 
-            Dim compWithAttribute = VisualBasicCompilation.Create(
+            Dim compWithAttribute = VBCompilation.Create(
                 "library.dll",
-                {VisualBasicSyntaxTree.ParseText(sourceWithAttribute.Value)},
+                {VBSyntaxTree.ParseText(sourceWithAttribute.Value)},
                 {MsvbRef, MscorlibRef, SystemCoreRef},
                 TestOptions.ReleaseDll)
 

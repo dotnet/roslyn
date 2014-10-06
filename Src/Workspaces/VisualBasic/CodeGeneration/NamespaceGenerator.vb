@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function RemoveAllMembers(declaration As SyntaxNode) As SyntaxNode
-            Select Case declaration.VisualBasicKind
+            Select Case declaration.VBKind
                 Case SyntaxKind.CompilationUnit
                     Return DirectCast(declaration, CompilationUnitSyntax).WithMembers(Nothing)
                 Case SyntaxKind.NamespaceBlock

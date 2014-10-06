@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Public Class VisualBasicCompilation
+    Partial Public Class VBCompilation
         Partial Friend Class DocumentationCommentCompiler
             Inherits VisualBasicSymbolVisitor
 
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' to produce diagnostics and to replace source crefs with documentation comment IDs.
             ''' </summary>
             Private Class DocumentationCommentWalker
-                Inherits VisualBasicSyntaxWalker
+                Inherits VBSyntaxWalker
 
                 Private ReadOnly _symbol As Symbol
                 Private ReadOnly _syntaxTree As SyntaxTree
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return pooled.ToStringAndFree()
                 End Function
 
-                Private ReadOnly Property Compilation As VisualBasicCompilation
+                Private ReadOnly Property Compilation As VBCompilation
                     Get
                         Return Me._symbol.DeclaringCompilation
                     End Get
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Property
 
                 Public Overrides Sub DefaultVisit(node As SyntaxNode)
-                    Dim kind As SyntaxKind = node.VisualBasicKind()
+                    Dim kind As SyntaxKind = node.VBKind()
 
                     If kind = SyntaxKind.XmlCrefAttribute Then
                         Dim crefAttr = DirectCast(node, XmlCrefAttributeSyntax)
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Else
                             ' Dev11 seems to ignore any ambiguity and use the first symbol it finds,
                             ' we have to repro this behavior
-                            Dim compilation As VisualBasicCompilation = Me.Compilation
+                            Dim compilation As VBCompilation = Me.Compilation
 
                             ' Some symbols found may not support doc-comment-ids and we just filter those out.
                             ' From the rest of the symbols we take the symbol with 'smallest' documentation 
@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me._writer.Write("!:")
                     End If
 
-                    Dim reference As VisualBasicSyntaxNode = crefAttribute.Reference
+                    Dim reference As VBSyntaxNode = crefAttribute.Reference
 
                     Visit(reference) ' This will write the name to XML
 

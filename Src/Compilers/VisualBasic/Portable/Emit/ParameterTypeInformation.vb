@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function IParameterTypeInformationGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IParameterTypeInformation.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim paramType As TypeSymbol = m_UnderlyingParameter.Type
-            Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property IParameterListEntryIndex As UShort Implements Cci.IParameterListEntry.Index

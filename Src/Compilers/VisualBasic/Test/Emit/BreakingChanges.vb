@@ -411,7 +411,7 @@ Public Module Program
         d.Foo(1)
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
 
             'In Dev10 the emitted signature for overriden methods did not 
             'include the 'hidebysig' flag. In Roslyn we decided to break
@@ -543,7 +543,7 @@ End Module
             <![CDATA[Public Class C1
     Public Event foo()
 End Class]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             ' In Dev11, we used to emit an additional 'synchronized' metadata flag in the signature of add_foo() and remove_foo() methods below.
 
@@ -602,7 +602,7 @@ Public Module Program
         x.Raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
 
             'Breaking Change: Dev11 processes event handlers in a different order than Roslyn.
             'This is basically because Dev11 has no deterministic order for processing these.
@@ -655,7 +655,7 @@ Public Module Program
         x.w.raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
 
             'Breaking Change: Dev11 allows above repro to compile while Roslyn reports following errors.

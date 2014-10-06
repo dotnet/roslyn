@@ -792,7 +792,7 @@ System.Func`1[System.Byte]
 System.Func`1[System.Byte]
 ]]>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -844,7 +844,7 @@ System.Func`1[System.Byte]
 System.Func`1[System.Byte]
 ]]>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -902,7 +902,7 @@ System.Func`1[System.Int32]
 System.Func`1[System.ValueType]
 ]]>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -954,7 +954,7 @@ System.Func`1[System.Byte]
 System.Func`1[System.Byte]
 ]]>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -1065,7 +1065,7 @@ BC30519: Overload resolution failed because no accessible 'M2' can be called wit
         ~~
 </expected>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -1105,7 +1105,7 @@ End Module
 System.Func`1[System.Int16]
 ]]>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -1161,7 +1161,7 @@ System.Func`1[System.Int32]
 System.Int32
 ]]>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -1217,7 +1217,7 @@ System.Func`1[System.Int64]
 System.Int64
 ]]>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -1274,7 +1274,7 @@ End Module
 System.Func`2[System.Boolean,System.Int64]
 ]]>)
 
-            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 

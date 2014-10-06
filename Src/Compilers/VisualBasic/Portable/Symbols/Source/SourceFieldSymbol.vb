@@ -61,19 +61,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend ReadOnly Property Syntax As VBSyntaxNode
             Get
                 Return m_syntaxRef.GetVisualBasicSyntax()
             End Get
         End Property
 
-        Friend MustOverride ReadOnly Property DeclarationSyntax As VisualBasicSyntaxNode
+        Friend MustOverride ReadOnly Property DeclarationSyntax As VBSyntaxNode
 
         ''' <summary> 
         ''' Field initializer's declaration syntax node. 
         ''' It can be a EqualsValueSyntax or AsNewClauseSyntax.
         ''' </summary>
-        Friend Overridable ReadOnly Property EqualsValueOrAsNewInitOpt As VisualBasicSyntaxNode
+        Friend Overridable ReadOnly Property EqualsValueOrAsNewInitOpt As VBSyntaxNode
             Get
                 Return Nothing
             End Get

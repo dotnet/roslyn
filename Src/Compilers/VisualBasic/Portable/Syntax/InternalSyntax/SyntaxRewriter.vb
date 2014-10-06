@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Partial Friend MustInherit Class VisualBasicSyntaxVisitor
+    Partial Friend MustInherit Class VBSyntaxVisitor
         Public Overridable Function VisitSyntaxToken(token As SyntaxToken) As SyntaxToken
             Debug.Assert(token IsNot Nothing)
             Return token
@@ -17,10 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
     End Class
 
-    Partial Friend Class VisualBasicSyntaxRewriter
-        Inherits VisualBasicSyntaxVisitor
+    Partial Friend Class VBSyntaxRewriter
+        Inherits VBSyntaxVisitor
 
-        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxList(Of TNode)
+        Public Function VisitList(Of TNode As VBSyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxList(Of TNode)
             Dim alternate As SyntaxListBuilder(Of TNode) = Nothing
             Dim i As Integer = 0
             Dim n As Integer = list.Count
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return list
         End Function
 
-        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As SeparatedSyntaxList(Of TNode)) As SeparatedSyntaxList(Of TNode)
+        Public Function VisitList(Of TNode As VBSyntaxNode)(list As SeparatedSyntaxList(Of TNode)) As SeparatedSyntaxList(Of TNode)
             Dim alternate As SeparatedSyntaxListBuilder(Of TNode) = Nothing
             Dim i As Integer = 0
             Dim itemCount As Integer = list.Count

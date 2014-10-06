@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class FirstTokenReplacer
-        Inherits VisualBasicSyntaxRewriter
+        Inherits VBSyntaxRewriter
 
         Private ReadOnly _newItem As Func(Of SyntaxToken, SyntaxToken)
 
@@ -15,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _newItem = newItem
         End Sub
 
-        Friend Shared Function Replace(Of TTree As VisualBasicSyntaxNode)(
+        Friend Shared Function Replace(Of TTree As VBSyntaxNode)(
                     root As TTree,
                     newItem As Func(Of SyntaxToken, SyntaxToken)) As TTree
 
             Return DirectCast(New FirstTokenReplacer(newItem).Visit(root), TTree)
         End Function
 
-        Public Overrides Function Visit(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+        Public Overrides Function Visit(node As VBSyntaxNode) As VBSyntaxNode
             If node Is Nothing Then
                 Return Nothing
             End If
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     Friend Class LastTokenReplacer
-        Inherits VisualBasicSyntaxRewriter
+        Inherits VBSyntaxRewriter
 
         Private ReadOnly _newItem As Func(Of SyntaxToken, SyntaxToken)
 
@@ -54,14 +54,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _newItem = newItem
         End Sub
 
-        Friend Shared Function Replace(Of TTree As VisualBasicSyntaxNode)(
+        Friend Shared Function Replace(Of TTree As VBSyntaxNode)(
                     root As TTree,
                     newItem As Func(Of SyntaxToken, SyntaxToken)) As TTree
 
             Return DirectCast(New LastTokenReplacer(newItem).Visit(root), TTree)
         End Function
 
-        Public Overrides Function Visit(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+        Public Overrides Function Visit(node As VBSyntaxNode) As VBSyntaxNode
             If node Is Nothing Then
                 Return Nothing
             End If
@@ -96,9 +96,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim prevIdx = _skipCnt
                 _skipCnt = allChildrenCnt - 1
-                Dim result As VisualBasicSyntaxNode
+                Dim result As VBSyntaxNode
                 If node.IsList Then
-                    result = VisitList(Of VisualBasicSyntaxNode)(node).Node
+                    result = VisitList(Of VBSyntaxNode)(node).Node
                 Else
                     result = MyBase.Visit(node)
                 End If

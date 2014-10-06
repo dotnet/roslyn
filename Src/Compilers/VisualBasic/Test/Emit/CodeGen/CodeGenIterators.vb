@@ -1437,7 +1437,7 @@ Public Class Program
     End Function
 End Class]]></file>
                          </compilation>
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim verifier = Me.CompileAndVerify(comp)
             Dim il = verifier.VisualizeIL("Program.VB$StateMachine_1_Foo.GetEnumerator()")
             Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il)

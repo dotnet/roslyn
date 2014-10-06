@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' There can only be 0 or 1 variable.
         Private Function BuildLocals() As ImmutableArray(Of LocalSymbol)
             Dim localVar As LocalSymbol = Nothing
-            Dim controlVariableSyntax As VisualBasicSyntaxNode
+            Dim controlVariableSyntax As VBSyntaxNode
 
             If _syntax.Kind = SyntaxKind.ForBlock Then
                 controlVariableSyntax = DirectCast(_syntax.ForOrForEachStatement, ForStatementSyntax).ControlVariable

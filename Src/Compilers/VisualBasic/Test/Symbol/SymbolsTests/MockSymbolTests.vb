@@ -14,13 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class TestSymbols
         ' Create a trivial compilation with no source or references.
-        Private Function TrivialCompilation() As VisualBasicCompilation
-            Return VisualBasicCompilation.Create("Test")
+        Private Function TrivialCompilation() As VBCompilation
+            Return VBCompilation.Create("Test")
         End Function
 
         <Fact>
         Public Sub TestArrayType()
-            Dim compilation As VisualBasicCompilation = TrivialCompilation()
+            Dim compilation As VBCompilation = TrivialCompilation()
             Dim elementType As NamedTypeSymbol = New MockNamedTypeSymbol("TestClass", Enumerable.Empty(Of Symbol))   ' this can be any type.
 
             Dim ats1 As ArrayTypeSymbol = New ArrayTypeSymbol(elementType, Nothing, 1, compilation)
@@ -76,9 +76,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(ne1.Kind, NamespaceKind.Assembly)
             Assert.Same(ne1.Assembly, assem1)
 
-            Dim compilation As VisualBasicCompilation = TrivialCompilation()
+            Dim compilation As VBCompilation = TrivialCompilation()
             Dim ne2 As NamespaceExtent = New NamespaceExtent(compilation)
-            Assert.IsType(Of Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation)(ne2.Compilation)
+            Assert.IsType(Of Microsoft.CodeAnalysis.VisualBasic.VBCompilation)(ne2.Compilation)
             Assert.Throws(Of InvalidOperationException)(Sub()
                                                             Dim tmp = ne1.Compilation()
                                                         End Sub)

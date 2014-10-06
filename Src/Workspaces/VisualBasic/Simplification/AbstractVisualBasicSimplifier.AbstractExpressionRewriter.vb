@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend MustInherit Class AbstractVisualBasicReducer
         Friend MustInherit Class AbstractExpressionRewriter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
             Implements IExpressionRewriter
 
             Protected ReadOnly CancellationToken As CancellationToken
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 simplifyFunc As Func(Of SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken)
             ) As SyntaxToken
 
-                If token.VisualBasicKind = SyntaxKind.None Then
+                If token.VBKind = SyntaxKind.None Then
                     Return newToken
                 End If
 

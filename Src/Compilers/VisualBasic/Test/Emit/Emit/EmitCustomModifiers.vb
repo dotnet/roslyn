@@ -38,7 +38,7 @@ Public Class A
 End Class
 </text>.Value
 
-            Dim c1 = VisualBasicCompilation.Create("VB_EmitCustomModifiers",
+            Dim c1 = VBCompilation.Create("VB_EmitCustomModifiers",
                                         {Parse(source)},
                                         {mscorlibRef, TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll})
 

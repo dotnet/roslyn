@@ -25,12 +25,12 @@ Module ParserTestUtilities
     End Function
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
-    Public Function ParseAndVerify(code As XCData, options As VisualBasicParseOptions, Optional expectedErrors As XElement = Nothing) As SyntaxTree
+    Public Function ParseAndVerify(code As XCData, options As VBParseOptions, Optional expectedErrors As XElement = Nothing) As SyntaxTree
         Return ParseAndVerify(code.Value, options, expectedErrors)
     End Function
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
-    Public Function ParseAndVerify(source As String, options As VisualBasicParseOptions, Optional expectedErrors As XElement = Nothing) As SyntaxTree
+    Public Function ParseAndVerify(source As String, options As VBParseOptions, Optional expectedErrors As XElement = Nothing) As SyntaxTree
         Dim expectedDiagnostics() As DiagnosticDescription = Nothing
         If expectedErrors IsNot Nothing Then
             Dim expectedXml = expectedErrors.<error>
@@ -48,26 +48,26 @@ Module ParserTestUtilities
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(source As String, Optional expectedErrors As XElement = Nothing) As SyntaxTree
-        Return ParseAndVerify(source, VisualBasicParseOptions.Default, expectedErrors)
+        Return ParseAndVerify(source, VBParseOptions.Default, expectedErrors)
     End Function
 
     Public Function ParseAndVerify(code As XCData, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(code.Value, VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(code.Value, VBParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
-    Public Function ParseAndVerify(code As XCData, options As VisualBasicParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
+    Public Function ParseAndVerify(code As XCData, options As VBParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
         Return ParseAndVerify(code.Value, options, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
     Public Function ParseAndVerify(source As String, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(source, VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(source, VBParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
-    Public Function ParseAndVerify(source As String, options As VisualBasicParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
+    Public Function ParseAndVerify(source As String, options As VBParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
         Return ParseAndVerify(source, options, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
-    Private Function ParseAndVerify(source As String, options As VisualBasicParseOptions, expectedDiagnostics() As DiagnosticDescription, errorCodesOnly As Boolean) As SyntaxTree
+    Private Function ParseAndVerify(source As String, options As VBParseOptions, expectedDiagnostics() As DiagnosticDescription, errorCodesOnly As Boolean) As SyntaxTree
         Dim tree = Parse(source, options:=options)
         Dim root = tree.GetRoot()
 
@@ -89,16 +89,16 @@ Module ParserTestUtilities
         Return tree
     End Function
 
-    Public Function Parse(code As XCData, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
+    Public Function Parse(code As XCData, Optional options As VBParseOptions = Nothing) As SyntaxTree
         Return Parse(code.Value, fileName:="", options:=options)
     End Function
 
-    Public Function Parse(code As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
+    Public Function Parse(code As String, Optional options As VBParseOptions = Nothing) As SyntaxTree
         Return Parse(code, fileName:="", options:=options)
     End Function
 
-    Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
+    Public Function Parse(source As String, fileName As String, Optional options As VBParseOptions = Nothing) As SyntaxTree
+        Dim tree = VBSyntaxTree.ParseText(SourceText.From(source), options:=If(options, VBParseOptions.Default), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)
@@ -119,7 +119,7 @@ Module ParserTestUtilities
                 Dim parentToken = CType(trivia.Token, SyntaxToken)
                 Assert.Equal(token, parentToken)
                 If trivia.HasStructure Then
-                    Dim triviaStructure = DirectCast(trivia.GetStructure, VisualBasicSyntaxNode)
+                    Dim triviaStructure = DirectCast(trivia.GetStructure, VBSyntaxNode)
                     Dim parent = triviaStructure.Parent
                     Assert.Equal(Nothing, parent)
 
@@ -210,9 +210,9 @@ Module ParserTestUtilities
         Dim newText = newIText.ToString
         Dim oldText = oldIText.ToString
 
-        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldIText)
+        Dim oldTree = VBSyntaxTree.ParseText(oldIText)
         Dim incTreeRoot = oldTree.GetRoot()
-        Dim newTree = VisualBasicSyntaxTree.ParseText(newIText)
+        Dim newTree = VBSyntaxTree.ParseText(newIText)
         Dim newTreeRoot = newTree.GetRoot()
         Dim incTree = oldTree.WithChangedText(newIText)
         incTreeRoot = incTree.GetRoot()
@@ -293,7 +293,7 @@ Public Module VerificationHelpers
 
     Private Function VerifySyntaxKinds(node As SyntaxNodeOrToken, ByRef i As Integer, expected As SyntaxKind()) As SyntaxNodeOrToken
         Assert.InRange(i, 0, expected.Length - 1)
-        Assert.Equal(node.VisualBasicKind(), expected(i))
+        Assert.Equal(node.VBKind(), expected(i))
         i += 1
         Dim children = node.ChildNodesAndTokens
         For j = 0 To children.Count - 1
@@ -330,7 +330,7 @@ Public Module VerificationHelpers
 
     <Extension()>
     Public Function VerifyPrecedingCommentIsTrivia(node As SyntaxNodeOrToken) As SyntaxNodeOrToken
-        Assert.NotEqual(node.VisualBasicKind(), SyntaxKind.None)
+        Assert.NotEqual(node.VBKind(), SyntaxKind.None)
         Dim trivia = node.GetLeadingTrivia()
         Assert.InRange(trivia.Count, 1, 2)
         Dim ticktickticknode As SyntaxTrivia = Nothing
@@ -339,7 +339,7 @@ Public Module VerificationHelpers
         ElseIf trivia.Count = 2 Then
             ticktickticknode = trivia(1)
         End If
-        Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, ticktickticknode.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, ticktickticknode.VBKind)
         Return node
     End Function
 
@@ -364,7 +364,7 @@ Public Module VerificationHelpers
     <Extension()>
     Public Function VerifyNoMissingChildren(tree As SyntaxTree) As SyntaxTree
         Dim node = tree.GetRoot()
-        Assert.False(node.IsMissing, "Unexpected missing node: " & node.VisualBasicKind.ToString & node.Span.ToString)
+        Assert.False(node.IsMissing, "Unexpected missing node: " & node.VBKind.ToString & node.Span.ToString)
         For Each child In node.ChildNodesAndTokens()
             InternalVerifyNoMissingChildren(child)
         Next
@@ -374,7 +374,7 @@ Public Module VerificationHelpers
     <Extension()>
     Public Function VerifyNoZeroWidthNodes(tree As SyntaxTree) As SyntaxTree
         Dim node = tree.GetRoot()
-        Assert.True(0 <> node.Span.Length OrElse node.VisualBasicKind = SyntaxKind.CompilationUnit, "Unexpected 0 width node: " & node.VisualBasicKind.ToString & node.Span.ToString)
+        Assert.True(0 <> node.Span.Length OrElse node.VBKind = SyntaxKind.CompilationUnit, "Unexpected 0 width node: " & node.VBKind.ToString & node.Span.ToString)
         For Each child In node.ChildNodesAndTokens()
             InternalVerifyNoZeroWidthNodes(child)
         Next
@@ -440,9 +440,9 @@ Public Module VerificationHelpers
         If node.Parent IsNot Nothing Then
             Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso
                         node.Span.End <= node.Parent.Span.End, "Span of child (" &
-                        node.VisualBasicKind.ToString & node.Span.ToString &
+                        node.VBKind.ToString & node.Span.ToString &
                         ") is not within span of parent (" &
-                        node.Parent.VisualBasicKind.ToString & node.Parent.Span.ToString & ")")
+                        node.Parent.VBKind.ToString & node.Parent.Span.ToString & ")")
         End If
         Return tree
     End Function
@@ -465,7 +465,7 @@ Public Module VerificationHelpers
 
     <Extension()>
     Public Function GetSyntaxErrorsNoTree(n As SyntaxNode) As IEnumerable(Of Diagnostic)
-        Return DirectCast(n, VisualBasicSyntaxNode).GetSyntaxErrors(GetMockTree())
+        Return DirectCast(n, VBSyntaxNode).GetSyntaxErrors(GetMockTree())
     End Function
 
     Public Function GetMockTree() As SyntaxTree
@@ -473,7 +473,7 @@ Public Module VerificationHelpers
     End Function
 
     Private Class MockSyntaxTree
-        Inherits VisualBasicSyntaxTree
+        Inherits VBSyntaxTree
 
         Public Overrides Function GetReference(node As SyntaxNode) As SyntaxReference
             Throw New NotImplementedException()
@@ -485,17 +485,17 @@ Public Module VerificationHelpers
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Options As VisualBasic.VisualBasicParseOptions
+        Public Overrides ReadOnly Property Options As VisualBasic.VBParseOptions
             Get
                 Throw New NotImplementedException()
             End Get
         End Property
 
-        Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
+        Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
+        Public Overrides Function TryGetRoot(ByRef root As VBSyntaxNode) As Boolean
             Throw New NotImplementedException()
         End Function
 
@@ -628,7 +628,7 @@ Public Module VerificationHelpers
             For Each e In expectedErrors.<error>
                 errorMessage.AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
             Next
-            errorMessage.AppendLine("Actual Errors (on " & node.VisualBasicKind().ToString & node.Span.ToString & ")")
+            errorMessage.AppendLine("Actual Errors (on " & node.VBKind().ToString & node.Span.ToString & ")")
             AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage)
             Assert.False(errorScenarioFailed, errorMessage.ToString())
         End If
@@ -642,7 +642,7 @@ Public Module VerificationHelpers
         If node.IsToken Then
             Dim tk = node
             For Each leadingTrivia In tk.GetLeadingTrivia()
-                If leadingTrivia.VisualBasicKind = kind Then
+                If leadingTrivia.VBKind = kind Then
                     actualCount += 1
                 End If
                 If leadingTrivia.HasStructure Then
@@ -651,7 +651,7 @@ Public Module VerificationHelpers
                 End If
             Next
             For Each trailingTrivia In tk.GetTrailingTrivia()
-                If trailingTrivia.VisualBasicKind = kind Then
+                If trailingTrivia.VBKind = kind Then
                     actualCount += 1
                 End If
                 If trailingTrivia.HasStructure Then
@@ -740,13 +740,13 @@ Public Module VerificationHelpers
 
     Private Sub InternalVerifyNoMissingChildren(node As SyntaxNodeOrToken)
         If node.IsNode Then
-            Assert.False(node.IsMissing, "Unexpected missing node: " & node.VisualBasicKind().ToString & node.Span.ToString)
+            Assert.False(node.IsMissing, "Unexpected missing node: " & node.VBKind().ToString & node.Span.ToString)
             For Each child In node.AsNode.ChildNodesAndTokens()
                 InternalVerifyNoMissingChildren(child)
             Next
         Else
             Assert.False(node.IsMissing AndAlso Not node.IsKind(SyntaxKind.StatementTerminatorToken) AndAlso
-                         Not node.IsKind(SyntaxKind.ColonToken), "Unexpected missing token: " & node.VisualBasicKind().ToString & node.Span.ToString)
+                         Not node.IsKind(SyntaxKind.ColonToken), "Unexpected missing token: " & node.VBKind().ToString & node.Span.ToString)
             For Each tr In node.AsToken.LeadingTrivia
                 If tr.HasStructure Then
                     InternalVerifyNoMissingChildren(tr.GetStructure)
@@ -762,20 +762,20 @@ Public Module VerificationHelpers
 
     Private Sub InternalVerifyNoZeroWidthNodes(node As SyntaxNodeOrToken)
         If node.IsNode Then
-            Assert.True(0 <> node.Span.Length, "Unexpected 0 width node: " & node.VisualBasicKind().ToString & node.Span.ToString)
+            Assert.True(0 <> node.Span.Length, "Unexpected 0 width node: " & node.VBKind().ToString & node.Span.ToString)
             For Each child In node.AsNode.ChildNodesAndTokens()
                 InternalVerifyNoZeroWidthNodes(child)
             Next
         Else
-            Assert.True(0 <> node.Span.Length OrElse node.IsKind(SyntaxKind.EndOfFileToken) OrElse node.IsKind(SyntaxKind.StatementTerminatorToken) OrElse node.IsKind(SyntaxKind.ColonToken), "Unexpected 0 width token: " & node.VisualBasicKind().ToString & node.Span.ToString)
+            Assert.True(0 <> node.Span.Length OrElse node.IsKind(SyntaxKind.EndOfFileToken) OrElse node.IsKind(SyntaxKind.StatementTerminatorToken) OrElse node.IsKind(SyntaxKind.ColonToken), "Unexpected 0 width token: " & node.VBKind().ToString & node.Span.ToString)
             For Each tr In node.AsToken.LeadingTrivia
-                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.VisualBasicKind().ToString & node.Span.ToString)
+                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.VBKind().ToString & node.Span.ToString)
                 If tr.HasStructure Then
                     InternalVerifyNoZeroWidthNodes(tr.GetStructure)
                 End If
             Next
             For Each tr In node.AsToken.LeadingTrivia
-                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.VisualBasicKind().ToString & node.Span.ToString)
+                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.VBKind().ToString & node.Span.ToString)
                 If tr.HasStructure Then
                     InternalVerifyNoZeroWidthNodes(tr.GetStructure)
                 End If
@@ -795,9 +795,9 @@ Public Module VerificationHelpers
                     InternalVerifyNoAdjcentTriviaHaveSameKind(tr.GetStructure)
                 End If
                 If prev IsNot Nothing Then
-                    Assert.True(prev.Value.VisualBasicKind <> tr.VisualBasicKind,
-                                "Both current and previous trivia have Kind=" & tr.VisualBasicKind.ToString &
-                                " [See under TokenKind=" & node.VisualBasicKind().ToString & ", NonTerminalKind=" & node.Parent.VisualBasicKind.ToString & "]")
+                    Assert.True(prev.Value.VBKind <> tr.VBKind,
+                                "Both current and previous trivia have Kind=" & tr.VBKind.ToString &
+                                " [See under TokenKind=" & node.VBKind().ToString & ", NonTerminalKind=" & node.Parent.VBKind.ToString & "]")
                 End If
                 prev = tr
             Next
@@ -807,9 +807,9 @@ Public Module VerificationHelpers
                     InternalVerifyNoAdjcentTriviaHaveSameKind(tr.GetStructure)
                 End If
                 If prev IsNot Nothing Then
-                    Assert.True(prev.Value.VisualBasicKind <> tr.VisualBasicKind,
-                                "Both current and previous trivia have Kind=" & tr.VisualBasicKind.ToString &
-                                " [See under TokenKind=" & node.VisualBasicKind().ToString & ", NonTerminalKind=" & node.Parent.VisualBasicKind.ToString & "]")
+                    Assert.True(prev.Value.VBKind <> tr.VBKind,
+                                "Both current and previous trivia have Kind=" & tr.VBKind.ToString &
+                                " [See under TokenKind=" & node.VBKind().ToString & ", NonTerminalKind=" & node.Parent.VBKind.ToString & "]")
                 End If
                 prev = tr
             Next
@@ -825,16 +825,16 @@ Public Module VerificationHelpers
         If node.Parent IsNot Nothing Then
             Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso
                         node.Span.End <= node.Parent.Span.End, "Span of child (" &
-                        node.VisualBasicKind().ToString & node.Span.ToString &
+                        node.VBKind().ToString & node.Span.ToString &
                         ") is not within span of parent (" &
-                        node.Parent.VisualBasicKind.ToString & node.Parent.Span.ToString & ")")
+                        node.Parent.VBKind.ToString & node.Parent.Span.ToString & ")")
         End If
     End Sub
 
 #End Region
 
     Public Class SyntaxWalkerVerifier
-        Inherits VisualBasicSyntaxWalker
+        Inherits VBSyntaxWalker
 
         Public Sub New()
             MyBase.New()
@@ -846,7 +846,7 @@ Public Module VerificationHelpers
         End Sub
 
         Public _Dict As New Dictionary(Of String, Integer)
-        Public ReadOnly _Items As New List(Of VisualBasicSyntaxNode)
+        Public ReadOnly _Items As New List(Of VBSyntaxNode)
 
         Public Overrides Sub VisitForBlock(node As ForBlockSyntax)
             IncrementTypeCounter(node, node.Kind.ToString)
@@ -992,7 +992,7 @@ Public Module VerificationHelpers
             MyBase.VisitXmlBracketedName(node)
         End Sub
 
-        Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
+        Sub IncrementTypeCounter(Node As VBSyntaxNode, NodeKey As String)
             _Items.Add(Node)
             If _Dict.ContainsKey(NodeKey) Then
                 _Dict(NodeKey) = _Dict(NodeKey) + 1 'Increment Count
@@ -1009,7 +1009,7 @@ Public Module VerificationHelpers
             End If
         End Function
 
-        Public Function GetItem() As List(Of VisualBasicSyntaxNode)
+        Public Function GetItem() As List(Of VBSyntaxNode)
             Return _Items
         End Function
     End Class

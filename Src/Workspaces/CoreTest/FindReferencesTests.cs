@@ -81,7 +81,7 @@ public class C {
         [Fact]
         public void PinvokeMethodReferences_VB()
         {  
-            var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
+            var tree = Microsoft.CodeAnalysis.VisualBasic.VBSyntaxTree.ParseText(
                 @"
 Module Module1
         Declare Function CreateDirectory Lib ""kernel32"" Alias ""CreateDirectoryA"" (ByVal lpPathName As String) As Integer
@@ -117,7 +117,7 @@ Module Module1
                 .AddMetadataReference(prj1Id, MscorlibRef)                
                 .AddDocument(docId, "testFile", tree.GetText());
 
-            Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
+            Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VBCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
             tree = (SyntaxTree)prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
             Compilation comp = prj.GetCompilationAsync().Result;
             

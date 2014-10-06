@@ -429,10 +429,10 @@ Public Module M
 End Module
 ";
 
-            var vbProject = VisualBasic.VisualBasicCompilation.Create(
+            var vbProject = VisualBasic.VBCompilation.Create(
                 "VBProject",
                 references: new[] { MscorlibRef },
-                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) });
+                syntaxTrees: new[] { VisualBasic.VBSyntaxTree.ParseText(vbSource) });
 
             var csSource = @"
 class Program
@@ -479,10 +479,10 @@ Public Module M
 End Module
 ";
 
-            var vbProject = VisualBasic.VisualBasicCompilation.Create(
+            var vbProject = VisualBasic.VBCompilation.Create(
                 "VBProject",
                 references: new[] { MscorlibRef },
-                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) });
+                syntaxTrees: new[] { VisualBasic.VBSyntaxTree.ParseText(vbSource) });
 
             var csSource = @"
 class Program

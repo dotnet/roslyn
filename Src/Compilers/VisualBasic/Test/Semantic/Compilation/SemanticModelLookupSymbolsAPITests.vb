@@ -902,7 +902,7 @@ End Class
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
             Dim position = tree.ToString().IndexOf("MyBase")
-            Dim binder = DirectCast(model, VisualBasicSemanticModel).GetEnclosingBinder(position)
+            Dim binder = DirectCast(model, VBSemanticModel).GetEnclosingBinder(position)
 
             Dim baseType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("B1")
 
@@ -1094,7 +1094,7 @@ End Module
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
             Const position = 0
-            Dim binder = DirectCast(model, VisualBasicSemanticModel).GetEnclosingBinder(position)
+            Dim binder = DirectCast(model, VBSemanticModel).GetEnclosingBinder(position)
 
             Dim actual_lookupSymbols = model.LookupSymbols(position)
             Dim actual_lookupSymbols_as_string = actual_lookupSymbols.Select(Function(e) e.ToTestDisplayString())
@@ -1121,7 +1121,7 @@ End Class
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
             Dim position = tree.ToString().IndexOf("Dim")
-            Dim binder = DirectCast(model, VisualBasicSemanticModel).GetEnclosingBinder(position)
+            Dim binder = DirectCast(model, VBSemanticModel).GetEnclosingBinder(position)
 
             Dim result = LookupResult.GetInstance()
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing

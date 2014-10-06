@@ -427,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
             Dim lambdaSyntax = lambdaSymbol.Syntax
             Dim bodyBinder = lambdaBinder.GetBinder(lambdaSyntax)
-            Dim endSyntax As VisualBasicSyntaxNode = lambdaSyntax
+            Dim endSyntax As VBSyntaxNode = lambdaSyntax
 
             Dim block As BoundBlock
 
@@ -986,7 +986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(lambdaReturnType, diagnostics.ToReadOnlyAndFree())
         End Function
 
-        Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As VisualBasicSyntaxNode
+        Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As VBSyntaxNode
             Dim lambdaSyntax = TryCast(source.Syntax, LambdaExpressionSyntax)
 
             If lambdaSyntax IsNot Nothing Then

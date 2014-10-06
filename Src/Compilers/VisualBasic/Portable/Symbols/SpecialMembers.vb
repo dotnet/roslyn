@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim result As Symbol = Nothing
 
                 If Not type.IsErrorType() Then
-                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, VisualBasicCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt:=Nothing)
+                    result = VBCompilation.GetRuntimeMember(type, descriptor, VBCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt:=Nothing)
                 End If
 
                 Interlocked.CompareExchange(m_LazySpecialTypeMembers(member), result, DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))

@@ -294,7 +294,7 @@ VerifyDiagnostics(
 
 #Region "HelpMethod"
 
-        Private Function SemanticInfoTypeTest(compilation As VisualBasicCompilation, index As Integer, ParamArray names As String()) As SemanticInfoSummary
+        Private Function SemanticInfoTypeTest(compilation As VBCompilation, index As Integer, ParamArray names As String()) As SemanticInfoSummary
             Dim expression = GetSyntaxNode(Of ArrayCreationExpressionSyntax)(compilation, SyntaxKind.ArrayCreationExpression, index)
             Dim model = GetModel(compilation)
             Dim semanticInfo = model.GetSemanticInfoSummary(expression)
@@ -316,7 +316,7 @@ VerifyDiagnostics(
             Return semanticInfo
         End Function
 
-        Private Function GetDeclareSymbolTest(compilation As VisualBasicCompilation, expectedSymbolName As String, Optional index As Integer = 1) As ISymbol
+        Private Function GetDeclareSymbolTest(compilation As VBCompilation, expectedSymbolName As String, Optional index As Integer = 1) As ISymbol
             Dim node = GetSyntaxNode(Of VariableDeclaratorSyntax)(compilation, SyntaxKind.VariableDeclarator, index).Names.First()
             Dim model = GetModel(compilation)
             Dim symbol = model.GetDeclaredSymbol(node)
@@ -325,7 +325,7 @@ VerifyDiagnostics(
             Return symbol
         End Function
 
-        Private Function AnalyzeRegionDataFlowTest(compilation As VisualBasicCompilation, VariablesDeclaredSymbol As String,
+        Private Function AnalyzeRegionDataFlowTest(compilation As VBCompilation, VariablesDeclaredSymbol As String,
                          ReadInsideSymbol As String, ReadOutsideSymbol As String, WrittenInsideSymbol As String,
                          WrittenOutsideSymbol As String, AlwaysAssignedSymbol As String,
                          DataFlowsInSymbol As String, DataFlowsOutSymbol As String,
@@ -344,7 +344,7 @@ VerifyDiagnostics(
             Return analyze
         End Function
 
-        Private Function AnalyzeRegionDataFlowFieldTest(compilation As VisualBasicCompilation, VariablesDeclaredSymbol As String,
+        Private Function AnalyzeRegionDataFlowFieldTest(compilation As VBCompilation, VariablesDeclaredSymbol As String,
                          ReadInsideSymbol As String, ReadOutsideSymbol As String, WrittenInsideSymbol As String,
                          WrittenOutsideSymbol As String, AlwaysAssignedSymbol As String,
                          DataFlowsInSymbol As String, DataFlowsOutSymbol As String,
@@ -367,13 +367,13 @@ VerifyDiagnostics(
             Return String.Join(", ", symbols.Select(Function(symbol) symbol.Name).OrderBy(Function(name) name))
         End Function
 
-        Private Function GetModel(compilation As VisualBasicCompilation) As SemanticModel
+        Private Function GetModel(compilation As VBCompilation) As SemanticModel
             Dim tree = compilation.SyntaxTrees.First
             Dim model = compilation.GetSemanticModel(tree)
             Return model
         End Function
 
-        Private Function GetSyntaxNode(Of T As VisualBasicSyntaxNode)(compilation As VisualBasicCompilation, syntaxKind As SyntaxKind, index As Integer) As T
+        Private Function GetSyntaxNode(Of T As VBSyntaxNode)(compilation As VBCompilation, syntaxKind As SyntaxKind, index As Integer) As T
             Dim tree = compilation.SyntaxTrees.First
             Dim node = tree.FindNodeOrTokenByKind(syntaxKind, index).AsNode()
             Dim arrayCreationExpression = TryCast(node, T)

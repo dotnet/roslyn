@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             namedTypeSymbol As NamedTypeSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As VBSyntaxNode,
             diagnostics As DiagnosticBag,
             Optional fromImplements As Boolean = False,
             Optional needDeclaration As Boolean = False
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend NotOverridable Overrides Function Translate(
             typeSymbol As TypeSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As VBSyntaxNode,
             diagnostics As DiagnosticBag
         ) As Microsoft.Cci.ITypeReference
             Debug.Assert(diagnostics IsNot Nothing)
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             fieldSymbol As FieldSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As VBSyntaxNode,
             diagnostics As DiagnosticBag,
             Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.IFieldReference
@@ -315,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             methodSymbol As MethodSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As VBSyntaxNode,
             diagnostics As DiagnosticBag,
             Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.IMethodReference
@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return methodSymbol
         End Function
 
-        Friend Overloads Function TranslateOverriddenMethodReference(methodSymbol As MethodSymbol, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Microsoft.Cci.IMethodReference
+        Friend Overloads Function TranslateOverriddenMethodReference(methodSymbol As MethodSymbol, syntaxNodeOpt As VBSyntaxNode, diagnostics As DiagnosticBag) As Microsoft.Cci.IMethodReference
             Dim methodRef As Microsoft.Cci.IMethodReference
             Dim container As NamedTypeSymbol = methodSymbol.ContainingType
 

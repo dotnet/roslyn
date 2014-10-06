@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
         internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
+            : base(VBCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
         {
         }
 

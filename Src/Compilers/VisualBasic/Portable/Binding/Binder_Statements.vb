@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          Nothing))
             End If
 
-            Dim blockBinder = Me.GetBinder(DirectCast(methodBlock, VisualBasicSyntaxNode))
+            Dim blockBinder = Me.GetBinder(DirectCast(methodBlock, VBSyntaxNode))
             Dim body = blockBinder.BindBlock(methodBlock, methodBlock.Statements, diagnostics)
 
             ' Implicit label to branch to for Exit Sub/Exit Function statements.
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
                 If Not node.WasCompilerGenerated AndAlso node.Syntax.Kind = SyntaxKind.LabelStatement AndAlso
-                   DirectCast(node.Syntax, LabelStatementSyntax).LabelToken.VisualBasicKind = SyntaxKind.IntegerLiteralToken Then
+                   DirectCast(node.Syntax, LabelStatementSyntax).LabelToken.VBKind = SyntaxKind.IntegerLiteralToken Then
                     m_ContainsLineNumberLabel = True
                 End If
 
@@ -758,7 +758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function IsValidLabelForGoto(label As LabelSymbol, labelSyntax As LabelSyntax, diagnostics As DiagnosticBag) As Boolean
             Dim hasError As Boolean = False
 
-            Dim labelParent = DirectCast(label.LabelName.Parent, VisualBasicSyntaxNode)
+            Dim labelParent = DirectCast(label.LabelName.Parent, VBSyntaxNode)
 
             ' Determine if the reference is a branch that crosses
             ' into a Try/Catch/Finally or With statement.
@@ -808,7 +808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not hasError
         End Function
 
-        Private Function IsValidBranchTarget(block As VisualBasicSyntaxNode, labelSyntax As LabelSyntax) As Boolean
+        Private Function IsValidBranchTarget(block As VBSyntaxNode, labelSyntax As LabelSyntax) As Boolean
             Debug.Assert(block.Kind = SyntaxKind.TryBlock OrElse
                          block.Kind = SyntaxKind.CatchBlock OrElse
                          block.Kind = SyntaxKind.FinallyBlock OrElse
@@ -1015,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overridable Function BindVariableDeclaration(
-            tree As VisualBasicSyntaxNode,
+            tree As VBSyntaxNode,
             name As ModifiedIdentifierSyntax,
             asClauseOpt As AsClauseSyntax,
             equalsValueOpt As EqualsValueSyntax,
@@ -1058,7 +1058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing)
 
             Dim isInitializedByAsNew As Boolean = asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause
-            Dim errSyntax = If(asClauseOpt Is Nothing, DirectCast(equalsValueOpt, VisualBasicSyntaxNode), asClauseOpt.Type)
+            Dim errSyntax = If(asClauseOpt Is Nothing, DirectCast(equalsValueOpt, VBSyntaxNode), asClauseOpt.Type)
 
             Dim restrictedType As TypeSymbol = Nothing
             If type.IsRestrictedArrayType(restrictedType) Then
@@ -1166,7 +1166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' "Constants must be of an intrinsic or enumerated type, not a class, structure, type parameter, or array type."
                         ' arrays get the squiggles under the identifier name
                         ' other data types get the squiggles under the type part of the as clause 
-                        errSyntax = If(asClauseOpt IsNot Nothing AndAlso Not type.IsArrayType, DirectCast(asClauseOpt.Type, VisualBasicSyntaxNode), name)
+                        errSyntax = If(asClauseOpt IsNot Nothing AndAlso Not type.IsArrayType, DirectCast(asClauseOpt.Type, VBSyntaxNode), name)
                         ReportDiagnostic(diagnostics, errSyntax, ERRID.ERR_ConstAsNonConstant)
                     Else
                         diagnostics.AddRange(symbol.GetConstantValueDiagnostics(Me))
@@ -1668,7 +1668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Sub VerifyLocalSymbolNameAndSetType(local As LocalSymbol,
                                     type As TypeSymbol,
-                                    nameSyntax As VisualBasicSyntaxNode,
+                                    nameSyntax As VBSyntaxNode,
                                     identifier As SyntaxToken,
                                     diagnostics As DiagnosticBag)
 
@@ -1830,7 +1830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             result.Free()
         End Sub
 
-        Private Function AdjustAssignmentTarget(node As VisualBasicSyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
+        Private Function AdjustAssignmentTarget(node As VBSyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
             Select Case op1.Kind
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(op1, BoundXmlMemberAccess)
@@ -1887,7 +1887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function BindAssignment(node As VisualBasicSyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As DiagnosticBag) As BoundAssignmentOperator
+        Private Function BindAssignment(node As VBSyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As DiagnosticBag) As BoundAssignmentOperator
 
             Dim isError As Boolean = False
             op1 = AdjustAssignmentTarget(node, op1, diagnostics, isError)
@@ -1906,7 +1906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindCompoundAssignment(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             left As BoundExpression,
             right As BoundExpression,
             operatorTokenKind As SyntaxKind,
@@ -1956,7 +1956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As VisualBasicSyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag) As BoundBlock
+        Friend Function BindBlock(syntax As VBSyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag) As BoundBlock
             Dim stmtListBinder = Me.GetBinder(stmtList)
             Return BindBlock(syntax, stmtList, diagnostics, stmtListBinder)
         End Function
@@ -1964,7 +1964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As VisualBasicSyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag, stmtListBinder As Binder) As BoundBlock
+        Friend Function BindBlock(syntax As VBSyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag, stmtListBinder As Binder) As BoundBlock
             Dim boundStatements(stmtList.Count - 1) As BoundStatement
             Dim locals As ArrayBuilder(Of LocalSymbol) = Nothing
 
@@ -2690,7 +2690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             For i = conditions.Count - 1 To 0 Step -1
-                Dim syntax As VisualBasicSyntaxNode
+                Dim syntax As VBSyntaxNode
                 If i = 0 Then
                     syntax = node
                 Else
@@ -2722,7 +2722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Get the binder for the body of the loop. This defines the break and continue labels.
-            Dim loopBodyBinder = GetBinder(DirectCast(node, VisualBasicSyntaxNode))
+            Dim loopBodyBinder = GetBinder(DirectCast(node, VBSyntaxNode))
 
             ' Bind the body of the loop.
             Dim loopBody As BoundBlock = loopBodyBinder.BindBlock(node, node.Statements, diagnostics)
@@ -2830,7 +2830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">The diagnostics.</param>
         ''' <returns>true if there were errors; otherwise false</returns>
         Private Function BindForBlockParts(node As ForOrForEachBlockSyntax,
-                                           controlVariableSyntax As VisualBasicSyntaxNode,
+                                           controlVariableSyntax As VBSyntaxNode,
                                            <Out()> ByRef declaredOrInferredLocalOpt As LocalSymbol,
                                            <Out()> ByRef controlVariable As BoundExpression,
                                            <Out()> ByRef isInferredLocal As Boolean,
@@ -3023,7 +3023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Now that we know the type go ahead and set it.
 
                 Dim identifier = declaredOrInferredLocalOpt.IdentifierToken
-                VerifyLocalSymbolNameAndSetType(declaredOrInferredLocalOpt, type, DirectCast(identifier.Parent, VisualBasicSyntaxNode), identifier, diagnostics)
+                VerifyLocalSymbolNameAndSetType(declaredOrInferredLocalOpt, type, DirectCast(identifier.Parent, VBSyntaxNode), identifier, diagnostics)
 
                 controlVariableOpt = New BoundLocal(forStatement.ControlVariable, declaredOrInferredLocalOpt, type)
             End If
@@ -3088,7 +3088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not (initialValue.HasErrors OrElse limit.HasErrors OrElse stepValue.HasErrors) AndAlso
                    targetType.CanContainUserDefinedOperators(useSiteDiagnostics) Then
                     ' Bind user-defined operators that we need.
-                    Dim syntax As VisualBasicSyntaxNode = node.ForOrForEachStatement
+                    Dim syntax As VBSyntaxNode = node.ForOrForEachStatement
 
                     Dim leftOperandPlaceholder = New BoundRValuePlaceholder(syntax, targetType).MakeCompilerGenerated()
                     Dim rightOperandPlaceholder = New BoundRValuePlaceholder(syntax, targetType).MakeCompilerGenerated()
@@ -3156,7 +3156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Can return Nothing in case of failure.
         ''' </summary>
         Private Function BindForLoopUserDefinedOperator(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             opCode As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -3289,7 +3289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Now that we know the type go ahead and set it.
 
                 Dim identifier = declaredOrInferredLocalOpt.IdentifierToken
-                VerifyLocalSymbolNameAndSetType(declaredOrInferredLocalOpt, type, DirectCast(identifier.Parent, VisualBasicSyntaxNode), identifier, diagnostics)
+                VerifyLocalSymbolNameAndSetType(declaredOrInferredLocalOpt, type, DirectCast(identifier.Parent, VBSyntaxNode), identifier, diagnostics)
 
                 controlVariableOpt = New BoundLocal(forEachStatement.ControlVariable, declaredOrInferredLocalOpt, type)
             End If
@@ -3491,7 +3491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' create a new local for the loop node.
         ''' </summary>
         Private Function TryBindLoopControlVariable(
-            controlVariableSyntax As VisualBasicSyntaxNode,
+            controlVariableSyntax As VBSyntaxNode,
             <Out()> ByRef controlVariable As BoundExpression,
             diagnostics As DiagnosticBag
         ) As Boolean
@@ -4102,7 +4102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="methodOrPropertyGroup">The method or property group.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
         Private Function CreateBoundInvocationExpressionFromMethodOrPropertyGroup(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             methodOrPropertyGroup As BoundMethodOrPropertyGroup,
             diagnostics As DiagnosticBag
         ) As BoundExpression
@@ -4155,7 +4155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             container As TypeSymbol,
             symbolChecker As Func(Of Symbol, Boolean),
             result As LookupResult,
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             diagnostics As DiagnosticBag
         ) As Boolean
             result.Clear()
@@ -4277,7 +4277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function BindWithBlock(node As WithBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim binder As Binder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
+            Dim binder As Binder = Me.GetBinder(DirectCast(node, VBSyntaxNode))
             Return binder.CreateBoundWithBlock(node, binder, diagnostics)
         End Function
 
@@ -4340,7 +4340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' There is one exception to this rule: the parent is a declarator and has multiple names then 
                     ' the identifier syntax should be used to be able to distinguish between the error locations.
                     ' e.g. dim x, y as Integer = 23
-                    Dim syntaxNodeForErrors As VisualBasicSyntaxNode
+                    Dim syntaxNodeForErrors As VBSyntaxNode
                     If localDeclarations.Kind <> BoundKind.AsNewLocalDeclarations Then
                         syntaxNodeForErrors = declarationSyntax.Parent
 
@@ -4408,7 +4408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub VerifyUsingVariableDeclarationAndBuildUsingInfo(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
             localSymbol As LocalSymbol,
             iDisposable As TypeSymbol,
             placeholderInfo As Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)),
@@ -4444,7 +4444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub BuildAndVerifyUsingInfo(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
             resourceType As TypeSymbol,
             placeholderInfo As Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)),
             iDisposable As TypeSymbol,
@@ -4491,7 +4491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>Check the given type of and report WRN_MutableGenericStructureInUsing if needed.</summary>
         ''' <remarks>This function should only be called for a type of a using variable.</remarks>
-        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As VBSyntaxNode, diagnostics As DiagnosticBag)
             ' Dev10 #666593: Warn if the type of the variable is not a reference type or an immutable structure.
             If Not type.IsReferenceType Then
                 If type.IsTypeParameter Then
@@ -5023,7 +5023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasError As Boolean = False
 
             If expressionSyntax Is Nothing Then
-                Dim curSyntax As VisualBasicSyntaxNode = node.Parent
+                Dim curSyntax As VBSyntaxNode = node.Parent
                 Dim canRethrow As Boolean = False
 
                 While curSyntax IsNot Nothing

@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundLocalDeclaration
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, localSymbol As LocalSymbol, initializerOpt As BoundExpression)
+        Public Sub New(syntax As VBSyntaxNode, localSymbol As LocalSymbol, initializerOpt As BoundExpression)
             MyClass.New(syntax, localSymbol, initializerOpt, False, False)
         End Sub
 

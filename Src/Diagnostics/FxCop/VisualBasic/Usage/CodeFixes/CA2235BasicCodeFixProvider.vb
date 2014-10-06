@@ -10,11 +10,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
 
         Protected Overrides Function GetFieldDeclarationNode(node As SyntaxNode) As SyntaxNode
             Dim fieldNode = node
-            While fieldNode IsNot Nothing AndAlso fieldNode.VisualBasicKind() <> VisualBasic.SyntaxKind.FieldDeclaration
+            While fieldNode IsNot Nothing AndAlso fieldNode.VBKind() <> VisualBasic.SyntaxKind.FieldDeclaration
                 fieldNode = fieldNode.Parent
             End While
 
-            Return If(fieldNode.VisualBasicKind() = VisualBasic.SyntaxKind.FieldDeclaration, fieldNode, Nothing)
+            Return If(fieldNode.VBKind() = VisualBasic.SyntaxKind.FieldDeclaration, fieldNode, Nothing)
         End Function
     End Class
 End Namespace

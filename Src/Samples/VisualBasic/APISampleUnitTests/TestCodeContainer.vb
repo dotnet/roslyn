@@ -56,7 +56,7 @@ Class TestCodeContainer
         End If
 
         ' Use the mscorlib from our current process
-        Me.Compilation = VisualBasicCompilation.Create(
+        Me.Compilation = VBCompilation.Create(
             "test",
             syntaxTrees:={Me.SyntaxTree},
             references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly)})

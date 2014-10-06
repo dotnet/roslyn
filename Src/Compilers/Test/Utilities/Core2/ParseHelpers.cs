@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private const string CS_PARSER_DLL = "Microsoft.CodeAnalysis.CSharp.dll";
         private const string VB_PARSER_DLL = "Microsoft.CodeAnalysis.VisualBasic.dll";
         private const string CS_SYNTAX_TREE_TYPE = "Roslyn.Compilers.CSharp.CSharpSyntaxTree";
-        private const string VB_SYNTAX_TREE_TYPE = "Roslyn.Compilers.VisualBasic.VisualBasicSyntaxTree";
+        private const string VB_SYNTAX_TREE_TYPE = "Roslyn.Compilers.VisualBasic.VBSyntaxTree";
         private const string CS_OPTIONS_TYPE = "Roslyn.Compilers.CSharp.ParseOptions";
         private const string VB_OPTIONS_TYPE = "Roslyn.Compilers.VisualBasic.ParseOptions";
         private const string SYNTAX_TREE_PARSE_METHOD = "ParseCompilationUnit";

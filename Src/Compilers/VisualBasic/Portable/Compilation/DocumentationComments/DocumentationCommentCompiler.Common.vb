@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Public Class VisualBasicCompilation
+    Partial Public Class VBCompilation
 
         Partial Friend Class DocumentationCommentCompiler
             Inherits VisualBasicSymbolVisitor
@@ -668,16 +668,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End Function
 
-            Private Function TryGetDocCommentTriviaAndGenerateDiagnostics(syntaxNode As VisualBasicSyntaxNode) As DocumentationCommentTriviaSyntax
+            Private Function TryGetDocCommentTriviaAndGenerateDiagnostics(syntaxNode As VBSyntaxNode) As DocumentationCommentTriviaSyntax
                 Dim theOnlyDocCommentTrivia As DocumentationCommentTriviaSyntax = Nothing
                 Dim lastCommentTrivia As Boolean = False
 
                 For Each trivia In syntaxNode.GetLeadingTrivia()
-                    Select Case trivia.VisualBasicKind
+                    Select Case trivia.VBKind
 
                         Case SyntaxKind.DocumentationCommentTrivia
                             If theOnlyDocCommentTrivia IsNot Nothing Then
-                                If DirectCast(trivia.SyntaxTree, VisualBasicSyntaxTree).ReportDocumentationCommentDiagnostics() Then
+                                If DirectCast(trivia.SyntaxTree, VBSyntaxTree).ReportDocumentationCommentDiagnostics() Then
                                     Me._diagnostics.Add(ERRID.WRN_XMLDocMoreThanOneCommentBlock, theOnlyDocCommentTrivia.GetLocation())
                                 End If
                             End If

@@ -767,7 +767,7 @@ var a = new C2();
         [Fact]
         public void MixedRefType()
         {
-            var vbComp = VB.VisualBasicCompilation.Create("CompilationVB");
+            var vbComp = VB.VBCompilation.Create("CompilationVB");
             var comp = CSharpCompilation.Create("Compilation");
 
             vbComp = vbComp.AddReferences(SystemRef);
@@ -977,7 +977,7 @@ var a = new C2();
         {
             var opt = TestOptions.ReleaseDll;
             var comp = CSharpCompilation.Create("Compilation");
-            var vbComp = VB.VisualBasicCompilation.Create("CompilationVB");
+            var vbComp = VB.VBCompilation.Create("CompilationVB");
             vbComp = vbComp.AddReferences(SystemRef);
             var compRef = vbComp.ToMetadataReference();
             Assert.Throws<ArgumentException>(() => comp.AddReferences(compRef));
@@ -1191,12 +1191,12 @@ var a = new C2();
             });
 
             var s1 = "Imports System.Text";
-            SyntaxTree t1 = VB.VisualBasicSyntaxTree.ParseText(s1);
+            SyntaxTree t1 = VB.VBSyntaxTree.ParseText(s1);
             SyntaxTree t2 = t1;
             var t3 = t2;
 
-            var vbComp = VB.VisualBasicCompilation.Create("CompilationVB");
-            vbComp = vbComp.AddSyntaxTrees(t1, VB.VisualBasicSyntaxTree.ParseText("Using Foo;"));
+            var vbComp = VB.VBCompilation.Create("CompilationVB");
+            vbComp = vbComp.AddSyntaxTrees(t1, VB.VBSyntaxTree.ParseText("Using Foo;"));
             // Throw exception when cast SyntaxTree
             foreach (var item in vbComp.SyntaxTrees)
             {

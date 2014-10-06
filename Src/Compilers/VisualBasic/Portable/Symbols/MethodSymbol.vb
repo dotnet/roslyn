@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Should return syntax node that originated the method. 
         ''' </summary>
-        Friend MustOverride ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend MustOverride ReadOnly Property Syntax As VBSyntaxNode
 
         ''' <summary>
         ''' Returns true if calls to this method are omitted in the given syntax tree at the given syntax node location.

@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
 
             ' line continuation
-            If trivia2.VisualBasicKind = SyntaxKind.LineContinuationTrivia Then
+            If trivia2.VBKind = SyntaxKind.LineContinuationTrivia Then
                 Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
             End If
 
@@ -79,29 +79,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' :: case
-            If trivia1.VisualBasicKind = SyntaxKind.ColonTrivia AndAlso
-               trivia2.VisualBasicKind = SyntaxKind.ColonTrivia Then
+            If trivia1.VBKind = SyntaxKind.ColonTrivia AndAlso
+               trivia2.VBKind = SyntaxKind.ColonTrivia Then
                 Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=0)
             End If
 
             ' : after : token
-            If Token1.VisualBasicKind = SyntaxKind.ColonToken AndAlso trivia2.VisualBasicKind = SyntaxKind.ColonTrivia Then
+            If Token1.VBKind = SyntaxKind.ColonToken AndAlso trivia2.VBKind = SyntaxKind.ColonTrivia Then
                 Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=0)
             End If
 
             ' : [token]
-            If trivia1.VisualBasicKind = SyntaxKind.ColonTrivia AndAlso trivia2.VisualBasicKind = 0 AndAlso
-               Token2.VisualBasicKind <> SyntaxKind.None AndAlso Token2.VisualBasicKind <> SyntaxKind.EndOfFileToken Then
+            If trivia1.VBKind = SyntaxKind.ColonTrivia AndAlso trivia2.VBKind = 0 AndAlso
+               Token2.VBKind <> SyntaxKind.None AndAlso Token2.VBKind <> SyntaxKind.EndOfFileToken Then
                 Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=1)
             End If
 
-            If trivia1.VisualBasicKind = SyntaxKind.ColonTrivia OrElse
-               trivia2.VisualBasicKind = SyntaxKind.ColonTrivia Then
+            If trivia1.VBKind = SyntaxKind.ColonTrivia OrElse
+               trivia2.VBKind = SyntaxKind.ColonTrivia Then
                 Return LineColumnRule.ForceSpacesOrUseDefaultIndentation(spaces:=1)
             End If
 
             ' [trivia] [whitespace] [token] case
-            If trivia2.VisualBasicKind = SyntaxKind.None Then
+            If trivia2.VBKind = SyntaxKind.None Then
                 Dim insertNewLine = Me.FormattingRules.GetAdjustNewLinesOperation(Me.Token1, Me.Token2) IsNot Nothing
 
                 If insertNewLine Then
@@ -112,24 +112,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' preprocessor case
-            If SyntaxFacts.IsPreprocessorDirective(trivia2.VisualBasicKind) Then
+            If SyntaxFacts.IsPreprocessorDirective(trivia2.VBKind) Then
                 ' if this is the first line of the file, don't put extra line 1
-                Dim firstLine = (trivia1.RawKind = SyntaxKind.None) AndAlso (Token1.VisualBasicKind = SyntaxKind.None)
+                Dim firstLine = (trivia1.RawKind = SyntaxKind.None) AndAlso (Token1.VBKind = SyntaxKind.None)
 
                 Dim lines = If(firstLine, 0, 1)
                 Return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation:=0)
             End If
 
             ' comment case
-            If trivia2.VisualBasicKind = SyntaxKind.CommentTrivia OrElse
-               trivia2.VisualBasicKind = SyntaxKind.DocumentationCommentTrivia Then
+            If trivia2.VBKind = SyntaxKind.CommentTrivia OrElse
+               trivia2.VBKind = SyntaxKind.DocumentationCommentTrivia Then
 
                 ' [token] [whitepsace] [trivia] case
-                If Me.Token1.IsLastTokenOfStatementWithEndOfLine() AndAlso trivia1.VisualBasicKind = SyntaxKind.None Then
+                If Me.Token1.IsLastTokenOfStatementWithEndOfLine() AndAlso trivia1.VBKind = SyntaxKind.None Then
                     Return LineColumnRule.PreserveSpacesOrUseDefaultIndentation(spaces:=1)
                 End If
 
-                If trivia1.VisualBasicKind = SyntaxKind.LineContinuationTrivia Then
+                If trivia1.VBKind = SyntaxKind.LineContinuationTrivia Then
                     Return LineColumnRule.PreserveSpacesOrUseDefaultIndentation(spaces:=1)
                 End If
 
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' skipped tokens
-            If trivia2.VisualBasicKind = SyntaxKind.SkippedTokensTrivia Then
+            If trivia2.VBKind = SyntaxKind.SkippedTokensTrivia Then
                 _succeeded = False
             End If
 
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Function IsStartOrEndOfFile(trivia1 As SyntaxTrivia, trivia2 As SyntaxTrivia) As Boolean
-            Return (Token1.VisualBasicKind = 0 OrElse Token2.VisualBasicKind = 0) AndAlso (trivia1.VisualBasicKind = 0 OrElse trivia2.VisualBasicKind = 0)
+            Return (Token1.VBKind = 0 OrElse Token2.VBKind = 0) AndAlso (trivia1.VBKind = 0 OrElse trivia2.VBKind = 0)
         End Function
 
         Protected Overloads Overrides Function Format(lineColumn As LineColumn,
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken)
             End If
 
-            If trivia.VisualBasicKind = SyntaxKind.LineContinuationTrivia Then
+            If trivia.VBKind = SyntaxKind.LineContinuationTrivia Then
                 trivia = FormatLineContinuationTrivia(trivia)
             End If
 
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken)
             End If
 
-            If trivia.VisualBasicKind = SyntaxKind.LineContinuationTrivia Then
+            If trivia.VBKind = SyntaxKind.LineContinuationTrivia Then
                 Dim lineContinuation = FormatLineContinuationTrivia(trivia)
 
                 If trivia <> lineContinuation Then
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                                 trivia As SyntaxTrivia,
                                                 changes As List(Of SyntaxTrivia),
                                                 cancellationToken As CancellationToken) As LineColumnDelta
-            If trivia.VisualBasicKind = SyntaxKind.SkippedTokensTrivia Then
+            If trivia.VBKind = SyntaxKind.SkippedTokensTrivia Then
                 ' don't touch anything if it contains skipped tokens
                 _succeeded = False
 
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' TODO : make document comment to be formatted by structured trivia formatter as well.
-            If trivia.VisualBasicKind <> SyntaxKind.DocumentationCommentTrivia Then
+            If trivia.VBKind <> SyntaxKind.DocumentationCommentTrivia Then
                 Dim result = VisualBasicStructuredTriviaFormatEngine.FormatTrivia(trivia, Me.InitialLineColumn.Column, Me.OptionSet, Me.FormattingRules, cancellationToken)
                 Dim formattedTrivia = SyntaxFactory.Trivia(DirectCast(result.GetFormattedRoot(cancellationToken), StructuredTriviaSyntax))
 
@@ -232,14 +232,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                                 trivia As SyntaxTrivia,
                                                 changes As List(Of TextChange),
                                                 cancellationToken As CancellationToken) As LineColumnDelta
-            If trivia.VisualBasicKind = SyntaxKind.SkippedTokensTrivia Then
+            If trivia.VBKind = SyntaxKind.SkippedTokensTrivia Then
                 ' don't touch anything if it contains skipped tokens
                 _succeeded = False
                 Return GetLineColumnDelta(lineColumn, trivia)
             End If
 
             ' TODO : make document comment to be formatted by structured trivia formatter as well.
-            If trivia.VisualBasicKind <> SyntaxKind.DocumentationCommentTrivia Then
+            If trivia.VBKind <> SyntaxKind.DocumentationCommentTrivia Then
                 Dim result = VisualBasicStructuredTriviaFormatEngine.FormatTrivia(
                     trivia, Me.InitialLineColumn.Column, Me.OptionSet, Me.FormattingRules, cancellationToken)
 

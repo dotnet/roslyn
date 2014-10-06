@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ISynthesizedMethodBodyImplementationSymbol
 
         Friend Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
             containingType As LambdaFrame
         )
             MyBase.New(syntaxNode, containingType, WellKnownMemberNames.InstanceConstructorName, False)

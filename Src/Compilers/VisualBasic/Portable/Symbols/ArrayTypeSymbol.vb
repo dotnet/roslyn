@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Create a new ArrayTypeSymbol.
         ''' </summary>
-        Friend Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, compilation As VisualBasicCompilation)
+        Friend Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, compilation As VBCompilation)
             Me.New(elementType, customModifiers, rank, compilation.Assembly)
         End Sub
 

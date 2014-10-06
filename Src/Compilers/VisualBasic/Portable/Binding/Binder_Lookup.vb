@@ -763,7 +763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             End Sub
 
-            Private Shared Function IsWinRTProjectedInterface(iFace As NamedTypeSymbol, compilation As VisualBasicCompilation) As Boolean
+            Private Shared Function IsWinRTProjectedInterface(iFace As NamedTypeSymbol, compilation As VBCompilation) As Boolean
                 Dim idictSymbol = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV)
                 Dim iroDictSymbol = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV)
                 Dim iListSymbol = compilation.GetWellKnownType(WellKnownType.System_Collections_IList)

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Function DecodeVariance(varianceKeywordOpt As SyntaxToken) As VarianceKind
-            Select Case varianceKeywordOpt.VisualBasicKind
+            Select Case varianceKeywordOpt.VBKind
                 Case SyntaxKind.None
                     Return VarianceKind.None
                 Case SyntaxKind.InKeyword
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OutKeyword
                     Return VarianceKind.Out
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(varianceKeywordOpt.VisualBasicKind)
+                    Throw ExceptionUtilities.UnexpectedValue(varianceKeywordOpt.VBKind)
             End Select
         End Function
 
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function FindFirstKeyword(syntax As SyntaxTokenList,
                                                 ParamArray keywordKinds As SyntaxKind()) As SyntaxToken
             For Each keywordSyntax In syntax
-                If Array.IndexOf(keywordKinds, keywordSyntax.VisualBasicKind) >= 0 Then
+                If Array.IndexOf(keywordKinds, keywordSyntax.VBKind) >= 0 Then
                     Return keywordSyntax
                 End If
             Next
@@ -61,9 +61,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim badKeyword = FindFirstKeyword(modifiers, keywordKinds)
             ' Special case: Report "Protected Friend" as error combination if 
             ' Protected is bad and both Protected and Friend found inside modifiers.
-            If badKeyword.VisualBasicKind = SyntaxKind.ProtectedKeyword Then
+            If badKeyword.VBKind = SyntaxKind.ProtectedKeyword Then
                 Dim friendToken = FindFirstKeyword(modifiers, FriendKeyword)
-                If friendToken.VisualBasicKind <> SyntaxKind.None Then
+                If friendToken.VBKind <> SyntaxKind.None Then
                     Dim startLoc As Integer = Math.Min(badKeyword.SpanStart, friendToken.SpanStart)
                     Dim endLoc As Integer = Math.Max(badKeyword.Span.End, friendToken.Span.End)
                     Dim location = Me.SyntaxTree.GetLocation(New TextSpan(startLoc, endLoc - startLoc))
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Map syntax kind of a modifier keyword to SourceMemberFlags value
         ''' </summary>
         Friend Shared Function MapKeywordToFlag(syntax As SyntaxToken) As SourceMemberFlags
-            Select Case syntax.VisualBasicKind
+            Select Case syntax.VBKind
                 Case SyntaxKind.PrivateKeyword : Return SourceMemberFlags.Private
                 Case SyntaxKind.FriendKeyword : Return SourceMemberFlags.Friend
                 Case SyntaxKind.ProtectedKeyword : Return SourceMemberFlags.Protected
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each keywordSyntax In modifiers
                 Dim foundFlag As SourceParameterFlags
 
-                Select Case keywordSyntax.VisualBasicKind
+                Select Case keywordSyntax.VBKind
                     Case SyntaxKind.ByRefKeyword : foundFlag = SourceParameterFlags.ByRef
                     Case SyntaxKind.ByValKeyword : foundFlag = SourceParameterFlags.ByVal
                     Case SyntaxKind.OptionalKeyword : foundFlag = SourceParameterFlags.Optional
@@ -256,8 +256,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create the Nullable version of a type.
         ''' </summary>
         Public Function CreateNullableOf(typeArgument As TypeSymbol,
-                                         syntax As VisualBasicSyntaxNode,
-                                         syntaxTypeArgument As VisualBasicSyntaxNode,
+                                         syntax As VBSyntaxNode,
+                                         syntaxTypeArgument As VBSyntaxNode,
                                          diagBag As DiagnosticBag) As NamedTypeSymbol
             ' Get the Nullable type
             Dim nullableType As NamedTypeSymbol = DirectCast(GetSpecialType(SpecialType.System_Nullable_T, syntax, diagBag), NamedTypeSymbol)
@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function DecodeModifiedIdentifierType(modifiedIdentifier As ModifiedIdentifierSyntax,
                                                      asClauseOrValueType As TypeSymbol,
                                                      asClauseSyntaxOpt As AsClauseSyntax,
-                                                     initializerSyntaxOpt As VisualBasicSyntaxNode,
+                                                     initializerSyntaxOpt As VBSyntaxNode,
                                                      getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
                                                      diagBag As DiagnosticBag,
                                                      Optional decoderContext As ModifiedIdentifierTypeDecoderContext = ModifiedIdentifierTypeDecoderContext.None
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 modifiedIdentifier,
                                                 If(asClauseSyntaxOpt IsNot Nothing,
                                                    asClauseSyntaxOpt.Type,
-                                                   DirectCast(modifiedIdentifier, VisualBasicSyntaxNode)),
+                                                   DirectCast(modifiedIdentifier, VBSyntaxNode)),
                                                 diagBag)
                 End If
             End If
@@ -722,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return specialType
         End Function
 
-        Public Shared Function ExtractTypeCharacter(node As VisualBasicSyntaxNode) As TypeCharacter
+        Public Shared Function ExtractTypeCharacter(node As VBSyntaxNode) As TypeCharacter
             Dim result As TypeCharacter = TypeCharacter.None
 
             If node IsNot Nothing Then
@@ -748,13 +748,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If keywordSyntax.Node Is Nothing Then
                 Return True
             Else
-                Select Case keywordSyntax.VisualBasicKind
+                Select Case keywordSyntax.VBKind
                     Case SyntaxKind.OnKeyword
                         Return True
                     Case SyntaxKind.OffKeyword
                         Return False
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(keywordSyntax.VisualBasicKind)
+                        Throw ExceptionUtilities.UnexpectedValue(keywordSyntax.VBKind)
                 End Select
             End If
         End Function
@@ -764,13 +764,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Function DecodeTextBinary(keywordSyntax As SyntaxToken) As Boolean?
 
-            Select Case keywordSyntax.VisualBasicKind
+            Select Case keywordSyntax.VBKind
                 Case SyntaxKind.TextKeyword
                     Return True
                 Case SyntaxKind.BinaryKeyword
                     Return False
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(keywordSyntax.VisualBasicKind)
+                    Throw ExceptionUtilities.UnexpectedValue(keywordSyntax.VBKind)
             End Select
         End Function
 
@@ -1076,7 +1076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AccessCheck.VerifyAccessExposureForParameterType(container, newParam.Name,
                                                                      If(paramSyntax.AsClause IsNot Nothing,
                                                                             paramSyntax.AsClause.Type,
-                                                                            DirectCast(paramSyntax, VisualBasicSyntaxNode)),
+                                                                            DirectCast(paramSyntax, VBSyntaxNode)),
                                                                      newParam.Type, diagBag)
                 End If
 
@@ -1176,7 +1176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' does not have NotInheritable, then only MustOverride has an error reported for it, and the error has a different code.
 
                     Dim containingTypeBLock = GetContainingTypeBlock(modifierList.First())
-                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.Begin.Modifiers, NotInheritableKeyword).VisualBasicKind = SyntaxKind.None Then
+                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.Begin.Modifiers, NotInheritableKeyword).VBKind = SyntaxKind.None Then
                         ' Containing type block doesn't have a NotInheritable modifier on it. Must be from other partial declaration.
 
                         If (flags And SourceMemberFlags.InvalidInNotInheritableOtherPartialClass) <> 0 Then

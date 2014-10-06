@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' we will require AccessedThroughPropertyAttribute
             bodyBinder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
-                                                    DirectCast(identifier.Parent, VisualBasicSyntaxNode),
+                                                    DirectCast(identifier.Parent, VBSyntaxNode),
                                                     diagnostics)
 
             Dim omitFurtherDiagnostics As Boolean = String.IsNullOrEmpty(name)
@@ -916,7 +916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Property declaration syntax node. 
         ''' It is either PropertyStatement for normal properties or ModifiedIdentifier for WithEvents ones.
         ''' </summary>
-        Friend ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend ReadOnly Property Syntax As VBSyntaxNode
             Get
                 Return If(m_syntaxRef IsNot Nothing, m_syntaxRef.GetVisualBasicSyntax(), Nothing)
             End Get

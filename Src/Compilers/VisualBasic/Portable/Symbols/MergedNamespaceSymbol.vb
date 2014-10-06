@@ -91,12 +91,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Create a possibly merged namespace symbol representing global namespace on a compilation level.
         ''' </summary>
-        Public Shared Function CreateGlobalNamespace(extent As VisualBasicCompilation) As NamespaceSymbol
+        Public Shared Function CreateGlobalNamespace(extent As VBCompilation) As NamespaceSymbol
             ' Get the root namespace from each module, and merge them all together.
             Return MergedNamespaceSymbol.Create(extent, Nothing, ConstituentGlobalNamespaces(extent))
         End Function
 
-        Private Shared Iterator Function ConstituentGlobalNamespaces(extent As VisualBasicCompilation) As IEnumerable(Of NamespaceSymbol)
+        Private Shared Iterator Function ConstituentGlobalNamespaces(extent As VBCompilation) As IEnumerable(Of NamespaceSymbol)
             For Each m In extent.Assembly.Modules
                 Yield m.GlobalNamespace
             Next
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-        Private Shared Function Create(extent As VisualBasicCompilation, containingNamespace As CompilationMergedNamespaceSymbol, namespacesToMerge As IEnumerable(Of NamespaceSymbol)) As NamespaceSymbol
+        Private Shared Function Create(extent As VBCompilation, containingNamespace As CompilationMergedNamespaceSymbol, namespacesToMerge As IEnumerable(Of NamespaceSymbol)) As NamespaceSymbol
             Dim namespaceArray = ArrayBuilder(Of NamespaceSymbol).GetInstance()
             namespaceArray.AddRange(namespacesToMerge)
 
@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._cachedLookup = New CachingDictionary(Of String, Symbol)(AddressOf SlowGetChildrenOfName, AddressOf SlowGetChildNames, IdentifierComparison.Comparer)
         End Sub
 
-        Friend Function GetConstituentForCompilation(compilation As VisualBasicCompilation) As NamespaceSymbol
+        Friend Function GetConstituentForCompilation(compilation As VBCompilation) As NamespaceSymbol
             For Each constituent In _namespacesToMerge
                 If constituent.IsFromCompilation(compilation) Then
                     Return constituent
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class CompilationMergedNamespaceSymbol
             Inherits MergedNamespaceSymbol
 
-            Private ReadOnly _compilation As VisualBasicCompilation
+            Private ReadOnly _compilation As VBCompilation
             Private _containsAccessibleTypes As ThreeState = ThreeState.Unknown
             Private _isDeclaredInSourceModule As ThreeState = ThreeState.Unknown
 
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Public Sub New(compilation As VisualBasicCompilation, containingNamespace As CompilationMergedNamespaceSymbol, namespacesToMerge As ImmutableArray(Of NamespaceSymbol))
+            Public Sub New(compilation As VBCompilation, containingNamespace As CompilationMergedNamespaceSymbol, namespacesToMerge As ImmutableArray(Of NamespaceSymbol))
                 MyBase.New(containingNamespace, namespacesToMerge)
 #If DEBUG Then
                 ' We shouldn't merge merged namespaces.

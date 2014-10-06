@@ -44,9 +44,9 @@ End Module
 </code>.GetCode().Replace("$", expression)
 
         Dim tree = SyntaxFactory.ParseSyntaxTree(code)
-        Dim comp = VisualBasicCompilation.Create(
+        Dim comp = VBCompilation.Create(
             "calc.dll",
-            options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            options:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
             syntaxTrees:={tree},
             references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly),
                         MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)})
@@ -75,7 +75,7 @@ End Module
 </code>.GetCode()
 
         Dim tree = SyntaxFactory.ParseSyntaxTree(code)
-        Dim comp = VisualBasicCompilation.Create(
+        Dim comp = VBCompilation.Create(
             "program.exe",
             syntaxTrees:={tree},
             references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly),

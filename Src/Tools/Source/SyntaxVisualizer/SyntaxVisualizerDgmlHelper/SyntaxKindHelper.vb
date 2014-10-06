@@ -27,7 +27,7 @@ Friend Module SyntaxKindHelper
         If node.Language = LanguageNames.CSharp Then
             kind = node.CSharpKind().ToString()
         Else
-            kind = node.VisualBasicKind().ToString()
+            kind = node.VBKind().ToString()
         End If
 
         Return kind
@@ -40,7 +40,7 @@ Friend Module SyntaxKindHelper
         If token.Language = LanguageNames.CSharp Then
             kind = token.CSharpKind().ToString()
         Else
-            kind = token.VisualBasicKind().ToString()
+            kind = token.VBKind().ToString()
         End If
 
         Return kind
@@ -53,7 +53,7 @@ Friend Module SyntaxKindHelper
         If trivia.Language = LanguageNames.CSharp Then
             kind = trivia.CSharpKind().ToString()
         Else
-            kind = trivia.VisualBasicKind().ToString()
+            kind = trivia.VBKind().ToString()
         End If
 
         Return kind

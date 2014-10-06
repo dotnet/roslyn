@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Module ParserExtensions
 
         <Extension()>
-        Friend Function Any(Of T As VisualBasicSyntaxNode)(this As SyntaxList(Of T),
+        Friend Function Any(Of T As VBSyntaxNode)(this As SyntaxList(Of T),
                                                     ParamArray kinds As SyntaxKind()) As Boolean
             Debug.Assert(kinds IsNot Nothing)
 
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension()>
-        Friend Function AnyAndOnly(Of T As VisualBasicSyntaxNode)(this As SyntaxList(Of T),
+        Friend Function AnyAndOnly(Of T As VBSyntaxNode)(this As SyntaxList(Of T),
                                                     ParamArray kinds As SyntaxKind()) As Boolean
             Debug.Assert(kinds IsNot Nothing)
             Dim found As Boolean = False
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension()>
-        Friend Function ContainsDiagnostics(Of T As VisualBasicSyntaxNode)(this As SyntaxList(Of T)) As Boolean
+        Friend Function ContainsDiagnostics(Of T As VBSyntaxNode)(this As SyntaxList(Of T)) As Boolean
             For i = 0 To this.Count - 1
                 If this.Item(i).ContainsDiagnostics Then
                     Return True
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension()>
-        Friend Function ContainsDiagnostics(Of T As VisualBasicSyntaxNode)(this As SyntaxListBuilder(Of T)) As Boolean
+        Friend Function ContainsDiagnostics(Of T As VBSyntaxNode)(this As SyntaxListBuilder(Of T)) As Boolean
             For i = 0 To this.Count - 1
                 If this.Item(i).ContainsDiagnostics Then
                     Return True

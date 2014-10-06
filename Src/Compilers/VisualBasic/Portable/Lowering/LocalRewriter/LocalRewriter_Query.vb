@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions = createSequencePointsForTopLevelNonCompilerGeneratedExpressions
-            Dim createSequencePoint As VisualBasicSyntaxNode = Nothing
+            Dim createSequencePoint As VBSyntaxNode = Nothing
             Dim sequencePointSpan As TextSpan
 
 #If Not DEBUG Then
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub PopulateRangeVariableMapForAnonymousType(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             anonymousTypeInstance As BoundExpression,
             rangeVariables As ImmutableArray(Of RangeVariableSymbol),
             ByRef firstUnmappedRangeVariable As Integer

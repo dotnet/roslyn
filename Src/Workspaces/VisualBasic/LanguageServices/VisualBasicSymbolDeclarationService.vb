@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim begin As SyntaxNode = Nothing
 
             If parent IsNot Nothing Then
-                Select Case parent.VisualBasicKind
+                Select Case parent.VBKind
                     Case SyntaxKind.NamespaceBlock
                         begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
 
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Public Overrides Function GetSyntax(Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
-                Return DirectCast(GetBlockFromBegin(_reference.GetSyntax(cancellationToken)), VisualBasicSyntaxNode)
+                Return DirectCast(GetBlockFromBegin(_reference.GetSyntax(cancellationToken)), VBSyntaxNode)
             End Function
 
             Public Overrides Async Function GetSyntaxAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode)

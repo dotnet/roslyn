@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Function ToString() As String
-            Return VisualBasicDiagnosticFormatter.Instance.Format(Me)
+            Return VBDiagnosticFormatter.Instance.Format(Me)
         End Function
 
         Friend Overrides Function WithLocation(location As Location) As Diagnostic

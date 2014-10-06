@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected, actual(options));
         }
 
-        protected void AssertVBOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions, T> actual)
+        protected void AssertVBOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VBCompilationOptions, T> actual)
         {
             var options = LoadVisualBasicCompilationOptions();
             Assert.Equal(expected, actual(options));
         }
 
-        protected void AssertVBOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions, T> actual)
+        protected void AssertVBOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VBParseOptions, T> actual)
         {
             var options = LoadVisualBasicParseOptions();
             Assert.Equal(expected, actual(options));
@@ -61,19 +61,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return options;
         }
 
-        protected Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions LoadVisualBasicCompilationOptions()
+        protected Microsoft.CodeAnalysis.VisualBasic.VBCompilationOptions LoadVisualBasicCompilationOptions()
         {
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions;
+            var options = (Microsoft.CodeAnalysis.VisualBasic.VBCompilationOptions)project.CompilationOptions;
             return options;
         }
 
-        protected Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions LoadVisualBasicParseOptions()
+        protected Microsoft.CodeAnalysis.VisualBasic.VBParseOptions LoadVisualBasicParseOptions()
         {
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
+            var options = (Microsoft.CodeAnalysis.VisualBasic.VBParseOptions)project.ParseOptions;
             return options;
         }
 

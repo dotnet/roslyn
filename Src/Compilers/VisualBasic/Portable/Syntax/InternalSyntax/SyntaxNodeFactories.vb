@@ -13,7 +13,7 @@ Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSynta
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Partial Class SyntaxFactory
-        Friend Shared Function IntegerLiteralToken(text As String, base As LiteralBase, typeSuffix As TypeCharacter, value As ULong, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As IntegerLiteralTokenSyntax
+        Friend Shared Function IntegerLiteralToken(text As String, base As LiteralBase, typeSuffix As TypeCharacter, value As ULong, leadingTrivia As VBSyntaxNode, trailingTrivia As VBSyntaxNode) As IntegerLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Select Case typeSuffix
                 Case TypeCharacter.ShortLiteral
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
         End Function
 
-        Friend Shared Function FloatingLiteralToken(text As String, typeSuffix As TypeCharacter, value As Double, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As FloatingLiteralTokenSyntax
+        Friend Shared Function FloatingLiteralToken(text As String, typeSuffix As TypeCharacter, value As Double, leadingTrivia As VBSyntaxNode, trailingTrivia As VBSyntaxNode) As FloatingLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Select Case typeSuffix
                 Case TypeCharacter.DoubleLiteral, TypeCharacter.Double, TypeCharacter.None
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create an identifier node without brackets or type character.
         ''' </summary>
-        Friend Shared Function Identifier(text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As IdentifierTokenSyntax
+        Friend Shared Function Identifier(text As String, leadingTrivia As VBSyntaxNode, trailingTrivia As VBSyntaxNode) As IdentifierTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New SimpleIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, leadingTrivia, trailingTrivia)
         End Function
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create an identifier node with brackets or type character.
         ''' </summary>
-        Friend Shared Function Identifier(text As String, possibleKeywordKind As SyntaxKind, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As IdentifierTokenSyntax
+        Friend Shared Function Identifier(text As String, possibleKeywordKind As SyntaxKind, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter, leadingTrivia As VBSyntaxNode, trailingTrivia As VBSyntaxNode) As IdentifierTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, leadingTrivia, trailingTrivia, possibleKeywordKind, isBracketed, identifierText, typeCharacter)
         End Function
@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return t
         End Function
 
-        Friend Shared Function BadToken(SubKind As SyntaxSubKind, text As String, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode) As BadTokenSyntax
+        Friend Shared Function BadToken(SubKind As SyntaxSubKind, text As String, precedingTrivia As VBSyntaxNode, followingTrivia As VBSyntaxNode) As BadTokenSyntax
             Return New BadTokenSyntax(SyntaxKind.BadToken, SubKind, Nothing, Nothing, text, precedingTrivia, followingTrivia)
         End Function
 
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return New PunctuationSyntax(SyntaxKind.EndOfFileToken, "", Nothing, Nothing)
         End Function
 
-        Friend Shared Function Identifier(text As String, isBracketed As Boolean, baseText As String, typeCharacter As TypeCharacter, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode) As IdentifierTokenSyntax
+        Friend Shared Function Identifier(text As String, isBracketed As Boolean, baseText As String, typeCharacter As TypeCharacter, precedingTrivia As VBSyntaxNode, followingTrivia As VBSyntaxNode) As IdentifierTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, precedingTrivia, followingTrivia, SyntaxKind.IdentifierToken, isBracketed, baseText, typeCharacter)
         End Function
@@ -537,7 +537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
         End Function
 
-        Public Shared Function TypeStatement(ByVal statementKind As SyntaxKind, ByVal attributes As SyntaxList(Of VisualBasicSyntaxNode), ByVal modifiers As SyntaxList(Of VisualBasicSyntaxNode), ByVal keyword As KeywordSyntax, ByVal identifier As IdentifierTokenSyntax, ByVal typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+        Public Shared Function TypeStatement(ByVal statementKind As SyntaxKind, ByVal attributes As SyntaxList(Of VBSyntaxNode), ByVal modifiers As SyntaxList(Of VBSyntaxNode), ByVal keyword As KeywordSyntax, ByVal identifier As IdentifierTokenSyntax, ByVal typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
             Select Case statementKind
                 Case SyntaxKind.ModuleStatement
                     Return SyntaxFactory.ModuleStatement(attributes, modifiers, keyword, identifier, typeParameterList)

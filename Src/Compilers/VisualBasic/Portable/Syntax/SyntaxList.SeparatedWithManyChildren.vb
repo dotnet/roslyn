@@ -37,14 +37,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Return Nothing
                 End If
 
-                Return TryCast(Me._children(i >> 1).Value, VisualBasicSyntaxNode)
+                Return TryCast(Me._children(i >> 1).Value, VBSyntaxNode)
             End Function
 
-            Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSyntaxVisitor(Of TResult)) As TResult
+            Public Overrides Function Accept(Of TResult)(visitor As VBSyntaxVisitor(Of TResult)) As TResult
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Sub Accept(visitor As VisualBasicSyntaxVisitor)
+            Public Overrides Sub Accept(visitor As VBSyntaxVisitor)
                 Throw New NotImplementedException()
             End Sub
         End Class

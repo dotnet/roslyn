@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Traverse the symbol table and properly add/process synthesized extra metadata if needed.
         ''' </summary>
-        Friend Shared Sub ProcessSynthesizedMembers(compilation As VisualBasicCompilation,
+        Friend Shared Sub ProcessSynthesizedMembers(compilation As VBCompilation,
                                                         moduleBeingBuilt As PEModuleBuilder,
                                                         Optional cancellationToken As CancellationToken = Nothing)
 

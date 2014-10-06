@@ -1144,7 +1144,7 @@ End Module]]>,
     End Sub
     Public WithEvents foo As c1
 End Class]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim verifier = CompileAndVerify(comp, expectedSignatures:=
             {
@@ -1178,7 +1178,7 @@ Class C1(Of T As {Exception, I1(Of T)})
         AddHandler x.E1, AddressOf foo 'AddHandler should also work
     End Sub
 End Class]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim verifier = CompileAndVerify(comp)
             verifier.VerifyDiagnostics()
         End Sub
@@ -1571,7 +1571,7 @@ Public Module Program
         x.Raise3()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
 
             'Breaking Change: Dev11 processes event handlers in a different order than Roslyn.
             Dim vbVerifier = CompileAndVerify(vbCompilation,
@@ -1616,7 +1616,7 @@ End Class
 
 Public Class Base2 : Inherits Base
 End Class]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim assembly1Verifier = CompileAndVerify(assembly1Compilation)
             assembly1Verifier.VerifyDiagnostics()
 
@@ -1645,7 +1645,7 @@ Public Module Program
         x.Raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={assembly1Compilation})
 
             'Breaking Change: Dev11 processes event handlers in a different order than Roslyn.
@@ -1728,7 +1728,7 @@ Public Module Program
         x.w.raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
 
             'Breaking Change: Dev11 processes event handlers in a different order than Roslyn.
@@ -1808,7 +1808,7 @@ Public Module Program
         x.w.Raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             Dim vbVerifier = CompileAndVerify(vbCompilation,
                 expectedOutput:=<![CDATA[System.Int32[]
@@ -1862,7 +1862,7 @@ Public Module Program
         x.w.Raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
 
             vbCompilation.VerifyDiagnostics(
@@ -1905,7 +1905,7 @@ Public Module Program
         x.w.Raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             vbCompilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo", "ev"),

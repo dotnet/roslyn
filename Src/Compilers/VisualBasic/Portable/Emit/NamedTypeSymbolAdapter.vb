@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If baseType IsNot Nothing Then
-                Return moduleBeingBuilt.Translate(baseType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return moduleBeingBuilt.Translate(baseType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
             Return Nothing
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' The stub will implement the implemented method in metadata.
                 If MethodSignatureComparer.CustomModifiersAndParametersAndReturnTypeSignatureComparer.Equals(implementingMethod, implemented) Then
                     explicitImplements.Add(New MethodImplementation(implementingMethod,
-                        moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)))
+                        moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), context.Diagnostics)))
                 End If
             Next
 
@@ -399,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             For Each [interface] In GetInterfacesToEmit()
                 Yield moduleBeingBuilt.Translate([interface],
-                                                 syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                 syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode),
                                                  diagnostics:=context.Diagnostics,
                                                  fromImplements:=True)
             Next
@@ -824,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
             If Not Me.IsDefinition Then
-                Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
             Return Me.ContainingType
@@ -857,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
             For Each t In Me.TypeArgumentsNoUseSiteDiagnostics
-                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics))
+                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics))
             Next
 
             Return builder.ToImmutableAndFree

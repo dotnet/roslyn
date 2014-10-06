@@ -1399,7 +1399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
-        Friend NotOverridable Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
+        Friend NotOverridable Overrides ReadOnly Property DeclaringCompilation As VBCompilation
             Get
                 Return Nothing
             End Get

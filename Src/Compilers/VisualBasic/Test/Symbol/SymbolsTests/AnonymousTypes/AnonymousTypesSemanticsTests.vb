@@ -1959,7 +1959,7 @@ End Module
             'Assert.Equal(isKey, field.IsReadOnly)
         End Sub
 
-        Private Function Compile(text As XElement, ByRef tree As SyntaxTree, nodes As List(Of SyntaxNode), Optional errors As XElement = Nothing) As VisualBasicCompilation
+        Private Function Compile(text As XElement, ByRef tree As SyntaxTree, nodes As List(Of SyntaxNode), Optional errors As XElement = Nothing) As VBCompilation
             Dim spans As New List(Of TextSpan)
             ExtractTextIntervals(text, spans)
 
@@ -2020,7 +2020,7 @@ End Module
             Loop
         End Sub
 
-        Private Shared Function GetNamedTypeSymbol(c As VisualBasicCompilation, namedTypeName As String, Optional fromCorLib As Boolean = False) As NamedTypeSymbol
+        Private Shared Function GetNamedTypeSymbol(c As VBCompilation, namedTypeName As String, Optional fromCorLib As Boolean = False) As NamedTypeSymbol
             Dim nameParts = namedTypeName.Split("."c)
 
             Dim srcAssembly = DirectCast(c.Assembly, SourceAssemblySymbol)

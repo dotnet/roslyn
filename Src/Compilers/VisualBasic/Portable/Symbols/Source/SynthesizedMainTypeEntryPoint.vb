@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SynthesizedMainTypeEntryPoint
         Inherits SynthesizedRegularMethodBase
 
-        Public Sub New(syntaxNode As VisualBasicSyntaxNode, container As SourceNamedTypeSymbol)
+        Public Sub New(syntaxNode As VBSyntaxNode, container As SourceNamedTypeSymbol)
             MyBase.New(syntaxNode, container, WellKnownMemberNames.EntryPointMethodName, IsShared:=True)
         End Sub
 
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             methodBodyBinder = Nothing
 
-            Dim syntaxNode As VisualBasicSyntaxNode = Me.Syntax
+            Dim syntaxNode As VBSyntaxNode = Me.Syntax
             Dim container = DirectCast(ContainingSymbol, SourceNamedTypeSymbol)
             Dim binder As Binder = BinderBuilder.CreateBinderForType(container.ContainingSourceModule, syntaxNode.SyntaxTree, container)
 

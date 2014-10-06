@@ -578,12 +578,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' Wrong arg count
                         Debug.Assert(Args.Count > 3)
 
-                        Dim withSeparators As SyntaxList(Of VisualBasicSyntaxNode) = Args.GetWithSeparators()
+                        Dim withSeparators As SyntaxList(Of VBSyntaxNode) = Args.GetWithSeparators()
                         Const firstNotUsedIndex As Integer = 5
 
                         Debug.Assert(withSeparators.Count > firstNotUsedIndex)
 
-                        Dim leading(withSeparators.Count - firstNotUsedIndex - 1) As VisualBasicSyntaxNode
+                        Dim leading(withSeparators.Count - firstNotUsedIndex - 1) As VBSyntaxNode
 
                         For i As Integer = firstNotUsedIndex To withSeparators.Count - 1
                             leading(i - firstNotUsedIndex) = withSeparators(i)
@@ -597,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             GetArgumentAsExpression(Args(1)),
                             DirectCast(withSeparators(3), PunctuationSyntax),
                             GetArgumentAsExpression(Args(2)),
-                            Arguments.CloseParenToken.AddLeadingSyntax(SyntaxList.List(ArrayElement(Of VisualBasicSyntaxNode).MakeElementArray(leading)), ERRID.ERR_IllegalOperandInIIFCount))
+                            Arguments.CloseParenToken.AddLeadingSyntax(SyntaxList.List(ArrayElement(Of VBSyntaxNode).MakeElementArray(leading)), ERRID.ERR_IllegalOperandInIIFCount))
                 End Select
 
             Else
@@ -1059,11 +1059,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' any single line trivia is consumed and appended to the token
         ''' which is assumed to be the token at the transition point.
         ''' </summary>
-        Private Function TransitionFromXmlToVB(Of T As VisualBasicSyntaxNode)(node As T) As T
+        Private Function TransitionFromXmlToVB(Of T As VBSyntaxNode)(node As T) As T
             node = LastTokenReplacer.Replace(node, Function(token)
-                                                       Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
-                                                       Dim toRemove As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
-                                                       Dim toAdd As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+                                                       Dim trivia = New SyntaxList(Of VBSyntaxNode)(token.GetTrailingTrivia())
+                                                       Dim toRemove As SyntaxList(Of VBSyntaxNode) = Nothing
+                                                       Dim toAdd As SyntaxList(Of VBSyntaxNode) = Nothing
                                                        _scanner.TransitionFromXmlToVB(trivia, toRemove, toAdd)
                                                        trivia = trivia.GetStartOfTrivia(trivia.Count - toRemove.Count)
                                                        token = DirectCast(token.WithTrailingTrivia(trivia.Node), SyntaxToken)
@@ -1074,11 +1074,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return node
         End Function
 
-        Private Function TransitionFromVBToXml(Of T As VisualBasicSyntaxNode)(state As ScannerState, node As T) As T
+        Private Function TransitionFromVBToXml(Of T As VBSyntaxNode)(state As ScannerState, node As T) As T
             node = LastTokenReplacer.Replace(node, Function(token)
-                                                       Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
-                                                       Dim toRemove As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
-                                                       Dim toAdd As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+                                                       Dim trivia = New SyntaxList(Of VBSyntaxNode)(token.GetTrailingTrivia())
+                                                       Dim toRemove As SyntaxList(Of VBSyntaxNode) = Nothing
+                                                       Dim toAdd As SyntaxList(Of VBSyntaxNode) = Nothing
                                                        _scanner.TransitionFromVBToXml(state, trivia, toRemove, toAdd)
                                                        trivia = trivia.GetStartOfTrivia(trivia.Count - toRemove.Count)
                                                        token = DirectCast(token.WithTrailingTrivia(trivia.Node), SyntaxToken)
@@ -1168,7 +1168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken)
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
-            Dim unexpected As VisualBasicSyntaxNode = Nothing
+            Dim unexpected As VBSyntaxNode = Nothing
             arguments = ParseArguments(unexpected, RedimOrNewParent)
 
             If Not TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=False) Then
@@ -1238,7 +1238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16425 - 16425
         ' .Parser::ParseArguments( [ _In_ ParseTree::ArgumentList** Target ] [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseArguments(ByRef unexpected As VisualBasicSyntaxNode, Optional RedimOrNewParent As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
+        Private Function ParseArguments(ByRef unexpected As VBSyntaxNode, Optional RedimOrNewParent As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
             Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
 
             Do

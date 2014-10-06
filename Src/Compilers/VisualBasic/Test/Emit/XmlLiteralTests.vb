@@ -3493,8 +3493,8 @@ End Module
                 sourceBuilder.AppendLine("    End Sub")
                 sourceBuilder.AppendLine("End Module")
 
-                Dim sourceTree = VisualBasicSyntaxTree.ParseText(sourceBuilder.ToString())
-                Dim comp = VisualBasicCompilation.Create(Guid.NewGuid().ToString(), {sourceTree}, DefaultReferences.Concat(XmlReferences))
+                Dim sourceTree = VBSyntaxTree.ParseText(sourceBuilder.ToString())
+                Dim comp = VBCompilation.Create(Guid.NewGuid().ToString(), {sourceTree}, DefaultReferences.Concat(XmlReferences))
                 CompileAndVerify(comp, expectedOutput:=<![CDATA[
 91
 10
@@ -3544,8 +3544,8 @@ End Module
             sourceBuilder.AppendLine("    End Sub")
             sourceBuilder.AppendLine("End Module")
 
-            Dim sourceTree = VisualBasicSyntaxTree.ParseText(sourceBuilder.ToString())
-            Dim comp = VisualBasicCompilation.Create(Guid.NewGuid().ToString(), {sourceTree}, DefaultReferences.Concat(XmlReferences))
+            Dim sourceTree = VBSyntaxTree.ParseText(sourceBuilder.ToString())
+            Dim comp = VBCompilation.Create(Guid.NewGuid().ToString(), {sourceTree}, DefaultReferences.Concat(XmlReferences))
             CompileAndVerify(comp, expectedOutput:="[[" & NormalizeValue(str) & "]]")
         End Sub
 

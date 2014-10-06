@@ -80,7 +80,7 @@ expectedOutput:="123")
         <Fact()>
         Public Sub Bug707924a()
             Dim source = My.Resources.Resource.T_1247520
-            Dim result = VisualBasicSyntaxTree.ParseText(source).ToString()
+            Dim result = VBSyntaxTree.ParseText(source).ToString()
             Assert.Equal(source, result)
         End Sub
 

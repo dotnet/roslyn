@@ -13,17 +13,17 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Partial Friend MustInherit Class SyntaxList
-        Inherits VisualBasicSyntaxNode
+        Inherits VBSyntaxNode
 
-        Friend Sub New(green As InternalSyntax.VisualBasicSyntaxNode, parent As SyntaxNode, position As Integer)
+        Friend Sub New(green As InternalSyntax.VBSyntaxNode, parent As SyntaxNode, position As Integer)
             MyBase.New(green, parent, position)
         End Sub
 
-        Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSyntaxVisitor(Of TResult)) As TResult
+        Public Overrides Function Accept(Of TResult)(visitor As VBSyntaxVisitor(Of TResult)) As TResult
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Sub Accept(visitor As VisualBasicSyntaxVisitor)
+        Public Overrides Sub Accept(visitor As VBSyntaxVisitor)
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -148,11 +148,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Array.Resize(Me._nodes, size)
         End Sub
 
-        Friend Function ToGreenArray() As ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)()
-            Dim array = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(Me._count - 1) {}
+        Friend Function ToGreenArray() As ArrayElement(Of InternalSyntax.VBSyntaxNode)()
+            Dim array = New ArrayElement(Of InternalSyntax.VBSyntaxNode)(Me._count - 1) {}
             Dim i As Integer
             For i = 0 To array.Length - 1
-                array(i).Value = DirectCast(Me._nodes(i).Value, InternalSyntax.VisualBasicSyntaxNode)
+                array(i).Value = DirectCast(Me._nodes(i).Value, InternalSyntax.VBSyntaxNode)
             Next i
             Return array
         End Function
@@ -162,11 +162,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Case 0
                     Return Nothing
                 Case 1
-                    Return DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode)
+                    Return DirectCast(Me._nodes(0).Value, InternalSyntax.VBSyntaxNode)
                 Case 2
-                    Return InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode))
+                    Return InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).Value, InternalSyntax.VBSyntaxNode), DirectCast(Me._nodes(1).Value, InternalSyntax.VBSyntaxNode))
                 Case 3
-                    Return InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(2).Value, InternalSyntax.VisualBasicSyntaxNode))
+                    Return InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).Value, InternalSyntax.VBSyntaxNode), DirectCast(Me._nodes(1).Value, InternalSyntax.VBSyntaxNode), DirectCast(Me._nodes(2).Value, InternalSyntax.VBSyntaxNode))
             End Select
             Return InternalSyntax.SyntaxList.List(Me.ToGreenArray)
         End Function

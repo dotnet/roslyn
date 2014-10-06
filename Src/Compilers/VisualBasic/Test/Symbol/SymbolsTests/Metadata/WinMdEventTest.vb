@@ -863,7 +863,7 @@ End Interface
 </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim comp = CreateCompilationWithReferences(source, WinRtRefs, New VisualBasicCompilationOptions(kind))
+                Dim comp = CreateCompilationWithReferences(source, WinRtRefs, New VBCompilationOptions(kind))
                 comp.VerifyDiagnostics()
 
                 Dim [class] = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -898,7 +898,7 @@ End Class
             Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I"))
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), New VisualBasicCompilationOptions(kind))
+                Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), New VBCompilationOptions(kind))
                 comp.VerifyDiagnostics()
 
                 Dim [class] = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -1382,7 +1382,7 @@ End Class
 </compilation>
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim comp = CreateCompilationWithReferences(source, WinRtRefs, New VisualBasicCompilationOptions(kind))
+                Dim comp = CreateCompilationWithReferences(source, WinRtRefs, New VBCompilationOptions(kind))
 
                 Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Test")
                 Dim fieldLikeEvent = type.GetMember(Of EventSymbol)("FieldLike")
@@ -1468,7 +1468,7 @@ End Class
             Diagnostic(ERRID.WRN_DefAsgNoRetValWinRtEventVal1, "End AddHandler").WithArguments("E"))
         End Sub
 
-        Private Shared Sub VerifyWinRTEventShape([event] As EventSymbol, compilation As VisualBasicCompilation)
+        Private Shared Sub VerifyWinRTEventShape([event] As EventSymbol, compilation As VBCompilation)
             Assert.True([event].IsWindowsRuntimeEvent)
 
             Dim eventType = [event].Type
@@ -1497,7 +1497,7 @@ End Class
             End If
         End Sub
 
-        Private Shared Sub VerifyNormalEventShape([event] As EventSymbol, compilation As VisualBasicCompilation)
+        Private Shared Sub VerifyNormalEventShape([event] As EventSymbol, compilation As VBCompilation)
             Assert.False([event].IsWindowsRuntimeEvent)
 
             Dim eventType = [event].Type

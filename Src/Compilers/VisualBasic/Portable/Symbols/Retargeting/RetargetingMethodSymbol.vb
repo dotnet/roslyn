@@ -457,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return builder.ToImmutableAndFree()
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As VBSyntaxNode
             Get
                 Return Nothing
             End Get
@@ -474,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
-        Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
+        Friend Overrides ReadOnly Property DeclaringCompilation As VBCompilation
             Get
                 Return Nothing
             End Get

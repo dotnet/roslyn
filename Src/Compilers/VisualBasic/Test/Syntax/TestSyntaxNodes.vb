@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Verify spans within a list of consecutive nodes are all consistent.
-        Private Sub VerifyListSpans(Of T As VisualBasicSyntaxNode)(list As SyntaxList(Of T), expectedFullSpan As TextSpan)
+        Private Sub VerifyListSpans(Of T As VBSyntaxNode)(list As SyntaxList(Of T), expectedFullSpan As TextSpan)
             If list.Count > 0 Then
                 ' List should fill up the full span.
                 Assert.Equal(expectedFullSpan.Start, list(0).FullSpan.Start)
@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Check that empty separated list works.
         <Fact>
         Public Sub TestEmptySeparatedList()
-            CheckEmptySeparatedList(New SeparatedSyntaxList(Of TypeSyntax)(DirectCast(Nothing, VisualBasicSyntaxNode), 0))
+            CheckEmptySeparatedList(New SeparatedSyntaxList(Of TypeSyntax)(DirectCast(Nothing, VBSyntaxNode), 0))
             Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=spaceTrivia), (New SeparatedSyntaxListBuilder(Of TypeSyntax)).ToList)
             CheckEmptySeparatedList(statement.Types)
 
@@ -748,9 +748,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             endTry = SyntaxFactory.EndTryStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword, trailing:=spaceTrivia), SyntaxFactory.Token(SyntaxKind.TryKeyword, trailing:=spaceTrivia))
             Assert.Equal(7, endTry.Span.Length)
             Assert.Equal(8, endTry.FullSpan.Length)
-            Assert.Equal(SyntaxKind.EndKeyword, endTry.EndKeyword.VisualBasicKind)
+            Assert.Equal(SyntaxKind.EndKeyword, endTry.EndKeyword.VBKind)
             Assert.Equal("End", endTry.EndKeyword.ToString())
-            Assert.Equal(SyntaxKind.TryKeyword, endTry.BlockKeyword.VisualBasicKind)
+            Assert.Equal(SyntaxKind.TryKeyword, endTry.BlockKeyword.VBKind)
             Assert.Equal("Try", endTry.BlockKeyword.ToString())
             Assert.Equal(1, endTry.GetTrailingTrivia().Count)
             Assert.Equal(" ", endTry.GetTrailingTrivia()(0).ToString)
@@ -767,7 +767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(comment.UnderlyingNode.IsToken)
 
             Assert.False(endIfStmt.IsStructuredTrivia)
-            Assert.Equal(SyntaxKind.CommentTrivia, comment.VisualBasicKind)
+            Assert.Equal(SyntaxKind.CommentTrivia, comment.VBKind)
         End Sub
 
         ' Check that ToString, ToFullString, and ValueText are correct on a token.
@@ -872,7 +872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         ' Check that a given list of errors on a node matches the given set.
-        Private Sub CheckErrorList(node As VisualBasicSyntaxNode, expectedErrorCodes As Integer(), expectedSpans As TextSpan())
+        Private Sub CheckErrorList(node As VBSyntaxNode, expectedErrorCodes As Integer(), expectedSpans As TextSpan())
             Dim errorList As New List(Of Diagnostic)
             errorList.AddRange(node.GetSyntaxErrorsNoTree())
             errorList.Sort(AddressOf CompareDiagnostics)
@@ -957,7 +957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia)),
                                                                      SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param2", False, "Param2", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
                                                                      SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword, trailing:=spaceTrivia))), Nothing).AddError(CreateDiagnosticInfo(101)))
-            bldr.Add(DirectCast(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia).Node.AddError(CreateDiagnosticInfo(33)), InternalSyntax.VisualBasicSyntaxNode))
+            bldr.Add(DirectCast(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia).Node.AddError(CreateDiagnosticInfo(33)), InternalSyntax.VBSyntaxNode))
             bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(New SyntaxToken(Nothing, CType(SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=spaceTrivia).Node.AddError(CreateDiagnosticInfo(44)), InternalSyntax.KeywordSyntax), 0, 0)),
                                                                      SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param3", False, "Param3", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
                                                                      SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword, trailing:=spaceTrivia))), Nothing))
@@ -1016,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         ' A test rewriting visitor
         Private Class TestVisitor
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             ' Optional to control which rewritings we do
             Public IncrementInts As Boolean = False
@@ -1025,7 +1025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Public SwapParameters As Boolean = False
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                Select Case token.VisualBasicKind
+                Select Case token.VBKind
                     Case SyntaxKind.IntegerLiteralToken
                         If IncrementInts Then
                             Dim node = DirectCast(token.Node, InternalSyntax.IntegerLiteralTokenSyntax)
@@ -1042,7 +1042,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         End If
 
                     Case Else
-                        If SyntaxFacts.IsKeywordKind(token.VisualBasicKind) Then
+                        If SyntaxFacts.IsKeywordKind(token.VBKind) Then
                             If CapitalizeKeywords Then
                                 Dim node = DirectCast(token.Node, InternalSyntax.KeywordSyntax)
                                 Return SyntaxFactory.Token(token.LeadingTrivia(), node.Kind, token.TrailingTrivia(), node.Text.ToUpperInvariant())
@@ -1099,7 +1099,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRewritingVisitor()
-            Dim rewriter As VisualBasicSyntaxRewriter
+            Dim rewriter As VBSyntaxRewriter
             Dim simpleTree = CreateSimpleTree()
             Assert.Equal(simpleTree.ToString, "1- X( 3, 4+ 8, 9)")
 
@@ -1496,7 +1496,7 @@ End Class</x>.Value)
             Dim trivia = ex.GetTrailingTrivia()
             Assert.Equal(2, trivia.Count)
             Dim comment1 = trivia(1)
-            Assert.Equal(SyntaxKind.CommentTrivia, comment1.VisualBasicKind())
+            Assert.Equal(SyntaxKind.CommentTrivia, comment1.VBKind())
 
             Dim newComment1 = SyntaxFactory.ParseTrailingTrivia("'a")(0)
             Dim newComment2 = SyntaxFactory.ParseTrailingTrivia("'b")(0)
@@ -1517,7 +1517,7 @@ End Class</x>.Value)
             Dim trivia = ex.GetTrailingTrivia()
             Assert.Equal(2, trivia.Count)
             Dim comment1 = trivia(1)
-            Assert.Equal(SyntaxKind.CommentTrivia, comment1.VisualBasicKind())
+            Assert.Equal(SyntaxKind.CommentTrivia, comment1.VBKind())
 
             Dim newComment1 = SyntaxFactory.ParseTrailingTrivia("'a")(0)
             Dim newComment2 = SyntaxFactory.ParseTrailingTrivia("'b")(0)
@@ -1588,7 +1588,7 @@ End Class</x>.Value)
             'Assert.Null(node.Parent)
             '
             ' When this breaks, uncomment above
-            Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText(SourceText.From(" Module M1" & vbCrLf & "End Module"))
+            Dim tree As SyntaxTree = VBSyntaxTree.ParseText(SourceText.From(" Module M1" & vbCrLf & "End Module"))
             Dim node As SyntaxNode = tree.GetRoot()
             Assert.Equal(False, tree.GetDiagnostics(node).Any)
             Assert.Equal(0, tree.GetRoot().FindToken(node.FullSpan.Length - 1).TrailingTrivia.Count)
@@ -1618,7 +1618,7 @@ End Class</x>.Value)
             'Assert.Contains(30678, From d In node.Errors Select d.Code)
             '
             ' When this breaks, uncomment above
-            Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText(SourceText.From("Module M1" & vbCrLf & "End"))
+            Dim tree As SyntaxTree = VBSyntaxTree.ParseText(SourceText.From("Module M1" & vbCrLf & "End"))
             Dim node As SyntaxNode = tree.GetRoot()
             Assert.Equal(True, tree.GetDiagnostics(node).Any)
             Assert.Equal(2, tree.GetDiagnostics(node).Count)
@@ -1666,11 +1666,11 @@ End Class</x>.Value)
 
             ' make sure FindLeaf digs into the structured trivia.
             Dim result = identExpr.FindToken(3, True)
-            Assert.Equal(SyntaxKind.XmlNameToken, result.VisualBasicKind)
+            Assert.Equal(SyntaxKind.XmlNameToken, result.VBKind)
             Assert.Equal("foo", result.ToString())
 
             Dim trResult = identExpr.FindTrivia(6, True)
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, trResult.VisualBasicKind)
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, trResult.VBKind)
             Assert.Equal(" ", trResult.ToString())
 
             Dim foundDocComment = result.Parent.Parent.Parent.Parent
@@ -1784,7 +1784,7 @@ End Module
             Dim tk0 = prog.GetRoot().FindToken(25)
             Assert.Equal("xxxx", tk0.ToString)
 
-            Dim colons = tk0.TrailingTrivia().Where(Function(t) t.VisualBasicKind = SyntaxKind.ColonTrivia).ToArray()
+            Dim colons = tk0.TrailingTrivia().Where(Function(t) t.VBKind = SyntaxKind.ColonTrivia).ToArray()
             Assert.Equal(colons.Length, 2)
             For Each colon In colons
                 Assert.Equal(":", colon.ToString)
@@ -1799,7 +1799,7 @@ End Module
             Dim tk_zero1 = tk_nonzero1.GetNextToken(includeZeroWidth:=True)
             Assert.Equal("yyyy", tk_zero1.ToString)
 
-            Dim newline = tk_zero1.TrailingTrivia.Where(Function(t) t.VisualBasicKind = SyntaxKind.EndOfLineTrivia).First
+            Dim newline = tk_zero1.TrailingTrivia.Where(Function(t) t.VBKind = SyntaxKind.EndOfLineTrivia).First
             Assert.Equal(vbLf, newline.ToString)
         End Sub
 
@@ -1839,16 +1839,16 @@ End Module
                 "Class C(Of T)" & vbCrLf &
                 "    Dim l As List(Of T)" &
                 "End Class"
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
 
             Dim location = text.IndexOf("List(Of T)")
             Dim openParenToken = CType(tree.GetRoot().FindToken(location + "List".Length), SyntaxToken)
 
-            Assert.Equal(SyntaxKind.OpenParenToken, openParenToken.VisualBasicKind)
+            Assert.Equal(SyntaxKind.OpenParenToken, openParenToken.VBKind)
 
             Dim listToken = CType(openParenToken.GetPreviousToken(), SyntaxToken)
 
-            Assert.Equal(SyntaxKind.IdentifierToken, listToken.VisualBasicKind)
+            Assert.Equal(SyntaxKind.IdentifierToken, listToken.VBKind)
         End Sub
 
         <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
@@ -1978,7 +1978,7 @@ End Class
             Assert.Equal(sN.ContainsDirectives, cS.ContainsDirectives)
             Assert.Equal(sN.HasLeadingTrivia, cS.HasLeadingTrivia)
             Assert.Equal(sN.HasTrailingTrivia, cS.HasTrailingTrivia)
-            Assert.Equal(sN.VisualBasicKind(), cS.VisualBasicKind())
+            Assert.Equal(sN.VBKind(), cS.VBKind())
             Assert.Equal(sN.FullWidth, cS.FullSpan.Length)
             Assert.Equal(sN.Width, cS.Span.Length)
         End Sub
@@ -1987,7 +1987,7 @@ End Class
         <Fact>
         Public Sub TestNodeTokenConversion02()
 
-            Dim node As VisualBasicSyntaxNode = Nothing
+            Dim node As VBSyntaxNode = Nothing
             ' This should not throw - it should convert to a 'null' (default) struct 
             Dim sn As SyntaxNodeOrToken = node
             Assert.True(sn.IsNode)
@@ -2004,13 +2004,13 @@ End Class
         <WorkItem(538362, "DevDiv")>
         <Fact, WorkItem(530316, "DevDiv")>
         Public Sub TestGetNextTokenCommon()
-            Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText("public class foo : end class")
+            Dim tree As SyntaxTree = VBSyntaxTree.ParseText("public class foo : end class")
 
             Dim tokens As List(Of SyntaxToken) = tree.GetRoot().DescendantTokens().ToList()
             Dim list As List(Of SyntaxToken) = New List(Of SyntaxToken)()
             Dim token As SyntaxToken = tree.GetRoot().GetFirstToken()
 
-            While token.VisualBasicKind <> 0
+            While token.VBKind <> 0
                 list.Add(token)
                 token = token.GetNextToken()
             End While
@@ -2024,14 +2024,14 @@ End Class
             ' Verify that EOF is returned when calling with Any predicate.
             list.Clear()
             token = tree.GetRoot().GetFirstToken()
-            While token.VisualBasicKind <> 0
+            While token.VBKind <> 0
                 list.Add(token)
                 token = token.GetNextToken(includeZeroWidth:=True)
             End While
-            Debug.Assert(list(list.Count - 1).VisualBasicKind = SyntaxKind.EndOfFileToken)
+            Debug.Assert(list(list.Count - 1).VBKind = SyntaxKind.EndOfFileToken)
 
             Dim lastToken = tree.GetRoot().DescendantTokens().Last
-            Debug.Assert(lastToken.VisualBasicKind = SyntaxKind.EndOfFileToken)
+            Debug.Assert(lastToken.VBKind = SyntaxKind.EndOfFileToken)
         End Sub
 
         <WorkItem(755236, "DevDiv")>
@@ -2045,7 +2045,7 @@ End Class
 Class Bar
 End Class]]>
                        </code>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(code)
+            Dim tree = VBSyntaxTree.ParseText(code)
             Dim root = tree.GetRoot()
             Assert.Equal(root, root.FindNode(root.Span, findInsideTrivia:=False))
             Assert.Equal(root, root.FindNode(root.Span, findInsideTrivia:=True))
@@ -2103,12 +2103,12 @@ End Class]]>
     Sub Bar()
     End Sub
 End Class</code>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(code)
+            Dim tree = VBSyntaxTree.ParseText(code)
             Dim position = tree.GetText().Lines(1).End
             'position points to the end of the line that has "Sub Bar()"
             'There should be end of line trivia there.
             Dim trivia = tree.GetRoot().FindTrivia(position)
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia.VisualBasicKind)
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia.VBKind)
             Assert.Equal(23, trivia.SpanStart)
             Assert.Equal(24, trivia.Span.End)
         End Sub
@@ -2119,8 +2119,8 @@ End Class</code>.Value
             Dim expression = SyntaxFactory.ParseExpression(text)
             Dim nodes = expression.ChildNodes().ToList()
             Assert.Equal(2, nodes.Count)
-            Assert.Equal(SyntaxKind.IdentifierName, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.ArgumentList, nodes(1).VisualBasicKind)
+            Assert.Equal(SyntaxKind.IdentifierName, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.ArgumentList, nodes(1).VBKind)
         End Sub
 
         <Fact>
@@ -2131,13 +2131,13 @@ End Class</code>.Value
 
             Dim nodes = e.Ancestors().ToList()
             Assert.Equal(7, nodes.Count)
-            Assert.Equal(SyntaxKind.DivideExpression, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(1).VisualBasicKind)
-            Assert.Equal(SyntaxKind.MultiplyExpression, nodes(2).VisualBasicKind)
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(3).VisualBasicKind)
-            Assert.Equal(SyntaxKind.SubtractExpression, nodes(4).VisualBasicKind)
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(5).VisualBasicKind)
-            Assert.Equal(SyntaxKind.AddExpression, nodes(6).VisualBasicKind)
+            Assert.Equal(SyntaxKind.DivideExpression, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(1).VBKind)
+            Assert.Equal(SyntaxKind.MultiplyExpression, nodes(2).VBKind)
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(3).VBKind)
+            Assert.Equal(SyntaxKind.SubtractExpression, nodes(4).VBKind)
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(5).VBKind)
+            Assert.Equal(SyntaxKind.AddExpression, nodes(6).VBKind)
         End Sub
 
         <Fact>
@@ -2148,14 +2148,14 @@ End Class</code>.Value
 
             Dim nodes = e.AncestorsAndSelf().ToList()
             Assert.Equal(8, nodes.Count)
-            Assert.Equal(SyntaxKind.IdentifierName, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.DivideExpression, nodes(1).VisualBasicKind)
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(2).VisualBasicKind)
-            Assert.Equal(SyntaxKind.MultiplyExpression, nodes(3).VisualBasicKind)
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(4).VisualBasicKind)
-            Assert.Equal(SyntaxKind.SubtractExpression, nodes(5).VisualBasicKind)
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(6).VisualBasicKind)
-            Assert.Equal(SyntaxKind.AddExpression, nodes(7).VisualBasicKind)
+            Assert.Equal(SyntaxKind.IdentifierName, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.DivideExpression, nodes(1).VBKind)
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(2).VBKind)
+            Assert.Equal(SyntaxKind.MultiplyExpression, nodes(3).VBKind)
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(4).VBKind)
+            Assert.Equal(SyntaxKind.SubtractExpression, nodes(5).VBKind)
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes(6).VBKind)
+            Assert.Equal(SyntaxKind.AddExpression, nodes(7).VBKind)
         End Sub
 
         <Fact>
@@ -2168,27 +2168,27 @@ End Class</code>.Value
 
             Dim nodes = statement.DescendantNodes().ToList()
             Assert.Equal(1, nodes.Count)
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(0).VisualBasicKind)
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(0).VBKind)
 
             nodes = statement.DescendantNodes(descendIntoTrivia:=True).ToList()
             Assert.Equal(4, nodes.Count)
-            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.XmlText, nodes(1).VisualBasicKind)
-            Assert.Equal(SyntaxKind.XmlText, nodes(2).VisualBasicKind)
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(3).VisualBasicKind)
+            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.XmlText, nodes(1).VBKind)
+            Assert.Equal(SyntaxKind.XmlText, nodes(2).VBKind)
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(3).VBKind)
 
             ' again with spans
 
             nodes = statement.DescendantNodes(statement.FullSpan).ToList()
             Assert.Equal(1, nodes.Count)
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(0).VisualBasicKind)
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(0).VBKind)
 
             nodes = statement.DescendantNodes(statement.FullSpan, descendIntoTrivia:=True).ToList()
             Assert.Equal(4, nodes.Count)
-            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.XmlText, nodes(1).VisualBasicKind)
-            Assert.Equal(SyntaxKind.XmlText, nodes(2).VisualBasicKind)
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(3).VisualBasicKind)
+            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.XmlText, nodes(1).VBKind)
+            Assert.Equal(SyntaxKind.XmlText, nodes(2).VBKind)
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(3).VBKind)
         End Sub
 
         <Fact>
@@ -2201,31 +2201,31 @@ End Class</code>.Value
 
             Dim nodes = statement.DescendantNodesAndSelf().ToList()
             Assert.Equal(2, nodes.Count)
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(1).VisualBasicKind)
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(1).VBKind)
 
             nodes = statement.DescendantNodesAndSelf(descendIntoTrivia:=True).ToList()
             Assert.Equal(5, nodes.Count)
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, nodes(1).VisualBasicKind)
-            Assert.Equal(SyntaxKind.XmlText, nodes(2).VisualBasicKind)
-            Assert.Equal(SyntaxKind.XmlText, nodes(3).VisualBasicKind)
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).VisualBasicKind)
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, nodes(1).VBKind)
+            Assert.Equal(SyntaxKind.XmlText, nodes(2).VBKind)
+            Assert.Equal(SyntaxKind.XmlText, nodes(3).VBKind)
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).VBKind)
 
             ' again with spans
 
             nodes = statement.DescendantNodesAndSelf(statement.FullSpan).ToList()
             Assert.Equal(2, nodes.Count)
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(1).VisualBasicKind)
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(1).VBKind)
 
             nodes = statement.DescendantNodesAndSelf(statement.FullSpan, descendIntoTrivia:=True).ToList()
             Assert.Equal(5, nodes.Count)
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, nodes(1).VisualBasicKind)
-            Assert.Equal(SyntaxKind.XmlText, nodes(2).VisualBasicKind)
-            Assert.Equal(SyntaxKind.XmlText, nodes(3).VisualBasicKind)
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).VisualBasicKind)
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes(0).VBKind)
+            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, nodes(1).VBKind)
+            Assert.Equal(SyntaxKind.XmlText, nodes(2).VBKind)
+            Assert.Equal(SyntaxKind.XmlText, nodes(3).VBKind)
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).VBKind)
         End Sub
 
         <Fact, WorkItem(530316, "DevDiv")>
@@ -2237,10 +2237,10 @@ a + b
 
             Dim list = expr.DescendantTrivia().ToList()
             Assert.Equal(6, list.Count)
-            Assert.Equal(SyntaxKind.CommentTrivia, list(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, list(1).VisualBasicKind)
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(2).VisualBasicKind)
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).VisualBasicKind)
+            Assert.Equal(SyntaxKind.CommentTrivia, list(0).VBKind)
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, list(1).VBKind)
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(2).VBKind)
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).VBKind)
         End Sub
 
         <Fact, WorkItem(530316, "DevDiv")>
@@ -2253,13 +2253,13 @@ a + b
             Dim expr = SyntaxFactory.ParseExpression(text)
             Dim list = expr.DescendantTrivia(descendIntoTrivia:=True).ToList()
             Assert.Equal(9, list.Count)
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, list(0).VisualBasicKind)
-            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, list(1).VisualBasicKind)
-            Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, list(2).VisualBasicKind)
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).VisualBasicKind)
-            Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, list(4).VisualBasicKind)
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(5).VisualBasicKind)
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(6).VisualBasicKind)
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, list(0).VBKind)
+            Assert.Equal(SyntaxKind.DocumentationCommentTrivia, list(1).VBKind)
+            Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, list(2).VBKind)
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).VBKind)
+            Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, list(4).VBKind)
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(5).VBKind)
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list(6).VBKind)
         End Sub
 
         <Fact>
@@ -2541,12 +2541,12 @@ End Class
         <Fact>
         Public Sub Test_SyntaxTree_ParseTextInvalid()
             Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        Dim treeFromSourceWithPath_Invalid1 = VisualBasicSyntaxTree.ParseText("", path:=Nothing)
+                                                        Dim treeFromSourceWithPath_Invalid1 = VBSyntaxTree.ParseText("", path:=Nothing)
                                                     End Sub)
 
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim st As SourceText = Nothing
-                                                        Dim treeFromSource_invalid = VisualBasicSyntaxTree.ParseText(st)
+                                                        Dim treeFromSource_invalid = VBSyntaxTree.ParseText(st)
                                                     End Sub)
         End Sub
 
@@ -2566,7 +2566,7 @@ Module Module1
 End Module
                            </String>
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.ToString)
+            Dim tree = VBSyntaxTree.ParseText(SourceText.ToString)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
 
             'Get the Imports Clauses
@@ -2612,7 +2612,7 @@ Module Module1
 End Module
                            </String>
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.ToString)
+            Dim tree = VBSyntaxTree.ParseText(SourceText.ToString)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
 
             Dim FirstImportsClause As ImportsStatementSyntax = Root.Imports(0)
@@ -2623,7 +2623,7 @@ End Module
 
         <Fact, WorkItem(658329, "DevDiv")>
         Public Sub TestSyntaxTree_GetChangeSpans()
-            Dim oldTree = VisualBasicSyntaxTree.ParseText("class A : End Class")
+            Dim oldTree = VBSyntaxTree.ParseText("class A : End Class")
             Dim newTree = oldTree.WithInsertAt(0, "class B : End Class")
 
             ' Valid operations
@@ -2656,7 +2656,7 @@ End Module
                            </String>
 
             'Construct a SyntaxList and verify the bounds exceptions
-            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.ToString)
+            Dim tree = VBSyntaxTree.ParseText(SourceText.ToString)
             Dim x As New SyntaxList(Of SyntaxNode)
             For Each node In tree.GetRoot.ChildNodes
                 x = x.Add(node)
@@ -2956,7 +2956,7 @@ End Interface
 
             Dim text = SourceText.Value
             'Construct a SyntaxList and verify the bounds exceptions
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
 
             'We want to insert a Implements clause or Implements into Modules
@@ -2999,7 +2999,7 @@ End Interface
             'Verify Compile Errors when try to use
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 compilationDef,
-                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).VerifyDiagnostics(BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
+                New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).VerifyDiagnostics(BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
                                                                                                                               BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
         End Sub
 
@@ -3027,7 +3027,7 @@ End Module
 
             Dim text = SourceText.Value
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
 
             Dim x = Root.GetDirectives()
@@ -3053,7 +3053,7 @@ End Module
 
             Dim text = SourceText.Value
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim x = Root.GetDirectives()
             Assert.Equal(0, x.Count)
@@ -3077,7 +3077,7 @@ End Module
 
             Dim text = SourceText.Value
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim x = Root.GetDirectives()
             Assert.Equal(1, x.Count)
@@ -3101,7 +3101,7 @@ End Module
 </String>
 
             Dim text = SourceText.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim x = Root.GetDirectives()
             Assert.Equal(1, x.Count)
@@ -3120,7 +3120,7 @@ Module Module1
 End Module
                            </String>
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.ToString)
+            Dim tree = VBSyntaxTree.ParseText(SourceText.ToString)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim FirstImportsClause As ImportsStatementSyntax = Root.Imports(0)
             Dim Obj1 As New GlobalImport(FirstImportsClause.ImportsClauses(0), "ttt")
@@ -3200,9 +3200,9 @@ End Module
 
         <Fact>
         Public Sub Test_ParseOptions_Equals()
-            Dim po1 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
-            Dim po2 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic9)
-            Dim po3 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
+            Dim po1 = New VBParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
+            Dim po2 = New VBParseOptions(languageVersion:=LanguageVersion.VisualBasic9)
+            Dim po3 = New VBParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
 
             Dim POcompilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compile1">

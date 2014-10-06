@@ -212,7 +212,7 @@ End Class
 Class C
 End Class
             ]]>,
-            VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+            VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
             <errors>
                 <error id="42304"/>
                 <error id="42304"/>
@@ -1896,8 +1896,8 @@ End Module
         Dim stmt1 = main.ChildNodesAndTokens()(1)
         Dim stmt2 = main.ChildNodesAndTokens()(2)
         Dim colon = stmt1.ChildNodesAndTokens().LastOrDefault().GetTrailingTrivia().Last
-        Assert.Equal(colon.VisualBasicKind, SyntaxKind.ColonTrivia)
-        Assert.Equal(stmt2.VisualBasicKind(), SyntaxKind.ExpressionStatement)
+        Assert.Equal(colon.VBKind, SyntaxKind.ColonTrivia)
+        Assert.Equal(stmt2.VBKind(), SyntaxKind.ExpressionStatement)
         Assert.Equal(SyntaxKind.InvocationExpression, DirectCast(stmt2.AsNode, ExpressionStatementSyntax).Expression.Kind)
 
         Dim exprStmt = TryCast(stmt2.AsNode, ExpressionStatementSyntax)
@@ -1914,7 +1914,7 @@ End Module
         '                   0123456789ABC
         Dim code = <![CDATA[Dim=<><%=">
 <]]>.Value
-        Dim tree = VisualBasicSyntaxTree.ParseText(code)
+        Dim tree = VBSyntaxTree.ParseText(code)
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
 
@@ -1952,7 +1952,7 @@ End Module
 
 
 ]]>,
-            VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+            VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
             Diagnostic(ERRID.WRN_XMLDocParseError1, "</").WithArguments("error BC31207: XML end element must be preceded by a matching start element."),
             Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("error BC30636: '>' expected."))
     End Sub

@@ -91,8 +91,8 @@ Friend Class ExpansionChecker
                                     ByRef getter As AccessorBlockSyntax,
                                     ByRef setter As AccessorBlockSyntax) As Boolean
         Dim accessors = propertyBlock.Accessors
-        getter = accessors.FirstOrDefault(Function(ad) ad.Begin.VisualBasicKind() = SyntaxKind.GetAccessorStatement)
-        setter = accessors.FirstOrDefault(Function(ad) ad.Begin.VisualBasicKind() = SyntaxKind.SetAccessorStatement)
+        getter = accessors.FirstOrDefault(Function(ad) ad.Begin.VBKind() = SyntaxKind.GetAccessorStatement)
+        setter = accessors.FirstOrDefault(Function(ad) ad.Begin.VBKind() = SyntaxKind.SetAccessorStatement)
         Return getter IsNot Nothing AndAlso setter IsNot Nothing
     End Function
 
@@ -178,7 +178,7 @@ Friend Class ExpansionChecker
             Return False
         End If
 
-        If condition Is Nothing OrElse condition.VisualBasicKind() <> SyntaxKind.NotEqualsExpression Then
+        If condition Is Nothing OrElse condition.VBKind() <> SyntaxKind.NotEqualsExpression Then
             Return False
         End If
 
@@ -211,7 +211,7 @@ Friend Class ExpansionChecker
             Return False
         End If
 
-        If condition.VisualBasicKind() <> SyntaxKind.EqualsExpression Then
+        If condition.VBKind() <> SyntaxKind.EqualsExpression Then
             Return False
         End If
 
@@ -222,7 +222,7 @@ Friend Class ExpansionChecker
 
     Private Shared Function IsAssignmentOfPropertyValueParameterToBackingField(statement As StatementSyntax,
                                                                         backingField As IFieldSymbol, semanticModel As SemanticModel) As Boolean
-        If statement.VisualBasicKind() <> SyntaxKind.SimpleAssignmentStatement Then
+        If statement.VBKind() <> SyntaxKind.SimpleAssignmentStatement Then
             Return False
         End If
 

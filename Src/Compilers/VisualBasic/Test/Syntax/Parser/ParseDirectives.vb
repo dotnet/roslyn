@@ -1224,15 +1224,15 @@ End Module]]>,
         ]]>.Value
 
         ' define DEBUG, IDE, and then undefine DEBUG
-        Dim options = VisualBasicParseOptions.Default.WithPreprocessorSymbols({
+        Dim options = VBParseOptions.Default.WithPreprocessorSymbols({
                           New KeyValuePair(Of String, Object)("DEBUG", True),
                           New KeyValuePair(Of String, Object)("Ide", True),
                           New KeyValuePair(Of String, Object)("DeBuG", Nothing)})
 
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), options, "")
+        Dim tree = VBSyntaxTree.ParseText(SourceText.From(text), options, "")
 
         Dim tk = tree.GetRoot().FindToken(text.IndexOf("class c2"))
-        Assert.Equal(SyntaxKind.ClassKeyword, tk.VisualBasicKind)
+        Assert.Equal(SyntaxKind.ClassKeyword, tk.VBKind)
 
         tk = tree.GetRoot().FindToken(text.IndexOf("class c1"))
         Assert.Equal(260, tk.FullWidth)
@@ -1549,7 +1549,7 @@ BC30059: Constant expression is required.
 
         Dim psymbols = ImmutableArray.Create({KeyValuePair.Create("Blah", CObj(False)), KeyValuePair.Create("blah", CObj(True))})
 
-        Dim options As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(psymbols)
+        Dim options As VBParseOptions = VBParseOptions.Default.WithPreprocessorSymbols(psymbols)
 
         ParseAndVerify(
         <![CDATA[
@@ -1590,13 +1590,13 @@ warning 'comment]]>)
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.Equal(0, disableNode.ErrorCodes.Count)
 
         Dim enableNode = DirectCast(root.GetLastDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
 
@@ -1620,21 +1620,21 @@ End Module]]>)
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.Equal("[BC42024]", enableNode.ErrorCodes(0).ToString)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
         Assert.Equal("_789", enableNode.ErrorCodes(1).Identifier.ValueText)
 
         Dim disableNode = DirectCast(root.GetLastDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VBKind)
         Assert.Equal("disable", disableNode.ErrorCodes(0).ToString)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VBKind)
         Assert.Equal("BC41008", disableNode.ErrorCodes(1).Identifier.ValueText)
     End Sub
 
@@ -1659,15 +1659,15 @@ End Module]]>)
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VBKind)
         Assert.Equal("［ＷＡＲＮＩＮＧ］", disableNode.ErrorCodes.Single.Identifier.ToString)
 
         Dim enableNode = DirectCast(root.GetLastDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VBKind)
         Assert.Equal("ｅｎａｂｌｅ", enableNode.ErrorCodes.Single.Identifier.ValueText)
     End Sub
 
@@ -1704,9 +1704,9 @@ End Class]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.True(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
@@ -1721,12 +1721,12 @@ End Class]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
@@ -1742,13 +1742,13 @@ End Class]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
         Assert.Equal(2, skippedTokens.DescendantTokens.Count)
-        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
@@ -1767,12 +1767,12 @@ End Enum]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
@@ -1788,13 +1788,13 @@ End Enum]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
         Assert.Equal(2, skippedTokens.DescendantTokens.Count)
-        Assert.Equal(SyntaxKind.ConstKeyword, skippedTokens.DescendantTokens.First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+        Assert.Equal(SyntaxKind.ConstKeyword, skippedTokens.DescendantTokens.First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VBKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.True(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
@@ -1814,16 +1814,16 @@ End Enum]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
         Assert.Equal(5, skippedTokens.DescendantTokens.Count)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Skip(1).First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.Skip(2).First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Skip(3).First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Skip(1).First.VBKind)
+        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.Skip(2).First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Skip(3).First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
@@ -1838,12 +1838,12 @@ End Enum]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
@@ -1859,13 +1859,13 @@ End Enum]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
         Assert.Equal(2, skippedTokens.DescendantTokens.Count)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
@@ -1882,17 +1882,17 @@ End Enum]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(3, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
         Assert.False(enableNode.ErrorCodes(2).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VBKind)
     End Sub
 
     <Fact>
@@ -1907,15 +1907,15 @@ End Enum]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
     End Sub
 
     <Fact>
@@ -1929,19 +1929,19 @@ End Enum]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
         Assert.Equal(2, skippedTokens.DescendantTokens.Count)
-        Assert.Equal(SyntaxKind.AtToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+        Assert.Equal(SyntaxKind.AtToken, skippedTokens.DescendantTokens.First.VBKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.DescendantTokens.Last.VBKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.True(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.False(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
     End Sub
 
     <Fact>
@@ -1956,12 +1956,12 @@ End Enum]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.False(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VBKind)
         Assert.Equal("Dim", enableNode.ErrorCodes.Single.ToString)
     End Sub
 
@@ -1976,18 +1976,18 @@ End Enum]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VBKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
     End Sub
 
     <Fact>
@@ -2003,22 +2003,22 @@ End Enum]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
         Assert.Equal(3, skippedTokens.DescendantTokens.Count)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.Skip(1).First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VBKind)
+        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.Skip(1).First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VBKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(3, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.False(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
         Assert.True(enableNode.ErrorCodes(2).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
     End Sub
 
     <Fact>
@@ -2033,17 +2033,17 @@ End Enum]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(3, enableNode.ErrorCodes.Count)
         Assert.True(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.False(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
         Assert.False(enableNode.ErrorCodes(2).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VBKind)
     End Sub
 
     <Fact>
@@ -2059,19 +2059,19 @@ End Enum]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
         Assert.Equal(2, skippedTokens.DescendantTokens.Count)
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VBKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
     End Sub
 
     <Fact>
@@ -2085,14 +2085,14 @@ End Enum]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.Equal("Dim", enableNode.ErrorCodes(0).Identifier.ValueText)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
         Assert.Equal("[Rem]", enableNode.ErrorCodes(1).ToString)
     End Sub
 
@@ -2111,14 +2111,14 @@ End Enum]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.Equal("Dim", enableNode.ErrorCodes(0).Identifier.ValueText)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
         Assert.Equal("BC&", enableNode.ErrorCodes(1).ToString)
     End Sub
 
@@ -2133,13 +2133,13 @@ End Enum]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
     End Sub
 
     <Fact>
@@ -2164,31 +2164,31 @@ End Module]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
         Assert.Equal(5, skippedTokens.Count)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.First.DescendantTokens.Single.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(1).First.DescendantTokens.Single.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(2).First.DescendantTokens.Single.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(3).First.DescendantTokens.Single.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.Last.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.First.DescendantTokens.Single.VBKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(1).First.DescendantTokens.Single.VBKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(2).First.DescendantTokens.Single.VBKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(3).First.DescendantTokens.Single.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.Last.DescendantTokens.Single.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.False(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(6, disableNode.ErrorCodes.Count)
         Assert.True(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VBKind)
         Assert.True(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VBKind)
         Assert.True(disableNode.ErrorCodes(2).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VBKind)
         Assert.True(disableNode.ErrorCodes(3).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VBKind)
         Assert.False(disableNode.ErrorCodes(4).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(4).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(4).VBKind)
         Assert.Equal("BC&", disableNode.ErrorCodes(4).ToString)
         Assert.True(disableNode.ErrorCodes(5).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(5).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(5).VBKind)
     End Sub
 
     <Fact>
@@ -2203,18 +2203,18 @@ End Module]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
         Assert.Equal(2, skippedTokens.Count)
-        Assert.Equal(SyntaxKind.CharacterLiteralToken, skippedTokens.First.DescendantTokens.Single.VisualBasicKind)
-        Assert.Equal(SyntaxKind.StringLiteralToken, skippedTokens.Skip(1).First.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.CharacterLiteralToken, skippedTokens.First.DescendantTokens.Single.VBKind)
+        Assert.Equal(SyntaxKind.StringLiteralToken, skippedTokens.Skip(1).First.DescendantTokens.Single.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.WarningKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.True(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VBKind)
         Assert.True(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VBKind)
     End Sub
 
     <Fact>
@@ -2230,25 +2230,25 @@ End Module]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.DateLiteralToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DateLiteralToken, skippedTokens.DescendantTokens.Single.VBKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.WarningKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.Equal(4, disableNode.ErrorCodes.Count)
         Assert.False(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VBKind)
         Assert.Equal("True", disableNode.ErrorCodes(0).ToString)
         Assert.False(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VBKind)
         Assert.Equal("False", disableNode.ErrorCodes(1).ToString)
         Assert.True(disableNode.ErrorCodes(2).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VBKind)
         Assert.Equal(String.Empty, disableNode.ErrorCodes(2).ToString)
         Assert.False(disableNode.ErrorCodes(3).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VBKind)
         Assert.Equal("Nothing", disableNode.ErrorCodes(3).ToString)
     End Sub
 
@@ -2266,19 +2266,19 @@ End Module]]>,
         Dim root = tree.GetRoot()
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.WarningKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.Equal(4, disableNode.ErrorCodes.Count)
         Assert.True(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VBKind)
         Assert.True(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VBKind)
         Assert.False(disableNode.ErrorCodes(2).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VBKind)
         Assert.Equal("Chr", disableNode.ErrorCodes(2).ToString)
         Assert.True(disableNode.ErrorCodes(3).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VBKind)
     End Sub
 
     <Fact>
@@ -2294,18 +2294,18 @@ End Module]]>,
         Dim root = tree.GetRoot()
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.WarningKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.Equal(3, disableNode.ErrorCodes.Count)
         Assert.False(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VBKind)
         Assert.Equal("string", disableNode.ErrorCodes(0).ToString)
         Assert.False(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VBKind)
         Assert.Equal("bc42024", disableNode.ErrorCodes(1).ToString)
         Assert.True(disableNode.ErrorCodes(2).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VBKind)
         Assert.Equal(String.Empty, disableNode.ErrorCodes(2).ToString)
     End Sub
 
@@ -2320,9 +2320,9 @@ End Module]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
@@ -2337,15 +2337,15 @@ End Module]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.VBKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.True(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VBKind)
     End Sub
 
     <Fact()>
@@ -2359,12 +2359,12 @@ End Module]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.False(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VBKind)
     End Sub
 
     <Fact()>
@@ -2379,18 +2379,18 @@ End Module]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.VBKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
     End Sub
 
     <Fact()>
@@ -2406,9 +2406,9 @@ End Module]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.True(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
@@ -2427,16 +2427,16 @@ bc42025]]>,
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
         Assert.Equal(2, skippedTokens.DescendantTokens.Count)
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.First.VBKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VBKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.True(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
     End Sub
 
     <Fact>
@@ -2457,13 +2457,13 @@ End Module]]>,
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.Equal(3, enableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
         Assert.True(enableNode.ErrorCodes(2).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VBKind)
     End Sub
 
     <Fact>
@@ -2476,9 +2476,9 @@ End Module]]>,
 
         Dim root = tree.GetRoot()
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
@@ -2493,12 +2493,12 @@ End Module]]>,
 
         Dim root = tree.GetRoot()
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.False(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VBKind)
     End Sub
 
     <Fact>
@@ -2513,9 +2513,9 @@ End Module]]>,
 
         Dim root = tree.GetRoot()
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
@@ -2552,26 +2552,26 @@ End Module
 
         Dim disableNode = root.DescendantNodes(descendIntoTrivia:=True).
             OfType(Of DisableWarningDirectiveTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VBKind)
         Assert.Equal(2, disableNode.ErrorCodes.Count)
         Assert.False(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VBKind)
         Assert.Equal("bc42024", disableNode.ErrorCodes(0).ToString)
         Assert.False(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VBKind)
         Assert.Equal("BC42025", disableNode.ErrorCodes(1).Identifier.ValueText)
 
         Dim enableNode = root.DescendantNodes(descendIntoTrivia:=True).
             OfType(Of EnableWarningDirectiveTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VBKind)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VBKind)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VBKind)
         Assert.Equal("someOtherId", enableNode.ErrorCodes(0).Identifier.Value)
         Assert.False(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VBKind)
         Assert.Equal("someId", enableNode.ErrorCodes(1).ToString)
     End Sub
 

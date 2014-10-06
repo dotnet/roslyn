@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Function
 
-        Private Sub EmitStaticFieldAddress(field As FieldSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStaticFieldAddress(field As FieldSymbol, syntaxNode As VBSyntaxNode)
             _builder.EmitOpCode(ILOpCode.Ldsflda)
             EmitSymbolToken(field, syntaxNode)
         End Sub

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a speculative SemanticModel for a TypeSyntax or a RangeArgumentSyntax node at a position within an existing MemberSemanticModel.
         ''' </summary>
-        Public Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, position As Integer)
+        Public Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As VBSyntaxNode, binder As Binder, position As Integer)
             MyBase.New(root, binder, parentSemanticModel, position)
 
             Debug.Assert(root IsNot Nothing)

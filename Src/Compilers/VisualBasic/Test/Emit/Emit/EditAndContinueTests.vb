@@ -4011,13 +4011,13 @@ End Module
 #Region "Helpers"
         Private Shared ReadOnly EmptyLocalsProvider As Func(Of MethodHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
 
-        Private Shared Function GetAllLocals(compilation As VisualBasicCompilation, method As MethodSymbol) As ImmutableArray(Of LocalSymbol)
+        Private Shared Function GetAllLocals(compilation As VBCompilation, method As MethodSymbol) As ImmutableArray(Of LocalSymbol)
             Dim methodSyntax = method.DeclaringSyntaxReferences(0).GetSyntax().Parent
             Dim model = compilation.GetSemanticModel(methodSyntax.SyntaxTree)
             Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
 
             For Each node In methodSyntax.DescendantNodes()
-                If node.VisualBasicKind = SyntaxKind.VariableDeclarator Then
+                If node.VBKind = SyntaxKind.VariableDeclarator Then
                     For Each name In DirectCast(node, VariableDeclaratorSyntax).Names
                         Dim local = DirectCast(model.GetDeclaredSymbol(name), LocalSymbol)
                         locals.Add(local)
@@ -4028,20 +4028,20 @@ End Module
             Return locals.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetAllLocals(compilation As VisualBasicCompilation, method As IMethodSymbol) As ImmutableArray(Of KeyValuePair(Of ILocalSymbol, Integer))
+        Private Shared Function GetAllLocals(compilation As VBCompilation, method As IMethodSymbol) As ImmutableArray(Of KeyValuePair(Of ILocalSymbol, Integer))
             Dim locals = GetAllLocals(compilation, DirectCast(method, MethodSymbol))
             Return locals.SelectAsArray(Function(local, index, arg) New KeyValuePair(Of ILocalSymbol, Integer)(local, index), DirectCast(Nothing, Object))
         End Function
 
-        Private Shared Function GetAllLocals(method As SourceMethodSymbol) As ImmutableArray(Of VisualBasicSyntaxNode)
+        Private Shared Function GetAllLocals(method As SourceMethodSymbol) As ImmutableArray(Of VBSyntaxNode)
             Dim names = From name In LocalVariableDeclaratorsCollector.GetDeclarators(method).OfType(Of ModifiedIdentifierSyntax)
-                        Select DirectCast(name, VisualBasicSyntaxNode)
+                        Select DirectCast(name, VBSyntaxNode)
 
             Return names.AsImmutableOrEmpty
         End Function
 
         Private Shared Function GetLocalName(node As SyntaxNode) As String
-            If node.VisualBasicKind = SyntaxKind.ModifiedIdentifier Then
+            If node.VBKind = SyntaxKind.ModifiedIdentifier Then
                 Return DirectCast(node, ModifiedIdentifierSyntax).Identifier.ToString()
             End If
 

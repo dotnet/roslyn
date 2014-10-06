@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MarkInitializerSequencePoint(result, node.Syntax)
         End Function
 
-        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode) As BoundStatement
+        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VBSyntaxNode) As BoundStatement
             Debug.Assert(syntax.IsKind(SyntaxKind.ModifiedIdentifier))
             Debug.Assert(syntax.Parent.Kind = SyntaxKind.VariableDeclarator)
 

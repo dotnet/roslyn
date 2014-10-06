@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class AttributeSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
+        Private Sub New(root As VBSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
             MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition)
         End Sub
 
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a speculative AttributeSemanticModel that allows asking semantic questions about an attribute node that did not appear in the original source code.
         ''' </summary>
-        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, position As Integer) As AttributeSemanticModel
+        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As VBSyntaxNode, binder As Binder, position As Integer) As AttributeSemanticModel
             Debug.Assert(parentSemanticModel IsNot Nothing)
             Debug.Assert(root IsNot Nothing)
             Debug.Assert(binder IsNot Nothing)
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New AttributeSemanticModel(root, binder, parentSemanticModel, position)
         End Function
 
-        Friend Overrides Function Bind(binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As VBSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Debug.Assert(binder.IsSemanticModelBinder)
 
             Dim boundNode As boundNode

@@ -1075,7 +1075,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Sub VerifyAccessExposureForParameterType(
             member As Symbol,
             paramName As String,
-            errorLocation As VisualBasicSyntaxNode,
+            errorLocation As VBSyntaxNode,
             TypeBehindParam As TypeSymbol,
             diagBag As DiagnosticBag
         )

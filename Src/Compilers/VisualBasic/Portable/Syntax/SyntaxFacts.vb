@@ -708,7 +708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False ' Only nodes deriving from TypeSyntax could possible be in type context.
             End If
 
-            Dim parent As VisualBasicSyntaxNode = node.Parent
+            Dim parent As VBSyntaxNode = node.Parent
             If parent IsNot Nothing Then
                 Select Case parent.Kind
                     Case SyntaxKind.SimpleAsClause, SyntaxKind.AsNewClause
@@ -792,7 +792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim parent = node.Parent
                 If parent IsNot Nothing Then
-                    Select Case parent.VisualBasicKind()
+                    Select Case parent.VBKind()
                         Case SyntaxKind.SimpleImportsClause
                             Return DirectCast(parent, SimpleImportsClauseSyntax).Name Is node
                         Case SyntaxKind.NamespaceStatement
@@ -824,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Position is in the trailing trivia of node. Check for newline or :.
                 Dim trailingTrivia As SyntaxTriviaList = node.GetTrailingTrivia()
                 For Each trivia In trailingTrivia
-                    If trivia.VisualBasicKind = SyntaxKind.EndOfLineTrivia OrElse trivia.VisualBasicKind = SyntaxKind.ColonTrivia Then
+                    If trivia.VBKind = SyntaxKind.EndOfLineTrivia OrElse trivia.VBKind = SyntaxKind.ColonTrivia Then
                         Exit For
                     End If
                     If trivia.FullSpan.Contains(position) Then
@@ -857,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim afterBegin As Boolean
             Dim beforeEnd As Boolean
 
-            Select Case possibleLambda.VisualBasicKind()
+            Select Case possibleLambda.VBKind()
                 Case SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
 
@@ -906,14 +906,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim afterBegin As Boolean = True
                 Dim beforeEnd As Boolean = True
 
-                If beginTerminator.VisualBasicKind <> SyntaxKind.None AndAlso beginTerminator.Width > 0 Then
+                If beginTerminator.VBKind <> SyntaxKind.None AndAlso beginTerminator.Width > 0 Then
                     afterBegin = position >= beginTerminator.SpanStart
                 Else
                     afterBegin = position >= beginStatement.SpanStart AndAlso Not InSpanOrEffectiveTrailingOfNode(beginStatement, position)
                 End If
 
                 If endStatement Is Nothing Then
-                    Select Case possibleBlock.VisualBasicKind
+                    Select Case possibleBlock.VBKind
                         Case SyntaxKind.SingleLineIfStatement, SyntaxKind.SingleLineElseClause
                             ' No expected end statement. These are "single" line blocks, check based on last statement in block instead.
                             If body.Count > 0 Then
@@ -953,7 +953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          ByRef endStatement As StatementSyntax) As Boolean
             beginTerminator = Nothing
 
-            Select Case possibleBlock.VisualBasicKind()
+            Select Case possibleBlock.VBKind()
                 Case SyntaxKind.NamespaceBlock
                     Dim nsBlock = DirectCast(possibleBlock, NamespaceBlockSyntax)
                     beginStatement = nsBlock.NamespaceStatement
@@ -1450,7 +1450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function VarianceKindFromToken(token As SyntaxToken) As VarianceKind
-            Select Case token.VisualBasicKind
+            Select Case token.VBKind
                 Case SyntaxKind.OutKeyword
                     Return VarianceKind.Out
 
@@ -1476,7 +1476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Do While nextNode IsNot Nothing
 
-                Select Case nextNode.VisualBasicKind()
+                Select Case nextNode.VBKind()
 
                     Case SyntaxKind.IdentifierName, SyntaxKind.QualifiedName
                         nextNode = nextNode.Parent
@@ -1506,7 +1506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' but not an attribute.
         ''' </summary>        
         Public Shared Function IsNamedArgumentName(node As SyntaxNode) As Boolean
-            If node.VisualBasicKind <> SyntaxKind.IdentifierName Then
+            If node.VBKind <> SyntaxKind.IdentifierName Then
                 Return False
             End If
 
@@ -1525,7 +1525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Select Case parent3.VisualBasicKind()
+            Select Case parent3.VBKind()
                 Case SyntaxKind.InvocationExpression,
                      SyntaxKind.ObjectCreationExpression,
                      SyntaxKind.RaiseEventStatement
@@ -1639,8 +1639,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If token.Parent Is Nothing Then Throw New ArgumentException("'token' must be parented by a SyntaxNode.")
 
-            Dim kind = token.VisualBasicKind
-            Dim parentKind = token.Parent.VisualBasicKind
+            Dim kind = token.VBKind
+            Dim parentKind = token.Parent.VBKind
 
             ' This list taken from: "Statements in Visual Basic", 2010 version, http://msdn.microsoft.com/en-us/library/865x40k4(v=vs.100).aspx
 
@@ -1695,7 +1695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
                     ElseIf parentKind = SyntaxKind.SimpleMemberAccessExpression Then
                         Return CType(token.Parent, MemberAccessExpressionSyntax).Expression IsNot Nothing OrElse
-                               token.Parent.Parent.VisualBasicKind = SyntaxKind.NamedFieldInitializer
+                               token.Parent.Parent.VBKind = SyntaxKind.NamedFieldInitializer
 
                         ' After an XML axis property qualifier (. or .@ or ...). 
                         ' However, you must include a line-continuation character (_) when you specify a member qualifier when you are using the With keyword.
@@ -1716,7 +1716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Note, this restriction may not be necessary. See comment in ParseQualifiedExpr line 830. 
 
                         If CType(token.Parent, XmlMemberAccessExpressionSyntax).Base IsNot Nothing Then
-                            Return token.GetNextToken.VisualBasicKind <> SyntaxKind.DotToken
+                            Return token.GetNextToken.VBKind <> SyntaxKind.DotToken
                         Else
                             Return False
                         End If
@@ -1870,8 +1870,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If token.Parent Is Nothing Then Throw New ArgumentException("'token' must be parented by a SyntaxNode.")
 
-            Dim kind = token.VisualBasicKind
-            Dim parentKind = token.Parent.VisualBasicKind
+            Dim kind = token.VBKind
+            Dim parentKind = token.Parent.VBKind
 
             ' This list taken from: "Statements in Visual Basic", 2010 version, http://msdn.microsoft.com/en-us/library/865x40k4(v=vs.100).aspx
 
@@ -1926,7 +1926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Allow a leading line continuation only if this is a QueryClause and it is not the first clause
                     ' in a query expression.
 
-                    Dim p As VisualBasicSyntaxNode = TryCast(token.Parent, QueryClauseSyntax)
+                    Dim p As VBSyntaxNode = TryCast(token.Parent, QueryClauseSyntax)
                     If p Is Nothing Then
                         Return False
                     End If
@@ -1981,7 +1981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parent = node.Parent
 
             While parent IsNot Nothing
-                Select Case parent.VisualBasicKind()
+                Select Case parent.VBKind()
                     Case SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia
                         Return DirectCast(parent, IfDirectiveTriviaSyntax).Condition Is node
                     Case SyntaxKind.ConstDirectiveTrivia

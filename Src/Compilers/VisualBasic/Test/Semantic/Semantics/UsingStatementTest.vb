@@ -305,14 +305,14 @@ BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
         End Sub
 
 #Region "Help Method"
-        Private Function GetUsingStatements(compilation As VisualBasicCompilation, Optional index As Integer = 1) As UsingStatementSyntax
+        Private Function GetUsingStatements(compilation As VBCompilation, Optional index As Integer = 1) As UsingStatementSyntax
             Dim tree = compilation.SyntaxTrees.[Single]()
             Dim model = compilation.GetSemanticModel(tree)
             Dim usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of UsingStatementSyntax)().ToList()
             Return usingStatements(index - 1)
         End Function
 
-        Private Function VerifyDeclaredSymbolForUsingStatements(compilation As VisualBasicCompilation, index As Integer, ParamArray variables As String()) As List(Of ISymbol)
+        Private Function VerifyDeclaredSymbolForUsingStatements(compilation As VBCompilation, index As Integer, ParamArray variables As String()) As List(Of ISymbol)
             Dim tree = compilation.SyntaxTrees.[Single]()
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -331,7 +331,7 @@ BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
             Return symbols
         End Function
 
-        Private Sub VerifySymbolInfoForUsingStatements(compilation As VisualBasicCompilation, Usingindex As Integer, Declaratorindex As Integer, expressionStr As String, ParamArray symbols As Symbol())
+        Private Sub VerifySymbolInfoForUsingStatements(compilation As VBCompilation, Usingindex As Integer, Declaratorindex As Integer, expressionStr As String, ParamArray symbols As Symbol())
             Dim tree = compilation.SyntaxTrees.[Single]()
             Dim model = compilation.GetSemanticModel(tree)
             Dim usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of UsingStatementSyntax)().ToList()
@@ -366,7 +366,7 @@ BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
 
         End Sub
 
-        Private Sub VerifyLookUpSymbolForUsingStatements(compilation As VisualBasicCompilation, symbol As Symbol, Optional index As Integer = 1)
+        Private Sub VerifyLookUpSymbolForUsingStatements(compilation As VBCompilation, symbol As Symbol, Optional index As Integer = 1)
             Dim tree = compilation.SyntaxTrees.[Single]()
             Dim model = compilation.GetSemanticModel(tree)
             Dim usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of UsingStatementSyntax)().ToList()

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''        element type.
         ''' </summary>
         Private Class OpenTypeVisitor
-            Inherits VisualBasicSyntaxVisitor
+            Inherits VBSyntaxVisitor
 
             Private _allowedMap As Dictionary(Of GenericNameSyntax, Boolean) = Nothing
             Private _seenConstructed As Boolean = False

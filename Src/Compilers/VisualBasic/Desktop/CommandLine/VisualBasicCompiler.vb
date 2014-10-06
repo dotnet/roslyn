@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared p_responseFileName As String
         Private ReadOnly m_diagnosticFormatter As CommandLineDiagnosticFormatter
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), baseDirectory As String, additionalReferencePaths As String)
+        Protected Sub New(parser As VBCommandLineParser, responseFile As String, args As String(), baseDirectory As String, additionalReferencePaths As String)
             MyBase.New(parser, responseFile, args, baseDirectory, additionalReferencePaths)
 
             m_diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
@@ -32,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overloads ReadOnly Property Arguments As VisualBasicCommandLineArguments
+        Friend Overloads ReadOnly Property Arguments As VBCommandLineArguments
             Get
-                Return DirectCast(MyBase.Arguments, VisualBasicCommandLineArguments)
+                Return DirectCast(MyBase.Arguments, VBCommandLineArguments)
             End Get
         End Property
 
@@ -45,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Function ParseFile(consoleOutput As TextWriter,
-                                   parseOptions As VisualBasicParseOptions,
-                                   scriptParseOptions As VisualBasicParseOptions,
+                                   parseOptions As VBParseOptions,
+                                   scriptParseOptions As VBParseOptions,
                                    ByRef hadErrors As Boolean,
                                    file As CommandLineSourceFile) As SyntaxTree
 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(content, If(file.IsScript, scriptParseOptions, parseOptions), file.Path)
+            Dim tree = VBSyntaxTree.ParseText(content, If(file.IsScript, scriptParseOptions, parseOptions), file.Path)
 
             ' prepopulate line tables.
             ' we will need line tables anyways and it is better to Not wait until we are in emit
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, touchedFilesLogger)
 
-            Dim result = VisualBasicCompilation.Create(
+            Dim result = VBCompilation.Create(
                  Arguments.CompilationName,
                  trees,
                  resolvedReferences,

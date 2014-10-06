@@ -3077,7 +3077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Represents an alias identifier followed by an "=" token in an Imports clause.
         ''' </summary>
-        ImportAliasClause = 754                   ' ImportAliasClauseSyntax : VisualBasicSyntaxNode
+        ImportAliasClause = 754                   ' ImportAliasClauseSyntax : VBSyntaxNode
 
         ''' <summary>
         ''' Represents an identifier name followed by a ":=" token in a named argument.

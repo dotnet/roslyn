@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' The Diagnostic class allows formatting of Visual Basic diagnostics. 
     ''' </summary>
-    Public Class VisualBasicDiagnosticFormatter
+    Public Class VBDiagnosticFormatter
         Inherits DiagnosticFormatter
 
         Protected Sub New()
@@ -20,6 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current DiagnosticFormatter instance.
         ''' </summary>
-        Public Shared Shadows ReadOnly Instance As VisualBasicDiagnosticFormatter = New VisualBasicDiagnosticFormatter()
+        Public Shared Shadows ReadOnly Instance As VBDiagnosticFormatter = New VBDiagnosticFormatter()
     End Class
 End Namespace

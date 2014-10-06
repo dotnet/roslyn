@@ -541,12 +541,12 @@ Module Module1
         Next
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(OutputKind.ConsoleApplication))
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(OutputKind.ConsoleApplication))
             vbCompilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NoSuitableWidestType1, "i").WithArguments("i"))
         End Sub
 
 
-        Private Function SemanticInfoTypeTestForLoops(compilation As VisualBasicCompilation, index As Integer, ParamArray names As String()) As List(Of SemanticInfoSummary)
+        Private Function SemanticInfoTypeTestForLoops(compilation As VBCompilation, index As Integer, ParamArray names As String()) As List(Of SemanticInfoSummary)
             Dim node = GetForStatement(compilation, index)
             Dim model = GetModel(compilation)
             Dim expressionFrom = node.FromValue
@@ -567,7 +567,7 @@ End Module]]>,
             Return semanticInfo
         End Function
 
-        Private Function GetDeclareSymbolTestForLoops(compilation As VisualBasicCompilation, symName As String, Optional index As Integer = 1) As Symbol
+        Private Function GetDeclareSymbolTestForLoops(compilation As VBCompilation, symName As String, Optional index As Integer = 1) As Symbol
             Dim node = GetForStatement(compilation, index)
             Dim model = GetModel(compilation)
             Dim symbol = model.GetDeclaredSymbolFromSyntaxNode(node)
@@ -582,7 +582,7 @@ End Module]]>,
             Return symbol
         End Function
 
-        Private Function AnalyzeRegionDataFlowTestForLoops(compilation As VisualBasicCompilation, VariablesDeclaredSymbol As String,
+        Private Function AnalyzeRegionDataFlowTestForLoops(compilation As VBCompilation, VariablesDeclaredSymbol As String,
                          ReadInsideSymbol As String, ReadOutsideSymbol As String, WrittenInsideSymbol As String,
                          WrittenOutsideSymbol As String, AlwaysAssignedSymbol As String,
                          DataFlowsInSymbol As String, DataFlowsOutSymbol As String,
@@ -602,7 +602,7 @@ End Module]]>,
         End Function
 
         Private Function AnalyzeRegionControlFlowTestForLoops(
-                         compilation As VisualBasicCompilation,
+                         compilation As VBCompilation,
                          Optional EntryPoints As Integer = 0,
                          Optional ExitPoints As Integer = 0,
                          Optional EndPointIsReachable As Boolean = True,
@@ -616,7 +616,7 @@ End Module]]>,
             Return analyze
         End Function
 
-        Private Function ClassfiConversionTestForLoops(compilation As VisualBasicCompilation, Optional index As Integer = 1) As List(Of Conversion)
+        Private Function ClassfiConversionTestForLoops(compilation As VBCompilation, Optional index As Integer = 1) As List(Of Conversion)
             Dim node = GetForStatement(compilation, index)
             Dim model = GetModel(compilation)
             Dim expressionFrom = node.FromValue
@@ -650,20 +650,20 @@ End Module]]>,
             Return String.Join(", ", symbols.Select(Function(symbol) symbol.Name).OrderBy(Function(name) name))
         End Function
 
-        Private Function GetModel(compilation As VisualBasicCompilation) As SemanticModel
+        Private Function GetModel(compilation As VBCompilation) As SemanticModel
             Dim tree = compilation.SyntaxTrees.First
             Dim model = compilation.GetSemanticModel(tree)
             Return model
         End Function
 
-        Private Function GetForStatement(compilation As VisualBasicCompilation, index As Integer) As ForStatementSyntax
+        Private Function GetForStatement(compilation As VBCompilation, index As Integer) As ForStatementSyntax
             Dim tree = compilation.SyntaxTrees.First
             Dim node = tree.FindNodeOrTokenByKind(SyntaxKind.ForStatement, index).AsNode()
             Dim forStatement = TryCast(node, ForStatementSyntax)
             Return forStatement
         End Function
 
-        Private Function GetForBlock(compilation As VisualBasicCompilation, index As Integer) As ForBlockSyntax
+        Private Function GetForBlock(compilation As VBCompilation, index As Integer) As ForBlockSyntax
             Dim tree = compilation.SyntaxTrees.First
             Dim node = tree.FindNodeOrTokenByKind(SyntaxKind.ForBlock, index).AsNode()
             Return DirectCast(node, ForBlockSyntax)

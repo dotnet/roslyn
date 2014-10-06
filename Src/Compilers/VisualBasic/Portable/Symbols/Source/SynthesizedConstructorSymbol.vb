@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="binder">Binder to be used for error reporting, or Nothing.</param>
         ''' <param name="diagnostics">Diagnostic bag, or Nothing.</param>
         Friend Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
             container As NamedTypeSymbol,
             isShared As Boolean,
             isDebuggable As Boolean,

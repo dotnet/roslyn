@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Create binder for binding statements in speculative code. 
         ''' </summary>
-        Public Sub New(root As VisualBasicSyntaxNode, containingBinder As Binder)
+        Public Sub New(root As VBSyntaxNode, containingBinder As Binder)
             MyBase.New(root, containingBinder)
         End Sub
 

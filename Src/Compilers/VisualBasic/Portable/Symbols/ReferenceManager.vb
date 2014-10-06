@@ -9,7 +9,7 @@ Imports MetadataOrDiagnostic = System.Object
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Public NotInheritable Class VisualBasicCompilation
+    Partial Public NotInheritable Class VBCompilation
         ''' <summary>
         ''' ReferenceManager encapsulates functionality to create an underlying SourceAssemblySymbol 
         ''' (with underlying ModuleSymbols) for Compilation and AssemblySymbols for referenced assemblies 
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The only public entry point of this class is CreateSourceAssembly() method.
         ''' </summary>
         Friend NotInheritable Class ReferenceManager
-            Inherits CommonReferenceManager(Of VisualBasicCompilation, AssemblySymbol)
+            Inherits CommonReferenceManager(Of VBCompilation, AssemblySymbol)
 
             Public Sub New(simpleAssemblyName As String, identityComparer As AssemblyIdentityComparer, observedMetadata As Dictionary(Of MetadataReference, MetadataOrDiagnostic))
                 MyBase.New(simpleAssemblyName, identityComparer, observedMetadata)
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return identity1.Version = identity2.Version
             End Function
 
-            Public Sub CreateSourceAssemblyForCompilation(compilation As VisualBasicCompilation)
+            Public Sub CreateSourceAssemblyForCompilation(compilation As VBCompilation)
                 Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_CreateSourceAssembly, message:=compilation.AssemblyName)
                     ' We are reading the Reference Manager state outside of a lock by accessing 
                     ' IsBound and HasCircularReference properties.
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New MissingAssemblySymbol(identity)
             End Function
 
-            Private Sub CreateAndSetSourceAssemblyReuseData(compilation As VisualBasicCompilation)
+            Private Sub CreateAndSetSourceAssemblyReuseData(compilation As VBCompilation)
                 AssertBound()
 
                 ' If the compilation has a reference from metadata to source assembly we can't share the referenced PE symbols.
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             ' Returns false if another compilation sharing this manager finished binding earlier and we should reuse its results.
-            Friend Function CreateSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
+            Friend Function CreateSourceAssemblyFullBind(compilation As VBCompilation) As Boolean
 
                 Dim assemblySymbol As SourceAssemblySymbol
                 Dim referencedAssembliesMap As Dictionary(Of MetadataReference, ReferencedAssembly)
@@ -878,15 +878,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Class AssemblyDataForCompilation
                 Inherits AssemblyDataForMetadataOrCompilation
 
-                Private ReadOnly m_Compilation As VisualBasicCompilation
+                Private ReadOnly m_Compilation As VBCompilation
 
-                Public ReadOnly Property Compilation As VisualBasicCompilation
+                Public ReadOnly Property Compilation As VBCompilation
                     Get
                         Return m_Compilation
                     End Get
                 End Property
 
-                Public Sub New(compilation As VisualBasicCompilation, embedInteropTypes As Boolean)
+                Public Sub New(compilation As VBCompilation, embedInteropTypes As Boolean)
                     MyBase.New(embedInteropTypes, compilation.AssemblyName)
 
                     Debug.Assert(compilation IsNot Nothing)
@@ -964,14 +964,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' For testing purposes only.
             ''' </summary>
-            Friend Shared Function IsSourceAssemblySymbolCreated(compilation As VisualBasicCompilation) As Boolean
+            Friend Shared Function IsSourceAssemblySymbolCreated(compilation As VBCompilation) As Boolean
                 Return compilation.m_lazyAssemblySymbol IsNot Nothing
             End Function
 
             ''' <summary>
             ''' For testing purposes only.
             ''' </summary>
-            Friend Shared Function IsReferenceManagerInitialized(compilation As VisualBasicCompilation) As Boolean
+            Friend Shared Function IsReferenceManagerInitialized(compilation As VBCompilation) As Boolean
                 Return compilation.m_referenceManager.IsBound
             End Function
         End Class

@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitDelegateCreation(receiver As BoundExpression, method As MethodSymbol, delegateType As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitDelegateCreation(receiver As BoundExpression, method As MethodSymbol, delegateType As TypeSymbol, used As Boolean, syntaxNode As VBSyntaxNode)
             Dim isStatic = receiver Is Nothing OrElse method.IsShared
             If Not used Then
                 If Not isStatic Then
@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitStaticFieldLoad(field As FieldSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStaticFieldLoad(field As FieldSymbol, used As Boolean, syntaxNode As VBSyntaxNode)
             'TODO: this may require ..ctor to run. Is this a sideeffect?
             _builder.EmitOpCode(ILOpCode.Ldsfld)
             EmitSymbolToken(field, syntaxNode)
@@ -521,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitLoadIndirect(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitLoadIndirect(type As TypeSymbol, syntaxNode As VBSyntaxNode)
             If type.IsEnumType() Then
                 'underlying primitives do not need type tokens.
                 type = (DirectCast(type, NamedTypeSymbol)).EnumUnderlyingType
@@ -1152,7 +1152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         End Function
 
-        Private Sub EmitStaticCast(toType As TypeSymbol, syntax As VisualBasicSyntaxNode)
+        Private Sub EmitStaticCast(toType As TypeSymbol, syntax As VBSyntaxNode)
             Debug.Assert(toType.IsVerifierReference())
 
             ' From ILGENREC::GenQMark
@@ -1220,7 +1220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitInitObj(type As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitInitObj(type As TypeSymbol, used As Boolean, syntaxNode As VBSyntaxNode)
             If (used) Then
                 Dim temp = Me.AllocateTemp(type, syntaxNode)
                 _builder.EmitLocalAddress(temp)                  '  ldloca temp
@@ -1234,7 +1234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitNewObj(constructor As MethodSymbol,
                                 arguments As ImmutableArray(Of BoundExpression),
                                 used As Boolean,
-                                syntaxNode As VisualBasicSyntaxNode)
+                                syntaxNode As VBSyntaxNode)
 
             Debug.Assert(Not constructor.IsDefaultValueTypeConstructor(),
                          "do not call synthesized struct constructors, they do not exist")
@@ -1245,14 +1245,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitPopIfUnused(used)
         End Sub
 
-        Private Sub EmitLoadDefaultValueOfTypeParameter(type As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitLoadDefaultValueOfTypeParameter(type As TypeSymbol, used As Boolean, syntaxNode As VBSyntaxNode)
             Debug.Assert(type.IsTypeParameter)
             EmitLoadDefaultValueOfTypeFromNothingLiteral(type, used, syntaxNode)
         End Sub
 
         Private Sub EmitLoadDefaultValueOfTypeFromConstructorCall(constructor As MethodSymbol,
                                                                   used As Boolean,
-                                                                  syntaxNode As VisualBasicSyntaxNode)
+                                                                  syntaxNode As VBSyntaxNode)
 
             If constructor.IsDefaultValueTypeConstructor() Then
                 EmitInitObj(constructor.ContainingType, used, syntaxNode)
@@ -1261,14 +1261,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitLoadDefaultValueOfTypeFromNothingLiteral(type As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitLoadDefaultValueOfTypeFromNothingLiteral(type As TypeSymbol, used As Boolean, syntaxNode As VBSyntaxNode)
             EmitInitObj(type, used, syntaxNode)
         End Sub
 
         Private Sub EmitStructConstructorCallOnTarget(constructor As MethodSymbol,
                                                       arguments As ImmutableArray(Of BoundExpression),
                                                       target As BoundExpression,
-                                                      syntaxNode As VisualBasicSyntaxNode)
+                                                      syntaxNode As VBSyntaxNode)
 
             Debug.Assert(target.IsLValue OrElse target.Kind = BoundKind.MeReference OrElse
                          (target.Kind = BoundKind.Local AndAlso DirectCast(target, BoundLocal).LocalSymbol.IsReadOnly))
@@ -1328,7 +1328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(target.Type, target.Syntax)
         End Sub
 
-        Private Sub EmitConstantExpression(type As TypeSymbol, constantValue As ConstantValue, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitConstantExpression(type As TypeSymbol, constantValue As ConstantValue, used As Boolean, syntaxNode As VBSyntaxNode)
             ' unused constant has no sideeffects
             If used Then
                 ' Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
@@ -1663,7 +1663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(thisRef.Type, thisRef.Syntax)
         End Sub
 
-        Private Sub EmitArrayElementStore(arrayType As ArrayTypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitArrayElementStore(arrayType As ArrayTypeSymbol, syntaxNode As VBSyntaxNode)
             If arrayType.Rank = 1 Then
                 EmitVectorElementStore(arrayType, syntaxNode)
             Else
@@ -1674,7 +1674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' <summary>
         ''' Emit an element store instruction for a single dimensional array.
         ''' </summary>
-        Private Sub EmitVectorElementStore(arrayType As ArrayTypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitVectorElementStore(arrayType As ArrayTypeSymbol, syntaxNode As VBSyntaxNode)
             Dim elementType = arrayType.ElementType
 
             If elementType.IsEnumType() Then
@@ -1747,7 +1747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitStoreIndirect(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStoreIndirect(type As TypeSymbol, syntaxNode As VBSyntaxNode)
             If type.IsEnumType() Then
                 type = (DirectCast(type, NamedTypeSymbol)).EnumUnderlyingType
             End If
@@ -1864,12 +1864,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitPopIfUnused(used)
         End Sub
 
-        Private Sub EmitBox(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitBox(type As TypeSymbol, syntaxNode As VBSyntaxNode)
             _builder.EmitOpCode(ILOpCode.Box)
             EmitSymbolToken(type, syntaxNode)
         End Sub
 
-        Private Sub EmitUnboxAny(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitUnboxAny(type As TypeSymbol, syntaxNode As VBSyntaxNode)
             _builder.EmitOpCode(ILOpCode.Unbox_any)
             EmitSymbolToken(type, syntaxNode)
         End Sub

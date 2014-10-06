@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                        prevContext)
         End Sub
 
-        Friend Overrides Function CreateBlockSyntax(statement As StatementSyntax) As VisualBasicSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(statement As StatementSyntax) As VBSyntaxNode
             Dim doStmt As DoStatementSyntax = Nothing
             Dim loopStmt As LoopStatementSyntax = DirectCast(statement, LoopStatementSyntax)
 

@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compilation = semanticModelOpt.Compilation
 
             Dim sourceModule = DirectCast(compilation.SourceModule, SourceModuleSymbol)
-            Dim sourceFile = sourceModule.GetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VisualBasicSyntaxTree))
+            Dim sourceFile = sourceModule.GetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VBSyntaxTree))
 
             If Not sourceFile.AliasImports Is Nothing Then
                 For Each [alias] In sourceFile.AliasImports.Values
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim nameWithoutAttributeSuffix As String = Nothing
                 If symbolName.TryGetWithoutAttributeSuffix(False, nameWithoutAttributeSuffix) Then
                     Dim token = SyntaxFactory.ParseToken(nameWithoutAttributeSuffix)
-                    If token.VisualBasicKind = SyntaxKind.IdentifierToken Then
+                    If token.VBKind = SyntaxKind.IdentifierToken Then
                         symbolName = nameWithoutAttributeSuffix
                     End If
                 End If
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function IsDerivedFromAttributeType(ByVal derivedType As INamedTypeSymbol) As Boolean
             Return semanticModelOpt IsNot Nothing AndAlso
                 DirectCast(derivedType, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute,
-                                                                                       DirectCast(semanticModelOpt.Compilation, VisualBasicCompilation),
+                                                                                       DirectCast(semanticModelOpt.Compilation, VBCompilation),
                                                                                        useSiteDiagnostics:=Nothing)
         End Function
     End Class

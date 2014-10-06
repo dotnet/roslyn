@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim nsArray = tree.GetRoot().DescendantNodes().Where(Function(node) (node.VisualBasicKind = SyntaxKind.NamespaceStatement)).ToArray()
+            Dim nsArray = tree.GetRoot().DescendantNodes().Where(Function(node) (node.VBKind = SyntaxKind.NamespaceStatement)).ToArray()
             Assert.Equal(1, nsArray.Length)
             Dim nsSyntax = DirectCast(nsArray(0), NamespaceStatementSyntax)
             Dim symbol = model.GetDeclaredSymbol(nsSyntax)
@@ -506,7 +506,7 @@ End Module
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim list = tree.GetRoot().DescendantNodes().Where(Function(n) (n.VisualBasicKind = SyntaxKind.ForStatement)).ToArray()
+            Dim list = tree.GetRoot().DescendantNodes().Where(Function(n) (n.VBKind = SyntaxKind.ForStatement)).ToArray()
             Assert.Equal(1, list.Length)
             Dim node = DirectCast(list(0), ForStatementSyntax)
             Dim symbol = model.GetDeclaredSymbol(node)

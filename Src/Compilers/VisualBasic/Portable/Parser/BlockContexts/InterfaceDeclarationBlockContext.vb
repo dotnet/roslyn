@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(BlockKind = SyntaxKind.InterfaceBlock)
         End Sub
 
-        Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
+        Friend Overrides Function ProcessSyntax(node As VBSyntaxNode) As BlockContext
 
             ' davidsch - This replaces ParseInterfaceGroupStatement and ParseInterfaceMember
             Dim kind As SyntaxKind = node.Kind
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Me
         End Function
 
-        Friend Overrides Function TryLinkSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Overrides Function TryLinkSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
             newContext = Nothing
 
             If KindEndsBlock(node.Kind) Then

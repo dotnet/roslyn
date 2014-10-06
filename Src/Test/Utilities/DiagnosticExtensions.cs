@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis
             return VerifyAnalyzerDiagnostics(c, n => n.CSharpKind(), analyzers, options, expected, continueOnAnalyzerException);
         }
 
-        public static VisualBasicCompilation VerifyVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
+        public static VBCompilation VerifyVisualBasicAnalyzerDiagnostics(this VBCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
         {
-            return VerifyAnalyzerDiagnostics(c, n => n.VisualBasicKind(), analyzers, options, expected, continueOnAnalyzerException);
+            return VerifyAnalyzerDiagnostics(c, n => n.VBKind(), analyzers, options, expected, continueOnAnalyzerException);
         }
 
         public static TCompilation VerifyAnalyzerOccuranceCount<TCompilation>(this TCompilation c, DiagnosticAnalyzer[] analyzers, int expectedCount, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                var vbComp = c as VisualBasicCompilation;
+                var vbComp = c as VBCompilation;
                 Assert.Equal(expectedCount, vbComp.GetVisualBasicAnalyzerDiagnostics(analyzers, null, continueOnAnalyzerException).Length);
                 return c;
             }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                var vbComp = c as VisualBasicCompilation;
+                var vbComp = c as VBCompilation;
                 return vbComp.VerifyVisualBasicAnalyzerDiagnostics(analyzers, options, continueOnAnalyzerException, expected) as TCompilation;
             }
         }
@@ -164,10 +164,10 @@ namespace Microsoft.CodeAnalysis
             return diagnostics;
         }
 
-        public static ImmutableArray<Diagnostic> GetVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static ImmutableArray<Diagnostic> GetVisualBasicAnalyzerDiagnostics(this VBCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, n => n.VisualBasicKind(), analyzers, options, continueOnAnalyzerException, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, n => n.VBKind(), analyzers, options, continueOnAnalyzerException, out diagnostics);
             return diagnostics;
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                var vbComp = c as VisualBasicCompilation;
+                var vbComp = c as VBCompilation;
                 return vbComp.GetVisualBasicAnalyzerDiagnostics(analyzers, options, continueOnAnalyzerException);
             }
         }

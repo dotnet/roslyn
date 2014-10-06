@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Sub
 
         Protected Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition, Optional dontIncludeNextTokenTrailingTrivia As Boolean = False)
-            If startToken.VisualBasicKind = SyntaxKind.None OrElse endToken.VisualBasicKind = SyntaxKind.None Then
+            If startToken.VBKind = SyntaxKind.None OrElse endToken.VBKind = SyntaxKind.None Then
                 Return
             End If
 
@@ -60,9 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             For Each trivia In nextToken.LeadingTrivia.Reverse()
-                If trivia.VisualBasicKind = SyntaxKind.EndOfLineTrivia Then
+                If trivia.VBKind = SyntaxKind.EndOfLineTrivia Then
                     Exit For
-                ElseIf trivia.VisualBasicKind = SyntaxKind.ColonTrivia Then
+                ElseIf trivia.VBKind = SyntaxKind.ColonTrivia Then
                     Return TextSpan.FromBounds(spanStart, trivia.FullSpan.Start)
                 End If
             Next
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Sub
 
         Protected Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
-            If startToken.VisualBasicKind = SyntaxKind.None OrElse endToken.VisualBasicKind = SyntaxKind.None Then
+            If startToken.VBKind = SyntaxKind.None OrElse endToken.VBKind = SyntaxKind.None Then
                 Return
             End If
 

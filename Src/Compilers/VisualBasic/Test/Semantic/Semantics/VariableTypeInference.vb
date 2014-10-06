@@ -706,7 +706,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), expectedOutput:=<![CDATA[
+            CompileAndVerify(source, options:=New VBCompilationOptions(OutputKind.ConsoleApplication), expectedOutput:=<![CDATA[
 S1
             ]]>)
 

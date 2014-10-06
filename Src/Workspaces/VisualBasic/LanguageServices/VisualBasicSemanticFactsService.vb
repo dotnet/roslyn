@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Function TryGetSpeculativeSemanticModel(oldSemanticModel As SemanticModel, oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef speculativeModel As SemanticModel) As Boolean Implements ISemanticFactsService.TryGetSpeculativeSemanticModel
-            Contract.Requires(oldNode.VisualBasicKind = newNode.VisualBasicKind)
+            Contract.Requires(oldNode.VBKind = newNode.VBKind)
 
             Dim model = oldSemanticModel
 
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsAssignableTo(fromSymbol As ITypeSymbol, toSymbol As ITypeSymbol, compilation As Compilation) As Boolean Implements ISemanticFactsService.IsAssignableTo
-            Return fromSymbol IsNot Nothing AndAlso toSymbol IsNot Nothing AndAlso DirectCast(compilation, VisualBasicCompilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening
+            Return fromSymbol IsNot Nothing AndAlso toSymbol IsNot Nothing AndAlso DirectCast(compilation, VBCompilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening
         End Function
     End Class
 End Namespace

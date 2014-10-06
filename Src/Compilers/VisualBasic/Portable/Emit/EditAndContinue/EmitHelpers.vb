@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Module EmitHelpers
 
         Friend Function EmitDifference(
-            compilation As VisualBasicCompilation,
+            compilation As VBCompilation,
             baseline As EmitBaseline,
             edits As IEnumerable(Of SemanticEdit),
             metadataStream As Stream,
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Function MapToCompilation(
-            compilation As VisualBasicCompilation,
+            compilation As VBCompilation,
             moduleBeingBuilt As PEDeltaAssemblyBuilder) As EmitBaseline
 
             Dim previousGeneration = moduleBeingBuilt.PreviousGeneration
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim map = New VisualBasicSymbolMatcher(
                 moduleBeingBuilt.GetAnonymousTypeMap(),
-                (DirectCast(previousGeneration.Compilation, VisualBasicCompilation)).SourceAssembly,
+                (DirectCast(previousGeneration.Compilation, VBCompilation)).SourceAssembly,
                 New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag()),
                 compilation.SourceAssembly,
                 New EmitContext(DirectCast(moduleBeingBuilt, Cci.IModule), Nothing, New DiagnosticBag()))

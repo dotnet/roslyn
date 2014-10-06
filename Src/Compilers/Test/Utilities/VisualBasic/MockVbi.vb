@@ -7,7 +7,7 @@ Friend Class MockVbi
     Inherits VisualBasicCompiler
 
     Public Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing)
+        MyBase.New(VBCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing)
 
     End Sub
 

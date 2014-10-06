@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, vbTriviaList.Count);
 
             var vbTrivia = vbTriviaList.ElementAt(1);
-            Assert.Equal(VB.SyntaxKind.CommentTrivia, vbTrivia.VisualBasicKind());
+            Assert.Equal(VB.SyntaxKind.CommentTrivia, vbTrivia.VBKind());
 
             var correctSpan = vbTrivia.Span;
             Assert.Equal(8, correctSpan.Start);
@@ -164,11 +164,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CSharpSyntax_VisualBasicKind()
         {
             var node = CSharp.SyntaxFactory.Identifier("a");
-            Assert.Equal(VisualBasic.SyntaxKind.None, node.VisualBasicKind());
+            Assert.Equal(VisualBasic.SyntaxKind.None, node.VBKind());
             var token = CSharp.SyntaxFactory.Token(CSharp.SyntaxKind.IfKeyword);
-            Assert.Equal(VisualBasic.SyntaxKind.None, token.VisualBasicKind());
+            Assert.Equal(VisualBasic.SyntaxKind.None, token.VBKind());
             var trivia = CSharp.SyntaxFactory.Comment("c");
-            Assert.Equal(VisualBasic.SyntaxKind.None, trivia.VisualBasicKind());
+            Assert.Equal(VisualBasic.SyntaxKind.None, trivia.VBKind());
         }
 
         [Fact, WorkItem(824695, "DevDiv")]

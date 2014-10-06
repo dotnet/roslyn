@@ -157,7 +157,7 @@ Public Module Program
         Console.Write("bye")
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csdllCompilation})
             Dim vbexeVerifier = CompileAndVerify(vbexeCompilation,
                 expectedOutput:=<![CDATA[hi bye]]>)
@@ -208,7 +208,7 @@ Public Module Program
         Console.Write("bye")
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csdllCompilation})
             Dim vbexeVerifier = CompileAndVerify(vbexeCompilation,
                 expectedOutput:=<![CDATA[bye]]>)
@@ -784,7 +784,7 @@ Public Module Program
         Console.Write("bye")
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csdllCompilation})
 
             vbexeCompilation.VerifyDiagnostics()
@@ -1052,7 +1052,7 @@ Public Module Program
         x.w.raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             ' WARNING: Roslyn compiler produced errors while Native compiler didn't.
             vbCompilation.VerifyDiagnostics()
@@ -1114,7 +1114,7 @@ Public Module Program
         x.w.raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             ' WARNING: Binaries compiled with Native and Roslyn compilers produced different outputs.
             ' Below baseline is the output produced by the binary compiled with the Roslyn since
@@ -1196,7 +1196,7 @@ Public Module Program
         x.w.Raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             Dim vbVerifier = CompileAndVerify(vbCompilation,
                 expectedOutput:=<![CDATA[System.Int32[]
@@ -1251,7 +1251,7 @@ Public Module Program
         x.w.Raise()
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             vbCompilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),

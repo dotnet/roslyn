@@ -13,16 +13,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits Binder
 
         ''' <summary> Root syntax node </summary>
-        Private _root As VisualBasicSyntaxNode
+        Private _root As VBSyntaxNode
 
-        Public Sub New(containingBinder As Binder, tree As SyntaxTree, Optional node As VisualBasicSyntaxNode = Nothing)
+        Public Sub New(containingBinder As Binder, tree As SyntaxTree, Optional node As VBSyntaxNode = Nothing)
             MyBase.New(containingBinder, tree)
 
             _root = node
         End Sub
 
         ''' <summary> Field or property declaration statement syntax node </summary>
-        Friend ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend ReadOnly Property Root As VBSyntaxNode
             Get
                 Return _root
             End Get
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Some nodes have special binder's for their contents 
         ''' </summary>
-        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As VBSyntaxNode) As Binder
             Return Nothing
         End Function
 

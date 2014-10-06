@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 "End Class" & vbCrLf
 
             ' TODO: It looks like Dev11 respects project level conditional compilation here.
-            Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
+            Dim tree = VBSyntaxTree.ParseText(codeToParse)
             Dim attributeSyntax = PropertyOrEvent.AttributeSyntax.GetVisualBasicSyntax()
             Dim diagnosticLocation As Location = attributeSyntax.GetLocation()
             Dim root As CompilationUnitSyntax = tree.GetCompilationUnitRoot()

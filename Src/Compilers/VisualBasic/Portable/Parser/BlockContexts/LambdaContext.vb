@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VisualBasicSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VBSyntaxNode
 
             Dim header As LambdaHeaderSyntax = Nothing
             Dim body = Me.Body()

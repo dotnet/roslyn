@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
         End Structure
 
-        Public ReadOnly Compilation As VisualBasicCompilation
+        Public ReadOnly Compilation As VBCompilation
 
         ' Can be Nothing if we're not emitting.
         Public ReadOnly ModuleBuilderOpt As PEModuleBuilder
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _initializeComponentCallTree As Dictionary(Of MethodSymbol, ImmutableArray(Of MethodSymbol)) = Nothing
 
-        Public Sub New(compilation As VisualBasicCompilation, moduleBuilderOpt As PEModuleBuilder, initializeComponentOpt As MethodSymbol)
+        Public Sub New(compilation As VBCompilation, moduleBuilderOpt As PEModuleBuilder, initializeComponentOpt As MethodSymbol)
             Me.Compilation = compilation
             Me.ModuleBuilderOpt = moduleBuilderOpt
             Me.InitializeComponentOpt = initializeComponentOpt

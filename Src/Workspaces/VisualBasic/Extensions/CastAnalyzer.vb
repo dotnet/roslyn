@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Dim parentAssignmentStatement = TryCast(nodeWalkUpParenthesesParent, AssignmentStatementSyntax)
-            If parentAssignmentStatement IsNot Nothing AndAlso nodeWalkUpParenthesesParent.VisualBasicKind = SyntaxKind.SimpleAssignmentStatement Then
+            If parentAssignmentStatement IsNot Nothing AndAlso nodeWalkUpParenthesesParent.VBKind = SyntaxKind.SimpleAssignmentStatement Then
                 Return semanticModel.GetTypeInfo(parentAssignmentStatement.Left).Type
             End If
 

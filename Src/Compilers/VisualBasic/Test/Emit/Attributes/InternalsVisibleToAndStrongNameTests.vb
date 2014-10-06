@@ -42,9 +42,9 @@ Public Class InternalsVisibleToAndStrongNameTests
                 "End Class"
 
         Dim g = Guid.NewGuid()
-        Dim other = VisualBasicCompilation.Create(
+        Dim other = VBCompilation.Create(
             g.ToString(),
-            {VisualBasicSyntaxTree.ParseText(s)},
+            {VBSyntaxTree.ParseText(s)},
             {MscorlibRef},
             TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
@@ -71,7 +71,7 @@ Public Class InternalsVisibleToAndStrongNameTests
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty)
 
         ' verify success with custom assembly key file resolver with keyFileDir added to search paths
-        comp = VisualBasicCompilation.Create(
+        comp = VBCompilation.Create(
             GetUniqueName(),
             {syntaxTree},
             {MscorlibRef},
@@ -100,7 +100,7 @@ Public Class InternalsVisibleToAndStrongNameTests
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty)
 
         ' verify success with custom assembly key file resolver with keyFileDir\TempSubDir added to search paths
-        comp = VisualBasicCompilation.Create(
+        comp = VBCompilation.Create(
             GetUniqueName(),
             references:={MscorlibRef},
             syntaxTrees:={syntaxTree},
@@ -112,7 +112,7 @@ Public Class InternalsVisibleToAndStrongNameTests
 
     <Fact>
     Public Sub PubKeyFromKeyContainerAttribute()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyKeyName("roslynTestContainer")>
@@ -130,7 +130,7 @@ End Class
 
     <Fact>
     Public Sub PubKeyFromKeyFileOptions()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -161,7 +161,7 @@ End Class
         Dim syntaxTrees = {ParseAndVerify(source)}
 
         ' verify failure with default resolver
-        Dim comp = VisualBasicCompilation.Create(
+        Dim comp = VBCompilation.Create(
             GetUniqueName(),
             references:=references,
             syntaxTrees:=syntaxTrees,
@@ -173,7 +173,7 @@ End Class
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty)
 
         ' verify success with custom assembly key file resolver with keyFileDir added to search paths
-        comp = VisualBasicCompilation.Create(
+        comp = VBCompilation.Create(
             GetUniqueName(),
             references:=references,
             syntaxTrees:=syntaxTrees,
@@ -217,7 +217,7 @@ End Class
         Dim syntaxTrees = {ParseAndVerify(source)}
 
         ' verify failure with default resolver
-        Dim comp = VisualBasicCompilation.Create(
+        Dim comp = VBCompilation.Create(
             GetUniqueName(),
             references:=references,
             syntaxTrees:=syntaxTrees,
@@ -231,7 +231,7 @@ End Class
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty)
 
         ' verify success with custom assembly key file resolver with publicKeyFileDir added to search paths
-        comp = VisualBasicCompilation.Create(
+        comp = VBCompilation.Create(
             GetUniqueName(),
             references:=references,
             syntaxTrees:=syntaxTrees,
@@ -243,7 +243,7 @@ End Class
 
     <Fact>
     Public Sub PubKeyFileNotFoundOptions()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -265,7 +265,7 @@ BC36980: Error extracting public key from file 'foo': File not found.
 
     <Fact>
     Public Sub KeyFileAttributeEmpty()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyKeyFile("")>
@@ -283,7 +283,7 @@ End Class
 
     <Fact>
     Public Sub KeyContainerEmpty()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyKeyName("")>
@@ -302,7 +302,7 @@ End Class
     <Fact>
     Public Sub PubKeyFileBogusOptions()
         Dim tmp = Temp.CreateFile().WriteAllBytes(New Byte() {1, 2, 3, 4})
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file>
         <![CDATA[
@@ -323,7 +323,7 @@ End Class
 
     <Fact>
     Public Sub PubKeyContainerBogusOptions()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -345,7 +345,7 @@ BC36981: Error extracting public key from container 'foo': Keyset does not exist
 #Region "IVT Access checking"
     <Fact>
     Public Sub IVTBasicCompilation()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="HasIVTToCompilation">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
@@ -359,7 +359,7 @@ End Class
 
         other.VerifyDiagnostics()
 
-        Dim c As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim c As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="WantsIVTAccessButCantHave">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -382,7 +382,7 @@ BC30390: 'C.Friend Sub Foo()' is not accessible in this context because it is 'F
           ~~~~~
 </error>)
 
-        Dim c2 As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim c2 As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="WantsIVTAccess">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -401,7 +401,7 @@ End Class
 
     <Fact>
     Public Sub IVTBasicMetadata()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="HasIVTToCompilation">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
@@ -415,7 +415,7 @@ End Class
 
         Dim otherImage = other.EmitToArray()
 
-        Dim c As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim c As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="WantsIVTAccessButCantHave">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -440,7 +440,7 @@ BC30456: 'Foo' is not a member of 'C'.
           ~~~~~
 </error>)
 
-        Dim c2 As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim c2 As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="WantsIVTAccess">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -459,7 +459,7 @@ End Class
 
     <Fact>
     Public Sub SignModuleKeyContainerBogus()
-        Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim c1 As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="WantsIVTAccess">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyKeyName("bogus")>
@@ -472,7 +472,7 @@ End Class
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
 
-        Dim c2 As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim c2 As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 (<compilation name="WantsIVTAccess">
      <file name="a.vb"><![CDATA[
 Public Class C
@@ -486,7 +486,7 @@ End Class
 
     <Fact>
     Public Sub SignModuleKeyFileBogus()
-        Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim c1 As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="WantsIVTAccess">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyKeyFile("bogus")>
@@ -499,7 +499,7 @@ End Class
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
 
-        Dim c2 As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim c2 As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 (<compilation name="WantsIVTAccess">
      <file name="a.vb"><![CDATA[
 Public Class C
@@ -513,7 +513,7 @@ End Class
 
     <Fact>
     Public Sub IVTSigned()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
@@ -527,7 +527,7 @@ End Class
 
         other.VerifyDiagnostics()
 
-        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim requestor As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="John">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -546,7 +546,7 @@ End Class
 
     <Fact>
     Public Sub IVTErrorNotBothSigned()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
@@ -560,7 +560,7 @@ End Class
 
         other.VerifyDiagnostics()
 
-        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim requestor As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="John">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -583,7 +583,7 @@ End Class
 
     <Fact>
     Public Sub IVTDeferredSuccess()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
@@ -596,7 +596,7 @@ End Class
 </compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
         other.VerifyDiagnostics()
 
-        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim requestor As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="John">
     <file name="a.vb"><![CDATA[
 Imports MyC=C 'causes optimistic granting
@@ -614,7 +614,7 @@ End Class
 
     <Fact>
     Public Sub IVTDeferredFailSignMismatch()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
@@ -628,7 +628,7 @@ End Class
 
         other.VerifyDiagnostics()
 
-        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim requestor As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="John">
     <file name="a.vb"><![CDATA[
 Imports MyC=C
@@ -646,7 +646,7 @@ End Class
 
     <Fact>
     Public Sub IVTDeferredFailKeyMismatch()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
 'key is wrong in the first digit
@@ -661,7 +661,7 @@ End Class
 
         other.VerifyDiagnostics()
 
-        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim requestor As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="John">
     <file name="a.vb"><![CDATA[
 Imports MyC=C
@@ -680,7 +680,7 @@ End Class
 
     <Fact>
     Public Sub IVTSuccessThroughIAssembly()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
@@ -694,7 +694,7 @@ End Class
 
         other.VerifyDiagnostics()
 
-        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim requestor As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="John">
     <file name="a.vb"><![CDATA[
 Imports MyC=C 'causes optimistic granting
@@ -710,7 +710,7 @@ End Class
 
     <Fact>
     Public Sub IVTFailSignMismatchThroughIAssembly()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
@@ -724,7 +724,7 @@ End Class
 
         other.VerifyDiagnostics()
 
-        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim requestor As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="John">
     <file name="a.vb"><![CDATA[
 Imports MyC=C
@@ -741,7 +741,7 @@ End Class
     <WorkItem(820450, "DevDiv")>
     <Fact>
     Public Sub IVTGivesAccessToUsingDifferentKeys()
-        Dim giver As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim giver As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
@@ -757,7 +757,7 @@ end Namespace
 
         giver.VerifyDiagnostics()
 
-        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim requestor As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="John">
     <file name="a.vb"><![CDATA[
 Public Class ClassWithFriendMethod
@@ -776,7 +776,7 @@ End Class
 #Region "IVT instantiations"
     <Fact>
     Public Sub IVTHasCulture()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Sam">
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -799,7 +799,7 @@ BC31534: Friend assembly reference 'WantsIVTAccess, Culture=neutral' is invalid.
 
     <Fact>
     Public Sub IVTNoKey()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Sam">
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -824,7 +824,7 @@ BC31535: Friend assembly reference 'WantsIVTAccess' is invalid. Strong-name sign
 #Region "Signing"
     <Fact>
     Public Sub SignIt()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Sam">
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -842,7 +842,7 @@ End Class
 
     <Fact>
     Public Sub SignItWithOnlyPublicKey()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Sam">
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -865,7 +865,7 @@ BC36961: Key file '<%= PublicKeyFile %>' is missing the private key needed for s
 
         other = other.WithOptions(TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile))
 
-        Dim assembly As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+        Dim assembly As VBCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="Sam2">
     <file name="a.vb">
     </file>
@@ -885,7 +885,7 @@ BC36961: Key file '<%= PublicKeyFile %>' is missing the private key needed for s
 
     <Fact>
     Public Sub DelaySignItWithOnlyPublicKey()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Sam">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyDelaySign(True)>
@@ -903,7 +903,7 @@ End Class
 
     <Fact>
     Public Sub DelaySignButNoKey()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyDelaySign(True)>
@@ -925,7 +925,7 @@ End Class
 
     <Fact>
     Public Sub SignInMemory()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -1265,7 +1265,7 @@ BC37207: Attribute 'System.Reflection.AssemblyKeyFileAttribute' given in a sourc
     <Fact> <WorkItem(529779, "DevDiv")>
     Public Sub Bug529779_1()
 
-        Dim unsigned As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim unsigned As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C1
@@ -1275,7 +1275,7 @@ End Class
 </compilation>,
         options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -1297,7 +1297,7 @@ End Class
     <Fact> <WorkItem(529779, "DevDiv")>
     Public Sub Bug529779_2()
 
-        Dim unsigned As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim unsigned As VBCompilation = CreateCompilationWithMscorlib(
 <compilation name="Unsigned">
     <file name="a.vb"><![CDATA[
 Public Class C1
@@ -1307,7 +1307,7 @@ End Class
 </compilation>,
         options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+        Dim other As VBCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -1340,7 +1340,7 @@ BC41997: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, Public
 
     <Fact>
     Public Sub AssemblySignatureKeyAttribute_1()
-        Dim other As VisualBasicCompilation = CreateCompilationWithReferences(
+        Dim other As VBCompilation = CreateCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblySignatureKeyAttribute(
@@ -1362,7 +1362,7 @@ End Class
 
     <Fact>
     Public Sub AssemblySignatureKeyAttribute_2()
-        Dim other As VisualBasicCompilation = CreateCompilationWithReferences(
+        Dim other As VBCompilation = CreateCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblySignatureKeyAttribute(
@@ -1393,7 +1393,7 @@ BC37209: Invalid signature public key specified in AssemblySignatureKeyAttribute
 
     <Fact>
     Public Sub AssemblySignatureKeyAttribute_3()
-        Dim other As VisualBasicCompilation = CreateCompilationWithReferences(
+        Dim other As VBCompilation = CreateCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblySignatureKeyAttribute(
@@ -1422,7 +1422,7 @@ BC36980: Error extracting public key from file '<%= KeyPairFile %>': Invalid cou
 
     <Fact>
     Public Sub AssemblySignatureKeyAttribute_4()
-        Dim other As VisualBasicCompilation = CreateCompilationWithReferences(
+        Dim other As VBCompilation = CreateCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblySignatureKeyAttribute(
@@ -1453,7 +1453,7 @@ BC37209: Invalid signature public key specified in AssemblySignatureKeyAttribute
 
     <Fact>
     Public Sub AssemblySignatureKeyAttribute_5()
-        Dim other As VisualBasicCompilation = CreateCompilationWithReferences(
+        Dim other As VBCompilation = CreateCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblySignatureKeyAttribute(
@@ -1474,7 +1474,7 @@ End Class
 
     <Fact>
     Public Sub AssemblySignatureKeyAttribute_6()
-        Dim other As VisualBasicCompilation = CreateCompilationWithReferences(
+        Dim other As VBCompilation = CreateCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblySignatureKeyAttribute(
@@ -1505,7 +1505,7 @@ Nothing,
 
     <Fact>
     Public Sub AssemblySignatureKeyAttribute_7()
-        Dim other As VisualBasicCompilation = CreateCompilationWithReferences(
+        Dim other As VBCompilation = CreateCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblySignatureKeyAttribute(

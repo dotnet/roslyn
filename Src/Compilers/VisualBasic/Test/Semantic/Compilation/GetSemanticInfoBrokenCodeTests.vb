@@ -373,7 +373,7 @@ MustOverride Sub M()
         <Fact()>
         Public Sub MustOverrideMember()
             ' MustOverride method in script class.
-            MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(<![CDATA[
+            MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib({VBSyntaxTree.ParseText(<![CDATA[
 MustOverride Sub M()
 ]]>.Value,
                 options:=TestOptions.Script)}))
@@ -415,7 +415,7 @@ End Class
 </compilation>))
         End Sub
 
-        Private Sub MustOverrideMember(compilation As VisualBasicCompilation)
+        Private Sub MustOverrideMember(compilation As VBCompilation)
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             Dim diagnostics = model.GetDiagnostics().ToArray()
@@ -470,7 +470,7 @@ Dim t = !Str
             Next
         End Sub
 
-        Private Sub AnalyzeExpressionDataFlow(compilation As VisualBasicCompilation)
+        Private Sub AnalyzeExpressionDataFlow(compilation As VBCompilation)
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             For Each expr In GetAllExpressions(tree.GetCompilationUnitRoot())
@@ -478,7 +478,7 @@ Dim t = !Str
             Next
         End Sub
 
-        Private Sub VisitAllExpressions(model As SemanticModel, node As VisualBasicSyntaxNode)
+        Private Sub VisitAllExpressions(model As SemanticModel, node As VBSyntaxNode)
             For Each expr In GetAllExpressions(node)
                 Dim symbolInfo = model.GetSymbolInfo(expr)
                 Assert.NotNull(symbolInfo)
@@ -487,17 +487,17 @@ Dim t = !Str
             Next
         End Sub
 
-        Private Sub VisitAllDeclarations(model As SemanticModel, node As VisualBasicSyntaxNode)
+        Private Sub VisitAllDeclarations(model As SemanticModel, node As VBSyntaxNode)
             For Each node In node.DescendantNodesAndSelf()
                 model.GetDeclaredSymbol(node)
             Next
         End Sub
 
-        Private Shared Function GetAllExpressions(node As VisualBasicSyntaxNode) As IEnumerable(Of ExpressionSyntax)
+        Private Shared Function GetAllExpressions(node As VBSyntaxNode) As IEnumerable(Of ExpressionSyntax)
             Return node.DescendantNodesAndSelf(descendIntoTrivia:=True).OfType(Of ExpressionSyntax)()
         End Function
 
-        Private Shared Function GetAllStatements(node As VisualBasicSyntaxNode) As IEnumerable(Of ExecutableStatementSyntax)
+        Private Shared Function GetAllStatements(node As VBSyntaxNode) As IEnumerable(Of ExecutableStatementSyntax)
             Return node.DescendantNodesAndSelf().OfType(Of ExecutableStatementSyntax)()
         End Function
 

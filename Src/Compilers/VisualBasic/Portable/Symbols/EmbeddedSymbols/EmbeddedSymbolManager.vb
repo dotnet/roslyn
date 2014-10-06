@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _embeddedSyntax Is Nothing Then
                     Interlocked.CompareExchange(_embeddedSyntax,
-                                                VisualBasicSyntaxTree.ParseText(EmbeddedResources.Embedded),
+                                                VBSyntaxTree.ParseText(EmbeddedResources.Embedded),
                                                 Nothing)
                 End If
                 Return _embeddedSyntax
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _vbCoreSyntax Is Nothing Then
                     Interlocked.CompareExchange(_vbCoreSyntax,
-                                                VisualBasicSyntaxTree.ParseText(EmbeddedResources.VbCoreSourceText),
+                                                VBSyntaxTree.ParseText(EmbeddedResources.VbCoreSourceText),
                                                 Nothing)
                 End If
                 Return _vbCoreSyntax
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _internalXmlHelperSyntax Is Nothing Then
                     Interlocked.CompareExchange(_internalXmlHelperSyntax,
-                                                VisualBasicSyntaxTree.ParseText(EmbeddedResources.InternalXmlHelper),
+                                                VBSyntaxTree.ParseText(EmbeddedResources.InternalXmlHelper),
                                                 Nothing)
                 End If
                 Return _internalXmlHelperSyntax

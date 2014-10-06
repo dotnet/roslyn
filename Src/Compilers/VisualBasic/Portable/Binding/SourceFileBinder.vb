@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             m_sourceFile = sourceFile
         End Sub
 
-        Public Overrides Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
+        Public Overrides Function GetSyntaxReference(node As VBSyntaxNode) As SyntaxReference
             Return SyntaxTree.GetReference(node)
         End Function
 

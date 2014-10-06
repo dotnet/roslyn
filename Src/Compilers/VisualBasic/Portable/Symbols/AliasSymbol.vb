@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly aliasLocations As ImmutableArray(Of Location)
         Private ReadOnly aliasContainer As Symbol
 
-        Friend Sub New(compilation As VisualBasicCompilation,
+        Friend Sub New(compilation As VBCompilation,
                        aliasContainer As Symbol,
                        aliasName As String,
                        aliasTarget As NamespaceOrTypeSymbol,
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The syntax node(s) that declared the symbol.
         ''' </returns>
         ''' <remarks>
-        ''' To go the opposite direction (from syntax node to symbol), see <see cref="VisualBasicSemanticModel.GetDeclaredSymbol"/>.
+        ''' To go the opposite direction (from syntax node to symbol), see <see cref="VBSemanticModel.GetDeclaredSymbol"/>.
         ''' </remarks>
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

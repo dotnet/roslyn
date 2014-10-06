@@ -8,10 +8,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Friend Class SyntaxTokenListBuilder
         Private _count As Integer
-        Private _nodes As InternalSyntax.VisualBasicSyntaxNode()
+        Private _nodes As InternalSyntax.VBSyntaxNode()
 
         Public Sub New(size As Integer)
-            Me._nodes = New InternalSyntax.VisualBasicSyntaxNode(size - 1) {}
+            Me._nodes = New InternalSyntax.VBSyntaxNode(size - 1) {}
             Me._count = 0
         End Sub
 
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Private Sub Grow(size As Integer)
-            Dim tmp = New InternalSyntax.VisualBasicSyntaxNode(size - 1) {}
+            Dim tmp = New InternalSyntax.VBSyntaxNode(size - 1) {}
             Array.Copy(Me._nodes, tmp, Me._nodes.Length)
             Me._nodes = tmp
         End Sub

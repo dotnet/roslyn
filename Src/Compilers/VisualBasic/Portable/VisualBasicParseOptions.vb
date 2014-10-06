@@ -9,18 +9,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Represents Visual Basic parse options.
     ''' </summary>
-    Public NotInheritable Class VisualBasicParseOptions
+    Public NotInheritable Class VBParseOptions
         Inherits ParseOptions
-        Implements IEquatable(Of VisualBasicParseOptions)
+        Implements IEquatable(Of VBParseOptions)
 
-        Public Shared ReadOnly [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
+        Public Shared ReadOnly [Default] As VBParseOptions = New VBParseOptions()
         Private Shared _defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
 
         Private _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
         Private _languageVersion As LanguageVersion
 
         ''' <summary>
-        ''' Creates an instance of VisualBasicParseOptions.
+        ''' Creates an instance of VBParseOptions.
         ''' </summary>
         ''' <param name="languageVersion">The parser language version.</param>
         ''' <param name="documentationMode">The documentation mode.</param>
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw New ArgumentException(parameterName)
                 End If
 
-                Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.VisualBasicKind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
+                Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.VBKind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
 
                 Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
                 If constant Is Nothing Then
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _preprocessorSymbols = preprocessorSymbols
         End Sub
 
-        Private Sub New(other As VisualBasicParseOptions)
+        Private Sub New(other As VBParseOptions)
             MyClass.New(
                 languageVersion:=other._languageVersion,
                 documentationMode:=other.DocumentationMode,
@@ -133,11 +133,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns a VisualBasicParseOptions instance for a specified language version.
+        ''' Returns a VBParseOptions instance for a specified language version.
         ''' </summary>
         ''' <param name="version">The parser language version.</param>
-        ''' <returns>A new instance of VisualBasicParseOptions if different language version is different; otherwise current instance.</returns>
-        Public Shadows Function WithLanguageVersion(version As LanguageVersion) As VisualBasicParseOptions
+        ''' <returns>A new instance of VBParseOptions if different language version is different; otherwise current instance.</returns>
+        Public Shadows Function WithLanguageVersion(version As LanguageVersion) As VBParseOptions
             If version = _languageVersion Then
                 Return Me
             End If
@@ -146,15 +146,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException("version")
             End If
 
-            Return New VisualBasicParseOptions(Me) With {._languageVersion = version}
+            Return New VBParseOptions(Me) With {._languageVersion = version}
         End Function
 
         ''' <summary>
-        ''' Returns a VisualBasicParseOptions instance for a specified source code kind.
+        ''' Returns a VBParseOptions instance for a specified source code kind.
         ''' </summary>
         ''' <param name="kind">The parser source code kind.</param>
-        ''' <returns>A new instance of VisualBasicParseOptions if source code kind is different; otherwise current instance.</returns>
-        Public Shadows Function WithKind(kind As SourceCodeKind) As VisualBasicParseOptions
+        ''' <returns>A new instance of VBParseOptions if source code kind is different; otherwise current instance.</returns>
+        Public Shadows Function WithKind(kind As SourceCodeKind) As VBParseOptions
             If kind = Me.Kind Then
                 Return Me
             End If
@@ -163,15 +163,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException("kind")
             End If
 
-            Return New VisualBasicParseOptions(Me) With {.Kind = kind}
+            Return New VBParseOptions(Me) With {.Kind = kind}
         End Function
 
         ''' <summary>
-        ''' Returns a VisualBasicParseOptions instance for a specified documentation mode.
+        ''' Returns a VBParseOptions instance for a specified documentation mode.
         ''' </summary>
         ''' <param name="documentationMode"></param>
-        ''' <returns>A new instance of VisualBasicParseOptions if documentation mode is different; otherwise current instance.</returns>
-        Public Overloads Function WithDocumentationMode(documentationMode As DocumentationMode) As VisualBasicParseOptions
+        ''' <returns>A new instance of VBParseOptions if documentation mode is different; otherwise current instance.</returns>
+        Public Overloads Function WithDocumentationMode(documentationMode As DocumentationMode) As VBParseOptions
             If documentationMode = Me.DocumentationMode Then
                 Return Me
             End If
@@ -180,33 +180,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException("documentationMode")
             End If
 
-            Return New VisualBasicParseOptions(Me) With {.DocumentationMode = documentationMode}
+            Return New VBParseOptions(Me) With {.DocumentationMode = documentationMode}
         End Function
 
         ''' <summary>
-        ''' Returns a VisualBasicParseOptions instance for a specified collection of KeyValuePairs representing pre-processor symbols.
+        ''' Returns a VBParseOptions instance for a specified collection of KeyValuePairs representing pre-processor symbols.
         ''' </summary>
         ''' <param name="symbols">A collection representing pre-processor symbols</param>
-        ''' <returns>A new instance of VisualBasicParseOptions.</returns>
-        Public Shadows Function WithPreprocessorSymbols(symbols As IEnumerable(Of KeyValuePair(Of String, Object))) As VisualBasicParseOptions
+        ''' <returns>A new instance of VBParseOptions.</returns>
+        Public Shadows Function WithPreprocessorSymbols(symbols As IEnumerable(Of KeyValuePair(Of String, Object))) As VBParseOptions
             Return WithPreprocessorSymbols(symbols.AsImmutableOrNull())
         End Function
 
         ''' <summary>
-        ''' Returns a VisualBasicParseOptions instance for a specified collection of KeyValuePairs representing pre-processor symbols.
+        ''' Returns a VBParseOptions instance for a specified collection of KeyValuePairs representing pre-processor symbols.
         ''' </summary>
         ''' <param name="symbols">An parameter array of KeyValuePair representing pre-processor symbols.</param>
-        ''' <returns>A new instance of VisualBasicParseOptions.</returns>
-        Public Shadows Function WithPreprocessorSymbols(ParamArray symbols As KeyValuePair(Of String, Object)()) As VisualBasicParseOptions
+        ''' <returns>A new instance of VBParseOptions.</returns>
+        Public Shadows Function WithPreprocessorSymbols(ParamArray symbols As KeyValuePair(Of String, Object)()) As VBParseOptions
             Return WithPreprocessorSymbols(symbols.AsImmutableOrNull())
         End Function
 
         ''' <summary>
-        ''' Returns a VisualBasicParseOptions instance for a specified collection of KeyValuePairs representing pre-processor symbols.
+        ''' Returns a VBParseOptions instance for a specified collection of KeyValuePairs representing pre-processor symbols.
         ''' </summary>
         ''' <param name="symbols">An ImmutableArray of KeyValuePair representing pre-processor symbols.</param>
-        ''' <returns>A new instance of VisualBasicParseOptions.</returns>
-        Public Shadows Function WithPreprocessorSymbols(symbols As ImmutableArray(Of KeyValuePair(Of String, Object))) As VisualBasicParseOptions
+        ''' <returns>A new instance of VBParseOptions.</returns>
+        Public Shadows Function WithPreprocessorSymbols(symbols As ImmutableArray(Of KeyValuePair(Of String, Object))) As VBParseOptions
             If symbols.IsDefault Then
                 symbols = ImmutableArray(Of KeyValuePair(Of String, Object)).Empty
             End If
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ValidatePreprocessorSymbols(symbols, "symbols")
 
-            Return New VisualBasicParseOptions(Me) With {._preprocessorSymbols = symbols}
+            Return New VBParseOptions(Me) With {._preprocessorSymbols = symbols}
         End Function
 
         ''' <summary>
@@ -241,9 +241,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Determines whether the current object is equal to another object of the same type.
         ''' </summary>
-        ''' <param name="other">An VisualBasicParseOptions object to compare with this object</param>
+        ''' <param name="other">An VBParseOptions object to compare with this object</param>
         ''' <returns>A boolean value.  True if the current object is equal to the other parameter; otherwise, False.</returns>
-        Public Overloads Function Equals(other As VisualBasicParseOptions) As Boolean Implements IEquatable(Of VisualBasicParseOptions).Equals
+        Public Overloads Function Equals(other As VBParseOptions) As Boolean Implements IEquatable(Of VBParseOptions).Equals
             If Me Is other Then
                 Return True
             End If
@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="obj">An object to compare with this object</param>
         ''' <returns>A boolean value.  True if the current object is equal to the other parameter; otherwise, False.</returns>
         Public Overrides Function Equals(obj As Object) As Boolean
-            Return Equals(TryCast(obj, VisualBasicParseOptions))
+            Return Equals(TryCast(obj, VBParseOptions))
         End Function
 
         ''' <summary>

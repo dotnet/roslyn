@@ -35,7 +35,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
             else 
             {
-                kind = node.VisualBasicKind().ToString();
+                kind = node.VBKind().ToString();
             }
 
             return kind;
@@ -51,7 +51,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
             else 
             {
-                kind = token.VisualBasicKind().ToString();
+                kind = token.VBKind().ToString();
             }
 
             return kind;
@@ -67,7 +67,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
             else
             {
-                kind = trivia.VisualBasicKind().ToString();
+                kind = trivia.VBKind().ToString();
             }
 
             return kind;

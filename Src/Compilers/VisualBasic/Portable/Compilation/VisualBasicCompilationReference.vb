@@ -15,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class VisualBasicCompilationReference
         Inherits CompilationReference
 
-        Private ReadOnly m_Compilation As VisualBasicCompilation
+        Private ReadOnly m_Compilation As VBCompilation
 
         ''' <summary>
         ''' Returns the referenced <see cref="Compilation"/>.
         ''' </summary>
-        Public Shadows ReadOnly Property Compilation As VisualBasicCompilation
+        Public Shadows ReadOnly Property Compilation As VBCompilation
             Get
                 Return m_Compilation
             End Get
@@ -42,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="compilation">The compilation to reference.</param>
         ''' <param name="embedInteropTypes">Should interop types be embedded in the created assembly?</param>
         ''' <param name="aliases">Namespace aliases for this reference.</param>
-        Public Sub New(compilation As VisualBasicCompilation, Optional aliases As ImmutableArray(Of String) = Nothing, Optional embedInteropTypes As Boolean = False)
+        Public Sub New(compilation As VBCompilation, Optional aliases As ImmutableArray(Of String) = Nothing, Optional embedInteropTypes As Boolean = False)
             MyBase.New(GetProperties(compilation, aliases, embedInteropTypes))
 
-            Dim newCompilation As VisualBasicCompilation = Nothing
+            Dim newCompilation As VBCompilation = Nothing
             'This retargeting code should only be enabled to verify all compilation references used in unit tests continue to work correctly
             ' when the mscorlib of the referenced assembly is changed to an earlier mscorlib causing retargeting to occur.
             ' Only enable this code if this retargeting functionality is required to be tested.    
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             m_Compilation = newCompilation
         End Sub
 
-        Private Sub New(compilation As VisualBasicCompilation, properties As MetadataReferenceProperties)
+        Private Sub New(compilation As VBCompilation, properties As MetadataReferenceProperties)
             MyBase.New(properties)
             m_Compilation = compilation
         End Sub

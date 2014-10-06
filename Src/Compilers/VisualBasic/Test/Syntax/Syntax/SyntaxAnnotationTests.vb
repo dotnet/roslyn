@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestEmpty()
             Dim code = ""
-            Dim tree = VisualBasicSyntaxTree.ParseText(code)
+            Dim tree = VBSyntaxTree.ParseText(code)
 
             TestAnnotation(tree)
         End Sub
@@ -40,16 +40,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestCopyAnnotationToNullSyntaxNode()
-            Dim fromNode = VisualBasicSyntaxTree.ParseText(HelloWorldCode).GetRoot()
-            Dim toNode As VisualBasicSyntaxNode = Nothing
+            Dim fromNode = VBSyntaxTree.ParseText(HelloWorldCode).GetRoot()
+            Dim toNode As VBSyntaxNode = Nothing
             Dim annotatedNode = fromNode.CopyAnnotationsTo(toNode)
             Assert.Null(annotatedNode)
         End Sub
 
         <Fact()>
         Public Sub TestCopyAnnotationOfZeroLengthToSyntaxNode()
-            Dim fromNode = VisualBasicSyntaxTree.ParseText(HelloWorldCode).GetRoot()
-            Dim toNode = VisualBasicSyntaxTree.ParseText(HelloWorldCode).GetRoot()
+            Dim fromNode = VBSyntaxTree.ParseText(HelloWorldCode).GetRoot()
+            Dim toNode = VBSyntaxTree.ParseText(HelloWorldCode).GetRoot()
             Dim annotatedNode = fromNode.CopyAnnotationsTo(toNode)
             Assert.Equal(annotatedNode, toNode)
             ' Reference Equal
@@ -58,14 +58,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestCopyAnnotationFromNullSyntaxToken()
             Dim fromToken As SyntaxToken = Nothing
-            Dim toToken = VisualBasicSyntaxTree.ParseText(HelloWorldCode).GetRoot().DescendantTokens().First()
+            Dim toToken = VBSyntaxTree.ParseText(HelloWorldCode).GetRoot().DescendantTokens().First()
             Dim annotatedToken = fromToken.CopyAnnotationsTo(toToken)
             Assert.True(annotatedToken.IsEquivalentTo(toToken))
         End Sub
 
         <Fact()>
         Public Sub TestCopyAnnotationToNullSyntaxToken()
-            Dim fromToken = VisualBasicSyntaxTree.ParseText(HelloWorldCode).GetRoot().DescendantTokens().First()
+            Dim fromToken = VBSyntaxTree.ParseText(HelloWorldCode).GetRoot().DescendantTokens().First()
             Dim toToken As SyntaxToken = Nothing
             Dim annotatedToken = fromToken.CopyAnnotationsTo(toToken)
             Assert.True(annotatedToken.IsEquivalentTo(toToken))
@@ -73,8 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestCopyAnnotationOfZeroLengthToSyntaxToken()
-            Dim fromToken = VisualBasicSyntaxTree.ParseText(HelloWorldCode).GetRoot().DescendantTokens().First()
-            Dim toToken = VisualBasicSyntaxTree.ParseText(HelloWorldCode).GetRoot().DescendantTokens().First()
+            Dim fromToken = VBSyntaxTree.ParseText(HelloWorldCode).GetRoot().DescendantTokens().First()
+            Dim toToken = VBSyntaxTree.ParseText(HelloWorldCode).GetRoot().DescendantTokens().First()
             Dim annotatedToken = fromToken.CopyAnnotationsTo(toToken)
             Assert.Equal(annotatedToken, toToken)
             ' Reference Equal
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestCopyAnnotationFromNullSyntaxTrivia()
             Dim fromTrivia As SyntaxTrivia = Nothing
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
             Dim toTrivia = GetAllTrivia(tree.GetRoot()).FirstOrDefault()
             Dim annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia)
             Assert.True(annotatedTrivia.IsEquivalentTo(toTrivia))
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestCopyAnnotationToNullSyntaxTrivia()
             Dim toTrivia As SyntaxTrivia = Nothing
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
             Dim fromTrivia = GetAllTrivia(tree.GetRoot()).FirstOrDefault()
             Dim annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia)
             Assert.True(annotatedTrivia.IsEquivalentTo(toTrivia))
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestCopyAnnotationOfZeroLengthToSyntaxTrivia()
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
             Dim fromTrivia = GetAllTrivia(tree.GetRoot()).FirstOrDefault()
             Dim toTrivia = GetAllTrivia(tree.GetRoot()).FirstOrDefault()
             Dim annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia)
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestMissingAnnotationsOnNodesOrTokens()
             Dim annotation As New SyntaxAnnotation()
-            Dim tree = VisualBasicSyntaxTree.ParseText(AllInOneVisualBasicCode)
+            Dim tree = VBSyntaxTree.ParseText(AllInOneVisualBasicCode)
 
             Dim matchingNodesOrTokens = tree.GetRoot().GetAnnotatedNodesAndTokens(annotation)
             Assert.Empty(matchingNodesOrTokens)
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestMissingAnnotationsOnTrivia()
             Dim annotation As New SyntaxAnnotation()
-            Dim tree = VisualBasicSyntaxTree.ParseText(AllInOneVisualBasicCode)
+            Dim tree = VBSyntaxTree.ParseText(AllInOneVisualBasicCode)
 
             Dim matchingTrivia = tree.GetRoot().GetAnnotatedTrivia(annotation)
             Assert.Empty(matchingTrivia)
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestSimpleMultipleAnnotationsOnNode()
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
             Dim annotation1 As New SyntaxAnnotation()
             Dim annotation2 As New SyntaxAnnotation()
 
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestSimpleMultipleAnnotationsOnToken()
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
             Dim annotation1 As New SyntaxAnnotation()
             Dim annotation2 As New SyntaxAnnotation()
 
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestSimpleMultipleAnnotationsOnTrivia()
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
             Dim annotation1 As New SyntaxAnnotation()
             Dim annotation2 As New SyntaxAnnotation()
 
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestMultipleAnnotationsOnAllNodesTokensAndTrivia()
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
             Dim newRoot = tree.GetRoot()
 
             Dim annotations = New List(Of SyntaxAnnotation)(Enumerable.Range(0, 3).Select(Function(x)
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' add annotation one by one to every single node, token, trivia
             For Each annotation In annotations
                 Dim rewriter = New InjectAnnotationRewriter(annotation)
-                newRoot = DirectCast(rewriter.Visit(newRoot), VisualBasicSyntaxNode)
+                newRoot = DirectCast(rewriter.Visit(newRoot), VBSyntaxNode)
             Next
 
             ' Verify that all annotations are present in whichever places they were added
@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestAnnotationOnEveryNodeTokenTriviaOfHelloWorld()
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
 
             TestAnnotation(tree)
             TestTriviaAnnotation(tree)
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestIfNodeHasAnnotations()
-            Dim tree = VisualBasicSyntaxTree.ParseText(HelloWorldCode)
+            Dim tree = VBSyntaxTree.ParseText(HelloWorldCode)
             Dim annotation1 As New SyntaxAnnotation()
 
             ' Pick the first node from tree
@@ -281,36 +281,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestVisualBasicAllInOne()
-            Dim tree = VisualBasicSyntaxTree.ParseText(AllInOneVisualBasicCode)
+            Dim tree = VBSyntaxTree.ParseText(AllInOneVisualBasicCode)
 
             TestAnnotation(tree)
         End Sub
 
         <Fact()>
         Public Sub TestRandomAnnotations1()
-            Dim tree = VisualBasicSyntaxTree.ParseText(AllInOneVisualBasicCode)
+            Dim tree = VBSyntaxTree.ParseText(AllInOneVisualBasicCode)
 
             TestRandomAnnotations(tree)
         End Sub
 
         <Fact()>
         Public Sub TestManyRandomAnnotations1()
-            Dim tree = VisualBasicSyntaxTree.ParseText(AllInOneVisualBasicCode)
+            Dim tree = VBSyntaxTree.ParseText(AllInOneVisualBasicCode)
 
             TestManyRandomAnnotations(tree)
         End Sub
 
         <Fact()>
         Public Sub TestVisualBasicAllInOneTrivia()
-            Dim tree = VisualBasicSyntaxTree.ParseText(AllInOneVisualBasicCode)
+            Dim tree = VBSyntaxTree.ParseText(AllInOneVisualBasicCode)
 
             TestTriviaAnnotation(tree)
         End Sub
 
         <Fact()>
         Public Sub TestCopyAnnotations1()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(AllInOneVisualBasicCode)
-            Dim tree2 = VisualBasicSyntaxTree.ParseText(AllInOneVisualBasicCode)
+            Dim tree1 = VBSyntaxTree.ParseText(AllInOneVisualBasicCode)
+            Dim tree2 = VBSyntaxTree.ParseText(AllInOneVisualBasicCode)
 
             TestCopyAnnotations(tree1, tree2)
         End Sub
@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             ' add a random annotation to every single node, token, trivia
             Dim rewriter = New InjectRandomAnnotationRewriter(annotations)
-            Dim sourceTreeRoot = DirectCast(rewriter.Visit(tree1.GetRoot()), VisualBasicSyntaxNode)
+            Dim sourceTreeRoot = DirectCast(rewriter.Visit(tree1.GetRoot()), VBSyntaxNode)
 
             Dim destTreeRoot = CopyAnnotationsTo(sourceTreeRoot, tree2.GetRoot())
 
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         Private Class Collector
-            Inherits VisualBasicSyntaxWalker
+            Inherits VBSyntaxWalker
             Private privateNodeOrTokens As List(Of SyntaxNodeOrToken)
             Public Property NodeOrTokens() As List(Of SyntaxNodeOrToken)
                 Get
@@ -641,7 +641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Sub
 
             Public Overrides Sub VisitToken(token As SyntaxToken)
-                If token.VisualBasicKind <> SyntaxKind.None Then
+                If token.VBKind <> SyntaxKind.None Then
                     Me.NodeOrTokens.Add(token)
                 End If
 
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Sub
 
             Public Overrides Sub VisitTrivia(trivia As SyntaxTrivia)
-                If trivia.VisualBasicKind <> SyntaxKind.None Then
+                If trivia.VBKind <> SyntaxKind.None Then
                     Me.Trivia.Add(trivia)
                 End If
 
@@ -658,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Class
 
         Private Class InjectAnnotationRewriter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
             Private ReadOnly annotation As SyntaxAnnotation
 
             Public Sub New(annotation As SyntaxAnnotation)
@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                If token.VisualBasicKind = SyntaxKind.None Then
+                If token.VBKind = SyntaxKind.None Then
                     Return token
                 End If
 
@@ -683,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                If trivia.VisualBasicKind = SyntaxKind.None Then
+                If trivia.VBKind = SyntaxKind.None Then
                     Return trivia
                 End If
 
@@ -696,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Class
 
         Private Class InjectRandomAnnotationRewriter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
             Private ReadOnly annotations As List(Of SyntaxAnnotation)
             Private ReadOnly myRandom As Random
 
@@ -716,7 +716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                If token.VisualBasicKind = SyntaxKind.None Then
+                If token.VBKind = SyntaxKind.None Then
                     Return token
                 End If
 
@@ -725,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                If trivia.VisualBasicKind = SyntaxKind.None Then
+                If trivia.VBKind = SyntaxKind.None Then
                     Return trivia
                 End If
 
@@ -740,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Class
 
         Private Class CopyAnnotationRewriter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
             Private ReadOnly nodeOrTokenMap As Dictionary(Of SyntaxNodeOrToken, SyntaxNodeOrToken)
             Private ReadOnly triviaMap As Dictionary(Of SyntaxTrivia, SyntaxTrivia)
 
@@ -759,7 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                If token.VisualBasicKind = SyntaxKind.None Then
+                If token.VBKind = SyntaxKind.None Then
                     Return token
                 End If
 
@@ -767,7 +767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                If trivia.VisualBasicKind = SyntaxKind.None Then
+                If trivia.VBKind = SyntaxKind.None Then
                     Return trivia
                 End If
 

@@ -20,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxListBuilder.Create()
         End Function
 
-        Friend Function Allocate(Of TNode As VisualBasicSyntaxNode)() As SyntaxListBuilder(Of TNode)
+        Friend Function Allocate(Of TNode As VBSyntaxNode)() As SyntaxListBuilder(Of TNode)
             Return New SyntaxListBuilder(Of TNode)(Me.Allocate)
         End Function
 
-        Friend Function AllocateSeparated(Of TNode As VisualBasicSyntaxNode)() As SeparatedSyntaxListBuilder(Of TNode)
+        Friend Function AllocateSeparated(Of TNode As VBSyntaxNode)() As SeparatedSyntaxListBuilder(Of TNode)
             Return New SeparatedSyntaxListBuilder(Of TNode)(Me.Allocate)
         End Function
 

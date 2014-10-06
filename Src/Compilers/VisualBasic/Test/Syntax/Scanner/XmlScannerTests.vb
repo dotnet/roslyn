@@ -359,7 +359,7 @@ Public Class XmlInternalSyntax
         ]]>.Value
 
         code = code & ChrW(0)
-        VisualBasicSyntaxTree.ParseText(code)
+        VBSyntaxTree.ParseText(code)
     End Sub
 
     <Fact(), WorkItem(825859, "DevDiv")>
@@ -375,8 +375,8 @@ Public Class XmlInternalSyntax
         Dim trivia = eof.LeadingTrivia
 
         Assert.Equal(2, trivia.Count)
-        Assert.Equal(SyntaxKind.WhitespaceTrivia, trivia.Item(0).VisualBasicKind())
-        Assert.Equal(SyntaxKind.DocumentationCommentTrivia, trivia.Item(1).VisualBasicKind())
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, trivia.Item(0).VBKind())
+        Assert.Equal(SyntaxKind.DocumentationCommentTrivia, trivia.Item(1).VBKind())
     End Sub
 
 End Class

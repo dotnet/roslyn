@@ -17,10 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly m_isShared As Boolean
         Private ReadOnly m_name As String
-        Private ReadOnly m_SyntaxNode As VisualBasicSyntaxNode
+        Private ReadOnly m_SyntaxNode As VBSyntaxNode
 
         Friend Sub New(
-                syntaxNode As VisualBasicSyntaxNode,
+                syntaxNode As VBSyntaxNode,
                 containingSymbol As NamedTypeSymbol,
                 name As String,
                 isShared As Boolean
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Dim node As VisualBasicSyntaxNode = Me.Syntax
+                Dim node As VBSyntaxNode = Me.Syntax
                 Dim asLambda = TryCast(node, LambdaExpressionSyntax)
                 If asLambda IsNot Nothing Then
                     node = asLambda.Begin
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As VBSyntaxNode
             Get
                 Return m_SyntaxNode
             End Get

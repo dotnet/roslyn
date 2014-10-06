@@ -15256,11 +15256,11 @@ End Structure";
         INestedDelegate.InnerDelegate s5 = null;
     }
 }";
-            var vbcomp = VisualBasic.VisualBasicCompilation.Create(
+            var vbcomp = VisualBasic.VBCompilation.Create(
                 "Test",
-                new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(textdll) },
+                new[] { VisualBasic.VBSyntaxTree.ParseText(textdll) },
                 new[] { MscorlibRef_v4_0_30316_17626 },
-                new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
 

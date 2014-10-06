@@ -78,7 +78,7 @@ End Class
         Dim method = CType(root.DescendantNodes().OfType(Of MethodBlockSyntax)().First().Begin, MethodStatementSyntax)
 
         Dim newMethod = method.Update(
-            method.VisualBasicKind,
+            method.VBKind,
             method.AttributeLists,
             method.Modifiers,
             method.Keyword,
@@ -104,7 +104,7 @@ End Class
     End Sub
 
     Private Class FileContentsDumper
-        Inherits VisualBasicSyntaxWalker
+        Inherits VBSyntaxWalker
 
         Private ReadOnly sb As New StringBuilder()
 
@@ -162,7 +162,7 @@ End Class
     End Sub
 
     Private Class RemoveMethodsRewriter
-        Inherits VisualBasicSyntaxRewriter
+        Inherits VBSyntaxRewriter
 
         Public Overrides Function VisitMethodBlock(node As MethodBlockSyntax) As SyntaxNode
             ' Returning nothing removes the syntax node

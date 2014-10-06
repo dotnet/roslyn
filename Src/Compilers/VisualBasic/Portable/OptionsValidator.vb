@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Create a file with Import statement for each imported name, and parse it. Use two newlines
                 ' after each to avoid issues with implicit line continuation.
                 Dim importFileText As String = importsClauseArray.Select(Function(name) "Imports " + name + vbCrLf + vbCrLf).Aggregate(Function(a, b) a & b)
-                Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(importFileText), VisualBasicParseOptions.Default, "")
+                Dim tree = VBSyntaxTree.ParseText(SourceText.From(importFileText), VBParseOptions.Default, "")
 
                 ' Extract all the parsed imports back out.
                 Dim parsedImportList As New List(Of GlobalImport)

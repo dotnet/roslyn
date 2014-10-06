@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Parameter As ParameterSymbol
             Public InferredFromObject As Boolean
             Public TypeParameter As TypeParameterSymbol
-            Public ArgumentLocation As VisualBasicSyntaxNode
+            Public ArgumentLocation As VBSyntaxNode
 
         End Class
 
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function InferTypeAndPropagateHints() As Boolean
                 Dim numberOfIncomingEdges As Integer = IncomingEdges.Count
                 Dim restartAlgorithm As Boolean = False
-                Dim argumentLocation As VisualBasicSyntaxNode
+                Dim argumentLocation As VBSyntaxNode
                 Dim numberOfIncomingWithNothing As Integer = 0
 
                 If numberOfIncomingEdges > 0 Then
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub AddTypeHint(
                 type As TypeSymbol,
                 typeByAssumption As Boolean,
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As VBSyntaxNode,
                 parameter As ParameterSymbol,
                 inferredFromObject As Boolean,
                 inferenceRestrictions As RequiredConversion
@@ -1248,7 +1248,7 @@ HandleAsAGeneralExpression:
                 genericParameter As TypeParameterSymbol,
                 inferredType As TypeSymbol,
                 inferredTypeByAssumption As Boolean,
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As VBSyntaxNode,
                 parameter As ParameterSymbol,
                 inferredFromObject As Boolean,
                 inferenceRestrictions As RequiredConversion
@@ -1317,7 +1317,7 @@ HandleAsAGeneralExpression:
             '   -- If P is Array Of T, and A is Array Of X, then infer X for T
             '   -- If P is ByRef T, then infer A for T
             Private Function InferTypeArgumentsFromArgumentDirectly(
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As VBSyntaxNode,
                 argumentType As TypeSymbol,
                 argumentTypeByAssumption As Boolean,
                 parameterType As TypeSymbol,
@@ -1536,7 +1536,7 @@ HandleAsAGeneralExpression:
             ' here (to show success at pattern-matching) and leave the downstream code to produce an error message about
             ' failing to infer T.
             Friend Function InferTypeArgumentsFromArgument(
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As VBSyntaxNode,
                 argumentType As TypeSymbol,
                 argumentTypeByAssumption As Boolean,
                 parameterType As TypeSymbol,

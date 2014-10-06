@@ -24,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VisualBasicSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VBSyntaxNode
             Dim statements = Body()
-            Dim statement As VisualBasicSyntaxNode
+            Dim statement As VBSyntaxNode
             Dim reportRequiresSingleStatement As Boolean
 
             If statements.Count = 0 Then
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Private Shared Function IsSingleStatement(statement As VisualBasicSyntaxNode) As Boolean
+        Private Shared Function IsSingleStatement(statement As VBSyntaxNode) As Boolean
             Select Case statement.Kind
                 Case SyntaxKind.EmptyStatement,
                     SyntaxKind.MultiLineIfBlock,

@@ -57,7 +57,7 @@ BC31007: Unable to load module file 'Foo.dll': Image too small to contain DOS he
         Dim mscorlib1 = mscorlibMetadata.GetReference(filePath:="lib1.dll")
         Dim mscorlib2 = mscorlibMetadata.GetReference(filePath:="lib1.dll")
 
-        Dim comp = VisualBasicCompilation.Create("test", references:={mscorlib1, mscorlib2})
+        Dim comp = VBCompilation.Create("test", references:={mscorlib1, mscorlib2})
         Assert.Equal(2, comp.ExternalReferences.Length)
         Assert.Null(comp.GetReferencedAssemblySymbol(mscorlib1))             ' ignored
         Assert.NotNull(comp.GetReferencedAssemblySymbol(mscorlib2))
@@ -65,12 +65,12 @@ BC31007: Unable to load module file 'Foo.dll': Image too small to contain DOS he
         Dim mscorlibNoEmbed = mscorlibMetadata.GetReference(filePath:="lib1.dll")
         Dim mscorlibEmbed = mscorlibMetadata.GetReference(filePath:="lib1.dll", embedInteropTypes:=True)
 
-        comp = VisualBasicCompilation.Create("test", references:={mscorlibNoEmbed, mscorlibEmbed})
+        comp = VBCompilation.Create("test", references:={mscorlibNoEmbed, mscorlibEmbed})
         Assert.Equal(2, comp.ExternalReferences.Length)
         Assert.Null(comp.GetReferencedAssemblySymbol(mscorlibNoEmbed))       ' ignored
         Assert.NotNull(comp.GetReferencedAssemblySymbol(mscorlibEmbed))
 
-        comp = VisualBasicCompilation.Create("test", references:={mscorlibEmbed, mscorlibNoEmbed})
+        comp = VBCompilation.Create("test", references:={mscorlibEmbed, mscorlibNoEmbed})
         Assert.Equal(2, comp.ExternalReferences.Length)
         Assert.Null(comp.GetReferencedAssemblySymbol(mscorlibEmbed))         ' ignored
         Assert.NotNull(comp.GetReferencedAssemblySymbol(mscorlibNoEmbed))

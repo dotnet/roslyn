@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' A Compilation the assembly is created for.
         ''' </summary>
         ''' <remarks></remarks>
-        Private ReadOnly m_Compilation As VisualBasicCompilation
+        Private ReadOnly m_Compilation As VBCompilation
 
         Private m_lazyStrongNameKeys As StrongNameKeys
 
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         'may be used to construct a diagnostic if the assembly being compiled is found to be strong named.
         Private m_lazyInternalsVisibleToMap As ConcurrentDictionary(Of String, ConcurrentDictionary(Of ImmutableArray(Of Byte), Tuple(Of Location, String)))
 
-        Friend Sub New(compilation As VisualBasicCompilation,
+        Friend Sub New(compilation As VBCompilation,
                        assemblySimpleName As String,
                        moduleName As String,
                        netModules As ImmutableArray(Of PEModule))
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' This override is essential - it's a base case of the recursive definition.
         ''' </summary>
-        Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
+        Friend Overrides ReadOnly Property DeclaringCompilation As VBCompilation
             Get
                 Return m_Compilation
             End Get
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(netModuleNames.Any())
             Debug.Assert(attributesFromNetModules.Length = netModuleNames.Length)
 
-            Dim tree = VisualBasicSyntaxTree.Dummy
+            Dim tree = VBSyntaxTree.Dummy
             Dim node = tree.GetRoot()
             Dim binder As Binder = BinderBuilder.CreateSourceModuleBinder(Me.SourceModule)
 
@@ -1293,11 +1293,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' too late to report diagnostics or cancel the emit.  Instead, we check for use site errors on the types and members
         ''' we know we'll need at synthesis time.
         ''' </summary>
-        Private Shared Sub ReportDiagnosticsForSynthesizedAttributes(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag)
+        Private Shared Sub ReportDiagnosticsForSynthesizedAttributes(compilation As VBCompilation, diagnostics As DiagnosticBag)
             ' May need to synthesize CompilationRelaxationsAttribute and/or RuntimeCompatibilityAttribute if we are not building a net-module.
             ' NOTE: Native compiler skips synthesizing these attributes if the respective well-known attribute types aren't available, we do the same.
 
-            Dim compilationOptions As VisualBasicCompilationOptions = compilation.Options
+            Dim compilationOptions As VBCompilationOptions = compilation.Options
             If Not compilationOptions.OutputKind.IsNetModule() Then
                 Dim compilationRelaxationsAttributeType = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute)
                 If TryCast(compilationRelaxationsAttributeType, MissingMetadataTypeSymbol) Is Nothing Then
@@ -1334,7 +1334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(m_lazyEmitExtensionAttribute <> ThreeState.Unknown)
             Debug.Assert(m_lazySourceAttributesBag.IsSealed)
 
-            Dim options As VisualBasicCompilationOptions = Me.DeclaringCompilation.Options
+            Dim options As VBCompilationOptions = Me.DeclaringCompilation.Options
             Dim isBuildingNetModule As Boolean = options.OutputKind.IsNetModule()
 
             Dim emitExtensionAttribute As Boolean = m_lazyEmitExtensionAttribute = ThreeState.True

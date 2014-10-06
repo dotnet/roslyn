@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
     Friend Class LocalConflictVisitor
-        Inherits VisualBasicSyntaxVisitor
+        Inherits VBSyntaxVisitor
 
         Private ReadOnly _tracker As ConflictingIdentifierTracker
         Private ReadOnly _newSolution As Solution
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             For Each clause In node.Clauses
 
-                Select Case clause.VisualBasicKind
+                Select Case clause.VBKind
                     Case SyntaxKind.FromClause
                         tokens.AddRange(From variable In DirectCast(clause, FromClauseSyntax).Variables
                                         Select variable.Identifier.Identifier)
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Dim tokens As New List(Of SyntaxToken)
 
             For Each statement In block
-                If statement.VisualBasicKind = SyntaxKind.LocalDeclarationStatement Then
+                If statement.VBKind = SyntaxKind.LocalDeclarationStatement Then
                     Dim declarationStatement = DirectCast(statement, LocalDeclarationStatementSyntax)
 
                     For Each declarator In declarationStatement.Declarators
@@ -134,13 +134,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Dim tokens As New List(Of SyntaxToken)
 
             Dim controlVariable As SyntaxNode
-            If node.ForOrForEachStatement.VisualBasicKind = SyntaxKind.ForEachStatement Then
+            If node.ForOrForEachStatement.VBKind = SyntaxKind.ForEachStatement Then
                 controlVariable = DirectCast(node.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable
             Else
                 controlVariable = DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable
             End If
 
-            If controlVariable.VisualBasicKind = SyntaxKind.VariableDeclarator Then
+            If controlVariable.VBKind = SyntaxKind.VariableDeclarator Then
                 ' it's only legal to have one name in the variable declarator for for and for each loops.
                 tokens.Add(DirectCast(controlVariable, VariableDeclaratorSyntax).Names.First().Identifier)
             Else

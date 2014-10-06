@@ -41,10 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                     methods = instanceMethods.Concat(extensionMethods)
                 End If
 
-                Dim methodGroup = New BoundMethodGroup(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing),
+                Dim methodGroup = New BoundMethodGroup(VBSyntaxTree.Dummy.GetRoot(Nothing),
                                                        If(typeArguments.IsDefaultOrEmpty,
                                                           Nothing,
-                                                          New BoundTypeArguments(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing), typeArguments)),
+                                                          New BoundTypeArguments(VBSyntaxTree.Dummy.GetRoot(Nothing), typeArguments)),
                                                        methods, LookupResultKind.Good, Nothing, QualificationKind.Unqualified)
 
                 Return OverloadResolution.MethodInvocationOverloadResolution(
@@ -80,11 +80,11 @@ Class OptionStrictOff
 End Class
 </file>
 
-            Dim optionStrictOnTree = VisualBasicSyntaxTree.ParseText(optionStrictOn.Value)
-            Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
+            Dim optionStrictOnTree = VBSyntaxTree.ParseText(optionStrictOn.Value)
+            Dim optionStrictOffTree = VBSyntaxTree.ParseText(optionStrictOff.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test1",
-                syntaxTrees:={VisualBasicSyntaxTree.ParseText(My.Resources.Resource.OverloadResolutionTestSource),
+            Dim c1 = VBCompilation.Create("Test1",
+                syntaxTrees:={VBSyntaxTree.ParseText(My.Resources.Resource.OverloadResolutionTestSource),
                               optionStrictOnTree,
                               optionStrictOffTree},
                 references:={MscorlibRef, SystemCoreRef})
@@ -3059,9 +3059,9 @@ Class OptionStrictOff
 End Class
 </file>
 
-            Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
+            Dim optionStrictOffTree = VBSyntaxTree.ParseText(optionStrictOff.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test1",
+            Dim c1 = VBCompilation.Create("Test1",
                 syntaxTrees:={Parse(My.Resources.Resource.OverloadResolutionTestSource), optionStrictOffTree},
                 references:={TestReferences.NetFx.v4_0_21006.mscorlib},
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
@@ -3865,7 +3865,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -4139,10 +4139,10 @@ End Module
     </file>
       </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompileAndVerify(compilation, expectedOutput:="abc")
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
@@ -4170,7 +4170,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
@@ -4205,7 +4205,7 @@ End Module
     </file>
       </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompileAndVerify(compilation, expectedOutput:="B.Foo")
 
             compilationDef =
@@ -4243,7 +4243,7 @@ End Module
     </file>
       </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.AssertTheseDiagnostics(<![CDATA[
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
     'Public Sub Bar(a As Action(Of C))': Not most specific.
@@ -4251,7 +4251,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
     Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
                       ~~~]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.AssertTheseDiagnostics(<![CDATA[
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
     'Public Sub Bar(a As Action(Of C))': Not most specific.
@@ -4324,7 +4324,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
 
             Dim tree = compilation.SyntaxTrees(0)
-            Dim treeModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim treeModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim nothingArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 1).AsNode, ArgumentSyntax)
             Dim namedIntArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 4).AsNode, ArgumentSyntax)
@@ -4473,7 +4473,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
 
             Dim tree = compilation.SyntaxTrees(0)
-            Dim treeModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim treeModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim nothingArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 1).AsNode, ArgumentSyntax)
             Dim namedIntArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 4).AsNode, ArgumentSyntax)
@@ -5018,7 +5018,7 @@ End Module
     </file>
       </compilation>
 
-            Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(Compilation, expectedOutput:="1qq")
         End Sub
@@ -5054,7 +5054,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="1qq")
         End Sub
@@ -5272,7 +5272,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="CType2CType4")
         End Sub
@@ -5307,7 +5307,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub

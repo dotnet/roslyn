@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return SyntaxFactory.IntegerLiteralToken(String.Empty, LiteralBase.Decimal, TypeCharacter.None, 42)
         End Function
 
-        Private Shared Sub AttachAndCheckDiagnostics(node As InternalSyntax.VisualBasicSyntaxNode)
+        Private Shared Sub AttachAndCheckDiagnostics(node As InternalSyntax.VBSyntaxNode)
             Dim msgProvider = New MyMessageProvider()
 
             Dim nodeWithDiags = node.SetDiagnostics(New DiagnosticInfo() {New DiagnosticInfo(msgProvider, ERRID.ERR_AccessMismatch6)})
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     End Class
 
     Friend Class RedIdentityRewriter
-        Inherits VisualBasicSyntaxRewriter
+        Inherits VBSyntaxRewriter
 
         Public Overrides Function DefaultVisit(node As SyntaxNode) As SyntaxNode
             Return node
@@ -75,15 +75,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     End Class
 
     Friend Class GreenIdentityRewriter
-        Inherits InternalSyntax.VisualBasicSyntaxRewriter
+        Inherits InternalSyntax.VBSyntaxRewriter
 
-        Public Overrides Function Visit(node As InternalSyntax.VisualBasicSyntaxNode) As InternalSyntax.VisualBasicSyntaxNode
+        Public Overrides Function Visit(node As InternalSyntax.VBSyntaxNode) As InternalSyntax.VBSyntaxNode
             Return node
         End Function
     End Class
 
     Friend Class GreenNodeVisitor
-        Inherits InternalSyntax.VisualBasicSyntaxVisitor
+        Inherits InternalSyntax.VBSyntaxVisitor
     End Class
 
 End Namespace

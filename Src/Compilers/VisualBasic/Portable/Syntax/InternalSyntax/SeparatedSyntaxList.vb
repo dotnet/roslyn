@@ -13,14 +13,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Structure SeparatedSyntaxList(Of TNode As VisualBasicSyntaxNode)
-        Private _list As SyntaxList(Of VisualBasicSyntaxNode)
+    Friend Structure SeparatedSyntaxList(Of TNode As VBSyntaxNode)
+        Private _list As SyntaxList(Of VBSyntaxNode)
 
-        Friend Sub New(list As SyntaxList(Of VisualBasicSyntaxNode))
+        Friend Sub New(list As SyntaxList(Of VBSyntaxNode))
             Me._list = list
         End Sub
 
-        Friend ReadOnly Property Node As VisualBasicSyntaxNode
+        Friend ReadOnly Property Node As VBSyntaxNode
             Get
                 Return Me._list.Node
             End Get
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return False
         End Function
 
-        Friend Function GetWithSeparators() As SyntaxList(Of VisualBasicSyntaxNode)
+        Friend Function GetWithSeparators() As SyntaxList(Of VBSyntaxNode)
             Return Me._list
         End Function
 

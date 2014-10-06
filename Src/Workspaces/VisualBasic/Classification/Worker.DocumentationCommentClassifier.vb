@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     Return
                 End If
 
-                Select Case node.VisualBasicKind
+                Select Case node.VBKind
                     Case SyntaxKind.XmlText
                         ClassifyXmlText(DirectCast(node, XmlTextSyntax))
                     Case SyntaxKind.XmlElement
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             Private Sub ClassifyXmlTrivia(trivialList As SyntaxTriviaList, Optional whitespaceClassificationType As String = Nothing)
                 For Each t In trivialList
-                    Select Case t.VisualBasicKind()
+                    Select Case t.VBKind()
                         Case SyntaxKind.DocumentationCommentExteriorTrivia
                             ClassifyExteriorTrivia(t)
                         Case SyntaxKind.WhitespaceTrivia
@@ -125,10 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyXmlTextToken(token As SyntaxToken)
-                If token.VisualBasicKind = SyntaxKind.XmlEntityLiteralToken Then
+                If token.VBKind = SyntaxKind.XmlEntityLiteralToken Then
                     _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference)
-                ElseIf token.VisualBasicKind() <> SyntaxKind.DocumentationCommentLineBreakToken Then
-                    Select Case token.Parent.VisualBasicKind
+                ElseIf token.VBKind() <> SyntaxKind.DocumentationCommentLineBreakToken Then
+                    Select Case token.Parent.VBKind
                         Case SyntaxKind.XmlText
                             _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentText)
                         Case SyntaxKind.XmlString
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             Private Sub ClassifyBaseXmlAttribute(attribute As BaseXmlAttributeSyntax)
                 If attribute IsNot Nothing Then
-                    Select Case attribute.VisualBasicKind
+                    Select Case attribute.VBKind
                         Case SyntaxKind.XmlAttribute
                             ClassifyAttribute(DirectCast(attribute, XmlAttributeSyntax))
 

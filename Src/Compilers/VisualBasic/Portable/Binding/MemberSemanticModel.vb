@@ -14,16 +14,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Binding info for expressions and statements that are part of a member declaration.
     ''' </summary>
     Partial Friend MustInherit Class MemberSemanticModel
-        Inherits VisualBasicSemanticModel
+        Inherits VBSemanticModel
 
-        Private ReadOnly m_Root As VisualBasicSyntaxNode
+        Private ReadOnly m_Root As VBSyntaxNode
         Private ReadOnly m_RootBinder As Binder
 
         ' Fields specific to speculative MemberSemanticModel
         Private ReadOnly m_parentSemanticModelOpt As SyntaxTreeSemanticModel
         Private ReadOnly m_speculatedPosition As Integer
 
-        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer)
+        Friend Sub New(root As VBSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer)
             Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
             m_Root = root
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property Root As VBSyntaxNode
             Get
                 Return m_Root
             End Get
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SemanticModelBinder.Mark(binder)
         End Function
 
-        Private Overloads Function GetEnclosingBinder(node As VisualBasicSyntaxNode) As Binder
+        Private Overloads Function GetEnclosingBinder(node As VBSyntaxNode) As Binder
             Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, node, node.SpanStart)
             Debug.Assert(binder IsNot Nothing)
             Return SemanticModelBinder.Mark(binder)
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get the highest bound node in the tree associated with a particular syntax node.
         ''' </summary>
-        Friend Function GetUpperBoundNode(node As VisualBasicSyntaxNode) As BoundNode
+        Friend Function GetUpperBoundNode(node As VBSyntaxNode) As BoundNode
             ' The bound nodes are stored in the map from highest to lowest, so the first bound node is the highest.
             Dim boundNodes = GetBoundNodes(node)
 
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Get the lowest bound node in the tree associated with a particular syntax node. Lowest is defined as last
         ''' in a pre-order traversal of the bound tree.
         ''' </summary>
-        Friend Function GetLowerBoundNode(node As VisualBasicSyntaxNode) As BoundNode
+        Friend Function GetLowerBoundNode(node As VBSyntaxNode) As BoundNode
             ' The bound nodes are stored in the map from highest to lowest, so the last bound node is the lowest.
             Dim boundNodes = GetBoundNodes(node)
             If boundNodes.Length = 0 Then
@@ -147,8 +147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If node has an immediate parent that is an expression or statement or attribute, return
         ''' that (making sure it can be bound on its own). Otherwise return Nothing.
         ''' </summary>
-        Protected Function GetBindableParent(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
-            Dim parent As VisualBasicSyntaxNode = node.Parent
+        Protected Function GetBindableParent(node As VBSyntaxNode) As VBSyntaxNode
+            Dim parent As VBSyntaxNode = node.Parent
             If parent Is Nothing OrElse node Is Me.Root Then
                 Return Nothing
             End If
@@ -176,11 +176,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' and its parent. This is what the rest of the semantic model uses to determine
         ''' what to return back.
         ''' </summary>
-        Friend Function GetBoundNodeSummary(node As VisualBasicSyntaxNode) As BoundNodeSummary
+        Friend Function GetBoundNodeSummary(node As VBSyntaxNode) As BoundNodeSummary
             ' TODO: Should these two call be merged into a single one for efficiency?
             Dim upperBound = GetUpperBoundNode(node)
             Dim lowerBound = GetLowerBoundNode(node)
-            Dim parentSyntax As VisualBasicSyntaxNode = GetBindableParent(node)
+            Dim parentSyntax As VBSyntaxNode = GetBindableParent(node)
             Dim lowerBoundOfParent = If(parentSyntax Is Nothing, Nothing, GetLowerBoundNode(parentSyntax))
 
             Return New BoundNodeSummary(lowerBound, upperBound, lowerBoundOfParent)
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lowerBound = UnwrapRaiseEvent(GetLowerBoundNode(node))
 
 
-            Dim parentSyntax As VisualBasicSyntaxNode = GetBindableParent(node)
+            Dim parentSyntax As VBSyntaxNode = GetBindableParent(node)
             Dim lowerBoundOfParent = If(parentSyntax Is Nothing, Nothing, UnwrapRaiseEvent(GetLowerBoundNode(parentSyntax)))
 
             Return New BoundNodeSummary(lowerBound, upperBound, lowerBoundOfParent)
@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The parameter symbol that was declared.</returns>
         Public Overloads Overrides Function GetDeclaredSymbol(parameter As ParameterSyntax, Optional cancellationToken As CancellationToken = Nothing) As IParameterSymbol
             ' This could be a lambda parameter.
-            Dim parent As VisualBasicSyntaxNode = parameter.Parent
+            Dim parent As VBSyntaxNode = parameter.Parent
 
             Dim paramList As ParameterListSyntax = TryCast(parameter.Parent, ParameterListSyntax)
             If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.ParameterList Then
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
             End If
 
-            Dim parent As VisualBasicSyntaxNode = identifierSyntax.Parent
+            Dim parent As VBSyntaxNode = identifierSyntax.Parent
 
             If parent IsNot Nothing Then
                 Select Case parent.Kind
@@ -814,7 +814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SymbolInfo.None
         End Function
 
-        Friend Overrides Function GetCrefReferenceSymbolInfo(crefReference As CrefReferenceSyntax, options As VisualBasicSemanticModel.SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+        Friend Overrides Function GetCrefReferenceSymbolInfo(crefReference As CrefReferenceSyntax, options As VBSemanticModel.SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
             Return SymbolInfo.None
         End Function
 
@@ -1015,23 +1015,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing)
+        Friend Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As VBSyntaxNode = Nothing)
             SemanticModelMapsBuilder.CacheBoundNodes(boundNode, Me, Me.guardedNodeMap, thisSyntaxNodeOnly)
         End Sub
 
         Private Class CompilerGeneratedNodeFinder
             Inherits BoundTreeWalker
 
-            Private ReadOnly m_TargetSyntax As VisualBasicSyntaxNode
+            Private ReadOnly m_TargetSyntax As VBSyntaxNode
             Private ReadOnly m_TargetBoundKind As BoundKind
             Private m_Found As BoundNode
 
-            Private Sub New(targetSyntax As VisualBasicSyntaxNode, targetBoundKind As BoundKind)
+            Private Sub New(targetSyntax As VBSyntaxNode, targetBoundKind As BoundKind)
                 m_TargetSyntax = targetSyntax
                 m_TargetBoundKind = targetBoundKind
             End Sub
 
-            Public Shared Function FindIn(context As BoundNode, targetSyntax As VisualBasicSyntaxNode, targetBoundKind As BoundKind) As BoundNode
+            Public Shared Function FindIn(context As BoundNode, targetSyntax As VBSyntaxNode, targetBoundKind As BoundKind) As BoundNode
                 Dim finder As New CompilerGeneratedNodeFinder(targetSyntax, targetBoundKind)
                 finder.Visit(context)
                 Return finder.m_Found
@@ -1054,7 +1054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
         End Class
 
-        Public Overrides ReadOnly Property Compilation As VisualBasicCompilation
+        Public Overrides ReadOnly Property Compilation As VBCompilation
             Get
                 Return RootBinder.Compilation
             End Get
@@ -1088,9 +1088,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '' map, so that we can answer GetEnclosingBinder questions.
 
         ' The bound nodes associated with syntaxnode, from highest in the tree to lowest.
-        Private ReadOnly guardedNodeMap As New SmallDictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of BoundNode))(ReferenceEqualityComparer.Instance)
+        Private ReadOnly guardedNodeMap As New SmallDictionary(Of VBSyntaxNode, ImmutableArray(Of BoundNode))(ReferenceEqualityComparer.Instance)
 
-        Private ReadOnly guardedQueryBindersMap As New Dictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of Binder))()
+        Private ReadOnly guardedQueryBindersMap As New Dictionary(Of VBSyntaxNode, ImmutableArray(Of Binder))()
         Private ReadOnly guardedAnonymousTypeBinderMap As New Dictionary(Of FieldInitializerSyntax, Binder.AnonymousTypeFieldInitializerBinder)()
 
         Private ReadOnly guardedDiagnostics As DiagnosticBag = New DiagnosticBag()
@@ -1117,7 +1117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function GetBoundNodesFromMap(node As VisualBasicSyntaxNode) As ImmutableArray(Of BoundNode)
+        Private Function GetBoundNodesFromMap(node As VBSyntaxNode) As ImmutableArray(Of BoundNode)
             Dim result As ImmutableArray(Of BoundNode) = Nothing
             Return If(Me.guardedNodeMap.TryGetValue(node, result), result, Nothing)
         End Function
@@ -1137,23 +1137,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Private Function GetEnclosingBinderInternal(
             memberBinder As Binder,
-            binderRoot As VisualBasicSyntaxNode,
-            node As VisualBasicSyntaxNode,
+            binderRoot As VBSyntaxNode,
+            node As VBSyntaxNode,
             position As Integer
         ) As Binder
             Dim binder As Binder = Nothing
 
             EnsureFullyBoundIfImplicitVariablesAllowed()
 
-            Dim current As VisualBasicSyntaxNode = node
+            Dim current As VBSyntaxNode = node
             Do
                 Dim body As SyntaxList(Of StatementSyntax) = Nothing
 
                 If current.Kind = SyntaxKind.DocumentationCommentTrivia Then
                     Dim trivia As SyntaxTrivia = DirectCast(current, DocumentationCommentTriviaSyntax).ParentTrivia
-                    Debug.Assert(trivia.VisualBasicKind <> SyntaxKind.None)
-                    Debug.Assert(trivia.Token.VisualBasicKind <> SyntaxKind.None)
-                    Return GetEnclosingBinderInternal(memberBinder, binderRoot, DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode), position)
+                    Debug.Assert(trivia.VBKind <> SyntaxKind.None)
+                    Debug.Assert(trivia.Token.VBKind <> SyntaxKind.None)
+                    Return GetEnclosingBinderInternal(memberBinder, binderRoot, DirectCast(trivia.Token.Parent, VBSyntaxNode), position)
 
                 ElseIf SyntaxFacts.InBlockInterior(current, position, body) Then
                     ' We are in the interior of a block statement.
@@ -1239,7 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If answer is True, the binder is returned via [binder] parameter.
         ''' </summary>
         Private Function InQueryInterior(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             position As Integer,
             <Out()> ByRef binder As Binder
         ) As Boolean
@@ -1529,7 +1529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Function GetQueryClauseLambdaBinders(node As VisualBasicSyntaxNode) As ImmutableArray(Of Binder)
+        Private Function GetQueryClauseLambdaBinders(node As VBSyntaxNode) As ImmutableArray(Of Binder)
             Debug.Assert(TypeOf node Is QueryClauseSyntax OrElse node.Kind = SyntaxKind.FunctionAggregation OrElse
                          (node.Kind = SyntaxKind.ExpressionRangeVariable AndAlso node.Parent.Kind = SyntaxKind.LetClause) OrElse
                          node.Kind = SyntaxKind.CollectionRangeVariable)
@@ -1573,7 +1573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If answer is True, the binder is returned via [binder] parameter.
         ''' </summary>
         Private Function InAnonymousTypeInitializerInterior(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             position As Integer,
             <Out()> ByRef binder As Binder
         ) As Boolean
@@ -1624,11 +1624,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function InWithStatementExpressionInterior(node As VisualBasicSyntaxNode) As Boolean
+        Private Function InWithStatementExpressionInterior(node As VBSyntaxNode) As Boolean
 
             Dim expression = TryCast(node, ExpressionSyntax)
             If expression IsNot Nothing Then
-                Dim parent As VisualBasicSyntaxNode = expression.Parent
+                Dim parent As VBSyntaxNode = expression.Parent
                 If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.WithStatement Then
                     parent = parent.Parent
                     Return parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.WithBlock AndAlso parent.Parent IsNot Nothing
@@ -1655,14 +1655,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Conditional("DEBUG")>
-        Private Sub AssertIfShouldHaveFound(node As VisualBasicSyntaxNode)
+        Private Sub AssertIfShouldHaveFound(node As VBSyntaxNode)
 #If DEBUG Then
             Debug.Assert(Not ShouldHaveFound(node))
 #End If
         End Sub
 
 #If DEBUG Then
-        Private Function ShouldHaveFound(node As VisualBasicSyntaxNode, Optional guard As Boolean = False) As Boolean
+        Private Function ShouldHaveFound(node As VBSyntaxNode, Optional guard As Boolean = False) As Boolean
             If guard Then
                 rwLock.EnterReadLock()
                 Try
@@ -1672,8 +1672,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Try
             End If
 
-            Dim child As VisualBasicSyntaxNode = node
-            Dim parent As VisualBasicSyntaxNode = node.Parent
+            Dim child As VBSyntaxNode = node
+            Dim parent As VBSyntaxNode = node.Parent
 
             ' We will not be able to find an expression used in an array bounds within a parameter declaration.
             ' We will not be able to find an expression used as a lower array bound.
@@ -1703,7 +1703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Strictly speaking, the order is that of a pre-order traversal of the bound tree.
         ''' As a side effect, caches nodes and binders.
         ''' </summary>
-        Friend Function GetBoundNodes(node As VisualBasicSyntaxNode) As ImmutableArray(Of BoundNode)
+        Friend Function GetBoundNodes(node As VBSyntaxNode) As ImmutableArray(Of BoundNode)
             Dim bound As ImmutableArray(Of BoundNode) = Nothing
 
             EnsureFullyBoundIfImplicitVariablesAllowed()
@@ -1784,8 +1784,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntax">The syntax node to check.</param>
         ''' <returns><c>True</c> if the syntax node represents an expression syntax, but it's not 
         ''' an expression from the VB language point of view; otherwise <c>False</c>.</returns>
-        Private Function IsNonExpressionCollectionInitializer(syntax As VisualBasicSyntaxNode) As Boolean
-            Dim parent As VisualBasicSyntaxNode = syntax.Parent
+        Private Function IsNonExpressionCollectionInitializer(syntax As VBSyntaxNode) As Boolean
+            Dim parent As VBSyntaxNode = syntax.Parent
             If syntax.Kind = SyntaxKind.CollectionInitializer AndAlso parent IsNot Nothing Then
                 If parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
                     Return True
@@ -1802,7 +1802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Incrementally bind bindingRoot (which is always a non-lambda enclosed statement, or the
         ''' root of this model). Side effect is to store nodes into the guarded node map.
         ''' </summary>
-        Private Sub GuardedIncrementalBind(bindingRoot As VisualBasicSyntaxNode, enclosingBinder As Binder)
+        Private Sub GuardedIncrementalBind(bindingRoot As VBSyntaxNode, enclosingBinder As Binder)
             If guardedNodeMap.ContainsKey(bindingRoot) Then
                 ' We've already bound this. No need to bind it again (saves a bit of 
                 ' work below).
@@ -1842,7 +1842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''   a) The root syntax of this semantic model (because there's nothing more outer to bind)
         '''   b) A stand-alone statement is that is not inside a lambda.
         ''' </summary>
-        Private Function GetBindingRoot(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+        Private Function GetBindingRoot(node As VBSyntaxNode) As VBSyntaxNode
             Dim enclosingStatement As StatementSyntax = Nothing
 
             ' Walk all the way up to the root syntax, so that we see any enclosing lambdas.
@@ -1856,9 +1856,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If node.Kind = SyntaxKind.DocumentationCommentTrivia Then
                     Dim trivia As SyntaxTrivia = DirectCast(node, DocumentationCommentTriviaSyntax).ParentTrivia
-                    Debug.Assert(trivia.VisualBasicKind <> SyntaxKind.None)
-                    Debug.Assert(trivia.Token.VisualBasicKind <> SyntaxKind.None)
-                    node = DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode)
+                    Debug.Assert(trivia.VBKind <> SyntaxKind.None)
+                    Debug.Assert(trivia.Token.VBKind <> SyntaxKind.None)
+                    node = DirectCast(trivia.Token.Parent, VBSyntaxNode)
                     Continue While
 
                 ElseIf node.IsLambdaExpressionSyntax Then
@@ -1905,7 +1905,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' We override GetBinder so that the BindStatement override is stil
             ''' in effect on nested binders.
             ''' </summary>
-            Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+            Public Overrides Function GetBinder(node As VBSyntaxNode) As Binder
                 Dim binder As Binder = Me.ContainingBinder.GetBinder(node)
 
                 If binder IsNot Nothing Then
@@ -1977,11 +1977,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits BoundTreeWalker
 
             Private ReadOnly _semanticModel As MemberSemanticModel
-            Private ReadOnly _thisSyntaxNodeOnly As VisualBasicSyntaxNode ' If not Nothing, record nodes for this syntax node only.
+            Private ReadOnly _thisSyntaxNodeOnly As VBSyntaxNode ' If not Nothing, record nodes for this syntax node only.
             Private _placeholderReplacementMap As Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
-            Private _nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode)
+            Private _nodeCache As OrderPreservingMultiDictionary(Of VBSyntaxNode, BoundNode)
 
-            Private Sub New(semanticModel As MemberSemanticModel, thisSyntaxNodeOnly As VisualBasicSyntaxNode, nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode))
+            Private Sub New(semanticModel As MemberSemanticModel, thisSyntaxNodeOnly As VBSyntaxNode, nodeCache As OrderPreservingMultiDictionary(Of VBSyntaxNode, BoundNode))
                 _semanticModel = semanticModel
                 _thisSyntaxNodeOnly = thisSyntaxNodeOnly
                 _nodeCache = nodeCache
@@ -1990,10 +1990,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Shared Sub CacheBoundNodes(
                 root As BoundNode,
                 semanticModel As MemberSemanticModel,
-                nodeCache As SmallDictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of BoundNode)),
-                Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing
+                nodeCache As SmallDictionary(Of VBSyntaxNode, ImmutableArray(Of BoundNode)),
+                Optional thisSyntaxNodeOnly As VBSyntaxNode = Nothing
             )
-                Dim additionalNodes = OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode).GetInstance()
+                Dim additionalNodes = OrderPreservingMultiDictionary(Of VBSyntaxNode, BoundNode).GetInstance()
 
                 Dim walker = New SemanticModelMapsBuilder(semanticModel, thisSyntaxNodeOnly, additionalNodes)
                 walker.Visit(root)

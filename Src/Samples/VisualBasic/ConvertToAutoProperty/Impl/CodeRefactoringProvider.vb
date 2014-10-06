@@ -64,8 +64,8 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
     ''' </summary>  
     Private Shared Function HasBothAccessors(propertyBlock As PropertyBlockSyntax) As Boolean
         Dim accessors = propertyBlock.Accessors
-        Dim getter = accessors.FirstOrDefault(Function(node) node.VisualBasicKind() = SyntaxKind.PropertyGetBlock)
-        Dim setter = accessors.FirstOrDefault(Function(node) node.VisualBasicKind() = SyntaxKind.PropertySetBlock)
+        Dim getter = accessors.FirstOrDefault(Function(node) node.VBKind() = SyntaxKind.PropertyGetBlock)
+        Dim setter = accessors.FirstOrDefault(Function(node) node.VBKind() = SyntaxKind.PropertySetBlock)
 
         Return getter IsNot Nothing AndAlso setter IsNot Nothing
     End Function
@@ -106,7 +106,7 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
 
     Private Async Function GetBackingFieldAsync(document As Document, propertyAnnotation As SyntaxAnnotation, cancellationToken As CancellationToken) As Task(Of IFieldSymbol)
         Dim propertyBlock = Await GetAnnotatedPropertyBlockAsync(document, propertyAnnotation, cancellationToken).ConfigureAwait(False)
-        Dim propertyGetter = propertyBlock.Accessors.FirstOrDefault(Function(node) node.VisualBasicKind() = SyntaxKind.PropertyGetBlock)
+        Dim propertyGetter = propertyBlock.Accessors.FirstOrDefault(Function(node) node.VBKind() = SyntaxKind.PropertyGetBlock)
 
         Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
         Dim containingType = semanticModel.GetDeclaredSymbol(propertyBlock).ContainingType

@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Friend Class DirectiveWalker
-        Inherits VisualBasicSyntaxWalker
+        Inherits VBSyntaxWalker
 
         Private ReadOnly _startEndMap As Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)
         Private ReadOnly _conditionalMap As Dictionary(Of DirectiveTriviaSyntax, IEnumerable(Of DirectiveTriviaSyntax))
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Do
                     Dim poppedDirective = _ifStack.Pop()
                     condDirectives.Add(poppedDirective)
-                    If poppedDirective.VisualBasicKind = SyntaxKind.IfDirectiveTrivia Then
+                    If poppedDirective.VBKind = SyntaxKind.IfDirectiveTrivia Then
                         Exit Do
                     End If
                 Loop Until _ifStack.IsEmpty()
@@ -88,9 +88,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
                 ' #If should be the first one in sorted order
                 Dim ifDirective = condDirectives.First()
-                Contract.Assert(ifDirective.VisualBasicKind = SyntaxKind.IfDirectiveTrivia OrElse
-                            ifDirective.VisualBasicKind = SyntaxKind.ElseIfDirectiveTrivia OrElse
-                            ifDirective.VisualBasicKind = SyntaxKind.ElseDirectiveTrivia)
+                Contract.Assert(ifDirective.VBKind = SyntaxKind.IfDirectiveTrivia OrElse
+                            ifDirective.VBKind = SyntaxKind.ElseIfDirectiveTrivia OrElse
+                            ifDirective.VBKind = SyntaxKind.ElseDirectiveTrivia)
 
                 _startEndMap.Add(directive, ifDirective)
                 _startEndMap.Add(ifDirective, directive)

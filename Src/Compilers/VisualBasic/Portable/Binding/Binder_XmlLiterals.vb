@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindRemoveNamespaceAttributesInvocation(
-                                                                syntax As VisualBasicSyntaxNode,
+                                                                syntax As VBSyntaxNode,
                                                                 expr As BoundExpression,
                                                                 prefixesPlaceholder As BoundRValuePlaceholder,
                                                                 namespacesPlaceholder As BoundRValuePlaceholder,
@@ -847,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             importedNamespaces.Add(New KeyValuePair(Of String, String)(prefix, [namespace]))
         End Sub
 
-        Private Function BindXmlName(syntax As VisualBasicSyntaxNode, localName As BoundExpression, [namespace] As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlName(syntax As VBSyntaxNode, localName As BoundExpression, [namespace] As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
             Dim group = GetXmlMethodOrPropertyGroup(
                 syntax,
                 GetWellKnownType(WellKnownType.System_Xml_Linq_XName, syntax, diagnostics),
@@ -883,7 +883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return BindXmlNamespace(syntax, expr, diagnostics)
         End Function
 
-        Private Function BindXmlNamespace(syntax As VisualBasicSyntaxNode, [namespace] As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlNamespace(syntax As VBSyntaxNode, [namespace] As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
             Dim group = GetXmlMethodOrPropertyGroup(
                 syntax,
                 GetWellKnownType(WellKnownType.System_Xml_Linq_XNamespace, syntax, diagnostics),
@@ -894,7 +894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlNamespace(syntax, [namespace], objectCreation, objectCreation.Type)
         End Function
 
-        Private Function ReportXmlNamespacePrefixNotDefined(syntax As VisualBasicSyntaxNode, prefixToken As SyntaxToken, prefix As String, compilerGenerated As Boolean, diagnostics As DiagnosticBag) As BoundBadExpression
+        Private Function ReportXmlNamespacePrefixNotDefined(syntax As VBSyntaxNode, prefixToken As SyntaxToken, prefix As String, compilerGenerated As Boolean, diagnostics As DiagnosticBag) As BoundBadExpression
             Debug.Assert(prefix IsNot Nothing)
             Debug.Assert(prefix = GetXmlName(prefixToken))
             ' "XML namespace prefix '{0}' is not defined."
@@ -943,15 +943,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetXmlString(token As SyntaxToken) As String
-            Select Case token.VisualBasicKind
+            Select Case token.VBKind
                 Case SyntaxKind.XmlTextLiteralToken, SyntaxKind.XmlEntityLiteralToken
                     Return token.ValueText
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(token.VisualBasicKind)
+                    Throw ExceptionUtilities.UnexpectedValue(token.VBKind)
             End Select
         End Function
 
-        Private Function GetXmlMethodOrPropertyGroup(syntax As VisualBasicSyntaxNode, type As NamedTypeSymbol, memberName As String, receiverOpt As BoundExpression, diagnostics As DiagnosticBag) As BoundMethodOrPropertyGroup
+        Private Function GetXmlMethodOrPropertyGroup(syntax As VBSyntaxNode, type As NamedTypeSymbol, memberName As String, receiverOpt As BoundExpression, diagnostics As DiagnosticBag) As BoundMethodOrPropertyGroup
             If type.IsErrorType() Then
                 Return Nothing
             End If
@@ -1013,7 +1013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the method or property group is not Nothing, bind as an invocation expression.
         ''' Otherwise return a BoundBadExpression containing the arguments.
         ''' </summary>
-        Private Function BindInvocationExpressionIfGroupNotNothing(syntax As VisualBasicSyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindInvocationExpressionIfGroupNotNothing(syntax As VBSyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As DiagnosticBag) As BoundExpression
             If groupOpt Is Nothing Then
                 Return BadExpression(syntax, StaticCast(Of BoundNode).From(arguments), ErrorTypeSymbol.UnknownResultType)
             Else
@@ -1032,7 +1032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Check if XML features are allowed. If not, report an error and return a
         ''' separate DiagnosticBag that can be used for binding sub-expressions.
         ''' </summary>
-        Private Function CheckXmlFeaturesAllowed(syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As DiagnosticBag
+        Private Function CheckXmlFeaturesAllowed(syntax As VBSyntaxNode, diagnostics As DiagnosticBag) As DiagnosticBag
             ' Check if XObject is available, which matches the native compiler.
             Dim type = Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XObject)
             If type.IsErrorType() Then
@@ -1047,7 +1047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateStringLiteral(
-                                            syntax As VisualBasicSyntaxNode,
+                                            syntax As VBSyntaxNode,
                                             str As String,
                                             compilerGenerated As Boolean,
                                             diagnostics As DiagnosticBag,
@@ -1238,7 +1238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Shared Function RedefinesReservedXmlNamespace(syntax As VisualBasicSyntaxNode, prefix As String, reservedPrefix As String, [namespace] As String, reservedNamespace As String, diagnostics As DiagnosticBag) As Boolean
+        Private Shared Function RedefinesReservedXmlNamespace(syntax As VBSyntaxNode, prefix As String, reservedPrefix As String, [namespace] As String, reservedNamespace As String, diagnostics As DiagnosticBag) As Boolean
             If ([namespace] = reservedNamespace) AndAlso (prefix <> reservedPrefix) Then
                 ' "Prefix '{0}' cannot be bound to namespace name reserved for '{1}'."
                 ReportDiagnostic(diagnostics, syntax, ERRID.ERR_ReservedXmlNamespace, prefix, reservedPrefix)
@@ -1295,11 +1295,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetXmlName(token As SyntaxToken) As String
-            Select Case token.VisualBasicKind
+            Select Case token.VBKind
                 Case SyntaxKind.XmlNameToken
                     Return token.ValueText
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(token.VisualBasicKind)
+                    Throw ExceptionUtilities.UnexpectedValue(token.VBKind)
             End Select
         End Function
 
@@ -1921,7 +1921,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+            Friend Overrides ReadOnly Property Syntax As VBSyntaxNode
                 Get
                     Return _originalDefinition.Syntax
                 End Get

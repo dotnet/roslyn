@@ -23,9 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary> Owning compilationSource module </summary>
-        Public ReadOnly Compilation As VisualBasicCompilation
+        Public ReadOnly Compilation As VBCompilation
 
-        Public Sub New(compilation As VisualBasicCompilation)
+        Public Sub New(compilation As VBCompilation)
             Me.Compilation = compilation
         End Sub
 

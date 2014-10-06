@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._position = location
         End Sub
 
-        Private Sub New(embeddedKind As SyntaxTreeKind, tree As SyntaxTree, location As Integer, compilation As VisualBasicCompilation)
+        Private Sub New(embeddedKind As SyntaxTreeKind, tree As SyntaxTree, location As Integer, compilation As VBCompilation)
             Me.New(embeddedKind, If(tree Is Nothing OrElse embeddedKind <> SyntaxTreeKind.None, -1, compilation.GetSyntaxTreeOrdinal(tree)), location)
         End Sub
 
@@ -92,11 +92,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          CType(tree.GetEmbeddedKind(), SyntaxTreeKind)))
         End Function
 
-        Public Sub New(tree As SyntaxTree, position As Integer, compilation As VisualBasicCompilation)
+        Public Sub New(tree As SyntaxTree, position As Integer, compilation As VBCompilation)
             Me.New(GetEmbeddedKind(tree), tree, position, compilation)
         End Sub
 
-        Public Sub New(syntaxRef As SyntaxReference, compilation As VisualBasicCompilation)
+        Public Sub New(syntaxRef As SyntaxReference, compilation As VBCompilation)
             Me.New(syntaxRef.SyntaxTree, syntaxRef.Span.Start, compilation)
         End Sub
 
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' WARNING: Only use this if the location is obtainable without allocating it (even if cached later). E.g., only
         ''' if the location object is stored in the constructor of the symbol.
         ''' </summary>
-        Public Sub New(location As Location, compilation As VisualBasicCompilation)
+        Public Sub New(location As Location, compilation As VBCompilation)
             If location Is Nothing Then
                 Me._embeddedKind = SyntaxTreeKind.None
                 Me._treeOrdinal = -1
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Debug.Assert(location.PossiblyEmbeddedOrMySourceSpan.Start >= 0)
 
-                Dim tree = DirectCast(location.SourceTree, VisualBasicSyntaxTree)
+                Dim tree = DirectCast(location.SourceTree, VBSyntaxTree)
                 Debug.Assert(tree Is Nothing OrElse tree.GetEmbeddedKind = location.EmbeddedKind)
 
                 Dim treeKind As SyntaxTreeKind = GetEmbeddedKind(tree)
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' if the node is stored in the constructor of the symbol. In particular, do not call this on the result of a GetSyntax()
         ''' call on a SyntacReference.
         ''' </summary>
-        Public Sub New(node As VisualBasicSyntaxNode, compilation As VisualBasicCompilation)
+        Public Sub New(node As VBSyntaxNode, compilation As VBCompilation)
             Me.New(node.SyntaxTree, node.SpanStart, compilation)
         End Sub
 
@@ -143,8 +143,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' if the node is stored in the constructor of the symbol. In particular, do not call this on the result of a GetSyntax()
         ''' call on a SyntaxReference.
         ''' </summary>
-        Public Sub New(token As SyntaxToken, compilation As VisualBasicCompilation)
-            Me.New(DirectCast(token.SyntaxTree, VisualBasicSyntaxTree), token.SpanStart, compilation)
+        Public Sub New(token As SyntaxToken, compilation As VBCompilation)
+            Me.New(DirectCast(token.SyntaxTree, VBSyntaxTree), token.SpanStart, compilation)
         End Sub
 
         ''' <summary>
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return xSortKey.Position - ySortKey.Position
         End Function
 
-        Public Shared Function Compare(first As Location, second As Location, compilation As VisualBasicCompilation) As Integer
+        Public Shared Function Compare(first As Location, second As Location, compilation As VBCompilation) As Integer
             Debug.Assert(first.IsInSource OrElse first.IsEmbeddedOrMyTemplateLocation())
             Debug.Assert(second.IsInSource OrElse second.IsEmbeddedOrMyTemplateLocation())
 

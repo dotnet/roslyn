@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function RemoveAllMembers(declaration As StatementSyntax) As StatementSyntax
-            Select Case declaration.VisualBasicKind
+            Select Case declaration.VBKind
                 Case SyntaxKind.EnumBlock
                     Return DirectCast(declaration, EnumBlockSyntax).WithMembers(Nothing)
 

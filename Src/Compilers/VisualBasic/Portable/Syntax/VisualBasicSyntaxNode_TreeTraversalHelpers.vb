@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Public Class VisualBasicSyntaxNode
+    Partial Public Class VBSyntaxNode
 
         Friend Function FindTokenInternal(position As Integer) As SyntaxToken
             ' While maintaining invariant   curNode.FullSpan.Start <= position < curNode.FullSpan.End
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If trivia.HasStructure AndAlso stepInto(trivia) Then
-                tk = DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode).FindTokenInternal(position)
+                tk = DirectCast(trivia.GetStructure(), VBSyntaxNode).FindTokenInternal(position)
             End If
 
             Return tk
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function FindTrivia(textPosition As Integer, Optional findInsideTrivia As Boolean = False) As SyntaxTrivia
             Dim tk = FindToken(textPosition, findInsideTrivia)
-            If tk.VisualBasicKind = SyntaxKind.None Then
+            If tk.VBKind = SyntaxKind.None Then
                 Return Nothing  ' no tokens or trivia at this position
             End If
 

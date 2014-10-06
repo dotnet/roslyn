@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
                 c1 = New VisualBasicCompilationReference(compilation1)
                 Dim c1Assembly = compilation1.Assembly
 
-                Dim compilation2 = VisualBasicCompilation.Create("C2", references:={NewMsCorLib, c1})
+                Dim compilation2 = VBCompilation.Create("C2", references:={NewMsCorLib, c1})
                 c2 = New VisualBasicCompilationReference(compilation2)
                 Dim c1AsmRef = compilation2.GetReferencedAssemblySymbol(c1)
                 Assert.NotSame(c1Assembly, c1AsmRef)

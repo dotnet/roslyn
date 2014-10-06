@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindObjectCreationExpression(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             type As TypeSymbol,
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As DiagnosticBag) As BoundExpression
@@ -178,15 +178,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindObjectCreationExpression(
-            typeNode As VisualBasicSyntaxNode,
+            typeNode As VBSyntaxNode,
             argumentListOpt As ArgumentListSyntax,
             type0 As TypeSymbol,
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             objectInitializerExpressionOpt As BoundObjectInitializerExpressionBase,
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VisualBasicSyntaxNode
+            callerInfoOpt As VBSyntaxNode
         ) As BoundExpression
 
             Dim resultKind As LookupResultKind = LookupResultKind.Good
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If constructorsGroup Is Nothing OrElse constructorsGroup.ResultKind = LookupResultKind.Inaccessible Then
                 If Not errorReported Then
-                    ReportDiagnostic(diagnostics, If(typeNode.VisualBasicKind = SyntaxKind.QualifiedName, DirectCast(typeNode, QualifiedNameSyntax).Right, typeNode), ErrorFactory.ErrorInfo(ERRID.ERR_NoViableOverloadCandidates1, "New"))
+                    ReportDiagnostic(diagnostics, If(typeNode.VBKind = SyntaxKind.QualifiedName, DirectCast(typeNode, QualifiedNameSyntax).Right, typeNode), ErrorFactory.ErrorInfo(ERRID.ERR_NoViableOverloadCandidates1, "New"))
                 End If
 
                 ' Suppress any additional diagnostics
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindNoPiaObjectCreationExpression(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             [interface] As TypeSymbol,
             coClass As NamedTypeSymbol,
             boundArguments As ImmutableArray(Of BoundExpression),
@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each fieldInitializer In memberInitializerSyntax.Initializers
                 ' NamedFieldInitializerSyntax is derived from FieldInitializerSyntax, which has this optional keyword as a member
                 ' however it should not be set in case of a NamedFieldInitializerSyntax
-                Debug.Assert(fieldInitializer.KeyKeyword.VisualBasicKind <> SyntaxKind.KeyKeyword)
+                Debug.Assert(fieldInitializer.KeyKeyword.VBKind <> SyntaxKind.KeyKeyword)
 
                 Dim target As BoundExpression
                 Dim namedFieldInitializer = DirectCast(fieldInitializer, NamedFieldInitializerSyntax)

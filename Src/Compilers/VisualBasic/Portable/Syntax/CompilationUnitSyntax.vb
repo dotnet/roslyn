@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Partial Public NotInheritable Class CompilationUnitSyntax
-        Inherits VisualBasicSyntaxNode
+        Inherits VBSyntaxNode
 
         ''' <summary> 
         ''' Returns #r directives specified in the compilation. 

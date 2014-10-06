@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Similar to SourceTree, but also works for synthetic locations. 
         Friend Overridable ReadOnly Property PossiblyEmbeddedOrMySourceTree As SyntaxTree
             Get
-                Return DirectCast(Me.SourceTree, VisualBasicSyntaxTree)
+                Return DirectCast(Me.SourceTree, VBSyntaxTree)
             End Get
         End Property
 

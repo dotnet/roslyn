@@ -44,9 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Function RewriteWhileStatement(
-            syntaxNode As VisualBasicSyntaxNode,
-            statementBeginSyntax As VisualBasicSyntaxNode,
-            statementEndSyntax As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
+            statementBeginSyntax As VBSyntaxNode,
+            statementEndSyntax As VBSyntaxNode,
             rewrittenCondition As BoundExpression,
             rewrittenBody As BoundStatement,
             continueLabel As LabelSymbol,

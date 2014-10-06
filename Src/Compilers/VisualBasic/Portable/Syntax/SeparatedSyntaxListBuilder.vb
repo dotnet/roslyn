@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Throw New InvalidOperationException("separator is expected")
             End If
             expectSeparator = True
-            Me.builder.Add(DirectCast(DirectCast(node, SyntaxNode), VisualBasicSyntaxNode))
+            Me.builder.Add(DirectCast(DirectCast(node, SyntaxNode), VBSyntaxNode))
         End Sub
 
         Friend Sub AddSeparator(separatorToken As InternalSyntax.SyntaxToken)

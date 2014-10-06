@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Check that the given variable is definitely assigned.  If not, produce an error.
         ''' </summary>
-        Protected Sub CheckAssigned(symbol As Symbol, node As VisualBasicSyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
+        Protected Sub CheckAssigned(symbol As Symbol, node As VBSyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
             If symbol IsNot Nothing Then
                 Dim local = TryCast(symbol, LocalSymbol)
                 If local IsNot Nothing AndAlso local.IsCompilerGenerated AndAlso Not Me.ProcessCompilerGeneratedLocals Then
@@ -902,7 +902,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary> Version of CheckAssigned for bound field access </summary>
-        Private Sub CheckAssigned(fieldAccess As BoundFieldAccess, node As VisualBasicSyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
+        Private Sub CheckAssigned(fieldAccess As BoundFieldAccess, node As VBSyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
             Dim unassignedSlot As Integer
 
             If Me.State.Reachable AndAlso Not IsAssigned(fieldAccess, unassignedSlot) Then
@@ -1058,7 +1058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' reported, we suppress further reports of that variable.
         ''' </summary>
         Protected Overridable Sub ReportUnassigned(sym As Symbol,
-                                                   node As VisualBasicSyntaxNode,
+                                                   node As VBSyntaxNode,
                                                    rwContext As ReadWriteContext,
                                                    Optional slot As Integer = SlotKind.NotTracked,
                                                    Optional boundFieldAccess As BoundFieldAccess = Nothing)
@@ -1138,7 +1138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Private Sub CheckAssignedFunctionValue(local As LocalSymbol, node As VisualBasicSyntaxNode)
+        Private Sub CheckAssignedFunctionValue(local As LocalSymbol, node As VBSyntaxNode)
             If Not Me.State.FunctionAssignedValue AndAlso Not seenOnErrorOrResume Then
                 Dim type As TypeSymbol = local.Type
                 ' NOTE: Dev11 does NOT report warning on user-defined empty value types
@@ -1152,7 +1152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub ReportUnassignedFunctionValue(local As LocalSymbol, node As VisualBasicSyntaxNode)
+        Private Sub ReportUnassignedFunctionValue(local As LocalSymbol, node As VBSyntaxNode)
             If Not alreadyReported(SlotKind.FunctionValue) Then
 
                 Dim type As TypeSymbol = Nothing
@@ -1865,7 +1865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.WriteArgument(arg, isOut)
         End Sub
 
-        Protected Sub CheckAssignedFromArgumentWrite(expr As BoundExpression, node As VisualBasicSyntaxNode)
+        Protected Sub CheckAssignedFromArgumentWrite(expr As BoundExpression, node As VBSyntaxNode)
             If Not Me.State.Reachable Then
                 Return
             End If
@@ -1935,7 +1935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' is a value type. The reason is that in this case the initialization happens in place (not in a temporary) and 
         ''' the variable already got the object creation expression assigned.
         ''' </summary>
-        Private Function DeclaredVariableIsAlwaysAssignedBeforeInitializer(syntax As VisualBasicSyntaxNode, boundInitializer As BoundExpression,
+        Private Function DeclaredVariableIsAlwaysAssignedBeforeInitializer(syntax As VBSyntaxNode, boundInitializer As BoundExpression,
                                                                            <Out> ByRef placeholder As BoundValuePlaceholderBase) As Boolean
             placeholder = Nothing
             If boundInitializer IsNot Nothing AndAlso

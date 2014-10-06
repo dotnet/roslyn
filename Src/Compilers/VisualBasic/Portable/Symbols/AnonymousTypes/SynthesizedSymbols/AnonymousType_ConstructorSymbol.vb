@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private m_parameters As ImmutableArray(Of ParameterSymbol)
 
             Public Sub New(container As AnonymousTypeTemplateSymbol)
-                MyBase.New(VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot(), container, False, Nothing, Nothing)
+                MyBase.New(VisualBasic.VBSyntaxTree.Dummy.GetRoot(), container, False, Nothing, Nothing)
 
                 '  Create constructor parameters
                 Dim fieldsCount As Integer = container.Properties.Length

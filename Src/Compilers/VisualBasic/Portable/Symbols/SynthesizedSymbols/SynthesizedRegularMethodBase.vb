@@ -15,10 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected ReadOnly m_name As String
         Protected ReadOnly m_isShared As Boolean
-        Protected ReadOnly m_SyntaxNode As VisualBasicSyntaxNode
+        Protected ReadOnly m_SyntaxNode As VBSyntaxNode
 
         Protected Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
             container As NamedTypeSymbol,
             name As String,
             Optional isShared As Boolean = False
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property Syntax As VBSyntaxNode
             Get
                 Return m_SyntaxNode
             End Get

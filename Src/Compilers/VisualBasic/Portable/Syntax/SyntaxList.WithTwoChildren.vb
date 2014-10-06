@@ -37,9 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Friend Overrides Function GetCachedSlot(i As Integer) As SyntaxNode
                 Select Case i
                     Case 0
-                        Return TryCast(_child0, VisualBasicSyntaxNode)
+                        Return TryCast(_child0, VBSyntaxNode)
                     Case 1
-                        Return TryCast(_child1, VisualBasicSyntaxNode)
+                        Return TryCast(_child1, VBSyntaxNode)
                     Case Else
                         Return Nothing
                 End Select

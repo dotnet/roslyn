@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Represents a <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxVisitor`1"/> which descends an entire <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxNode"/> graph and
     ''' may replace or remove visited SyntaxNodes in depth-first order.
     ''' </summary>
-    Partial Public Class VisualBasicSyntaxRewriter
-        Inherits VisualBasicSyntaxVisitor(Of SyntaxNode)
+    Partial Public Class VBSyntaxRewriter
+        Inherits VBSyntaxVisitor(Of SyntaxNode)
 
         Private ReadOnly _visitIntoStructuredTrivia As Boolean
 
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
             If Me.VisitIntoStructuredTrivia AndAlso trivia.HasStructure Then
-                Dim [structure] = DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode)
+                Dim [structure] = DirectCast(trivia.GetStructure(), VBSyntaxNode)
                 Dim newStructure = DirectCast(Me.Visit([structure]), StructuredTriviaSyntax)
                 If newStructure IsNot [structure] Then
                     Return SyntaxFactory.Trivia(newStructure)
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     alternate.AddRange(list, 0, i)
                 End If
 
-                If alternate IsNot Nothing AndAlso visited IsNot Nothing AndAlso visited.VisualBasicKind <> SyntaxKind.None Then
+                If alternate IsNot Nothing AndAlso visited IsNot Nothing AndAlso visited.VBKind <> SyntaxKind.None Then
                     alternate.Add(visited)
                 End If
 
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     alternate.Add(list, 0, i)
                 End If
 
-                If alternate IsNot Nothing AndAlso visited.VisualBasicKind <> SyntaxKind.None Then ' skip the null check since SyntaxToken is a value type
+                If alternate IsNot Nothing AndAlso visited.VBKind <> SyntaxKind.None Then ' skip the null check since SyntaxToken is a value type
                     alternate.Add(visited)
                 End If
             Next
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         alternate.Add(list, 0, index)
                     End If
 
-                    If alternate IsNot Nothing AndAlso visited.VisualBasicKind() <> SyntaxKind.None Then
+                    If alternate IsNot Nothing AndAlso visited.VBKind() <> SyntaxKind.None Then
                         alternate.Add(visited)
                     End If
                 Next

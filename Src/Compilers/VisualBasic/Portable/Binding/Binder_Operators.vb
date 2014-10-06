@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindIsExpression(
              left As BoundExpression,
              right As BoundExpression,
-             node As VisualBasicSyntaxNode,
+             node As VBSyntaxNode,
              [isNot] As Boolean,
              diagnostics As DiagnosticBag
         ) As BoundExpression
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim left As BoundExpression = BindValue(node.Left, diagnostics, propagateIsOperandOfConditionalBranch)
             Dim right As BoundExpression = BindValue(node.Right, diagnostics, propagateIsOperandOfConditionalBranch)
 
-            Return BindBinaryOperator(node, left, right, node.OperatorToken.VisualBasicKind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
+            Return BindBinaryOperator(node, left, right, node.OperatorToken.VBKind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
         End Function
 
         Private Function BindBinaryOperatorUnwound(
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim rightSyntax As ExpressionSyntax = expressionsStack.Pop()
                 Dim binarySyntax = DirectCast(rightSyntax.Parent, BinaryExpressionSyntax)
                 Dim right As BoundExpression = BindValue(rightSyntax, diagnostics, False)
-                leftmost = BindBinaryOperator(binarySyntax, leftmost, right, binarySyntax.OperatorToken.VisualBasicKind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
+                leftmost = BindBinaryOperator(binarySyntax, leftmost, right, binarySyntax.OperatorToken.VBKind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
             End While
 
             expressionsStack.Free()
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindBinaryOperator(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             left As BoundExpression,
             right As BoundExpression,
             operatorTokenKind As SyntaxKind,
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindUserDefinedNonShortCircuitingBinaryOperator(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             opKind As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -599,7 +599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     !T.IsTrue(temp = x) ? T.Or(temp, y) : temp
         ''' </summary>
         Private Function BindUserDefinedShortCircuitingOperator(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             opKind As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -788,7 +788,7 @@ Done:
         ''' lookups and construction of new instances of symbols.
         ''' </summary>
         Private Function GetSpecialTypeForBinaryOperator(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             leftType As TypeSymbol,
             rightType As TypeSymbol,
             specialType As SpecialType,
@@ -912,7 +912,7 @@ Done:
         End Function
 
         Private Sub ReportUndefinedOperatorError(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             left As BoundExpression,
             right As BoundExpression,
             operatorTokenKind As SyntaxKind,
@@ -1190,7 +1190,7 @@ Done:
         End Function
 
         Private Function BindUserDefinedUnaryOperator(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             opKind As UnaryOperatorKind,
             operand As BoundExpression,
             <[In]> ByRef userDefinedOperator As OverloadResolution.OverloadResolutionResult,

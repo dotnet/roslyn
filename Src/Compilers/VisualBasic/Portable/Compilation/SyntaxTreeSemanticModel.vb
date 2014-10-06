@@ -19,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Allows asking semantic questions about any node in a SyntaxTree within a Compilation.
     ''' </summary>
     Friend Class SyntaxTreeSemanticModel
-        Inherits VisualBasicSemanticModel
+        Inherits VBSemanticModel
 
-        Private ReadOnly _compilation As VisualBasicCompilation
+        Private ReadOnly _compilation As VBCompilation
         Private ReadOnly _sourceModule As SourceModuleSymbol
         Private ReadOnly _syntaxTree As SyntaxTree
         Private ReadOnly _binderFactory As BinderFactory
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' maps from a higher-level binder to an appropriate SemanticModel for the construct (such as a method, or initializer).
         Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of Binder, MemberSemanticModel)()
 
-        Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree)
+        Friend Sub New(compilation As VBCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree)
             _compilation = compilation
             _sourceModule = sourceModule
             _syntaxTree = syntaxTree
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The compilation associated with this binding.
         ''' </summary> 
-        Public Overrides ReadOnly Property Compilation As VisualBasicCompilation
+        Public Overrides ReadOnly Property Compilation As VBCompilation
             Get
                 Return _compilation
             End Get
@@ -48,9 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend Overrides ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Root As VBSyntaxNode
             Get
-                Return DirectCast(_syntaxTree.GetRoot(), VisualBasicSyntaxNode)
+                Return DirectCast(_syntaxTree.GetRoot(), VBSyntaxNode)
             End Get
         End Property
 
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return model
         End Function
 
-        Friend Function GetMemberSemanticModel(node As VisualBasicSyntaxNode) As MemberSemanticModel
+        Friend Function GetMemberSemanticModel(node As VBSyntaxNode) As MemberSemanticModel
             Return GetMemberSemanticModel(node.SpanStart)
         End Function
 
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Friend Overrides Function GetCrefReferenceSymbolInfo(crefReference As CrefReferenceSyntax, options As VisualBasicSemanticModel.SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+        Friend Overrides Function GetCrefReferenceSymbolInfo(crefReference As CrefReferenceSyntax, options As VBSemanticModel.SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
             ValidateSymbolInfoOptions(options)
             Debug.Assert(IsInCrefOrNameAttributeInterior(crefReference))
             Return GetSymbolInfoForCrefOrNameAttributeReference(crefReference, options)
@@ -447,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Get the symbol info of reference from 'cref' or 'name' attribute value
-        Private Function GetSymbolInfoForCrefOrNameAttributeReference(node As VisualBasicSyntaxNode, options As SymbolInfoOptions) As SymbolInfo
+        Private Function GetSymbolInfoForCrefOrNameAttributeReference(node As VBSyntaxNode, options As SymbolInfoOptions) As SymbolInfo
             Dim typeParameters As ImmutableArray(Of Symbol) = Nothing
             Dim result As ImmutableArray(Of Symbol) = GetCrefOrNameAttributeReferenceSymbols(node, (options And SymbolInfoOptions.ResolveAliases) = 0, typeParameters)
 
@@ -516,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="preserveAlias">True to leave <see cref="AliasSymbol"/>s, False to unwrap them.</param>
         ''' <param name="typeParameters">Out: symbols that would have been in the return value but improperly refer to type parameters.</param>
         ''' <returns>Referenced symbols, less type parameters.</returns>
-        Private Function GetCrefOrNameAttributeReferenceSymbols(node As VisualBasicSyntaxNode,
+        Private Function GetCrefOrNameAttributeReferenceSymbols(node As VBSyntaxNode,
                                                                 preserveAlias As Boolean,
                                                                 <Out> ByRef typeParameters As ImmutableArray(Of Symbol)) As ImmutableArray(Of Symbol)
             typeParameters = ImmutableArray(Of Symbol).Empty
@@ -535,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          node.Kind = SyntaxKind.CrefReference)
 
             ' We need to find trivia's enclosing binder first
-            Dim parent As VisualBasicSyntaxNode = node.Parent
+            Dim parent As VBSyntaxNode = node.Parent
             Debug.Assert(parent IsNot Nothing)
 
             Dim attributeNode As BaseXmlAttributeSyntax = Nothing
@@ -561,12 +561,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(isCrefAttribute OrElse attributeNode.Kind = SyntaxKind.XmlNameAttribute)
 
             Dim trivia As SyntaxTrivia = DirectCast(parent, DocumentationCommentTriviaSyntax).ParentTrivia
-            If trivia.VisualBasicKind = SyntaxKind.None Then
+            If trivia.VBKind = SyntaxKind.None Then
                 Return Nothing
             End If
 
             Dim token As SyntaxToken = CType(trivia.Token, SyntaxToken)
-            If token.VisualBasicKind = SyntaxKind.None Then
+            If token.VBKind = SyntaxKind.None Then
                 Return Nothing
             End If
 
@@ -847,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Checks all symbol locations against the syntax provided and rreturn symbol if any of the locations is 
         ''' inside the syntax span. Returns Nothing otherwise.
         ''' </summary>
-        Private Function CheckSymbolLocationsAgainstSyntax(symbol As NamedTypeSymbol, nodeToCheck As VisualBasicSyntaxNode) As NamedTypeSymbol
+        Private Function CheckSymbolLocationsAgainstSyntax(symbol As NamedTypeSymbol, nodeToCheck As VBSyntaxNode) As NamedTypeSymbol
             For Each location In symbol.Locations
                 If location.SourceTree Is Me.SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan.Start) Then
                     Return symbol
@@ -1569,7 +1569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             '         But in Color/Color case it binds into other symbol kinds and we suppress 
             '         assertion for this case here
-            Dim expressionParent As VisualBasicSyntaxNode = expression.Parent
+            Dim expressionParent As VBSyntaxNode = expression.Parent
             If expression.Kind = SyntaxKind.IdentifierName AndAlso
                     expressionParent IsNot Nothing AndAlso expressionParent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso
                     DirectCast(expressionParent, MemberAccessExpressionSyntax).Expression Is expression Then
@@ -1596,11 +1596,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '          |
                 '  NumericalLiteral
 
-                Dim argList As VisualBasicSyntaxNode = expressionParent.Parent
+                Dim argList As VBSyntaxNode = expressionParent.Parent
                 If argList IsNot Nothing AndAlso argList.Kind = SyntaxKind.ArgumentList Then
-                    Dim modIdentifier As VisualBasicSyntaxNode = argList.Parent
+                    Dim modIdentifier As VBSyntaxNode = argList.Parent
                     If modIdentifier IsNot Nothing AndAlso modIdentifier.Kind = SyntaxKind.ModifiedIdentifier Then
-                        Dim varDeclarator As VisualBasicSyntaxNode = modIdentifier.Parent
+                        Dim varDeclarator As VBSyntaxNode = modIdentifier.Parent
                         If varDeclarator IsNot Nothing AndAlso varDeclarator.Kind = SyntaxKind.VariableDeclarator AndAlso
                                 DirectCast(varDeclarator, VariableDeclaratorSyntax).Initializer IsNot Nothing Then
                             Return
@@ -1615,7 +1615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Checks if the node is inside the attribute arguments 
         ''' </summary>
-        Private Shared Function IsNodeInsideAttributeArguments(node As VisualBasicSyntaxNode) As Boolean
+        Private Shared Function IsNodeInsideAttributeArguments(node As VBSyntaxNode) As Boolean
             While node IsNot Nothing
                 If node.Kind = SyntaxKind.Attribute Then
                     Return True
@@ -1632,9 +1632,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Shared Function IsExpressionInValidContext(expression As ExpressionSyntax) As Boolean
 
-            Dim currentNode As VisualBasicSyntaxNode = expression
+            Dim currentNode As VBSyntaxNode = expression
             Do
-                Dim parent As VisualBasicSyntaxNode = currentNode.Parent
+                Dim parent As VBSyntaxNode = currentNode.Parent
                 If parent Is Nothing Then Return True
 
                 Dim expressionParent = TryCast(parent, ExpressionSyntax)
@@ -1660,7 +1660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Dim localDeclSyntax = TryCast(parent.Parent, LocalDeclarationStatementSyntax)
                                     If localDeclSyntax IsNot Nothing Then
                                         For Each modifier In localDeclSyntax.Modifiers
-                                            Select Case modifier.VisualBasicKind
+                                            Select Case modifier.VBKind
                                                 Case SyntaxKind.ConstKeyword
                                                     Return False
                                             End Select
@@ -1719,7 +1719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Private Sub AssertNodeInTree(node As VisualBasicSyntaxNode, argName As String)
+        Private Sub AssertNodeInTree(node As VBSyntaxNode, argName As String)
             If node Is Nothing Then
                 Throw New ArgumentNullException(argName)
             End If
@@ -1743,7 +1743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Check for pseudo-expressions
             Select Case expression.Kind
                 Case SyntaxKind.CollectionInitializer
-                    Dim parent As VisualBasicSyntaxNode = expression.Parent
+                    Dim parent As VBSyntaxNode = expression.Parent
 
                     If parent IsNot Nothing Then
                         Select Case parent.Kind
@@ -1761,11 +1761,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' Nested collection initializer is not an expression from the language point of view.
                                 ' However, third level collection initializer under ObjectCollectionInitializer should
                                 ' be treated as a stand alone expression.
-                                Dim possibleSecondLevelInitializer As VisualBasicSyntaxNode = parent
+                                Dim possibleSecondLevelInitializer As VBSyntaxNode = parent
                                 parent = parent.Parent
 
                                 If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.CollectionInitializer Then
-                                    Dim possibleFirstLevelInitializer As VisualBasicSyntaxNode = parent
+                                    Dim possibleFirstLevelInitializer As VBSyntaxNode = parent
                                     parent = parent.Parent
 
                                     If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.ObjectCollectionInitializer AndAlso
@@ -1829,7 +1829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' the uppermost block is the one which includes all the For blocks ending with 
         ''' the same Next clause
         ''' </summary>
-        Private Function IsNotUppermostForBlock(forBlockOrStatement As VisualBasicSyntaxNode) As Boolean
+        Private Function IsNotUppermostForBlock(forBlockOrStatement As VBSyntaxNode) As Boolean
             Debug.Assert(forBlockOrStatement.Kind <> SyntaxKind.ForStatement)
             Debug.Assert(forBlockOrStatement.Kind <> SyntaxKind.ForEachStatement)
 

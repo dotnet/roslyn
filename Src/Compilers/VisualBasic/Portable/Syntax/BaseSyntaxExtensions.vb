@@ -10,18 +10,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ' Methods
 
         <Extension()>
-        Friend Function ToGreen(node As InternalSyntax.VisualBasicSyntaxNode) As InternalSyntax.VisualBasicSyntaxNode
+        Friend Function ToGreen(node As InternalSyntax.VBSyntaxNode) As InternalSyntax.VBSyntaxNode
             Debug.Assert(False, "just use the node")
             Return node
         End Function
 
         <Extension()>
-        Friend Function ToGreen(node As VisualBasicSyntaxNode) As InternalSyntax.VisualBasicSyntaxNode
+        Friend Function ToGreen(node As VBSyntaxNode) As InternalSyntax.VBSyntaxNode
             Return If(node Is Nothing, Nothing, node.VbGreen)
         End Function
 
         <Extension()>
-        Friend Function ToRed(node As InternalSyntax.VisualBasicSyntaxNode) As SyntaxNode
+        Friend Function ToRed(node As InternalSyntax.VBSyntaxNode) As SyntaxNode
             If node Is Nothing Then
                 Return Nothing
             End If
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         <Extension()>
-        Friend Function ToRed(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+        Friend Function ToRed(node As VBSyntaxNode) As VBSyntaxNode
             Debug.Assert(False, "just use the node")
             Return node
         End Function

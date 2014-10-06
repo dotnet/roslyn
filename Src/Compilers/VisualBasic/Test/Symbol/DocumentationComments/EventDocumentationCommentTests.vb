@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EventDocumentationCommentTests
 
-        Private m_compilation As VisualBasicCompilation
+        Private m_compilation As VBCompilation
         Private m_acmeNamespace As NamespaceSymbol
         Private m_widgetClass As NamedTypeSymbol
 

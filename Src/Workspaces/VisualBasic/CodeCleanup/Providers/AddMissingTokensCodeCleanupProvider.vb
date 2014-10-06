@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 If TypeOf name.Parent Is MemberAccessExpressionSyntax OrElse
                    name.CheckParent(Of AttributeSyntax)(Function(p) p.Name Is name) OrElse
                    name.CheckParent(Of ImplementsClauseSyntax)(Function(p) p.InterfaceMembers.Any(Function(i) i Is name)) OrElse
-                   name.CheckParent(Of UnaryExpressionSyntax)(Function(p) p.VisualBasicKind = SyntaxKind.AddressOfExpression AndAlso p.Operand Is name) OrElse
+                   name.CheckParent(Of UnaryExpressionSyntax)(Function(p) p.VBKind = SyntaxKind.AddressOfExpression AndAlso p.Operand Is name) OrElse
                    name.CheckParent(Of InvocationExpressionSyntax)(Function(p) p.Expression Is name) OrElse
                    name.CheckParent(Of NamedFieldInitializerSyntax)(Function(p) p.Name Is name) OrElse
                    name.CheckParent(Of ImplementsStatementSyntax)(Function(p) p.Types.Any(Function(t) t Is name)) OrElse
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                    node.Type.TypeSwitch(Function(n As GenericNameSyntax)
                                             Return n.TypeArgumentList Is Nothing OrElse
                                                    n.TypeArgumentList.CloseParenToken.IsMissing OrElse
-                                                   n.TypeArgumentList.CloseParenToken.VisualBasicKind = SyntaxKind.None
+                                                   n.TypeArgumentList.CloseParenToken.VBKind = SyntaxKind.None
                                         End Function) Then
                     Return newNode
                 End If
@@ -215,9 +215,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitAccessorStatement(node As AccessorStatementSyntax) As SyntaxNode
                 Dim newNode = MyBase.VisitAccessorStatement(node)
-                If node.Keyword.VisualBasicKind <> SyntaxKind.AddHandlerKeyword AndAlso
-                   node.Keyword.VisualBasicKind <> SyntaxKind.RemoveHandlerKeyword AndAlso
-                   node.Keyword.VisualBasicKind <> SyntaxKind.RaiseEventKeyword Then
+                If node.Keyword.VBKind <> SyntaxKind.AddHandlerKeyword AndAlso
+                   node.Keyword.VBKind <> SyntaxKind.RemoveHandlerKeyword AndAlso
+                   node.Keyword.VBKind <> SyntaxKind.RaiseEventKeyword Then
                     Return newNode
                 End If
 
@@ -395,9 +395,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 Return Not lastToken _
                            .TrailingTrivia _
-                           .Where(Function(t) t.VisualBasicKind = SyntaxKind.SkippedTokensTrivia) _
+                           .Where(Function(t) t.VBKind = SyntaxKind.SkippedTokensTrivia) _
                            .SelectMany(Function(t) DirectCast(t.GetStructure(), SkippedTokensTriviaSyntax).Tokens) _
-                           .Any(Function(t) kinds.Contains(t.VisualBasicKind))
+                           .Any(Function(t) kinds.Contains(t.VBKind))
             End Function
 
             Public Overrides Function VisitIfStatement(node As IfStatementSyntax) As SyntaxNode
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitSelectStatement(node As SelectStatementSyntax) As SyntaxNode
                 Dim newNode = DirectCast(MyBase.VisitSelectStatement(node), SelectStatementSyntax)
-                Return If(newNode.CaseKeyword.VisualBasicKind = SyntaxKind.None,
+                Return If(newNode.CaseKeyword.VBKind = SyntaxKind.None,
                            newNode.WithCaseKeyword(SyntaxFactory.Token(SyntaxKind.CaseKeyword)),
                            newNode)
             End Function
@@ -468,8 +468,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 ' token is not missing or if missing token is identifier there is not much we can do
                 If Not originalToken.IsMissing OrElse
-                   originalToken.VisualBasicKind = SyntaxKind.None OrElse
-                   originalToken.VisualBasicKind = SyntaxKind.IdentifierToken Then
+                   originalToken.VBKind = SyntaxKind.None OrElse
+                   originalToken.VBKind = SyntaxKind.IdentifierToken Then
                     Return token
                 End If
 
@@ -485,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Private Function SetOmittedToken(originalParent As SyntaxNode, newToken As SyntaxToken) As SyntaxNode
-                Select Case newToken.VisualBasicKind
+                Select Case newToken.VBKind
                     Case SyntaxKind.ThenKeyword
 
                         ' this can be regular If or an If directive
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
 
             Private Function IsOmitted(token As SyntaxToken) As Boolean
-                Return token.VisualBasicKind = SyntaxKind.None
+                Return token.VBKind = SyntaxKind.None
             End Function
 
             Private Function ProcessOmittedToken(originalToken As SyntaxToken, token As SyntaxToken, parent As SyntaxNode) As SyntaxToken
@@ -533,13 +533,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private Function InvalidOmittedToken(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
                 ' if previous token has a problem, don't bother
-                If previousToken.IsMissing OrElse previousToken.IsSkipped OrElse previousToken.VisualBasicKind = 0 Then
+                If previousToken.IsMissing OrElse previousToken.IsSkipped OrElse previousToken.VBKind = 0 Then
                     Return True
                 End If
 
                 ' if next token has a problem, do little bit more check
                 ' if there is no next token, it is okay to insert the missing token
-                If nextToken.VisualBasicKind = 0 Then
+                If nextToken.VBKind = 0 Then
                     Return False
                 End If
 
@@ -578,8 +578,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     End If
                 Next
 
-                previousToken = If(previousToken.VisualBasicKind = 0, node.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True), previousToken)
-                nextToken = If(nextToken.VisualBasicKind = 0, node.GetLastToken(includeZeroWidth:=True).GetNextToken(includeZeroWidth:=True), nextToken)
+                previousToken = If(previousToken.VBKind = 0, node.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True), previousToken)
+                nextToken = If(nextToken.VBKind = 0, node.GetLastToken(includeZeroWidth:=True).GetNextToken(includeZeroWidth:=True), nextToken)
 
                 Return ValueTuple.Create(previousToken, nextToken)
             End Function
@@ -602,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Private Function CreateMissingToken(token As SyntaxToken) As SyntaxToken
-                Return CreateToken(token, token.VisualBasicKind)
+                Return CreateToken(token, token.VBKind)
             End Function
 
             Private Function CreateOmittedToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken

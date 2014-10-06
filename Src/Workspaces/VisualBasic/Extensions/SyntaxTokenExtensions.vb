@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTokenExtensions
         <Extension()>
         Public Function IsKindOrHasMatchingText(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return token.VisualBasicKind = kind OrElse
+            Return token.VBKind = kind OrElse
                    token.HasMatchingText(kind)
         End Function
 
@@ -20,27 +20,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsKind(token As SyntaxToken, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
-            Return token.VisualBasicKind = kind1 OrElse
-                   token.VisualBasicKind = kind2
+            Return token.VBKind = kind1 OrElse
+                   token.VBKind = kind2
         End Function
 
         <Extension()>
         Public Function IsKind(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
-            Return kinds.Contains(token.VisualBasicKind)
+            Return kinds.Contains(token.VBKind)
         End Function
 
         <Extension()>
         Public Function IsCharacterLiteral(token As SyntaxToken) As Boolean
-            Return token.VisualBasicKind = SyntaxKind.CharacterLiteralToken
+            Return token.VBKind = SyntaxKind.CharacterLiteralToken
         End Function
 
         <Extension()>
         Public Function IsNumericLiteral(token As SyntaxToken) As Boolean
             Return _
-                token.VisualBasicKind = SyntaxKind.DateLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.DecimalLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.FloatingLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.IntegerLiteralToken
+                token.VBKind = SyntaxKind.DateLiteralToken OrElse
+                token.VBKind = SyntaxKind.DecimalLiteralToken OrElse
+                token.VBKind = SyntaxKind.FloatingLiteralToken OrElse
+                token.VBKind = SyntaxKind.IntegerLiteralToken
         End Function
 
         <Extension()>
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function IsFirstTokenOnLine(token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Dim previousToken = token.GetPreviousToken(includeSkipped:=True, includeDirectives:=True, includeDocumentationComments:=True)
-            If previousToken.VisualBasicKind = SyntaxKind.None Then
+            If previousToken.VBKind = SyntaxKind.None Then
                 Return True
             End If
 
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GetNextNonZeroWidthTokenOrEndOfFile(token As SyntaxToken) As SyntaxToken
             Dim nextToken = token.GetNextToken()
-            Return If(nextToken.VisualBasicKind = SyntaxKind.None, token.GetAncestor(Of CompilationUnitSyntax)().EndOfFileToken, nextToken)
+            Return If(nextToken.VBKind = SyntaxKind.None, token.GetAncestor(Of CompilationUnitSyntax)().EndOfFileToken, nextToken)
         End Function
 
         <Extension()>
@@ -300,15 +300,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments)
 
-            Return If(nextToken.VisualBasicKind = SyntaxKind.None,
+            Return If(nextToken.VBKind = SyntaxKind.None,
                       token.GetAncestor(Of CompilationUnitSyntax).EndOfFileToken,
                       nextToken)
         End Function
 
         <Extension>
         Public Function IsValidAttributeTarget(token As SyntaxToken) As Boolean
-            Return token.VisualBasicKind() = SyntaxKind.AssemblyKeyword OrElse
-                   token.VisualBasicKind() = SyntaxKind.ModuleKeyword
+            Return token.VBKind() = SyntaxKind.AssemblyKeyword OrElse
+                   token.VBKind() = SyntaxKind.ModuleKeyword
         End Function
     End Module
 End Namespace

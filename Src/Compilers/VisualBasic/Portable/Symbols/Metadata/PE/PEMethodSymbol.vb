@@ -914,7 +914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Me, m_ContainingType.ContainingPEModule, preferredCulture, cancellationToken, m_lazyDocComment)
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As VBSyntaxNode
             Get
                 Return Nothing
             End Get
@@ -957,7 +957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
-        Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
+        Friend Overrides ReadOnly Property DeclaringCompilation As VBCompilation
             Get
                 Return Nothing
             End Get

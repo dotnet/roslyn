@@ -998,7 +998,7 @@ False
 
             CompileAndVerify(source,
                              additionalRefs:=New MetadataReference() {libRef},
-                             options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionCompareText:=True),
+                             options:=New VBCompilationOptions(OutputKind.ConsoleApplication, optionCompareText:=True),
                              expectedOutput:=<![CDATA[
 True
 1

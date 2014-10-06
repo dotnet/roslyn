@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function IFieldReferenceGetType(context As EmitContext) As ITypeReference Implements IFieldReference.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim customModifiers = Me.CustomModifiers
-            Dim type = moduleBeingBuilt.Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim type = moduleBeingBuilt.Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
             If customModifiers.Length = 0 Then
                 Return type
             Else
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
             If Not Me.IsDefinition Then
-                Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
             Return Me.ContainingType
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' do not return a compile time value for const fields of types DateTime or Decimal because they
             ' are only const from a VB point of view
             If Me.IsMetadataConstant Then
-                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ConstantValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ConstantValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
             Return Nothing

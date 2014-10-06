@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
             End Sub
 
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
-                Select Case context.Node.VisualBasicKind
+                Select Case context.Node.VBKind
                     Case SyntaxKind.InvocationExpression
                         AnalyzeInvocationExpression(DirectCast(context.Node, InvocationExpressionSyntax), context.SemanticModel, AddressOf context.ReportDiagnostic)
                     Case Else
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
             End Sub
 
             Private Sub AnalyzeInvocationExpression(node As InvocationExpressionSyntax, model As SemanticModel, reportDiagnostic As Action(Of Diagnostic))
-                If (node.Expression.VisualBasicKind() = SyntaxKind.SimpleMemberAccessExpression) Then
+                If (node.Expression.VBKind() = SyntaxKind.SimpleMemberAccessExpression) Then
                     Dim memberAccess = CType(node.Expression, MemberAccessExpressionSyntax)
                     If memberAccess.Name IsNot Nothing AndAlso IsEqualsOrCompare(memberAccess.Name.Identifier.ValueText) Then
                         Dim methodSymbol = TryCast(model.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)

@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim node = syntaxRef.GetSyntax()
                 Dim attributeSyntaxList As SyntaxList(Of AttributeListSyntax)
 
-                Select Case node.VisualBasicKind
+                Select Case node.VBKind
                     Case SyntaxKind.ClassBlock,
                          SyntaxKind.ModuleBlock,
                          SyntaxKind.StructureBlock,
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         attributeSyntaxList = DirectCast(node, EnumBlockSyntax).EnumStatement.AttributeLists
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(node.VisualBasicKind)
+                        Throw ExceptionUtilities.UnexpectedValue(node.VBKind)
                 End Select
 
                 attributeSyntaxBuilder.Add(attributeSyntaxList)
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return attributeSyntaxBuilder.ToImmutableAndFree()
         End Function
 
-        Public Function GetLexicalSortKey(compilation As VisualBasicCompilation) As LexicalSortKey
+        Public Function GetLexicalSortKey(compilation As VBCompilation) As LexicalSortKey
             ' Return first sort key from all declarations.
             Dim sortKey As LexicalSortKey = New LexicalSortKey(_declarations(0).NameLocation, compilation)
             For i = 1 To _declarations.Length - 1

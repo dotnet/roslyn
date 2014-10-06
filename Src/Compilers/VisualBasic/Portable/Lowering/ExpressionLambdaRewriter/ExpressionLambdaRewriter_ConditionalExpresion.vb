@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Get real method
             helper = DirectCast(DirectCast(nullableType, SubstitutedNamedType).GetMemberForDefinition(helper), MethodSymbol)
 
-            Dim syntax As VisualBasicSyntaxNode = expression.Syntax
+            Dim syntax As VBSyntaxNode = expression.Syntax
             Return New BoundConversion(
                             syntax,
                             New BoundUserDefinedConversion(

@@ -90,11 +90,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Function LastField(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
-            Return members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.FieldDeclaration)
+            Return members.LastOrDefault(Function(m) m.VBKind = SyntaxKind.FieldDeclaration)
         End Function
 
         Public Function LastConstructor(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
-            Return members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.ConstructorBlock OrElse m.VisualBasicKind = SyntaxKind.SubNewStatement)
+            Return members.LastOrDefault(Function(m) m.VBKind = SyntaxKind.ConstructorBlock OrElse m.VBKind = SyntaxKind.SubNewStatement)
         End Function
 
         Public Function LastMethod(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Function LastOperator(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
-            Return members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.OperatorBlock OrElse m.VisualBasicKind = SyntaxKind.OperatorStatement)
+            Return members.LastOrDefault(Function(m) m.VBKind = SyntaxKind.OperatorBlock OrElse m.VBKind = SyntaxKind.OperatorStatement)
         End Function
 
         Private Function AfterDeclaration(Of TDeclaration As SyntaxNode)(
@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Function GetDestination(destination As SyntaxNode) As CodeGenerationDestination
             If destination IsNot Nothing Then
-                Select Case destination.VisualBasicKind
+                Select Case destination.VBKind
                     Case SyntaxKind.ClassBlock
                         Return CodeGenerationDestination.ClassType
                     Case SyntaxKind.CompilationUnit

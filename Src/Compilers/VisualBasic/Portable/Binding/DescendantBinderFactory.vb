@@ -17,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class DescendantBinderFactory
 
         Private ReadOnly _rootBinder As ExecutableCodeBinder
-        Private ReadOnly _root As VisualBasicSyntaxNode
+        Private ReadOnly _root As VBSyntaxNode
 
-        Public Sub New(binder As ExecutableCodeBinder, root As VisualBasicSyntaxNode)
+        Public Sub New(binder As ExecutableCodeBinder, root As VBSyntaxNode)
             _rootBinder = binder
             _root = root
         End Sub
 
-        Friend ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend ReadOnly Property Root As VBSyntaxNode
             Get
                 Return _root
             End Get
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Friend Function GetBinder(node As VBSyntaxNode) As Binder
             Dim binder As BlockBaseBinder = Nothing
             If NodeToBinderMap.TryGetValue(node, binder) Then
                 Return binder
@@ -54,10 +54,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private _lazyNodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
+        Private _lazyNodeToBinderMap As ImmutableDictionary(Of VBSyntaxNode, BlockBaseBinder)
 
         ' Get the map that maps from syntax nodes to binders.
-        Friend ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
+        Friend ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of VBSyntaxNode, BlockBaseBinder)
             Get
                 If _lazyNodeToBinderMap Is Nothing Then
                     BuildBinderMaps()

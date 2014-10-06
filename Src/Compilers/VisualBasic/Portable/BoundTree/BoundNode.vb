@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _kind As BoundKind
         Private _attributes As BoundNodeAttributes
-        Private ReadOnly _syntax As VisualBasicSyntaxNode
+        Private ReadOnly _syntax As VBSyntaxNode
 
         <Flags()>
         Private Enum BoundNodeAttributes As Byte
@@ -24,14 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
         End Enum
 
-        Public Sub New(kind As BoundKind, syntax As VisualBasicSyntaxNode)
+        Public Sub New(kind As BoundKind, syntax As VBSyntaxNode)
             ValidateLocationInformation(kind, syntax)
 
             _kind = kind
             _syntax = syntax
         End Sub
 
-        Public Sub New(kind As BoundKind, syntax As VisualBasicSyntaxNode, hasErrors As Boolean)
+        Public Sub New(kind As BoundKind, syntax As VBSyntaxNode, hasErrors As Boolean)
             MyClass.New(kind, syntax)
 
             If hasErrors Then
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Public ReadOnly Property Syntax As VBSyntaxNode
             Get
                 Return _syntax
             End Get
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                Return DirectCast(_syntax.SyntaxTree, VisualBasicSyntaxTree)
+                Return DirectCast(_syntax.SyntaxTree, VBSyntaxTree)
             End Get
         End Property
 

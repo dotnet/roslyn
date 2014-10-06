@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                Not node.WasCompilerGenerated AndAlso node.Syntax.Kind = SyntaxKind.LabelStatement Then
                 Dim labelSyntax = DirectCast(node.Syntax, LabelStatementSyntax)
 
-                If labelSyntax.LabelToken.VisualBasicKind = SyntaxKind.IntegerLiteralToken Then
+                If labelSyntax.LabelToken.VBKind = SyntaxKind.IntegerLiteralToken Then
 
                     Dim lineNumber As Integer = 0
 

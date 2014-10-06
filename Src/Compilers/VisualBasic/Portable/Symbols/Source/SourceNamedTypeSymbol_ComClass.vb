@@ -960,7 +960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(attributes)
 
-                    Dim compilation As VisualBasicCompilation = m_ComClass.DeclaringCompilation
+                    Dim compilation As VBCompilation = m_ComClass.DeclaringCompilation
                     Dim id As String = If(m_IsEventInterface, m_ComClass.m_comClassData.EventId, m_ComClass.m_comClassData.InterfaceId)
 
                     If id IsNot Nothing Then
@@ -1250,7 +1250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+                Friend Overrides ReadOnly Property Syntax As VBSyntaxNode
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get

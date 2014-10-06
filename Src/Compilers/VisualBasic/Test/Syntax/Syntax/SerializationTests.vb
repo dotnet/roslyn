@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SerializationTests
 
         Private Sub RoundTrip(text As String)
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim root = tree.GetRoot()
 
             Dim stream = New MemoryStream()
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+            Dim droot = VBSyntaxNode.DeserializeFrom(stream)
             Dim dtext = droot.ToFullString()
 
             Assert.Equal(text, dtext)
@@ -43,7 +43,7 @@ End Class
 Public Class C
 End 
 </Foo>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim root = tree.GetVisualBasicRoot()
             Assert.True(root.HasErrors)
 
@@ -52,11 +52,11 @@ End
 
             stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+            Dim droot = VBSyntaxNode.DeserializeFrom(stream)
             Dim dtext = droot.ToFullString()
 
             Assert.Equal(text, dtext)
-            Assert.True(DirectCast(droot, VisualBasicSyntaxNode).HasErrors)
+            Assert.True(DirectCast(droot, VBSyntaxNode).HasErrors)
             Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
         End Sub
 
@@ -66,7 +66,7 @@ End
 Public Class C
 End Class
 </Foo>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation()
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
             Assert.True(root.ContainsAnnotations)
@@ -77,7 +77,7 @@ End Class
 
             stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+            Dim droot = VBSyntaxNode.DeserializeFrom(stream)
             Dim dtext = droot.ToFullString()
 
             Assert.Equal(text, dtext)
@@ -92,7 +92,7 @@ End Class
 Public Class C
 End Class
 </Foo>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation()
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation, annotation)
             Assert.True(root.ContainsAnnotations)
@@ -103,7 +103,7 @@ End Class
 
             stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+            Dim droot = VBSyntaxNode.DeserializeFrom(stream)
             Dim dtext = droot.ToFullString()
 
             Assert.Equal(text, dtext)
@@ -118,7 +118,7 @@ End Class
 Public Class C
 End Class
 </Foo>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim annotation1 = New SyntaxAnnotation("annotation1")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1)
             Assert.Equal(True, root.ContainsAnnotations)
@@ -132,7 +132,7 @@ End Class
 
             stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+            Dim droot = VBSyntaxNode.DeserializeFrom(stream)
 
             Assert.Equal(False, droot.ContainsAnnotations)
             Assert.Equal(False, droot.HasAnnotation(annotation1))
@@ -153,7 +153,7 @@ End Class
 
             stream.Position = 0
 
-            droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+            droot = VBSyntaxNode.DeserializeFrom(stream)
 
             Assert.Equal(False, droot.ContainsAnnotations)
             Assert.Equal(False, droot.HasAnnotation(annotation1))
@@ -166,7 +166,7 @@ End Class
 Public Class C
 End Class
 </Foo>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim annotation1 = New SyntaxAnnotation("annotation1")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1, annotation1)
             Assert.Equal(True, root.ContainsAnnotations)
@@ -180,7 +180,7 @@ End Class
 
             stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+            Dim droot = VBSyntaxNode.DeserializeFrom(stream)
 
             Assert.Equal(False, droot.ContainsAnnotations)
             Assert.Equal(False, droot.HasAnnotation(annotation1))
@@ -192,7 +192,7 @@ End Class
 Public Class C
 End Class
 </Foo>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
+            Dim tree = VBSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation("TestAnnotation", "this is a test")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
             Assert.True(root.ContainsAnnotations)
@@ -203,7 +203,7 @@ End Class
 
             stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+            Dim droot = VBSyntaxNode.DeserializeFrom(stream)
             Dim dtext = droot.ToFullString()
 
             Assert.Equal(text, dtext)

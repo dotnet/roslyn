@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        Optional interfaceMethod As MethodSymbol = Nothing,
                        Optional isOverloads As Boolean = False)
 
-            MyBase.New(VisualBasicSyntaxTree.Dummy.GetRoot(), container, name)
+            MyBase.New(VBSyntaxTree.Dummy.GetRoot(), container, name)
             Me._returnType = returnType
             Me._overridenMethod = overridenMethod
             Me._isOverloads = isOverloads

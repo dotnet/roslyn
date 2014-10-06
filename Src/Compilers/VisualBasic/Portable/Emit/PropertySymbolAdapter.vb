@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function ISignatureGetType(context As EmitContext) As ITypeReference Implements ISignature.GetType
             CheckDefinitionInvariant()
-            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition

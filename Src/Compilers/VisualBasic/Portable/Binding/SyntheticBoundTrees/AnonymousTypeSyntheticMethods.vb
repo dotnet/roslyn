@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
-                Dim syntax As VisualBasicSyntaxNode = Me.Syntax
+                Dim syntax As VBSyntaxNode = Me.Syntax
 
                 ' List of statements
                 Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
-                Dim syntax As VisualBasicSyntaxNode = Me.Syntax
+                Dim syntax As VBSyntaxNode = Me.Syntax
 
                 ' 'Me' reference
                 Dim boundMeReference As BoundMeReference = New BoundMeReference(syntax, AnonymousType).MakeCompilerGenerated()
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
-                Dim syntax As VisualBasicSyntaxNode = Me.Syntax
+                Dim syntax As VBSyntaxNode = Me.Syntax
 
                 Dim objectType As TypeSymbol = Me.AnonymousType.Manager.System_Object
                 Dim getHashCodeMethod As MethodSymbol = Me.AnonymousType.Manager.System_Object__GetHashCode
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
-                Dim syntax As VisualBasicSyntaxNode = Me.Syntax
+                Dim syntax As VBSyntaxNode = Me.Syntax
 
                 Dim objectType As TypeSymbol = Me.AnonymousType.Manager.System_Object
                 Dim booleanType As TypeSymbol = Me.AnonymousType.Manager.System_Boolean
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                     boundNothing As BoundExpression, localMyFieldBoxed As LocalSymbol, localOtherFieldBoxed As LocalSymbol,
                                                     booleanType As TypeSymbol) As BoundExpression
                 Dim field As FieldSymbol = [property].AssociatedField
-                Dim syntax As VisualBasicSyntaxNode = Me.Syntax
+                Dim syntax As VBSyntaxNode = Me.Syntax
 
                 Dim boundLocalMyFieldBoxed = New BoundLocal(syntax, localMyFieldBoxed,
                                                             False, localMyFieldBoxed.Type).MakeCompilerGenerated()
@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
-                Dim syntax As VisualBasicSyntaxNode = Me.Syntax
+                Dim syntax As VBSyntaxNode = Me.Syntax
 
                 Dim objectType As TypeSymbol = Me.AnonymousType.Manager.System_Object
                 Dim stringType As TypeSymbol = Me.ReturnType

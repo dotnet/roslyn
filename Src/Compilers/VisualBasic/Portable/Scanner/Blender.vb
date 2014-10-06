@@ -36,11 +36,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Current node. Not necessarily reusable or even a NonTerminal.
         ''' Can be null if we are out of nodes.
         ''' </summary>
-        Private _currentNode As VisualBasicSyntaxNode
+        Private _currentNode As VBSyntaxNode
         Private _curNodeStart As Integer
         Private _curNodeLength As Integer
 
-        Private ReadOnly _baseTreeRoot As VisualBasic.VisualBasicSyntaxNode
+        Private ReadOnly _baseTreeRoot As VisualBasic.VBSyntaxNode
 
         ''' <summary>
         ''' preprocessor state before _currentNode
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Expand the span in the tree to encompass the
         ''' nearest statements that the span overlaps.
         ''' </summary>
-        Private Shared Function ExpandToNearestStatements(root As VisualBasic.VisualBasicSyntaxNode, span As TextSpan) As TextSpan
+        Private Shared Function ExpandToNearestStatements(root As VisualBasic.VBSyntaxNode, span As TextSpan) As TextSpan
             Dim fullSpan = New TextSpan(0, root.FullWidth)
             Dim start = NearestStatementThatContainsPosition(root, span.Start, fullSpan)
             Debug.Assert(start.Start <= span.Start)
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return New TextSpan(position, 0)
             End If
 
-            If node.VisualBasicKind = SyntaxKind.CompilationUnit OrElse IsStatementLike(node) Then
+            If node.VBKind = SyntaxKind.CompilationUnit OrElse IsStatementLike(node) Then
                 Do
                     Dim child = node.ChildThatContainsPosition(position).AsNode()
                     If child Is Nothing OrElse Not IsStatementLike(child) Then
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Shared Function IsStatementLike(node As SyntaxNode) As Boolean
-            Select Case node.VisualBasicKind
+            Select Case node.VBKind
                 Case SyntaxKind.ElseIfBlock,
                      SyntaxKind.ElseBlock,
                      SyntaxKind.CatchBlock,
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' of tokens required for look ahead and the maximum
         ''' number of characters for look behind.
         ''' </summary>
-        Private Shared Function ExpandByLookAheadAndBehind(root As VisualBasic.VisualBasicSyntaxNode, span As TextSpan) As TextSpan
+        Private Shared Function ExpandByLookAheadAndBehind(root As VisualBasic.VBSyntaxNode, span As TextSpan) As TextSpan
             Dim fullWidth = root.FullWidth
             Dim start = Math.Min(span.Start, Math.Max(0, fullWidth - 1))
             Dim [end] = span.End
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Move to the left by the look ahead required by the Scanner.
                 For i As Integer = 0 To Scanner.MaxTokensLookAheadBeyondEOL
                     Dim node = root.FindTokenInternal(start)
-                    If node.VisualBasicKind = SyntaxKind.None Then
+                    If node.VBKind = SyntaxKind.None Then
                         Exit For
                     Else
                         start = node.Position
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(newText As SourceText,
                        changes As TextChangeRange(),
                        baseTreeRoot As SyntaxTree,
-                       options As VisualBasicParseOptions)
+                       options As VBParseOptions)
 
             MyBase.New(newText, options)
 
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function TryPopNode() As Boolean
             If _nodeStack.Count > 0 Then
                 Dim node = _nodeStack.Pop
-                _currentNode = DirectCast(node, VisualBasicSyntaxNode)
+                _currentNode = DirectCast(node, VBSyntaxNode)
                 _curNodeStart = _curNodeStart + _curNodeLength
                 _curNodeLength = node.FullWidth
 
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     _currentPreprocessorState = _nextPreprocessorStateGetter.State()
                 End If
 
-                _nextPreprocessorStateGetter = New NextPreprocessorStateGetter(_currentPreprocessorState, DirectCast(node, VisualBasicSyntaxNode))
+                _nextPreprocessorStateGetter = New NextPreprocessorStateGetter(_currentPreprocessorState, DirectCast(node, VBSyntaxNode))
 
                 Return True
             Else
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Certain syntax node kinds should not be crumbled since
         ''' re-using individual child nodes may complicate parsing.
         ''' </summary>
-        Private Shared Function ShouldCrumble(node As VisualBasicSyntaxNode) As Boolean
+        Private Shared Function ShouldCrumble(node As VBSyntaxNode) As Boolean
             If TypeOf node Is StructuredTriviaSyntax Then
                 ' Do not crumble into structured trivia content.
                 ' we will not use any of the parts anyways and 
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' May return Nothing if such node is not available.
         ''' Typically it is _currentNode.
         ''' </summary>
-        Private Function GetCurrentNode(position As Integer) As VisualBasicSyntaxNode
+        Private Function GetCurrentNode(position As Integer) As VBSyntaxNode
             Debug.Assert(_currentNode IsNot Nothing)
 
             Dim mappedPosition = MapNewPositionToOldTree(position)
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Returns current candidate for reuse if there is one.
         ''' </summary>
-        Friend Overrides Function GetCurrentSyntaxNode() As VisualBasicSyntaxNode
+        Friend Overrides Function GetCurrentSyntaxNode() As VBSyntaxNode
             ' not going to get any nodes if there is no current node.
             If _currentNode Is Nothing Then
                 Return Nothing
@@ -400,7 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Checks if node is reusable.
         ''' The reasons for it not be usable are typically that it intersects affected range.
         ''' </summary>
-        Private Function CanReuseNode(node As VisualBasicSyntaxNode) As Boolean
+        Private Function CanReuseNode(node As VBSyntaxNode) As Boolean
             If node Is Nothing Then
                 Return False
             End If
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Private Function ContainsLeadingLineBreaks(node As VisualBasicSyntaxNode) As Boolean
+        Private Function ContainsLeadingLineBreaks(node As VBSyntaxNode) As Boolean
             Dim lt = node.GetLeadingTrivia
             If lt IsNot Nothing Then
                 If lt.Kind = SyntaxKind.EndOfLineTrivia Then
@@ -546,11 +546,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Structure NextPreprocessorStateGetter
             Private ReadOnly _state As PreprocessorState
-            Private ReadOnly _node As VisualBasicSyntaxNode
+            Private ReadOnly _node As VBSyntaxNode
 
             Private _nextState As PreprocessorState
 
-            Public Sub New(state As PreprocessorState, node As VisualBasicSyntaxNode)
+            Public Sub New(state As PreprocessorState, node As VBSyntaxNode)
                 Me._state = state
                 Me._node = node
                 Me._nextState = Nothing

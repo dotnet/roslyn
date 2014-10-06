@@ -504,21 +504,21 @@ Example app.config:
                 referencedCompilations);
         }
 
-        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+        protected VisualBasic.VBCompilation CreateVisualBasicCompilation(
             XCData code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            VisualBasic.VBParseOptions parseOptions = null,
+            VisualBasic.VBCompilationOptions compilationOptions = null,
             string assemblyName = null,
             IEnumerable<MetadataReference> referencedAssemblies = null)
         {
             return CreateVisualBasicCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
-        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+        protected VisualBasic.VBCompilation CreateVisualBasicCompilation(
             string assemblyName,
             XCData code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            VisualBasic.VBParseOptions parseOptions = null,
+            VisualBasic.VBCompilationOptions compilationOptions = null,
             IEnumerable<MetadataReference> referencedAssemblies = null,
             IEnumerable<Compilation> referencedCompilations = null)
         {
@@ -586,21 +586,21 @@ Example app.config:
             return CSharp.CSharpCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
         }
 
-        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+        protected VisualBasic.VBCompilation CreateVisualBasicCompilation(
             string code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            VisualBasic.VBParseOptions parseOptions = null,
+            VisualBasic.VBCompilationOptions compilationOptions = null,
             string assemblyName = null,
             IEnumerable<MetadataReference> referencedAssemblies = null)
         {
             return CreateVisualBasicCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
-        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+        protected VisualBasic.VBCompilation CreateVisualBasicCompilation(
             string assemblyName,
             string code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            VisualBasic.VBParseOptions parseOptions = null,
+            VisualBasic.VBCompilationOptions compilationOptions = null,
             IEnumerable<MetadataReference> referencedAssemblies = null,
             IEnumerable<Compilation> referencedCompilations = null)
         {
@@ -611,12 +611,12 @@ Example app.config:
                         
             if (parseOptions == null)
             {
-                parseOptions = VisualBasic.VisualBasicParseOptions.Default;
+                parseOptions = VisualBasic.VBParseOptions.Default;
             }
 
             if (compilationOptions == null)
             {
-                compilationOptions = new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+                compilationOptions = new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             }
 
             var references = new List<MetadataReference>();
@@ -636,9 +636,9 @@ Example app.config:
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = VisualBasic.VisualBasicSyntaxTree.ParseText(code, options: parseOptions);
+            var tree = VisualBasic.VBSyntaxTree.ParseText(code, options: parseOptions);
 
-            return VisualBasic.VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
+            return VisualBasic.VBCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
         }
 
         private void AddReferencedCompilations(IEnumerable<Compilation> referencedCompilations, List<MetadataReference> references)

@@ -609,7 +609,7 @@ End Module
 
             compilation = CreateCompilationWithCustomILSource(source,
                                                               includeVbRuntime:=True,
-                                                              options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                                                              options:=New VBCompilationOptions(OutputKind.ConsoleApplication),
                                                               ilSource:=ilsource)
 
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[

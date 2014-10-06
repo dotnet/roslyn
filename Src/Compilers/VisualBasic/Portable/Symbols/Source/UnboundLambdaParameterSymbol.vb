@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Shared Function GetModifierToken(modifiers As SyntaxTokenList, tokenKind As SyntaxKind) As SyntaxToken
             For Each keywordSyntax In modifiers
-                If keywordSyntax.VisualBasicKind = tokenKind Then
+                If keywordSyntax.VBKind = tokenKind Then
                     Return keywordSyntax
                 End If
             Next

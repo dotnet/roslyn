@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class InitializerSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
+        Private Sub New(root As VBSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
             MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition)
         End Sub
 
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New InitializerSemanticModel(root, binder, parentSemanticModel, position)
         End Function
 
-        Friend Overrides Function Bind(binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As VBSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Debug.Assert(binder.IsSemanticModelBinder)
 
             Dim boundInitializer As BoundNode = Nothing
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim declSyntax As ModifiedIdentifierSyntax = DirectCast(propertySymbol.Syntax, ModifiedIdentifierSyntax)
                         Dim declarator = DirectCast(declSyntax.Parent, VariableDeclaratorSyntax)
 
-                        Dim initSyntax As VisualBasicSyntaxNode = declarator.AsClause
+                        Dim initSyntax As VBSyntaxNode = declarator.AsClause
                         If initSyntax Is Nothing OrElse initSyntax.Kind <> SyntaxKind.AsNewClause Then
                             initSyntax = declarator.Initializer
                         End If
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  get property symbol
                     Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
                     Dim declSyntax As PropertyStatementSyntax = DirectCast(propertySymbol.DeclarationSyntax, PropertyStatementSyntax)
-                    Dim initSyntax As VisualBasicSyntaxNode = declSyntax.AsClause
+                    Dim initSyntax As VBSyntaxNode = declSyntax.AsClause
                     If initSyntax Is Nothing OrElse initSyntax.Kind <> SyntaxKind.AsNewClause Then
                         initSyntax = declSyntax.Initializer
                     End If
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function BindInitializer(binder As Binder, initializer As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Private Function BindInitializer(binder As Binder, initializer As VBSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Dim boundInitializer As BoundNode = Nothing
 
             Select Case Me.MemberSymbol.Kind
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim propertyNameId = DirectCast(propertySymbol.Syntax, ModifiedIdentifierSyntax) ' serves as an assert
                     Dim declarator = DirectCast(propertyNameId.Parent, VariableDeclaratorSyntax) ' serves as an assert
 
-                    Dim initSyntax As VisualBasicSyntaxNode = declarator.AsClause
+                    Dim initSyntax As VBSyntaxNode = declarator.AsClause
                     If initSyntax Is Nothing OrElse initSyntax.Kind <> SyntaxKind.AsNewClause Then
                         initSyntax = declarator.Initializer
                     End If
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             ElseIf rootSyntax.Kind = SyntaxKind.PropertyStatement Then
                 Dim declSyntax As PropertyStatementSyntax = DirectCast(rootSyntax, PropertyStatementSyntax)
-                Dim initSyntax As VisualBasicSyntaxNode = declSyntax.AsClause
+                Dim initSyntax As VBSyntaxNode = declSyntax.AsClause
                 If initSyntax Is Nothing OrElse initSyntax.Kind <> SyntaxKind.AsNewClause Then
                     initSyntax = declSyntax.Initializer
                 End If

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
         ' returns receiver, or Nothing literal otherwise
-        Private Function LateMakeReceiverArgument(node As VisualBasicSyntaxNode,
+        Private Function LateMakeReceiverArgument(node As VBSyntaxNode,
                                                 rewrittenReceiver As BoundExpression,
                                                 objectType As TypeSymbol) As BoundExpression
             Debug.Assert(objectType.IsObjectType)
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' returns GetType(Type) if receiver is nothing, or Nothing literal otherwise
-        Private Function LateMakeContainerArgument(node As VisualBasicSyntaxNode,
+        Private Function LateMakeContainerArgument(node As VBSyntaxNode,
                                                        receiver As BoundExpression,
                                                        containerType As TypeSymbol,
                                                        typeType As TypeSymbol) As BoundExpression
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ' returns "New Type(){GetType(Type1), GetType(Type2) ...} or Nothing literal
-        Private Function LateMakeTypeArgumentArrayArgument(node As VisualBasicSyntaxNode, arguments As BoundTypeArguments, typeArrayType As TypeSymbol) As BoundExpression
+        Private Function LateMakeTypeArgumentArrayArgument(node As VBSyntaxNode, arguments As BoundTypeArguments, typeArrayType As TypeSymbol) As BoundExpression
             If arguments Is Nothing Then
                 Return MakeNullLiteral(node, typeArrayType)
             Else
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' returns "New Boolean(length){}
-        Private Function LateMakeCopyBackArray(node As VisualBasicSyntaxNode,
+        Private Function LateMakeCopyBackArray(node As VBSyntaxNode,
                                                flags As ImmutableArray(Of Boolean),
                                                booleanArrayType As TypeSymbol) As BoundExpression
 
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function LateMakeArgumentArrayArgument(node As VisualBasicSyntaxNode,
+        Private Function LateMakeArgumentArrayArgument(node As VBSyntaxNode,
                                                rewrittenArguments As ImmutableArray(Of BoundExpression),
                                                argumentNames As ImmutableArray(Of String),
                                                objectArrayType As TypeSymbol) As BoundExpression
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' returns "New object(){Arg1, Arg2 ..., value}
-        Private Function LateMakeSetArgumentArrayArgument(node As VisualBasicSyntaxNode,
+        Private Function LateMakeSetArgumentArrayArgument(node As VBSyntaxNode,
                                             rewrittenValue As BoundExpression,
                                             rewrittenArguments As ImmutableArray(Of BoundExpression),
                                             argumentNames As ImmutableArray(Of String),
@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundSequence(node, ImmutableArray.Create(arrayTemp), sideeffects.ToImmutableAndFree, arrayTempRef, arrayTempRef.Type)
         End Function
 
-        Private Function LateAssignToArrayElement(node As VisualBasicSyntaxNode,
+        Private Function LateAssignToArrayElement(node As VBSyntaxNode,
                                                   arrayRef As BoundExpression,
                                                   index As Integer,
                                                   value As BoundExpression,
@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' returns "New object(){Arg1, Arg2 ...}
-        Private Function LateMakeArgumentArrayArgumentNoNamed(node As VisualBasicSyntaxNode,
+        Private Function LateMakeArgumentArrayArgumentNoNamed(node As VBSyntaxNode,
                                                        rewrittenArguments As ImmutableArray(Of BoundExpression),
                                                        objectArrayType As TypeSymbol) As BoundExpression
 
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' returns "New object(){name1, name2 ...} or Nothing literal
-        Private Function LateMakeArgumentNameArrayArgument(node As VisualBasicSyntaxNode,
+        Private Function LateMakeArgumentNameArrayArgument(node As VBSyntaxNode,
                                                        argumentNames As ImmutableArray(Of String),
                                                        stringArrayType As TypeSymbol) As BoundExpression
 
@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisitExpressionNode(result)
         End Function
 
-        Private Function LateMakeCopyback(syntax As VisualBasicSyntaxNode,
+        Private Function LateMakeCopyback(syntax As VBSyntaxNode,
                                           assignmentTarget As BoundExpression,
                                           convertedValue As BoundExpression) As BoundExpression
 
@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return callerInvocation
         End Function
 
-        Private Function LateSet(syntax As VisualBasicSyntaxNode,
+        Private Function LateSet(syntax As VBSyntaxNode,
                                 memberAccess As BoundLateMemberAccess,
                                 assignmentValue As BoundExpression,
                                 argExpressions As ImmutableArray(Of BoundExpression),
@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundCall(syntax, lateSetMethod, Nothing, Nothing, callArgs, Nothing, True, lateSetMethod.ReturnType)
         End Function
 
-        Private Function LateIndexSet(syntax As VisualBasicSyntaxNode,
+        Private Function LateIndexSet(syntax As VBSyntaxNode,
                                       invocation As BoundLateInvocation,
                                       assignmentValue As BoundExpression,
                                       isCopyBack As Boolean) As BoundExpression
@@ -884,7 +884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' TODO: 
         ' ================= GENERAL PURPOSE, MOVE TO COMMON FILE
 
-        Private Function MakeStringLiteral(node As VisualBasicSyntaxNode,
+        Private Function MakeStringLiteral(node As VBSyntaxNode,
                                            value As String,
                                            stringType As TypeSymbol) As BoundLiteral
 
@@ -895,14 +895,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function MakeBooleanLiteral(node As VisualBasicSyntaxNode,
+        Private Function MakeBooleanLiteral(node As VBSyntaxNode,
                                    value As Boolean,
                                    booleanType As TypeSymbol) As BoundLiteral
 
             Return New BoundLiteral(node, ConstantValue.Create(value), booleanType)
         End Function
 
-        Private Function MakeGetTypeExpression(node As VisualBasicSyntaxNode,
+        Private Function MakeGetTypeExpression(node As VBSyntaxNode,
                                                type As TypeSymbol,
                                                typeType As TypeSymbol) As BoundGetType
 
@@ -910,7 +910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundGetType(node, typeExpr, typeType)
         End Function
 
-        Private Function MakeArrayOfGetTypeExpressions(node As VisualBasicSyntaxNode,
+        Private Function MakeArrayOfGetTypeExpressions(node As VBSyntaxNode,
                                        types As ImmutableArray(Of TypeSymbol),
                                        typeArrayType As TypeSymbol) As BoundArrayCreation
 
@@ -930,7 +930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function TryGetWellknownMember(Of T As Symbol)(<Out> ByRef result As T,
                                                                memberId As WellKnownMember,
-                                                               syntax As VisualBasicSyntaxNode,
+                                                               syntax As VBSyntaxNode,
                                                                Optional isOptional As Boolean = False) As Boolean
 
             Dim diagInfo As DiagnosticInfo = Nothing
@@ -950,7 +950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function TryGetSpecialMember(Of T As Symbol)(<Out> ByRef result As T,
                                                        memberId As SpecialMember,
-                                                       syntax As VisualBasicSyntaxNode) As Boolean
+                                                       syntax As VBSyntaxNode) As Boolean
 
             Dim diagInfo As DiagnosticInfo = Nothing
             Dim memberSymbol = Binder.GetSpecialTypeMember(Me.topMethod.ContainingAssembly, memberId, diagInfo)

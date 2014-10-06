@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private ReadOnly m_interfaceMethod As ImmutableArray(Of MethodSymbol)
 
             Public Sub New(container As AnonymousTypeTemplateSymbol, interfaceMethod As MethodSymbol)
-                MyBase.New(VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot(), container, WellKnownMemberNames.ObjectEquals)
+                MyBase.New(VisualBasic.VBSyntaxTree.Dummy.GetRoot(), container, WellKnownMemberNames.ObjectEquals)
 
                 m_parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSimpleSymbol(Me, container, 0, "val"))
                 m_interfaceMethod = ImmutableArray.Create(Of MethodSymbol)(interfaceMethod)

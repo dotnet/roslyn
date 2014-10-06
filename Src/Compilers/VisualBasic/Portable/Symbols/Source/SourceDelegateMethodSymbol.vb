@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly m_ReturnType As TypeSymbol
 
         Protected Sub New(delegateType As NamedTypeSymbol,
-                          syntax As VisualBasicSyntaxNode,
+                          syntax As VBSyntaxNode,
                           binder As Binder,
                           flags As SourceMemberFlags,
                           returnType As TypeSymbol)
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Shared Sub MakeDelegateMembers(delegateType As NamedTypeSymbol,
-                                              syntax As VisualBasicSyntaxNode,
+                                              syntax As VBSyntaxNode,
                                               parameterListOpt As ParameterListSyntax,
                                               binder As Binder,
                                               <Out> ByRef constructor As MethodSymbol,
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Shared Function BindReturnType(syntax As VisualBasicSyntaxNode, binder As Binder, diagnostics As DiagnosticBag) As TypeSymbol
+        Private Shared Function BindReturnType(syntax As VBSyntaxNode, binder As Binder, diagnostics As DiagnosticBag) As TypeSymbol
             If syntax.Kind = SyntaxKind.DelegateFunctionStatement Then
                 Dim delegateSyntax = DirectCast(syntax, DelegateStatementSyntax)
 
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     voidType As TypeSymbol,
                     objectType As TypeSymbol,
                     intPtrType As TypeSymbol,
-                    syntax As VisualBasicSyntaxNode,
+                    syntax As VBSyntaxNode,
                     binder As Binder)
 
                 MyBase.New(delegateType,
@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Sub New(delegateType As NamedTypeSymbol,
                     returnType As TypeSymbol,
-                    syntax As VisualBasicSyntaxNode,
+                    syntax As VBSyntaxNode,
                     binder As Binder,
                     parameterListOpt As ParameterListSyntax,
                     diagnostics As DiagnosticBag)
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     iAsyncResultType As TypeSymbol,
                     objectType As TypeSymbol,
                     asyncCallbackType As TypeSymbol,
-                    syntax As VisualBasicSyntaxNode,
+                    syntax As VBSyntaxNode,
                     binder As Binder)
 
                 MyBase.New(invoke.ContainingType,
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Sub New(invoke As InvokeMethod,
                     iAsyncResultType As TypeSymbol,
-                    syntax As VisualBasicSyntaxNode,
+                    syntax As VBSyntaxNode,
                     binder As Binder)
 
                 MyBase.New(invoke.ContainingType,

@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' compilation from scratch, as the new compilation can share information from the old
     ''' compilation.
     ''' </summary>
-    Public NotInheritable Class VisualBasicCompilation
+    Public NotInheritable Class VBCompilation
         Inherits Compilation
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -44,8 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' most of time all compilation would use same MyTemplate. no reason to create (reparse) one for each compilation
         ''' as long as its parse option is same
         ''' </summary>
-        Private Shared ReadOnly s_myTemplateCache As ConcurrentLruCache(Of VisualBasicParseOptions, SyntaxTree) =
-            New ConcurrentLruCache(Of VisualBasicParseOptions, SyntaxTree)(capacity:=5)
+        Private Shared ReadOnly s_myTemplateCache As ConcurrentLruCache(Of VBParseOptions, SyntaxTree) =
+            New ConcurrentLruCache(Of VBParseOptions, SyntaxTree)(capacity:=5)
 
         ''' <summary>
         ''' The SourceAssemblySymbol for this compilation. Do not access directly, use Assembly
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The options passed to the constructor of the Compilation
         ''' </summary>
-        Private ReadOnly m_Options As VisualBasicCompilationOptions
+        Private ReadOnly m_Options As VBCompilationOptions
 
         ''' <summary>
         ''' The global namespace symbol. Lazily populated on first access.
@@ -153,10 +153,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' SyntaxTree.Dummy means uninitialized.
         ''' </summary>
-        Private m_lazyMyTemplate As SyntaxTree = VisualBasicSyntaxTree.Dummy
+        Private m_lazyMyTemplate As SyntaxTree = VBSyntaxTree.Dummy
 
         Private ReadOnly m_scriptClass As Lazy(Of ImplicitNamedTypeSymbol)
-        Private ReadOnly m_previousSubmission As VisualBasicCompilation
+        Private ReadOnly m_previousSubmission As VBCompilation
 
         ''' <summary>
         ''' Contains the main method of this assembly, if there is one.
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Shadows ReadOnly Property Options As VisualBasicCompilationOptions
+        Public Shadows ReadOnly Property Options As VBCompilationOptions
             Get
                 Return m_Options
             End Get
@@ -223,24 +223,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Property MyTemplate As SyntaxTree
             Get
-                If m_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy Then
+                If m_lazyMyTemplate Is VBSyntaxTree.Dummy Then
                     If Me.Options.EmbedVbCoreRuntime Then
                         m_lazyMyTemplate = Nothing
                     Else
                         ' first see whether we can use one from global cache
-                        Dim parseOptions = If(Me.Options.ParseOptions, VisualBasicParseOptions.Default)
+                        Dim parseOptions = If(Me.Options.ParseOptions, VBParseOptions.Default)
 
                         Dim tree As SyntaxTree = Nothing
                         If s_myTemplateCache.TryGetValue(parseOptions, tree) Then
                             Debug.Assert(tree IsNot Nothing)
-                            Debug.Assert(tree IsNot VisualBasicSyntaxTree.Dummy)
+                            Debug.Assert(tree IsNot VBSyntaxTree.Dummy)
                             Debug.Assert(tree.IsMyTemplate)
 
                             m_lazyMyTemplate = tree
                         Else
                             ' we need to make one.
                             Dim text As String = EmbeddedResources.VbMyTemplateText
-                            tree = VisualBasicSyntaxTree.ParseText(text, options:=parseOptions, isMyTemplate:=True)
+                            tree = VBSyntaxTree.ParseText(text, options:=parseOptions, isMyTemplate:=True)
 
                             ' set global cache
                             s_myTemplateCache(parseOptions) = tree
@@ -255,8 +255,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return m_lazyMyTemplate
             End Get
             Set(value As SyntaxTree)
-                Debug.Assert(m_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy)
-                Debug.Assert(value IsNot VisualBasicSyntaxTree.Dummy)
+                Debug.Assert(m_lazyMyTemplate Is VBSyntaxTree.Dummy)
+                Debug.Assert(value IsNot VBSyntaxTree.Dummy)
                 Debug.Assert(value Is Nothing OrElse value.IsMyTemplate)
 
                 m_lazyMyTemplate = value
@@ -291,8 +291,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyName As String,
             Optional syntaxTrees As IEnumerable(Of SyntaxTree) = Nothing,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
-            Optional options As VisualBasicCompilationOptions = Nothing
-        ) As VisualBasicCompilation
+            Optional options As VBCompilationOptions = Nothing
+        ) As VBCompilation
             Return Create(assemblyName,
                           options,
                           If(syntaxTrees IsNot Nothing, syntaxTrees.Cast(Of SyntaxTree), Nothing),
@@ -310,19 +310,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyName As String,
             Optional syntaxTree As SyntaxTree = Nothing,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
-            Optional options As VisualBasicCompilationOptions = Nothing,
+            Optional options As VBCompilationOptions = Nothing,
             Optional previousSubmission As Compilation = Nothing,
             Optional returnType As Type = Nothing,
-            Optional hostObjectType As Type = Nothing) As VisualBasicCompilation
+            Optional hostObjectType As Type = Nothing) As VBCompilation
 
             CheckSubmissionOptions(options)
 
             Dim vbTree = syntaxTree
-            Dim vbPrevious = DirectCast(previousSubmission, VisualBasicCompilation)
+            Dim vbPrevious = DirectCast(previousSubmission, VBCompilation)
 
             Return Create(
                 assemblyName,
-                If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
+                If(options, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
                 If((syntaxTree IsNot Nothing), {vbTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
                 references,
                 vbPrevious,
@@ -333,16 +333,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function Create(
             assemblyName As String,
-            options As VisualBasicCompilationOptions,
+            options As VBCompilationOptions,
             syntaxTrees As IEnumerable(Of SyntaxTree),
             references As IEnumerable(Of MetadataReference),
-            previousSubmission As VisualBasicCompilation,
+            previousSubmission As VBCompilation,
             returnType As Type,
             hostObjectType As Type,
             isSubmission As Boolean
-        ) As VisualBasicCompilation
+        ) As VBCompilation
             If options Is Nothing Then
-                options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+                options = New VBCompilationOptions(OutputKind.ConsoleApplication)
             End If
 
             CheckAssemblyName(assemblyName)
@@ -350,12 +350,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim validatedReferences = ValidateReferences(Of VisualBasicCompilationReference)(references)
             ValidateSubmissionParameters(previousSubmission, returnType, hostObjectType)
 
-            Dim c As VisualBasicCompilation = Nothing
-            Dim embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
+            Dim c As VBCompilation = Nothing
+            Dim embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VBCompilation)(Function() c))
             Dim declMap = ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)()
             Dim declTable = AddEmbeddedTrees(DeclarationTable.Empty, embeddedTrees)
 
-            c = New VisualBasicCompilation(
+            c = New VBCompilation(
                 assemblyName,
                 options,
                 validatedReferences,
@@ -382,14 +382,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub New(
             assemblyName As String,
-            options As VisualBasicCompilationOptions,
+            options As VBCompilationOptions,
             references As ImmutableArray(Of MetadataReference),
             syntaxTrees As ImmutableArray(Of SyntaxTree),
             syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer),
             rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
             embeddedTrees As ImmutableArray(Of EmbeddedTreeAndDeclaration),
             declarationTable As DeclarationTable,
-            previousSubmission As VisualBasicCompilation,
+            previousSubmission As VBCompilation,
             submissionReturnType As Type,
             hostObjectType As Type,
             isSubmission As Boolean,
@@ -444,7 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' it isn't consistent in practice.  In fact sometimes m_Options.ParseOptions is Nothing.
             Dim result As LanguageVersion? = Nothing
             For Each tree In syntaxTrees
-                Dim version = CType(tree.Options, VisualBasicParseOptions).LanguageVersion
+                Dim version = CType(tree.Options, VBParseOptions).LanguageVersion
                 If result Is Nothing Then
                     result = version
                 ElseIf result <> version Then
@@ -452,14 +452,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return If(result, VisualBasicParseOptions.Default.LanguageVersion)
+            Return If(result, VBParseOptions.Default.LanguageVersion)
         End Function
 
         ''' <summary>
         ''' Create a duplicate of this compilation with different symbol instances
         ''' </summary>
-        Public Shadows Function Clone() As VisualBasicCompilation
-            Return New VisualBasicCompilation(
+        Public Shadows Function Clone() As VBCompilation
+            Return New VBCompilation(
                 Me.AssemblyName,
                 m_Options,
                 Me.ExternalReferences,
@@ -482,9 +482,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer),
             rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
             declarationTable As DeclarationTable,
-            referenceDirectivesChanged As Boolean) As VisualBasicCompilation
+            referenceDirectivesChanged As Boolean) As VBCompilation
 
-            Return New VisualBasicCompilation(
+            Return New VBCompilation(
                 Me.AssemblyName,
                 m_Options,
                 Me.ExternalReferences,
@@ -504,14 +504,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new compilation with the specified name.
         ''' </summary>
-        Public Shadows Function WithAssemblyName(assemblyName As String) As VisualBasicCompilation
+        Public Shadows Function WithAssemblyName(assemblyName As String) As VBCompilation
             CheckAssemblyName(assemblyName)
 
             ' Can't reuse references since the source assembly name changed and the referenced symbols might 
             ' have internals-visible-to relationship with this compilation or they might had a circular reference 
             ' to this compilation.
 
-            Return New VisualBasicCompilation(
+            Return New VBCompilation(
                 assemblyName,
                 Me.Options,
                 Me.ExternalReferences,
@@ -528,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal))
         End Function
 
-        Public Shadows Function WithReferences(ParamArray newReferences As MetadataReference()) As VisualBasicCompilation
+        Public Shadows Function WithReferences(ParamArray newReferences As MetadataReference()) As VBCompilation
             Return WithReferences(DirectCast(newReferences, IEnumerable(Of MetadataReference)))
         End Function
 
@@ -536,23 +536,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a new compilation with the specified references.
         ''' </summary>
         ''' <remarks>
-        ''' The new <see cref="VisualBasicCompilation"/> will query the given <see cref="MetadataReference"/> for the underlying 
+        ''' The new <see cref="VBCompilation"/> will query the given <see cref="MetadataReference"/> for the underlying 
         ''' metadata as soon as the are needed. 
         ''' 
         ''' The New compilation uses whatever metadata is currently being provided by the <see cref="MetadataReference"/>.
         ''' E.g. if the current compilation references a metadata file that has changed since the creation of the compilation
         ''' the New compilation is going to use the updated version, while the current compilation will be using the previous (it doesn't change).
         ''' </remarks>
-        Public Shadows Function WithReferences(newReferences As IEnumerable(Of MetadataReference)) As VisualBasicCompilation
+        Public Shadows Function WithReferences(newReferences As IEnumerable(Of MetadataReference)) As VBCompilation
             Dim declTable = RemoveEmbeddedTrees(m_declarationTable, m_embeddedTrees)
-            Dim c As VisualBasicCompilation = Nothing
-            Dim embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
+            Dim c As VBCompilation = Nothing
+            Dim embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VBCompilation)(Function() c))
             declTable = AddEmbeddedTrees(declTable, embeddedTrees)
 
             ' References might have changed, don't reuse reference manager.
             ' Don't even reuse observed metadata - let the manager query for the metadata again.
 
-            c = New VisualBasicCompilation(
+            c = New VBCompilation(
                 Me.AssemblyName,
                 Me.Options,
                 ValidateReferences(Of VisualBasicCompilationReference)(newReferences),
@@ -570,12 +570,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return c
         End Function
 
-        Public Shadows Function WithOptions(newOptions As VisualBasicCompilationOptions) As VisualBasicCompilation
+        Public Shadows Function WithOptions(newOptions As VBCompilationOptions) As VBCompilation
             If newOptions Is Nothing Then
                 Throw New ArgumentNullException("options")
             End If
 
-            Dim c As VisualBasicCompilation = Nothing
+            Dim c As VBCompilation = Nothing
             Dim embeddedTrees = m_embeddedTrees
             Dim declTable = m_declarationTable
             Dim declMap = Me.m_rootNamespaces
@@ -590,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 declMap = ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)()
                 declTable = DeclarationTable.Empty
 
-                embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
+                embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VBCompilation)(Function() c))
                 declTable = AddEmbeddedTrees(declTable, embeddedTrees)
 
                 Dim discardedReferenceDirectivesChanged As Boolean = False
@@ -601,11 +601,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ElseIf Me.Options.EmbedVbCoreRuntime <> newOptions.EmbedVbCoreRuntime OrElse Me.Options.ParseOptions <> newOptions.ParseOptions Then
                 declTable = RemoveEmbeddedTrees(declTable, m_embeddedTrees)
-                embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
+                embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VBCompilation)(Function() c))
                 declTable = AddEmbeddedTrees(declTable, embeddedTrees)
             End If
 
-            c = New VisualBasicCompilation(
+            c = New VBCompilation(
                 Me.AssemblyName,
                 newOptions,
                 Me.ExternalReferences,
@@ -626,14 +626,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns a new compilation with the given compilation set as the previous submission. 
         ''' </summary>
-        Friend Shadows Function WithPreviousSubmission(newPreviousSubmission As VisualBasicCompilation) As VisualBasicCompilation
+        Friend Shadows Function WithPreviousSubmission(newPreviousSubmission As VBCompilation) As VBCompilation
             If Not IsSubmission Then
                 Throw New NotSupportedException("Can't have a previousSubmission when not a submission")
             End If
 
             ' Reference binding doesn't depend on previous submission so we can reuse it.
 
-            Return New VisualBasicCompilation(
+            Return New VBCompilation(
                 Me.AssemblyName,
                 Me.Options,
                 Me.ExternalReferences,
@@ -654,7 +654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a new compilation with a given event queue.
         ''' </summary>
         Public Overrides Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As Compilation
-            Return New VisualBasicCompilation(
+            Return New VBCompilation(
                 Me.AssemblyName,
                 Me.Options,
                 Me.ExternalReferences,
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Submission"
 
-        Friend Shadows ReadOnly Property PreviousSubmission As VisualBasicCompilation
+        Friend Shadows ReadOnly Property PreviousSubmission As VBCompilation
             Get
                 Return m_previousSubmission
             End Get
@@ -792,11 +792,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbtree IsNot Nothing AndAlso m_rootNamespaces.ContainsKey(vbtree)
         End Function
 
-        Public Shadows Function AddSyntaxTrees(ParamArray trees As SyntaxTree()) As VisualBasicCompilation
+        Public Shadows Function AddSyntaxTrees(ParamArray trees As SyntaxTree()) As VBCompilation
             Return AddSyntaxTrees(DirectCast(trees, IEnumerable(Of SyntaxTree)))
         End Function
 
-        Public Shadows Function AddSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VisualBasicCompilation
+        Public Shadows Function AddSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VBCompilation
             Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_AddSyntaxTrees, message:=Me.AssemblyName)
                 If trees Is Nothing Then
                     Throw New ArgumentNullException("trees")
@@ -859,7 +859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Sub AddSyntaxTreeToDeclarationMapAndTable(
                 tree As SyntaxTree,
-                compilationOptions As VisualBasicCompilationOptions,
+                compilationOptions As VBCompilationOptions,
                 isSubmission As Boolean,
                 ByRef declMap As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
                 ByRef declTable As DeclarationTable,
@@ -872,15 +872,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             referenceDirectivesChanged = referenceDirectivesChanged OrElse tree.HasReferenceDirectives
         End Sub
 
-        Private Shared Function ForTree(tree As SyntaxTree, options As VisualBasicCompilationOptions, isSubmission As Boolean) As RootSingleNamespaceDeclaration
+        Private Shared Function ForTree(tree As SyntaxTree, options As VBCompilationOptions, isSubmission As Boolean) As RootSingleNamespaceDeclaration
             Return DeclarationTreeBuilder.ForTree(tree, options.GetRootNamespaceParts(), If(options.ScriptClassName, ""), isSubmission)
         End Function
 
-        Public Shadows Function RemoveSyntaxTrees(ParamArray trees As SyntaxTree()) As VisualBasicCompilation
+        Public Shadows Function RemoveSyntaxTrees(ParamArray trees As SyntaxTree()) As VBCompilation
             Return RemoveSyntaxTrees(DirectCast(trees, IEnumerable(Of SyntaxTree)))
         End Function
 
-        Public Shadows Function RemoveSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VisualBasicCompilation
+        Public Shadows Function RemoveSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VBCompilation
             Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_RemoveSyntaxTrees, message:=Me.AssemblyName)
                 If trees Is Nothing Then
                     Throw New ArgumentNullException("trees")
@@ -946,7 +946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             referenceDirectivesChanged = referenceDirectivesChanged OrElse tree.HasReferenceDirectives
         End Sub
 
-        Public Shadows Function RemoveAllSyntaxTrees() As VisualBasicCompilation
+        Public Shadows Function RemoveAllSyntaxTrees() As VBCompilation
             Return UpdateSyntaxTrees(ImmutableArray(Of SyntaxTree).Empty,
                                      ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                                      ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)(),
@@ -954,7 +954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      referenceDirectivesChanged:=m_declarationTable.ReferenceDirectives.Any())
         End Function
 
-        Public Shadows Function ReplaceSyntaxTree(oldTree As SyntaxTree, newTree As SyntaxTree) As VisualBasicCompilation
+        Public Shadows Function ReplaceSyntaxTree(oldTree As SyntaxTree, newTree As SyntaxTree) As VBCompilation
             Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_ReplaceSyntaxTree, message:=Me.AssemblyName)
                 If oldTree Is Nothing Then
                     Throw New ArgumentNullException("oldSyntaxTree")
@@ -1008,7 +1008,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
         End Function
 
-        Private Shared Function CreateEmbeddedTrees(compReference As Lazy(Of VisualBasicCompilation)) As ImmutableArray(Of EmbeddedTreeAndDeclaration)
+        Private Shared Function CreateEmbeddedTrees(compReference As Lazy(Of VBCompilation)) As ImmutableArray(Of EmbeddedTreeAndDeclaration)
             Return ImmutableArray.Create(
                 New EmbeddedTreeAndDeclaration(
                     Function()
@@ -1143,7 +1143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' for testing only:
-        Friend Function ReferenceManagerEquals(other As VisualBasicCompilation) As Boolean
+        Friend Function ReferenceManagerEquals(other As VBCompilation) As Boolean
             Return m_referenceManager Is other.m_referenceManager
         End Function
 
@@ -1203,28 +1203,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationReference(Me, aliases, embedInteropTypes)
         End Function
 
-        Public Shadows Function AddReferences(ParamArray references As MetadataReference()) As VisualBasicCompilation
-            Return DirectCast(MyBase.AddReferences(references), VisualBasicCompilation)
+        Public Shadows Function AddReferences(ParamArray references As MetadataReference()) As VBCompilation
+            Return DirectCast(MyBase.AddReferences(references), VBCompilation)
         End Function
 
-        Public Shadows Function AddReferences(references As IEnumerable(Of MetadataReference)) As VisualBasicCompilation
-            Return DirectCast(MyBase.AddReferences(references), VisualBasicCompilation)
+        Public Shadows Function AddReferences(references As IEnumerable(Of MetadataReference)) As VBCompilation
+            Return DirectCast(MyBase.AddReferences(references), VBCompilation)
         End Function
 
-        Public Shadows Function RemoveReferences(ParamArray references As MetadataReference()) As VisualBasicCompilation
-            Return DirectCast(MyBase.RemoveReferences(references), VisualBasicCompilation)
+        Public Shadows Function RemoveReferences(ParamArray references As MetadataReference()) As VBCompilation
+            Return DirectCast(MyBase.RemoveReferences(references), VBCompilation)
         End Function
 
-        Public Shadows Function RemoveReferences(references As IEnumerable(Of MetadataReference)) As VisualBasicCompilation
-            Return DirectCast(MyBase.RemoveReferences(references), VisualBasicCompilation)
+        Public Shadows Function RemoveReferences(references As IEnumerable(Of MetadataReference)) As VBCompilation
+            Return DirectCast(MyBase.RemoveReferences(references), VBCompilation)
         End Function
 
-        Public Shadows Function RemoveAllReferences() As VisualBasicCompilation
-            Return DirectCast(MyBase.RemoveAllReferences(), VisualBasicCompilation)
+        Public Shadows Function RemoveAllReferences() As VBCompilation
+            Return DirectCast(MyBase.RemoveAllReferences(), VBCompilation)
         End Function
 
-        Public Shadows Function ReplaceReference(oldReference As MetadataReference, newReference As MetadataReference) As VisualBasicCompilation
-            Return DirectCast(MyBase.ReplaceReference(oldReference, newReference), VisualBasicCompilation)
+        Public Shadows Function ReplaceReference(oldReference As MetadataReference, newReference As MetadataReference) As VBCompilation
+            Return DirectCast(MyBase.ReplaceReference(oldReference, newReference), VBCompilation)
         End Function
 
         ''' <summary>
@@ -2056,7 +2056,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver
-            Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.VisualBasicKind
+            Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.VBKind
             Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, options, cancellationToken)
         End Function
 
@@ -2531,11 +2531,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonWithOptions(options As CompilationOptions) As Compilation
-            Return Me.WithOptions(DirectCast(options, VisualBasicCompilationOptions))
+            Return Me.WithOptions(DirectCast(options, VBCompilationOptions))
         End Function
 
         Protected Overrides Function CommonWithPreviousSubmission(newPreviousSubmission As Compilation) As Compilation
-            Return Me.WithPreviousSubmission(DirectCast(newPreviousSubmission, VisualBasicCompilation))
+            Return Me.WithPreviousSubmission(DirectCast(newPreviousSubmission, VBCompilation))
         End Function
 
         Protected Overrides Function CommonContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean

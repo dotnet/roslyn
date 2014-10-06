@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' (DefaultParameterValueAttribute, DateTimeConstantAttribute or DecimalConstantAttribute).
         ''' If not, report ERR_ParamDefaultValueDiffersFromAttribute.
         ''' </summary>
-        Protected Sub VerifyParamDefaultValueMatchesAttributeIfAny(value As ConstantValue, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Protected Sub VerifyParamDefaultValueMatchesAttributeIfAny(value As ConstantValue, syntax As VBSyntaxNode, diagnostics As DiagnosticBag)
             Dim data = GetEarlyDecodedWellKnownAttributeData()
             If data IsNot Nothing Then
                 Dim attrValue = data.DefaultParameterValue

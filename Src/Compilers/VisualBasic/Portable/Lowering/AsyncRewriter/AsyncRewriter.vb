@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return AsyncMethodKind.[Sub]
             End If
 
-            Dim compilation As VisualBasicCompilation = method.DeclaringCompilation
+            Dim compilation As VBCompilation = method.DeclaringCompilation
             Debug.Assert(compilation IsNot Nothing)
 
             Dim returnType As TypeSymbol = method.ReturnType

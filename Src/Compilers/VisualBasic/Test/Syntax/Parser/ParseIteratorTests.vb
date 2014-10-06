@@ -73,13 +73,13 @@ Class IteratorAttribute
     End Sub
 End Class]]>)
 
-        Assert.Equal(6, Aggregate t In tree.GetRoot().DescendantTokens Where t.VisualBasicKind = SyntaxKind.IteratorKeyword Into Count())
+        Assert.Equal(6, Aggregate t In tree.GetRoot().DescendantTokens Where t.VBKind = SyntaxKind.IteratorKeyword Into Count())
 
     End Sub
 
     <Fact>
     Sub ParseYieldStatements()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VBSyntaxTree.ParseText(<![CDATA[
 Module Program
 
     Iterator Function M()
@@ -210,7 +210,7 @@ End Module]]>.Value)
 
     <Fact>
     Public Sub ParseYieldStatementsWithPrecedence()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VBSyntaxTree.ParseText(<![CDATA[
 Module Program
     Iterator Function M(a As Task(Of Integer), x As Task(Of Integer), y As Task(Of Integer), b As Task(Of Integer)) As Task(Of Integer)
 
@@ -270,7 +270,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseIteratorWithNesting()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VBSyntaxTree.ParseText(<![CDATA[
 Imports Iterator = System.Threading.Tasks.Task
 
 Class C
@@ -358,10 +358,10 @@ End Class]]>.Value)
                         SyntaxKind.IdentifierName}
 
         Dim actual = From expression In tree.GetRoot().DescendantNodes()
-                     Where expression.VisualBasicKind = SyntaxKind.YieldStatement OrElse
-                            (expression.VisualBasicKind = SyntaxKind.IdentifierName AndAlso DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText.Equals("Yield"))
+                     Where expression.VBKind = SyntaxKind.YieldStatement OrElse
+                            (expression.VBKind = SyntaxKind.IdentifierName AndAlso DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText.Equals("Yield"))
                      Order By expression.FullSpan.Start
-                     Select expression.VisualBasicKind()
+                     Select expression.VBKind()
 
         Assert.Equal(expected, actual)
     End Sub
@@ -371,7 +371,7 @@ End Class]]>.Value)
 
         For Each mode In {SourceCodeKind.Script, SourceCodeKind.Interactive}
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+            Dim tree = VBSyntaxTree.ParseText(<![CDATA[
 Yield T                                     ' No
 Yield (T)                                   ' No
 Yield T + Yield (T)                         ' No, No
@@ -403,7 +403,7 @@ Iterator Function F()
     Dim i = Yield T + Yield (T)             ' No, No
     Return Yield T                          ' No
 End Function]]>.Value,
-                options:=VisualBasicParseOptions.Default.WithKind(mode))
+                options:=VBParseOptions.Default.WithKind(mode))
 
             Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
 
@@ -417,7 +417,7 @@ End Function]]>.Value,
     End Sub
 
     Private Shared Function IsIteratorMethod(methodSyntax As MethodBlockBaseSyntax) As Boolean
-        Return methodSyntax.Begin.Modifiers.Contains(Function(t As SyntaxToken) t.VisualBasicKind = SyntaxKind.IteratorKeyword)
+        Return methodSyntax.Begin.Modifiers.Contains(Function(t As SyntaxToken) t.VBKind = SyntaxKind.IteratorKeyword)
     End Function
 
     Private Shared Function IsInIteratorMethod(yieldStatement As YieldStatementSyntax) As Boolean

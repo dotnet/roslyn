@@ -87,7 +87,7 @@ Module Program
 End Module
 </text>.Value)
             Dim vbRuntime = MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib, vbRuntime})
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib, vbRuntime})
             Dim model = comp.GetSemanticModel(tree)
 
             ' Get TypeSyntax corresponding to the keyword 'Integer' above.
@@ -125,8 +125,8 @@ Module Program
 End Module
 </text>.Value)
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim model = comp.GetSemanticModel(tree)
 
@@ -164,7 +164,7 @@ Module Program
 End Module
 </text>.Value
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
             Dim _projectId = ProjectId.CreateNewId()
             Dim _documentId = DocumentId.CreateNewId(_projectId)
@@ -264,8 +264,8 @@ End Module
 </text>.Value
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
             Dim model = comp.GetSemanticModel(tree)
 
             ' Get position of the comment above.
@@ -352,8 +352,8 @@ End Module
 </text>.Value
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim model = comp.GetSemanticModel(tree)
 
@@ -418,8 +418,8 @@ Module Program
 End Module
 </text>.Value)
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
             Dim model = comp.GetSemanticModel(tree)
 
             ' Get MethodBlockSyntax corresponding to method C1.M2() above.
@@ -477,13 +477,13 @@ End Module</text>.Value
                 _project2Id = ProjectId.CreateNewId()
             Dim _document1Id = DocumentId.CreateNewId(_project1Id),
                 _document2Id = DocumentId.CreateNewId(_project2Id)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
             Dim sln = New CustomWorkspace().CurrentSolution.
                         AddProject(_project1Id, "Project1", "Project1", LanguageNames.VisualBasic).
                             AddMetadataReference(_project1Id, Mscorlib).
                             AddDocument(_document1Id, "File1.vb", source1).
-                            WithProjectCompilationOptions(_project1Id, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithEmbedVbCoreRuntime(True)).
+                            WithProjectCompilationOptions(_project1Id, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithEmbedVbCoreRuntime(True)).
                         AddProject(_project2Id, "Project2", "Project2", LanguageNames.VisualBasic).WithProjectCompilationOptions(_project2Id, vbOptions).
                             AddMetadataReference(_project2Id, Mscorlib).
                             AddProjectReference(_project2Id, New ProjectReference(_project1Id)).
@@ -548,8 +548,8 @@ Module Program
 End Module
 </text>.Value)
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim model = comp.GetSemanticModel(tree)
 
@@ -569,7 +569,7 @@ Line 15: t.Wait()</text>.Value, walker.Results.ToString())
         ' Below SyntaxWalker checks all nodes of type ObjectCreationExpressionSyntax or InvocationExpressionSyntax
         ' present under the SyntaxNode being visited to detect invocations to methods from the supplied namespace.
         Public Class MethodInvocationWalker
-            Inherits VisualBasicSyntaxWalker
+            Inherits VBSyntaxWalker
 
             Public Property SemanticModel As SemanticModel
 
@@ -645,7 +645,7 @@ End Module
 </text>.Value)
 
             Dim vbRuntime = MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib, vbRuntime})
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib, vbRuntime})
             Dim results = New StringBuilder()
 
             ' Traverse the symbol tree to find all namespaces, types, methods and fields.
@@ -702,8 +702,8 @@ Module Program
     End Sub
 End Module
 </text>.Value)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim model = comp.GetSemanticModel(tree)
             Dim walker = New ExpressionWalker() With {.SemanticModel = model}
@@ -809,8 +809,8 @@ End Module
 
             Assert.IsTrue(token1.IsEquivalentTo(token2))
 
-            Dim trivia1 As SyntaxTrivia = node1.DescendantTrivia().First(Function(t) t.VisualBasicKind() = SyntaxKind.WhitespaceTrivia)
-            Dim trivia2 As SyntaxTrivia = node2.DescendantTrivia().Last(Function(t) t.VisualBasicKind() = SyntaxKind.EndOfLineTrivia)
+            Dim trivia1 As SyntaxTrivia = node1.DescendantTrivia().First(Function(t) t.VBKind() = SyntaxKind.WhitespaceTrivia)
+            Dim trivia2 As SyntaxTrivia = node2.DescendantTrivia().Last(Function(t) t.VBKind() = SyntaxKind.EndOfLineTrivia)
 
             Assert.IsFalse(trivia1.IsEquivalentTo(trivia2))
         End Sub
@@ -845,7 +845,7 @@ End Module
 
         ' Below SyntaxWalker traverses all comments present under the SyntaxNode being visited.
         Public Class CommentWalker
-            Inherits VisualBasicSyntaxWalker
+            Inherits VBSyntaxWalker
 
             Public Property Results As New StringBuilder()
 
@@ -854,14 +854,14 @@ End Module
             End Sub
 
             Public Overrides Sub VisitTrivia(trivia As SyntaxTrivia)
-                If trivia.VisualBasicKind() = SyntaxKind.CommentTrivia OrElse trivia.VisualBasicKind() = SyntaxKind.DocumentationCommentTrivia Then
+                If trivia.VBKind() = SyntaxKind.CommentTrivia OrElse trivia.VBKind() = SyntaxKind.DocumentationCommentTrivia Then
                     Results.Append(vbLf)
                     Results.Append(trivia.ToFullString().Trim())
                     Results.Append(" (Parent Token: ")
-                    Results.Append(trivia.Token.VisualBasicKind.ToString())
+                    Results.Append(trivia.Token.VBKind.ToString())
                     Results.Append(")")
 
-                    If trivia.VisualBasicKind() = SyntaxKind.DocumentationCommentTrivia Then
+                    If trivia.VBKind() = SyntaxKind.DocumentationCommentTrivia Then
                         ' Trivia for xml documentation comments have addditional 'structure'
                         ' available under a child DocumentationCommentSyntax.
                         Assert.IsTrue(trivia.HasStructure)
@@ -895,8 +895,8 @@ Module Program
 End Module
 </text>.Value)
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
             Dim model = comp.GetSemanticModel(tree)
 
             ' Get ModifiedIdentifierSyntax corresponding to the identifier 'c' in the statement 'Dim c = ...' above.
@@ -935,8 +935,8 @@ End Module
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
             Dim other = SyntaxFactory.ParseSyntaxTree(source)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim model = comp.GetSemanticModel(tree)
             Dim nodeFromTree As SyntaxNode = tree.GetRoot()
@@ -1110,7 +1110,7 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
 
         ' Below SyntaxWalker traverses all IfStatementSyntax, IfKeyworkd and TypeBlockSyntax present under the SyntaxNode being visited.
         Public Class IfStatementIfKeywordAndTypeBlockWalker
-            Inherits VisualBasicSyntaxWalker
+            Inherits VBSyntaxWalker
             Public Property Results As New StringBuilder()
 
             ' Turn on visiting of nodes, tokens and trivia present under structured trivia.
@@ -1126,7 +1126,7 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
                 Results.Append("Visiting ")
                 Results.Append(node.GetType().Name)
                 Results.Append(" (Kind = ")
-                Results.Append(node.VisualBasicKind().ToString())
+                Results.Append(node.VBKind().ToString())
                 Results.Append("): ")
                 Results.Append(node.ToString())
                 MyBase.VisitIfStatement(node)
@@ -1135,12 +1135,12 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
             ' Visits all SyntaxTokens.
             Public Overrides Sub VisitToken(token As SyntaxToken)
                 ' We only care about SyntaxTokens with Kind 'IfKeyword'.
-                If token.VisualBasicKind() = SyntaxKind.IfKeyword Then
+                If token.VBKind() = SyntaxKind.IfKeyword Then
                     Results.Append(vbLf)
                     Results.Append("Visiting ")
                     Results.Append(token.GetType().Name)
                     Results.Append(" (Kind = ")
-                    Results.Append(token.VisualBasicKind().ToString())
+                    Results.Append(token.VBKind().ToString())
                     Results.Append("): ")
                     Results.Append(token.Parent.ToString())
                 End If
@@ -1159,7 +1159,7 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
                     Results.Append("Visiting ")
                     Results.Append(node.GetType().Name)
                     Results.Append(" (Kind = ")
-                    Results.Append(node.VisualBasicKind().ToString())
+                    Results.Append(node.VBKind().ToString())
                     Results.Append(")")
                 End If
 
@@ -1195,7 +1195,7 @@ End Module
 </text>.Value
             Dim _projectId = ProjectId.CreateNewId()
             Dim _documentId = DocumentId.CreateNewId(_projectId)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
             Dim sln = New CustomWorkspace().CurrentSolution.
                           AddProject(_projectId, "MyProject", "MyProject", LanguageNames.VisualBasic).WithProjectCompilationOptions(_projectId, vbOptions).
@@ -1255,8 +1255,8 @@ Public Class Program
 End Class</source>.Value
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
             Dim model = comp.GetSemanticModel(tree)
 
             Dim allInvocations = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)
@@ -1317,8 +1317,8 @@ End Module
 </text>.Value
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim model = comp.GetSemanticModel(tree)
 
@@ -1371,8 +1371,8 @@ Module Program
     End Sub
 End Module
 </text>.Value)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim int32Type = comp.GetSpecialType(SpecialType.System_Int32)
             Dim int16Type = comp.GetSpecialType(SpecialType.System_Int16)
@@ -1406,8 +1406,8 @@ Module Program
 End Module
 </text>.Value)
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim version As Version = comp.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity.Version
             Assert.AreEqual(4, version.Major)
@@ -1426,7 +1426,7 @@ End Module
 
             Dim _projectId = ProjectId.CreateNewId()
             Dim _documentId = DocumentId.CreateNewId(_projectId)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
             Dim sln = New CustomWorkspace().CurrentSolution.
                           AddProject(_projectId, "MyProject", "MyProject", LanguageNames.VisualBasic).WithProjectCompilationOptions(_projectId, vbOptions).
@@ -1492,9 +1492,9 @@ WriteLine (position 2)
 i (position 0)</text>.Value, results)
         End Sub
 
-        ' Below VisualBasicSyntaxRewriter tags all SyntaxTokens that contain the lowercase letter 'i' under the SyntaxNode being visited.
+        ' Below VBSyntaxRewriter tags all SyntaxTokens that contain the lowercase letter 'i' under the SyntaxNode being visited.
         Public Class MyAnnotator
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 Dim newToken = MyBase.VisitToken(token)
@@ -1551,8 +1551,8 @@ Class C3
     Public Overrides Property P1 As Integer
 End Class
 </text>.Value)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             ' Get TypeSymbols for types C1, C2 and C3 above.
             Dim typeC1 = comp.GetTypeByMetadataName("C1")
@@ -1633,8 +1633,8 @@ Class C3
     Public Overrides Property P1 As Integer Implements I1.P1
 End Class
 </text>.Value)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             ' Get TypeSymbols for types I1, I2, C1, C2 and C3 above.
             Dim typeI1 = comp.GetTypeByMetadataName("I1")
@@ -1742,8 +1742,8 @@ Module Module1
 End Module
                          </source>.Value
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithEmbedVbCoreRuntime(True)
-            Dim compilation = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithEmbedVbCoreRuntime(True)
+            Dim compilation = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -1838,11 +1838,11 @@ End Module
             ' Get BinaryExpressionSyntax corresponding to the two addition expressions 'i + j' above.
             Dim addExpression1 As BinaryExpressionSyntax = compilationUnit.DescendantNodes.
                                                                            OfType(Of BinaryExpressionSyntax).
-                                                                           First(Function(b) b.VisualBasicKind() = SyntaxKind.AddExpression)
+                                                                           First(Function(b) b.VBKind() = SyntaxKind.AddExpression)
 
             Dim addExpression2 As BinaryExpressionSyntax = compilationUnit.DescendantNodes.
                                                                            OfType(Of BinaryExpressionSyntax).
-                                                                           Last(Function(b) b.VisualBasicKind() = SyntaxKind.AddExpression)
+                                                                           Last(Function(b) b.VBKind() = SyntaxKind.AddExpression)
 
             ' Replace addition expressions 'i + j' with multiplication expressions 'i * j'.
             Dim multipyExpression1 As BinaryExpressionSyntax =
@@ -1906,8 +1906,8 @@ Class C
 End Class
 </text>.Value)
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim model = comp.GetSemanticModel(tree)
 
@@ -1945,13 +1945,13 @@ End Class
 </text>.Value, newRoot.ToFullString())
         End Sub
 
-        ' Below VisualBasicSyntaxRewriter renames multiple occurances of a particular class name under the SyntaxNode being visited.
+        ' Below VBSyntaxRewriter renames multiple occurances of a particular class name under the SyntaxNode being visited.
         ' Note that the below rewriter is not a full / correct implementation of symbolic rename. For example, it doesn't
         ' handle aliases etc. A full implementation for symbolic rename would be more complicated and is
         ' beyond the scope of this sample. The intent of this sample is mainly to demonstrate how symbolic info can be used
         ' in conjunction a rewriter to make syntactic changes.
         Public Class ClassRenamer
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
             Public Property SearchSymbol As ITypeSymbol
 
             Public Property SemanticModel As SemanticModel
@@ -2056,7 +2056,7 @@ End Module
                     Return True
                 End If
 
-                Select Case node.VisualBasicKind
+                Select Case node.VBKind
                     Case SyntaxKind.WhileBlock,
                          SyntaxKind.UsingBlock,
                          SyntaxKind.SyncLockBlock,
@@ -2087,8 +2087,8 @@ Module Program
 End Module
 </text>.Value)
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
             Dim elementType = comp.GetSpecialType(SpecialType.System_Int32)
 
             Dim arrayType = comp.CreateArrayTypeSymbol(elementType, rank:=3)
@@ -2132,7 +2132,7 @@ Class C
 End Class
 </text>.Value
 
-            Dim rewriter As VisualBasicSyntaxRewriter = New RegionRemover1()
+            Dim rewriter As VBSyntaxRewriter = New RegionRemover1()
             Dim newRoot As SyntaxNode = rewriter.Visit(oldRoot)
 
             Assert.AreEqual(expected, newRoot.ToFullString())
@@ -2143,15 +2143,15 @@ End Class
             Assert.AreEqual(expected, newRoot.ToFullString())
         End Sub
 
-        ' Below VisualBasicSyntaxRewriter removes all #Regions and #End Regions from under the SyntaxNode being visited.
+        ' Below VBSyntaxRewriter removes all #Regions and #End Regions from under the SyntaxNode being visited.
         Public Class RegionRemover1
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 Dim updatedTrivia As SyntaxTrivia = MyBase.VisitTrivia(trivia)
                 Dim directiveTrivia = TryCast(trivia.GetStructure(), DirectiveTriviaSyntax)
                 If directiveTrivia IsNot Nothing Then
-                    If directiveTrivia.VisualBasicKind() = SyntaxKind.RegionDirectiveTrivia OrElse directiveTrivia.VisualBasicKind() = SyntaxKind.EndRegionDirectiveTrivia Then
+                    If directiveTrivia.VBKind() = SyntaxKind.RegionDirectiveTrivia OrElse directiveTrivia.VBKind() = SyntaxKind.EndRegionDirectiveTrivia Then
                         updatedTrivia = Nothing
                     End If
                 End If
@@ -2160,9 +2160,9 @@ End Class
             End Function
         End Class
 
-        ' Below VisualBasicSyntaxRewriter removes all #Regions and #End Regions from under the SyntaxNode being visited.
+        ' Below VBSyntaxRewriter removes all #Regions and #End Regions from under the SyntaxNode being visited.
         Public Class RegionRemover2
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 ' Remove all #Regions and #End Regions from underneath the token.
@@ -2172,7 +2172,7 @@ End Class
 
             Private Function RemoveRegions(oldTriviaList As SyntaxTriviaList) As SyntaxTriviaList
                 Return SyntaxFactory.TriviaList(From trivia In oldTriviaList
-                                                Where trivia.VisualBasicKind() <> SyntaxKind.RegionDirectiveTrivia AndAlso trivia.VisualBasicKind() <> SyntaxKind.EndRegionDirectiveTrivia)
+                                                Where trivia.VBKind() <> SyntaxKind.RegionDirectiveTrivia AndAlso trivia.VBKind() <> SyntaxKind.EndRegionDirectiveTrivia)
             End Function
         End Class
 
@@ -2202,8 +2202,8 @@ End Class
             ' Get all RegionDirective and EndRegionDirective trivia.
             Dim trivia As IEnumerable(Of SyntaxTrivia) =
                     From t In oldRoot.DescendantTrivia
-                    Where t.VisualBasicKind() = SyntaxKind.RegionDirectiveTrivia OrElse
-                          t.VisualBasicKind() = SyntaxKind.EndRegionDirectiveTrivia
+                    Where t.VBKind() = SyntaxKind.RegionDirectiveTrivia OrElse
+                          t.VBKind() = SyntaxKind.EndRegionDirectiveTrivia
 
             Dim newRoot As SyntaxNode =
                     oldRoot.ReplaceTrivia(trivia:=trivia,
@@ -2251,7 +2251,7 @@ End Module
             newRoot = newRoot.NormalizeWhitespace() ' normalize all the whitespace to make it legible
             Dim newTree = tree.WithRootAndOptions(newRoot, tree.Options)
             Dim vbRuntime = MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)
-            Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={newTree}, references:={Mscorlib, vbRuntime})
+            Dim comp = VBCompilation.Create("MyCompilation", syntaxTrees:={newTree}, references:={Mscorlib, vbRuntime})
             Dim output As String = Execute(comp)
 
             Assert.AreEqual(
@@ -2265,19 +2265,19 @@ End Module
 </text>.Value, output.Replace(vbCrLf, vbLf))
         End Sub
 
-        ' Below VisualBasicSyntaxRewriter inserts a Console.WriteLine() statement to print the value of the
+        ' Below VBSyntaxRewriter inserts a Console.WriteLine() statement to print the value of the
         ' LHS variable for compound assignement statements encountered in the input tree.
         Public Class ConsoleWriteLineInserter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Public Overrides Function VisitAssignmentStatement(node As AssignmentStatementSyntax) As SyntaxNode
                 Dim updatedNode As SyntaxNode = MyBase.VisitAssignmentStatement(node)
 
                 If IsBlock(node.Parent) AndAlso
-                    (node.VisualBasicKind() = SyntaxKind.AddAssignmentStatement OrElse
-                     node.VisualBasicKind() = SyntaxKind.SubtractAssignmentStatement OrElse
-                     node.VisualBasicKind() = SyntaxKind.MultiplyAssignmentStatement OrElse
-                     node.VisualBasicKind() = SyntaxKind.DivideAssignmentStatement) Then
+                    (node.VBKind() = SyntaxKind.AddAssignmentStatement OrElse
+                     node.VBKind() = SyntaxKind.SubtractAssignmentStatement OrElse
+                     node.VBKind() = SyntaxKind.MultiplyAssignmentStatement OrElse
+                     node.VBKind() = SyntaxKind.DivideAssignmentStatement) Then
 
                     ' Print value of the variable on the 'Left' side of
                     ' compound assignement statements encountered.
@@ -2344,7 +2344,7 @@ End Module
         End Function
 
         Private Class SimplifyAnnotationRewriter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Private Function AnnotateNodeWithSimplifyAnnotation(node As SyntaxNode) As SyntaxNode
                 Return node.WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)
@@ -2399,7 +2399,7 @@ End Module
             Dim systemReference = AppDomain.CurrentDomain.GetAssemblies().Where(Function(x) String.Equals(x.GetName().Name, "System", StringComparison.OrdinalIgnoreCase)).
                 Select(AddressOf MetadataReference.CreateFromAssembly).Single()
 
-            Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
+            Dim vbOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
             Dim sln = New CustomWorkspace().CurrentSolution.
                           AddProject(_projectId, "MyProject", "MyProject", LanguageNames.VisualBasic).WithProjectCompilationOptions(_projectId, vbOptions).

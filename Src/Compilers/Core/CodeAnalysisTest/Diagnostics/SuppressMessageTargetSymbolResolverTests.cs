@@ -1387,9 +1387,9 @@ End Class
             }
             else
             {
-                return VisualBasicCompilation.Create(
+                return VBCompilation.Create(
                     projectName,
-                    options: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace),
+                    options: new VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace),
                     syntaxTrees: new[] { syntaxTree },
                     references: new[] { TestBase.MscorlibRef });
             }
@@ -1406,7 +1406,7 @@ End Class
 
             return language == LanguageNames.CSharp ?
                 CSharpSyntaxTree.ParseText(source, path: fileName) :
-                VisualBasicSyntaxTree.ParseText(source, path: fileName);
+                VBSyntaxTree.ParseText(source, path: fileName);
         }
     }
 }

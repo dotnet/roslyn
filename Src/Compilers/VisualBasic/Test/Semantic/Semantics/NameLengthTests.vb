@@ -545,13 +545,13 @@ BC37220: Name '<%= LongSymbolName %>3' exceeds the maximum length allowed in met
             Return String.Format(sourceTemplate.Value.Replace(vbCr, vbCrLf), args)
         End Function
 
-        Private Function CreateCompilationWithMscorlib(source As String) As VisualBasicCompilation
+        Private Function CreateCompilationWithMscorlib(source As String) As VBCompilation
             Return CompilationUtils.CreateCompilationWithMscorlib({source}, {}, TestOptions.ReleaseDll)
         End Function
 
-        Private Function CreateCompilationWithMscorlib45(source As String) As VisualBasicCompilation
-            Return VisualBasicCompilation.Create(GetUniqueName(),
-                                                 {VisualBasicSyntaxTree.ParseText(source)},
+        Private Function CreateCompilationWithMscorlib45(source As String) As VBCompilation
+            Return VBCompilation.Create(GetUniqueName(),
+                                                 {VBSyntaxTree.ParseText(source)},
                                                  {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
                                                  TestOptions.ReleaseDll)
         End Function

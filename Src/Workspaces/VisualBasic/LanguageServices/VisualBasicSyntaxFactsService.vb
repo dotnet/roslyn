@@ -15,15 +15,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ISyntaxFactsService
 
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
-            Return token.VisualBasicKind = SyntaxKind.AwaitKeyword
+            Return token.VBKind = SyntaxKind.AwaitKeyword
         End Function
 
         Public Function IsIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsIdentifier
-            Return token.VisualBasicKind = SyntaxKind.IdentifierToken
+            Return token.VBKind = SyntaxKind.IdentifierToken
         End Function
 
         Public Function IsGlobalNamespaceKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsGlobalNamespaceKeyword
-            Return token.VisualBasicKind = SyntaxKind.GlobalKeyword
+            Return token.VBKind = SyntaxKind.GlobalKeyword
         End Function
 
         Public Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimIdentifier
@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsOperator(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsOperator
-            Return (IsUnaryExpressionOperatorToken(CType(token.VisualBasicKind, SyntaxKind)) AndAlso TypeOf token.Parent Is UnaryExpressionSyntax) OrElse
-                   (IsBinaryExpressionOperatorToken(CType(token.VisualBasicKind, SyntaxKind)) AndAlso TypeOf token.Parent Is BinaryExpressionSyntax)
+            Return (IsUnaryExpressionOperatorToken(CType(token.VBKind, SyntaxKind)) AndAlso TypeOf token.Parent Is UnaryExpressionSyntax) OrElse
+                   (IsBinaryExpressionOperatorToken(CType(token.VBKind, SyntaxKind)) AndAlso TypeOf token.Parent Is BinaryExpressionSyntax)
         End Function
 
         Public Function IsContextualKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsContextualKeyword
@@ -48,15 +48,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsHashToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsHashToken
-            Return token.VisualBasicKind = SyntaxKind.HashToken
+            Return token.VBKind = SyntaxKind.HashToken
         End Function
 
         Public Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFactsService.TryGetCorrespondingOpenBrace
 
-            If token.VisualBasicKind = SyntaxKind.CloseBraceToken Then
+            If token.VBKind = SyntaxKind.CloseBraceToken Then
                 Dim tuples = token.Parent.GetBraces()
                 openBrace = tuples.Item1
-                Return openBrace.VisualBasicKind = SyntaxKind.OpenBraceToken
+                Return openBrace.VBKind = SyntaxKind.OpenBraceToken
             End If
 
             Return False
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function TryGetExternalSourceInfo(node As SyntaxNode, ByRef info As ExternalSourceInfo) As Boolean Implements ISyntaxFactsService.TryGetExternalSourceInfo
-            Select Case node.VisualBasicKind
+            Select Case node.VBKind
                 Case SyntaxKind.ExternalSourceDirectiveTrivia
                     info = New ExternalSourceInfo(CInt(DirectCast(node, ExternalSourceDirectiveTriviaSyntax).LineStart.Value), False)
                     Return True
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetPredefinedType(token As SyntaxToken) As PredefinedType
-            Select Case token.VisualBasicKind
+            Select Case token.VBKind
                 Case SyntaxKind.BooleanKeyword
                     Return PredefinedType.Boolean
                 Case SyntaxKind.ByteKeyword
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetPredefinedOperator(token As SyntaxToken) As PredefinedOperator
-            Select Case token.VisualBasicKind
+            Select Case token.VBKind
                 Case SyntaxKind.PlusToken, SyntaxKind.PlusEqualsToken
                     Return PredefinedOperator.Addition
 
@@ -371,11 +371,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsLiteral
-            Return SyntaxFacts.IsLiteralExpressionToken(CType(token.VisualBasicKind, SyntaxKind))
+            Return SyntaxFacts.IsLiteralExpressionToken(CType(token.VBKind, SyntaxKind))
         End Function
 
         Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
-            Return CType(token.VisualBasicKind, SyntaxKind) = SyntaxKind.StringLiteralToken
+            Return CType(token.VBKind, SyntaxKind) = SyntaxKind.StringLiteralToken
         End Function
 
         Public Function IsBindableToken(token As Microsoft.CodeAnalysis.SyntaxToken) As Boolean Implements ISyntaxFactsService.IsBindableToken
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMemberAccessExpression
             Return TypeOf node Is MemberAccessExpressionSyntax AndAlso
-                DirectCast(node, MemberAccessExpressionSyntax).VisualBasicKind = SyntaxKind.SimpleMemberAccessExpression
+                DirectCast(node, MemberAccessExpressionSyntax).VBKind = SyntaxKind.SimpleMemberAccessExpression
         End Function
 
         Public Function IsPointerMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPointerMemberAccessExpression
@@ -427,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInConstructor(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstructor
-            Return node.GetAncestors(Of StatementSyntax).Any(Function(s) s.VisualBasicKind = SyntaxKind.ConstructorBlock)
+            Return node.GetAncestors(Of StatementSyntax).Any(Function(s) s.VBKind = SyntaxKind.ConstructorBlock)
         End Function
 
         Public Function IsUnsafeContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUnsafeContext
@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parent = node.Parent
 
             While node IsNot Nothing
-                If node.VisualBasicKind = SyntaxKind.VariableDeclarator AndAlso node.IsParentKind(SyntaxKind.FieldDeclaration) Then
+                If node.VBKind = SyntaxKind.VariableDeclarator AndAlso node.IsParentKind(SyntaxKind.FieldDeclaration) Then
                     Return node
                 End If
 
@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsElementAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsElementAccessExpression
             ' VB doesn't have a specialized node for element access.  Instead, it just uses an
             ' invocation expression or dictionary access expression.
-            Return node.VisualBasicKind = SyntaxKind.InvocationExpression OrElse node.VisualBasicKind = SyntaxKind.DictionaryAccessExpression
+            Return node.VBKind = SyntaxKind.InvocationExpression OrElse node.VBKind = SyntaxKind.DictionaryAccessExpression
         End Function
 
         Public Function ConvertToSingleLine(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine

@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' or is part of upper-level qualified name should be searched. All other
             ' names will be bound using regular BindType calls
 
-            Dim name As VisualBasicSyntaxNode = nameFromCref.Parent
+            Dim name As VBSyntaxNode = nameFromCref.Parent
             While name IsNot Nothing And name.Kind <> SyntaxKind.CrefReference
                 If name.Kind <> SyntaxKind.QualifiedName Then
                     ' Not a top-level name or a top-level qualified name part
@@ -303,7 +303,7 @@ lAgain:
             End If
 
             Dim type As SpecialType
-            Select Case node.Keyword.VisualBasicKind
+            Select Case node.Keyword.VBKind
                 Case SyntaxKind.ObjectKeyword
                     type = SpecialType.System_Object
                 Case SyntaxKind.BooleanKeyword
@@ -337,7 +337,7 @@ lAgain:
                 Case SyntaxKind.DoubleKeyword
                     type = SpecialType.System_Double
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VisualBasicKind)
+                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VBKind)
             End Select
 
             ' We discard diagnostics in case 

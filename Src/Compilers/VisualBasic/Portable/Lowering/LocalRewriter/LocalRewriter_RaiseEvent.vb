@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' If the event is a WinRT event, then the backing field is actually an EventRegistrationTokenTable,
         ' rather than a delegate.  If this is the case, then we replace the receiver with 
         ' EventRegistrationTokenTable(Of Event).GetOrCreateEventRegistrationTokenTable(eventField).InvocationList.
-        Private Function GetWindowsRuntimeEventReceiver(syntax As VisualBasicSyntaxNode, rewrittenReceiver As BoundExpression) As BoundExpression
+        Private Function GetWindowsRuntimeEventReceiver(syntax As VBSyntaxNode, rewrittenReceiver As BoundExpression) As BoundExpression
             Dim fieldType As NamedTypeSymbol = DirectCast(rewrittenReceiver.Type, NamedTypeSymbol)
             Debug.Assert(fieldType.Name = "EventRegistrationTokenTable")
 

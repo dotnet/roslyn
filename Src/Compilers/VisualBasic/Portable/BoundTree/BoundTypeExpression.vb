@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundTypeExpression
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VBSyntaxNode, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, Nothing, Nothing, type, hasErrors)
         End Sub
 

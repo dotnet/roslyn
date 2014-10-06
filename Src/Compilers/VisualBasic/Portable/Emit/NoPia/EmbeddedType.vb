@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Debug.Assert(Not underlyingNamedType.IsGenericType)
         End Sub
 
-        Public Sub EmbedAllMembersOfImplementedInterface(syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Public Sub EmbedAllMembersOfImplementedInterface(syntaxNodeOpt As VBSyntaxNode, diagnostics As DiagnosticBag)
             Debug.Assert(UnderlyingNamedType.IsInterfaceType())
 
             If embeddedAllMembersOfImplementedInterface Then
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides Function GetBaseClass(moduleBuilder As PEModuleBuilder, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.ITypeReference
+        Protected Overrides Function GetBaseClass(moduleBuilder As PEModuleBuilder, syntaxNodeOpt As VBSyntaxNode, diagnostics As DiagnosticBag) As Cci.ITypeReference
             Dim baseType = UnderlyingNamedType.BaseTypeNoUseSiteDiagnostics
             Return If(baseType IsNot Nothing, moduleBuilder.Translate(baseType, syntaxNodeOpt, diagnostics), Nothing)
         End Function
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
 
             For Each [interface] In UnderlyingNamedType.GetInterfacesToEmit()
-                Yield moduleBeingBuilt.Translate([interface], DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
+                Yield moduleBeingBuilt.Translate([interface], DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), context.Diagnostics)
             Next
         End Function
 
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor)
         End Function
 
-        Protected Overrides Function CreateTypeIdentifierAttribute(hasGuid As Boolean, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
+        Protected Overrides Function CreateTypeIdentifierAttribute(hasGuid As Boolean, syntaxNodeOpt As VBSyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
             Dim member = If(hasGuid,
                 WellKnownMember.System_Runtime_InteropServices_TypeIdentifierAttribute__ctor,
                 WellKnownMember.System_Runtime_InteropServices_TypeIdentifierAttribute__ctorStringString)
@@ -195,11 +195,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return Nothing
         End Function
 
-        Protected Overrides Sub ReportMissingAttribute(description As AttributeDescription, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Protected Overrides Sub ReportMissingAttribute(description As AttributeDescription, syntaxNodeOpt As VBSyntaxNode, diagnostics As DiagnosticBag)
             EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_NoPIAAttributeMissing2, syntaxNodeOpt, UnderlyingNamedType, description.FullName)
         End Sub
 
-        Protected Overrides Sub EmbedDefaultMembers(defaultMember As String, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Protected Overrides Sub EmbedDefaultMembers(defaultMember As String, syntaxNodeOpt As VBSyntaxNode, diagnostics As DiagnosticBag)
             For Each s In UnderlyingNamedType.GetMembers(defaultMember)
                 Select Case s.Kind
                     Case SymbolKind.Field

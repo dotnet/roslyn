@@ -518,7 +518,7 @@ BC30002: Type 'System.Int32' is not defined.
         ''' First, compile the provided source with all assemblies and confirm that there are no errors.
         ''' Then, compile the provided source again without the unavailable assembly and return the result.
         ''' </summary>
-        Private Shared Function CompileWithMissingReference(sources As XElement) As VisualBasicCompilation
+        Private Shared Function CompileWithMissingReference(sources As XElement) As VBCompilation
             Dim unavailableAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.Unavailable
             Dim csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp
             Dim ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL

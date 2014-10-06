@@ -16,13 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LookupTests
         Inherits BasicTestBase
 
-        Private Function GetContext(compilation As VisualBasicCompilation,
+        Private Function GetContext(compilation As VBCompilation,
                                    treeName As String,
                                    textToFind As String) As Binder
             Dim tree As SyntaxTree = CompilationUtils.GetTree(compilation, treeName)
             Dim position = CompilationUtils.FindPositionFromText(tree, textToFind)
 
-            Return DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel).GetEnclosingBinder(position)
+            Return DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel).GetEnclosingBinder(position)
         End Function
 
 
@@ -952,7 +952,7 @@ P.Q.R.S
             ' If we used a shared Mscorlib reference then other tests might have already initialized it's shared AssemblySymbol.
             Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
 
-            Dim c = VisualBasicCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
+            Dim c = VBCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
                                                      syntaxTrees:={Parse(<text>
                                                                             Namespace P
                                                                             End Namespace
@@ -1623,7 +1623,7 @@ End Module
             CompilationUtils.AssertNoDiagnostics(compilation)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim node As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
 
@@ -1673,7 +1673,7 @@ BC30112: 'Diagnostics' is a namespace and cannot be used as an expression.
                                                                  </expected>)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim node As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
 
@@ -1733,7 +1733,7 @@ End Namespace
             CompilationUtils.AssertNoDiagnostics(compilation)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim node2 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 2)
 
@@ -1926,7 +1926,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
                                                                 ]]></expected>)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim nodes(24) As IdentifierNameSyntax
 
@@ -2097,7 +2097,7 @@ End Namespace
             CompilationUtils.AssertNoDiagnostics(compilation)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim nodes(12) As IdentifierNameSyntax
 
@@ -2240,7 +2240,7 @@ BC30002: Type 'NS6.NS7.M1' is not defined.
                                                     ]]></expected>)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim nodes(12) As IdentifierNameSyntax
 
@@ -2358,7 +2358,7 @@ BC30516: Overload resolution failed because no accessible 'M1' accepts this numb
                                                     </expected>)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim node3 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 3)
 
@@ -2461,7 +2461,7 @@ End Namespace
             CompilationUtils.AssertNoDiagnostics(compilation)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim node3 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 3)
 
@@ -2598,7 +2598,7 @@ BC30562: 'T1' is ambiguous between declarations in Modules 'NS1.NS6.NS7.Module1,
                                                     ]]></expected>)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim nodes(12) As IdentifierNameSyntax
 
@@ -2731,7 +2731,7 @@ BC30109: 'Module1.T1' is a class type and cannot be used as an expression.
                                                     ]]></expected>)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
-            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
+            Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
             Dim nodes(12) As IdentifierNameSyntax
 

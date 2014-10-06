@@ -2712,7 +2712,7 @@ Interface IE
             CheckDefaultMemberAttribute(compilation, type, "P", synthesized:=False)
         End Sub
 
-        Private Sub CheckDefaultMemberAttribute(compilation As VisualBasicCompilation, type As NamedTypeSymbol, name As String, synthesized As Boolean)
+        Private Sub CheckDefaultMemberAttribute(compilation As VBCompilation, type As NamedTypeSymbol, name As String, synthesized As Boolean)
             Dim attributes = type.GetAttributes()
             Dim synthesizedAttributes = type.GetSynthesizedAttributes()
             Dim attribute As VisualBasicAttributeData
@@ -8232,7 +8232,7 @@ End Class
             End If
         End Sub
 
-        Private Function CompileWithCustomPropertiesAssembly(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+        Private Function CompileWithCustomPropertiesAssembly(source As XElement, Optional options As VBCompilationOptions = Nothing) As VBCompilation
             Return CreateCompilationWithMscorlibAndReferences(source, {PropertiesDll}, options)
         End Function
 

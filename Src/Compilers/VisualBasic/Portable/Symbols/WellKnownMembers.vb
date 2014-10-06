@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class VisualBasicCompilation
+    Partial Class VBCompilation
 
         Private ReadOnly m_WellKnownMemberSignatureComparer As New WellKnownMembersSignatureComparer(Me)
 
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result As Symbol = Nothing
 
                 If Not type.IsErrorType() Then
-                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, m_WellKnownMemberSignatureComparer, accessWithinOpt:=Me.Assembly)
+                    result = VBCompilation.GetRuntimeMember(type, descriptor, m_WellKnownMemberSignatureComparer, accessWithinOpt:=Me.Assembly)
                 End If
 
                 Interlocked.CompareExchange(m_LazyWellKnownTypeMembers(member), result, DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
@@ -552,9 +552,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class WellKnownMembersSignatureComparer
             Inherits SpecialMembersSignatureComparer
 
-            Private m_Compilation As VisualBasicCompilation
+            Private m_Compilation As VBCompilation
 
-            Public Sub New(compilation As VisualBasicCompilation)
+            Public Sub New(compilation As VBCompilation)
                 m_Compilation = compilation
             End Sub
 

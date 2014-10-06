@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete the middle type argument (should clear the following comma)
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.VisualBasicKind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "B", Nothing, node)
+                    Return If(node.VBKind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "B", Nothing, node)
                 End Function)
 
             Dim caught As Exception = Nothing
@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete all arguments, should clear the intervening commas
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.VisualBasicKind = SyntaxKind.SimpleArgument, Nothing, node)
+                    Return If(node.VBKind = SyntaxKind.SimpleArgument, Nothing, node)
                 End Function)
 
             Dim caught As Exception = Nothing
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim first As Boolean = True
             Dim rewriter = New RedRewriter(rewriteToken:=
                 Function(token)
-                    If token.VisualBasicKind = SyntaxKind.CommaToken AndAlso first Then
+                    If token.VBKind = SyntaxKind.CommaToken AndAlso first Then
                         first = False
                         Return Nothing
                     End If
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete all commas
             Dim rewriter = New RedRewriter(rewriteToken:=
                 Function(token)
-                    Return If(token.VisualBasicKind = SyntaxKind.CommaToken, Nothing, token)
+                    Return If(token.VBKind = SyntaxKind.CommaToken, Nothing, token)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=False)
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete all whitespace trivia (leave comments)
             Dim rewriter = New RedRewriter(rewriteTrivia:=
                 Function(trivia)
-                    Return If(trivia.VisualBasicKind = SyntaxKind.WhitespaceTrivia, Nothing, trivia)
+                    Return If(trivia.VBKind = SyntaxKind.WhitespaceTrivia, Nothing, trivia)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=True)
@@ -345,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.VisualBasicKind = SyntaxKind.AttributeList AndAlso node.ToString().Contains("2"), Nothing, node)
+                    Return If(node.VBKind = SyntaxKind.AttributeList AndAlso node.ToString().Contains("2"), Nothing, node)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=False)
@@ -368,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.VisualBasicKind = SyntaxKind.AttributeList, Nothing, node)
+                    Return If(node.VBKind = SyntaxKind.AttributeList, Nothing, node)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=False)
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete the last argument (should clear the *preceding* comma)
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.VisualBasicKind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "C", Nothing, node)
+                    Return If(node.VBKind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "C", Nothing, node)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=True)
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.VisualBasicKind = SyntaxKind.SubBlock AndAlso node.ToString().Contains("B"), Nothing, node)
+                    Return If(node.VBKind = SyntaxKind.SubBlock AndAlso node.ToString().Contains("B"), Nothing, node)
                 End Function)
 
             Dim caught As Exception = Nothing
@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim rewriter = New RedRewriter(rewriteToken:=
                 Function(token)
-                    Return If(token.VisualBasicKind = SyntaxKind.CommaToken, Nothing, token)
+                    Return If(token.VBKind = SyntaxKind.CommaToken, Nothing, token)
                 End Function)
 
             Assert.Throws(Of InvalidOperationException)(Sub() rewriter.Visit(red))
@@ -496,7 +496,7 @@ Class C
 End Class
 ]]>
 
-            Dim oldTree = VisualBasicSyntaxTree.ParseText(oldSource.Value, options:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
+            Dim oldTree = VBSyntaxTree.ParseText(oldSource.Value, options:=New VBParseOptions(documentationMode:=DocumentationMode.Diagnose))
             Dim oldRoot = oldTree.GetRoot()
             Dim xmlNode = oldRoot.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlEmptyElementSyntax)().Single()
             Dim newRoot = oldRoot.RemoveNode(xmlNode, SyntaxRemoveOptions.KeepDirectives)
@@ -509,7 +509,7 @@ End Class
 #Region "Helper Types"
 
         Private Sub TestGreen(input As String, output As String, rewriter As GreenRewriter, isStmt As Boolean)
-            Dim red As VisualBasicSyntaxNode
+            Dim red As VBSyntaxNode
             If isStmt Then
                 red = SyntaxFactory.ParseExecutableStatement(input)
             Else
@@ -520,14 +520,14 @@ End Class
 
             Assert.False(green.ContainsDiagnostics)
 
-            Dim result As InternalSyntax.VisualBasicSyntaxNode = rewriter.Visit(green)
+            Dim result As InternalSyntax.VBSyntaxNode = rewriter.Visit(green)
 
             Assert.Equal(input = output, green Is result)
             Assert.Equal(output.Trim(), result.ToFullString().Trim())
         End Sub
 
         Private Sub TestRed(input As String, output As String, rewriter As RedRewriter, isStmt As Boolean)
-            Dim red As VisualBasicSyntaxNode
+            Dim red As VBSyntaxNode
             If isStmt Then
                 red = SyntaxFactory.ParseExecutableStatement(input)
             Else
@@ -550,14 +550,14 @@ End Class
         ''' This Rewriter exposes delegates for the methods that would normally be overridden.
         ''' </summary>
         Friend Class GreenRewriter
-            Inherits InternalSyntax.VisualBasicSyntaxRewriter
+            Inherits InternalSyntax.VBSyntaxRewriter
 
-            Private ReadOnly rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode)
+            Private ReadOnly rewriteNode As Func(Of InternalSyntax.VBSyntaxNode, InternalSyntax.VBSyntaxNode)
             Private ReadOnly rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken)
             Private ReadOnly rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia)
 
             Friend Sub New(
-                    Optional rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode) = Nothing,
+                    Optional rewriteNode As Func(Of InternalSyntax.VBSyntaxNode, InternalSyntax.VBSyntaxNode) = Nothing,
                     Optional rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken) = Nothing,
                     Optional rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia) = Nothing)
                 Me.rewriteNode = rewriteNode
@@ -565,8 +565,8 @@ End Class
                 Me.rewriteTrivia = rewriteTrivia
             End Sub
 
-            Public Overrides Function Visit(node As InternalSyntax.VisualBasicSyntaxNode) As InternalSyntax.VisualBasicSyntaxNode
-                Dim visited As InternalSyntax.VisualBasicSyntaxNode = MyBase.Visit(node)
+            Public Overrides Function Visit(node As InternalSyntax.VBSyntaxNode) As InternalSyntax.VBSyntaxNode
+                Dim visited As InternalSyntax.VBSyntaxNode = MyBase.Visit(node)
                 If rewriteNode Is Nothing OrElse visited Is Nothing Then
                     Return visited
                 Else
@@ -598,7 +598,7 @@ End Class
         ''' This Rewriter exposes delegates for the methods that would normally be overridden.
         ''' </summary>
         Friend Class RedRewriter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Private ReadOnly rewriteNode As Func(Of SyntaxNode, SyntaxNode)
             Private ReadOnly rewriteToken As Func(Of SyntaxToken, SyntaxToken)

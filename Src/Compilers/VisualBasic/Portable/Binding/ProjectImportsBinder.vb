@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             m_tree = tree
         End Sub
 
-        Public Overrides Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
+        Public Overrides Function GetSyntaxReference(node As VBSyntaxNode) As SyntaxReference
             Return m_tree.GetReference(node)
         End Function
     End Class

@@ -66,12 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsAliasReplaceableExpression(expression As ExpressionSyntax) As Boolean
-            If expression.VisualBasicKind = SyntaxKind.IdentifierName OrElse
-               expression.VisualBasicKind = SyntaxKind.QualifiedName Then
+            If expression.VBKind = SyntaxKind.IdentifierName OrElse
+               expression.VBKind = SyntaxKind.QualifiedName Then
                 Return True
             End If
 
-            If expression.VisualBasicKind = SyntaxKind.SimpleMemberAccessExpression Then
+            If expression.VBKind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
 
                 Return memberAccess.Expression IsNot Nothing AndAlso memberAccess.Expression.IsAliasReplaceableExpression()
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' <param name="arity">The number of generic type parameters.</param>
         <Extension()>
         Public Sub DecomposeName(expression As ExpressionSyntax, ByRef qualifier As ExpressionSyntax, ByRef name As String, ByRef arity As Integer)
-            Select Case expression.VisualBasicKind
+            Select Case expression.VBKind
                 Case SyntaxKind.SimpleMemberAccessExpression
                     Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                     qualifier = memberAccess.Expression
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             <Out> ByRef isResultPredefinedCast As Boolean) As ExpressionSyntax
 
             ' Parenthesize the expression, except for collection initializer where parenthesizing changes the semantics.
-            Dim parenthesized = If(expression.VisualBasicKind = SyntaxKind.CollectionInitializer,
+            Dim parenthesized = If(expression.VBKind = SyntaxKind.CollectionInitializer,
                 expression,
                 expression.Parenthesize())
 
@@ -423,9 +423,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Return expression.VisualBasicKind = SyntaxKind.MeExpression OrElse
-                   expression.VisualBasicKind = SyntaxKind.MyBaseExpression OrElse
-                   expression.VisualBasicKind = SyntaxKind.MyClassExpression
+            Return expression.VBKind = SyntaxKind.MeExpression OrElse
+                   expression.VBKind = SyntaxKind.MyBaseExpression OrElse
+                   expression.VBKind = SyntaxKind.MyClassExpression
         End Function
 
         <Extension()>
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function GetOperatorPrecedence(expression As ExpressionSyntax) As OperatorPrecedence
-            Select Case expression.VisualBasicKind
+            Select Case expression.VBKind
                 Case SyntaxKind.ExponentiateExpression
                     Return OperatorPrecedence.PrecedenceExponentiate
                 Case SyntaxKind.UnaryMinusExpression,
@@ -746,7 +746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                       cancellationToken As CancellationToken) As ITypeSymbol
             Dim rank = 1
             While collectionInitializer.Initializers.Count > 0 AndAlso
-                  collectionInitializer.Initializers(0).VisualBasicKind = SyntaxKind.CollectionInitializer
+                  collectionInitializer.Initializers(0).VBKind = SyntaxKind.CollectionInitializer
                 rank += 1
                 collectionInitializer = DirectCast(collectionInitializer.Initializers(0), CollectionInitializerSyntax)
             End While
@@ -805,7 +805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Dim initializerType As ITypeSymbol = Nothing
                 Dim isAnyCollectionElementTypeSameAsDeclaredElementTypeResult = True
 
-                If declaredSymbolType.IsArrayType() AndAlso variableDeclarator.Initializer.Value.VisualBasicKind() = SyntaxKind.CollectionInitializer Then
+                If declaredSymbolType.IsArrayType() AndAlso variableDeclarator.Initializer.Value.VBKind() = SyntaxKind.CollectionInitializer Then
                     Dim elementType = DirectCast(declaredSymbolType, IArrayTypeSymbol).ElementType
                     isAnyCollectionElementTypeSameAsDeclaredElementTypeResult = IsAnyCollectionElementTypeSameAsDeclaredElementType(elementType, variableDeclarator.Initializer.Value, semanticModel, cancellationToken)
                 End If
@@ -858,7 +858,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Function IsAnyCollectionElementTypeSameAsDeclaredElementType(
             elementType As ITypeSymbol, value As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
 
-            If value.VisualBasicKind() = SyntaxKind.CollectionInitializer Then
+            If value.VBKind() = SyntaxKind.CollectionInitializer Then
                 For Each element In DirectCast(value, CollectionInitializerSyntax).Initializers
                     If IsAnyCollectionElementTypeSameAsDeclaredElementType(elementType, element, semanticModel, cancellationToken) Then
                         Return True
@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             replacementNode = Nothing
             issueSpan = Nothing
 
-            If expression.VisualBasicKind = SyntaxKind.SimpleMemberAccessExpression Then
+            If expression.VBKind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                 Return memberAccess.TryReduce(semanticModel,
                                               replacementNode,
@@ -959,7 +959,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             If optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) AndAlso
-                 memberAccess.Expression.VisualBasicKind() = SyntaxKind.MeExpression Then
+                 memberAccess.Expression.VBKind() = SyntaxKind.MeExpression Then
                 Return False
             End If
 
@@ -1157,7 +1157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     symbol = symbol.ContainingType
                 End If
 
-                If symbol.Kind = SymbolKind.Method AndAlso name.VisualBasicKind = SyntaxKind.GenericName Then
+                If symbol.Kind = SymbolKind.Method AndAlso name.VBKind = SyntaxKind.GenericName Then
                     If Not optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInference) Then
                         Return False
                     End If
@@ -1225,7 +1225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                         ' In case the alias name is the same as the last name of the alias target, we only include 
                         ' the left part of the name in the unnecessary span to Not confuse uses.
-                        If name.VisualBasicKind = SyntaxKind.QualifiedName Then
+                        If name.VBKind = SyntaxKind.QualifiedName Then
                             Dim qualifiedName As QualifiedNameSyntax = DirectCast(name, QualifiedNameSyntax)
 
                             If qualifiedName.Right.Identifier.ValueText = identifierToken.ValueText Then
@@ -1298,7 +1298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                            (type.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T) AndAlso
                            (aliasInfo Is Nothing) Then
                             Dim genericName As GenericNameSyntax
-                            If name.VisualBasicKind = SyntaxKind.QualifiedName Then
+                            If name.VBKind = SyntaxKind.QualifiedName Then
                                 genericName = DirectCast(DirectCast(name, QualifiedNameSyntax).Right, GenericNameSyntax)
                             Else
                                 genericName = DirectCast(name, GenericNameSyntax)
@@ -1316,7 +1316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                Select Case name.VisualBasicKind
+                Select Case name.VBKind
                     Case SyntaxKind.QualifiedName
                         ' a module name was inserted by the name expansion, so removing this should be tried first.
                         Dim qualifiedName = DirectCast(name, QualifiedNameSyntax)
@@ -1376,7 +1376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return False
                 End If
 
-                If name.Parent.VisualBasicKind = SyntaxKind.Attribute OrElse name.IsRightSideOfDot() Then
+                If name.Parent.VBKind = SyntaxKind.Attribute OrElse name.IsRightSideOfDot() Then
                     Dim newIdentifierText = String.Empty
 
                     ' an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DontSimplifyAnnotation
@@ -1414,7 +1414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Do While nextNode IsNot Nothing
 
-                Select Case nextNode.VisualBasicKind
+                Select Case nextNode.VBKind
 
                     Case SyntaxKind.IdentifierName, SyntaxKind.QualifiedName
                         node = nextNode
@@ -1472,14 +1472,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             replacementNode = Nothing
             issueSpan = Nothing
 
-            Select Case expression.VisualBasicKind
+            Select Case expression.VBKind
                 Case SyntaxKind.SimpleMemberAccessExpression
                     If True Then
                         Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                         Dim newLeft As ExpressionSyntax = Nothing
                         If TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, optionSet, newLeft, issueSpan) Then
                             ' replacement node might not be in it's simplest form, so add simplify annotation to it.
-                            replacementNode = memberAccess.Update(memberAccess.VisualBasicKind, newLeft, memberAccess.OperatorToken, memberAccess.Name).WithAdditionalAnnotations(Simplifier.Annotation)
+                            replacementNode = memberAccess.Update(memberAccess.VBKind, newLeft, memberAccess.OperatorToken, memberAccess.Name).WithAdditionalAnnotations(Simplifier.Annotation)
 
                             ' Ensure that replacement doesn't change semantics.
                             Return Not ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel)
@@ -1606,7 +1606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            If node.VisualBasicKind = SyntaxKind.IdentifierName AndAlso semanticModel.GetAliasInfo(DirectCast(node, IdentifierNameSyntax)) IsNot Nothing Then
+            If node.VBKind = SyntaxKind.IdentifierName AndAlso semanticModel.GetAliasInfo(DirectCast(node, IdentifierNameSyntax)) IsNot Nothing Then
                 Return False
             End If
 
@@ -1692,7 +1692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function IsMeOrNamedTypeOrNamespace(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
-            If expression.VisualBasicKind = SyntaxKind.MeExpression Then
+            If expression.VBKind = SyntaxKind.MeExpression Then
                 Return True
             End If
 
@@ -1756,7 +1756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private Function IsNullableTypeSyntaxLeftOfDotInMemberAccess(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
             Return expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
-                simplifiedNode.VisualBasicKind = SyntaxKind.NullableType
+                simplifiedNode.VBKind = SyntaxKind.NullableType
         End Function
 
         Private Function IsNonNameSyntaxInImportsDirective(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
@@ -1771,9 +1771,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Dim identifier As SimpleNameSyntax
-            If simplifiedNode.VisualBasicKind = SyntaxKind.IdentifierName Then
+            If simplifiedNode.VBKind = SyntaxKind.IdentifierName Then
                 identifier = DirectCast(simplifiedNode, SimpleNameSyntax)
-            ElseIf simplifiedNode.VisualBasicKind = SyntaxKind.QualifiedName Then
+            ElseIf simplifiedNode.VBKind = SyntaxKind.QualifiedName Then
                 identifier = DirectCast(DirectCast(simplifiedNode, QualifiedNameSyntax).Left, SimpleNameSyntax)
             Else
                 Return False

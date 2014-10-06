@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' scans  (ws)'''
-        Private Function ScanXmlDocTrivia() As VisualBasicSyntaxNode
+        Private Function ScanXmlDocTrivia() As VBSyntaxNode
             Debug.Assert(IsAtNewLine() OrElse IsStartingFirstXmlDocLine)
 
             Dim len = 0
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Returns False if trivia ends line.
         ''' </summary>
-        Private Function ScanXmlTriviaInXmlDoc(c As Char, triviaList As SyntaxListBuilder(Of VisualBasicSyntaxNode)) As Boolean
+        Private Function ScanXmlTriviaInXmlDoc(c As Char, triviaList As SyntaxListBuilder(Of VBSyntaxNode)) As Boolean
             Debug.Assert(IsScanningXmlDoc)
             Debug.Assert(c = UCH_CR OrElse c = UCH_LF OrElse c = " "c OrElse c = UCH_TAB)
 
@@ -228,14 +228,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' // [14]    CharData    ::=    [^<&]* - ([^<&]* ']]>' [^<&]*)
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As SyntaxList(Of VBSyntaxNode) = Nothing
             If IsAtNewLine() OrElse IsStartingFirstXmlDocLine Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 IsStartingFirstXmlDocLine = False           ' no longer starting
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
-                precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
+                precedingTrivia = New SyntaxList(Of VBSyntaxNode)(xDocTrivia)
             End If
 
             Dim Here As Integer = 0
@@ -374,7 +374,7 @@ ScanChars:
             Debug.Assert(state = ScannerState.StartProcessingInstruction OrElse
                          state = ScannerState.ProcessingInstruction)
 
-            Dim precedingTrivia = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
+            Dim precedingTrivia = triviaListPool.Allocate(Of VBSyntaxNode)()
             Dim result As SyntaxToken
 
             If IsAtNewLine() Then
@@ -467,14 +467,14 @@ CleanUp:
             ' //  =
             ' //  Whitespace
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As SyntaxList(Of VBSyntaxNode) = Nothing
 
             If IsAtNewLine() AndAlso Not Me.DoNotRequireXmlDocCommentPrefix Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
-                precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
+                precedingTrivia = New SyntaxList(Of VBSyntaxNode)(xDocTrivia)
             End If
 
             While CanGetChar()
@@ -494,7 +494,7 @@ CleanUp:
                         ' we should not visit this place twice
                         Debug.Assert(Not precedingTrivia.Any)
                         Dim offsets = CreateOffsetRestorePoint()
-                        Dim triviaList = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
+                        Dim triviaList = triviaListPool.Allocate(Of VBSyntaxNode)()
                         Dim continueLine = ScanXmlTriviaInXmlDoc(c, triviaList)
                         precedingTrivia = triviaList.ToList()
                         triviaListPool.Free(triviaList)

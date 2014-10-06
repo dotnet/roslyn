@@ -239,7 +239,7 @@ Module M2
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
     <errors>
         <error id="42304" warning="True"/>
         <error id="42304" warning="True"/>
@@ -273,7 +273,7 @@ End Module]]>)
 '''<doc xmlns:a:b="abc"/>
 Sub Main()
 End Sub
-End Module]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+End Module]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -292,7 +292,7 @@ End Sub
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -325,7 +325,7 @@ End Module
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -354,7 +354,7 @@ End Module
     Sub Main()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
         </errors>)
@@ -372,7 +372,7 @@ End Module
         ParseAndVerify("'''<doc/>" & vbCrLf &
                        "'''<doc/>" & vbCrLf &
                        "'''<doc/>" & vbCrLf &
-                       "'''<doc/>", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+                       "'''<doc/>", VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -441,7 +441,7 @@ End Module
 ''' < summary/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
         </errors>)
@@ -456,7 +456,7 @@ End Module
 ''' summary/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -488,7 +488,7 @@ Module M
     Sub M()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.None),
         <errors>
             <error id="30625"/>
             <error id="31151"/>
@@ -504,7 +504,7 @@ Module M
     Sub M()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
         <errors>
             <error id="30625"/>
             <error id="31151"/>
@@ -522,7 +522,7 @@ End Module
 '''<?a
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
         </errors>)
@@ -531,7 +531,7 @@ End Module
 '''b c<x/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
         </errors>)
@@ -539,7 +539,7 @@ End Module
 '''<x><?
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
             <error id="42304"/>

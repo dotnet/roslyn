@@ -6241,7 +6241,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6293,7 +6293,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6341,7 +6341,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6407,7 +6407,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6480,7 +6480,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6557,7 +6557,7 @@ BC30149: Class 'CustomEnumerator' must implement 'Sub Dispose()' for interface '
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6623,7 +6623,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6677,7 +6677,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6735,7 +6735,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6778,7 +6778,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6822,7 +6822,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -6865,7 +6865,7 @@ End Class
                                                                                                                               useParent:=useBlock),
                                                     ForEachStatementInfo)
                     Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VisualBasicSemanticModel)(compilation, "a.vb",
+                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
                                                                                                                              useParent:=useBlock),
                                                     ForEachStatementInfo)
                     End If
@@ -10148,7 +10148,7 @@ Module M
 End Module
     ]]></file>
 </compilation>)
-            semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of VisualBasicSyntaxNode)(compilation, "a.vb")
+            semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of VBSyntaxNode)(compilation, "a.vb")
             CheckSymbol(semanticSummary.Symbol, "Function M.F1() As Object")
         End Sub
 

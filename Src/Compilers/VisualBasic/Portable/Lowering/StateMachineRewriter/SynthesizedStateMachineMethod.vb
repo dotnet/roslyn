@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(stateMachineType As StateMachineTypeSymbol,
                        name As String,
                        interfaceMethod As MethodSymbol,
-                       syntax As VisualBasicSyntaxNode,
+                       syntax As VBSyntaxNode,
                        attributes As DebugAttributes,
                        declaredAccessibility As Accessibility,
                        enableDebugInfo As Boolean,

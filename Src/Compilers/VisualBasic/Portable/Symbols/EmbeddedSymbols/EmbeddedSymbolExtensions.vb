@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Public Function IsEmbeddedOrMyTemplateTree(tree As SyntaxTree) As Boolean
-            Dim vbTree = TryCast(tree, VisualBasicSyntaxTree)
+            Dim vbTree = TryCast(tree, VBSyntaxTree)
             Return vbTree IsNot Nothing AndAlso vbTree.IsMyTemplate OrElse vbTree.IsEmbeddedSyntaxTree
         End Function
 

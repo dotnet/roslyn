@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         End Function
 
         Protected MustInherit Class Rewriter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Protected ReadOnly _spans As SimpleIntervalTree(Of TextSpan)
             Protected ReadOnly _cancellationToken As CancellationToken
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Protected Function CreateIdentifierToken(token As SyntaxToken, newValueText As String) As SyntaxToken
-                Debug.Assert(token.VisualBasicKind = SyntaxKind.IdentifierToken)
+                Debug.Assert(token.VBKind = SyntaxKind.IdentifierToken)
 
                 ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 
                 ' it might be replacing a token that has annotation injected by other code cleanups

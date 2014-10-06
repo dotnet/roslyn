@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Friend Sub New(size As Integer)
-            Me._nodes = New InternalSyntax.VisualBasicSyntaxNode(size - 1) {}
+            Me._nodes = New InternalSyntax.VBSyntaxNode(size - 1) {}
             Me._count = 0
         End Sub
 
-        Friend Sub Add(item As InternalSyntax.VisualBasicSyntaxNode)
+        Friend Sub Add(item As InternalSyntax.VBSyntaxNode)
             If ((Me._nodes Is Nothing) OrElse (Me._count >= Me._nodes.Length)) Then
                 Me.Grow(If((Me._count = 0), 8, (Me._nodes.Length * 2)))
             End If
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Public Sub Add(item As SyntaxNodeOrToken)
-            Me.Add(DirectCast(item.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode))
+            Me.Add(DirectCast(item.UnderlyingNode, InternalSyntax.VBSyntaxNode))
         End Sub
 
         Public Sub AddRange(list As SyntaxNodeOrTokenList)
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Private Sub Grow(size As Integer)
-            Dim tmp = New InternalSyntax.VisualBasicSyntaxNode(size - 1) {}
+            Dim tmp = New InternalSyntax.VBSyntaxNode(size - 1) {}
             Array.Copy(Me._nodes, tmp, Me._nodes.Length)
             Me._nodes = tmp
         End Sub
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Case 3
                         Return New SyntaxNodeOrTokenList(InternalSyntax.SyntaxList.List(Me._nodes(0), Me._nodes(1), Me._nodes(2)).CreateRed(Nothing, 0), 0)
                 End Select
-                Dim tmp = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(Me._count - 1) {}
+                Dim tmp = New ArrayElement(Of InternalSyntax.VBSyntaxNode)(Me._count - 1) {}
                 Dim i As Integer
                 For i = 0 To Me._count - 1
                     tmp(i).Value = Me._nodes(i)
@@ -101,12 +101,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 End If
             End Get
             Set(value As SyntaxNodeOrToken)
-                Me._nodes(index) = DirectCast(value.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)
+                Me._nodes(index) = DirectCast(value.UnderlyingNode, InternalSyntax.VBSyntaxNode)
             End Set
         End Property
 
         Private _count As Integer
-        Private _nodes As InternalSyntax.VisualBasicSyntaxNode()
+        Private _nodes As InternalSyntax.VBSyntaxNode()
     End Class
 
 End Namespace

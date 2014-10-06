@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(statement.Kind = SyntaxKind.ForStatement OrElse statement.Kind = SyntaxKind.ForEachStatement)
         End Sub
 
-        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VisualBasicSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VBSyntaxNode
 
             Dim beginStmt As StatementSyntax = Nothing
             Dim nextStmt = DirectCast(endStmt, NextStatementSyntax)
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 nextStmt = Nothing
             End If
 
-            Dim result As VisualBasicSyntaxNode
+            Dim result As VBSyntaxNode
             If BlockKind = SyntaxKind.ForBlock Then
                 result = SyntaxFactory.ForBlock(DirectCast(beginStmt, ForStatementSyntax), Body(), nextStmt)
             Else

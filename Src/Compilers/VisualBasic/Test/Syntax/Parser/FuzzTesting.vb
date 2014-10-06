@@ -18,7 +18,7 @@ Public Class FuzzTesting : Inherits BasicTestBase
         i [Public]   &=  i  .  5 [Resume]  '<<
         i  ;  i >>  [Set]  '>>
         ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540023, "DevDiv")>
@@ -28,7 +28,7 @@ Public Class FuzzTesting : Inherits BasicTestBase
         Public  [MustOverride]  = Sub( -->  Console.WriteLine [xml] ("Sub Statement 2")
     Public Get  L4  )  Function(y [IsTrue]  As Integer) As Boolean
         ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540023, "DevDiv")>
@@ -38,7 +38,7 @@ Public Class FuzzTesting : Inherits BasicTestBase
         Public foo = Sub( Console.WriteLine()
     Public Get ) 
         ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540023, "DevDiv")>
@@ -48,14 +48,14 @@ Public Class FuzzTesting : Inherits BasicTestBase
         Public foo = Sub( Console.WriteLine()
     Public Set ) 
         ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540024, "DevDiv")>
     <Fact>
     Public Sub VB000126_01()
         Dim text = "         Property  con As [String] = [char] +  [Assembly]   <?  hexchar EndIf  +  [Yield] . [OrElse] ( [True] ) Case  & [double].ToString()  ?  float ) ToString( ;  &  [Dim] "
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540023, "DevDiv")>
@@ -64,7 +64,7 @@ Public Class FuzzTesting : Inherits BasicTestBase
         Dim text = <![CDATA[     Using  Function
      Dim  Sub  [CDec]  { )
         ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(542660, "DevDiv")>
@@ -73,7 +73,7 @@ Public Class FuzzTesting : Inherits BasicTestBase
         Dim text = <![CDATA[     Using  Function
      Public  Sub  [CDec]  { )
         ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540027, "DevDiv")>
@@ -82,7 +82,7 @@ Public Class FuzzTesting : Inherits BasicTestBase
         Dim text = <![CDATA[        Function  [Distinct] ()
      ExternalSource  Function
     MustInherit Class B(Of T)]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -92,7 +92,7 @@ Public Class FuzzTesting : Inherits BasicTestBase
      Binary  Sub
     Dim Get   [xml]  As [Inherits]  MyDelegate
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540026, "DevDiv")>
@@ -102,14 +102,14 @@ Public Class FuzzTesting : Inherits BasicTestBase
 End  ' 
 #End Region
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540024, "DevDiv")>
     <Fact>
     Public Sub VB000365_01()
         Dim text = "     Property  Sub delfoo1( [Stop] ByVal Erase   [With]  As [Shadows]  Object -->   GetType  e As System ]]> EventArgs ]]> "
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540027, "DevDiv")>
@@ -119,7 +119,7 @@ End  '
      Until  Function
  Dim  Class
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540026, "DevDiv")>
@@ -129,7 +129,7 @@ End  '
  MustOverride   Shared 
 #
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540026, "DevDiv")>
@@ -139,7 +139,7 @@ End  '
          Option 
 If %>  (  [Nothing] .LoopingMethod <> 0) then Property 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540030, "DevDiv")>
@@ -149,7 +149,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
 	 By   Function 
         Dim Namespace  [partial] &   ?  0
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540029, "DevDiv")>
@@ -161,7 +161,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
          Compare  Sub
         Public  NotInheritable  Operator Yield  IsTrue [Boolean]  ( ByVal CInt   [Enum]   Overridable   [Event] ) As Boolean
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540028, "DevDiv")>
@@ -172,7 +172,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
      MustInherit   Enum 
 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -182,7 +182,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
      Skip  Function
         Dim Event  b As Boolean = True  CUInt  False Or True  In  False '& | ^
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540031, "DevDiv")>
@@ -191,7 +191,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
         Dim text = <![CDATA[Function RunTests </ ) As Integer Char 
 If (  [Continue] .FooExtension /= "Scenario 13_2", 13)  <[CDATA[   [End]  & "test2") then Event 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540031, "DevDiv")>
@@ -200,7 +200,7 @@ If (  [Continue] .FooExtension /= "Scenario 13_2", 13)  <[CDATA[   [End]  & "tes
         Dim text = <![CDATA[Function RunTests As Integer
 if true then Event
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540031, "DevDiv")>
@@ -209,21 +209,21 @@ if true then Event
         Dim text = <![CDATA[Function RunTests As Integer
 if true then else Event
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540024, "DevDiv")>
     <Fact>
     Public Sub VB003272()
         Dim text = "    Property  [Catch]  ' ) Interface   Interface  IVariance( Take  Animals [Protected] ) [Descending]"
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540024, "DevDiv")>
     <Fact>
     Public Sub VB003272_02()
         Dim text = "         MustInherit  Property Variant  item( Nothing   [Date]   Async   Await  .   OrElse  Integer CObj "
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540027, "DevDiv")>
@@ -232,7 +232,7 @@ if true then else Event
         Dim text = <![CDATA[         Shared  Sub CChar 
      Off  Sub
     MustInherit Class B(Of T)]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540023, "DevDiv")>
@@ -241,7 +241,7 @@ if true then else Event
         Dim text = <![CDATA[If Sub  (  [Option]  & AnonymousType <>  WriteOnly  @   Overloads 
     MustInherit Class B(Of T)
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -253,7 +253,7 @@ if true then else Event
              EndIf  a As AndAlso  Boolean  +  True
             Dim [IsNot]  b As  Select   )  False Unicode 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <Fact>
@@ -264,7 +264,7 @@ if true then else Event
          CUInt  Function
              endif         
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <Fact>
@@ -275,7 +275,7 @@ if true then else Event
          CUInt  Function
              wend           
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540022, "DevDiv")>
@@ -283,7 +283,7 @@ if true then else Event
     Public Sub VB006755()
         Dim text = "     NotInheritable  Function  [Me] (ByVal  [IsFalse]  As Integer) As  Error " + Environment.NewLine
         text = text + "    retVal  <  0" + Environment.NewLine + "                 [Set]   ]]>  1 [Of] "
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540023, "DevDiv")>
@@ -292,7 +292,7 @@ if true then else Event
         Dim text = <![CDATA[     Erase  Function
     MustInherit Class B(Of T)
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -304,7 +304,7 @@ if true then else Event
  EndIf   While 
 Public Delegate Sub MyDelegate( [Object] ByVal message  EndIf   Partial )
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -325,14 +325,14 @@ Public Delegate Sub MyDelegate( [Object] ByVal message  EndIf   Partial )
              Decimal   Stop 
             Set( SByte  value  Catch  String [Yield]  ( 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540024, "DevDiv")>
     <Fact>
     Public Sub VB013706()
         Dim text = "    Property Integer   [NotOverridable] ( [Ansi] ) From  As IVariance MustInherit  ; Of CDate  Cheetah >> "
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -344,7 +344,7 @@ if( [False] runTests GoTo  <> Single  <? ) -   Off
 EndIf  1
             Dim [IsTrue]  s42 />  As %>  New ByRef   [OrElse]  ! Of  TypeOf ) [Call] . [CByte]  [Strict]  <> Of Integer) [MyBase]
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(541735, "DevDiv")>
@@ -353,7 +353,7 @@ EndIf  1
         Dim text = <![CDATA[Dim  [Each]  =  <[CDATA[ 1, Select 
                     #  ]
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -365,7 +365,7 @@ EndIf  1
          EndIf   Explicit 
          Sub  Shared Operator [Descending]  +(ByVal  [Where]  As  [Mid]  >  ByVal second CSng  As A) As Integer
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -378,7 +378,7 @@ if [MustInherit] ( [Namespace]  <> [Enum] 0 [WriteOnly]  (   Next
 If AddressOf   ^   [Key]  -= LoopingMethod @   )  0 [WithEvents]  />  then
 	return 1 [Auto] 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540023, "DevDiv")>
@@ -388,7 +388,7 @@ If AddressOf   ^   [Key]  -= LoopingMethod @   )  0 [WithEvents]  />  then
          Function  Function
     MustInherit Class B(Of T)
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -403,7 +403,7 @@ If AddressOf   ^   [Key]  -= LoopingMethod @   )  0 [WithEvents]  />  then
          Get  Property  [Select]   Sub  String [Shadows] 
          MustInherit  Property item(ByVal  [Shadows]   Unicode  Integer True ) As [Alias]  Integer
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540027, "DevDiv")>
@@ -413,7 +413,7 @@ If AddressOf   ^   [Key]  -= LoopingMethod @   )  0 [WithEvents]  />  then
                  [Narrowing]   Function 
  Const  Class With 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -423,7 +423,7 @@ If AddressOf   ^   [Key]  -= LoopingMethod @   )  0 [WithEvents]  />  then
          Assembly  Function
             Private  Set 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -434,7 +434,7 @@ If AddressOf   ^   [Key]  -= LoopingMethod @   )  0 [WithEvents]  />  then
          Ascending  Function
  Wend  Class
             If  [Overloads]   xml ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -446,7 +446,7 @@ If AddressOf   ^   [Key]  -= LoopingMethod @   )  0 [WithEvents]  />  then
          EndIf  b  Get  Boolean  <--  True [CDec]   ByVal   DirectCast  Or [CBool]  True  Implements  False '& | ^
         i  <  1 '++
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -465,7 +465,7 @@ Class MyClass1
     Custom Event  [Widening]  As MyDelegate
          CShort (ByVal  [ReDim]  As Function  MyDelegate)
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -477,7 +477,7 @@ CShort Sub
 EndIf
 o e()r
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540027, "DevDiv")>
@@ -486,7 +486,7 @@ o e()r
         Dim text = <![CDATA[sub Main Byte  ]]&lt; )
      Assembly  Function
  MustInherit  Class Bar Iterator ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -499,7 +499,7 @@ o e()r
         Dim ia3 [Until]  As Const  Integer() = [Ascending]  { Module , [AddHandler] 
                                  <--  ) 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -511,7 +511,7 @@ if(runTests [MustOverride]  <>0 +=  then
          EndIf 
 If  :  Statements += 8) <> 0) [Integer]  then [Yield] 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -525,7 +525,7 @@ end if
  EndIf   <>  Lambdas Like  "  [Global]  <<= invoke NotInheritable (2 >>  <> 0 Boolean  <<   Widening 
  Partial  (  [Infer]  > 8) [Function]  <> [Single]  0 Shadows ) [Off]   True 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -539,7 +539,7 @@ end if
         Dim  [IsTrue]  = From [Mod]  c In [Take]  categories [IsFalse]  _
                     Group !  Join p In productList On c Equals [Event]  p. [Not]  Into  If  _
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(542668, "DevDiv")>
@@ -550,7 +550,7 @@ end if
             s20.item(5) =  Function 
 If ( s20.p <> "A") then Catch 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(542668, "DevDiv")>
@@ -562,7 +562,7 @@ If ( s20.p <> "A") then Catch
             dim x = Function 
             If true then catch
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(542668, "DevDiv")>
@@ -574,7 +574,7 @@ If ( s20.p <> "A") then Catch
             dim x = Function 
             If true then else catch
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540032, "DevDiv")>
@@ -586,7 +586,7 @@ If [NotInheritable]  ( [Type]  ModuleEx. [Finally] FooExtension [Operator] ("Sce
 	 Where   Sub 
 	 Else   Finally 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540032, "DevDiv")>
@@ -598,7 +598,7 @@ If true then
 	 where sub
 	 Else   Finally 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540032, "DevDiv")>
@@ -610,7 +610,7 @@ If true then
 	 where sub
 	 Elseif true   Finally  
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540032, "DevDiv")>
@@ -627,7 +627,7 @@ If true then
    end try
 end function 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540022, "DevDiv")>
@@ -638,7 +638,7 @@ end function
         Else ; 
 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -650,7 +650,7 @@ end function
          EndIf   Off 
     Sub MyHandler( MyClass  Compare  message  Object  String)
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -665,7 +665,7 @@ end if
 end if
 If  {  Nullable( Group )  )  0 &   If 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540026, "DevDiv")>
@@ -676,14 +676,14 @@ If  {  Nullable( Group )  )  0 &   If
  Custom   Overloads 
 #Region "Co Contra Variance Variance2"
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540024, "DevDiv")>
     <Fact>
     Public Sub VB121067()
         Dim text = "         Property   Stop   [AddressOf]  = ByVal NotOverridable  index  CDate   DirectCast  '  As  CObj "
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -699,7 +699,7 @@ If  {  Nullable( Group )  )  0 &   If
         Dim  [Equals]   &   GetXmlNamespace  Object <? ) Infer 
         Using temp Class  As New Type   [Aggregate] ( Finally )
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540023, "DevDiv")>
@@ -708,7 +708,7 @@ If  {  Nullable( Group )  )  0 &   If
         Dim text = <![CDATA[     Public  [Key]  = Function( CULng  [RaiseEvent]  As  Let  {  As <<=  Boolean
         Dim Function  ia4() As Integer  "   /  Private ,
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(540025, "DevDiv")>
@@ -723,7 +723,7 @@ Public Class  [Continue] (Of T As  Unicode ) : Implements IVariance2( Await  T [
 Module Lambdas
      With   [Compare]   >=  Function( [UInteger]   Binary  Integer :  As Integer   ElseIf 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <WorkItem(545424, "DevDiv")>
@@ -743,7 +743,7 @@ Select Case number
 End Select
 
 ]]>.Value
-        VisualBasicSyntaxTree.ParseText(text)
+        VBSyntaxTree.ParseText(text)
     End Sub
 
     <Fact(Skip:="658140"), WorkItem(658140, "DevDiv")>
@@ -754,7 +754,7 @@ End Select
             Dim tree As SyntaxTree = Nothing
 
             Assert.DoesNotThrow(Sub()
-                                    tree = VisualBasicSyntaxTree.ParseText(EncodedStringText.Create(data))
+                                    tree = VBSyntaxTree.ParseText(EncodedStringText.Create(data))
                                 End Sub)
 
             tree.GetDiagnostics().VerifyErrorCodes(Diagnostic(ERRID.ERR_BinaryFile))

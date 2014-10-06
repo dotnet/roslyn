@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Partial Class StructuredTriviaSyntax
-        Inherits VisualBasicSyntaxNode
+        Inherits VBSyntaxNode
         Implements IStructuredTriviaSyntax
 
         Private _parentTrivia As SyntaxTrivia
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Friend Shared Function Create(trivia As SyntaxTrivia) As StructuredTriviaSyntax
-            Dim parent = DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode)
+            Dim parent = DirectCast(trivia.Token.Parent, VBSyntaxNode)
             Dim position = trivia.Position
             Dim red = DirectCast(trivia.UnderlyingNode.CreateRed(parent, position), StructuredTriviaSyntax)
             red._parentTrivia = trivia

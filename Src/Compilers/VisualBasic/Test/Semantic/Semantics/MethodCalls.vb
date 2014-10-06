@@ -2804,7 +2804,7 @@ End Module
 
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 compilationDef,
-                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).
+                New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).
             VerifyDiagnostics(Diagnostic(ERRID.WRN_ImplicitConversionCopyBack, "By").WithArguments("a", "Integer", "Byte"))
         End Sub
 

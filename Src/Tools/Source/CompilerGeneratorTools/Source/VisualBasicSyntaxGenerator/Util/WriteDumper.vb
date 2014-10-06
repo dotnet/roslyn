@@ -68,7 +68,7 @@ Class WriteDumper
         ' Write out the first boilerplate part of the visitor
 
         _writer.WriteLine("        Private Class Visitor")
-        _writer.WriteLine("            Inherits VisualBasicSyntaxVisitor(Of NodeInfo)")
+        _writer.WriteLine("            Inherits VBSyntaxVisitor(Of NodeInfo)")
         _writer.WriteLine()
 
         GenerateDumpVisitorMethods()

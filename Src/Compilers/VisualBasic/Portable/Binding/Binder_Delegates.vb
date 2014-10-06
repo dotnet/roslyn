@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="node">The AddressOf expression node.</param>
         ''' <param name="diagnostics">The diagnostics.</param><returns></returns>
-        Private Function BindAddressOfExpression(node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindAddressOfExpression(node As VBSyntaxNode, diagnostics As DiagnosticBag) As BoundExpression
 
             Dim addressOfSyntax = DirectCast(node, UnaryExpressionSyntax)
             Dim boundOperand = BindExpression(addressOfSyntax.Operand, isInvocationOrAddressOf:=True, diagnostics:=diagnostics, isOperandOfConditionalBranch:=False, eventContext:=False)
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindDelegateCreationExpression(
             delegateType As TypeSymbol,
             argumentListOpt As ArgumentListSyntax,
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             diagnostics As DiagnosticBag
         ) As BoundExpression
 
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     fromMethod.ContainingType.IsNullableType AndAlso
                     Not fromMethod.IsOverrides Then
 
-                    Dim addressOfSyntax As VisualBasicSyntaxNode = addressOfExpression.Syntax
+                    Dim addressOfSyntax As VBSyntaxNode = addressOfExpression.Syntax
                     Dim addressOfExpressionSyntax = DirectCast(addressOfExpression.Syntax, UnaryExpressionSyntax)
                     If (addressOfExpressionSyntax IsNot Nothing) Then
                         addressOfSyntax = addressOfExpressionSyntax.Operand
@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function ReportDelegateInvokeUseSiteError(
             diagBag As DiagnosticBag,
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             delegateType As TypeSymbol,
             invoke As MethodSymbol
         ) As Boolean
@@ -708,7 +708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub ReportDelegateBindingMismatchStrictOff(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             delegateType As NamedTypeSymbol,
             targetMethodSymbol As MethodSymbol,
             diagnostics As DiagnosticBag
@@ -732,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub ReportDelegateBindingIncompatible(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             delegateType As NamedTypeSymbol,
             targetMethodSymbol As MethodSymbol,
             diagnostics As DiagnosticBag
@@ -1050,8 +1050,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BuildDelegateRelaxationLambda(
-            syntaxNode As VisualBasicSyntaxNode,
-            methodGroupSyntax As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
+            methodGroupSyntax As VBSyntaxNode,
             receiver As BoundExpression,
             targetMethod As MethodSymbol,
             typeArgumentsOpt As BoundTypeArguments,
@@ -1124,7 +1124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="delegateRelaxation">Delegate relaxation to store withing the new BoundLambda node.</param>
         ''' <param name="diagnostics"></param>
         Private Function BuildDelegateRelaxationLambda(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As VBSyntaxNode,
             delegateInvoke As MethodSymbol,
             methodGroup As BoundMethodGroup,
             delegateRelaxation As ConversionKind,

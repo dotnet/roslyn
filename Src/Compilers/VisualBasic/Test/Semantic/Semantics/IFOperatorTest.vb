@@ -695,7 +695,7 @@ End Enum
 2
 0
 ]]>)
-            Dim compilation1 = DirectCast(verifier.Compilation, VisualBasicCompilation)
+            Dim compilation1 = DirectCast(verifier.Compilation, VBCompilation)
 
             '1
             Dim semanticInfos = GetSemanticInfos(compilation1, 1)
@@ -1108,7 +1108,7 @@ End Module
 
         End Sub
 
-        Private Function GetSemanticInfos(compilation As VisualBasicCompilation, index As Integer) As List(Of SemanticInfoSummary)
+        Private Function GetSemanticInfos(compilation As VBCompilation, index As Integer) As List(Of SemanticInfoSummary)
 
             Dim model = GetModel(compilation)
             Dim ternaryExpression = GetTernaryConditionalExpression(compilation, index)
@@ -1175,7 +1175,7 @@ End Module
             Next
         End Sub
 
-        Private Function AnalyzeRegionDataFlowTestForeach(compilation As VisualBasicCompilation,
+        Private Function AnalyzeRegionDataFlowTestForeach(compilation As VBCompilation,
                          ReadInsideSymbol As String, ReadOutsideSymbol As String, WrittenInsideSymbol As String,
                          WrittenOutsideSymbol As String, AlwaysAssignedSymbol As String,
                          DataFlowsInSymbol As String, DataFlowsOutSymbol As String, Optional variablesDeclared As String = "",
@@ -1193,7 +1193,7 @@ End Module
             Return analyze
         End Function
 
-        Private Function ClassifyConversionTest(compilation As VisualBasicCompilation, Optional index As Integer = 1) As List(Of Conversion)
+        Private Function ClassifyConversionTest(compilation As VBCompilation, Optional index As Integer = 1) As List(Of Conversion)
 
             Dim model = GetModel(compilation)
             Dim ternaryExpression = GetTernaryConditionalExpression(compilation, index)
@@ -1234,13 +1234,13 @@ End Module
             Return String.Join(", ", symbols.Select(Function(symbol) symbol.Name).OrderBy(Function(name) name))
         End Function
 
-        Private Function GetModel(compilation As VisualBasicCompilation) As SemanticModel
+        Private Function GetModel(compilation As VBCompilation) As SemanticModel
             Dim tree = compilation.SyntaxTrees.First
             Dim model = compilation.GetSemanticModel(tree)
             Return model
         End Function
 
-        Private Function GetTernaryConditionalExpression(compilation As VisualBasicCompilation, index As Integer) As TernaryConditionalExpressionSyntax
+        Private Function GetTernaryConditionalExpression(compilation As VBCompilation, index As Integer) As TernaryConditionalExpressionSyntax
 
             Dim tree = compilation.SyntaxTrees.First
             Dim node = tree.FindNodeOrTokenByKind(SyntaxKind.TernaryConditionalExpression, index).AsNode()

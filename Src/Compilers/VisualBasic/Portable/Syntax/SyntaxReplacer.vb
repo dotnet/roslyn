@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Class Replacer(Of TNode As SyntaxNode)
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Private ReadOnly computeReplacementNode As Func(Of TNode, TNode, SyntaxNode)
             Private ReadOnly computeReplacementToken As Func(Of SyntaxToken, SyntaxToken, SyntaxToken)
@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Class BaseListEditor
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Private ReadOnly _elementSpan As TextSpan
             Protected ReadOnly _editKind As ListEditKind

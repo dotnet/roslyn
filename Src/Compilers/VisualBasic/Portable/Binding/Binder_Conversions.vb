@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As BoundExpression
 
-            Select Case node.Keyword.VisualBasicKind
+            Select Case node.Keyword.VBKind
                 Case SyntaxKind.CTypeKeyword
                     result = BindCTypeExpression(node, diagnostics)
 
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = BindTryCastExpression(node, diagnostics)
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VisualBasicKind)
+                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VBKind)
             End Select
 
             Return result
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As DiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.VisualBasicKind = SyntaxKind.CTypeKeyword)
+            Debug.Assert(node.Keyword.VBKind = SyntaxKind.CTypeKeyword)
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As DiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.VisualBasicKind = SyntaxKind.DirectCastKeyword)
+            Debug.Assert(node.Keyword.VBKind = SyntaxKind.DirectCastKeyword)
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ApplyDirectCastConversion(
-             node As VisualBasicSyntaxNode,
+             node As VBSyntaxNode,
              argument As BoundExpression,
              targetType As TypeSymbol,
              diagnostics As DiagnosticBag
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As DiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.VisualBasicKind = SyntaxKind.TryCastKeyword)
+            Debug.Assert(node.Keyword.VBKind = SyntaxKind.TryCastKeyword)
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ApplyTryCastConversion(
-             node As VisualBasicSyntaxNode,
+             node As VBSyntaxNode,
              argument As BoundExpression,
              targetType As TypeSymbol,
              diagnostics As DiagnosticBag
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim targetType As SpecialType
 
-            Select Case node.Keyword.VisualBasicKind
+            Select Case node.Keyword.VBKind
                 Case SyntaxKind.CBoolKeyword : targetType = SpecialType.System_Boolean
                 Case SyntaxKind.CByteKeyword : targetType = SpecialType.System_Byte
                 Case SyntaxKind.CCharKeyword : targetType = SpecialType.System_Char
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CULngKeyword : targetType = SpecialType.System_UInt64
                 Case SyntaxKind.CUShortKeyword : targetType = SpecialType.System_UInt16
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VisualBasicKind)
+                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VBKind)
             End Select
 
             Return ApplyConversion(node, GetSpecialType(targetType, node.Keyword, diagnostics),
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of non-identity conversion.
         ''' </summary>
         Friend Function ApplyImplicitConversion(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             targetType As TypeSymbol,
             expression As BoundExpression,
             diagnostics As DiagnosticBag,
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of explicit or non-identity conversion.
         ''' </summary>
         Private Function ApplyConversion(
-            node As VisualBasicSyntaxNode,
+            node As VBSyntaxNode,
             targetType As TypeSymbol,
             argument As BoundExpression,
             isExplicit As Boolean,
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of non-identity conversion.
         ''' </summary>
         Private Function CreateConversionAndReportDiagnostic(
-            tree As VisualBasicSyntaxNode,
+            tree As VBSyntaxNode,
             argument As BoundExpression,
             convKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             isExplicit As Boolean,
@@ -643,7 +643,7 @@ DoneWithDiagnostics:
         ''' </summary>
         Private Function MakeVarianceConversionSuggestion(
             convKind As ConversionKind,
-            location As VisualBasicSyntaxNode,
+            location As VBSyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag,
@@ -947,7 +947,7 @@ DoneWithDiagnostics:
         End Function
 
         Private Function CreatePredefinedConversion(
-            tree As VisualBasicSyntaxNode,
+            tree As VBSyntaxNode,
             argument As BoundExpression,
             convKind As ConversionKind,
             isExplicit As Boolean,
@@ -1020,7 +1020,7 @@ DoneWithDiagnostics:
         End Function
 
         Private Function CreateUserDefinedConversion(
-            tree As VisualBasicSyntaxNode,
+            tree As VBSyntaxNode,
             argument As BoundExpression,
             convKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             isExplicit As Boolean,
@@ -1125,7 +1125,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyExpression(
             ByRef argument As BoundExpression,
             conversionSemantics As SyntaxKind,
-            tree As VisualBasicSyntaxNode,
+            tree As VBSyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1233,7 +1233,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyUnboundLambdaExpression(
             unboundLambda As UnboundLambda,
             conversionSemantics As SyntaxKind,
-            tree As VisualBasicSyntaxNode,
+            tree As VBSyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1436,7 +1436,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyQueryLambdaExpression(
             lambda As BoundQueryLambda,
             conversionSemantics As SyntaxKind,
-            tree As VisualBasicSyntaxNode,
+            tree As VBSyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1513,7 +1513,7 @@ DoneWithDiagnostics:
             If delegateInvoke.OriginalDefinition.ReturnType.IsTypeParameter() Then
                 Dim restrictedType As TypeSymbol = Nothing
                 If delegateReturnType.IsRestrictedTypeOrArrayType(restrictedType) Then
-                    Dim location As VisualBasicSyntaxNode
+                    Dim location As VBSyntaxNode
 
                     If lambda.Expression.Kind = BoundKind.RangeVariableAssignment Then
                         location = DirectCast(lambda.Expression, BoundRangeVariableAssignment).Value.Syntax
@@ -1549,7 +1549,7 @@ DoneWithDiagnostics:
 
         Private Sub WarnOnNarrowingConversionBetweenSealedClassAndAnInterface(
             convKind As ConversionKind,
-            location As VisualBasicSyntaxNode,
+            location As VBSyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag
@@ -1588,7 +1588,7 @@ DoneWithDiagnostics:
         End Function
 
         Private Sub ReportNoConversionError(
-            location As VisualBasicSyntaxNode,
+            location As VBSyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag,

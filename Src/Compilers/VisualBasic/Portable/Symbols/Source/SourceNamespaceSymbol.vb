@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Dim currentTree = syntaxRef.SyntaxTree
-                Dim node As VisualBasicSyntaxNode = syntaxRef.GetVisualBasicSyntax()
+                Dim node As VBSyntaxNode = syntaxRef.GetVisualBasicSyntax()
                 Select Case node.Kind
                     Case SyntaxKind.IdentifierName
                         ValidateNamespaceNameSyntax(DirectCast(node, IdentifierNameSyntax), diagnostics, reportedNamespaceMismatch)

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundTryCast
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             type As TypeSymbol,
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             relaxationLambdaOpt As BoundLambda,
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.New(syntax, operand, conversionKind, ConstantValueOpt:=Nothing, relaxationLambdaOpt:=relaxationLambdaOpt, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VBSyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, operand, conversionKind, constantValueOpt, RelaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 

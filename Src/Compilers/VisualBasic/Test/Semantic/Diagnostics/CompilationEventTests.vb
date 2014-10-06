@@ -86,7 +86,7 @@ End Namespace
     </compilation>
 
             Dim q = New AsyncQueue(Of CompilationEvent)(CancellationToken.None)
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
             VerifyEvents(q,
                 "CompilationStartedEvent",
                 "SymbolDeclaredCompilationEvent(Mod1 Mod1 @ TestQueuedSymbols.vb: (14,4)-(16,14))",

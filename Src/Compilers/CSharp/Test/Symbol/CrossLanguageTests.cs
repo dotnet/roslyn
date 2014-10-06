@@ -18,11 +18,11 @@ Public Interface I
     Property P(x As Integer)
 End Interface
 ";
-            var vbcomp = VisualBasicCompilation.Create(
+            var vbcomp = VBCompilation.Create(
                 "Test",
-                new[] { VisualBasicSyntaxTree.ParseText(vbText) },
+                new[] { VBSyntaxTree.ParseText(vbText) },
                 new[] { MscorlibRef_v4_0_30316_17626 },
-                new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                new VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
 

@@ -11,13 +11,13 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Public Class VisualBasicCompilation
+    Partial Public Class VBCompilation
 
         Partial Friend Class DocumentationCommentCompiler
             Inherits VisualBasicSymbolVisitor
 
             Private ReadOnly _assemblyName As String
-            Private ReadOnly _compilation As VisualBasicCompilation
+            Private ReadOnly _compilation As VBCompilation
             Private ReadOnly _processIncludes As Boolean
             Private ReadOnly _isForSingleSymbol As Boolean ' minor differences in behavior between batch case and API case.
             Private ReadOnly _diagnostics As DiagnosticBag
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private _includedFileCache As DocumentationCommentIncludeCache
 
-            Private Sub New(assemblyName As String, compilation As VisualBasicCompilation, writer As TextWriter,
+            Private Sub New(assemblyName As String, compilation As VBCompilation, writer As TextWriter,
                             processIncludes As Boolean, isForSingleSymbol As Boolean, diagnostics As DiagnosticBag,
                             filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?,
                             cancellationToken As CancellationToken, preferredCulture As CultureInfo)
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="cancellationToken">To stop traversing the symbol table early.</param>
             ''' <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
             ''' <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-            Friend Shared Sub WriteDocumentationCommentXml(compilation As VisualBasicCompilation,
+            Friend Shared Sub WriteDocumentationCommentXml(compilation As VBCompilation,
                                                            assemblyName As String,
                                                            xmlDocStream As Stream,
                                                            diagnostics As DiagnosticBag,
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              symbol.Kind = SymbolKind.NamedType OrElse
                              symbol.Kind = SymbolKind.Property)
 
-                Dim compilation As VisualBasicCompilation = symbol.DeclaringCompilation
+                Dim compilation As VBCompilation = symbol.DeclaringCompilation
                 Debug.Assert(compilation IsNot Nothing)
 
                 Dim pooled As PooledStringBuilder = PooledStringBuilder.GetInstance()

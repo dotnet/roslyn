@@ -14,9 +14,9 @@ Public MustInherit Class BasicTestBase
     Protected Overloads Function GetCompilationForEmit(
         source As IEnumerable(Of String),
         additionalRefs() As MetadataReference,
-        options As VisualBasicCompilationOptions
-    ) As VisualBasicCompilation
-        Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options), VisualBasicCompilation)
+        options As VBCompilationOptions
+    ) As VBCompilation
+        Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options), VBCompilation)
     End Function
 
     Private Function Translate(action As Action(Of ModuleSymbol)) As Action(Of IModuleSymbol, TestEmitters)
@@ -46,9 +46,9 @@ Public MustInherit Class BasicTestBase
         Optional validator As Action(Of PEAssembly, TestEmitters) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional options As VBCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional parseOptions As VBParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
 
@@ -137,9 +137,9 @@ Public MustInherit Class BasicTestBase
         Optional validator As Action(Of PEAssembly, TestEmitters) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional options As VBCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional parseOptions As VBParseOptions = Nothing,
         Optional verify As Boolean = True,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
@@ -174,9 +174,9 @@ Public MustInherit Class BasicTestBase
         Optional validator As Action(Of PEAssembly, TestEmitters) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional options As VBCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional parseOptions As VBParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
 
@@ -210,9 +210,9 @@ Public MustInherit Class BasicTestBase
         Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional options As VBCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional parseOptions As VBParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
         Return Me.CompileAndVerify(
@@ -242,9 +242,9 @@ Public MustInherit Class BasicTestBase
         Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional options As VBCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional parseOptions As VBParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
         Return CompileAndVerifyOnWin8Only(
@@ -273,9 +273,9 @@ Public MustInherit Class BasicTestBase
         Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional options As VBCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional parseOptions As VBParseOptions = Nothing,
         Optional verify As Boolean = True,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
@@ -323,7 +323,7 @@ Public MustInherit Class BasicTestBase
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    Friend Function CompileWithCustomILSource(sources As XElement, ilSource As String, Optional options As VisualBasicCompilationOptions = Nothing, Optional compilationVerifier As Action(Of VisualBasicCompilation) = Nothing, Optional emitOptions As TestEmitters = TestEmitters.All, Optional expectedOutput As String = Nothing) As CompilationVerifier
+    Friend Function CompileWithCustomILSource(sources As XElement, ilSource As String, Optional options As VBCompilationOptions = Nothing, Optional compilationVerifier As Action(Of VBCompilation) = Nothing, Optional emitOptions As TestEmitters = TestEmitters.All, Optional expectedOutput As String = Nothing) As CompilationVerifier
         If expectedOutput IsNot Nothing Then
             options = options.WithOutputKind(OutputKind.ConsoleApplication)
         End If
@@ -377,7 +377,7 @@ Public MustInherit Class BasicTestBaseBase
     Inherits CommonTestBase
 
     Friend Shared Function Diagnostic(code As ERRID) As DiagnosticDescription
-        Dim syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing
+        Dim syntaxNodePredicate As Func(Of VBSyntaxNode, Boolean) = Nothing
         Return New DiagnosticDescription(code:=CType(code, Integer),
                                          squiggledText:=CType(Nothing, String),
                                          arguments:=Nothing,
@@ -386,7 +386,7 @@ Public MustInherit Class BasicTestBaseBase
                                          argumentOrderDoesNotMatter:=False, errorCodeType:=GetType(ERRID))
     End Function
 
-    Friend Shared Function Diagnostic(code As ERRID, squiggledText As String, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
+    Friend Shared Function Diagnostic(code As ERRID, squiggledText As String, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VBSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
         Return New DiagnosticDescription(code:=CType(code, Integer),
                                          squiggledText:=squiggledText,
                                          arguments:=arguments,
@@ -396,7 +396,7 @@ Public MustInherit Class BasicTestBaseBase
                                          errorCodeType:=GetType(ERRID))
     End Function
 
-    Friend Shared Function AnalyzerDiagnostic(code As String, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
+    Friend Shared Function AnalyzerDiagnostic(code As String, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VBSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
         'Additional Overload taking XCData which needs to call NormalizeDiagnosticString to ensure that differences in end of line characters are normalized
         Return New DiagnosticDescription(code:=code,
                                          squiggledText:=NormalizeDiagnosticString(squiggledText.Value),
@@ -406,7 +406,7 @@ Public MustInherit Class BasicTestBaseBase
                                          argumentOrderDoesNotMatter:=argumentOrderDoesNotMatter,
                                          errorCodeType:=GetType(ERRID))
     End Function
-    Friend Shared Function Diagnostic(code As ERRID, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
+    Friend Shared Function Diagnostic(code As ERRID, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VBSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
         'Additional Overload taking XCData which needs to call NormalizeDiagnosticString to ensure that differences in end of line characters are normalized
         Return New DiagnosticDescription(code:=CType(code, Integer),
                                          squiggledText:=NormalizeDiagnosticString(squiggledText.Value),
@@ -434,8 +434,8 @@ Public MustInherit Class BasicTestBaseBase
     End Function
 
     Friend Overrides Function ReferencesToModuleSymbols(references As IEnumerable(Of MetadataReference), Optional importOptions As MetadataImportOptions = MetadataImportOptions.Public) As IEnumerable(Of IModuleSymbol)
-        Dim options = DirectCast(CompilationOptionsReleaseDll, VisualBasicCompilationOptions).WithMetadataImportOptions(importOptions)
-        Dim tc1 = VisualBasicCompilation.Create("Dummy", references:=references, options:=options)
+        Dim options = DirectCast(CompilationOptionsReleaseDll, VBCompilationOptions).WithMetadataImportOptions(importOptions)
+        Dim tc1 = VBCompilation.Create("Dummy", references:=references, options:=options)
         Return references.Select(
             Function(r)
                 If r.Properties.Kind = MetadataImageKind.Assembly Then
@@ -481,11 +481,11 @@ Public MustInherit Class BasicTestBaseBase
         additionalRefs As IEnumerable(Of MetadataReference),
         options As CompilationOptions
     ) As Compilation
-        Return VisualBasicCompilation.Create(
+        Return VBCompilation.Create(
             GetUniqueName(),
-            syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t)),
+            syntaxTrees:=source.Select(Function(t) VBSyntaxTree.ParseText(t)),
             references:=If(additionalRefs IsNot Nothing, DefaultReferences.Concat(additionalRefs), DefaultReferences),
-            options:=DirectCast(options, VisualBasicCompilationOptions))
+            options:=DirectCast(options, VBCompilationOptions))
     End Function
 
     Friend Shared Function GetAttributeNames(attributes As ImmutableArray(Of SynthesizedAttributeData)) As IEnumerable(Of String)
@@ -504,11 +504,11 @@ Public MustInherit Class BasicTestBaseBase
         Return MetadataTestHelpers.GetSymbolsForReferences({bytes}).Single()
     End Function
 
-    Public Shared Shadows Function GetPdbXml(compilation As VisualBasicCompilation, Optional methodName As String = "") As XElement
+    Public Shared Shadows Function GetPdbXml(compilation As VBCompilation, Optional methodName As String = "") As XElement
         Return XElement.Parse(TestBase.GetPdbXml(compilation, methodName))
     End Function
 
-    Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement
+    Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VBCompilationOptions = Nothing, Optional methodName As String = "") As XElement
         Dim compilation = CreateCompilationWithMscorlib(source, options)
         compilation.VerifyDiagnostics()
         Return GetPdbXml(compilation, methodName)
@@ -732,7 +732,7 @@ Public MustInherit Class BasicTestBaseBase
 ]]>
 
     Public Class NameSyntaxFinder
-        Inherits VisualBasicSyntaxWalker
+        Inherits VBSyntaxWalker
 
         Private Sub New()
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
@@ -757,7 +757,7 @@ Public MustInherit Class BasicTestBaseBase
     End Class
 
     Public Class ExpressionSyntaxFinder
-        Inherits VisualBasicSyntaxWalker
+        Inherits VBSyntaxWalker
 
         Private Sub New()
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
@@ -782,14 +782,14 @@ Public MustInherit Class BasicTestBaseBase
     End Class
 
     Public Class SyntaxNodeFinder
-        Inherits VisualBasicSyntaxWalker
+        Inherits VBSyntaxWalker
 
         Private Sub New()
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
         End Sub
 
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
-            If node IsNot Nothing AndAlso Me._kinds.Contains(node.VisualBasicKind) Then
+            If node IsNot Nothing AndAlso Me._kinds.Contains(node.VBKind) Then
                 Me._nodes.Add(node)
             End If
 

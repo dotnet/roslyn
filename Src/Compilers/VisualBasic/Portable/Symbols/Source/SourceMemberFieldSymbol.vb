@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.New(container, syntaxRef, name, memberFlags)
         End Sub
 
-        Friend NotOverridable Overrides ReadOnly Property DeclarationSyntax As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property DeclarationSyntax As VBSyntaxNode
             Get
                 Return Syntax.Parent.Parent
             End Get
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim asClauseOpt = declarator.AsClause
             Dim asClauseType As TypeSymbol = Nothing
-            Dim initializerSyntax As VisualBasicSyntaxNode = declarator.Initializer
+            Dim initializerSyntax As VBSyntaxNode = declarator.Initializer
 
             If asClauseOpt IsNot Nothing Then
                 If (asClauseOpt.Kind <> SyntaxKind.AsNewClause OrElse (DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.Kind <> SyntaxKind.AnonymousObjectCreationExpression)) Then
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 m_equalsValueOrAsNewInitOpt = equalsValueOrAsNewInitOpt
             End Sub
 
-            Friend Overrides ReadOnly Property EqualsValueOrAsNewInitOpt As VisualBasicSyntaxNode
+            Friend Overrides ReadOnly Property EqualsValueOrAsNewInitOpt As VBSyntaxNode
                 Get
                     Return If(m_equalsValueOrAsNewInitOpt IsNot Nothing, m_equalsValueOrAsNewInitOpt.GetVisualBasicSyntax(), Nothing)
                 End Get
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 m_sibling = sibling
             End Sub
 
-            Friend Overrides ReadOnly Property EqualsValueOrAsNewInitOpt As VisualBasicSyntaxNode
+            Friend Overrides ReadOnly Property EqualsValueOrAsNewInitOpt As VBSyntaxNode
                 Get
                     Return m_sibling.EqualsValueOrAsNewInitOpt
                 End Get
@@ -483,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim asClauseOpt = declarator.AsClause
 
                 Dim initializerOpt = declarator.Initializer
-                Dim initializerSyntax As VisualBasicSyntaxNode = Nothing
+                Dim initializerSyntax As VBSyntaxNode = Nothing
                 If asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause Then
                     initializerSyntax = asClauseOpt
                 Else
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Binder.ReportDiagnostic(diagBag,
                                                 If(declarator.Names.Count > 0,
                                                    declarator.Names.Last,
-                                                   DirectCast(declarator, VisualBasicSyntaxNode)),
+                                                   DirectCast(declarator, VBSyntaxNode)),
                                                 ERRID.ERR_InitializerInStruct)
                     ElseIf asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause Then
                         Binder.ReportDiagnostic(diagBag, DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.NewKeyword, ERRID.ERR_SharedStructMemberCannotSpecifyNew)
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' be the actual token "Object", not a synonym like "System.Object")
                         Dim simpleAsClauseSyntax = TryCast(asClauseOpt, SimpleAsClauseSyntax)
                         If simpleAsClauseSyntax Is Nothing OrElse
-                            (simpleAsClauseSyntax.Type.Kind = SyntaxKind.PredefinedType AndAlso DirectCast(simpleAsClauseSyntax.Type, PredefinedTypeSyntax).Keyword.VisualBasicKind = SyntaxKind.ObjectKeyword) Then
+                            (simpleAsClauseSyntax.Type.Kind = SyntaxKind.PredefinedType AndAlso DirectCast(simpleAsClauseSyntax.Type, PredefinedTypeSyntax).Keyword.VBKind = SyntaxKind.ObjectKeyword) Then
                             perFieldFlags = perFieldFlags Or SourceMemberFlags.InferredFieldType
                         End If
                     End If

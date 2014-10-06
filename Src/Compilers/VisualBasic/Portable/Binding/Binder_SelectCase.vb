@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim expressionStmt = New BoundExpressionStatement(selectExprStatementSyntax, expression)
 
             ' Get the binder for the select block. This defines the exit label.
-            Dim selectBinder = GetBinder(DirectCast(node, VisualBasicSyntaxNode))
+            Dim selectBinder = GetBinder(DirectCast(node, VBSyntaxNode))
 
             ' Flag to determine if we need to generate switch table based code or If list based code.
             ' See OptimizeSelectStatement method for more details.
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Bind relational case clause as binary operator: E OP E1.
             ' BindBinaryOperator will generate the appropriate diagnostics.
 
-            Debug.Assert(SyntaxFacts.IsRelationalOperator(node.OperatorToken.VisualBasicKind) OrElse node.ContainsDiagnostics)
+            Debug.Assert(SyntaxFacts.IsRelationalOperator(node.OperatorToken.VBKind) OrElse node.ContainsDiagnostics)
 
             Dim operatorKind As BinaryOperatorKind
             Select Case node.Kind
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 expressionSyntax:=node.Value,
                 caseClauseSyntax:=node,
                 selectExpression:=selectExpression,
-                operatorTokenKind:=node.OperatorToken.VisualBasicKind,
+                operatorTokenKind:=node.OperatorToken.VBKind,
                 operatorKind:=operatorKind,
                 convertCaseElements:=convertCaseElements,
                 conditionOpt:=conditionOpt,
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             conditionOpt = If(boundClause.ConditionOpt, BindBinaryOperator(node:=syntax,
                                                                            left:=selectExpression,
                                                                            right:=boundClause.OperandOpt,
-                                                                           operatorTokenKind:=syntax.OperatorToken.VisualBasicKind,
+                                                                           operatorTokenKind:=syntax.OperatorToken.VBKind,
                                                                            preliminaryOperatorKind:=boundClause.OperatorKind,
                                                                            isOperandOfConditionalBranch:=False,
                                                                            diagnostics:=diagnostics,

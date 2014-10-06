@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class DeclarationTreeBuilder
-        Inherits VisualBasicSyntaxVisitor(Of SingleNamespaceOrTypeDeclaration)
+        Inherits VBSyntaxVisitor(Of SingleNamespaceOrTypeDeclaration)
 
         ' The root namespace, expressing as an array of strings, one for each component.
         Private ReadOnly _rootNamespace As ImmutableArray(Of String)
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Visit(node)
         End Function
 
-        Private Function VisitNamespaceChildren(node As VisualBasicSyntaxNode, members As SyntaxList(Of StatementSyntax)) As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
+        Private Function VisitNamespaceChildren(node As VBSyntaxNode, members As SyntaxList(Of StatementSyntax)) As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
             Dim implicitClass As SingleNamespaceOrTypeDeclaration = Nothing
 
             Dim childrenBuilder = VisitNamespaceChildren(node, members, implicitClass)
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return childrenBuilder.ToImmutableAndFree()
         End Function
 
-        Private Function VisitNamespaceChildren(node As VisualBasicSyntaxNode,
+        Private Function VisitNamespaceChildren(node As VBSyntaxNode,
                                                 members As SyntaxList(Of StatementSyntax),
                                                 <Out()> ByRef implicitClass As SingleNamespaceOrTypeDeclaration) As ArrayBuilder(Of SingleNamespaceOrTypeDeclaration)
 
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return directives.AsImmutableOrNull()
         End Function
 
-        Private Function CreateImplicitClass(parent As VisualBasicSyntaxNode, memberNames As String(), children As ImmutableArray(Of SingleTypeDeclaration), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
+        Private Function CreateImplicitClass(parent As VBSyntaxNode, memberNames As String(), children As ImmutableArray(Of SingleTypeDeclaration), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
             Dim parentReference = _syntaxTree.GetReference(parent)
 
             Return New SingleTypeDeclaration(
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 children:=children)
         End Function
 
-        Private Function CreateScriptClass(parent As VisualBasicSyntaxNode, children As ImmutableArray(Of SingleTypeDeclaration), memberNames As String(), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
+        Private Function CreateScriptClass(parent As VBSyntaxNode, children As ImmutableArray(Of SingleTypeDeclaration), memberNames As String(), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
             Debug.Assert(parent.Kind = SyntaxKind.CompilationUnit AndAlso _syntaxTree.Options.Kind <> SourceCodeKind.Regular)
 
             ' script class is represented by the parent node:
@@ -789,7 +789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For Each modifier In modifiers
                 Dim bit As DeclarationModifiers = 0
-                Select Case modifier.VisualBasicKind
+                Select Case modifier.VBKind
                     Case SyntaxKind.MustInheritKeyword : bit = DeclarationModifiers.MustInherit
                     Case SyntaxKind.NotInheritableKeyword : bit = DeclarationModifiers.NotInheritable
                     Case SyntaxKind.PartialKeyword : bit = DeclarationModifiers.Partial
@@ -821,7 +821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.IteratorKeyword : bit = DeclarationModifiers.Iterator
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(modifier.VisualBasicKind)
+                        Throw ExceptionUtilities.UnexpectedValue(modifier.VBKind)
                 End Select
 
                 result = result Or bit

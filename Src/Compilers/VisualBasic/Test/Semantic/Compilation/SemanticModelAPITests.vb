@@ -567,7 +567,7 @@ End Class
             Dim typeBlock = DirectCast(root.Members(1), TypeBlockSyntax)
             Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockSyntax)
             Dim originalStatement = DirectCast(methodBlock.Statements(0), ExecutableStatementSyntax)
-            Dim originalExpression = originalStatement.DescendantNodes().Where(Function(syntax) syntax.VisualBasicKind = SyntaxKind.ObjectCreationExpression).FirstOrDefault()
+            Dim originalExpression = originalStatement.DescendantNodes().Where(Function(syntax) syntax.VBKind = SyntaxKind.ObjectCreationExpression).FirstOrDefault()
 
             Dim speculatedExpression = SyntaxFactory.ParseExpression("DirectCast(3, Integer)")
             Dim speculatedStatement = originalStatement.ReplaceNode(originalExpression, speculatedExpression)
@@ -632,7 +632,7 @@ End Class
             TestGetSpeculativeSemanticModelInFieldOrPropertyInitializer(compilation)
         End Sub
 
-        Private Sub TestGetSpeculativeSemanticModelInFieldOrPropertyInitializer(compilation As VisualBasicCompilation)
+        Private Sub TestGetSpeculativeSemanticModelInFieldOrPropertyInitializer(compilation As VBCompilation)
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim position1 = CompilationUtils.FindPositionFromText(tree, "= 1")
@@ -684,7 +684,7 @@ End Class
             TestGetSpeculativeSemanticModelInEnumMemberDeclOrDefaultParameterValue(compilation)
         End Sub
 
-        Private Sub TestGetSpeculativeSemanticModelInEnumMemberDeclOrDefaultParameterValue(compilation As VisualBasicCompilation)
+        Private Sub TestGetSpeculativeSemanticModelInEnumMemberDeclOrDefaultParameterValue(compilation As VBCompilation)
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim position1 = CompilationUtils.FindPositionFromText(tree, "= 1")
@@ -3723,7 +3723,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=New VBParseOptions(documentationMode:=DocumentationMode.Diagnose))
             comp.AssertTheseDiagnostics(<expected><![CDATA[
 BC42306: XML comment tag 'param' is not permitted on a 'variable' language element.
     ''' <param name='X'/>
@@ -3765,7 +3765,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "sam.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-            Dim nodes = From n In tree.GetCompilationUnitRoot().DescendantNodes() Where n.VisualBasicKind = SyntaxKind.IdentifierName Select CType(n, IdentifierNameSyntax)
+            Dim nodes = From n In tree.GetCompilationUnitRoot().DescendantNodes() Where n.VBKind = SyntaxKind.IdentifierName Select CType(n, IdentifierNameSyntax)
             Dim enode = nodes.First(Function(n) n.ToString() = "e")
             Dim symbol = semanticModel.GetSymbolInfo(enode).Symbol
             Assert.NotNull(symbol)

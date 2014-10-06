@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly m_Binder As Binder
         Private ReadOnly m_Type As TypeSymbol
 
-        Public MustOverride ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Public MustOverride ReadOnly Property Syntax As VBSyntaxNode
 
         Private Sub New(
             binder As Binder,
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Shared Function CreateForErrorRecovery(
             binder As Binder,
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             type As TypeSymbol
         ) As RangeVariableSymbol
             Return New ForErrorRecovery(binder, syntax, type)
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Shared Function CreateCompilerGenerated(
             binder As Binder,
-            syntax As VisualBasicSyntaxNode,
+            syntax As VBSyntaxNode,
             name As String,
             type As TypeSymbol
         ) As RangeVariableSymbol
@@ -168,9 +168,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+            Public Overrides ReadOnly Property Syntax As VBSyntaxNode
                 Get
-                    Return DirectCast(m_IdentifierToken.Parent, VisualBasicSyntaxNode)
+                    Return DirectCast(m_IdentifierToken.Parent, VBSyntaxNode)
                 End Get
             End Property
 
@@ -182,10 +182,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    Dim parent As VisualBasicSyntaxNode
-                    Dim grandParent As VisualBasicSyntaxNode = Nothing
-                    Dim ggParent As VisualBasicSyntaxNode = Nothing
-                    parent = DirectCast(m_IdentifierToken.Parent, VisualBasicSyntaxNode)
+                    Dim parent As VBSyntaxNode
+                    Dim grandParent As VBSyntaxNode = Nothing
+                    Dim ggParent As VBSyntaxNode = Nothing
+                    parent = DirectCast(m_IdentifierToken.Parent, VBSyntaxNode)
                     If parent IsNot Nothing Then
                         grandParent = parent.Parent
                     End If
@@ -232,11 +232,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Class ForErrorRecovery
             Inherits RangeVariableSymbol
 
-            Private ReadOnly m_Syntax As VisualBasicSyntaxNode
+            Private ReadOnly m_Syntax As VBSyntaxNode
 
             Public Sub New(
                 binder As Binder,
-                syntax As VisualBasicSyntaxNode,
+                syntax As VBSyntaxNode,
                 type As TypeSymbol
             )
                 MyBase.New(binder, type)
@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 m_Syntax = syntax
             End Sub
 
-            Public Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+            Public Overrides ReadOnly Property Syntax As VBSyntaxNode
                 Get
                     Return m_Syntax
                 End Get
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Sub New(
                 binder As Binder,
-                syntax As VisualBasicSyntaxNode,
+                syntax As VBSyntaxNode,
                 name As String,
                 type As TypeSymbol
             )

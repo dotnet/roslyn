@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _current As Diagnostic
         Private _position As Integer
 
-        Friend Sub New(tree As SyntaxTree, node As InternalSyntax.VisualBasicSyntaxNode, position As Integer, inDocumentationComment As Boolean)
+        Friend Sub New(tree As SyntaxTree, node As InternalSyntax.VBSyntaxNode, position As Integer, inDocumentationComment As Boolean)
             If node IsNot Nothing AndAlso node.ContainsDiagnostics Then
                 Me._tree = tree
                 Me._stack = New NodeIteration(8 - 1) {}

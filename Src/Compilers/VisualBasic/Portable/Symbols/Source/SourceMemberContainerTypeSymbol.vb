@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' Figure out the "right" name spelling, it should come from lexically first declaration.
-        Private Shared Function GetBestName(declaration As MergedTypeDeclaration, compilation As VisualBasicCompilation) As String
+        Private Shared Function GetBestName(declaration As MergedTypeDeclaration, compilation As VBCompilation) As String
             Dim declarations As ImmutableArray(Of SingleTypeDeclaration) = declaration.Declarations
             Dim best As SingleTypeDeclaration = declarations(0)
 
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             If asyncMethods IsNot Nothing Then
-                Dim compilation As VisualBasicCompilation = Me.DeclaringCompilation
+                Dim compilation As VBCompilation = Me.DeclaringCompilation
 
                 ' NOTE: we don't check for use-site errors on the following two types, because 
                 '       for EmitMetadataOnly scenario this is not important, and for regular 
@@ -2676,7 +2676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' initialization can happen because of a "= value" (InitializerOpt) or a "As New Type(...)" (AsClauseOpt)
             Dim initializerOpt = syntax.Initializer
             Dim asClauseOpt = syntax.AsClause
-            Dim equalsValueOrAsNewSyntax As VisualBasicSyntaxNode
+            Dim equalsValueOrAsNewSyntax As VBSyntaxNode
             If asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause Then
                 equalsValueOrAsNewSyntax = asClauseOpt
             Else

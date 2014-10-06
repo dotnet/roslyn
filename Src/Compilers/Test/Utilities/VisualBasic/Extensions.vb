@@ -40,17 +40,17 @@ Module Extensions
 
     <Extension()>
     Public Function GetMember(comp As Compilation, name As String) As Symbol
-        Return DirectCast(comp, VisualBasicCompilation).GlobalNamespace.GetMember(name)
+        Return DirectCast(comp, VBCompilation).GlobalNamespace.GetMember(name)
     End Function
 
     <Extension()>
     Public Function GetMember(Of T As Symbol)(comp As Compilation, name As String) As T
-        Return DirectCast(DirectCast(comp, VisualBasicCompilation).GlobalNamespace.GetMember(name), T)
+        Return DirectCast(DirectCast(comp, VBCompilation).GlobalNamespace.GetMember(name), T)
     End Function
 
     <Extension()>
     Public Function GetMembers(comp As Compilation, name As String) As ImmutableArray(Of Symbol)
-        Return GetMembers(DirectCast(comp, VisualBasicCompilation).GlobalNamespace, name)
+        Return GetMembers(DirectCast(comp, VBCompilation).GlobalNamespace, name)
     End Function
 
     Private Function GetMembers([namespace] As NamespaceSymbol, name As String) As ImmutableArray(Of Symbol)

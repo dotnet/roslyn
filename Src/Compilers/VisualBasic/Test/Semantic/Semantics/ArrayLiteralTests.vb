@@ -19,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class ArrayLiteralTests
         Inherits BasicTestBase
 
-        Dim strictOff As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off)
-        Dim strictOn As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On)
-        Dim strictCustom As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)
+        Dim strictOff As VBCompilationOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off)
+        Dim strictOn As VBCompilationOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On)
+        Dim strictCustom As VBCompilationOptions = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)
 
         <Fact()>
         Public Sub TestArrayLiteralInferredType()
@@ -713,14 +713,14 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim strictOffOverflowChecksOff = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False)
+            Dim strictOffOverflowChecksOff = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False)
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=strictOffOverflowChecksOff)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
 Test2(x As Byte(), y As Byte)
             ]]>)
 
-            Dim strictOnOverflowChecksOff = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOverflowChecks(False)
+            Dim strictOnOverflowChecksOff = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOverflowChecks(False)
 
             comp = comp.WithOptions(strictOnOverflowChecksOff)
             CompileAndVerify(comp,
@@ -755,14 +755,14 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim strictOffOverflowChecksOff = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False)
+            Dim strictOffOverflowChecksOff = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False)
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=strictOffOverflowChecksOff)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
 Test2(x As Short(), y As Byte)
             ]]>)
 
-            Dim strictOnOverflowChecksOff = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOverflowChecks(False)
+            Dim strictOnOverflowChecksOff = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOverflowChecks(False)
 
             comp = comp.WithOptions(strictOnOverflowChecksOff)
             CompileAndVerify(comp,
@@ -797,7 +797,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim strictOffOverflowChecksOff = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False)
+            Dim strictOffOverflowChecksOff = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False)
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=strictOffOverflowChecksOff)
             comp.VerifyDiagnostics(
@@ -805,7 +805,7 @@ End Module
             "    'Public Sub Test2(x As Integer(), y As Integer)': Argument matching parameter 'x' narrows to 'Integer()'." & vbCrLf &
             "    'Public Sub Test2(x As Short(), y As Byte)': Argument matching parameter 'x' narrows to 'Short()'."))
 
-            Dim strictOnOverflowChecksOff = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOverflowChecks(False)
+            Dim strictOnOverflowChecksOff = New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On).WithOverflowChecks(False)
 
             comp = comp.WithOptions(strictOnOverflowChecksOff)
             comp.VerifyDiagnostics(

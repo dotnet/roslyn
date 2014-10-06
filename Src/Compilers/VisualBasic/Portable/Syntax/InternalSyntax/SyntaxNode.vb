@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
-    Partial Friend Class VisualBasicSyntaxNode
+    Partial Friend Class VBSyntaxNode
         Inherits GreenNode
 
         Friend ReadOnly Property Kind As SyntaxKind
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             stack.Push(Me)
 
             While stack.Count > 0
-                DirectCast(stack.Pop(), InternalSyntax.VisualBasicSyntaxNode).WriteToOrFlatten(writer, stack)
+                DirectCast(stack.Pop(), InternalSyntax.VBSyntaxNode).WriteToOrFlatten(writer, stack)
             End While
 
             stack.Free()
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             For i = 0 To SlotCount() - 1
                 Dim green = GetSlot(i)
                 If green IsNot Nothing Then
-                    DirectCast(green, VisualBasicSyntaxNode).CollectConstituentTokensAndDiagnostics(tokenListBuilder, nonTokenDiagnostics)
+                    DirectCast(green, VBSyntaxNode).CollectConstituentTokensAndDiagnostics(tokenListBuilder, nonTokenDiagnostics)
                 End If
             Next
         End Sub
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Get the leading trivia a green array, recursively to first token.
-        Friend Overridable Function GetLeadingTrivia() As VisualBasicSyntaxNode
+        Friend Overridable Function GetLeadingTrivia() As VBSyntaxNode
             Dim possibleFirstChild = GetFirstToken()
             If possibleFirstChild IsNot Nothing Then
                 Return possibleFirstChild.GetLeadingTrivia()
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Get the trailing trivia a green array, recursively to first token.
-        Friend Overridable Function GetTrailingTrivia() As VisualBasicSyntaxNode
+        Friend Overridable Function GetTrailingTrivia() As VBSyntaxNode
             Dim possibleLastChild = GetLastToken()
             If possibleLastChild IsNot Nothing Then
                 Return possibleLastChild.GetTrailingTrivia()
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns>A new node, with no parent, that has this error added to it.</returns>
         ''' <remarks>Since nodes are immutable, the only way to create nodes with errors attached is to create a node without an error,
         ''' then add an error with this method to create another node.</remarks>
-        Friend Function AddError(err As DiagnosticInfo) As VisualBasicSyntaxNode
+        Friend Function AddError(err As DiagnosticInfo) As VBSyntaxNode
             Dim errorInfos() As DiagnosticInfo
 
             ' If the green node already has errors, add those on.
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             ' Get a new green node with the errors added on.
-            Return DirectCast(SetDiagnostics(errorInfos), VisualBasicSyntaxNode)
+            Return DirectCast(SetDiagnostics(errorInfos), VBSyntaxNode)
         End Function
 
         ''' <summary>
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 For i As Integer = 0 To cnt - 1
                     Dim child = GetSlot(i)
                     If child IsNot Nothing AndAlso child.ContainsDiagnostics Then
-                        DirectCast(child, VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
+                        DirectCast(child, VBSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                     End If
                 Next
             End If
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Kind.ToString & ":" & text
         End Function
 
-        Friend Overloads Shared Function IsEquivalentTo(left As VisualBasicSyntaxNode, right As VisualBasicSyntaxNode) As Boolean
+        Friend Overloads Shared Function IsEquivalentTo(left As VBSyntaxNode, right As VBSyntaxNode) As Boolean
             If left Is right Then
                 Return True
             End If
@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return Nothing
             End If
 
-            Dim list = nodes.Select(Function(n) DirectCast(n, InternalSyntax.VisualBasicSyntaxNode)).ToArray()
+            Dim list = nodes.Select(Function(n) DirectCast(n, InternalSyntax.VBSyntaxNode)).ToArray()
 
             Dim count = list.Length
             Select Case count
@@ -473,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Public Overrides Function CreateSeparator(Of TNode As SyntaxNode)(element As SyntaxNode) As CodeAnalysis.SyntaxToken
             Dim separatorKind As SyntaxKind = SyntaxKind.CommaToken
-            If element.VisualBasicKind = SyntaxKind.JoinCondition Then
+            If element.VBKind = SyntaxKind.JoinCondition Then
                 separatorKind = SyntaxKind.AndKeyword
             End If
             Return VisualBasic.SyntaxFactory.Token(separatorKind)

@@ -4191,7 +4191,7 @@ Public Module Program
         Console.WriteLine(x(101))
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
             CompileAndVerify(vbCompilation, expectedOutput:=<![CDATA[100
 101]]>).VerifyDiagnostics()
         End Sub
@@ -4225,7 +4225,7 @@ Public Module Program
         Console.WriteLine(x!Hi)
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
             CompileAndVerify(vbCompilation, expectedOutput:=<![CDATA[5
 2]]>).VerifyDiagnostics()
         End Sub

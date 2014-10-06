@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me.m_lambda.IsAsync Then
                 Dim binder As Binder = lambdaNode.LambdaBinderOpt
                 Debug.Assert(binder IsNot Nothing)
-                Dim syntax As VisualBasicSyntaxNode = lambdaNode.Syntax
+                Dim syntax As VBSyntaxNode = lambdaNode.Syntax
 
                 ' The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
                 Dim typeKind As TypeKind = If(DeclaringCompilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Structure)

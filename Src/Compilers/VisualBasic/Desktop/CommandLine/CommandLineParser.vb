@@ -14,19 +14,19 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
-    ''' The VisualBasicCommandLineParser class contains members used to perform various Visual Basic command line parsing operations.
+    ''' The VBCommandLineParser class contains members used to perform various Visual Basic command line parsing operations.
     ''' </summary>
-    Public Class VisualBasicCommandLineParser
+    Public Class VBCommandLineParser
         Inherits CommandLineParser
         ''' <summary>
         ''' Gets the current command line parser.
         ''' </summary>
-        Public Shared ReadOnly [Default] As VisualBasicCommandLineParser = New VisualBasicCommandLineParser()
+        Public Shared ReadOnly [Default] As VBCommandLineParser = New VBCommandLineParser()
 
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Public Shared ReadOnly Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
+        Public Shared ReadOnly Interactive As VBCommandLineParser = New VBCommandLineParser(isInteractive:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="baseDirectory">The base directory used for qualifying file locations.</param>
         ''' <param name="additionalReferencePaths">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
-        Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, Optional additionalReferencePaths As String = Nothing) As VisualBasicCommandLineArguments
+        Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, Optional additionalReferencePaths As String = Nothing) As VBCommandLineArguments
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Using (Logger.LogBlock(FunctionId.VisualBasic_CommandLineParser_Parse))
@@ -1091,7 +1091,7 @@ lVbRuntimePlus:
                     AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
                 End If
 
-                Dim parseOptions = New VisualBasicParseOptions(
+                Dim parseOptions = New VBParseOptions(
                     languageVersion:=languageVersion,
                     documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                     kind:=SourceCodeKind.Regular,
@@ -1099,7 +1099,7 @@ lVbRuntimePlus:
 
                 Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
-                Dim options = New VisualBasicCompilationOptions(
+                Dim options = New VBCompilationOptions(
                         outputKind:=outputKind,
                         moduleName:=moduleName,
                         mainTypeName:=mainTypeName,
@@ -1134,7 +1134,7 @@ lVbRuntimePlus:
                     documentationPath = documentationPath + ".xml"
                 End If
 
-                Return New VisualBasicCommandLineArguments With
+                Return New VBCommandLineArguments With
                 {
                     .IsInteractive = IsInteractive,
                     .BaseDirectory = baseDirectory,
@@ -1540,15 +1540,15 @@ lVbRuntimePlus:
 
                         ' If we're on a comma, it means there was an empty item in the list (item1,,item2),
                         ' so just eat it and move on...
-                        While tokens.Current.VisualBasicKind = SyntaxKind.CommaToken OrElse tokens.Current.VisualBasicKind = SyntaxKind.ColonToken
+                        While tokens.Current.VBKind = SyntaxKind.CommaToken OrElse tokens.Current.VBKind = SyntaxKind.ColonToken
 
-                            If lastSeparatorToken.VisualBasicKind = SyntaxKind.None Then
+                            If lastSeparatorToken.VBKind = SyntaxKind.None Then
                                 ' accept multiple : or ,
                                 lastSeparatorToken = tokens.Current
 
-                            ElseIf lastSeparatorToken.VisualBasicKind <> tokens.Current.VisualBasicKind Then
+                            ElseIf lastSeparatorToken.VBKind <> tokens.Current.VBKind Then
                                 ' but not mixing them, e.g. ::,,::
-                                GetErrorStringForRemainderOfConditionalCompilation(tokens, parsedTokensAsString, stopTokenKind:=lastSeparatorToken.VisualBasicKind, includeCurrentToken:=True)
+                                GetErrorStringForRemainderOfConditionalCompilation(tokens, parsedTokensAsString, stopTokenKind:=lastSeparatorToken.VBKind, includeCurrentToken:=True)
 
                                 diagnosticBuilder.Add(
                                     New DiagnosticWithInfo(
@@ -1561,7 +1561,7 @@ lVbRuntimePlus:
                             parsedTokensAsString.Append(tokens.Current.ToString)
 
                             ' this can happen when the while loop above consumed all tokens for the diagnostic message
-                            If tokens.Current.VisualBasicKind <> SyntaxKind.EndOfFileToken Then
+                            If tokens.Current.VBKind <> SyntaxKind.EndOfFileToken Then
                                 Dim moveNextResult = tokens.MoveNext
                                 Debug.Assert(moveNextResult)
                             End If
@@ -1570,12 +1570,12 @@ lVbRuntimePlus:
                         parsedTokensAsString.Clear()
 
                         ' If we're at the end of the list, we're done
-                        If tokens.Current.VisualBasicKind = SyntaxKind.EndOfFileToken Then
+                        If tokens.Current.VBKind = SyntaxKind.EndOfFileToken Then
 
                             Dim eof = tokens.Current
 
                             If eof.FullWidth > 0 Then
-                                If Not eof.LeadingTrivia.All(Function(t) t.VisualBasicKind = SyntaxKind.WhitespaceTrivia) Then
+                                If Not eof.LeadingTrivia.All(Function(t) t.VBKind = SyntaxKind.WhitespaceTrivia) Then
                                     ' This is an invalid line like "'Blah'" 
                                     GetErrorStringForRemainderOfConditionalCompilation(tokens, parsedTokensAsString, True)
 
@@ -1593,7 +1593,7 @@ lVbRuntimePlus:
 
                         parsedTokensAsString.Append(tokens.Current.ToFullString())
 
-                        If Not tokens.Current.VisualBasicKind = SyntaxKind.IdentifierToken Then
+                        If Not tokens.Current.VBKind = SyntaxKind.IdentifierToken Then
                             GetErrorStringForRemainderOfConditionalCompilation(tokens, parsedTokensAsString)
 
                             diagnosticBuilder.Add(
@@ -1611,7 +1611,7 @@ lVbRuntimePlus:
                         Dim moveResult As Boolean = tokens.MoveNext
                         Debug.Assert(moveResult)
 
-                        If tokens.Current.VisualBasicKind = SyntaxKind.EqualsToken Then
+                        If tokens.Current.VBKind = SyntaxKind.EqualsToken Then
                             parsedTokensAsString.Append(tokens.Current.ToFullString())
 
                             ' there should at least be a end of file token
@@ -1628,7 +1628,7 @@ lVbRuntimePlus:
                             ' Consume tokens that are supposed to belong to the expression; we loop 
                             ' until the token's end position is the end of the expression, but not consume 
                             ' the last token as it will be consumed in uppermost While
-                            While tokens.Current.VisualBasicKind <> SyntaxKind.EndOfFileToken AndAlso tokens.Current.Span.End <= parsedEnd
+                            While tokens.Current.VBKind <> SyntaxKind.EndOfFileToken AndAlso tokens.Current.Span.End <= parsedEnd
                                 parsedTokensAsString.Append(tokens.Current.ToFullString())
                                 moveResult = tokens.MoveNext
                                 Debug.Assert(moveResult)
@@ -1696,9 +1696,9 @@ lVbRuntimePlus:
                             End If
                             defines = defines.Add(symbolName, value)
 
-                        ElseIf tokens.Current.VisualBasicKind = SyntaxKind.CommaToken OrElse
-                            tokens.Current.VisualBasicKind = SyntaxKind.ColonToken OrElse
-                            tokens.Current.VisualBasicKind = SyntaxKind.EndOfFileToken Then
+                        ElseIf tokens.Current.VBKind = SyntaxKind.CommaToken OrElse
+                            tokens.Current.VBKind = SyntaxKind.ColonToken OrElse
+                            tokens.Current.VBKind = SyntaxKind.EndOfFileToken Then
                             ' We have no value being assigned, so we'll just assign it to true
 
                             If defines.ContainsKey(symbolName) Then
@@ -1706,7 +1706,7 @@ lVbRuntimePlus:
                             End If
                             defines = defines.Add(symbolName, InternalSyntax.CConst.Create(True))
 
-                        ElseIf tokens.Current.VisualBasicKind = SyntaxKind.BadToken Then
+                        ElseIf tokens.Current.VBKind = SyntaxKind.BadToken Then
                             GetErrorStringForRemainderOfConditionalCompilation(tokens, parsedTokensAsString)
 
                             diagnosticBuilder.Add(
@@ -1740,14 +1740,14 @@ lVbRuntimePlus:
         ''' but explicit one (like ".... _\r\n ....") should work fine
         ''' </summary>
         Private Shared Function ParseConditionalCompilationExpression(symbolList As String, offset As Integer) As ExpressionSyntax
-            Using p = New InternalSyntax.Parser(SyntaxFactory.MakeSourceText(symbolList, offset), VisualBasicParseOptions.Default)
+            Using p = New InternalSyntax.Parser(SyntaxFactory.MakeSourceText(symbolList, offset), VBParseOptions.Default)
                 p.GetNextToken()
                 Return DirectCast(p.ParseConditionalCompilationExpression().CreateRed(Nothing, 0), ExpressionSyntax)
             End Using
         End Function
 
         Private Shared Function IsSeparatorOrEndOfFile(token As SyntaxToken) As Boolean
-            Return token.VisualBasicKind = SyntaxKind.EndOfFileToken OrElse token.VisualBasicKind = SyntaxKind.ColonToken OrElse token.VisualBasicKind = SyntaxKind.CommaToken
+            Return token.VBKind = SyntaxKind.EndOfFileToken OrElse token.VBKind = SyntaxKind.ColonToken OrElse token.VBKind = SyntaxKind.CommaToken
         End Function
 
         Private Shared Sub GetErrorStringForRemainderOfConditionalCompilation(
@@ -1759,7 +1759,7 @@ lVbRuntimePlus:
             If includeCurrentToken Then
                 remainderErrorLine.Append(" ^^ ")
 
-                If tokens.Current.VisualBasicKind = SyntaxKind.ColonToken AndAlso tokens.Current.FullWidth = 0 Then
+                If tokens.Current.VBKind = SyntaxKind.ColonToken AndAlso tokens.Current.FullWidth = 0 Then
                     remainderErrorLine.Append(SyntaxFacts.GetText(SyntaxKind.ColonToken))
                 Else
                     remainderErrorLine.Append(tokens.Current.ToFullString())
@@ -1770,7 +1770,7 @@ lVbRuntimePlus:
                 remainderErrorLine.Append(" ^^ ^^ ")
             End If
 
-            While tokens.MoveNext AndAlso Not tokens.Current.VisualBasicKind = stopTokenKind
+            While tokens.MoveNext AndAlso Not tokens.Current.VBKind = stopTokenKind
                 remainderErrorLine.Append(tokens.Current.ToFullString())
             End While
         End Sub

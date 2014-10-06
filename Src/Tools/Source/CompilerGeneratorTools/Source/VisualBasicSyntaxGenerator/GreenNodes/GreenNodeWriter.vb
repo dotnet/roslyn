@@ -282,13 +282,13 @@ Class GreenNodeWriter
 
         _writer.WriteLine("        Public Overrides Function WithLeadingTrivia(ByVal trivia As GreenNode) As GreenNode")
         _writer.Write("            Return new {0}", StructureTypeName(nodeStructure))
-        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "DirectCast(trivia, VisualBasicSyntaxNode)", "GetTrailingTrivia")
+        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "DirectCast(trivia, VBSyntaxNode)", "GetTrailingTrivia")
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
 
         _writer.WriteLine("        Public Overrides Function WithTrailingTrivia(ByVal trivia As GreenNode) As GreenNode")
         _writer.Write("            Return new {0}", StructureTypeName(nodeStructure))
-        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "GetLeadingTrivia", "DirectCast(trivia, VisualBasicSyntaxNode)")
+        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "GetLeadingTrivia", "DirectCast(trivia, VBSyntaxNode)")
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
@@ -751,7 +751,7 @@ Class GreenNodeWriter
         If nodeStructure.ParentStructure IsNot Nothing AndAlso (_parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken OrElse nodeStructure.IsTrivia) Then
             Return
         End If
-        _writer.WriteLine("        Public {0} Function Accept(ByVal visitor As {1}) As VisualBasicSyntaxNode", If(IsRoot(nodeStructure), "Overridable", "Overrides"), _parseTree.VisitorName)
+        _writer.WriteLine("        Public {0} Function Accept(ByVal visitor As {1}) As VBSyntaxNode", If(IsRoot(nodeStructure), "Overridable", "Overrides"), _parseTree.VisitorName)
         _writer.WriteLine("            Return visitor.{0}(Me)", VisitorMethodName(nodeStructure))
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
@@ -770,7 +770,7 @@ Class GreenNodeWriter
         _writer.WriteLine("    Friend MustInherit Class {0}", Ident(_parseTree.VisitorName))
 
         ' Basic Visit method that dispatches.
-        _writer.WriteLine("        Public Overridable Function Visit(ByVal node As {0}) As VisualBasicSyntaxNode", StructureTypeName(_parseTree.RootStructure))
+        _writer.WriteLine("        Public Overridable Function Visit(ByVal node As {0}) As VBSyntaxNode", StructureTypeName(_parseTree.RootStructure))
         _writer.WriteLine("            If node IsNot Nothing")
         _writer.WriteLine("                Return node.Accept(Me)")
         _writer.WriteLine("            Else")
@@ -796,7 +796,7 @@ Class GreenNodeWriter
         Dim methodName = VisitorMethodName(nodeStructure)
         Dim structureName = StructureTypeName(nodeStructure)
 
-        _writer.WriteLine("        Public Overridable Function {0}(ByVal node As {1}) As VisualBasicSyntaxNode",
+        _writer.WriteLine("        Public Overridable Function {0}(ByVal node As {1}) As VBSyntaxNode",
                           methodName,
                           structureName)
 

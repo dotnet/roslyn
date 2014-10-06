@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class MyTemplateTests
         Inherits BasicTestBase
 
-        Friend Shared Function GetMyTemplateTree(compilation As VisualBasicCompilation) As SyntaxTree
+        Friend Shared Function GetMyTemplateTree(compilation As VBCompilation) As SyntaxTree
             Dim MyTemplate As SyntaxTree = Nothing
 
             For Each tree In compilation.AllSyntaxTrees
@@ -130,7 +130,7 @@ End Module
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
-            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions = New VBParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
@@ -210,7 +210,7 @@ End Class
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("WindowsForms")))
 
-            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions = New VBParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithOutputKind(OutputKind.WindowsApplication).WithParseOptions(parseOptions).WithMainTypeName("Form1")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, {SystemWindowsFormsRef, SystemDrawingRef}, compilationOptions)
@@ -241,7 +241,7 @@ End Module
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
-            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions = New VBParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
@@ -299,7 +299,7 @@ End Namespace
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
-            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions = New VBParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)

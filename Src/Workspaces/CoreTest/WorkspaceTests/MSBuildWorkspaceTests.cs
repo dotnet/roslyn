@@ -1352,7 +1352,7 @@ class C1
 
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions;
+            var options = (Microsoft.CodeAnalysis.VisualBasic.VBCompilationOptions)project.CompilationOptions;
             var imports = options.GlobalImports;
             AssertEx.Equal(new[]
             {
@@ -1373,7 +1373,7 @@ class C1
 
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
+            var options = (Microsoft.CodeAnalysis.VisualBasic.VBParseOptions)project.ParseOptions;
             var defines = new List<KeyValuePair<string, object>>(options.PreprocessorSymbols);
             defines.Sort((x, y) => x.Key.CompareTo(y.Key));
 
@@ -1403,7 +1403,7 @@ class C1
 
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
+            var options = (Microsoft.CodeAnalysis.VisualBasic.VBParseOptions)project.ParseOptions;
             Assert.Equal(true, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
             var compilation = project.GetCompilationAsync().Result;
@@ -1424,7 +1424,7 @@ class C1
 
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
+            var options = (Microsoft.CodeAnalysis.VisualBasic.VBParseOptions)project.ParseOptions;
             Assert.Equal(false, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
             var compilation = project.GetCompilationAsync().Result;
@@ -2023,7 +2023,7 @@ class C1
             {
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
                 var project = solution.Projects.First(p => p.Language == LanguageNames.VisualBasic);
-                var parseOptions = (VB.VisualBasicParseOptions)project.ParseOptions;
+                var parseOptions = (VB.VBParseOptions)project.ParseOptions;
                 Assert.Equal(DocumentationMode.Diagnose, parseOptions.DocumentationMode);
                 var comp = project.GetCompilationAsync().Result;
                 var symbol = comp.GetTypeByMetadataName("VisualBasicProject.VisualBasicClass");
@@ -2050,7 +2050,7 @@ class C1
                 Assert.NotNull(cscomment);
 
                 var vbproject = ws.CurrentSolution.Projects.First(p => p.Language == LanguageNames.VisualBasic);
-                var vboptions = (VB.VisualBasicParseOptions)vbproject.ParseOptions;
+                var vboptions = (VB.VBParseOptions)vbproject.ParseOptions;
                 Assert.Equal(DocumentationMode.Diagnose, vboptions.DocumentationMode);
                 var vbcomp = vbproject.GetCompilationAsync().Result;
                 var vbsymbol = vbcomp.GetTypeByMetadataName("VisualBasicProject.VisualBasicClass");

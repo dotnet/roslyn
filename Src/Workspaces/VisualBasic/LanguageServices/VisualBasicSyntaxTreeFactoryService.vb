@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
-                Return VisualBasicParseOptions.Default
+                Return VBParseOptions.Default
             End Function
 
             Public Overloads Overrides Function ParseSyntaxTree(fileName As String, options As ParseOptions, text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode
-                Return VisualBasicSyntaxNode.DeserializeFrom(stream, cancellationToken)
+                Return VBSyntaxNode.DeserializeFrom(stream, cancellationToken)
             End Function
         End Class
     End Class

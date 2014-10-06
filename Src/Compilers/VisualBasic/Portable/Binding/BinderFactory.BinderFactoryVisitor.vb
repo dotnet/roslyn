@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BinderFactory
 
         Private NotInheritable Class BinderFactoryVisitor
-            Inherits VisualBasicSyntaxVisitor(Of Binder)
+            Inherits VBSyntaxVisitor(Of Binder)
 
             Private _position As Integer
             Private ReadOnly _factory As BinderFactory
@@ -75,15 +75,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function VisitMethodBaseDeclaration(methodBaseSyntax As MethodBaseSyntax) As Binder
                 Dim possibleParentBlock = TryCast(methodBaseSyntax.Parent, MethodBlockBaseSyntax)
-                Dim parentForEnclosingBinder As VisualBasicSyntaxNode = If(possibleParentBlock IsNot Nothing, possibleParentBlock.Parent, methodBaseSyntax.Parent)
+                Dim parentForEnclosingBinder As VBSyntaxNode = If(possibleParentBlock IsNot Nothing, possibleParentBlock.Parent, methodBaseSyntax.Parent)
 
                 Return GetBinderForNodeAndUsage(methodBaseSyntax, NodeUsage.MethodFull, parentForEnclosingBinder, _position)
             End Function
 
             Public Overrides Function DefaultVisit(node As SyntaxNode) As Binder
-                If _factory.InScript AndAlso node.Parent.VisualBasicKind = SyntaxKind.CompilationUnit Then
+                If _factory.InScript AndAlso node.Parent.VBKind = SyntaxKind.CompilationUnit Then
                     ' Use CompilationUnitSyntax as a key to the cache for all statements to get a single shared instance of TopLeveCodeBinder
-                    Return GetBinderForNodeAndUsage(DirectCast(node.Parent, VisualBasicSyntaxNode), NodeUsage.TopLevelExecutableStatement, DirectCast(node.Parent, VisualBasicSyntaxNode), _position)
+                    Return GetBinderForNodeAndUsage(DirectCast(node.Parent, VBSyntaxNode), NodeUsage.TopLevelExecutableStatement, DirectCast(node.Parent, VBSyntaxNode), _position)
                 End If
 
                 Return Nothing
@@ -238,16 +238,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Given a node and usage, find the correct binder to use. Use the cache first, if not in the cache, then
             ' create a new binder. The parent node and position are used if we need to find an enclosing binder unless specified explicitly.
-            Private Function GetBinderForNodeAndUsage(node As VisualBasicSyntaxNode,
+            Private Function GetBinderForNodeAndUsage(node As VBSyntaxNode,
                                                       usage As NodeUsage,
-                                                      Optional parentNode As VisualBasicSyntaxNode = Nothing,
+                                                      Optional parentNode As VBSyntaxNode = Nothing,
                                                       Optional position As Integer = -1
                                                       ) As Binder
 
                 Return _factory.GetBinderForNodeAndUsage(node, usage, parentNode, position)
             End Function
 
-            Private Shared Function IsNotNothingAndContains(nodeOpt As VisualBasicSyntaxNode, position As Integer) As Boolean
+            Private Shared Function IsNotNothingAndContains(nodeOpt As VBSyntaxNode, position As Integer) As Boolean
                 Return (nodeOpt IsNot Nothing) AndAlso SyntaxFacts.InSpanOrEffectiveTrailingOfNode(nodeOpt, position)
             End Function
         End Class

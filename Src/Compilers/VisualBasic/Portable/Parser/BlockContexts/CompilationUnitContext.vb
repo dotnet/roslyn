@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
+        Friend Overrides Function ProcessSyntax(node As VBSyntaxNode) As BlockContext
             Do
                 Select Case _state
                     Case SyntaxKind.OptionStatement
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
         End Function
 
-        Friend Overrides Function TryLinkSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Overrides Function TryLinkSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
             If _parser.IsScript Then
                 Return TryLinkStatement(node, newContext)
             Else
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
-        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VisualBasicSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VBSyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Class DiagnosticRewriter
-            Inherits VisualBasicSyntaxRewriter
+            Inherits VBSyntaxRewriter
 
             Private _notClosedIfDirectives As HashSet(Of IfDirectiveTriviaSyntax) = Nothing
             Private _notClosedRegionDirectives As HashSet(Of RegionDirectiveTriviaSyntax) = Nothing
@@ -172,10 +172,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #If DEBUG Then
             ' NOTE: the logic is heavily relying on the fact that green nodes in 
             ' NOTE: one single tree are not reused, the following code assert this
-            Private ReadOnly _processedNodesWithoutDuplication As HashSet(Of VisualBasicSyntaxNode) = New HashSet(Of VisualBasicSyntaxNode)(ReferenceEqualityComparer.Instance)
+            Private ReadOnly _processedNodesWithoutDuplication As HashSet(Of VBSyntaxNode) = New HashSet(Of VBSyntaxNode)(ReferenceEqualityComparer.Instance)
 #End If
 
-            Public Overrides Function VisitIfDirectiveTrivia(node As IfDirectiveTriviaSyntax) As VisualBasicSyntaxNode
+            Public Overrides Function VisitIfDirectiveTrivia(node As IfDirectiveTriviaSyntax) As VBSyntaxNode
 #If DEBUG Then
                 Debug.Assert(_processedNodesWithoutDuplication.Add(node))
 #End If
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return rewritten
             End Function
 
-            Public Overrides Function VisitRegionDirectiveTrivia(node As RegionDirectiveTriviaSyntax) As VisualBasicSyntaxNode
+            Public Overrides Function VisitRegionDirectiveTrivia(node As RegionDirectiveTriviaSyntax) As VBSyntaxNode
 #If DEBUG Then
                 Debug.Assert(_processedNodesWithoutDuplication.Add(node))
 #End If
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return rewritten
             End Function
 
-            Public Overrides Function VisitExternalSourceDirectiveTrivia(node As ExternalSourceDirectiveTriviaSyntax) As VisualBasicSyntaxNode
+            Public Overrides Function VisitExternalSourceDirectiveTrivia(node As ExternalSourceDirectiveTriviaSyntax) As VBSyntaxNode
 #If DEBUG Then
                 Debug.Assert(_processedNodesWithoutDuplication.Add(node))
 #End If
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return rewritten
             End Function
 
-            Public Overrides Function Visit(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+            Public Overrides Function Visit(node As VBSyntaxNode) As VBSyntaxNode
                 If node Is Nothing OrElse Not node.ContainsDirectives Then
                     Return node
                 End If
@@ -225,14 +225,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim trailingTrivia = token.GetTrailingTrivia()
 
                 If leadingTrivia IsNot Nothing Then
-                    Dim rewritten = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)).Node
+                    Dim rewritten = VisitList(New SyntaxList(Of VBSyntaxNode)(leadingTrivia)).Node
                     If leadingTrivia IsNot rewritten Then
                         token = DirectCast(token.WithLeadingTrivia(rewritten), SyntaxToken)
                     End If
                 End If
 
                 If trailingTrivia IsNot Nothing Then
-                    Dim rewritten = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)).Node
+                    Dim rewritten = VisitList(New SyntaxList(Of VBSyntaxNode)(trailingTrivia)).Node
                     If trailingTrivia IsNot rewritten Then
                         token = DirectCast(token.WithTrailingTrivia(rewritten), SyntaxToken)
                     End If

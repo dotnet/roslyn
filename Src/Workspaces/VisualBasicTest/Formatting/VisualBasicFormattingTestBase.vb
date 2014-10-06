@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
         Inherits FormattingTestBase
 
         Protected Overrides Function ParseCompilation(text As String, parseOptions As ParseOptions) As SyntaxNode
-            Return SyntaxFactory.ParseCompilationUnit(text, options:=DirectCast(parseOptions, VisualBasicParseOptions))
+            Return SyntaxFactory.ParseCompilationUnit(text, options:=DirectCast(parseOptions, VBParseOptions))
         End Function
 
         Protected Function CreateMethod(ParamArray lines() As String) As String
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Optional testWithTransformation As Boolean = False,
             Optional experimental As Boolean = False)
 
-            Dim parseOptions = New VisualBasicParseOptions()
+            Dim parseOptions = New VBParseOptions()
             If (experimental) Then
                 parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.Experimental)
             End If

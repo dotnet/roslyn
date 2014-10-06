@@ -5,7 +5,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class CommandLineDiagnosticFormatter
-        Inherits VisualBasicDiagnosticFormatter
+        Inherits VBDiagnosticFormatter
 
         Private ReadOnly m_baseDirectory As String
 

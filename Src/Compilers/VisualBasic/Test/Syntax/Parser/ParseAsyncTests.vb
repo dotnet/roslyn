@@ -41,7 +41,7 @@ Class AsyncAttribute
     End Sub
 End Class]]>)
 
-        Assert.Equal(2, Aggregate t In tree.GetRoot().DescendantTokens Where t.VisualBasicKind = SyntaxKind.AsyncKeyword Into Count())
+        Assert.Equal(2, Aggregate t In tree.GetRoot().DescendantTokens Where t.VBKind = SyntaxKind.AsyncKeyword Into Count())
 
         Dim fields = tree.GetRoot().DescendantNodes.OfType(Of FieldDeclarationSyntax)().ToArray()
         Assert.Equal(2, Aggregate f In fields Where f.Declarators(0).Names(0).Identifier.ValueText = "Async" Into Count())
@@ -297,7 +297,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseAsyncWithNesting()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VBSyntaxTree.ParseText(<![CDATA[
 Imports Async = System.Threading.Tasks.Task
 
 Class C
@@ -411,7 +411,7 @@ End Class]]>.Value)
 
         For Each mode In {SourceCodeKind.Script, SourceCodeKind.Interactive}
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+            Dim tree = VBSyntaxTree.ParseText(<![CDATA[
 Dim i = Await T + Await(T)      ' Yes, Yes
 
 Dim l = Sub()
@@ -430,7 +430,7 @@ End Sub
 Async Function F()
     Return Await(T)             ' Yes
 End Function]]>.Value,
-                options:=VisualBasicParseOptions.Default.WithKind(mode))
+                options:=VBParseOptions.Default.WithKind(mode))
 
             Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
 

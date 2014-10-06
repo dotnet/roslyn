@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis
         ''' Returns SyntaxKind for SyntaxTrivia nodes.
         ''' </summary> 
         <Extension>
-        Public Function VisualBasicKind(trivia As SyntaxTrivia) As SyntaxKind
+        Public Function VBKind(trivia As SyntaxTrivia) As SyntaxKind
             Return If(trivia.Language Is LanguageNames.VisualBasic, CType(trivia.RawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis
         ''' Returns SyntaxKind for SyntaxToken from RawKind property.
         ''' </summary>       
         <Extension>
-        Public Function VisualBasicKind(token As SyntaxToken) As SyntaxKind
+        Public Function VBKind(token As SyntaxToken) As SyntaxKind
             Return If(token.Language Is LanguageNames.VisualBasic, CType(token.RawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis
         ''' Returns SyntaxKind for SyntaxNode from RawKind property.
         ''' </summary>
         <Extension>
-        Public Function VisualBasicKind(node As SyntaxNode) As SyntaxKind
+        Public Function VBKind(node As SyntaxNode) As SyntaxKind
             Return If(node.Language Is LanguageNames.VisualBasic, CType(node.RawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis
         ''' Returns SyntaxKind for SyntaxNodeOrToken from RawKind property.
         ''' </summary>        
         <Extension>
-        Public Function VisualBasicKind(nodeOrToken As SyntaxNodeOrToken) As SyntaxKind
+        Public Function VBKind(nodeOrToken As SyntaxNodeOrToken) As SyntaxKind
             Return If(nodeOrToken.Language Is LanguageNames.VisualBasic, CType(nodeOrToken.RawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <param name="kind">The SyntaxKind to test for.</param>
         <Extension>
         Public Function IsKind(trivia As SyntaxTrivia, kind As SyntaxKind) As Boolean
-            Return trivia.VisualBasicKind = kind
+            Return trivia.VBKind = kind
         End Function
 
         ''' <summary>
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <param name="kind">The SyntaxKind to test for.</param>
         <Extension>
         Public Function IsKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return token.VisualBasicKind = kind
+            Return token.VBKind = kind
         End Function
 
         ''' <summary>
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <returns>A boolean value if node is of specified kind; otherwise false.</returns>
         <Extension>
         Public Function IsKind(node As SyntaxNode, kind As SyntaxKind) As Boolean
-            Return node IsNot Nothing AndAlso node.VisualBasicKind = kind
+            Return node IsNot Nothing AndAlso node.VBKind = kind
         End Function
 
         ''' <summary>
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <returns>A boolean value if nodeoOrToken is of specified kind; otherwise false.</returns>
         <Extension>
         Public Function IsKind(nodeOrToken As SyntaxNodeOrToken, kind As SyntaxKind) As Boolean
-            Return nodeOrToken.VisualBasicKind = kind
+            Return nodeOrToken.VBKind = kind
         End Function
 
         ''' <summary>
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Extension>
         Friend Function GetLocation(syntaxReference As SyntaxReference) As Location
-            Dim tree = TryCast(syntaxReference.SyntaxTree, VisualBasicSyntaxTree)
+            Dim tree = TryCast(syntaxReference.SyntaxTree, VBSyntaxTree)
             If syntaxReference.SyntaxTree IsNot Nothing Then
                 If tree.IsEmbeddedSyntaxTree Then
                     Return New EmbeddedTreeLocation(tree.GetEmbeddedKind, syntaxReference.Span)
@@ -184,56 +184,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Extension>
         Friend Function IsMyTemplate(syntaxTree As SyntaxTree) As Boolean
-            Dim vbTree = TryCast(syntaxTree, VisualBasicSyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, VBSyntaxTree)
             Return vbTree IsNot Nothing AndAlso vbTree.IsMyTemplate
         End Function
 
         <Extension>
         Friend Function HasReferenceDirectives(syntaxTree As SyntaxTree) As Boolean
-            Dim vbTree = TryCast(syntaxTree, VisualBasicSyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, VBSyntaxTree)
             Return vbTree IsNot Nothing AndAlso vbTree.HasReferenceDirectives
         End Function
 
         <Extension>
         Friend Function IsAnyPreprocessorSymbolDefined(syntaxTree As SyntaxTree, conditionalSymbolNames As IEnumerable(Of String), atNode As SyntaxNodeOrToken) As Boolean
-            Dim vbTree = TryCast(syntaxTree, VisualBasicSyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, VBSyntaxTree)
             Return vbTree IsNot Nothing AndAlso vbTree.IsAnyPreprocessorSymbolDefined(conditionalSymbolNames, atNode)
         End Function
 
         <Extension>
-        Friend Function GetVisualBasicSyntax(syntaxReference As SyntaxReference, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
-            Return DirectCast(syntaxReference.GetSyntax(cancellationToken), VisualBasicSyntaxNode)
+        Friend Function GetVisualBasicSyntax(syntaxReference As SyntaxReference, Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
+            Return DirectCast(syntaxReference.GetSyntax(cancellationToken), VBSyntaxNode)
         End Function
 
         <Extension>
-        Friend Function GetVisualBasicRoot(syntaxTree As SyntaxTree, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
-            Return DirectCast(syntaxTree.GetRoot(cancellationToken), VisualBasicSyntaxNode)
+        Friend Function GetVisualBasicRoot(syntaxTree As SyntaxTree, Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
+            Return DirectCast(syntaxTree.GetRoot(cancellationToken), VBSyntaxNode)
         End Function
 
         <Extension>
         Friend Function GetPreprocessingSymbolInfo(syntaxTree As SyntaxTree, identifierNode As IdentifierNameSyntax) As VisualBasicPreprocessingSymbolInfo
-            Dim vbTree = DirectCast(syntaxTree, VisualBasicSyntaxTree)
+            Dim vbTree = DirectCast(syntaxTree, VBSyntaxTree)
             Return vbTree.GetPreprocessingSymbolInfo(identifierNode)
         End Function
 
         <Extension>
         Friend Function Errors(trivia As SyntaxTrivia) As InternalSyntax.SyntaxDiagnosticInfoList
-            Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(trivia.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode))
+            Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(trivia.UnderlyingNode, InternalSyntax.VBSyntaxNode))
         End Function
 
         <Extension>
         Friend Function Errors(token As SyntaxToken) As InternalSyntax.SyntaxDiagnosticInfoList
-            Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(token.Node, InternalSyntax.VisualBasicSyntaxNode))
+            Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(token.Node, InternalSyntax.VBSyntaxNode))
         End Function
 
         <Extension>
         Friend Function GetSyntaxErrors(token As SyntaxToken, tree As SyntaxTree) As ReadOnlyCollection(Of Diagnostic)
-            Return VisualBasicSyntaxNode.DoGetSyntaxErrors(tree, token)
+            Return VBSyntaxNode.DoGetSyntaxErrors(tree, token)
         End Function
 
         <Extension>
         Friend Function AddError(node As GreenNode, diagnostic As DiagnosticInfo) As GreenNode
-            Dim green = TryCast(node, InternalSyntax.VisualBasicSyntaxNode)
+            Dim green = TryCast(node, InternalSyntax.VBSyntaxNode)
             Return green.AddError(diagnostic)
         End Function
 
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A type character used for the specific Internal Syntax Token Types.</returns>
         <Extension>
         Public Function GetTypeCharacter(token As SyntaxToken) As TypeCharacter
-            Select Case token.VisualBasicKind()
+            Select Case token.VBKind()
                 Case SyntaxKind.IdentifierToken
                     Dim id = DirectCast(token.Node, InternalSyntax.IdentifierTokenSyntax)
                     Return id.TypeCharacter
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean value True if token is a keyword.</returns>
         <Extension>
         Public Function IsKeyword(token As SyntaxToken) As Boolean
-            Return SyntaxFacts.IsKeywordKind(token.VisualBasicKind())
+            Return SyntaxFacts.IsKeywordKind(token.VBKind())
         End Function
 
         ''' <summary>
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean value True if token is a reserved keyword.</returns>
         <Extension>
         Public Function IsReservedKeyword(token As SyntaxToken) As Boolean
-            Return SyntaxFacts.IsReservedKeyword(token.VisualBasicKind())
+            Return SyntaxFacts.IsReservedKeyword(token.VBKind())
         End Function
 
         ''' <summary>
@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean value True if token is a contextual keyword.</returns>
         <Extension>
         Public Function IsContextualKeyword(token As SyntaxToken) As Boolean
-            Return SyntaxFacts.IsContextualKeyword(token.VisualBasicKind())
+            Return SyntaxFacts.IsContextualKeyword(token.VBKind())
         End Function
 
         ''' <summary>
@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns> A boolean value True if token is a pre processor keyword.</returns>
         <Extension>
         Public Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean
-            Return SyntaxFacts.IsPreprocessorKeyword(token.VisualBasicKind())
+            Return SyntaxFacts.IsPreprocessorKeyword(token.VBKind())
         End Function
 
         ''' <summary>
@@ -427,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A list of DirectiveTriviaSyntax items</returns>
         <Extension>
         Public Function GetDirectives(node As SyntaxNode, Optional filter As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As IList(Of DirectiveTriviaSyntax)
-            Return DirectCast(node, VisualBasicSyntaxNode).GetDirectives(filter)
+            Return DirectCast(node, VBSyntaxNode).GetDirectives(filter)
         End Function
 
 
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="predicate">The optional DirectiveTriviaSyntax filter predicate.</param>
         ''' <returns>The first DirectiveSyntaxTrivia item.</returns>
         <Extension> Public Function GetFirstDirective(node As SyntaxNode, Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
-            Return DirectCast(node, VisualBasicSyntaxNode).GetFirstDirective(predicate)
+            Return DirectCast(node, VBSyntaxNode).GetFirstDirective(predicate)
         End Function
 
         ''' <summary>
@@ -449,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The last DirectiveSyntaxTrivia item.</returns>
         <Extension>
         Public Function GetLastDirective(node As SyntaxNode, Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
-            Return DirectCast(node, VisualBasicSyntaxNode).GetLastDirective(predicate)
+            Return DirectCast(node, VBSyntaxNode).GetLastDirective(predicate)
         End Function
 
         ''' <summary>
@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Friend Function GetWarningState(tree As SyntaxTree, id As String, position As Integer) As ReportDiagnostic
-            Return DirectCast(tree, VisualBasicSyntaxTree).GetWarningState(id, position)
+            Return DirectCast(tree, VBSyntaxTree).GetWarningState(id, position)
         End Function
 
 #Region "Symbols"
@@ -616,7 +616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The OptionStrict object for the semantic model instance OptionStrict property, otherise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionStrict(semanticModel As SemanticModel) As OptionStrict
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.OptionStrict
             Else
@@ -631,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean values, for the semantic model instance OptionInfer property. otherise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionInfer(semanticModel As SemanticModel) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.OptionInfer
             Else
@@ -646,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean values, for the semantic model instance OptionExplicit property. otherise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionExplicit(semanticModel As SemanticModel) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.OptionExplicit
             Else
@@ -661,7 +661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean values, for the semantic model instance OptionCompareText property. otherise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionCompareText(semanticModel As SemanticModel) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.OptionCompareText
             Else
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A NamespaceSymbol instance, for the compilation instance RootNamespace property. otherwise Null if compilation instance is Null. </returns>
         <Extension>
         Public Function RootNamespace(compilation As Compilation) As INamespaceSymbol
-            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
+            Dim vbcomp = TryCast(compilation, VBCompilation)
             If vbcomp IsNot Nothing Then
                 Return vbcomp.RootNamespace
             Else
@@ -691,7 +691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>An ImmutableArray of AliasSymbol, from the compilation instance AliasImports property; otherwise an empty ImmutableArray if compilation instance is Null.</returns>
         <Extension>
         Public Function AliasImports(compilation As Compilation) As ImmutableArray(Of IAliasSymbol)
-            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
+            Dim vbcomp = TryCast(compilation, VBCompilation)
             If vbcomp IsNot Nothing Then
                 Return StaticCast(Of IAliasSymbol).From(vbcomp.AliasImports)
             Else
@@ -706,7 +706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>An ImmutableArray of NamespaceOrTypeSymbol, from the compilation instance MemberImports property; otherwise an empty ImmutableArray if compilation instance is Null.</returns>
         <Extension>
         Public Function MemberImports(compilation As Compilation) As ImmutableArray(Of INamespaceOrTypeSymbol)
-            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
+            Dim vbcomp = TryCast(compilation, VBCompilation)
             If vbcomp IsNot Nothing Then
                 Return StaticCast(Of INamespaceOrTypeSymbol).From(vbcomp.MemberImports)
             Else
@@ -723,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A Conversion instance, representing the kind of conversion between the two type symbols; otherwise Null if compilation instance is Null.</returns>
         <Extension>
         Public Function ClassifyConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Conversion
-            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
+            Dim vbcomp = TryCast(compilation, VBCompilation)
             If vbcomp IsNot Nothing Then
                 Return vbcomp.ClassifyConversion(DirectCast(source, TypeSymbol), DirectCast(destination, TypeSymbol))
             Else
@@ -739,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A NamedTypeSymbol for the specified type in compilation; Null if compilation is Null.</returns>
         <Extension>
         Public Function GetSpecialType(compilation As Compilation, typeId As SpecialType) As INamedTypeSymbol
-            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
+            Dim vbcomp = TryCast(compilation, VBCompilation)
             If vbcomp IsNot Nothing Then
                 Return vbcomp.GetSpecialType(typeId)
             Else
@@ -758,7 +758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A Conversion instance, representing the kind of conversion between the expression and type symbol; otherwise Null if semantic model instance is Null.</returns>     
         <Extension>
         Public Function ClassifyConversion(semanticModel As SemanticModel, expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.ClassifyConversion(expression, DirectCast(destination, TypeSymbol))
             Else
@@ -776,7 +776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A Conversion instance, representing the kind of conversion between the expression and type symbol; otherwise Null if semantic model instance is Null.</returns>
         <Extension>
         Public Function ClassifyConversion(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.ClassifyConversion(position, expression, DirectCast(destination, TypeSymbol))
             Else
@@ -793,7 +793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A symbol, for the specified identifier; otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(identifierSyntax, cancellationToken)
             Else
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A PropertySymbol. Null if semantic model is null.</returns>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, fieldInitializerSyntax As FieldInitializerSyntax, Optional cancellationToken As CancellationToken = Nothing) As IPropertySymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(fieldInitializerSyntax, cancellationToken)
             Else
@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, anonymousObjectCreationExpressionSyntax As AnonymousObjectCreationExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax, cancellationToken)
             Else
@@ -836,7 +836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, rangeVariableSyntax As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
             Else
@@ -849,7 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, rangeVariableSyntax As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
             Else
@@ -862,7 +862,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, rangeVariableSyntax As AggregationRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
             Else
@@ -875,7 +875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As LabelStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ILabelSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -888,7 +888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As EnumMemberDeclarationSyntax, Optional cancellationToken As CancellationToken = Nothing) As IFieldSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -901,7 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As TypeStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -914,7 +914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As TypeBlockSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -927,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As EnumStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -940,7 +940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As EnumBlockSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -953,7 +953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As NamespaceStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamespaceSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -966,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As NamespaceBlockSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamespaceSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -979,7 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, parameter As ParameterSyntax, Optional cancellationToken As CancellationToken = Nothing) As IParameterSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(parameter, cancellationToken)
             Else
@@ -992,7 +992,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, typeParameter As TypeParameterSyntax, Optional cancellationToken As CancellationToken = Nothing) As ITypeParameterSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(typeParameter, cancellationToken)
             Else
@@ -1005,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As DelegateStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1018,7 +1018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As SubNewStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As IMethodSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1031,7 +1031,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As MethodStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As IMethodSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1044,7 +1044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As DeclareStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As IMethodSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1057,7 +1057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As OperatorStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As IMethodSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1070,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As MethodBlockBaseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IMethodSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1083,7 +1083,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As PropertyStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As IPropertySymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1096,7 +1096,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As EventStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As IEventSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1109,7 +1109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As PropertyBlockSyntax, Optional cancellationToken As CancellationToken = Nothing) As IPropertySymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1122,7 +1122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As EventBlockSyntax, Optional cancellationToken As CancellationToken = Nothing) As IEventSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1135,7 +1135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As CatchStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ILocalSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1148,7 +1148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As AccessorStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As IMethodSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1161,7 +1161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, declarationSyntax As SimpleImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
             Else
@@ -1174,7 +1174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetForEachStatementInfo(semanticModel As SemanticModel, node As ForEachStatementSyntax) As ForEachStatementInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetForEachStatementInfo(node)
             Else
@@ -1187,7 +1187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetForEachStatementInfo(semanticModel As SemanticModel, node As ForEachBlockSyntax) As ForEachStatementInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetForEachStatementInfo(node)
             Else
@@ -1200,7 +1200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetAwaitExpressionInfo(semanticModel As SemanticModel, awaitExpression As AwaitExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As AwaitExpressionInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetAwaitExpressionInfo(awaitExpression, cancellationToken)
             Else
@@ -1213,7 +1213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetPreprocessingSymbolInfo(semanticModel As SemanticModel, node As IdentifierNameSyntax) As PreprocessingSymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetPreprocessingSymbolInfo(node)
             Else
@@ -1226,7 +1226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(semanticModel As SemanticModel, expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSymbolInfo(expression, cancellationToken)
             Else
@@ -1240,7 +1240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetCollectionInitializerSymbolInfo(semanticModel As SemanticModel, expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetCollectionInitializerSymbolInfo(expression, cancellationToken)
             Else
@@ -1253,7 +1253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(semanticModel As SemanticModel, crefReference As CrefReferenceSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSymbolInfo(crefReference, cancellationToken)
             Else
@@ -1266,7 +1266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(semanticModel As SemanticModel, attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSymbolInfo(attribute, cancellationToken)
             Else
@@ -1279,7 +1279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetSpeculativeSymbolInfo(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSpeculativeSymbolInfo(position, expression, bindingOption)
             Else
@@ -1292,7 +1292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetSpeculativeSymbolInfo(semanticModel As SemanticModel, position As Integer, attribute As AttributeSyntax) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSpeculativeSymbolInfo(position, attribute)
             Else
@@ -1305,7 +1305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetConversion(semanticModel As SemanticModel, expression As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As Conversion
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetConversion(expression, cancellationToken)
             Else
@@ -1315,7 +1315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Extension>
         Public Function GetSpeculativeConversion(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As Conversion
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSpeculativeConversion(position, expression, bindingOption)
             Else
@@ -1325,7 +1325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Extension>
         Public Function GetTypeInfo(semanticModel As SemanticModel, expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As TypeInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetTypeInfo(expression, cancellationToken)
             Else
@@ -1338,7 +1338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetSpeculativeTypeInfo(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As TypeInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSpeculativeTypeInfo(position, expression, bindingOption)
             Else
@@ -1351,7 +1351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetTypeInfo(semanticModel As SemanticModel, attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As TypeInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetTypeInfo(attribute, cancellationToken)
             Else
@@ -1364,7 +1364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetMemberGroup(semanticModel As SemanticModel, expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetMemberGroup(expression, cancellationToken)
             Else
@@ -1377,7 +1377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetSpeculativeMemberGroup(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax) As ImmutableArray(Of ISymbol)
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSpeculativeMemberGroup(position, expression)
             Else
@@ -1390,7 +1390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetMemberGroup(semanticModel As SemanticModel, attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetMemberGroup(attribute, cancellationToken)
             Else
@@ -1404,7 +1404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetAliasInfo(semanticModel As SemanticModel, nameSyntax As IdentifierNameSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetAliasInfo(nameSyntax, cancellationToken)
             Else
@@ -1418,7 +1418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function GetSpeculativeAliasInfo(semanticModel As SemanticModel, position As Integer, nameSyntax As IdentifierNameSyntax, bindingOption As SpeculativeBindingOption) As IAliasSymbol
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSpeculativeAliasInfo(position, nameSyntax, bindingOption)
             Else
@@ -1435,7 +1435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             variableSyntax As CollectionRangeVariableSyntax,
             Optional cancellationToken As CancellationToken = Nothing
         ) As CollectionRangeVariableSymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetCollectionRangeVariableSymbolInfo(variableSyntax, cancellationToken)
             Else
@@ -1452,7 +1452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             aggregateSyntax As AggregateClauseSyntax,
             Optional cancellationToken As CancellationToken = Nothing
         ) As AggregateClauseSymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetAggregateClauseSymbolInfo(aggregateSyntax, cancellationToken)
             Else
@@ -1493,7 +1493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             clauseSyntax As QueryClauseSyntax,
             Optional cancellationToken As CancellationToken = Nothing
         ) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSymbolInfo(clauseSyntax, cancellationToken)
             Else
@@ -1511,7 +1511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             variableSyntax As ExpressionRangeVariableSyntax,
             Optional cancellationToken As CancellationToken = Nothing
         ) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSymbolInfo(variableSyntax, cancellationToken)
             Else
@@ -1528,7 +1528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             functionSyntax As FunctionAggregationSyntax,
             Optional cancellationToken As CancellationToken = Nothing
         ) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSymbolInfo(functionSyntax, cancellationToken)
             Else
@@ -1545,7 +1545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             orderingSyntax As OrderingSyntax,
             Optional cancellationToken As CancellationToken = Nothing
         ) As SymbolInfo
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSymbolInfo(orderingSyntax, cancellationToken)
             Else
@@ -1558,7 +1558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function AnalyzeControlFlow(semanticModel As SemanticModel, firstStatement As StatementSyntax, lastStatement As StatementSyntax) As ControlFlowAnalysis
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.AnalyzeControlFlow(firstStatement, lastStatement)
             Else
@@ -1571,7 +1571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function AnalyzeControlFlow(semanticModel As SemanticModel, statement As StatementSyntax) As ControlFlowAnalysis
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.AnalyzeControlFlow(statement)
             Else
@@ -1584,7 +1584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function AnalyzeDataFlow(semanticModel As SemanticModel, expression As ExpressionSyntax) As DataFlowAnalysis
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.AnalyzeDataFlow(expression)
             Else
@@ -1597,7 +1597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function AnalyzeDataFlow(semanticModel As SemanticModel, firstStatement As StatementSyntax, lastStatement As StatementSyntax) As DataFlowAnalysis
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.AnalyzeDataFlow(firstStatement, lastStatement)
             Else
@@ -1610,7 +1610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function AnalyzeDataFlow(semanticModel As SemanticModel, statement As StatementSyntax) As DataFlowAnalysis
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.AnalyzeDataFlow(statement)
             Else
@@ -1623,7 +1623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function TryGetSpeculativeSemanticModelForMethodBody(semanticModel As SemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.TryGetSpeculativeSemanticModelForMethodBody(position, method, speculativeModel)
             Else
@@ -1637,7 +1637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function TryGetSpeculativeSemanticModel(semanticModel As SemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.TryGetSpeculativeSemanticModel(position, rangeArgument, speculativeModel)
             Else
@@ -1651,7 +1651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function TryGetSpeculativeSemanticModel(semanticModel As SemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.TryGetSpeculativeSemanticModel(position, statement, speculativeModel)
             Else
@@ -1665,7 +1665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function TryGetSpeculativeSemanticModel(semanticModel As SemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.TryGetSpeculativeSemanticModel(position, initializer, speculativeModel)
             Else
@@ -1679,7 +1679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function TryGetSpeculativeSemanticModel(semanticModel As SemanticModel, position As Integer, attribute As AttributeSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.TryGetSpeculativeSemanticModel(position, attribute, speculativeModel)
             Else
@@ -1693,7 +1693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function TryGetSpeculativeSemanticModel(semanticModel As SemanticModel, position As Integer, type As TypeSyntax, <Out> ByRef speculativeModel As SemanticModel, Optional bindingOption As SpeculativeBindingOption = SpeculativeBindingOption.BindAsExpression) As Boolean
-            Dim vbmodel = TryCast(semanticModel, VisualBasicSemanticModel)
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.TryGetSpeculativeSemanticModel(position, type, speculativeModel, bindingOption)
             Else

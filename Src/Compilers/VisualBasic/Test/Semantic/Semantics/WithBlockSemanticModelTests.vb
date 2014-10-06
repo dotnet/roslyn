@@ -32,7 +32,7 @@ End Module
 </compilation>)
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim withExpression = DirectCast(tree.GetCompilationUnitRoot().DescendantNodes().Where(Function(n) n.VisualBasicKind = SyntaxKind.SimpleMemberAccessExpression).First(), MemberAccessExpressionSyntax)
+            Dim withExpression = DirectCast(tree.GetCompilationUnitRoot().DescendantNodes().Where(Function(n) n.VBKind = SyntaxKind.SimpleMemberAccessExpression).First(), MemberAccessExpressionSyntax)
 
             Assert.Equal("Alias1", model.GetAliasInfo(DirectCast(withExpression.Expression, IdentifierNameSyntax)).ToDisplayString())
             Assert.False(model.GetConstantValue(withExpression).HasValue)

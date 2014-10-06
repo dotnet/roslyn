@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </remarks>
     Friend Class SyntheticBoundNodeFactory
         Private _currentClass As NamedTypeSymbol
-        Private _syntax As VisualBasicSyntaxNode
+        Private _syntax As VBSyntaxNode
 
         Public ReadOnly Diagnostics As DiagnosticBag
         Public ReadOnly TopLevelMethod As MethodSymbol
@@ -40,17 +40,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public ReadOnly Property Compilation As VisualBasicCompilation
+        Public ReadOnly Property Compilation As VBCompilation
             Get
                 Return Me.CompilationState.Compilation
             End Get
         End Property
 
-        Public Property Syntax As VisualBasicSyntaxNode
+        Public Property Syntax As VBSyntaxNode
             Get
                 Return _syntax
             End Get
-            Set(value As VisualBasicSyntaxNode)
+            Set(value As VBSyntaxNode)
                 _syntax = value
             End Set
         End Property
@@ -61,11 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, node As VisualBasicSyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
+        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, node As VBSyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
             Me.New(topLevelMethod, currentMethod, Nothing, node, compilationState, diagnostics)
         End Sub
 
-        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, currentClass As NamedTypeSymbol, node As VisualBasicSyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
+        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, currentClass As NamedTypeSymbol, node As VBSyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
             Me.CompilationState = compilationState
             Me.CurrentMethod = currentMethod
             Me.TopLevelMethod = topLevelMethod
@@ -981,15 +981,15 @@ nextm:
             Return New BoundCatchBlock(Syntax, local, Me.Local(local, False), Nothing, Nothing, block)
         End Function
 
-        Public Function SequencePoint(syntax As VisualBasicSyntaxNode, statement As BoundStatement) As BoundStatement
+        Public Function SequencePoint(syntax As VBSyntaxNode, statement As BoundStatement) As BoundStatement
             Return New BoundSequencePoint(syntax, statement)
         End Function
 
-        Public Function SequencePoint(syntax As VisualBasicSyntaxNode) As BoundStatement
+        Public Function SequencePoint(syntax As VBSyntaxNode) As BoundStatement
             Return New BoundSequencePoint(syntax, Nothing).MakeCompilerGenerated
         End Function
 
-        Function SequencePointWithSpan(syntax As VisualBasicSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
+        Function SequencePointWithSpan(syntax As VBSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
             Return New BoundSequencePointWithSpan(syntax, boundStatement, textSpan)
         End Function
 

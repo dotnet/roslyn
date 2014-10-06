@@ -30,7 +30,7 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim validate As Action(Of VisualBasicCompilation) =
+            Dim validate As Action(Of VBCompilation) =
                 Sub(comp)
                     Dim special = comp.GetSpecialType(SpecialType.System_String)
                     Assert.Equal(TypeKind.Error, special.TypeKind)
@@ -74,14 +74,14 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim validatePresent As Action(Of VisualBasicCompilation) =
+            Dim validatePresent As Action(Of VBCompilation) =
                 Sub(comp)
                     Assert.NotNull(comp.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
                     Assert.NotNull(comp.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString))
                     Assert.DoesNotThrow(Function() comp.GetDiagnostics())
                 End Sub
 
-            Dim validateMissing As Action(Of VisualBasicCompilation) =
+            Dim validateMissing As Action(Of VBCompilation) =
                 Sub(comp)
                     Assert.Null(comp.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
                     Assert.Null(comp.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString))
@@ -114,7 +114,7 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim validate As Action(Of VisualBasicCompilation) =
+            Dim validate As Action(Of VBCompilation) =
                 Sub(comp)
                     Dim special = comp.GetSpecialType(SpecialType.System_Nullable_T)
                     Assert.Equal(TypeKind.Structure, special.TypeKind)
@@ -151,7 +151,7 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim validate As Action(Of VisualBasicCompilation) =
+            Dim validate As Action(Of VBCompilation) =
                 Sub(comp)
                     Dim wellKnown = comp.GetWellKnownType(WellKnownType.System_Type)
                     If wellKnown.DeclaringCompilation Is comp Then
@@ -202,7 +202,7 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim validate As Action(Of VisualBasicCompilation) =
+            Dim validate As Action(Of VBCompilation) =
                 Sub(comp)
                     Dim wellKnown = comp.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggableAttribute__DebuggingModes)
                     Assert.Equal(If(wellKnown.DeclaringCompilation Is comp, TypeKind.Enum, TypeKind.Error), wellKnown.TypeKind)
@@ -245,14 +245,14 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim validatePresent As Action(Of VisualBasicCompilation) =
+            Dim validatePresent As Action(Of VBCompilation) =
                 Sub(comp)
                     Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing))
                     Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_FlagsAttribute__ctor))
                     Assert.DoesNotThrow(Function() comp.GetDiagnostics())
                 End Sub
 
-            Dim validateMissing As Action(Of VisualBasicCompilation) =
+            Dim validateMissing As Action(Of VBCompilation) =
                 Sub(comp)
                     If comp.Assembly.CorLibrary Is comp.Assembly Then
                         Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing))
@@ -292,7 +292,7 @@ Namespace System.Threading.Tasks
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim validate As Action(Of VisualBasicCompilation) =
+            Dim validate As Action(Of VBCompilation) =
                 Sub(comp)
                     Dim wellKnown = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
                     Assert.Equal(TypeKind.Class, wellKnown.TypeKind)
@@ -334,7 +334,7 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim validate As Action(Of VisualBasicCompilation) =
+            Dim validate As Action(Of VBCompilation) =
                 Sub(comp)
                     Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_Activator__CreateInstance_T))
                     Assert.DoesNotThrow(Function() comp.GetDiagnostics())
@@ -344,7 +344,7 @@ End Namespace
             ValidateSourceAndMetadata(String.Format(sourceTemplate, " As New"), validate)
         End Sub
 
-        Private Shared Sub ValidateSourceAndMetadata(source As String, validate As Action(Of VisualBasicCompilation))
+        Private Shared Sub ValidateSourceAndMetadata(source As String, validate As Action(Of VBCompilation))
             Dim comp1 = CreateCompilationWithoutReferences(WrapInCompilationXml(source))
             validate(comp1)
 

@@ -16,13 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' The parsed representation of a Visual Basic source document.
     ''' </summary>
-    Partial Public MustInherit Class VisualBasicSyntaxTree
+    Partial Public MustInherit Class VBSyntaxTree
         Inherits SyntaxTree
 
         ''' <summary>
         ''' The options used by the parser to produce the syntax tree.
         ''' </summary>
-        Public MustOverride Shadows ReadOnly Property Options As VisualBasicParseOptions
+        Public MustOverride Shadows ReadOnly Property Options As VBParseOptions
 
         ''' <summary>
         ''' Returns True for MyTemplate automatically added by compiler.
@@ -34,28 +34,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Produces a clone of a <see cref="VisualBasicSyntaxNode"/> which will have current syntax tree as its parent.
+        ''' Produces a clone of a <see cref="VBSyntaxNode"/> which will have current syntax tree as its parent.
         ''' 
-        ''' Caller must guarantee that if the same instance of <see cref="VisualBasicSyntaxNode"/> makes multiple calls
+        ''' Caller must guarantee that if the same instance of <see cref="VBSyntaxNode"/> makes multiple calls
         ''' to this function, only one result is observable.
         ''' </summary>
         ''' <typeparam name="T">Type of the syntax node.</typeparam>
         ''' <param name="node">The original syntax node.</param>
-        ''' <returns>A clone of the original syntax node that has current <see cref="VisualBasicSyntaxTree"/> as its parent.</returns>
-        Protected Function CloneNodeAsRoot(Of T As VisualBasicSyntaxNode)(node As T) As T
-            Return VisualBasicSyntaxNode.CloneNodeAsRoot(node, Me)
+        ''' <returns>A clone of the original syntax node that has current <see cref="VBSyntaxTree"/> as its parent.</returns>
+        Protected Function CloneNodeAsRoot(Of T As VBSyntaxNode)(node As T) As T
+            Return VBSyntaxNode.CloneNodeAsRoot(node, Me)
         End Function
 
         ''' <summary>
         ''' Gets the root node of the syntax tree.
         ''' </summary>
-        Public MustOverride Shadows Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
+        Public MustOverride Shadows Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
 
         ''' <summary>
         ''' Gets the root node of the syntax tree asynchronously.
         ''' </summary>
-        Public Overridable Shadows Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicSyntaxNode)
-            Dim node As VisualBasicSyntaxNode = Nothing
+        Public Overridable Shadows Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VBSyntaxNode)
+            Dim node As VBSyntaxNode = Nothing
             If Me.TryGetRoot(node) Then
                 Return Task.FromResult(node)
             End If
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the root node of the syntax tree if it is already available.
         ''' </summary>
-        Public MustOverride Shadows Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
+        Public MustOverride Shadows Function TryGetRoot(ByRef root As VBSyntaxNode) As Boolean
 
         ''' <summary>
         ''' Gets the root of the syntax tree statically typed as <see cref="CompilationUnitSyntax"/>.
@@ -139,13 +139,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _lineDirectiveMap As VisualBasicLineDirectiveMap  ' created on demand
 
-        Friend Shared ReadOnly Dummy As VisualBasicSyntaxTree = New DummySyntaxTree()
+        Friend Shared ReadOnly Dummy As VBSyntaxTree = New DummySyntaxTree()
 
         ''' <summary>
         ''' Creates a new syntax tree from a syntax node.
         ''' </summary>
-        Public Shared Function Create(root As VisualBasicSyntaxNode,
-                                      Optional options As VisualBasicParseOptions = Nothing,
+        Public Shared Function Create(root As VBSyntaxNode,
+                                      Optional options As VBParseOptions = Nothing,
                                       Optional path As String = "",
                                       Optional encoding As Encoding = Nothing) As SyntaxTree
             If root Is Nothing Then
@@ -157,20 +157,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 encodingOpt:=encoding,
                 checksumAlgorithm:=SourceHashAlgorithm.Sha1,
                 path:=path,
-                options:=If(options, VisualBasicParseOptions.Default),
+                options:=If(options, VBParseOptions.Default),
                 syntaxRoot:=root,
                 isMyTemplate:=False)
         End Function
 
         ''' <summary>
         ''' <para>
-        ''' Internal helper for <see cref="VisualBasicSyntaxNode"/> class to create a new syntax tree rooted at the given root node.
+        ''' Internal helper for <see cref="VBSyntaxNode"/> class to create a new syntax tree rooted at the given root node.
         ''' This method does not create a clone of the given root, but instead preserves its reference identity.
         ''' </para>
         ''' <para>NOTE: This method is only intended to be used from <see cref="SyntaxNode.SyntaxTree"/> property.</para>
         ''' <para>NOTE: Do not use this method elsewhere, instead use <see cref="Create"/> method for creating a syntax tree.</para>
         ''' </summary>
-        Friend Shared Function CreateWithoutClone(root As VisualBasicSyntaxNode) As SyntaxTree
+        Friend Shared Function CreateWithoutClone(root As VBSyntaxNode) As SyntaxTree
             Debug.Assert(root IsNot Nothing)
 
             Return New ParsedSyntaxTree(
@@ -178,14 +178,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 path:="",
                 encodingOpt:=Nothing,
                 checksumAlgorithm:=SourceHashAlgorithm.Sha1,
-                options:=VisualBasicParseOptions.Default,
+                options:=VBParseOptions.Default,
                 syntaxRoot:=root,
                 isMyTemplate:=False,
                 cloneRoot:=False)
         End Function
 
         Public Shared Function ParseText(text As String,
-                                         Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional options As VBParseOptions = Nothing,
                                          Optional path As String = "",
                                          Optional encoding As Encoding = Nothing,
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function ParseText(text As String,
                                          isMyTemplate As Boolean,
-                                         Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional options As VBParseOptions = Nothing,
                                          Optional path As String = "",
                                          Optional encoding As Encoding = Nothing,
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a syntax tree by parsing the source text.
         ''' </summary>
         Public Shared Function ParseText(text As SourceText,
-                                         Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional options As VBParseOptions = Nothing,
                                          Optional path As String = "",
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
             Return ParseText(text, False, options, path, cancellationToken)
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function ParseText(text As SourceText,
                                          isMyTemplate As Boolean,
-                                         Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional options As VBParseOptions = Nothing,
                                          Optional path As String = "",
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
 
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxTree_FullParse, path, text.Length, cancellationToken)
-                options = If(options, VisualBasicParseOptions.Default)
+                options = If(options, VBParseOptions.Default)
 
                 Dim node As InternalSyntax.CompilationUnitSyntax
                 Using parser As New Parser(text, options, cancellationToken)
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetDiagnostics(node As SyntaxNode) As IEnumerable(Of Diagnostic)
             If node Is Nothing Then Throw New ArgumentNullException("node")
 
-            Return Me.GetDiagnostics(DirectCast(node.Green, InternalSyntax.VisualBasicSyntaxNode), DirectCast(node, VisualBasicSyntaxNode).Position, InDocumentationComment(node))
+            Return Me.GetDiagnostics(DirectCast(node.Green, InternalSyntax.VBSyntaxNode), DirectCast(node, VBSyntaxNode).Position, InDocumentationComment(node))
         End Function
 
         ''' <summary>
@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(trivia As SyntaxTrivia) As IEnumerable(Of Diagnostic)
-            Return Me.GetDiagnostics(DirectCast(trivia.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), trivia.Position, InDocumentationComment(trivia))
+            Return Me.GetDiagnostics(DirectCast(trivia.UnderlyingNode, InternalSyntax.VBSyntaxNode), trivia.Position, InDocumentationComment(trivia))
         End Function
 
         ''' <summary>
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(nodeOrToken As SyntaxNodeOrToken) As IEnumerable(Of Diagnostic)
-            Return Me.GetDiagnostics(DirectCast(nodeOrToken.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), nodeOrToken.Position, InDocumentationComment(nodeOrToken))
+            Return Me.GetDiagnostics(DirectCast(nodeOrToken.UnderlyingNode, InternalSyntax.VBSyntaxNode), nodeOrToken.Position, InDocumentationComment(nodeOrToken))
         End Function
 
         ''' <summary>
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetDiagnostics(Me.GetRoot(cancellationToken).VbGreen, 0, False)
         End Function
 
-        Friend Iterator Function EnumerateDiagnostics(node As InternalSyntax.VisualBasicSyntaxNode, position As Integer, InDocumentationComment As Boolean) As IEnumerable(Of Diagnostic)
+        Friend Iterator Function EnumerateDiagnostics(node As InternalSyntax.VBSyntaxNode, position As Integer, InDocumentationComment As Boolean) As IEnumerable(Of Diagnostic)
             Dim enumerator As New SyntaxTreeDiagnosticEnumerator(Me, node, position, InDocumentationComment)
 
             While enumerator.MoveNext()
@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End While
         End Function
 
-        Friend Overloads Function GetDiagnostics(node As InternalSyntax.VisualBasicSyntaxNode, position As Integer, InDocumentationComment As Boolean) As IEnumerable(Of Diagnostic)
+        Friend Overloads Function GetDiagnostics(node As InternalSyntax.VBSyntaxNode, position As Integer, InDocumentationComment As Boolean) As IEnumerable(Of Diagnostic)
 
             'This is part of the public contract for GetDiagnostics(xxx)
             If node Is Nothing Then Throw New InvalidOperationException()
@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim foundXml As Boolean = False
 
             While node IsNot Nothing
-                If Not SyntaxFacts.IsXmlSyntax(node.VisualBasicKind()) Then
+                If Not SyntaxFacts.IsXmlSyntax(node.VBKind()) Then
                     Exit While
                 End If
 
@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function TryGetRootCore(ByRef root As SyntaxNode) As Boolean
-            Dim node As VisualBasicSyntaxNode = Nothing
+            Dim node As VBSyntaxNode = Nothing
             If Me.TryGetRoot(node) Then
                 root = node
                 Return True

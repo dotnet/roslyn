@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function HasTrailingSkippedTokensAndShouldReportError(reference As CrefReferenceSyntax) As Boolean
             Dim triviaList As SyntaxTriviaList = reference.GetTrailingTrivia()
             For Each trivia In triviaList
-                If trivia.VisualBasicKind = SyntaxKind.SkippedTokensTrivia Then
+                If trivia.VBKind = SyntaxKind.SkippedTokensTrivia Then
                     ' ignore those, represending VB intrinsic types
                     Dim name As TypeSyntax = reference.Name
                     If name.Kind = SyntaxKind.IdentifierName Then
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindInsideCrefReferenceName(name As TypeSyntax, argCount As Integer, preserveAliases As Boolean, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
             ' NOTE: in code here and below 'parent' may be Nothing in 
             '       case of speculative binding (which is NYI)
-            Dim parent As VisualBasicSyntaxNode = name.Parent
+            Dim parent As VBSyntaxNode = name.Parent
 
             ' Type parameter
             If name.Kind = SyntaxKind.IdentifierName AndAlso parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.TypeArgumentList Then
@@ -413,7 +413,7 @@ lAgain:
         Private Function GetEnclosingCrefReference(nameFromCref As TypeSyntax, <Out> ByRef partOfSignatureOrReturnType As Boolean) As CrefReferenceSyntax
             partOfSignatureOrReturnType = False
 
-            Dim node As VisualBasicSyntaxNode = nameFromCref
+            Dim node As VBSyntaxNode = nameFromCref
             While node IsNot Nothing
 
                 Select Case node.Kind
@@ -465,7 +465,7 @@ lAgain:
                     signatureTypes.Add(
                         New SignatureElement(
                             typeParameterAwareBinder.BindTypeSyntax(part.Type, diagnostic),
-                            part.Modifier.VisualBasicKind = SyntaxKind.ByRefKeyword))
+                            part.Modifier.VBKind = SyntaxKind.ByRefKeyword))
                 Next
             End If
 
@@ -895,7 +895,7 @@ lAgain:
                 Return
             End If
 
-            Select Case crefOperator.OperatorToken.VisualBasicKind
+            Select Case crefOperator.OperatorToken.VBKind
                 Case SyntaxKind.IsTrueKeyword
                     If argCount = 1 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(UnaryOperatorKind.IsTrue)
@@ -1065,7 +1065,7 @@ lAgain:
                     End If
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(crefOperator.OperatorToken.VisualBasicKind)
+                    Throw ExceptionUtilities.UnexpectedValue(crefOperator.OperatorToken.VBKind)
             End Select
         End Sub
 

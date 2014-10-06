@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function LastPropertyOrField(Of TDeclaration As SyntaxNode)(
                 members As SyntaxList(Of TDeclaration)) As TDeclaration
-            Dim lastProperty = members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.PropertyBlock OrElse m.VisualBasicKind = SyntaxKind.PropertyStatement)
+            Dim lastProperty = members.LastOrDefault(Function(m) m.VBKind = SyntaxKind.PropertyBlock OrElse m.VBKind = SyntaxKind.PropertyStatement)
             Return If(lastProperty, LastField(members))
         End Function
 

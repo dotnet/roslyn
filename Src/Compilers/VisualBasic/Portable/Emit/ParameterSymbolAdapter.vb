@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function IParameterTypeInformationGetType(context As EmitContext) As ITypeReference Implements IParameterTypeInformation.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim paramType As TypeSymbol = Me.Type
-            Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property IParameterTypeInformationHasByRefBeforeCustomModifiers As Boolean Implements IParameterTypeInformation.HasByRefBeforeCustomModifiers
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function GetMetadataConstantValue(context As EmitContext) As IMetadataConstant
             If Me.HasMetadataConstantValue Then
-                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ExplicitDefaultValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ExplicitDefaultValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
             Else
                 Return Nothing
             End If
