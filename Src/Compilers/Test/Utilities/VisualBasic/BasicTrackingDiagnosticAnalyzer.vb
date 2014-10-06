@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Public Class BasicTrackingDiagnosticAnalyzer
     Inherits TrackingDiagnosticAnalyzer(Of SyntaxKind)
     Shared ReadOnly omittedSyntaxKindRegex As Regex = New Regex(
-        "End|Exit|Empty|Imports|Option|Module|Sub|Function|Inherits|Implements|Handles|Argument|Yield|" +
+        "End|Exit|Empty|Imports|Option|Module|Sub|Function|Inherits|Implements|Handles|Argument|Yield|NameColonEquals|" &
         "Print|With|Label|Stop|Continue|Resume|SingleLine|Error|Clause|Forever|Re[Dd]im|Mid|Type|Cast|Exponentiate|Erase|Date|Concatenate|Like|Divide|UnaryPlus")
 
     Protected Overrides Function IsOnCodeBlockSupported(symbolKind As SymbolKind, methodKind As MethodKind, returnsVoid As Boolean) As Boolean

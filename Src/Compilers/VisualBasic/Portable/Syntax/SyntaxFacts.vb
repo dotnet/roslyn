@@ -1510,16 +1510,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Dim parent1 = node.Parent
-            If parent1 Is Nothing OrElse Not parent1.IsKind(SyntaxKind.NamedArgument) Then
+            Dim parent1 = TryCast(node.Parent, NameColonEqualsSyntax)
+            If parent1 Is Nothing Then
                 Return False
             End If
 
-            If DirectCast(parent1, NamedArgumentSyntax).IdentifierName IsNot node Then
-                Return False
-            End If
-
-            Dim parent2 = parent1.Parent
+            Dim parent2 = parent1.Parent.Parent
             If parent2 Is Nothing OrElse Not parent2.IsKind(SyntaxKind.ArgumentList) Then
                 Return False
             End If
@@ -1531,8 +1527,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case parent3.VisualBasicKind()
                 Case SyntaxKind.InvocationExpression,
-                    SyntaxKind.ObjectCreationExpression,
-                    SyntaxKind.RaiseEventStatement
+                     SyntaxKind.ObjectCreationExpression,
+                     SyntaxKind.RaiseEventStatement
 
                     Return True
                 Case Else

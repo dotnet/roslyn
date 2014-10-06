@@ -101,9 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' a delegate creation expression does not care if what the name of a named argument
                 ' was. Just take whatever was passed.
                 If argumentSyntax.Kind = SyntaxKind.SimpleArgument Then
-                    expressionSyntax = DirectCast(argumentSyntax, SimpleArgumentSyntax).Expression
-                ElseIf argumentSyntax.Kind = SyntaxKind.NamedArgument Then
-                    expressionSyntax = DirectCast(argumentSyntax, NamedArgumentSyntax).Expression
+                    expressionSyntax = argumentSyntax.GetExpression()
                 End If
                 ' omitted argument will leave expressionSyntax as nothing which means no binding, which is fine.
 
@@ -167,9 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim argumentSyntax = argumentListOpt.Arguments(argumentIndex)
 
                 If argumentSyntax.Kind = SyntaxKind.SimpleArgument Then
-                    expressionSyntax = DirectCast(argumentSyntax, SimpleArgumentSyntax).Expression
-                ElseIf argumentSyntax.Kind = SyntaxKind.NamedArgument Then
-                    expressionSyntax = DirectCast(argumentSyntax, NamedArgumentSyntax).Expression
+                    expressionSyntax = argumentSyntax.GetExpression()
                 End If
 
                 If expressionSyntax IsNot Nothing Then

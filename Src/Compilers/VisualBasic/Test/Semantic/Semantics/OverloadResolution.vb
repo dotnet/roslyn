@@ -4327,7 +4327,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
             Dim treeModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
 
             Dim nothingArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 1).AsNode, ArgumentSyntax)
-            Dim namedIntArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.NamedArgument, 1).AsNode, ArgumentSyntax)
+            Dim namedIntArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 4).AsNode, ArgumentSyntax)
             Dim intArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 2).AsNode, ArgumentSyntax)
             Dim stringArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 3).AsNode, ArgumentSyntax)
 
@@ -4476,7 +4476,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
             Dim treeModel = DirectCast(compilation.GetSemanticModel(tree), VisualBasicSemanticModel)
 
             Dim nothingArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 1).AsNode, ArgumentSyntax)
-            Dim namedIntArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.NamedArgument, 1).AsNode, ArgumentSyntax)
+            Dim namedIntArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 4).AsNode, ArgumentSyntax)
             Dim intArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 2).AsNode, ArgumentSyntax)
             Dim stringArg = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleArgument, 3).AsNode, ArgumentSyntax)
 

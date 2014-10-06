@@ -25,13 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function CanBeReplacedWithAnyName(nameSyntax As NameSyntax) As Boolean
-            If nameSyntax.CheckParent(Of NamedArgumentSyntax)(Function(a) a.IdentifierName Is nameSyntax) OrElse
+            If nameSyntax.CheckParent(Of SimpleArgumentSyntax)(Function(a) a.IsNamed AndAlso a.NameColonEquals.Name Is nameSyntax) OrElse
                nameSyntax.CheckParent(Of HandlesClauseItemSyntax)(Function(h) h.EventMember Is nameSyntax) OrElse
                nameSyntax.CheckParent(Of InferredFieldInitializerSyntax)(Function(i) i.Expression Is nameSyntax) OrElse
                nameSyntax.CheckParent(Of NamedFieldInitializerSyntax)(Function(n) n.Name Is nameSyntax) OrElse
                nameSyntax.CheckParent(Of CatchStatementSyntax)(Function(c) c.IdentifierName Is nameSyntax) OrElse
                nameSyntax.CheckParent(Of RaiseEventStatementSyntax)(Function(r) r.Name Is nameSyntax) OrElse
-               nameSyntax.CheckParent(Of NamedArgumentSyntax)(Function(n) n.IdentifierName Is nameSyntax) OrElse
                nameSyntax.CheckParent(Of QualifiedNameSyntax)(Function(q) q.Right Is nameSyntax) OrElse
                nameSyntax.CheckParent(Of MemberAccessExpressionSyntax)(Function(m) m.Name Is nameSyntax) Then
                 Return False

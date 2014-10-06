@@ -40,11 +40,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
                     If dllImportType.Equals(attributeType.ContainingType) Then
                         ' <DllImport> attribute, add Or replace CharSet named parameter
                         Dim argumentValue = CreateCharSetArgument(syntaxFactoryService, charSetType).WithAdditionalAnnotations(Formatter.Annotation)
-                        Dim namedParameter = arguments.OfType(Of NamedArgumentSyntax).
-                        FirstOrDefault(Function(arg) arg.IdentifierName.Identifier.Text = CharSetText)
+                        Dim namedParameter = Aggregate arg In arguments.OfType(Of SimpleArgumentSyntax)
+                                             Where arg.IsNamed
+                                             Into FirstOrDefault(arg.NameColonEquals.Name.Identifier.Text = CharSetText)
+
                         If namedParameter Is Nothing Then
                             ' add the parameter
-                            namedParameter = SyntaxFactory.NamedArgument(SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(CharSetText)), CType(argumentValue, ExpressionSyntax)).
+                            namedParameter = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(CharSetText))), CType(argumentValue, ExpressionSyntax)).
                             WithAdditionalAnnotations(Formatter.Annotation)
                             Dim newArguments = arguments.Add(namedParameter)
                             Dim newArgumentList = attribute.ArgumentList.WithArguments(newArguments)

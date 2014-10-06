@@ -10,9 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.OmittedArgument
                     Return SyntaxFactory.MissingExpression
 
-                Case SyntaxKind.NamedArgument
-                    Return DirectCast(Me, NamedArgumentSyntax).Expression
-
                 Case SyntaxKind.RangeArgument
                     Return DirectCast(Me, RangeArgumentSyntax).UpperBound
             End Select

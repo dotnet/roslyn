@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Function(a) SyntaxFactory.SimpleArgument(GenerateExpression(a))))
 
             arguments.AddRange(attribute.NamedArguments.Select(
-                Function(kvp) SyntaxFactory.NamedArgument(kvp.Key.ToIdentifierName(), GenerateExpression(kvp.Value))))
+                Function(kvp) SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(kvp.Key.ToIdentifierName()), GenerateExpression(kvp.Value))))
 
             Return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))
         End Function

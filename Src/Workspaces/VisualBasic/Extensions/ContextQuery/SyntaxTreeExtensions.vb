@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                targetToken.IsChildToken(Of JoinClauseSyntax)(Function(joinQuery) joinQuery.OnKeyword) OrElse
                targetToken.IsChildSeparatorToken(Of JoinClauseSyntax, JoinConditionSyntax)(Function(joinQuery) joinQuery.JoinConditions) OrElse
                targetToken.IsChildToken(Of JoinConditionSyntax)(Function(joinCondition) joinCondition.EqualsKeyword) OrElse
-               targetToken.IsChildToken(Of NamedArgumentSyntax)(Function(namedArgument) namedArgument.ColonEqualsToken) OrElse
+               targetToken.IsChildToken(Of SimpleArgumentSyntax)(Function(argument) If(argument.IsNamed, argument.NameColonEquals.ColonEqualsToken, Nothing)) OrElse
                targetToken.IsChildToken(Of NamedFieldInitializerSyntax)(Function(namedField) namedField.EqualsToken) OrElse
                targetToken.IsChildToken(Of OrderByClauseSyntax)(Function(orderByClause) orderByClause.ByKeyword) OrElse
                targetToken.IsChildSeparatorToken(Of OrderByClauseSyntax, OrderingSyntax)(Function(orderByClause) orderByClause.Orderings) OrElse

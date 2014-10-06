@@ -391,19 +391,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each argumentSyntax In arguments
                         Select Case argumentSyntax.Kind
                             Case SyntaxKind.SimpleArgument
-                                ' Validating the expression is done when the bound expression is converted to a TypedConstant
-                                Dim expression As BoundExpression = BindValue(DirectCast(argumentSyntax, SimpleArgumentSyntax).Expression, diagnostics)
-                                MarkEmbeddedTypeReferenceIfNeeded(expression)
-                                boundArgumentsBuilder.Add(expression)
 
-                            Case SyntaxKind.NamedArgument
-                                Dim namedArgument = DirectCast(argumentSyntax, NamedArgumentSyntax)
+                                Dim simpleArgument = DirectCast(argumentSyntax, SimpleArgumentSyntax)
 
-                                If namedArgumentsBuilder Is Nothing Then
-                                    namedArgumentsBuilder = ArrayBuilder(Of BoundExpression).GetInstance
+                                If Not simpleArgument.IsNamed Then
+                                    ' Validating the expression is done when the bound expression is converted to a TypedConstant
+                                    Dim expression As BoundExpression = BindValue(simpleArgument.Expression, diagnostics)
+                                    MarkEmbeddedTypeReferenceIfNeeded(expression)
+                                    boundArgumentsBuilder.Add(expression)
+                                Else
+                                    If namedArgumentsBuilder Is Nothing Then
+                                        namedArgumentsBuilder = ArrayBuilder(Of BoundExpression).GetInstance()
+                                    End If
+
+                                    namedArgumentsBuilder.Add(BindAttributeNamedArgument(type, simpleArgument, diagnostics))
                                 End If
-
-                                namedArgumentsBuilder.Add(BindAttributeNamedArgument(type, namedArgument, diagnostics))
 
                             Case SyntaxKind.OmittedArgument
                                 boundArgumentsBuilder.Add(New BoundOmittedArgument(argumentSyntax, Nothing))
@@ -422,12 +424,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindAttributeNamedArgument(container As TypeSymbol,
-                                                    namedArg As NamedArgumentSyntax,
+                                                    namedArg As SimpleArgumentSyntax,
                                                     diagnostics As DiagnosticBag) As BoundExpression
-
+            Debug.Assert(namedArg.IsNamed)
             ' Bind the named argument
             Dim result As LookupResult = LookupResult.GetInstance()
-            Dim identifierName As IdentifierNameSyntax = namedArg.IdentifierName
+            Dim identifierName As IdentifierNameSyntax = namedArg.NameColonEquals.Name
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
             LookupMember(result, container, identifierName.Identifier.ValueText, 0, LookupOptions.IgnoreExtensionMethods, useSiteDiagnostics)

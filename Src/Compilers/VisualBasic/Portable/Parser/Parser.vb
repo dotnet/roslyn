@@ -3230,7 +3230,7 @@ checkNullable:
                 Dim arg As ArgumentSyntax
 
                 If toKeyword Is Nothing Then
-                    arg = SyntaxFactory.SimpleArgument(upperBound)
+                    arg = SyntaxFactory.SimpleArgument(Nothing, upperBound)
                 Else
                     arg = SyntaxFactory.RangeArgument(lowerBound, toKeyword, upperBound)
                 End If

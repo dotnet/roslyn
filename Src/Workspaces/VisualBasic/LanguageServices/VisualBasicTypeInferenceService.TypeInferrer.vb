@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parent = token.Parent
 
                 Return parent.TypeSwitch(
-                    Function(argument As NamedArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), argument),
+                    Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), previousToken:=token),
                     Function(argumentList As ArgumentListSyntax) InferTypeInArgumentList(argumentList, previousToken:=token),
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
@@ -230,8 +230,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim attribute = TryCast(argumentList.Parent, AttributeSyntax)
 
-                        If argumentOpt IsNot Nothing AndAlso TypeOf argumentOpt Is NamedArgumentSyntax Then
-                            Return GetTypes(DirectCast(argumentOpt, NamedArgumentSyntax).IdentifierName)
+                        If argumentOpt IsNot Nothing AndAlso argumentOpt.IsNamed Then
+                            Return GetTypes(DirectCast(argumentOpt, SimpleArgumentSyntax).NameColonEquals.Name)
                         End If
 
                         Dim index As Integer = 0
@@ -295,11 +295,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 index As Integer,
                 parameterizedSymbols As IEnumerable(Of ImmutableArray(Of IParameterSymbol))) As IEnumerable(Of ITypeSymbol)
 
-                If TypeOf argument Is NamedArgumentSyntax Then
-                    Dim namedArgument = DirectCast(argument, NamedArgumentSyntax)
+                Dim simpleArgument = TryCast(argument, SimpleArgumentSyntax)
+
+                If simpleArgument IsNot Nothing AndAlso simpleArgument.IsNamed Then
                     Dim parameters = parameterizedSymbols _
                                         .SelectMany(Function(m) m) _
-                                        .Where(Function(p) p.Name = namedArgument.IdentifierName.Identifier.ValueText)
+                                        .Where(Function(p) p.Name = simpleArgument.NameColonEquals.Name.Identifier.ValueText)
 
                     Return parameters.Select(Function(p) p.Type)
                 Else

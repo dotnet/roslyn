@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If name Is Nothing Then
                 Return SyntaxFactory.SimpleArgument(DirectCast(expression, ExpressionSyntax))
             Else
-                Return SyntaxFactory.NamedArgument(name.ToIdentifierName, DirectCast(expression, ExpressionSyntax))
+                Return SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(name.ToIdentifierName()), DirectCast(expression, ExpressionSyntax))
             End If
         End Function
 

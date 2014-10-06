@@ -510,13 +510,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared Function GetArgumentAsExpression(arg As ArgumentSyntax) As ExpressionSyntax
             Select Case arg.Kind
                 Case SyntaxKind.SimpleArgument
-                    Return arg.GetExpression
 
-                Case SyntaxKind.NamedArgument
-                    Dim nArg = DirectCast(arg, NamedArgumentSyntax)
-                    Dim expr = nArg.Expression
-                    expr = expr.AddLeadingSyntax(SyntaxList.List(nArg.IdentifierName, nArg.ColonEqualsToken), ERRID.ERR_IllegalOperandInIIFName)
-                    Return expr
+                    Dim simpleArgument = DirectCast(arg, SimpleArgumentSyntax)
+                    Dim expression = simpleArgument.Expression
+
+                    If simpleArgument.NameColonEquals IsNot Nothing Then
+                        expression = expression.AddLeadingSyntax(SyntaxList.List(simpleArgument.NameColonEquals.Name, simpleArgument.NameColonEquals.ColonEqualsToken), ERRID.ERR_IllegalOperandInIIFName)
+                    End If
+
+                    Return expression
 
                 Case Else
                     ' argument for IF expression cannot be omitted
@@ -1332,7 +1334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     argumentName = ReportSyntaxError(argumentName, ERRID.ERR_ExpectedNamedArgument)
                 End If
 
-                Dim namedArgument = SyntaxFactory.NamedArgument(argumentName, colonEquals, ParseExpression())
+                Dim namedArgument = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(argumentName, colonEquals), ParseExpression())
 
                 If CurrentToken.Kind <> SyntaxKind.CommaToken Then
                     If CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse MustEndStatement(CurrentToken) Then
@@ -1385,7 +1387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 argument = SyntaxFactory.RangeArgument(lowerBound, toKeyword, value)
             Else
-                argument = SyntaxFactory.SimpleArgument(value)
+                argument = SyntaxFactory.SimpleArgument(Nothing, value)
             End If
 
             Return argument

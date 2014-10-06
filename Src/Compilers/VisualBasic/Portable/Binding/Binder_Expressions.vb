@@ -3563,16 +3563,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Given the expression part of a named argument, get the token of it's name. We use this for error reported, and its more efficient
         ' to calculate it only when needed when reported a diagnostic.
         Private Shared Function GetNamedArgumentIdentifier(argumentExpression As VisualBasicSyntaxNode) As SyntaxToken
-            Dim parent As NamedArgumentSyntax = Nothing
-            If argumentExpression.Parent IsNot Nothing Then
-                parent = TryCast(argumentExpression.Parent, NamedArgumentSyntax)
-            End If
+            Dim parent = TryCast(argumentExpression.Parent, SimpleArgumentSyntax)
 
-            If parent Is Nothing Then
+            If parent Is Nothing OrElse Not parent.IsNamed Then
                 Debug.Assert(False, "Did not found a NamedArgumentSyntax where one should have been")
                 Return argumentExpression.GetFirstToken() ' since we use this for error reporting, this gives us something close, anyway.
             Else
-                Return parent.IdentifierName.Identifier
+                Return parent.NameColonEquals.Name.Identifier
             End If
         End Function
 
@@ -3880,7 +3877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' in such case we will require all other bounds be nonempty
             For Each argumentSyntax In arguments
                 Select Case argumentSyntax.Kind
-                    Case SyntaxKind.SimpleArgument, SyntaxKind.NamedArgument, SyntaxKind.RangeArgument
+                    Case SyntaxKind.SimpleArgument, SyntaxKind.RangeArgument
                         errorOnEmptyBound = True
                         Exit For
                 End Select
@@ -3895,11 +3892,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case argumentSyntax.Kind
 
                     Case SyntaxKind.SimpleArgument
-                        upperBoundSyntax = DirectCast(argumentSyntax, SimpleArgumentSyntax).Expression
 
-                    Case SyntaxKind.NamedArgument
-                        ReportDiagnostic(diagnostics, argumentSyntax, ERRID.ERR_NamedSubscript)
-                        upperBoundSyntax = DirectCast(argumentSyntax, NamedArgumentSyntax).Expression
+                        Dim simpleArgument = DirectCast(argumentSyntax, SimpleArgumentSyntax)
+
+                        If simpleArgument.NameColonEquals IsNot Nothing Then
+                            ReportDiagnostic(diagnostics, argumentSyntax, ERRID.ERR_NamedSubscript)
+                        End If
+
+                        upperBoundSyntax = simpleArgument.Expression
 
                     Case SyntaxKind.RangeArgument
                         Dim rangeArgument = DirectCast(argumentSyntax, RangeArgumentSyntax)

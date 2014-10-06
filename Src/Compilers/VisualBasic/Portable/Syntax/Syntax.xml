@@ -6069,16 +6069,19 @@ Unify Enum declarations with other block type declarations.
 
 
     <!--********************
-      -  SimpleArgumentNode
+      -  SimpleArgumentSyntax
       **********************-->
-    <!-- Better name: ExpressionArgument? -->
     <node-structure name="SimpleArgumentSyntax" parent="ArgumentSyntax">
-      <description>Represents a simple argument that is just an expression.</description>
+      <description>Represents an argument that is just an optional argument name and an expression.</description>
 
       <node-kind name="SimpleArgument">
         <lm-equiv name="Argument" />
       </node-kind>
 
+      <child name="NameColonEquals" kind="NameColonEquals" optional="true">
+        <description>The optional name and ":=" prefix of a named argument.</description>
+      </child>
+      
       <child name="Expression" kind="@ExpressionSyntax">
         <description>The expression that is the argument.</description>
         <lm-equiv name="Value"></lm-equiv>
@@ -6088,33 +6091,19 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--********************
-      -  NamedArgumentNode
+      -  NameColonEqualsSyntax
       **********************-->
-    <node-structure name="NamedArgumentSyntax" parent="ArgumentSyntax">
-      <description>Represents a named argument, such as "Value:=7".</description>
-      <lm-equiv name="ArgumentNode"></lm-equiv>
-      <native-equiv name="Argument"></native-equiv>
+    <node-structure name="NameColonEqualsSyntax" parent="VisualBasicSyntaxNode">
+      <description>Represents an identifier name followed by a ":=" token in a named argument.</description>
 
-      <node-kind name="NamedArgument">
-        <lm-equiv name="Argument" />
-      </node-kind>
+      <node-kind name="NameColonEquals" />
 
-      <child name="IdentifierName" kind="IdentifierName">
+      <child name="Name" kind="IdentifierName">
         <description>The name used to identify the named argument.</description>
-        <lm-equiv name="Name"></lm-equiv>
-        <native-equiv name="Name"></native-equiv>
       </child>
 
       <child name="ColonEqualsToken" kind="ColonEqualsToken">
         <description>The ":=" token.</description>
-        <lm-equiv name="ColonEqual"></lm-equiv>
-        <native-equiv name="ColonEquals"></native-equiv>
-      </child>
-
-      <child name="Expression" kind="@ExpressionSyntax">
-        <description>The expression that is the named argument.</description>
-        <lm-equiv name="Value"></lm-equiv>
-        <native-equiv name="Value"></native-equiv>
       </child>
     </node-structure>
 

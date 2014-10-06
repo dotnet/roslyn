@@ -90,7 +90,7 @@ Friend NotInheritable Class LocalVariableDeclaratorsCollector
         Return
     End Sub
 
-    Public Overrides Sub VisitNamedArgument(node As NamedArgumentSyntax)
+    Public Overrides Sub VisitSimpleArgument(node As SimpleArgumentSyntax)
         MyBase.Visit(node.Expression)
 
         ' argument name in "foo(argName := expr)" does not declare locals

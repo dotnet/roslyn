@@ -2756,13 +2756,15 @@ _Default:
                 Return SymbolInfo.None
             End If
 
+            ' RaiseEvent Invocation(SimpleArgument(((Identifier):=)(Expression))
             ' check for RaiseEvent here, it is not an expression.
-            If identifierNameSyntax.Parent.Parent.Parent.Kind = SyntaxKind.RaiseEventStatement Then
-                Dim asRaiseEvent = DirectCast(identifierNameSyntax.Parent.Parent.Parent, RaiseEventStatementSyntax)
+            If identifierNameSyntax.Parent.Parent.Parent.Parent.Kind = SyntaxKind.RaiseEventStatement Then
+                Dim asRaiseEvent = DirectCast(identifierNameSyntax.Parent.Parent.Parent.Parent, RaiseEventStatementSyntax)
                 Return GetNamedArgumentSymbolInfoInRaiseEvent(argumentName, asRaiseEvent)
             End If
 
-            Dim containingInvocation = DirectCast(identifierNameSyntax.Parent.Parent.Parent, ExpressionSyntax)
+            ' Invocation(SimpleArgument(((Identifier):=)(Expression))
+            Dim containingInvocation = DirectCast(identifierNameSyntax.Parent.Parent.Parent.Parent, ExpressionSyntax)
 
             Dim containingInvocationInfo As SymbolInfo = GetExpressionSymbolInfo(containingInvocation, SymbolInfoOptions.PreferConstructorsToType Or SymbolInfoOptions.ResolveAliases, cancellationToken)
 

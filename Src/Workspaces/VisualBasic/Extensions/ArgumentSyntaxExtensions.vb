@@ -45,9 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim parameters = symbol.GetParameters()
 
             ' Handle named argument
-            If argument.IsKind(SyntaxKind.NamedArgument) Then
-                Dim namedArgument = DirectCast(argument, NamedArgumentSyntax)
-                Dim name = namedArgument.IdentifierName.Identifier.ValueText
+            If argument.IsNamed Then
+                Dim namedArgument = DirectCast(argument, SimpleArgumentSyntax)
+                Dim name = namedArgument.NameColonEquals.Name.Identifier.ValueText
                 Return parameters.FirstOrDefault(Function(p) p.Name = name)
             End If
 
@@ -77,13 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function GetArgumentExpression(argument As ArgumentSyntax) As ExpressionSyntax
-            If TypeOf argument Is SimpleArgumentSyntax Then
-                Return DirectCast(argument, SimpleArgumentSyntax).Expression
-            ElseIf TypeOf argument Is NamedArgumentSyntax Then
-                Return DirectCast(argument, NamedArgumentSyntax).Expression
-            End If
-
-            Return Nothing
+            Return argument.GetExpression()
         End Function
     End Module
 End Namespace

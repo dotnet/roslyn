@@ -825,6 +825,7 @@
     <Compile Include="Symbols\UnboundGenericType.vb" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.vb" />
     <Compile Include="Symbols\WellKnownMembers.vb" />
+    <Compile Include="Syntax\ArgumentSyntax.vb" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.vb" />
     <Compile Include="Syntax\BaseSyntaxExtensions.vb" />
     <Compile Include="Syntax\BeginOfBlockSyntaxReference.vb" />

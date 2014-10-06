@@ -327,19 +327,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsInRefContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            If TypeOf expression.Parent Is NamedArgumentSyntax Then
-                Dim argument = DirectCast(expression.Parent, NamedArgumentSyntax)
-                Dim info = semanticModel.GetSymbolInfo(argument.IdentifierName, cancellationToken)
+            Dim simpleArgument = TryCast(expression.Parent, SimpleArgumentSyntax)
+
+            If simpleArgument Is Nothing Then
+                Return False
+            ElseIf simpleArgument.IsNamed Then
+                Dim info = semanticModel.GetSymbolInfo(simpleArgument.NameColonEquals.Name, cancellationToken)
 
                 Dim parameter = TryCast(info.GetAnySymbol(), IParameterSymbol)
                 Return parameter IsNot Nothing AndAlso parameter.RefKind <> RefKind.None
-            ElseIf TypeOf expression.Parent Is SimpleArgumentSyntax Then
-                Dim argument = DirectCast(expression.Parent, SimpleArgumentSyntax)
-                Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
+
+            Else
+                Dim argumentList = TryCast(simpleArgument.Parent, ArgumentListSyntax)
 
                 If argumentList IsNot Nothing Then
                     Dim parent = argumentList.Parent
-                    Dim index = argumentList.Arguments.IndexOf(argument)
+                    Dim index = argumentList.Arguments.IndexOf(simpleArgument)
 
                     Dim info = semanticModel.GetSymbolInfo(parent, cancellationToken)
                     Dim symbol = info.GetAnySymbol()
@@ -356,6 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         End If
                     End If
                 End If
+
             End If
 
             Return False
@@ -440,9 +444,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsNamedArgumentIdentifier(expression As ExpressionSyntax) As Boolean
-            Return _
-                TypeOf expression.Parent Is NamedArgumentSyntax AndAlso
-                DirectCast(expression.Parent, NamedArgumentSyntax).IdentifierName Is expression
+            Dim simpleArgument = TryCast(expression.Parent, SimpleArgumentSyntax)
+            Return simpleArgument IsNot Nothing AndAlso simpleArgument.NameColonEquals.Name Is expression
         End Function
 
         Private Function IsUnnecessaryCast(
@@ -554,8 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Direct parent kind checks.
-            If expression.IsParentKind(SyntaxKind.SimpleArgument) OrElse
-               expression.IsParentKind(SyntaxKind.EqualsValue) OrElse
+            If expression.IsParentKind(SyntaxKind.EqualsValue) OrElse
                expression.IsParentKind(SyntaxKind.ParenthesizedExpression) OrElse
                expression.IsParentKind(SyntaxKind.SelectStatement) OrElse
                expression.IsParentKind(SyntaxKind.SyncLockStatement) OrElse
@@ -589,7 +591,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                expression.CheckParent(Of MemberAccessExpressionSyntax)(Function(m) m.Expression Is expression) OrElse
                expression.CheckParent(Of TryCastExpressionSyntax)(Function(t) t.Expression Is expression) OrElse
                expression.CheckParent(Of CatchFilterClauseSyntax)(Function(c) c.Filter Is expression) OrElse
-               expression.CheckParent(Of NamedArgumentSyntax)(Function(n) n.Expression Is expression) OrElse
+               expression.CheckParent(Of SimpleArgumentSyntax)(Function(n) n.Expression Is expression) OrElse
                expression.CheckParent(Of DirectCastExpressionSyntax)(Function(d) d.Expression Is expression) OrElse
                expression.CheckParent(Of FunctionAggregationSyntax)(Function(f) f.Argument Is expression) OrElse
                expression.CheckParent(Of RangeArgumentSyntax)(Function(r) r.UpperBound Is expression) Then

@@ -2901,31 +2901,30 @@ ProduceBoundNode:
                 For Each argumentSyntax In arguments
                     Select Case argumentSyntax.Kind
                         Case SyntaxKind.SimpleArgument
-                            boundArgumentsBuilder.Add(BindValue(DirectCast(argumentSyntax, SimpleArgumentSyntax).Expression, diagnostics))
+                            Dim simpleArgument = DirectCast(argumentSyntax, SimpleArgumentSyntax)
+                            boundArgumentsBuilder.Add(BindValue(simpleArgument.Expression, diagnostics))
 
-                        Case SyntaxKind.NamedArgument
-                            Dim namedArgument = DirectCast(argumentSyntax, NamedArgumentSyntax)
-                            boundArgumentsBuilder.Add(BindValue(namedArgument.Expression, diagnostics))
+                            If simpleArgument.IsNamed Then
+                                ' The common case is no named arguments. So we defer all work until the first named argument is seen.
+                                If argumentNamesBuilder Is Nothing Then
+                                    argumentNamesBuilder = ArrayBuilder(Of String).GetInstance()
+                                    argumentNamesLocationsBuilder = ArrayBuilder(Of Location).GetInstance()
 
-                            ' The common case is no named arguments. So we defer all work until the first named argument is seen.
-                            If argumentNamesBuilder Is Nothing Then
-                                argumentNamesBuilder = ArrayBuilder(Of String).GetInstance
-                                argumentNamesLocationsBuilder = ArrayBuilder(Of Location).GetInstance
+                                    For i = 0 To argCount - 1
+                                        argumentNamesBuilder.Add(Nothing)
+                                        argumentNamesLocationsBuilder.Add(Nothing)
+                                    Next i
+                                End If
 
-                                For i = 0 To argCount - 1
+                                Dim id = simpleArgument.NameColonEquals.Name.Identifier
+                                If id.ValueText.Length > 0 Then
+                                    argumentNamesBuilder.Add(id.ValueText)
+                                Else
                                     argumentNamesBuilder.Add(Nothing)
-                                    argumentNamesLocationsBuilder.Add(Nothing)
-                                Next i
-                            End If
+                                End If
 
-                            Dim id = namedArgument.IdentifierName.Identifier
-                            If id.ValueText.Length > 0 Then
-                                argumentNamesBuilder.Add(id.ValueText)
-                            Else
-                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(id.GetLocation())
                             End If
-
-                            argumentNamesLocationsBuilder.Add(id.GetLocation())
 
                         Case SyntaxKind.OmittedArgument
                             boundArgumentsBuilder.Add(New BoundOmittedArgument(argumentSyntax, Nothing))

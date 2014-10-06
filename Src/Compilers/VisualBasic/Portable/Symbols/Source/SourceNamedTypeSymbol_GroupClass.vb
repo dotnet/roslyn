@@ -156,9 +156,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 Case SyntaxKind.SimpleArgument
                                                     expression = DirectCast(argumentSyntax, SimpleArgumentSyntax).Expression
 
-                                                Case SyntaxKind.NamedArgument
-                                                    expression = DirectCast(argumentSyntax, NamedArgumentSyntax).Expression
-
                                                 Case SyntaxKind.OmittedArgument
                                                     expression = Nothing
 

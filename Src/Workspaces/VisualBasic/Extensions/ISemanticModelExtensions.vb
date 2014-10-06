@@ -93,10 +93,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private Function GenerateNameForArgumentWorker(semanticModel As SemanticModel,
                                                        argument As ArgumentSyntax) As String
-            If TypeOf argument Is NamedArgumentSyntax Then
-                Return DirectCast(argument, NamedArgumentSyntax).IdentifierName.Identifier.ValueText
-            ElseIf TypeOf argument Is SimpleArgumentSyntax Then
-                Return semanticModel.GenerateNameForExpression(DirectCast(argument, SimpleArgumentSyntax).Expression)
+            If argument.IsNamed Then
+                Return DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText
+            ElseIf Not argument.IsOmitted Then
+                Return semanticModel.GenerateNameForExpression(argument.GetExpression())
             Else
                 Return DefaultParameterName
             End If
@@ -167,7 +167,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' We can't change the names of named parameters.  Any other names we're flexible on.
-            Dim isFixed = arguments.Select(Function(a) TypeOf a Is NamedArgumentSyntax).ToList()
+            Dim isFixed = Aggregate arg In arguments
+                          Select arg = TryCast(arg, SimpleArgumentSyntax)
+                          Select arg IsNot Nothing AndAlso arg.NameColonEquals IsNot Nothing
+                          Into ToList()
+
             Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a)).ToList()
             Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse)
         End Function

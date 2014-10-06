@@ -1379,13 +1379,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         OmittedArgument = 348                    ' OmittedArgumentSyntax : ArgumentSyntax
         ''' <summary>
-        ''' Represents a simple argument that is just an expression.
+        ''' Represents an argument that is just an optional argument name and an expression.
         ''' </summary>
         SimpleArgument = 349                     ' SimpleArgumentSyntax : ArgumentSyntax
-        ''' <summary>
-        ''' Represents a named argument, such as "Value:=7".
-        ''' </summary>
-        NamedArgument = 350                      ' NamedArgumentSyntax : ArgumentSyntax
+
+        ' NamedArgument = 350                    ' Removed
+
         ''' <summary>
         ''' Represents a range argument, such as "0 to 5", used in array bounds. The
         ''' "Value" property represents the upper bound of the range.
@@ -3079,6 +3078,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an alias identifier followed by an "=" token in an Imports clause.
         ''' </summary>
         ImportAliasClause = 754                   ' ImportAliasClauseSyntax : VisualBasicSyntaxNode
+
+        ''' <summary>
+        ''' Represents an identifier name followed by a ":=" token in a named argument.
+        ''' </summary>
+        NameColonEquals = 755
 
     End Enum
 

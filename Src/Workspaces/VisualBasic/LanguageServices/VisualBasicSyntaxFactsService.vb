@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamedParameter
-            Return node.CheckParent(Of NamedArgumentSyntax)(Function(p) p.IdentifierName Is node)
+            Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
         End Function
 
         Public Function IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia
@@ -445,9 +445,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsAttributeNamedArgumentIdentifier(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttributeNamedArgumentIdentifier
             Dim identifierName = TryCast(node, IdentifierNameSyntax)
             If identifierName IsNot Nothing Then
-                Dim namedArgument = TryCast(identifierName.Parent, NamedArgumentSyntax)
-                If namedArgument IsNot Nothing AndAlso identifierName Is namedArgument.IdentifierName Then
-                    Return namedArgument.Parent.IsParentKind(SyntaxKind.Attribute)
+                Dim simpleArgument = TryCast(identifierName.Parent, SimpleArgumentSyntax)
+                If simpleArgument IsNot Nothing AndAlso simpleArgument.IsNamed AndAlso identifierName Is simpleArgument.NameColonEquals.Name Then
+                    Return simpleArgument.Parent.IsParentKind(SyntaxKind.Attribute)
                 End If
             End If
 

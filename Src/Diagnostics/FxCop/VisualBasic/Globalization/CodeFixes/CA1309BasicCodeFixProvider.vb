@@ -22,17 +22,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
             Dim syntaxFactoryService = document.GetLanguageService(Of SyntaxGenerator)
             Select Case kind
                 Case SyntaxKind.SimpleArgument
-                    ' StringComparison.CurrentCulture => StringComparison.Ordinal
-                    ' StringComparison.CurrentCultureIgnoreCase => StringComparison.OrdinalIgnoreCase
-                    Dim argument = CType(nodeToFix, SimpleArgumentSyntax)
-                    Dim memberAccess = TryCast(argument.Expression, MemberAccessExpressionSyntax)
-                    If memberAccess IsNot Nothing Then
-                        ' preserve the "IgnoreCase" suffix if present
-                        Dim isIgnoreCase = memberAccess.Name.GetText().ToString().EndsWith(CA1309DiagnosticAnalyzer.IgnoreCaseText)
-                        Dim newOrdinalText = If(isIgnoreCase, CA1309DiagnosticAnalyzer.OrdinalIgnoreCaseText, CA1309DiagnosticAnalyzer.OrdinalText)
-                        Dim newIdentifier = syntaxFactoryService.IdentifierName(newOrdinalText)
-                        Dim newMemberAccess = memberAccess.WithName(CType(newIdentifier, SimpleNameSyntax)).WithAdditionalAnnotations(Formatter.Annotation)
-                        newRoot = root.ReplaceNode(memberAccess, newMemberAccess)
+                    If Not CType(nodeToFix, SimpleArgumentSyntax).IsNamed Then
+                        ' StringComparison.CurrentCulture => StringComparison.Ordinal
+                        ' StringComparison.CurrentCultureIgnoreCase => StringComparison.OrdinalIgnoreCase
+                        Dim argument = CType(nodeToFix, SimpleArgumentSyntax)
+                        Dim memberAccess = TryCast(argument.Expression, MemberAccessExpressionSyntax)
+                        If memberAccess IsNot Nothing Then
+                            ' preserve the "IgnoreCase" suffix if present
+                            Dim isIgnoreCase = memberAccess.Name.GetText().ToString().EndsWith(CA1309DiagnosticAnalyzer.IgnoreCaseText)
+                            Dim newOrdinalText = If(isIgnoreCase, CA1309DiagnosticAnalyzer.OrdinalIgnoreCaseText, CA1309DiagnosticAnalyzer.OrdinalText)
+                            Dim newIdentifier = syntaxFactoryService.IdentifierName(newOrdinalText)
+                            Dim newMemberAccess = memberAccess.WithName(CType(newIdentifier, SimpleNameSyntax)).WithAdditionalAnnotations(Formatter.Annotation)
+                            newRoot = root.ReplaceNode(memberAccess, newMemberAccess)
+                        End If
                     End If
                 Case SyntaxKind.IdentifierName
                     ' String.Equals(a, b) => String.Equals(a, b, StringComparison.Ordinal)

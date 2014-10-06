@@ -1584,7 +1584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '         data type having explicit initializer, like 'Public AnArray(2) = {0, 1}'; 
             '         VB semantics generates an error about specifying both bounds and initializer and ignores them
             If expression.Kind = SyntaxKind.NumericLiteralExpression AndAlso
-                    expressionParent IsNot Nothing AndAlso expressionParent.Kind = SyntaxKind.SimpleArgument Then
+                    expressionParent IsNot Nothing AndAlso (expressionParent.Kind = SyntaxKind.SimpleArgument AndAlso Not DirectCast(expressionParent, SimpleArgumentSyntax).IsNamed) Then
 
                 '           VariableDeclarator
                 '          |                  |
@@ -1679,24 +1679,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If DirectCast(parent, NamedFieldInitializerSyntax).Name Is currentNode Then
                                 Return False
                             End If
-                            ' else proceed to the upper-level node
+                        ' else proceed to the upper-level node
 
-                        Case SyntaxKind.NamedArgument
-                            If DirectCast(parent, NamedArgumentSyntax).IdentifierName Is currentNode Then
-                                Return False
-                            End If
-                            ' else proceed to the upper-level node
+                        Case SyntaxKind.NameColonEquals
+                            Return False
 
                         Case SyntaxKind.RangeArgument
                             If DirectCast(parent, RangeArgumentSyntax).LowerBound Is currentNode Then
                                 Return False
                             End If
-                            ' proceed to the upper-level node
+                        ' proceed to the upper-level node
 
                         Case SyntaxKind.ArgumentList,
                              SyntaxKind.SimpleArgument,
                              SyntaxKind.ObjectMemberInitializer
-                            ' proceed to the upper-level node
+                        ' proceed to the upper-level node
 
                         Case SyntaxKind.GoToStatement
                             Return False

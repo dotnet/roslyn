@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                    name.CheckParent(Of ForStatementSyntax)(Function(p) p.ControlVariable Is name) OrElse
                    name.CheckParent(Of AssignmentStatementSyntax)(Function(p) p.Left Is name) OrElse
                    name.CheckParent(Of TypeArgumentListSyntax)(Function(p) p.Arguments.Any(Function(i) i Is name)) OrElse
-                   name.CheckParent(Of NamedArgumentSyntax)(Function(p) p.IdentifierName Is name) OrElse
+                   name.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is name) OrElse
                    name.CheckParent(Of CastExpressionSyntax)(Function(p) p.Type Is name) OrElse
                    name.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.Expression Is name) Then
                     Return False

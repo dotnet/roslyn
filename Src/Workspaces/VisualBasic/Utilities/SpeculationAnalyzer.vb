@@ -434,12 +434,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function IsNamedArgument(argument As ArgumentSyntax) As Boolean
-            Return TypeOf argument Is NamedArgumentSyntax
+            Return argument.IsNamed
         End Function
 
         Protected Overrides Function GetNamedArgumentIdentifierValueText(argument As ArgumentSyntax) As String
-            Dim namedArg = DirectCast(argument, NamedArgumentSyntax)
-            Return namedArg.IdentifierName.Identifier.ValueText
+            Return DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText
         End Function
 
         Protected Overrides Function GetArguments(expression As ExpressionSyntax) As ImmutableArray(Of ArgumentSyntax)

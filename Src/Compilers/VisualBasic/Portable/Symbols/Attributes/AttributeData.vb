@@ -86,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overloads Shared Function IsTargetEarlyAttribute(attributeType As NamedTypeSymbol, attributeSyntax As AttributeSyntax, description As AttributeDescription) As Boolean
             Debug.Assert(Not attributeType.IsErrorType())
 
-            Dim argumentCount As Integer = If((attributeSyntax.ArgumentList IsNot Nothing),
-                                              attributeSyntax.ArgumentList.Arguments.Where(Function(arg) arg.Kind = SyntaxKind.SimpleArgument).Count,
+            Dim argumentCount As Integer = If(attributeSyntax.ArgumentList IsNot Nothing,
+                                              attributeSyntax.ArgumentList.Arguments.Where(Function(arg) arg.Kind = SyntaxKind.SimpleArgument AndAlso Not arg.IsNamed).Count,
                                               0)
             Return AttributeData.IsTargetEarlyAttribute(attributeType, argumentCount, description)
         End Function
