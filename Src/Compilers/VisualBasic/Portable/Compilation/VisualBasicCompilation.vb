@@ -2220,7 +2220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     cancellationToken)
 
 
-                Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputName, extension:=Nothing)
+                Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
                 Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)

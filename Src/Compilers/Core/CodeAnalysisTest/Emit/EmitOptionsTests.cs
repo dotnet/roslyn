@@ -49,8 +49,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestProperty((old, value) => old.WithSubsystemVersion(value), opt => opt.SubsystemVersion, SubsystemVersion.Windows2000);
             TestProperty((old, value) => old.WithRuntimeMetadataVersion(value), opt => opt.RuntimeMetadataVersion, "v12345");
             TestProperty((old, value) => old.WithPdbFilePath(value), opt => opt.PdbFilePath, @"c:\temp\a.pdb");
-            TestProperty((old, value) => old.WithOutputName(value), opt => opt.OutputName, @"x.dll");
+            TestProperty((old, value) => old.WithOutputNameOverride(value), opt => opt.OutputNameOverride, @"x.dll");
             TestProperty((old, value) => old.WithDebugInformationFormat(value), opt => opt.DebugInformationFormat, (DebugInformationFormat)2);
+            TestProperty((old, value) => old.WithTolerateErrors(value), opt => opt.TolerateErrors, true);
+            TestProperty((old, value) => old.WithIncludePrivateMembers(value), opt => opt.IncludePrivateMembers, true);
         }
 
         /// <summary>
@@ -70,9 +72,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "HighEntropyVirtualAddressSpace",
                 "BaseAddress",
                 "DebugInformationFormat",
-                "OutputName",
+                "OutputNameOverride",
                 "PdbFilePath",
-                "RuntimeMetadataVersion");
+                "RuntimeMetadataVersion",
+                "TolerateErrors",
+                "IncludePrivateMembers");
         }
     }
 }

@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             m_MetadataName = If(specifiedName <> Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName,
                                 specifiedName,
-                                If(emitOptions.OutputName, specifiedName))
+                                If(emitOptions.OutputNameOverride, specifiedName))
 
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, Me)
 

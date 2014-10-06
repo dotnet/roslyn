@@ -225,7 +225,7 @@ End Namespace
 
             Dim options = New EmitOptions(
                 debugInformationFormat:=CType(-1, DebugInformationFormat),
-                outputName:=" ",
+                outputNameOverride:=" ",
                 fileAlignment:=513,
                 subsystemVersion:=SubsystemVersion.Create(1000000, -1000000))
 

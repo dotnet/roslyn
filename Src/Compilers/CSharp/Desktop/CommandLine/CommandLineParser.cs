@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     metadataOnly: false,
                     debugInformationFormat: DebugInformationFormat.Pdb,
                     pdbFilePath: null, // to be determined later
-                    outputName: null, // to be determined later
+                    outputNameOverride: null, // to be determined later
                     baseAddress: baseAddress,
                     highEntropyVirtualAddressSpace: highEntropyVA,
                     fileAlignment: fileAlignment,

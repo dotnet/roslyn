@@ -1127,7 +1127,7 @@ lVbRuntimePlus:
                     metadataOnly:=False,
                     debugInformationFormat:=DebugInformationFormat.Pdb,
                     pdbFilePath:=Nothing, ' to be determined later
-                    outputName:=Nothing,  ' to be determined later
+                    outputNameOverride:=Nothing,  ' to be determined later
                     fileAlignment:=fileAlignment,
                     baseAddress:=baseAddress,
                     highEntropyVirtualAddressSpace:=highEntropyVA,

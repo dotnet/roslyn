@@ -1589,7 +1589,7 @@ public class Test
             Assert.Equal(nameWithExtension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameWithExtension)).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputNameOverride: nameWithExtension)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1620,7 +1620,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: outputName + extension)).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputNameOverride: outputName + extension)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1650,7 +1650,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameOverride + extension)).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputNameOverride: nameOverride + extension)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1681,7 +1681,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameOverride)).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputNameOverride: nameOverride)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1712,7 +1712,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameOverride + extension)).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputNameOverride: nameOverride + extension)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1743,7 +1743,7 @@ public class Test
             Assert.Equal(name + extension, module.Name);
 
             var stream = new MemoryStream();
-            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputName: nameOverride)).Success);
+            Assert.True(compilation.Emit(stream, options: new EmitOptions(outputNameOverride: nameOverride)).Success);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable()))
             {
@@ -1794,7 +1794,7 @@ public sealed class ContentType
             var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
-            var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputName: "x\0x"));
+            var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputNameOverride: "x\0x"));
             result.Diagnostics.Verify(
                 // error CS2041: Invalid output name: Name contains invalid characters.
                 Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments("Name contains invalid characters."));

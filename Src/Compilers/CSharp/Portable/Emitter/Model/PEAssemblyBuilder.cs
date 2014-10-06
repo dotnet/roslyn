@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             this.sourceAssembly = sourceAssembly;
             this.additionalTypes = additionalTypes.NullToEmpty();
-            this.metadataName = (emitOptions.OutputName == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputName, extension: null);
+            this.metadataName = (emitOptions.OutputNameOverride == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }

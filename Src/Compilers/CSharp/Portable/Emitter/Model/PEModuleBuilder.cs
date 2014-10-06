@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             metadataName = specifiedName != Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName ?
                             specifiedName :
-                            emitOptions.OutputName ?? specifiedName;
+                            emitOptions.OutputNameOverride ?? specifiedName;
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, this);
 

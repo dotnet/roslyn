@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Me.m_SourceAssembly = sourceAssembly
             Me.m_AdditionalTypes = additionalTypes.NullToEmpty()
-            Me.m_MetadataName = If(emitOptions.OutputName Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputName, extension:=Nothing))
+            Me.m_MetadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
 

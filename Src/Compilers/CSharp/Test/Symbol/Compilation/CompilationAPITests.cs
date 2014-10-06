@@ -134,7 +134,7 @@ namespace A.B {
                         Assert.True(result.Success);
                         result = comp.Emit(output, options: EmitOptions.Default.WithHighEntropyVirtualAddressSpace(true));
                         Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithOutputName("foo"));
+                        result = comp.Emit(output, options: EmitOptions.Default.WithOutputNameOverride("foo"));
                         Assert.True(result.Success);
                         result = comp.Emit(output, options: EmitOptions.Default.WithPdbFilePath("foo.pdb"));
                         Assert.True(result.Success);
@@ -151,7 +151,7 @@ namespace A.B {
 
             var options = new EmitOptions(
                 debugInformationFormat: (DebugInformationFormat)(-1),
-                outputName: " ",
+                outputNameOverride: " ",
                 fileAlignment: 513,
                 subsystemVersion: SubsystemVersion.Create(1000000, -1000000));
 

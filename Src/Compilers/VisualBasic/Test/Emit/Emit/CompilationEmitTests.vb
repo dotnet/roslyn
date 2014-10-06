@@ -1743,7 +1743,7 @@ end namespace
                     Dim sourceAssembly = DirectCast(assembly, SourceAssemblySymbol)
                     Dim compilation = sourceAssembly.DeclaringCompilation
 
-                    Dim emitOptions = New emitOptions(outputName:=sourceAssembly.Name)
+                    Dim emitOptions = New emitOptions(outputNameOverride:=sourceAssembly.Name)
 
                     Dim cciModule = DirectCast(
                         New PEAssemblyBuilder(sourceAssembly, emitOptions, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription), Nothing),
@@ -1859,7 +1859,7 @@ End Class
             Assert.Equal(name & extension, [module].Name)
 
             Dim stream As New MemoryStream()
-            Assert.True(compilation.Emit(stream, options:=New EmitOptions(outputName:=nameOverride & extension)).Success)
+            Assert.True(compilation.Emit(stream, options:=New EmitOptions(outputNameOverride:=nameOverride & extension)).Success)
 
             Using metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable())
                 Dim metadataReader = metadata.Module.GetMetadataReader()
@@ -1895,7 +1895,7 @@ End Class
             Assert.Equal(name & extension, [module].Name)
 
             Dim stream As New MemoryStream()
-            Assert.True(compilation.Emit(stream, , options:=New EmitOptions(outputName:=nameOverride & extension)).Success)
+            Assert.True(compilation.Emit(stream, , options:=New EmitOptions(outputNameOverride:=nameOverride & extension)).Success)
 
             Using metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable())
                 Dim metadataReader = metadata.Module.GetMetadataReader()
@@ -1932,7 +1932,7 @@ End Class
             Assert.Equal(name & extension, [module].Name)
 
             Dim stream As New MemoryStream()
-            Assert.True(compilation.Emit(stream, , options:=New EmitOptions(outputName:=nameOverride)).Success)
+            Assert.True(compilation.Emit(stream, , options:=New EmitOptions(outputNameOverride:=nameOverride)).Success)
 
             Using metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable())
                 Dim metadataReader = metadata.Module.GetMetadataReader()
@@ -1969,7 +1969,7 @@ End Class
             Assert.Equal(name & extension, [module].Name)
 
             Dim stream As New MemoryStream()
-            Assert.True(compilation.Emit(stream, , options:=New EmitOptions(outputName:=nameOverride & extension)).Success)
+            Assert.True(compilation.Emit(stream, , options:=New EmitOptions(outputNameOverride:=nameOverride & extension)).Success)
 
             Using metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable())
                 Dim metadataReader = metadata.Module.GetMetadataReader()
@@ -2006,7 +2006,7 @@ End Class
             Assert.Equal(name & extension, [module].Name)
 
             Dim stream As New MemoryStream()
-            Assert.True(compilation.Emit(stream, , options:=New EmitOptions(outputName:=nameOverride)).Success)
+            Assert.True(compilation.Emit(stream, , options:=New EmitOptions(outputNameOverride:=nameOverride)).Success)
 
             Using metadata = ModuleMetadata.CreateFromImage(stream.ToImmutable())
                 Dim metadataReader = metadata.Module.GetMetadataReader()
@@ -2031,7 +2031,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
-            Dim result = compilation.Emit(New MemoryStream(), options:=New EmitOptions(outputName:=" "))
+            Dim result = compilation.Emit(New MemoryStream(), options:=New EmitOptions(outputNameOverride:=" "))
         End Sub
 
         <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>

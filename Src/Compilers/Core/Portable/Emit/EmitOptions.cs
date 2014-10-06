@@ -13,20 +13,23 @@ namespace Microsoft.CodeAnalysis.Emit
         internal static readonly EmitOptions Default = new EmitOptions();
 
         /// <summary>
-        /// True to emit a reference assembly, false to emit a regular assembly.
+        /// True to emit an assembly excluding executable code such as method bodies.
         /// </summary>
         public bool EmitMetadataOnly { get; private set; }
 
-        // <summary>
-        // Tolerate errors, producing a PE stream and a success result even in the presence of (some) errors. 
-        // </summary>
-        // public bool TolerateErrors { get; private set; }
+        /// <summary>
+        /// Tolerate errors, producing a PE stream and a success result even in the presence of (some) errors. 
+        /// </summary>
+        public bool TolerateErrors { get; private set; }
 
-        // <summary>
-        // If not set and <see cref="OutputMetadataOnly"/> is true, exclude (some) private members from the generated assembly when they do not
-        // affect the language semantics of the resulting assembly. Has no effect when <see cref="OutputMetadataOnly"/> is false.
-        // </summary>
-        // public bool IncludePrivateMembers { get; private set; }
+        /// <summary>
+        /// Unless set (private) members that don't affect the language semantics of the resulting assembly will be excluded
+        /// when emitting with <see cref="EmitMetadataOnly"/> on. 
+        /// </summary>
+        /// <remarks>
+        /// Has no effect when <see cref="EmitMetadataOnly"/> is false.
+        /// </remarks>
+        public bool IncludePrivateMembers { get; private set; }
 
         /// <summary>
         /// Subsystem version
@@ -42,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </remarks>
         public int FileAlignment { get; private set; }
 
+        /// <summary>
+        /// True to enable high entropy virtual address space for the output binary.
+        /// </summary>
         public bool HighEntropyVirtualAddressSpace { get; private set; }
 
         /// <summary>
@@ -55,20 +61,23 @@ namespace Microsoft.CodeAnalysis.Emit
         public DebugInformationFormat DebugInformationFormat { get; private set; }
 
         /// <summary>
-        /// Name of the compilation: file name and extension.  Null to use the compilation name.
+        /// Assembly name override - file name and extension. If not specified the the compilation name is used.
         /// </summary>
         /// <remarks>
+        /// By default the name of the output assembly is <see cref="Compilation.AssemblyName"/>. Only in rare cases it is necessary
+        /// to override the name.
+        /// 
         /// CAUTION: If this is set to a (non-null) value other than the existing compilation output name, then internals-visible-to
         /// and assembly references may not work as expected.  In particular, things that were visible at bind time, based on the 
         /// name of the compilation, may not be visible at runtime and vice-versa.
         /// </remarks>
-        public string OutputName { get; private set; }
+        public string OutputNameOverride { get; private set; }
 
         /// <summary>
-        /// The name of the PDB file embedded in the PE image. 
+        /// The name of the PDB file to be embedded in the PE image, or null to use the default.
         /// </summary>
         /// <remarks>
-        /// If not specified, the file name of the source module with an extension changed to "pdb" is used.
+        /// If not specified the file name of the source module with an extension changed to "pdb" is used.
         /// </remarks>
         public string PdbFilePath { get; private set; }
 
@@ -81,34 +90,40 @@ namespace Microsoft.CodeAnalysis.Emit
             bool metadataOnly = false,
             DebugInformationFormat debugInformationFormat = 0,
             string pdbFilePath = null,
-            string outputName = null,
+            string outputNameOverride = null,
             int fileAlignment = 0,
             ulong baseAddress = 0,
             bool highEntropyVirtualAddressSpace = false,
             SubsystemVersion subsystemVersion = default(SubsystemVersion),
-            string runtimeMetadataVersion = null)
+            string runtimeMetadataVersion = null,
+            bool tolerateErrors = false,
+            bool includePrivateMembers = false)
         {
             this.EmitMetadataOnly = metadataOnly;
             this.DebugInformationFormat = (debugInformationFormat == 0) ? DebugInformationFormat.Pdb : debugInformationFormat;
             this.PdbFilePath = pdbFilePath;
-            this.OutputName = outputName;
+            this.OutputNameOverride = outputNameOverride;
             this.FileAlignment = fileAlignment;
             this.BaseAddress = baseAddress;
             this.HighEntropyVirtualAddressSpace = highEntropyVirtualAddressSpace;
             this.SubsystemVersion = subsystemVersion;
             this.RuntimeMetadataVersion = runtimeMetadataVersion;
+            this.TolerateErrors = tolerateErrors;
+            this.IncludePrivateMembers = includePrivateMembers;
         }
 
         private EmitOptions(EmitOptions other) : this(
             other.EmitMetadataOnly,
             other.DebugInformationFormat,
             other.PdbFilePath,
-            other.OutputName,
+            other.OutputNameOverride,
             other.FileAlignment,
             other.BaseAddress,
             other.HighEntropyVirtualAddressSpace,
             other.SubsystemVersion,
-            other.RuntimeMetadataVersion)
+            other.RuntimeMetadataVersion,
+            other.TolerateErrors,
+            other.IncludePrivateMembers)
         {
         }
 
@@ -132,8 +147,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.SubsystemVersion.Equals(other.SubsystemVersion) &&
                 this.DebugInformationFormat == other.DebugInformationFormat &&
                 this.PdbFilePath == other.PdbFilePath &&
-                this.OutputName == other.OutputName &&
-                this.RuntimeMetadataVersion == other.RuntimeMetadataVersion;
+                this.OutputNameOverride == other.OutputNameOverride &&
+                this.RuntimeMetadataVersion == other.RuntimeMetadataVersion && 
+                this.TolerateErrors == other.TolerateErrors &&
+                this.IncludePrivateMembers == other.IncludePrivateMembers;
         }
 
         public override int GetHashCode()
@@ -145,8 +162,10 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(this.SubsystemVersion.GetHashCode(),
                    Hash.Combine((int)this.DebugInformationFormat,
                    Hash.Combine(this.PdbFilePath,
-                   Hash.Combine(this.OutputName,
-                   Hash.Combine(this.RuntimeMetadataVersion, 0)))))))));
+                   Hash.Combine(this.OutputNameOverride,
+                   Hash.Combine(this.RuntimeMetadataVersion, 
+                   Hash.Combine(this.TolerateErrors,
+                   Hash.Combine(this.IncludePrivateMembers, 0)))))))))));
         }
 
         public static bool operator ==(EmitOptions left, EmitOptions right)
@@ -166,9 +185,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidDebugInformationFormat, Location.None, (int)DebugInformationFormat));
             }
 
-            if (OutputName != null)
+            if (OutputNameOverride != null)
             {
-                Exception error = MetadataHelpers.CheckAssemblyOrModuleName(OutputName, argumentName: null);
+                Exception error = MetadataHelpers.CheckAssemblyOrModuleName(OutputNameOverride, argumentName: null);
                 if (error != null)
                 {
                     diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidOutputName, Location.None, error.Message));
@@ -222,14 +241,14 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EmitOptions(this) { PdbFilePath = path };
         }
 
-        public EmitOptions WithOutputName(string outputName)
+        public EmitOptions WithOutputNameOverride(string outputName)
         {
-            if (this.OutputName == outputName)
+            if (this.OutputNameOverride == outputName)
             {
                 return this;
             }
 
-            return new EmitOptions(this) { OutputName = outputName };
+            return new EmitOptions(this) { OutputNameOverride = outputName };
         }
 
         public EmitOptions WithDebugInformationFormat(DebugInformationFormat format)
@@ -294,6 +313,26 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EmitOptions(this) { RuntimeMetadataVersion = version };
+        }
+
+        public EmitOptions WithTolerateErrors(bool value)
+        {
+            if (TolerateErrors == value)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { TolerateErrors = value };
+        }
+
+        public EmitOptions WithIncludePrivateMembers(bool value)
+        {
+            if (IncludePrivateMembers == value)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { IncludePrivateMembers = value };
         }
     }
 }
