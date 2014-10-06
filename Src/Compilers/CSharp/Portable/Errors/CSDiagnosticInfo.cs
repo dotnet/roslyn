@@ -40,12 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.additionalLocations = additionalLocations;
         }
 
-        // Create a copy of this instance with a WarningAsError flag
-        internal override DiagnosticInfo GetInstanceWithReportWarning(bool isWarningAsError)
-        {
-            return new CSDiagnosticInfo(isWarningAsError, this.Code, this.Arguments, this.Symbols, this.additionalLocations);
-        }
-
         public override IReadOnlyList<Location> AdditionalLocations
         {
             get

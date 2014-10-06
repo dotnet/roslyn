@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly CommonMessageProvider messageProvider;
         private readonly int errorCode;
-        private readonly bool isWarningAsError;
+        private readonly DiagnosticSeverity defaultSeverity;
+        private readonly DiagnosticSeverity effectiveSeverity;
         private readonly object[] arguments;
 
         // Only the compiler creates instances.
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis
         {
             this.messageProvider = messageProvider;
             this.errorCode = errorCode;
+            this.defaultSeverity = messageProvider.GetSeverity(errorCode);
+            this.effectiveSeverity = this.defaultSeverity;
         }
 
         // Only the compiler creates instances.
@@ -38,6 +41,16 @@ namespace Microsoft.CodeAnalysis
             AssertMessageSerializable(arguments);
 
             this.arguments = arguments;
+        }
+
+        private DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overridenSeverity)
+        {
+            this.messageProvider = original.MessageProvider;
+            this.errorCode = original.errorCode;
+            this.defaultSeverity = original.DefaultSeverity;
+            this.arguments = original.arguments;
+
+            this.effectiveSeverity = overridenSeverity;
         }
 
         [Conditional("DEBUG")]
@@ -72,20 +85,18 @@ namespace Microsoft.CodeAnalysis
         internal DiagnosticInfo(CommonMessageProvider messageProvider, bool isWarningAsError, int errorCode, params object[] arguments)
             : this(messageProvider, errorCode, arguments)
         {
-            Debug.Assert(!isWarningAsError || messageProvider.GetSeverity(errorCode) == DiagnosticSeverity.Warning);
-            this.isWarningAsError = isWarningAsError;
-        }
+            Debug.Assert(!isWarningAsError || this.defaultSeverity == DiagnosticSeverity.Warning);
 
-        // Create a copy of this instance with a WarningAsError flag
-        internal virtual DiagnosticInfo GetInstanceWithReportWarning(bool isWarningAsError)
-        {
-            return new DiagnosticInfo(this.messageProvider, isWarningAsError, this.errorCode, this.arguments == null ? SpecializedCollections.EmptyArray<object>() : this.arguments);
+            if (isWarningAsError)
+            {
+                this.effectiveSeverity = DiagnosticSeverity.Error;
+            }
         }
 
         // Create a copy of this instance with a explicit overridden severity
         internal DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
         {
-            return new DiagnosticInfoWithOverridenSeverity(this, severity);
+            return new DiagnosticInfo(this, severity);
         }
 
         #region Serialization
@@ -99,7 +110,8 @@ namespace Microsoft.CodeAnalysis
         {
             writer.WriteValue(this.messageProvider);
             writer.WriteCompressedUInt((uint)this.errorCode);
-            writer.WriteBoolean(this.isWarningAsError);
+            writer.WriteInt32((int)this.effectiveSeverity);
+            writer.WriteInt32((int)this.defaultSeverity);
 
             int count = (this.arguments != null) ? arguments.Length : 0;
             writer.WriteCompressedUInt((uint)count);
@@ -127,7 +139,8 @@ namespace Microsoft.CodeAnalysis
         {
             this.messageProvider = (CommonMessageProvider)reader.ReadValue();
             this.errorCode = (int)reader.ReadCompressedUInt();
-            this.isWarningAsError = reader.ReadBoolean();
+            this.effectiveSeverity = (DiagnosticSeverity)reader.ReadInt32();
+            this.defaultSeverity = (DiagnosticSeverity)reader.ReadInt32();
 
             var count = (int)reader.ReadCompressedUInt();
             if (count == 0)
@@ -152,14 +165,26 @@ namespace Microsoft.CodeAnalysis
         public int Code { get { return errorCode; } }
 
         /// <summary>
-        /// Returns whether this diagnostic is informational, warning, or error.
-        /// For checking if it is a warning treated as an error, use IsWarningsAsError.
+        /// Returns the effective severity of the diagnostic: whether this diagnostic is informational, warning, or error.
+        /// If IsWarningsAsError is true, then this returns <see cref="DiagnosticSeverity.Error"/>, while <see cref="DefaultSeverity"/> returns <see cref="DiagnosticSeverity.Warning"/>.
         /// </summary>
-        public virtual DiagnosticSeverity Severity
+        public DiagnosticSeverity Severity
         {
             get
             {
-                return messageProvider.GetSeverity(errorCode);
+                return this.effectiveSeverity;
+            }
+        }
+
+        /// <summary>
+        /// Returns whether this diagnostic is informational, warning, or error by default, based on the error code.
+        /// To get diagnostic's effective severity, use <see cref="Severity"/>.
+        /// </summary>
+        public DiagnosticSeverity DefaultSeverity
+        {
+            get
+            {
+                return this.defaultSeverity;
             }
         }
 
@@ -178,13 +203,15 @@ namespace Microsoft.CodeAnalysis
         /// Returns true if this is a warning treated as an error.
         /// </summary>
         /// <remarks>
-        /// True implies <see cref="Severity"/> = <see cref="DiagnosticSeverity.Warning"/>.
+        /// True implies <see cref="Severity"/> = <see cref="DiagnosticSeverity.Error"/> and
+        /// <see cref="DefaultSeverity"/> = <see cref="DiagnosticSeverity.Warning"/>.
         /// </remarks>
         public bool IsWarningAsError
         {
             get
             {
-                return isWarningAsError;
+                return this.DefaultSeverity == DiagnosticSeverity.Warning &&
+                    this.Severity == DiagnosticSeverity.Error;
             }
         }
 

@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis
 
                 consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
 
-                if (diag.Severity == DiagnosticSeverity.Error || diag.IsWarningAsError)
+                if (diag.Severity == DiagnosticSeverity.Error)
                 {
                     hasErrors = true;
                 }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     PrintError(diagnostic, consoleOutput);
-                    if (diagnostic.Severity == DiagnosticSeverity.Error || diagnostic.IsWarningAsError)
+                    if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
                         hasErrors = true;
                     }
@@ -524,14 +524,7 @@ namespace Microsoft.CodeAnalysis
                                     break;
 
                                 case DiagnosticSeverity.Warning:
-                                    if (diagnostic.IsWarningAsError)
-                                    {
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_ERRORNUMBERS, (uint)diagnostic.Code);
-                                    }
-                                    else
-                                    {
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGNUMBERS, (uint)diagnostic.Code);
-                                    }
+                                    sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGNUMBERS, (uint)diagnostic.Code);
                                     break;
 
                                 case DiagnosticSeverity.Hidden:

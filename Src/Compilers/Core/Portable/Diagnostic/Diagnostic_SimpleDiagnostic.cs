@@ -21,24 +21,19 @@ namespace Microsoft.CodeAnalysis
             private readonly string message;
             private readonly string description;
             private readonly string helpLink;
+            private readonly DiagnosticSeverity defaultSeverity;
             private readonly DiagnosticSeverity severity;
             private readonly bool isEnabledByDefault;
             private readonly int warningLevel;
-            private readonly bool isWarningAsError;
             private readonly Location location;
             private readonly IReadOnlyList<Location> additionalLocations;
             private readonly IReadOnlyList<string> customTags;
 
             internal SimpleDiagnostic(string id, string category, string message, string description, string helpLink,
-                                      DiagnosticSeverity severity, bool isEnabledByDefault,
-                                      int warningLevel, bool isWarningAsError, Location location,
+                                      DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity,
+                                       bool isEnabledByDefault, int warningLevel, Location location,
                                       IEnumerable<Location> additionalLocations, IEnumerable<string> customTags)
             {
-                if (isWarningAsError && severity != DiagnosticSeverity.Warning)
-                {
-                    throw new ArgumentException("isWarningAsError");
-                }
-
                 if ((warningLevel == 0 && severity == DiagnosticSeverity.Warning) ||
                     (warningLevel != 0 && severity != DiagnosticSeverity.Warning))
                 {
@@ -51,9 +46,9 @@ namespace Microsoft.CodeAnalysis
                 this.description = description;
                 this.helpLink = helpLink;
                 this.severity = severity;
+                this.defaultSeverity = defaultSeverity;
                 this.isEnabledByDefault = isEnabledByDefault;
                 this.warningLevel = warningLevel;
-                this.isWarningAsError = isWarningAsError;
                 this.location = location;
                 this.additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
                 this.customTags = customTags == null ? SpecializedCollections.EmptyReadOnlyList<string>() : customTags.ToImmutableArray();
@@ -99,9 +94,9 @@ namespace Microsoft.CodeAnalysis
                 get { return this.warningLevel; }
             }
 
-            public override bool IsWarningAsError
+            public override DiagnosticSeverity DefaultSeverity
             {
-                get { return this.isWarningAsError; }
+                get { return this.defaultSeverity; }
             }
 
             public override Location Location
@@ -153,17 +148,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != this.location)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, this.severity, this.isEnabledByDefault, this.warningLevel, this.isWarningAsError, location, this.additionalLocations, this.customTags);
-                }
-
-                return this;
-            }
-
-            internal override Diagnostic WithWarningAsError(bool isWarningAsError)
-            {
-                if (this.isWarningAsError != isWarningAsError)
-                {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, this.severity, this.isEnabledByDefault, this.warningLevel, isWarningAsError, this.location, this.additionalLocations, this.customTags);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, this.severity, this.defaultSeverity, this.isEnabledByDefault, this.warningLevel, location, this.additionalLocations, this.customTags);
                 }
 
                 return this;
@@ -171,11 +156,9 @@ namespace Microsoft.CodeAnalysis
 
             internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
             {
-                Debug.Assert(severity != DiagnosticSeverity.Error || this.severity != DiagnosticSeverity.Warning, "Use WithWarningAsError API");
-
                 if (this.Severity != severity)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, severity, this.isEnabledByDefault, severity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError, this.location, this.additionalLocations, this.customTags);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, severity, this.defaultSeverity, this.isEnabledByDefault, severity == DiagnosticSeverity.Warning ? 1 : 0, this.location, this.additionalLocations, this.customTags);
                 }
 
                 return this;

@@ -24,21 +24,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             private readonly string id;
             private readonly string kind;
             private readonly DiagnosticSeverity severity;
+            private readonly DiagnosticSeverity defaultSeverity;
             private readonly Location location;
             private readonly string message;
-            private readonly bool isWarningAsError;
             private readonly object[] arguments;
             private static readonly Location[] emptyLocations = new Location[0];
             private static readonly string[] emptyCustomTags = new string[0];
 
-            public TestDiagnostic(string id, string kind, DiagnosticSeverity severity, Location location, string message, bool isWarningAsError, params object[] arguments)
+            public TestDiagnostic(string id, string kind, DiagnosticSeverity severity, Location location, string message, params object[] arguments)
+                : this(id, kind, severity, severity, location, message, arguments)
+            {
+
+            }
+            public TestDiagnostic(string id, string kind, DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity, Location location, string message, params object[] arguments)
             {
                 this.id = id;
                 this.kind = kind;
                 this.severity = severity;
+                this.defaultSeverity = defaultSeverity;
                 this.location = location;
                 this.message = message;
-                this.isWarningAsError = isWarningAsError;
                 this.arguments = arguments;
             }
 
@@ -60,11 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override DiagnosticSeverity Severity { get { return severity; } }
 
+            public override DiagnosticSeverity DefaultSeverity { get { return defaultSeverity; } }
+
             public override bool IsEnabledByDefault { get { return true; } }
 
             public override int WarningLevel { get { return 2; } }
-
-            public override bool IsWarningAsError { get { return isWarningAsError; } }
 
             public override int GetHashCode()
             {
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 this.message = info.GetString("message");
                 this.location = (Location)info.GetValue("location", typeof(Location));
                 this.severity = (DiagnosticSeverity)info.GetValue("severity", typeof(DiagnosticSeverity));
-                this.isWarningAsError = info.GetBoolean("isWarningAsError");
+                this.defaultSeverity = (DiagnosticSeverity)info.GetValue("defaultSeverity", typeof(DiagnosticSeverity));
                 this.arguments = (object[])info.GetValue("arguments", typeof(object[]));
             }
 
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 info.AddValue("message", this.message);
                 info.AddValue("location", this.location, typeof(Location));
                 info.AddValue("severity", this.severity, typeof(DiagnosticSeverity));
-                info.AddValue("isWarningAsError", this.isWarningAsError);
+                info.AddValue("defaultSeverity", this.defaultSeverity, typeof(DiagnosticSeverity));
                 info.AddValue("arguments", this.arguments, typeof(object[]));
             }
 
@@ -132,19 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
             {
-                throw new NotImplementedException();
-            }
-
-            internal override Diagnostic WithWarningAsError(bool isWarningAsError)
-            {
-                if (isWarningAsError && severity == DiagnosticSeverity.Warning)
-                {
-                    return new TestDiagnostic(id, kind, DiagnosticSeverity.Error, location, message, true, arguments);
-                }
-                else
-                {
-                    return this;
-                }
+                return new TestDiagnostic(this.id, this.kind, severity, this.defaultSeverity, this.location, this.message, this.arguments);
             }
         }
 
@@ -171,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var id = (IdentifierNameSyntax)context.Node;
                 if (id.Identifier.ValueText.StartsWith("x"))
                 {
-                    context.ReportDiagnostic(new TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.Location, "Use of variable whose name starts with 'x': '{0}'", false, id.Identifier.ValueText));
+                    context.ReportDiagnostic(new TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.Location, "Use of variable whose name starts with 'x': '{0}'", id.Identifier.ValueText));
                 }
             }
         }
@@ -430,8 +423,7 @@ public class C { }").WithWarningAsError(true)); // class declaration
             Assert.Equal(diags.Length, effectiveDiags.Length);
             foreach (var effectiveDiag in effectiveDiags)
             {
-                Assert.True(effectiveDiag.Severity == DiagnosticSeverity.Error ||
-                    (effectiveDiag.Severity == DiagnosticSeverity.Warning && effectiveDiag.IsWarningAsError));
+                Assert.True(effectiveDiag.Severity == DiagnosticSeverity.Error);
             }
 
             // Suppress all diagnostics.
@@ -473,19 +465,11 @@ public class C { }").WithWarningAsError(true)); // class declaration
                         break;
 
                     case DiagnosticSeverity.Warning:
-                        if (!effectiveDiag.IsWarningAsError)
-                        {
-                            Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id);
-                        }
-                        else
-                        {
-                            Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id);
-                        }
-
+                        Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id);
                         break;
 
                     case DiagnosticSeverity.Error:
-                        Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id);
+                        Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id);
                         break;
 
                     default:

@@ -2088,10 +2088,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
-        /// <returns>True when there is no error or warning treated as an error.</returns>
+        /// <returns>True when there is no error.</returns>
         private bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming)
         {
-            bool hasErrorOrWarningAsError = false;
+            bool hasError = false;
 
             foreach (Diagnostic d in incoming)
             {
@@ -2100,15 +2100,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                else if (filtered.Severity == DiagnosticSeverity.Error || filtered.IsWarningAsError)
+                else if (filtered.Severity == DiagnosticSeverity.Error)
                 {
-                    hasErrorOrWarningAsError = true;
+                    hasError = true;
                 }
 
                 accumulator.Add(filtered);
             }
 
-            return !hasErrorOrWarningAsError;
+            return !hasError;
         }
 
 

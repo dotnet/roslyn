@@ -96,11 +96,6 @@ namespace Microsoft.CodeAnalysis
                     throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
             }
 
-            if (diagnostic.IsWarningAsError)
-            {
-                prefix = "error";
-            }
-
             return string.Format(culture, "{0} {1}",
                 prefix,
                 diagnostic.Id);

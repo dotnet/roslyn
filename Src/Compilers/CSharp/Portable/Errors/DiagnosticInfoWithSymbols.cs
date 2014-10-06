@@ -20,11 +20,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Symbols = symbols;
         }
-
-        // Create a copy of this instance with a WarningAsError flag
-        internal override DiagnosticInfo GetInstanceWithReportWarning(bool isWarningAsError)
-        {
-            return new DiagnosticInfoWithSymbols(isWarningAsError, (ErrorCode)this.Code, this.Arguments, this.Symbols);
-        }
     }
 }

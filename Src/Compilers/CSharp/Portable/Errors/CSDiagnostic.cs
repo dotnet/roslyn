@@ -34,16 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        internal override Diagnostic WithWarningAsError(bool isWarningAsError)
-        {
-            if (this.IsWarningAsError != isWarningAsError)
-            {
-                return new CSDiagnostic(this.Info.GetInstanceWithReportWarning(isWarningAsError), this.Location);
-            }
-
-            return this;
-        }
-
         internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
         {
             if (this.Severity != severity)

@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Private ReadOnly m_id As String
             Private ReadOnly m_kind As String
             Private ReadOnly m_severity As DiagnosticSeverity
+            Private ReadOnly m_defaultSeverity As DiagnosticSeverity
             Private ReadOnly m_location As Location
             Private ReadOnly m_message As String
             Private ReadOnly m_isWarningAsError As Boolean
@@ -31,14 +32,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                            severity As DiagnosticSeverity,
                            location As Location,
                            message As String,
-                           isWarningAsError As Boolean,
+                           ParamArray arguments As Object())
+                Me.New(id, kind, severity, severity, location, message, arguments)
+            End Sub
+
+            Public Sub New(id As String,
+                           kind As String,
+                           severity As DiagnosticSeverity,
+                           defaultSeverity As DiagnosticSeverity,
+                           location As Location,
+                           message As String,
                            ParamArray arguments As Object())
                 Me.m_id = id
                 Me.m_kind = kind
                 Me.m_severity = severity
+                Me.m_defaultSeverity = defaultSeverity
                 Me.m_location = location
                 Me.m_message = message
-                Me.m_isWarningAsError = isWarningAsError
                 Me.m_arguments = arguments
             End Sub
 
@@ -48,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Me.m_message = info.GetString("message")
                 Me.m_location = CType(info.GetValue("location", GetType(Location)), Location)
                 Me.m_severity = CType(info.GetValue("severity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
-                Me.m_isWarningAsError = info.GetBoolean("isWarningAsError")
+                Me.m_defaultSeverity = CType(info.GetValue("defaultSeverity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
                 Me.m_arguments = CType(info.GetValue("arguments", GetType(Object())), Object())
             End Sub
 
@@ -102,6 +112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property DefaultSeverity As DiagnosticSeverity
+                Get
+                    Return m_defaultSeverity
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property IsEnabledByDefault As Boolean
                 Get
                     Return True
@@ -120,20 +136,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 info.AddValue("message", Me.m_message)
                 info.AddValue("location", Me.m_location, GetType(Location))
                 info.AddValue("severity", Me.m_severity, GetType(DiagnosticSeverity))
-                info.AddValue("isWarningAsError", Me.m_isWarningAsError)
+                info.AddValue("defaultSeverity", Me.m_defaultSeverity, GetType(DiagnosticSeverity))
                 info.AddValue("arguments", Me.m_arguments, GetType(Object()))
             End Sub
 
             Friend Overrides Function WithLocation(location As Location) As Diagnostic
                 Throw New NotImplementedException()
-            End Function
-
-            Friend Overrides Function WithWarningAsError(isWarningAsError As Boolean) As Diagnostic
-                If isWarningAsError AndAlso Severity = DiagnosticSeverity.Warning Then
-                    Return New TestDiagnostic(Id, Category, DiagnosticSeverity.Error, m_location, m_message, isWarningAsError, m_arguments)
-                Else
-                    Return Me
-                End If
             End Function
 
             Public Overrides Function GetMessage(Optional culture As CultureInfo = Nothing) As String
@@ -166,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Function
 
             Friend Overrides Function WithSeverity(severity As DiagnosticSeverity) As Diagnostic
-                Throw New NotImplementedException()
+                Return New TestDiagnostic(Me.m_id, Me.m_kind, severity, Me.m_defaultSeverity, Me.m_location, Me.m_message, Me.m_arguments)
             End Function
         End Class
 
@@ -198,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
             Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
             Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
-            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
+            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error, isEnabledByDefault:=True)
 
             Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None)
             Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None)
@@ -218,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(diags.Length, effectiveDiags.Length)
             For Each effectiveDiag In effectiveDiags
-                Assert.[True](effectiveDiag.Severity = DiagnosticSeverity.[Error] OrElse (effectiveDiag.Severity = DiagnosticSeverity.Warning AndAlso effectiveDiag.IsWarningAsError))
+                Assert.True(effectiveDiag.Severity = DiagnosticSeverity.Error)
             Next
 
             ' Suppress all diagnostics.
@@ -258,17 +266,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                         Exit Select
 
                     Case DiagnosticSeverity.Warning
-                        If Not effectiveDiag.IsWarningAsError Then
-                            Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id)
-                        Else
-                            Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id)
-                        End If
-
+                        Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id)
                         Exit Select
 
-                    Case DiagnosticSeverity.[Error]
-                        ' Diagnostics with default severity error cannot be suppressed and its severity cannot be lowered.
-                        Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id)
+                    Case DiagnosticSeverity.Error
+                        Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id)
                         Exit Select
                     Case Else
 

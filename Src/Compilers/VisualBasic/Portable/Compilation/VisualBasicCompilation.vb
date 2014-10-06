@@ -2034,7 +2034,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
         Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
             Dim hasError As Boolean = False
-            Dim hasWarnAsError As Boolean = False
 
             For Each diagnostic As Diagnostic In incoming
                 Dim filtered = FilterDiagnostic(diagnostic, Me.m_Options)
@@ -2047,13 +2046,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 accumulator.Add(filtered)
-
-                If filtered.IsWarningAsError Then
-                    hasWarnAsError = True
-                End If
             Next
 
-            Return Not (hasError OrElse hasWarnAsError)
+            Return Not hasError
         End Function
 
         Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver

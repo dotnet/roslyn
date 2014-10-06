@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.Severity; }
         }
 
+        public sealed override DiagnosticSeverity DefaultSeverity
+        {
+            get { return this.Info.DefaultSeverity; }
+        }
+
         public sealed override bool IsEnabledByDefault
         {
             // All compiler errors and warnings are enabled by default.
@@ -86,11 +91,6 @@ namespace Microsoft.CodeAnalysis
         public sealed override int WarningLevel
         {
             get { return this.Info.WarningLevel; }
-        }
-
-        public sealed override bool IsWarningAsError
-        {
-            get { return this.Info.IsWarningAsError; }
         }
 
         public override string GetMessage(System.Globalization.CultureInfo culture = null)
@@ -192,16 +192,6 @@ namespace Microsoft.CodeAnalysis
             if (location != this.location)
             {
                 return new DiagnosticWithInfo(this.info, location);
-            }
-
-            return this;
-        }
-
-        internal override Diagnostic WithWarningAsError(bool isWarningAsError)
-        {
-            if (this.IsWarningAsError != isWarningAsError)
-            {
-                return new DiagnosticWithInfo(this.Info.GetInstanceWithReportWarning(isWarningAsError), this.location);
             }
 
             return this;
