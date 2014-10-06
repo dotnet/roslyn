@@ -577,7 +577,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.ForBlock,
                      SyntaxKind.ForEachBlock
 
-                    Dim forBlock = DirectCast(node, ForBlockSyntax)
                     ' The EndOpt syntax can influence the next context in case it contains
                     ' several control variables. If they are still valid needs to be checked in the ForBlockContext.
                     ' This is the reason why we can't simply reuse the syntax here. 
