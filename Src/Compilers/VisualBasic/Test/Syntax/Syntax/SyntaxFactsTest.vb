@@ -1,18 +1,9 @@
-' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Runtime.CompilerServices
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualBasic.CompilerServices
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Public Class SyntaxFactsTests
     <Fact>
@@ -72,8 +63,7 @@ Public Class SyntaxFactsTests
 
     <Fact>
     Public Sub GetBinaryExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword, SyntaxKind.LikeKeyword, SyntaxKind.AndKeyword, SyntaxKind.AndAlsoKeyword, SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.XorKeyword, SyntaxKind.AmpersandToken, SyntaxKind.AsteriskToken, SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.SlashToken, SyntaxKind.BackslashToken, SyntaxKind.ModKeyword, SyntaxKind.CaretToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.EqualsToken, SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.LessThanLessThanToken, SyntaxKind.GreaterThanGreaterThanToken}
+        For Each item As SyntaxKind In {SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword, SyntaxKind.LikeKeyword, SyntaxKind.AndKeyword, SyntaxKind.AndAlsoKeyword, SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.XorKeyword, SyntaxKind.AmpersandToken, SyntaxKind.AsteriskToken, SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.SlashToken, SyntaxKind.BackslashToken, SyntaxKind.ModKeyword, SyntaxKind.CaretToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.EqualsToken, SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.LessThanLessThanToken, SyntaxKind.GreaterThanGreaterThanToken}
             Assert.NotEqual(SyntaxKind.None, SyntaxFacts.GetBinaryExpression(item))
         Next
         Assert.Equal(SyntaxKind.SubtractExpression, SyntaxFacts.GetBinaryExpression(SyntaxKind.MinusToken))
@@ -117,17 +107,17 @@ Public Class SyntaxFactsTests
             Assert.NotEqual(SyntaxKind.None, SyntaxFacts.GetContextualKeywordKind(item))
         Next
 
-        Dim actualCount = Enumerable.Count(Of SyntaxKind)(SyntaxFacts.GetContextualKeywordKinds)
-        Assert.Equal(Of Integer)(expected.Count, actualCount)
+        Dim actualCount = SyntaxFacts.GetContextualKeywordKinds.Count
+        Assert.Equal(expected.Count, actualCount)
     End Sub
 
     <Fact>
     <WorkItem(15925, "DevDiv_Projects/Roslyn")>
     Public Sub GetContextualKeywordsKinds()
-        Assert.NotEqual(Of Integer)(0, Enumerable.Count(Of SyntaxKind)(SyntaxFacts.GetContextualKeywordKinds))
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.FromKeyword, SyntaxFacts.GetContextualKeywordKinds)
-        Assert.DoesNotContain(Of SyntaxKind)(SyntaxKind.DimKeyword, SyntaxFacts.GetContextualKeywordKinds)
-        Assert.DoesNotContain(Of SyntaxKind)(SyntaxKind.StaticKeyword, SyntaxFacts.GetContextualKeywordKinds)
+        Assert.NotEqual(0, SyntaxFacts.GetContextualKeywordKinds.Count)
+        Assert.Contains(SyntaxKind.FromKeyword, SyntaxFacts.GetContextualKeywordKinds)
+        Assert.DoesNotContain(SyntaxKind.DimKeyword, SyntaxFacts.GetContextualKeywordKinds)
+        Assert.DoesNotContain(SyntaxKind.StaticKeyword, SyntaxFacts.GetContextualKeywordKinds)
     End Sub
 
     <Fact>
@@ -140,8 +130,8 @@ Public Class SyntaxFactsTests
 
     <Fact>
     Public Sub GetKeywordkinds()
-        Assert.NotEqual(Of Integer)(0, Enumerable.Count(Of SyntaxKind)(SyntaxFacts.GetKeywordKinds))
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.CIntKeyword, SyntaxFacts.GetKeywordKinds)
+        Assert.NotEqual(0, SyntaxFacts.GetKeywordKinds.Count)
+        Assert.Contains(SyntaxKind.CIntKeyword, SyntaxFacts.GetKeywordKinds)
     End Sub
 
     <Fact>
@@ -160,32 +150,31 @@ Public Class SyntaxFactsTests
 
     <Fact>
     Public Sub GetPreprocessorKeywordKinds()
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.RegionKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.EnableKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.WarningKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.DisableKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
-        Assert.DoesNotContain(Of SyntaxKind)(SyntaxKind.PublicKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
+        Assert.Contains(SyntaxKind.RegionKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
+        Assert.Contains(SyntaxKind.EnableKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
+        Assert.Contains(SyntaxKind.WarningKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
+        Assert.Contains(SyntaxKind.DisableKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
+        Assert.DoesNotContain(SyntaxKind.PublicKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
     End Sub
 
     <Fact>
     Public Sub GetPunctuationKinds()
-        Assert.NotEqual(Of Integer)(0, Enumerable.Count(Of SyntaxKind)(SyntaxFacts.GetPunctuationKinds))
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.ExclamationToken, SyntaxFacts.GetPunctuationKinds)
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.EmptyToken, SyntaxFacts.GetPunctuationKinds)
-        Assert.DoesNotContain(Of SyntaxKind)(SyntaxKind.NumericLabel, SyntaxFacts.GetPunctuationKinds)
+        Assert.NotEqual(0, SyntaxFacts.GetPunctuationKinds.Count)
+        Assert.Contains(SyntaxKind.ExclamationToken, SyntaxFacts.GetPunctuationKinds)
+        Assert.Contains(SyntaxKind.EmptyToken, SyntaxFacts.GetPunctuationKinds)
+        Assert.DoesNotContain(SyntaxKind.NumericLabel, SyntaxFacts.GetPunctuationKinds)
     End Sub
 
     <Fact>
     Public Sub GetReservedKeywordsKinds()
-        Assert.NotEqual(Of Integer)(0, Enumerable.Count(Of SyntaxKind)(SyntaxFacts.GetReservedKeywordKinds))
-        Assert.Contains(Of SyntaxKind)(SyntaxKind.AddressOfKeyword, SyntaxFacts.GetReservedKeywordKinds)
-        Assert.DoesNotContain(Of SyntaxKind)(SyntaxKind.QualifiedName, SyntaxFacts.GetReservedKeywordKinds)
+        Assert.NotEqual(0, SyntaxFacts.GetReservedKeywordKinds.Count)
+        Assert.Contains(SyntaxKind.AddressOfKeyword, SyntaxFacts.GetReservedKeywordKinds)
+        Assert.DoesNotContain(SyntaxKind.QualifiedName, SyntaxFacts.GetReservedKeywordKinds)
     End Sub
 
     <Fact>
     Public Sub IsAccessorStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.GetAccessorStatement, SyntaxKind.SetAccessorStatement, SyntaxKind.AddHandlerAccessorStatement, SyntaxKind.RemoveHandlerAccessorStatement, SyntaxKind.RaiseEventAccessorStatement}
+        For Each item As SyntaxKind In {SyntaxKind.GetAccessorStatement, SyntaxKind.SetAccessorStatement, SyntaxKind.AddHandlerAccessorStatement, SyntaxKind.RemoveHandlerAccessorStatement, SyntaxKind.RaiseEventAccessorStatement}
             Assert.True(SyntaxFacts.IsAccessorStatement(item))
         Next
         Assert.False(SyntaxFacts.IsAccessorStatement(SyntaxKind.SubKeyword))
@@ -194,8 +183,7 @@ Public Class SyntaxFactsTests
 
     <Fact>
     Public Sub IsAccessorStatementKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.GetKeyword, SyntaxKind.SetKeyword, SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.GetKeyword, SyntaxKind.SetKeyword, SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword}
             Assert.True(SyntaxFacts.IsAccessorStatementKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsAccessorStatementKeyword(SyntaxKind.SubKeyword))
@@ -204,8 +192,7 @@ Public Class SyntaxFactsTests
 
     <Fact>
     Public Sub IsAddRemoveHandlerStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.AddHandlerStatement, SyntaxKind.RemoveHandlerStatement}
+        For Each item As SyntaxKind In {SyntaxKind.AddHandlerStatement, SyntaxKind.RemoveHandlerStatement}
             Assert.True(SyntaxFacts.IsAddRemoveHandlerStatement(item))
         Next
         Assert.False(SyntaxFacts.IsAddRemoveHandlerStatement(SyntaxKind.ExitKeyword))
@@ -214,8 +201,7 @@ Public Class SyntaxFactsTests
 
     <Fact>
     Public Sub IsAddRemoveHandlerStatementAddHandlerOrRemoveHandlerKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword}
             Assert.True(SyntaxFacts.IsAddRemoveHandlerStatementAddHandlerOrRemoveHandlerKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsAddRemoveHandlerStatementAddHandlerOrRemoveHandlerKeyword(SyntaxKind.ExitKeyword))
@@ -257,27 +243,26 @@ End Namespace
 
 
 
-        Dim tree = CompilationUtils.CreateCompilationWithMscorlib(source).SyntaxTrees.Item(0)
-        Dim symNode = VerificationHelpers.FindNodeOrTokenByKind(tree, SyntaxKind.AddressOfExpression, 1).AsNode
+        Dim tree = CreateCompilationWithMscorlib(source).SyntaxTrees.Item(0)
+        Dim symNode = FindNodeOrTokenByKind(tree, SyntaxKind.AddressOfExpression, 1).AsNode
         Assert.False(SyntaxFacts.IsAddressOfOperand(DirectCast(symNode, ExpressionSyntax)))
         Assert.False(SyntaxFacts.IsInvocationOrAddressOfOperand(DirectCast(symNode, ExpressionSyntax)))
         Assert.True(SyntaxFacts.IsAddressOfOperand(CType(symNode.ChildNodes(0), ExpressionSyntax)))
         Assert.True(SyntaxFacts.IsInvocationOrAddressOfOperand(CType(symNode.ChildNodes(0), ExpressionSyntax)))
-        Assert.False(SyntaxFacts.IsInvoked(DirectCast(VerificationHelpers.FindNodeOrTokenByKind(tree, SyntaxKind.InvocationExpression, 1).AsNode, ExpressionSyntax)))
+        Assert.False(SyntaxFacts.IsInvoked(DirectCast(FindNodeOrTokenByKind(tree, SyntaxKind.InvocationExpression, 1).AsNode, ExpressionSyntax)))
 
-        symNode = VerificationHelpers.FindNodeOrTokenByKind(tree, SyntaxKind.InvocationExpression, 1).AsNode
+        symNode = FindNodeOrTokenByKind(tree, SyntaxKind.InvocationExpression, 1).AsNode
         Assert.False(SyntaxFacts.IsInvoked(CType(symNode, ExpressionSyntax)))
         Assert.True(SyntaxFacts.IsInvoked(CType(symNode.ChildNodes(0), ExpressionSyntax)))
-        symNode = VerificationHelpers.FindNodeOrTokenByKind(tree, SyntaxKind.Attribute, 1).AsNode
+        symNode = FindNodeOrTokenByKind(tree, SyntaxKind.Attribute, 1).AsNode
         Assert.False(SyntaxFacts.IsAttributeName(symNode))
         Assert.True(SyntaxFacts.IsAttributeName(symNode.ChildNodes(0)))
-        symNode = VerificationHelpers.FindNodeOrTokenByKind(tree, SyntaxKind.Attribute, 1).AsNode
+        symNode = FindNodeOrTokenByKind(tree, SyntaxKind.Attribute, 1).AsNode
     End Sub
 
     <Fact>
     Public Sub IsAssignmentStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SimpleAssignmentStatement, SyntaxKind.MidAssignmentStatement, SyntaxKind.AddAssignmentStatement, SyntaxKind.SubtractAssignmentStatement, SyntaxKind.MultiplyAssignmentStatement, SyntaxKind.DivideAssignmentStatement, SyntaxKind.IntegerDivideAssignmentStatement, SyntaxKind.ExponentiateAssignmentStatement, SyntaxKind.LeftShiftAssignmentStatement, SyntaxKind.RightShiftAssignmentStatement, SyntaxKind.ConcatenateAssignmentStatement}
+        For Each item As SyntaxKind In {SyntaxKind.SimpleAssignmentStatement, SyntaxKind.MidAssignmentStatement, SyntaxKind.AddAssignmentStatement, SyntaxKind.SubtractAssignmentStatement, SyntaxKind.MultiplyAssignmentStatement, SyntaxKind.DivideAssignmentStatement, SyntaxKind.IntegerDivideAssignmentStatement, SyntaxKind.ExponentiateAssignmentStatement, SyntaxKind.LeftShiftAssignmentStatement, SyntaxKind.RightShiftAssignmentStatement, SyntaxKind.ConcatenateAssignmentStatement}
             Assert.True(SyntaxFacts.IsAssignmentStatement(item))
         Next
         Assert.False(SyntaxFacts.IsAssignmentStatement(SyntaxKind.ExitKeyword))
@@ -286,8 +271,7 @@ End Namespace
 
     <Fact>
     Public Sub IsAssignmentStatementOperatorToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.EqualsToken, SyntaxKind.PlusEqualsToken, SyntaxKind.MinusEqualsToken, SyntaxKind.AsteriskEqualsToken, SyntaxKind.SlashEqualsToken, SyntaxKind.BackslashEqualsToken, SyntaxKind.CaretEqualsToken, SyntaxKind.LessThanLessThanEqualsToken, SyntaxKind.GreaterThanGreaterThanEqualsToken, SyntaxKind.AmpersandEqualsToken}
+        For Each item As SyntaxKind In {SyntaxKind.EqualsToken, SyntaxKind.PlusEqualsToken, SyntaxKind.MinusEqualsToken, SyntaxKind.AsteriskEqualsToken, SyntaxKind.SlashEqualsToken, SyntaxKind.BackslashEqualsToken, SyntaxKind.CaretEqualsToken, SyntaxKind.LessThanLessThanEqualsToken, SyntaxKind.GreaterThanGreaterThanEqualsToken, SyntaxKind.AmpersandEqualsToken}
             Assert.True(SyntaxFacts.IsAssignmentStatementOperatorToken(item))
         Next
         Assert.False(SyntaxFacts.IsAssignmentStatementOperatorToken(SyntaxKind.ExitKeyword))
@@ -296,8 +280,7 @@ End Namespace
 
     <Fact>
     Public Sub IsAttributeTargetAttributeModifier()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.AssemblyKeyword, SyntaxKind.ModuleKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.AssemblyKeyword, SyntaxKind.ModuleKeyword}
             Assert.True(SyntaxFacts.IsAttributeTargetAttributeModifier(item))
         Next
         Assert.False(SyntaxFacts.IsAttributeTargetAttributeModifier(SyntaxKind.SubKeyword))
@@ -306,8 +289,7 @@ End Namespace
 
     <Fact>
     Public Sub IsBinaryExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.AddExpression, SyntaxKind.SubtractExpression, SyntaxKind.MultiplyExpression, SyntaxKind.DivideExpression, SyntaxKind.IntegerDivideExpression, SyntaxKind.ExponentiateExpression, SyntaxKind.LeftShiftExpression, SyntaxKind.RightShiftExpression, SyntaxKind.ConcatenateExpression, SyntaxKind.ModuloExpression, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression, SyntaxKind.LessThanExpression, SyntaxKind.LessThanOrEqualExpression, SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanExpression, SyntaxKind.IsExpression, SyntaxKind.IsNotExpression, SyntaxKind.LikeExpression, SyntaxKind.OrExpression, SyntaxKind.ExclusiveOrExpression, SyntaxKind.AndExpression, SyntaxKind.OrElseExpression, SyntaxKind.AndAlsoExpression}
+        For Each item As SyntaxKind In {SyntaxKind.AddExpression, SyntaxKind.SubtractExpression, SyntaxKind.MultiplyExpression, SyntaxKind.DivideExpression, SyntaxKind.IntegerDivideExpression, SyntaxKind.ExponentiateExpression, SyntaxKind.LeftShiftExpression, SyntaxKind.RightShiftExpression, SyntaxKind.ConcatenateExpression, SyntaxKind.ModuloExpression, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression, SyntaxKind.LessThanExpression, SyntaxKind.LessThanOrEqualExpression, SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanExpression, SyntaxKind.IsExpression, SyntaxKind.IsNotExpression, SyntaxKind.LikeExpression, SyntaxKind.OrExpression, SyntaxKind.ExclusiveOrExpression, SyntaxKind.AndExpression, SyntaxKind.OrElseExpression, SyntaxKind.AndAlsoExpression}
             Assert.True(SyntaxFacts.IsBinaryExpression(item))
         Next
         Assert.False(SyntaxFacts.IsBinaryExpression(SyntaxKind.MinusToken))
@@ -316,8 +298,7 @@ End Namespace
 
     <Fact>
     Public Sub IsBinaryExpressionOperatorToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken, SyntaxKind.SlashToken, SyntaxKind.BackslashToken, SyntaxKind.CaretToken, SyntaxKind.LessThanLessThanToken, SyntaxKind.GreaterThanGreaterThanToken, SyntaxKind.AmpersandToken, SyntaxKind.ModKeyword, SyntaxKind.EqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.GreaterThanToken, SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword, SyntaxKind.LikeKeyword, SyntaxKind.OrKeyword, SyntaxKind.XorKeyword, SyntaxKind.AndKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.AndAlsoKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken, SyntaxKind.SlashToken, SyntaxKind.BackslashToken, SyntaxKind.CaretToken, SyntaxKind.LessThanLessThanToken, SyntaxKind.GreaterThanGreaterThanToken, SyntaxKind.AmpersandToken, SyntaxKind.ModKeyword, SyntaxKind.EqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.GreaterThanToken, SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword, SyntaxKind.LikeKeyword, SyntaxKind.OrKeyword, SyntaxKind.XorKeyword, SyntaxKind.AndKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.AndAlsoKeyword}
             Assert.True(SyntaxFacts.IsBinaryExpressionOperatorToken(item))
         Next
         Assert.False(SyntaxFacts.IsBinaryExpressionOperatorToken(SyntaxKind.MinusEqualsToken))
@@ -326,8 +307,7 @@ End Namespace
 
     <Fact>
     Public Sub IsCaseBlock()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.CaseBlock, SyntaxKind.CaseElseBlock}
+        For Each item As SyntaxKind In {SyntaxKind.CaseBlock, SyntaxKind.CaseElseBlock}
             Assert.True(SyntaxFacts.IsCaseBlock(item))
         Next
         Assert.False(SyntaxFacts.IsCaseBlock(SyntaxKind.ExitKeyword))
@@ -337,8 +317,7 @@ End Namespace
 
     <Fact>
     Public Sub IsRelationalCaseClause()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.CaseEqualsClause, SyntaxKind.CaseNotEqualsClause, SyntaxKind.CaseLessThanClause, SyntaxKind.CaseLessThanOrEqualClause, SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.CaseGreaterThanClause}
+        For Each item As SyntaxKind In {SyntaxKind.CaseEqualsClause, SyntaxKind.CaseNotEqualsClause, SyntaxKind.CaseLessThanClause, SyntaxKind.CaseLessThanOrEqualClause, SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.CaseGreaterThanClause}
             Assert.True(SyntaxFacts.IsRelationalCaseClause(item))
         Next
         Assert.False(SyntaxFacts.IsRelationalCaseClause(SyntaxKind.ExitKeyword))
@@ -347,8 +326,7 @@ End Namespace
 
     <Fact>
     Public Sub IsRelationalCaseClauseOperatorToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.EqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.GreaterThanToken}
+        For Each item As SyntaxKind In {SyntaxKind.EqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.GreaterThanToken}
             Assert.True(SyntaxFacts.IsRelationalCaseClauseOperatorToken(item))
         Next
         Assert.False(SyntaxFacts.IsRelationalCaseClauseOperatorToken(SyntaxKind.ExitKeyword))
@@ -357,8 +335,7 @@ End Namespace
 
     <Fact>
     Public Sub IsCaseStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.CaseStatement, SyntaxKind.CaseElseStatement}
+        For Each item As SyntaxKind In {SyntaxKind.CaseStatement, SyntaxKind.CaseElseStatement}
             Assert.True(SyntaxFacts.IsCaseStatement(item))
         Next
         Assert.False(SyntaxFacts.IsCaseStatement(SyntaxKind.ExitKeyword))
@@ -380,8 +357,7 @@ End Namespace
 
     <Fact>
     Public Sub IsContinueStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.ContinueWhileStatement, SyntaxKind.ContinueDoStatement, SyntaxKind.ContinueForStatement}
+        For Each item As SyntaxKind In {SyntaxKind.ContinueWhileStatement, SyntaxKind.ContinueDoStatement, SyntaxKind.ContinueForStatement}
             Assert.True(SyntaxFacts.IsContinueStatement(item))
         Next
         Assert.False(SyntaxFacts.IsContinueStatement(SyntaxKind.WithKeyword))
@@ -390,8 +366,7 @@ End Namespace
 
     <Fact>
     Public Sub IsContinueStatementBlockKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.WhileKeyword, SyntaxKind.DoKeyword, SyntaxKind.ForKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.WhileKeyword, SyntaxKind.DoKeyword, SyntaxKind.ForKeyword}
             Assert.True(SyntaxFacts.IsContinueStatementBlockKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsContinueStatementBlockKeyword(SyntaxKind.ExitKeyword))
@@ -400,8 +375,7 @@ End Namespace
 
     <Fact>
     Public Sub IsDeclareStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement}
+        For Each item As SyntaxKind In {SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement}
             Assert.True(SyntaxFacts.IsDeclareStatement(item))
         Next
         Assert.False(SyntaxFacts.IsDeclareStatement(SyntaxKind.NamespaceBlock))
@@ -410,8 +384,7 @@ End Namespace
 
     <Fact>
     Public Sub IsDeclareStatementCharsetKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.AnsiKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.AutoKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.AnsiKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.AutoKeyword}
             Assert.True(SyntaxFacts.IsDeclareStatementCharsetKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsDeclareStatementCharsetKeyword(SyntaxKind.FunctionKeyword))
@@ -420,8 +393,7 @@ End Namespace
 
     <Fact>
     Public Sub IsDeclareStatementKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
             Assert.True(SyntaxFacts.IsDeclareStatementKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsDeclareStatementKeyword(SyntaxKind.NamespaceBlock))
@@ -430,8 +402,7 @@ End Namespace
 
     <Fact>
     Public Sub IsDelegateStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement}
+        For Each item As SyntaxKind In {SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement}
             Assert.True(SyntaxFacts.IsDelegateStatement(item))
         Next
         Assert.False(SyntaxFacts.IsDelegateStatement(SyntaxKind.NamespaceBlock))
@@ -440,8 +411,7 @@ End Namespace
 
     <Fact>
     Public Sub IsDelegateStatementKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
             Assert.True(SyntaxFacts.IsDelegateStatementKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsDelegateStatementKeyword(SyntaxKind.NamespaceBlock))
@@ -451,8 +421,7 @@ End Namespace
 
     <Fact>
     Public Sub IsDoLoopBlock()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SimpleDoLoopBlock,
+        For Each item As SyntaxKind In {SyntaxKind.SimpleDoLoopBlock,
                                            SyntaxKind.DoWhileLoopBlock, SyntaxKind.DoUntilLoopBlock,
                                            SyntaxKind.DoLoopWhileBlock, SyntaxKind.DoLoopUntilBlock}
             Assert.True(SyntaxFacts.IsDoLoopBlock(item))
@@ -463,8 +432,7 @@ End Namespace
 
     <Fact>
     Public Sub IsEndBlockStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.EndIfStatement, SyntaxKind.EndUsingStatement, SyntaxKind.EndWithStatement, SyntaxKind.EndSelectStatement, SyntaxKind.EndStructureStatement, SyntaxKind.EndEnumStatement, SyntaxKind.EndInterfaceStatement, SyntaxKind.EndClassStatement, SyntaxKind.EndModuleStatement, SyntaxKind.EndNamespaceStatement, SyntaxKind.EndSubStatement, SyntaxKind.EndFunctionStatement, SyntaxKind.EndGetStatement, SyntaxKind.EndSetStatement, SyntaxKind.EndPropertyStatement, SyntaxKind.EndOperatorStatement, SyntaxKind.EndEventStatement, SyntaxKind.EndAddHandlerStatement, SyntaxKind.EndRemoveHandlerStatement, SyntaxKind.EndRaiseEventStatement, SyntaxKind.EndWhileStatement, SyntaxKind.EndTryStatement, SyntaxKind.EndSyncLockStatement}
+        For Each item As SyntaxKind In {SyntaxKind.EndIfStatement, SyntaxKind.EndUsingStatement, SyntaxKind.EndWithStatement, SyntaxKind.EndSelectStatement, SyntaxKind.EndStructureStatement, SyntaxKind.EndEnumStatement, SyntaxKind.EndInterfaceStatement, SyntaxKind.EndClassStatement, SyntaxKind.EndModuleStatement, SyntaxKind.EndNamespaceStatement, SyntaxKind.EndSubStatement, SyntaxKind.EndFunctionStatement, SyntaxKind.EndGetStatement, SyntaxKind.EndSetStatement, SyntaxKind.EndPropertyStatement, SyntaxKind.EndOperatorStatement, SyntaxKind.EndEventStatement, SyntaxKind.EndAddHandlerStatement, SyntaxKind.EndRemoveHandlerStatement, SyntaxKind.EndRaiseEventStatement, SyntaxKind.EndWhileStatement, SyntaxKind.EndTryStatement, SyntaxKind.EndSyncLockStatement}
             Assert.True(SyntaxFacts.IsEndBlockStatement(item))
         Next
         Assert.False(SyntaxFacts.IsEndBlockStatement(SyntaxKind.AddHandlerStatement))
@@ -472,8 +440,7 @@ End Namespace
 
     <Fact>
     Public Sub IsEndBlockStatementBlockKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IfKeyword, SyntaxKind.UsingKeyword, SyntaxKind.WithKeyword, SyntaxKind.SelectKeyword, SyntaxKind.StructureKeyword, SyntaxKind.EnumKeyword, SyntaxKind.InterfaceKeyword, SyntaxKind.ClassKeyword, SyntaxKind.ModuleKeyword, SyntaxKind.NamespaceKeyword, SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword, SyntaxKind.GetKeyword, SyntaxKind.SetKeyword, SyntaxKind.PropertyKeyword, SyntaxKind.OperatorKeyword, SyntaxKind.EventKeyword, SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword, SyntaxKind.WhileKeyword, SyntaxKind.TryKeyword, SyntaxKind.SyncLockKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.IfKeyword, SyntaxKind.UsingKeyword, SyntaxKind.WithKeyword, SyntaxKind.SelectKeyword, SyntaxKind.StructureKeyword, SyntaxKind.EnumKeyword, SyntaxKind.InterfaceKeyword, SyntaxKind.ClassKeyword, SyntaxKind.ModuleKeyword, SyntaxKind.NamespaceKeyword, SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword, SyntaxKind.GetKeyword, SyntaxKind.SetKeyword, SyntaxKind.PropertyKeyword, SyntaxKind.OperatorKeyword, SyntaxKind.EventKeyword, SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword, SyntaxKind.WhileKeyword, SyntaxKind.TryKeyword, SyntaxKind.SyncLockKeyword}
             Assert.True(SyntaxFacts.IsEndBlockStatementBlockKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsEndBlockStatementBlockKeyword(SyntaxKind.AddHandlerStatement))
@@ -482,8 +449,7 @@ End Namespace
 
     <Fact>
     Public Sub IsExitStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.ExitDoStatement, SyntaxKind.ExitForStatement, SyntaxKind.ExitSubStatement, SyntaxKind.ExitFunctionStatement, SyntaxKind.ExitOperatorStatement, SyntaxKind.ExitPropertyStatement, SyntaxKind.ExitTryStatement, SyntaxKind.ExitSelectStatement, SyntaxKind.ExitWhileStatement}
+        For Each item As SyntaxKind In {SyntaxKind.ExitDoStatement, SyntaxKind.ExitForStatement, SyntaxKind.ExitSubStatement, SyntaxKind.ExitFunctionStatement, SyntaxKind.ExitOperatorStatement, SyntaxKind.ExitPropertyStatement, SyntaxKind.ExitTryStatement, SyntaxKind.ExitSelectStatement, SyntaxKind.ExitWhileStatement}
             Assert.True(SyntaxFacts.IsExitStatement(item))
         Next
         Assert.False(SyntaxFacts.IsExitStatement(SyntaxKind.WithKeyword))
@@ -492,8 +458,7 @@ End Namespace
 
     <Fact>
     Public Sub IsExitStatementBlockKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.DoKeyword, SyntaxKind.ForKeyword, SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword, SyntaxKind.OperatorKeyword, SyntaxKind.PropertyKeyword, SyntaxKind.TryKeyword, SyntaxKind.SelectKeyword, SyntaxKind.WhileKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.DoKeyword, SyntaxKind.ForKeyword, SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword, SyntaxKind.OperatorKeyword, SyntaxKind.PropertyKeyword, SyntaxKind.TryKeyword, SyntaxKind.SelectKeyword, SyntaxKind.WhileKeyword}
             Assert.True(SyntaxFacts.IsExitStatementBlockKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsExitStatementBlockKeyword(SyntaxKind.ExitKeyword))
@@ -502,8 +467,7 @@ End Namespace
 
     <Fact>
     Public Sub IsIfDirective()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia}
+        For Each item As SyntaxKind In {SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia}
             Assert.True(SyntaxFacts.IsIfDirectiveTrivia(item))
         Next
         Assert.False(SyntaxFacts.IsIfDirectiveTrivia(SyntaxKind.ExitKeyword))
@@ -512,8 +476,7 @@ End Namespace
 
     <Fact>
     Public Sub IsIfDirectiveIfOrElseIfKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IfKeyword, SyntaxKind.ElseIfKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.IfKeyword, SyntaxKind.ElseIfKeyword}
             Assert.True(SyntaxFacts.IsIfDirectiveTriviaIfOrElseIfKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsIfDirectiveTriviaIfOrElseIfKeyword(SyntaxKind.ExitKeyword))
@@ -529,8 +492,7 @@ End Namespace
 
     <Fact>
     Public Sub IsKeywordEventContainerKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.MyBaseKeyword, SyntaxKind.MeKeyword, SyntaxKind.MyClassKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.MyBaseKeyword, SyntaxKind.MeKeyword, SyntaxKind.MyClassKeyword}
             Assert.True(SyntaxFacts.IsKeywordEventContainerKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsKeywordEventContainerKeyword(SyntaxKind.SubKeyword))
@@ -539,8 +501,7 @@ End Namespace
 
     <Fact>
     Public Sub IsKeywordKind()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.AddHandlerKeyword, SyntaxKind.AddressOfKeyword, SyntaxKind.AliasKeyword, SyntaxKind.AndKeyword, SyntaxKind.AndAlsoKeyword, SyntaxKind.AsKeyword, SyntaxKind.BooleanKeyword, SyntaxKind.ByRefKeyword, SyntaxKind.ByteKeyword, SyntaxKind.ByValKeyword, SyntaxKind.CallKeyword, SyntaxKind.CaseKeyword, SyntaxKind.CatchKeyword, SyntaxKind.CBoolKeyword, SyntaxKind.CByteKeyword, SyntaxKind.CCharKeyword, SyntaxKind.CDateKeyword, SyntaxKind.CDecKeyword, SyntaxKind.CDblKeyword, SyntaxKind.CharKeyword, SyntaxKind.CIntKeyword, SyntaxKind.ClassKeyword, SyntaxKind.CLngKeyword, SyntaxKind.CObjKeyword, SyntaxKind.ConstKeyword, SyntaxKind.ReferenceKeyword, SyntaxKind.ContinueKeyword, SyntaxKind.CSByteKeyword, SyntaxKind.CShortKeyword, SyntaxKind.CSngKeyword, SyntaxKind.CStrKeyword, SyntaxKind.CTypeKeyword, SyntaxKind.CUIntKeyword, SyntaxKind.CULngKeyword, SyntaxKind.CUShortKeyword, SyntaxKind.DateKeyword, SyntaxKind.DecimalKeyword, SyntaxKind.DeclareKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.DelegateKeyword, SyntaxKind.DimKeyword, SyntaxKind.DirectCastKeyword, SyntaxKind.DoKeyword, SyntaxKind.DoubleKeyword, SyntaxKind.EachKeyword, SyntaxKind.ElseKeyword, SyntaxKind.ElseIfKeyword, SyntaxKind.EndKeyword, SyntaxKind.EnumKeyword, SyntaxKind.EraseKeyword, SyntaxKind.ErrorKeyword, SyntaxKind.EventKeyword, SyntaxKind.ExitKeyword, SyntaxKind.FalseKeyword, SyntaxKind.FinallyKeyword, SyntaxKind.ForKeyword, SyntaxKind.FriendKeyword, SyntaxKind.FunctionKeyword, SyntaxKind.GetKeyword, SyntaxKind.GetTypeKeyword, SyntaxKind.GetXmlNamespaceKeyword, SyntaxKind.GlobalKeyword, SyntaxKind.GoToKeyword, SyntaxKind.HandlesKeyword, SyntaxKind.IfKeyword, SyntaxKind.ImplementsKeyword, SyntaxKind.ImportsKeyword, SyntaxKind.InKeyword, SyntaxKind.InheritsKeyword, SyntaxKind.IntegerKeyword, SyntaxKind.InterfaceKeyword, SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword, SyntaxKind.LetKeyword, SyntaxKind.LibKeyword, SyntaxKind.LikeKeyword, SyntaxKind.LongKeyword, SyntaxKind.LoopKeyword, SyntaxKind.MeKeyword, SyntaxKind.ModKeyword, SyntaxKind.ModuleKeyword, SyntaxKind.MustInheritKeyword, SyntaxKind.MustOverrideKeyword, SyntaxKind.MyBaseKeyword, SyntaxKind.MyClassKeyword, SyntaxKind.NamespaceKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.NextKeyword, SyntaxKind.NewKeyword, SyntaxKind.NotKeyword, SyntaxKind.NothingKeyword, SyntaxKind.NotInheritableKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.ObjectKeyword, SyntaxKind.OfKeyword, SyntaxKind.OnKeyword, SyntaxKind.OperatorKeyword, SyntaxKind.OptionKeyword, SyntaxKind.OptionalKeyword, SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridableKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.ParamArrayKeyword, SyntaxKind.PartialKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.PropertyKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.RaiseEventKeyword, SyntaxKind.ReadOnlyKeyword, SyntaxKind.ReDimKeyword, SyntaxKind.REMKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.ResumeKeyword, SyntaxKind.ReturnKeyword, SyntaxKind.SByteKeyword, SyntaxKind.SelectKeyword, SyntaxKind.SetKeyword, SyntaxKind.ShadowsKeyword, SyntaxKind.SharedKeyword, SyntaxKind.ShortKeyword, SyntaxKind.SingleKeyword, SyntaxKind.StaticKeyword, SyntaxKind.StepKeyword, SyntaxKind.StopKeyword, SyntaxKind.StringKeyword, SyntaxKind.StructureKeyword, SyntaxKind.SubKeyword, SyntaxKind.SyncLockKeyword, SyntaxKind.ThenKeyword, SyntaxKind.ThrowKeyword, SyntaxKind.ToKeyword, SyntaxKind.TrueKeyword, SyntaxKind.TryKeyword, SyntaxKind.TryCastKeyword, SyntaxKind.TypeOfKeyword, SyntaxKind.UIntegerKeyword, SyntaxKind.ULongKeyword, SyntaxKind.UShortKeyword, SyntaxKind.UsingKeyword, SyntaxKind.WhenKeyword, SyntaxKind.WhileKeyword, SyntaxKind.WideningKeyword, SyntaxKind.WithKeyword, SyntaxKind.WithEventsKeyword, SyntaxKind.WriteOnlyKeyword, SyntaxKind.XorKeyword, SyntaxKind.EndIfKeyword, SyntaxKind.GosubKeyword, SyntaxKind.VariantKeyword, SyntaxKind.WendKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.AllKeyword, SyntaxKind.AnsiKeyword, SyntaxKind.AscendingKeyword, SyntaxKind.AssemblyKeyword, SyntaxKind.AutoKeyword, SyntaxKind.BinaryKeyword, SyntaxKind.ByKeyword, SyntaxKind.CompareKeyword, SyntaxKind.CustomKeyword, SyntaxKind.DescendingKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.EqualsKeyword, SyntaxKind.ExplicitKeyword, SyntaxKind.ExternalSourceKeyword, SyntaxKind.ExternalChecksumKeyword, SyntaxKind.FromKeyword, SyntaxKind.GroupKeyword, SyntaxKind.InferKeyword, SyntaxKind.IntoKeyword, SyntaxKind.IsFalseKeyword, SyntaxKind.IsTrueKeyword, SyntaxKind.JoinKeyword, SyntaxKind.KeyKeyword, SyntaxKind.MidKeyword, SyntaxKind.OffKeyword, SyntaxKind.OrderKeyword, SyntaxKind.OutKeyword, SyntaxKind.PreserveKeyword, SyntaxKind.RegionKeyword, SyntaxKind.SkipKeyword, SyntaxKind.StrictKeyword, SyntaxKind.TakeKeyword, SyntaxKind.TextKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.UntilKeyword, SyntaxKind.WhereKeyword, SyntaxKind.TypeKeyword, SyntaxKind.XmlKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.AddHandlerKeyword, SyntaxKind.AddressOfKeyword, SyntaxKind.AliasKeyword, SyntaxKind.AndKeyword, SyntaxKind.AndAlsoKeyword, SyntaxKind.AsKeyword, SyntaxKind.BooleanKeyword, SyntaxKind.ByRefKeyword, SyntaxKind.ByteKeyword, SyntaxKind.ByValKeyword, SyntaxKind.CallKeyword, SyntaxKind.CaseKeyword, SyntaxKind.CatchKeyword, SyntaxKind.CBoolKeyword, SyntaxKind.CByteKeyword, SyntaxKind.CCharKeyword, SyntaxKind.CDateKeyword, SyntaxKind.CDecKeyword, SyntaxKind.CDblKeyword, SyntaxKind.CharKeyword, SyntaxKind.CIntKeyword, SyntaxKind.ClassKeyword, SyntaxKind.CLngKeyword, SyntaxKind.CObjKeyword, SyntaxKind.ConstKeyword, SyntaxKind.ReferenceKeyword, SyntaxKind.ContinueKeyword, SyntaxKind.CSByteKeyword, SyntaxKind.CShortKeyword, SyntaxKind.CSngKeyword, SyntaxKind.CStrKeyword, SyntaxKind.CTypeKeyword, SyntaxKind.CUIntKeyword, SyntaxKind.CULngKeyword, SyntaxKind.CUShortKeyword, SyntaxKind.DateKeyword, SyntaxKind.DecimalKeyword, SyntaxKind.DeclareKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.DelegateKeyword, SyntaxKind.DimKeyword, SyntaxKind.DirectCastKeyword, SyntaxKind.DoKeyword, SyntaxKind.DoubleKeyword, SyntaxKind.EachKeyword, SyntaxKind.ElseKeyword, SyntaxKind.ElseIfKeyword, SyntaxKind.EndKeyword, SyntaxKind.EnumKeyword, SyntaxKind.EraseKeyword, SyntaxKind.ErrorKeyword, SyntaxKind.EventKeyword, SyntaxKind.ExitKeyword, SyntaxKind.FalseKeyword, SyntaxKind.FinallyKeyword, SyntaxKind.ForKeyword, SyntaxKind.FriendKeyword, SyntaxKind.FunctionKeyword, SyntaxKind.GetKeyword, SyntaxKind.GetTypeKeyword, SyntaxKind.GetXmlNamespaceKeyword, SyntaxKind.GlobalKeyword, SyntaxKind.GoToKeyword, SyntaxKind.HandlesKeyword, SyntaxKind.IfKeyword, SyntaxKind.ImplementsKeyword, SyntaxKind.ImportsKeyword, SyntaxKind.InKeyword, SyntaxKind.InheritsKeyword, SyntaxKind.IntegerKeyword, SyntaxKind.InterfaceKeyword, SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword, SyntaxKind.LetKeyword, SyntaxKind.LibKeyword, SyntaxKind.LikeKeyword, SyntaxKind.LongKeyword, SyntaxKind.LoopKeyword, SyntaxKind.MeKeyword, SyntaxKind.ModKeyword, SyntaxKind.ModuleKeyword, SyntaxKind.MustInheritKeyword, SyntaxKind.MustOverrideKeyword, SyntaxKind.MyBaseKeyword, SyntaxKind.MyClassKeyword, SyntaxKind.NamespaceKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.NextKeyword, SyntaxKind.NewKeyword, SyntaxKind.NotKeyword, SyntaxKind.NothingKeyword, SyntaxKind.NotInheritableKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.ObjectKeyword, SyntaxKind.OfKeyword, SyntaxKind.OnKeyword, SyntaxKind.OperatorKeyword, SyntaxKind.OptionKeyword, SyntaxKind.OptionalKeyword, SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridableKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.ParamArrayKeyword, SyntaxKind.PartialKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.PropertyKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.RaiseEventKeyword, SyntaxKind.ReadOnlyKeyword, SyntaxKind.ReDimKeyword, SyntaxKind.REMKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.ResumeKeyword, SyntaxKind.ReturnKeyword, SyntaxKind.SByteKeyword, SyntaxKind.SelectKeyword, SyntaxKind.SetKeyword, SyntaxKind.ShadowsKeyword, SyntaxKind.SharedKeyword, SyntaxKind.ShortKeyword, SyntaxKind.SingleKeyword, SyntaxKind.StaticKeyword, SyntaxKind.StepKeyword, SyntaxKind.StopKeyword, SyntaxKind.StringKeyword, SyntaxKind.StructureKeyword, SyntaxKind.SubKeyword, SyntaxKind.SyncLockKeyword, SyntaxKind.ThenKeyword, SyntaxKind.ThrowKeyword, SyntaxKind.ToKeyword, SyntaxKind.TrueKeyword, SyntaxKind.TryKeyword, SyntaxKind.TryCastKeyword, SyntaxKind.TypeOfKeyword, SyntaxKind.UIntegerKeyword, SyntaxKind.ULongKeyword, SyntaxKind.UShortKeyword, SyntaxKind.UsingKeyword, SyntaxKind.WhenKeyword, SyntaxKind.WhileKeyword, SyntaxKind.WideningKeyword, SyntaxKind.WithKeyword, SyntaxKind.WithEventsKeyword, SyntaxKind.WriteOnlyKeyword, SyntaxKind.XorKeyword, SyntaxKind.EndIfKeyword, SyntaxKind.GosubKeyword, SyntaxKind.VariantKeyword, SyntaxKind.WendKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.AllKeyword, SyntaxKind.AnsiKeyword, SyntaxKind.AscendingKeyword, SyntaxKind.AssemblyKeyword, SyntaxKind.AutoKeyword, SyntaxKind.BinaryKeyword, SyntaxKind.ByKeyword, SyntaxKind.CompareKeyword, SyntaxKind.CustomKeyword, SyntaxKind.DescendingKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.EqualsKeyword, SyntaxKind.ExplicitKeyword, SyntaxKind.ExternalSourceKeyword, SyntaxKind.ExternalChecksumKeyword, SyntaxKind.FromKeyword, SyntaxKind.GroupKeyword, SyntaxKind.InferKeyword, SyntaxKind.IntoKeyword, SyntaxKind.IsFalseKeyword, SyntaxKind.IsTrueKeyword, SyntaxKind.JoinKeyword, SyntaxKind.KeyKeyword, SyntaxKind.MidKeyword, SyntaxKind.OffKeyword, SyntaxKind.OrderKeyword, SyntaxKind.OutKeyword, SyntaxKind.PreserveKeyword, SyntaxKind.RegionKeyword, SyntaxKind.SkipKeyword, SyntaxKind.StrictKeyword, SyntaxKind.TakeKeyword, SyntaxKind.TextKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.UntilKeyword, SyntaxKind.WhereKeyword, SyntaxKind.TypeKeyword, SyntaxKind.XmlKeyword}
             Assert.True(SyntaxFacts.IsKeywordKind(item))
         Next
         Assert.False(SyntaxFacts.IsKeywordKind(SyntaxKind.MinusEqualsToken))
@@ -549,8 +510,7 @@ End Namespace
 
     <Fact>
     Public Sub IsLabelStatementLabelToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IdentifierToken, SyntaxKind.IntegerLiteralToken}
+        For Each item As SyntaxKind In {SyntaxKind.IdentifierToken, SyntaxKind.IntegerLiteralToken}
             Assert.True(SyntaxFacts.IsLabelStatementLabelToken(item))
         Next
         Assert.False(SyntaxFacts.IsLabelStatementLabelToken(SyntaxKind.WithKeyword))
@@ -559,8 +519,7 @@ End Namespace
 
     <Fact>
     Public Sub IsLambdaHeader()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SubLambdaHeader, SyntaxKind.FunctionLambdaHeader}
+        For Each item As SyntaxKind In {SyntaxKind.SubLambdaHeader, SyntaxKind.FunctionLambdaHeader}
             Assert.True(SyntaxFacts.IsLambdaHeader(item))
         Next
         Assert.False(SyntaxFacts.IsLambdaHeader(SyntaxKind.ExitKeyword))
@@ -569,8 +528,7 @@ End Namespace
 
     <Fact>
     Public Sub IsLambdaHeaderKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
             Assert.True(SyntaxFacts.IsLambdaHeaderKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsLambdaHeaderKeyword(SyntaxKind.ExitKeyword))
@@ -586,8 +544,7 @@ End Namespace
 
     <Fact>
     Public Sub IsLiteralExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.CharacterLiteralExpression, SyntaxKind.TrueLiteralExpression, SyntaxKind.FalseLiteralExpression, SyntaxKind.NumericLiteralExpression, SyntaxKind.DateLiteralExpression, SyntaxKind.StringLiteralExpression, SyntaxKind.NothingLiteralExpression}
+        For Each item As SyntaxKind In {SyntaxKind.CharacterLiteralExpression, SyntaxKind.TrueLiteralExpression, SyntaxKind.FalseLiteralExpression, SyntaxKind.NumericLiteralExpression, SyntaxKind.DateLiteralExpression, SyntaxKind.StringLiteralExpression, SyntaxKind.NothingLiteralExpression}
             Assert.True(SyntaxFacts.IsLiteralExpression(item))
         Next
         Assert.False(SyntaxFacts.IsLiteralExpression(SyntaxKind.ExitKeyword))
@@ -596,8 +553,7 @@ End Namespace
 
     <Fact>
     Public Sub IsMemberAccessExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.DictionaryAccessExpression}
+        For Each item As SyntaxKind In {SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.DictionaryAccessExpression}
             Assert.True(SyntaxFacts.IsMemberAccessExpression(item))
         Next
         Assert.False(SyntaxFacts.IsMemberAccessExpression(SyntaxKind.ExitKeyword))
@@ -606,8 +562,7 @@ End Namespace
 
     <Fact>
     Public Sub IsMemberAccessExpressionOperatorToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.DotToken, SyntaxKind.ExclamationToken}
+        For Each item As SyntaxKind In {SyntaxKind.DotToken, SyntaxKind.ExclamationToken}
             Assert.True(SyntaxFacts.IsMemberAccessExpressionOperatorToken(item))
         Next
         Assert.False(SyntaxFacts.IsMemberAccessExpressionOperatorToken(SyntaxKind.ExitKeyword))
@@ -616,20 +571,19 @@ End Namespace
 
     <Fact>
     Public Sub IsmethodBlock()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SubBlock, SyntaxKind.FunctionBlock}
+        For Each item As SyntaxKind In {SyntaxKind.SubBlock, SyntaxKind.FunctionBlock}
             Assert.True(SyntaxFacts.IsMethodBlock(item))
         Next
 
-        For Each item In New SyntaxKind() {SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock, SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock}
+        For Each item As SyntaxKind In {SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock, SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock}
             Assert.False(SyntaxFacts.IsMethodBlock(item))
         Next
 
-        For Each item In New SyntaxKind() {SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock, SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock}
+        For Each item As SyntaxKind In {SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock, SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock}
             Assert.True(SyntaxFacts.IsAccessorBlock(item))
         Next
 
-        For Each item In New SyntaxKind() {SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock}
+        For Each item As SyntaxKind In {SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock}
             Assert.False(SyntaxFacts.IsAccessorBlock(item))
         Next
 
@@ -639,8 +593,7 @@ End Namespace
 
     <Fact>
     Public Sub IsMethodStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SubStatement, SyntaxKind.FunctionStatement}
+        For Each item As SyntaxKind In {SyntaxKind.SubStatement, SyntaxKind.FunctionStatement}
             Assert.True(SyntaxFacts.IsMethodStatement(item))
         Next
         Assert.False(SyntaxFacts.IsMethodStatement(SyntaxKind.NamespaceBlock))
@@ -649,8 +602,7 @@ End Namespace
 
     <Fact>
     Public Sub IsMethodStatementKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
             Assert.True(SyntaxFacts.IsMethodStatementKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsMethodStatementKeyword(SyntaxKind.NamespaceBlock))
@@ -659,11 +611,10 @@ End Namespace
 
     <Fact>
     Public Sub IsMultiLineLambdaExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SingleLineFunctionLambdaExpression, SyntaxKind.SingleLineSubLambdaExpression}
+        For Each item As SyntaxKind In {SyntaxKind.SingleLineFunctionLambdaExpression, SyntaxKind.SingleLineSubLambdaExpression}
             Assert.False(SyntaxFacts.IsMultiLineLambdaExpression(item))
         Next
-        For Each item In New SyntaxKind() {SyntaxKind.MultiLineFunctionLambdaExpression, SyntaxKind.MultiLineSubLambdaExpression}
+        For Each item As SyntaxKind In {SyntaxKind.MultiLineFunctionLambdaExpression, SyntaxKind.MultiLineSubLambdaExpression}
             Assert.True(SyntaxFacts.IsMultiLineLambdaExpression(item))
         Next
 
@@ -697,8 +648,7 @@ End Namespace
 
     <Fact>
     Public Sub IsOnErrorGoToStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.OnErrorGoToZeroStatement, SyntaxKind.OnErrorGoToMinusOneStatement, SyntaxKind.OnErrorGoToLabelStatement}
+        For Each item As SyntaxKind In {SyntaxKind.OnErrorGoToZeroStatement, SyntaxKind.OnErrorGoToMinusOneStatement, SyntaxKind.OnErrorGoToLabelStatement}
             Assert.True(SyntaxFacts.IsOnErrorGoToStatement(item))
         Next
         Assert.False(SyntaxFacts.IsOnErrorGoToStatement(SyntaxKind.ExitKeyword))
@@ -713,8 +663,7 @@ End Namespace
 
     <Fact>
     Public Sub IsOperatorStatementOperator()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.CTypeKeyword, SyntaxKind.IsTrueKeyword, SyntaxKind.IsFalseKeyword, SyntaxKind.NotKeyword, SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken, SyntaxKind.SlashToken, SyntaxKind.CaretToken, SyntaxKind.BackslashToken, SyntaxKind.AmpersandToken, SyntaxKind.LessThanLessThanToken, SyntaxKind.GreaterThanGreaterThanToken, SyntaxKind.ModKeyword, SyntaxKind.OrKeyword, SyntaxKind.XorKeyword, SyntaxKind.AndKeyword, SyntaxKind.LikeKeyword, SyntaxKind.EqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.GreaterThanToken}
+        For Each item As SyntaxKind In {SyntaxKind.CTypeKeyword, SyntaxKind.IsTrueKeyword, SyntaxKind.IsFalseKeyword, SyntaxKind.NotKeyword, SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken, SyntaxKind.SlashToken, SyntaxKind.CaretToken, SyntaxKind.BackslashToken, SyntaxKind.AmpersandToken, SyntaxKind.LessThanLessThanToken, SyntaxKind.GreaterThanGreaterThanToken, SyntaxKind.ModKeyword, SyntaxKind.OrKeyword, SyntaxKind.XorKeyword, SyntaxKind.AndKeyword, SyntaxKind.LikeKeyword, SyntaxKind.EqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.GreaterThanToken}
             Assert.True(SyntaxFacts.IsOperatorStatementOperatorToken(item))
         Next
         Assert.False(SyntaxFacts.IsOperatorStatementOperatorToken(SyntaxKind.SubKeyword))
@@ -723,8 +672,7 @@ End Namespace
 
     <Fact>
     Public Sub IsOptionStatementNameKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.ExplicitKeyword, SyntaxKind.StrictKeyword, SyntaxKind.CompareKeyword, SyntaxKind.InferKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.ExplicitKeyword, SyntaxKind.StrictKeyword, SyntaxKind.CompareKeyword, SyntaxKind.InferKeyword}
             Assert.True(SyntaxFacts.IsOptionStatementNameKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsOptionStatementNameKeyword(SyntaxKind.AddHandlerStatement))
@@ -733,8 +681,7 @@ End Namespace
 
     <Fact>
     Public Sub IsOrdering()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.AscendingOrdering, SyntaxKind.DescendingOrdering}
+        For Each item As SyntaxKind In {SyntaxKind.AscendingOrdering, SyntaxKind.DescendingOrdering}
             Assert.True(SyntaxFacts.IsOrdering(item))
         Next
         Assert.False(SyntaxFacts.IsOrdering(SyntaxKind.ExitKeyword))
@@ -743,8 +690,7 @@ End Namespace
 
     <Fact>
     Public Sub IsOrderingAscendingOrDescendingKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.AscendingKeyword, SyntaxKind.DescendingKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.AscendingKeyword, SyntaxKind.DescendingKeyword}
             Assert.True(SyntaxFacts.IsOrderingAscendingOrDescendingKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsOrderingAscendingOrDescendingKeyword(SyntaxKind.ExitKeyword))
@@ -753,8 +699,7 @@ End Namespace
 
     <Fact>
     Public Sub IsPartitionClause()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SkipClause, SyntaxKind.TakeClause}
+        For Each item As SyntaxKind In {SyntaxKind.SkipClause, SyntaxKind.TakeClause}
             Assert.True(SyntaxFacts.IsPartitionClause(item))
         Next
         Assert.False(SyntaxFacts.IsPartitionClause(SyntaxKind.ExitKeyword))
@@ -763,8 +708,7 @@ End Namespace
 
     <Fact>
     Public Sub IsPartitionClauseSkipOrTakeKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword}
             Assert.True(SyntaxFacts.IsPartitionClauseSkipOrTakeKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsPartitionClauseSkipOrTakeKeyword(SyntaxKind.ExitKeyword))
@@ -773,8 +717,7 @@ End Namespace
 
     <Fact>
     Public Sub IsPartitionWhileClause()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SkipWhileClause, SyntaxKind.TakeWhileClause}
+        For Each item As SyntaxKind In {SyntaxKind.SkipWhileClause, SyntaxKind.TakeWhileClause}
             Assert.True(SyntaxFacts.IsPartitionWhileClause(item))
         Next
         Assert.False(SyntaxFacts.IsPartitionWhileClause(SyntaxKind.ExitKeyword))
@@ -783,8 +726,7 @@ End Namespace
 
     <Fact>
     Public Sub IsPartitionWhileClauseSkipOrTakeKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword}
             Assert.True(SyntaxFacts.IsPartitionWhileClauseSkipOrTakeKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsPartitionWhileClauseSkipOrTakeKeyword(SyntaxKind.ExitKeyword))
@@ -793,8 +735,7 @@ End Namespace
 
     <Fact>
     Public Sub IsPredefinedCastExpressionKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.CObjKeyword, SyntaxKind.CBoolKeyword, SyntaxKind.CDateKeyword, SyntaxKind.CCharKeyword, SyntaxKind.CStrKeyword, SyntaxKind.CDecKeyword, SyntaxKind.CByteKeyword, SyntaxKind.CSByteKeyword, SyntaxKind.CUShortKeyword, SyntaxKind.CShortKeyword, SyntaxKind.CUIntKeyword, SyntaxKind.CIntKeyword, SyntaxKind.CULngKeyword, SyntaxKind.CLngKeyword, SyntaxKind.CSngKeyword, SyntaxKind.CDblKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.CObjKeyword, SyntaxKind.CBoolKeyword, SyntaxKind.CDateKeyword, SyntaxKind.CCharKeyword, SyntaxKind.CStrKeyword, SyntaxKind.CDecKeyword, SyntaxKind.CByteKeyword, SyntaxKind.CSByteKeyword, SyntaxKind.CUShortKeyword, SyntaxKind.CShortKeyword, SyntaxKind.CUIntKeyword, SyntaxKind.CIntKeyword, SyntaxKind.CULngKeyword, SyntaxKind.CLngKeyword, SyntaxKind.CSngKeyword, SyntaxKind.CDblKeyword}
             Assert.True(SyntaxFacts.IsPredefinedCastExpressionKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsPredefinedCastExpressionKeyword(SyntaxKind.MinusToken))
@@ -832,8 +773,7 @@ End Namespace
 
     <Fact>
     Public Sub IsPunctuation()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.ExclamationToken, SyntaxKind.AtToken, SyntaxKind.CommaToken, SyntaxKind.HashToken, SyntaxKind.AmpersandToken, SyntaxKind.SingleQuoteToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken, SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken, SyntaxKind.SemicolonToken, SyntaxKind.AsteriskToken, SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.DotToken, SyntaxKind.SlashToken, SyntaxKind.ColonToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.EqualsToken, SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.BackslashToken, SyntaxKind.CaretToken, SyntaxKind.ColonEqualsToken, SyntaxKind.AmpersandEqualsToken, SyntaxKind.AsteriskEqualsToken, SyntaxKind.PlusEqualsToken, SyntaxKind.MinusEqualsToken, SyntaxKind.SlashEqualsToken, SyntaxKind.BackslashEqualsToken, SyntaxKind.CaretEqualsToken, SyntaxKind.LessThanLessThanToken, SyntaxKind.GreaterThanGreaterThanToken, SyntaxKind.LessThanLessThanEqualsToken, SyntaxKind.GreaterThanGreaterThanEqualsToken, SyntaxKind.QuestionToken, SyntaxKind.DoubleQuoteToken, SyntaxKind.StatementTerminatorToken, SyntaxKind.EndOfFileToken, SyntaxKind.EmptyToken, SyntaxKind.SlashGreaterThanToken, SyntaxKind.LessThanSlashToken, SyntaxKind.LessThanExclamationMinusMinusToken, SyntaxKind.MinusMinusGreaterThanToken, SyntaxKind.LessThanQuestionToken, SyntaxKind.QuestionGreaterThanToken, SyntaxKind.LessThanPercentEqualsToken, SyntaxKind.PercentGreaterThanToken, SyntaxKind.BeginCDataToken, SyntaxKind.EndCDataToken, SyntaxKind.EndOfXmlToken}
+        For Each item As SyntaxKind In {SyntaxKind.ExclamationToken, SyntaxKind.AtToken, SyntaxKind.CommaToken, SyntaxKind.HashToken, SyntaxKind.AmpersandToken, SyntaxKind.SingleQuoteToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken, SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken, SyntaxKind.SemicolonToken, SyntaxKind.AsteriskToken, SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.DotToken, SyntaxKind.SlashToken, SyntaxKind.ColonToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.EqualsToken, SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.BackslashToken, SyntaxKind.CaretToken, SyntaxKind.ColonEqualsToken, SyntaxKind.AmpersandEqualsToken, SyntaxKind.AsteriskEqualsToken, SyntaxKind.PlusEqualsToken, SyntaxKind.MinusEqualsToken, SyntaxKind.SlashEqualsToken, SyntaxKind.BackslashEqualsToken, SyntaxKind.CaretEqualsToken, SyntaxKind.LessThanLessThanToken, SyntaxKind.GreaterThanGreaterThanToken, SyntaxKind.LessThanLessThanEqualsToken, SyntaxKind.GreaterThanGreaterThanEqualsToken, SyntaxKind.QuestionToken, SyntaxKind.DoubleQuoteToken, SyntaxKind.StatementTerminatorToken, SyntaxKind.EndOfFileToken, SyntaxKind.EmptyToken, SyntaxKind.SlashGreaterThanToken, SyntaxKind.LessThanSlashToken, SyntaxKind.LessThanExclamationMinusMinusToken, SyntaxKind.MinusMinusGreaterThanToken, SyntaxKind.LessThanQuestionToken, SyntaxKind.QuestionGreaterThanToken, SyntaxKind.LessThanPercentEqualsToken, SyntaxKind.PercentGreaterThanToken, SyntaxKind.BeginCDataToken, SyntaxKind.EndCDataToken, SyntaxKind.EndOfXmlToken}
             Assert.True(SyntaxFacts.IsPunctuation(item))
         Next
         Assert.False(SyntaxFacts.IsPunctuation(SyntaxKind.ExitKeyword))
@@ -851,8 +791,7 @@ End Namespace
 
     <Fact>
     Public Sub IsReDimStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.ReDimStatement, SyntaxKind.ReDimPreserveStatement}
+        For Each item As SyntaxKind In {SyntaxKind.ReDimStatement, SyntaxKind.ReDimPreserveStatement}
             Assert.True(SyntaxFacts.IsReDimStatement(item))
         Next
         Assert.False(SyntaxFacts.IsReDimStatement(SyntaxKind.SimpleAssignmentStatement))
@@ -874,8 +813,7 @@ End Namespace
 
     <Fact>
     Public Sub IsResumeStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.ResumeStatement, SyntaxKind.ResumeLabelStatement, SyntaxKind.ResumeNextStatement}
+        For Each item As SyntaxKind In {SyntaxKind.ResumeStatement, SyntaxKind.ResumeLabelStatement, SyntaxKind.ResumeNextStatement}
             Assert.True(SyntaxFacts.IsResumeStatement(item))
         Next
         Assert.False(SyntaxFacts.IsResumeStatement(SyntaxKind.ExitKeyword))
@@ -884,8 +822,7 @@ End Namespace
 
     <Fact>
     Public Sub IsSingleLineLambdaExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.SingleLineFunctionLambdaExpression, SyntaxKind.SingleLineSubLambdaExpression}
+        For Each item As SyntaxKind In {SyntaxKind.SingleLineFunctionLambdaExpression, SyntaxKind.SingleLineSubLambdaExpression}
             Assert.True(SyntaxFacts.IsSingleLineLambdaExpression(item))
         Next
         Assert.False(SyntaxFacts.IsSingleLineLambdaExpression(SyntaxKind.MinusToken))
@@ -894,8 +831,7 @@ End Namespace
 
     <Fact>
     Public Sub IsSpecialConstraint()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.NewConstraint, SyntaxKind.ClassConstraint, SyntaxKind.StructureConstraint}
+        For Each item As SyntaxKind In {SyntaxKind.NewConstraint, SyntaxKind.ClassConstraint, SyntaxKind.StructureConstraint}
             Assert.True(SyntaxFacts.IsSpecialConstraint(item))
         Next
         Assert.False(SyntaxFacts.IsSpecialConstraint(SyntaxKind.ConstDirectiveTrivia))
@@ -904,8 +840,7 @@ End Namespace
 
     <Fact>
     Public Sub IsSpecialConstraintKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.NewKeyword, SyntaxKind.ClassKeyword, SyntaxKind.StructureKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.NewKeyword, SyntaxKind.ClassKeyword, SyntaxKind.StructureKeyword}
             Assert.True(SyntaxFacts.IsSpecialConstraintConstraintKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsSpecialConstraintConstraintKeyword(SyntaxKind.ModuleKeyword))
@@ -914,8 +849,7 @@ End Namespace
 
     <Fact>
     Public Sub IsStopOrEndStatement()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.StopStatement, SyntaxKind.EndStatement}
+        For Each item As SyntaxKind In {SyntaxKind.StopStatement, SyntaxKind.EndStatement}
             Assert.True(SyntaxFacts.IsStopOrEndStatement(item))
         Next
         Assert.False(SyntaxFacts.IsStopOrEndStatement(SyntaxKind.WithKeyword))
@@ -924,8 +858,7 @@ End Namespace
 
     <Fact>
     Public Sub IsStopOrEndStatementStopOrEndKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.StopKeyword, SyntaxKind.EndKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.StopKeyword, SyntaxKind.EndKeyword}
             Assert.True(SyntaxFacts.IsStopOrEndStatementStopOrEndKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsStopOrEndStatementStopOrEndKeyword(SyntaxKind.WithKeyword))
@@ -948,8 +881,7 @@ End Namespace
 
     <Fact>
     Public Sub IsTypeOfExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.TypeOfIsExpression, SyntaxKind.TypeOfIsNotExpression}
+        For Each item As SyntaxKind In {SyntaxKind.TypeOfIsExpression, SyntaxKind.TypeOfIsNotExpression}
             Assert.True(SyntaxFacts.IsTypeOfExpression(item))
         Next
         Assert.False(SyntaxFacts.IsTypeOfExpression(SyntaxKind.ExitKeyword))
@@ -958,8 +890,7 @@ End Namespace
 
     <Fact>
     Public Sub IsTypeOfExpressionOperatorToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword}
             Assert.True(SyntaxFacts.IsTypeOfExpressionOperatorToken(item))
         Next
         Assert.False(SyntaxFacts.IsTypeOfExpressionOperatorToken(SyntaxKind.ExitKeyword))
@@ -968,8 +899,7 @@ End Namespace
 
     <Fact>
     Public Sub IsTypeParameterVarianceKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.InKeyword, SyntaxKind.OutKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.InKeyword, SyntaxKind.OutKeyword}
             Assert.True(SyntaxFacts.IsTypeParameterVarianceKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsTypeParameterVarianceKeyword(SyntaxKind.GetKeyword))
@@ -978,8 +908,7 @@ End Namespace
 
     <Fact>
     Public Sub IsUnaryExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.UnaryPlusExpression, SyntaxKind.UnaryMinusExpression, SyntaxKind.NotExpression, SyntaxKind.AddressOfExpression}
+        For Each item As SyntaxKind In {SyntaxKind.UnaryPlusExpression, SyntaxKind.UnaryMinusExpression, SyntaxKind.NotExpression, SyntaxKind.AddressOfExpression}
             Assert.True(SyntaxFacts.IsUnaryExpression(item))
         Next
         Assert.False(SyntaxFacts.IsUnaryExpression(SyntaxKind.MinusToken))
@@ -988,8 +917,7 @@ End Namespace
 
     <Fact>
     Public Sub IsUnaryExpressionOperatorToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.NotKeyword, SyntaxKind.AddressOfKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.NotKeyword, SyntaxKind.AddressOfKeyword}
             Assert.True(SyntaxFacts.IsUnaryExpressionOperatorToken(item))
         Next
 
@@ -999,8 +927,7 @@ End Namespace
 
     <Fact>
     Public Sub IsWhileOrUntilClause()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.WhileClause, SyntaxKind.UntilClause}
+        For Each item As SyntaxKind In {SyntaxKind.WhileClause, SyntaxKind.UntilClause}
             Assert.True(SyntaxFacts.IsWhileOrUntilClause(item))
         Next
         Assert.False(SyntaxFacts.IsWhileOrUntilClause(SyntaxKind.ExitKeyword))
@@ -1009,8 +936,7 @@ End Namespace
 
     <Fact>
     Public Sub IsWhileOrUntilClauseWhileOrUntilKeyword()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.WhileKeyword, SyntaxKind.UntilKeyword}
+        For Each item As SyntaxKind In {SyntaxKind.WhileKeyword, SyntaxKind.UntilKeyword}
             Assert.True(SyntaxFacts.IsWhileOrUntilClauseWhileOrUntilKeyword(item))
         Next
         Assert.False(SyntaxFacts.IsWhileOrUntilClauseWhileOrUntilKeyword(SyntaxKind.ExitKeyword))
@@ -1019,8 +945,7 @@ End Namespace
 
     <Fact>
     Public Sub IsXmlMemberAccessExpression()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.XmlElementAccessExpression, SyntaxKind.XmlDescendantAccessExpression, SyntaxKind.XmlAttributeAccessExpression}
+        For Each item As SyntaxKind In {SyntaxKind.XmlElementAccessExpression, SyntaxKind.XmlDescendantAccessExpression, SyntaxKind.XmlAttributeAccessExpression}
             Assert.True(SyntaxFacts.IsXmlMemberAccessExpression(item))
         Next
         Assert.False(SyntaxFacts.IsXmlMemberAccessExpression(SyntaxKind.ExitKeyword))
@@ -1029,8 +954,7 @@ End Namespace
 
     <Fact>
     Public Sub IsXmlMemberAccessExpressionToken2()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.DotToken, SyntaxKind.AtToken}
+        For Each item As SyntaxKind In {SyntaxKind.DotToken, SyntaxKind.AtToken}
             Assert.True(SyntaxFacts.IsXmlMemberAccessExpressionToken2(item))
         Next
         Assert.False(SyntaxFacts.IsXmlMemberAccessExpressionToken2(SyntaxKind.MinusToken))
@@ -1039,8 +963,7 @@ End Namespace
 
     <Fact>
     Public Sub IsXmlStringEndQuoteToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.DoubleQuoteToken, SyntaxKind.SingleQuoteToken}
+        For Each item As SyntaxKind In {SyntaxKind.DoubleQuoteToken, SyntaxKind.SingleQuoteToken}
             Assert.True(SyntaxFacts.IsXmlStringEndQuoteToken(item))
         Next
         Assert.False(SyntaxFacts.IsXmlStringEndQuoteToken(SyntaxKind.ExitKeyword))
@@ -1049,8 +972,7 @@ End Namespace
 
     <Fact>
     Public Sub IsXmlStringStartQuoteToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.DoubleQuoteToken, SyntaxKind.SingleQuoteToken}
+        For Each item As SyntaxKind In {SyntaxKind.DoubleQuoteToken, SyntaxKind.SingleQuoteToken}
             Assert.True(SyntaxFacts.IsXmlStringStartQuoteToken(item))
         Next
         Assert.False(SyntaxFacts.IsXmlStringStartQuoteToken(SyntaxKind.ExitKeyword))
@@ -1059,8 +981,7 @@ End Namespace
 
     <Fact>
     Public Sub IsXmlTextToken()
-        Dim item As SyntaxKind
-        For Each item In New SyntaxKind() {SyntaxKind.XmlTextLiteralToken, SyntaxKind.XmlEntityLiteralToken, SyntaxKind.DocumentationCommentLineBreakToken}
+        For Each item As SyntaxKind In {SyntaxKind.XmlTextLiteralToken, SyntaxKind.XmlEntityLiteralToken, SyntaxKind.DocumentationCommentLineBreakToken}
             Assert.True(SyntaxFacts.IsXmlTextToken(item))
         Next
         Assert.False(SyntaxFacts.IsXmlTextToken(SyntaxKind.ExitKeyword))
@@ -1285,4 +1206,10 @@ End Module
 
     End Sub
 
+    <WorkItem(990618, "DevDiv")>
+    <Fact>
+    Public Sub Bug990618()
+        Dim text = SyntaxFacts.GetText(SyntaxKind.BeginCDataToken)
+        Assert.Equal("<![CDATA[", text)
+    End Sub
 End Class

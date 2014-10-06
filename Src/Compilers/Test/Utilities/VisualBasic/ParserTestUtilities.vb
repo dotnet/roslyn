@@ -1,18 +1,12 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.ObjectModel
 Imports System.Globalization
 Imports System.Runtime.CompilerServices
 Imports System.Text
-Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -116,14 +110,14 @@ Module ParserTestUtilities
         If nodeOrToken.IsToken Then
             Dim token = nodeOrToken
             For Each trivia In token.GetLeadingTrivia()
-                Dim parentToken = CType(trivia.Token, SyntaxToken)
+                Dim parentToken = trivia.Token
                 Assert.Equal(token, parentToken)
                 If trivia.HasStructure Then
                     Dim triviaStructure = DirectCast(trivia.GetStructure, VBSyntaxNode)
                     Dim parent = triviaStructure.Parent
                     Assert.Equal(Nothing, parent)
 
-                    Dim parentTrivia = (DirectCast(triviaStructure, StructuredTriviaSyntax)).ParentTrivia
+                    Dim parentTrivia = DirectCast(triviaStructure, StructuredTriviaSyntax).ParentTrivia
                     Assert.Equal(trivia, parentTrivia)
 
                     VerifyParents(triviaStructure)
@@ -132,14 +126,14 @@ Module ParserTestUtilities
                 End If
             Next
             For Each trivia In token.GetTrailingTrivia()
-                Dim parentToken = CType(trivia.Token, SyntaxToken)
+                Dim parentToken = trivia.Token
                 Assert.Equal(token, parentToken)
                 If trivia.HasStructure Then
                     Dim triviaStructure = trivia.GetStructure
                     Dim parent = triviaStructure.Parent
                     Assert.Equal(Nothing, parent)
 
-                    Dim parentTrivia = (DirectCast(triviaStructure, StructuredTriviaSyntax)).ParentTrivia
+                    Dim parentTrivia = DirectCast(triviaStructure, StructuredTriviaSyntax).ParentTrivia
                     Assert.Equal(trivia, parentTrivia)
 
                     VerifyParents(triviaStructure)
@@ -164,7 +158,7 @@ Module ParserTestUtilities
 
     <Extension()>
     Public Function ToFullWidth(c As Char) As Char
-        Return If(ISHALFWIDTH(c), MAKEFULLWIDTH(c), c)
+        Return If(IsHalfWidth(c), MakeFullWidth(c), c)
     End Function
 
 #Region "Debugging Helpers"
@@ -198,7 +192,6 @@ Module ParserTestUtilities
     ''' <field cref="IncParseNode.changeText">The new text that is added/removed/replaced</field>
     ''' <field cref="IncParseNode.changeSpan">OF type TextSpan. The start and length of the change</field>
     ''' <field cref="IncParseNode.changeType">Whether text was added, removed or replaced</field>
-    ''' <remarks></remarks>
     Public Structure IncParseNode
         Public oldText As String
         Public changeText As String
@@ -485,7 +478,7 @@ Public Module VerificationHelpers
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Options As VisualBasic.VBParseOptions
+        Public Overrides ReadOnly Property Options As VBParseOptions
             Get
                 Throw New NotImplementedException()
             End Get
@@ -578,7 +571,7 @@ Public Module VerificationHelpers
             Throw New ArgumentException("The 'id' attribute is required for all errors")
         End If
         Dim message = xmlError.@message
-        If message IsNot Nothing AndAlso CStr(message) <> syntaxError.GetMessage(CultureInfo.GetCultureInfo("en")) Then
+        If message IsNot Nothing AndAlso message <> syntaxError.GetMessage(CultureInfo.GetCultureInfo("en")) Then
             areEquivalent = False
         End If
 

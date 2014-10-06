@@ -7,10 +7,7 @@ Option Strict On
 Option Explicit On
 Option Infer On
 
-Imports System.Diagnostics.Debug
 Imports System.Globalization
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -20,26 +17,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Public Class SyntaxFacts
 
         '/*****************************************************************************/
-        '// @@ fullwidth/halfwidth conversion macros
-        '// MAKEFULLWIDTH - Converts a half-width to full-width character
-        Friend Shared Function MAKEFULLWIDTH(c As Char) As Char
-            Debug.Assert(ISHALFWIDTH(c))
+        '// MakeFullWidth - Converts a half-width to full-width character
+        Friend Shared Function MakeFullWidth(c As Char) As Char
+            Debug.Assert(IsHalfWidth(c))
             Return Convert.ToChar(Convert.ToUInt16(c) + (&HFF00US - &H20US))
         End Function
 
-        Friend Shared Function ISHALFWIDTH(c As Char) As Boolean
+        Friend Shared Function IsHalfWidth(c As Char) As Boolean
             Return c >= ChrW(&H21S) AndAlso c <= ChrW(&H7ES)
         End Function
 
-        '// MAKEHALFWIDTH - Converts a full-width character to half-width
-        Friend Shared Function MAKEHALFWIDTH(c As Char) As Char
-            Debug.Assert(ISFULLWIDTH(c))
+        '// MakeHalfWidth - Converts a full-width character to half-width
+        Friend Shared Function MakeHalfWidth(c As Char) As Char
+            Debug.Assert(IsFullWidth(c))
 
             Return Convert.ToChar(Convert.ToUInt16(c) - (&HFF00US - &H20US))
         End Function
 
-        '// ISFULLWIDTH - Returns if the character is full width
-        Friend Shared Function ISFULLWIDTH(c As Char) As Boolean
+        '// IsFullWidth - Returns if the character is full width
+        Friend Shared Function IsFullWidth(c As Char) As Boolean
             ' Do not use "AndAlso" or it will not inline.
             Return c > ChrW(&HFF00US) And c < ChrW(&HFF5FUS)
         End Function
@@ -233,8 +229,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function IntegralLiteralCharacterValue(
             Digit As Char
         ) As Byte
-            If ISFULLWIDTH(Digit) Then
-                Digit = MAKEHALFWIDTH(Digit)
+            If IsFullWidth(Digit) Then
+                Digit = MakeHalfWidth(Digit)
             End If
             Dim u As Integer = AscW(Digit)
 
@@ -250,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function BeginsBaseLiteral(c As Char) As Boolean
             Return (c = "H"c Or c = "O"c Or c = "h"c Or c = "o"c) OrElse
-                    (ISFULLWIDTH(c) AndAlso (c = FULLWIDTH_Hh Or c = FULLWIDTH_Oh Or c = FULLWIDTH_Hl Or c = FULLWIDTH_Ol))
+                    (IsFullWidth(c) AndAlso (c = FULLWIDTH_Hh Or c = FULLWIDTH_Oh Or c = FULLWIDTH_Hl Or c = FULLWIDTH_Ol))
         End Function
 
         Private Shared _IsIDChar As Boolean() =
@@ -320,13 +316,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            If Not SyntaxFacts.IsIdentifierStartCharacter(name(0)) Then
+            If Not IsIdentifierStartCharacter(name(0)) Then
                 Return False
             End If
 
             Dim nameLength As Integer = name.Length
             For i As Integer = 1 To nameLength - 1 ' NB: start at 1
-                If Not SyntaxFacts.IsIdentifierPartCharacter(name(i)) Then
+                If Not IsIdentifierPartCharacter(name(i)) Then
                     Return False
                 End If
             Next
@@ -348,13 +344,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For i = 0 To text.Length - 1
                 Dim c = text(i)
 
-                If ISFULLWIDTH(c) Then
+                If IsFullWidth(c) Then
                     If characters Is Nothing Then
                         characters = New Char(text.Length - 1) {}
                         text.CopyTo(0, characters, 0, i)
                     End If
 
-                    characters(i) = MAKEHALFWIDTH(c)
+                    characters(i) = MakeHalfWidth(c)
                 ElseIf characters IsNot Nothing Then
                     characters(i) = c
                 End If
@@ -421,11 +417,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Typical usage is for matching lowercase and uppercase.
         ''' </summary>
         Friend Shared Function MatchOneOrAnotherOrFullwidth(ch As Char, one As Char, another As Char) As Boolean
-            Debug.Assert(ISHALFWIDTH(one))
-            Debug.Assert(ISHALFWIDTH(another))
+            Debug.Assert(IsHalfWidth(one))
+            Debug.Assert(IsHalfWidth(another))
 
-            If ISFULLWIDTH(ch) Then
-                ch = MAKEHALFWIDTH(ch)
+            If IsFullWidth(ch) Then
+                ch = MakeHalfWidth(ch)
             End If
             Return ch = one Or ch = another
         End Function
@@ -476,8 +472,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function ReturnFullWidthOrSelf(c As Char) As Char
-            If SyntaxFacts.ISHALFWIDTH(c) Then
-                Return SyntaxFacts.MAKEFULLWIDTH(c)
+            If IsHalfWidth(c) Then
+                Return MakeFullWidth(c)
             End If
 
             Return c

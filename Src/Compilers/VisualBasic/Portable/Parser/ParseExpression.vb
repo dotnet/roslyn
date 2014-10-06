@@ -499,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared Function TokenContainsFullWidthChars(tk As SyntaxToken) As Boolean
             Dim spelling = tk.Text
             For Each ch In spelling
-                If SyntaxFacts.ISFULLWIDTH(ch) Then
+                If SyntaxFacts.IsFullWidth(ch) Then
                     Return True
                 End If
             Next

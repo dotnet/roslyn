@@ -8643,7 +8643,7 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="XmlEndEmbeddedToken" />
         <native-equiv name="" />
       </node-kind>
-      <node-kind name="BeginCDataToken" token-text="&lt;[CDATA[">
+      <node-kind name="BeginCDataToken" token-text="&lt;![CDATA[">
         <lm-equiv name="XmlBeginCDataToken" />
         <native-equiv name="" />
       </node-kind>

@@ -1,10 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Diagnostics.Debug
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.OperatorPrecedence
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class KeywordTable
@@ -301,8 +297,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             For i As Integer = 0 To s.Length - 1
                 Dim ch = s(i)
 
-                If SyntaxFacts.ISFULLWIDTH(ch) Then
-                    ch = SyntaxFacts.MAKEHALFWIDTH(ch)
+                If SyntaxFacts.IsFullWidth(ch) Then
+                    ch = SyntaxFacts.MakeHalfWidth(ch)
 
                     If result Is Nothing Then
                         result = New Char(s.Length - 1) {}

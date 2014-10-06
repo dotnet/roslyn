@@ -6,6 +6,7 @@
 
 Option Compare Binary
 Option Strict On
+
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
@@ -1158,8 +1159,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return ScanStringLiteral(precedingTrivia)
             End If
 
-            If ISFULLWIDTH(ch) Then
-                ch = MAKEHALFWIDTH(ch)
+            If IsFullWidth(ch) Then
+                ch = MakeHalfWidth(ch)
                 Return ScanTokenFullWidth(precedingTrivia, ch)
             End If
 
@@ -1605,8 +1606,8 @@ FullWidthRepeat:
                         len += 1
 
                     Case Else
-                        If ISFULLWIDTH(ch) Then
-                            ch = MAKEHALFWIDTH(ch)
+                        If IsFullWidth(ch) Then
+                            ch = MakeHalfWidth(ch)
                             GoTo FullWidthRepeat
                         End If
                 End Select
@@ -1773,8 +1774,8 @@ FullWidthRepeat:
                         End While
 
                     Case Else
-                        If ISFULLWIDTH(ch) Then
-                            ch = MAKEHALFWIDTH(ch)
+                        If IsFullWidth(ch) Then
+                            ch = MakeHalfWidth(ch)
                             GoTo FullWidthRepeat
                         End If
 
@@ -1961,8 +1962,8 @@ FullWidthRepeat2:
                         End If
 
                     Case Else
-                        If ISFULLWIDTH(ch) Then
-                            ch = MAKEHALFWIDTH(ch)
+                        If IsFullWidth(ch) Then
+                            ch = MakeHalfWidth(ch)
                             GoTo FullWidthRepeat2
                         End If
                 End Select
@@ -2054,7 +2055,7 @@ FullWidthRepeat2:
                 Dim scratch = GetScratch()
                 For i = 0 To literalWithoutTypeChar - 1
                     Dim curCh = PeekAheadChar(i)
-                    scratch.Append(If(ISFULLWIDTH(curCh), MAKEHALFWIDTH(curCh), curCh))
+                    scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
                 Next
                 Dim LiteralSpelling = GetScratchTextInterned(scratch)
 

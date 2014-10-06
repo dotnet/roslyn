@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 Imports System.Runtime.InteropServices
+Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 '
 '============ Methods for parsing portions of executable statements ==
@@ -713,7 +709,7 @@ LessThanSlashTokenCase:
             End If
 
             ResetCurrentToken(enclosingState)
-            Return DirectCast(xml, XmlNodeSyntax)
+            Return xml
         End Function
 
         Private Function CreateXmlElement(contexts As List(Of XmlContext), endElement As XmlElementEndTagSyntax) As XmlNodeSyntax
@@ -816,7 +812,7 @@ LessThanSlashTokenCase:
 
                     If unexpectedSyntax.Node Is Nothing Then
                         If Not (attributes.Node IsNot Nothing AndAlso attributes.Node.ContainsDiagnostics) Then
-                            greaterThan = Parser.ReportSyntaxError(greaterThan, ERRID.ERR_ExpectedGreater)
+                            greaterThan = ReportSyntaxError(greaterThan, ERRID.ERR_ExpectedGreater)
                         End If
                     Else
                         greaterThan = AddLeadingSyntax(greaterThan, unexpectedSyntax, ERRID.ERR_Syntax)
@@ -1234,7 +1230,7 @@ lFailed:
                     firstType = False
                 Else
                     Debug.Assert(CurrentToken.Kind = SyntaxKind.CommaToken)
-                    signatureTypes.AddSeparator(DirectCast(CurrentToken, PunctuationSyntax))
+                    signatureTypes.AddSeparator(CurrentToken)
                     GetNextToken()
                 End If
 
@@ -1482,7 +1478,7 @@ lFailed:
 
             Private Shared Function IsInvalidTrivia(node As GreenNode) As Boolean
                 If node IsNot Nothing Then
-                    Select Case CType(node.RawKind, SyntaxKind)
+                    Select Case node.RawKind
                         Case SyntaxKind.List
                             For index = 0 To node.SlotCount - 1
                                 If IsInvalidTrivia(node.GetSlot(index)) Then
