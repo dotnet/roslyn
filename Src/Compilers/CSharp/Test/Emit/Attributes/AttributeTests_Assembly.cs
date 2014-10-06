@@ -337,7 +337,7 @@ public class en_US
                     {
                         Assert.Equal(2, ((PEModuleSymbol)m).GetReferencedAssemblySymbols().Length);
                         Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()[1].ToTestDisplayString());
-                    }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics();
+                    }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib(
 @"
@@ -445,7 +445,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
-            CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug,
+            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -474,7 +474,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
-            CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug,
+            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -503,7 +503,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
-            CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug,
+            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -532,7 +532,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
-            CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug,
+            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -560,7 +560,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: EmitOptions.RefEmitBug,
+            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -589,7 +589,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: EmitOptions.RefEmitBug,
+            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -622,7 +622,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: EmitOptions.RefEmitBug,
+            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -662,7 +662,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module_Comp.EmitToImageReference() });
 
-            CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug,
+            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
                 validator: (peAssembly, _) =>
                 {
                     var peReader = peAssembly.ManifestModule.GetMetadataReader();
@@ -1179,7 +1179,7 @@ using System.Runtime.CompilerServices;
 [assembly:InternalsVisibleTo(""Assembly2"")]
 ";
             var compilation = CreateCompilationWithMscorlib(source);
-            CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug);
+            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
                 expectedSrcAttrCount: 2,
@@ -1846,7 +1846,7 @@ public class C { }
 
                                                                   Assert.Equal(1, list.Length);
                                                                   Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module1\")", list[0].ToString());
-                                                              }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics();
+                                                              }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics();
         }
 
         private static IEnumerable<CSharpAttributeData> GetAssemblyDescriptionAttributes(AssemblySymbol assembly)
@@ -1878,7 +1878,7 @@ public class C { }
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module2\")", list[0].ToString());
-            }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics(
+            }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics(
                 // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M1.netmodule' is overridden.
                 Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M1.netmodule")
             );
@@ -1908,7 +1908,7 @@ public class C { }
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module3\")", list[0].ToString());
-            }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics(
+            }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics(
         // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.
         Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M2.netmodule"),
         // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M1.netmodule' is overridden.
@@ -1940,7 +1940,7 @@ public class C { }
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module1\")", list[0].ToString());
-            }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics(
+            }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics(
     // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.
     Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M2.netmodule")
             );
@@ -1968,7 +1968,7 @@ public class C { }
 
                 Assert.Equal(1, attrlist.Count());
                 Assert.Equal("System.Reflection.AssemblyFileVersionAttribute(\"4.3.2.1\")", attrlist.First().ToString());
-            }, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics(
+            }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics(
     // warning CS7090: Attribute 'System.Reflection.AssemblyFileVersionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source
     Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyFileVersionAttribute", "M1.netmodule")
             );

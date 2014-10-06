@@ -3497,7 +3497,7 @@ End Class
                     </file>
                 </compilation>
 
-            CompileAndVerify(source, emitOptions:=EmitOptions.RefEmitBug, expectedOutput:="PASS").VerifyDiagnostics(
+            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, expectedOutput:="PASS").VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_EqualToLiteralNothing, "x = Nothing"),
                     Diagnostic(ERRID.WRN_NotEqualToLiteralNothing, "Nothing <> y")
                                                                           )
@@ -3529,7 +3529,7 @@ End Module
                     </file>
                 </compilation>
 
-            CompileAndVerify(source, emitOptions:=EmitOptions.RefEmitBug).VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
+            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug).VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
 {
   // Code size      124 (0x7c)
   .maxstack  3

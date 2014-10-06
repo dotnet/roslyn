@@ -620,7 +620,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
+        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -650,7 +650,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
+        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -680,7 +680,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
+        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -710,7 +710,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
+        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -740,7 +740,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitOptions:=EmitOptions.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False, emitOptions:=TestEmitters.RefEmitBug,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -771,7 +771,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitOptions:=EmitOptions.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False, emitOptions:=TestEmitters.RefEmitBug,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -805,7 +805,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitOptions:=EmitOptions.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False, emitOptions:=TestEmitters.RefEmitBug,
             manifestResources:=hash_resources,
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
@@ -849,7 +849,7 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module_Comp.EmitToImageReference()})
 
-        CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
+        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
             validator:=Sub(peAssembly, _omitted)
                            Dim metadataReader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = metadataReader.GetAssemblyDefinition()
@@ -1367,7 +1367,7 @@ Imports System.Runtime.CompilerServices
             </compilation>
 
         Dim comp = CreateCompilationWithMscorlib(source, OutputKind.DynamicallyLinkedLibrary)
-        CompileAndVerify(comp, emitOptions:=EmitOptions.RefEmitBug)
+        CompileAndVerify(comp, emitOptions:=TestEmitters.RefEmitBug)
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
             expectedSrcAttrCount:=2,

@@ -1224,7 +1224,7 @@ class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
 ";
             var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
 
-            CompileAndVerify(main, emitOptions: EmitOptions.RefEmitBug);
+            CompileAndVerify(main, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact, WorkItem(530974, "DevDiv")]
@@ -1238,7 +1238,7 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
 ";
             var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
 
-            CompileAndVerify(main, emitOptions: EmitOptions.RefEmitBug);
+            CompileAndVerify(main, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact, WorkItem(530974, "DevDiv")]

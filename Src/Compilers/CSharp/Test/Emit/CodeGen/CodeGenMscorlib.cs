@@ -480,7 +480,7 @@ class C
 
 
         //IMPORTANT: we shoud NOT load fields of self-containing structs like - "ldfld int int.m_value"
-        CompileAndVerify(comp, emitOptions: EmitOptions.RefEmitUnsupported, verify: false).
+        CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitUnsupported, verify: false).
             VerifyIL("int.CompareTo(int)", @"
 {
   // Code size       16 (0x10)
@@ -620,7 +620,7 @@ namespace System
             //IMPORTANT: we shoud NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
-            CompileAndVerify(comp, emitOptions: EmitOptions.RefEmitBug, verify: false).
+            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, verify: false).
                 VerifyIL("program.Main()",
 @"
 {
@@ -748,7 +748,7 @@ namespace System
             //           but see the bug see VSW #396011, JIT needs references when loading
             //           fields of certain clr-ambiguous structs (only possible when building mscolib)
 
-            CompileAndVerify(comp, emitOptions: EmitOptions.RefEmitUnsupported, verify: false).
+            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitUnsupported, verify: false).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)

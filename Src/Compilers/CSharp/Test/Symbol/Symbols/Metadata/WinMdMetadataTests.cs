@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                              };";
 
-            CompileAndVerify(text, WinRtRefs, emitOptions: EmitOptions.RefEmitBug, expectedOutput: "#FF000000");
+            CompileAndVerify(text, WinRtRefs, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "#FF000000");
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ public class C
     }
 }";
             var verifier = CompileAndVerifyOnWin8Only(source, 
-                emitOptions: EmitOptions.RefEmitBug,
+                emitOptions: TestEmitters.RefEmitBug,
                 additionalRefs: WinRtRefs,
                 expectedOutput: "10\r\n0");
             verifier.VerifyDiagnostics();

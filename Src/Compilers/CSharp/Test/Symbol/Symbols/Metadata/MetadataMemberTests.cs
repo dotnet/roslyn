@@ -411,7 +411,7 @@ class B {
   }
 }
 ";
-            CompileWithCustomILSource(cSharpSource, ilSource, emitOptions: EmitOptions.RefEmitBug, expectedOutput: "10");
+            CompileWithCustomILSource(cSharpSource, ilSource, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "10");
         }
 
         [Fact]

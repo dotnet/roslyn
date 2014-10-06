@@ -61,7 +61,7 @@ struct S
 
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.CCI,
+                emitOptions: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
@@ -430,7 +430,7 @@ class C : I1, I2
                 Assert.True(interface1Getter == interface1GetterImpl ^ interface1Getter == interface2GetterImpl);
                 Assert.True(interface2Getter == interface1GetterImpl ^ interface2Getter == interface2GetterImpl);
             },
-            emitOptions: EmitOptions.RefEmitBug);
+            emitOptions: TestEmitters.RefEmitBug);
         }
 
         /// <summary>
@@ -491,7 +491,7 @@ class C : I1
                 Assert.Equal(interfaceIndexers[0].GetMethod, synthesizedExplicitImplementation.ExplicitInterfaceImplementations.Single());
                 Assert.Equal(interfaceIndexers[1].GetMethod, synthesizedExplicitImplementation.ExplicitInterfaceImplementations.Single());
             },
-            emitOptions: EmitOptions.RefEmitBug);
+            emitOptions: TestEmitters.RefEmitBug);
         }
 
         /// <summary>
@@ -671,7 +671,7 @@ class Derived : Base
 
                 Assert.Equal(baseIndexer, derivedIndexer.OverriddenProperty);
             },
-            emitOptions: EmitOptions.RefEmitBug);
+            emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -1167,7 +1167,7 @@ class C : I
                 Assert.False(classIndexer.CanBeReferencedByName);
             };
 
-            CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1229,7 +1229,7 @@ public class C : I
                 Assert.False(classCIndexer.IsIndexer()); //not the default member of C
             };
 
-            CompileAndVerify(text, emitOptions: EmitOptions.RefEmitBug, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(text, emitOptions: TestEmitters.RefEmitBug, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact]

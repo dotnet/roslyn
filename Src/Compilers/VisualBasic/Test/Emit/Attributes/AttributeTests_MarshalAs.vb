@@ -689,7 +689,7 @@ End Class
 
             CompileAndVerifyFieldMarshal(source,
                 Function(fieldName, assembly, options)
-                    If options <> EmitOptions.RefEmit Then
+                    If options <> TestEmitters.RefEmit Then
                         Return cciBlobs(fieldName)
                     End If
 

@@ -395,7 +395,7 @@ End Class
                     </file>
                 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
         End Sub
 
         <Fact>
@@ -4846,7 +4846,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
         End Sub
 
         <WorkItem(528038, "DevDiv")>
@@ -4986,7 +4986,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
         End Sub
 
         <WorkItem(527660, "DevDiv")>
@@ -5025,7 +5025,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
         End Sub
 
         <Fact>
@@ -5043,7 +5043,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
         End Sub
 
         <WorkItem(527656, "DevDiv")>
@@ -5080,7 +5080,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
         End Sub
 
         <Fact>
@@ -5098,7 +5098,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
         End Sub
 
         ''' <summary>

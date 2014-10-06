@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CreateCompilationWithMscorlib45(source, options: compOptions, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions compOptions = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, TestEmitters emitOptions = TestEmitters.All, CSharpCompilationOptions compOptions = null)
         {
             SynchronizationContext.SetSynchronizationContext(null);
 

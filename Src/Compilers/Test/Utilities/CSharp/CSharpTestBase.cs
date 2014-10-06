@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return base.ReferencesToModuleSymbols(references, importOptions).Cast<ModuleSymbol>();
         }
 
-        private Action<IModuleSymbol, EmitOptions> Translate2(Action<ModuleSymbol> action)
+        private Action<IModuleSymbol, TestEmitters> Translate2(Action<ModuleSymbol> action)
         {
             if (action != null)
             {
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            EmitOptions emitOptions = EmitOptions.All,
+            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly, EmitOptions> assemblyValidator = null,
+            Action<PEAssembly, TestEmitters> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            EmitOptions emitOptions = EmitOptions.All,
+            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly, EmitOptions> assemblyValidator = null,
+            Action<PEAssembly, TestEmitters> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             bool collectEmittedAssembly = true,
@@ -124,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string[] sources,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            EmitOptions emitOptions = EmitOptions.All,
+            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly, EmitOptions> validator = null,
+            Action<PEAssembly, TestEmitters> validator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
-            EmitOptions emitOptions = EmitOptions.All,
+            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly, EmitOptions> validator = null,
+            Action<PEAssembly, TestEmitters> validator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string source,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            EmitOptions emitOptions = EmitOptions.All,
+            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
             Action<PEAssembly> validator = null,
             Action<ModuleSymbol> symbolValidator = null,
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         internal CompilationVerifier CompileAndVerifyOnWin8Only(
             Compilation compilation,
             IEnumerable<ModuleData> dependencies = null,
-            EmitOptions emitOptions = EmitOptions.All,
+            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
             Action<PEAssembly> validator = null,
             Action<ModuleSymbol> symbolValidator = null,
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string[] sources,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            EmitOptions emitOptions = EmitOptions.All,
+            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
             Action<PEAssembly> validator = null,
             Action<ModuleSymbol> symbolValidator = null,
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return tc1;
         }
 
-        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, EmitOptions emitOptions = EmitOptions.All, string expectedOutput = null)
+        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, TestEmitters emitOptions = TestEmitters.All, string expectedOutput = null)
         {
             var compilationOptions = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
 
@@ -609,13 +609,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <typeparam name="T">Expected type of the exception.</typeparam>
         /// <param name="source">Program to compile and execute.</param>
         /// <param name="expectedMessage">Ignored if null.</param>
-        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, EmitOptions emitOptions = EmitOptions.All) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, TestEmitters emitOptions = TestEmitters.All) where T : Exception
         {
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
             return CompileAndVerifyException<T>(comp, expectedMessage, emitOptions);
         }
 
-        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, EmitOptions emitOptions = EmitOptions.All) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, TestEmitters emitOptions = TestEmitters.All) where T : Exception
         {
             try
             {

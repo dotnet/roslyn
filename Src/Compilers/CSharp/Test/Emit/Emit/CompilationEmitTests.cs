@@ -2162,7 +2162,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitOptions: EmitOptions.RefEmitBug, verify: false);
+            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitOptions: TestEmitters.RefEmitBug, verify: false);
         }
 
         [Fact]
@@ -2570,7 +2570,7 @@ public interface IUsePlatform
         public void Bug769741()
         {
             // modules not supported in ref emit
-            CompileAndVerify("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, emitOptions: EmitOptions.RefEmitBug, verify: false);
+            CompileAndVerify("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, emitOptions: TestEmitters.RefEmitBug, verify: false);
         }
 
         [Fact]

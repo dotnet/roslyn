@@ -2758,7 +2758,7 @@ End interface
 
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
-            CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug, verify:=False)
+            CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug, verify:=False)
         End Sub
 
         <Fact>

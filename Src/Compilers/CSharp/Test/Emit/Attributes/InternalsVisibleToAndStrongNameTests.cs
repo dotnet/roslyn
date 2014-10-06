@@ -93,7 +93,7 @@ public class Test
                 }
 
                 Assert.True(haveAttribute);
-            }, emitOptions: EmitOptions.CCI); 
+            }, emitOptions: TestEmitters.CCI); 
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public class Test
             }
 
             Assert.True(haveAttribute);
-        }, emitOptions: EmitOptions.CCI);
+        }, emitOptions: TestEmitters.CCI);
     }
 
     [Fact]
@@ -1187,7 +1187,7 @@ public class C : B
         comp3.VerifyDiagnostics();
 
         // Note: calls B.M, not A.M, since asm1 is not accessible.
-        var verifier = CompileAndVerify(comp3, emitOptions: EmitOptions.CCI);
+        var verifier = CompileAndVerify(comp3, emitOptions: TestEmitters.CCI);
             
         verifier.VerifyIL("C.Test", @"
 {
@@ -1309,7 +1309,7 @@ public class D : C
 
         // Note: calls C.M, not A.M, since asm2 is not accessible (stops search).
         // Confirmed in Dev11.
-        var verifier = CompileAndVerify(comp4, emitOptions: EmitOptions.CCI);
+        var verifier = CompileAndVerify(comp4, emitOptions: TestEmitters.CCI);
         
         verifier.VerifyIL("D.Test", @"
 {
@@ -1499,10 +1499,10 @@ public class C
 ", options:TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
 
         CompileAndVerify(other.WithReferences(new []{other.References.ElementAt(0), new CSharpCompilationReference(unsigned)}),
-                         emitOptions: EmitOptions.CCI).VerifyDiagnostics();
+                         emitOptions: TestEmitters.CCI).VerifyDiagnostics();
 
         CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) }), 
-                         emitOptions: EmitOptions.CCI).VerifyDiagnostics();
+                         emitOptions: TestEmitters.CCI).VerifyDiagnostics();
     }
 
     [Fact] [WorkItem(529779, "DevDiv")]

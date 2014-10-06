@@ -370,7 +370,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(source, emitOptions: EmitOptions.CCI, expectedOutput: "");
+            var comp = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: "");
         }
 
         [Fact]
@@ -594,7 +594,7 @@ public class mem178
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]", emitOptions: EmitOptions.RefEmitUnsupported_646014);
+            CompileAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]", emitOptions: TestEmitters.RefEmitUnsupported_646014);
         }
 
         [WorkItem(541618, "DevDiv")]

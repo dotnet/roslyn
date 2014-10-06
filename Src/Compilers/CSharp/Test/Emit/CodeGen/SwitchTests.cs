@@ -865,7 +865,7 @@ public class Test
 	}
 }";
 
-            var compVerifier = CompileAndVerify(text, emitOptions: EmitOptions.CCI, expectedOutput: "0");
+            var compVerifier = CompileAndVerify(text, emitOptions: TestEmitters.CCI, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoEnum", @"
 {
   // Code size      127 (0x7f)
@@ -3450,7 +3450,7 @@ class Program
                 references: new[] { AacorlibRef });
 
 
-            var verifier = CompileAndVerify(comp, verify: false, emitOptions: EmitOptions.RefEmitUnsupported);
+            var verifier = CompileAndVerify(comp, verify: false, emitOptions: TestEmitters.RefEmitUnsupported);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)

@@ -771,7 +771,7 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, EmitOptions) =
+            Dim validator As Action(Of PEAssembly, TestEmitters) =
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
 
@@ -1313,9 +1313,9 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, EmitOptions) =
+            Dim validator As Action(Of PEAssembly, TestEmitters) =
                 Sub(assembly, options)
-                    Dim isRefEmit = options = EmitOptions.RefEmit
+                    Dim isRefEmit = options = TestEmitters.RefEmit
                     Dim peReader = assembly.GetMetadataReader()
 
                     For Each methodDef In peReader.MethodDefinitions
@@ -1763,7 +1763,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim validator As Action(Of PEAssembly, EmitOptions) =
+            Dim validator As Action(Of PEAssembly, TestEmitters) =
                 Sub(assembly, _omitted)
                     Const implFlags As MethodImplAttributes = MethodImplAttributes.IL Or MethodImplAttributes.Managed Or MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
                     DisableJITOptimizationTestHelper(assembly, {"Main", "Main2", "_Lambda$__1"}, {implFlags, 0, implFlags})
@@ -1794,7 +1794,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=EmitOptions.CCI, validator:=
+            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
@@ -1824,7 +1824,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitOptions:=EmitOptions.CCI, validator:=
+            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
 
@@ -1927,7 +1927,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitOptions:=EmitOptions.CCI, validator:=
+            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim peFileReader = assembly.GetMetadataReader()
                     For Each typeDef In peFileReader.TypeDefinitions
@@ -2009,7 +2009,7 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, EmitOptions) =
+            Dim validator As Action(Of PEAssembly, TestEmitters) =
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
 
@@ -2061,7 +2061,7 @@ End Class
 </compilation>
             Const declareFlags = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError
 
-            Dim validator As Action(Of PEAssembly, EmitOptions) =
+            Dim validator As Action(Of PEAssembly, TestEmitters) =
                 Sub(assembly, _omitted)
                     Dim peFileReader = assembly.GetMetadataReader()
                     Assert.Equal(4, peFileReader.GetTableRowCount(TableIndex.ModuleRef))
@@ -2908,7 +2908,7 @@ end structure
                     typeAttribute.VerifyNamedArgumentValue(0, "MayLeakOnAbort", TypedConstantKind.Primitive, True)
                 End Sub
 
-            CompileAndVerify(source, emitOptions:=EmitOptions.RefEmitBug, sourceSymbolValidator:=attributeValidator)
+            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, sourceSymbolValidator:=attributeValidator)
         End Sub
 
         <Fact()>
@@ -4307,7 +4307,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerify(source, emitOptions:=EmitOptions.CCI, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
+            Dim validator = CompileAndVerify(source, emitOptions:=TestEmitters.CCI, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 

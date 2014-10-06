@@ -719,7 +719,7 @@ label
         // the overload that emits with both CCI and ReflectionEmit. (Bug #7012)
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null)
         {
-            return base.CompileAndVerify(source: source, emitOptions: EmitOptions.CCI, expectedOutput: expectedOutput);
+            return base.CompileAndVerify(source: source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
         }
 
         [WorkItem(540719, "DevDiv")]

@@ -341,7 +341,7 @@ class C
                     EventLibRef, 
                     dynamicCommonRef
                 },
-                emitOptions: EmitOptions.RefEmitBug);
+                emitOptions: TestEmitters.RefEmitBug);
             verifer.VerifyIL("C.Main",
 @"
 {
@@ -2366,7 +2366,7 @@ public partial class A : I
                     SystemCoreRef_v4_0_30319_17929,
                     EventLibRef,
                 },
-                emitOptions: EmitOptions.RefEmitBug);
+                emitOptions: TestEmitters.RefEmitBug);
             verifier.VerifyDiagnostics(
                 // (6,42): warning CS0067: The event 'A.d2' is never used
                 //     public event genericDelegate<object> d2;
@@ -2494,7 +2494,7 @@ public partial class A : I
                             } ";
 
             CSharpCompilation comp = CreateWinRtCompilation(text);
-            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: EmitOptions.RefEmitBug);
+            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: TestEmitters.RefEmitBug);
 
             var ExpectedIl = @"
 {
@@ -2557,7 +2557,7 @@ public partial class A : I
                             } ";
 
             CSharpCompilation comp = CreateWinRtCompilation(text);
-            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: EmitOptions.RefEmitBug);
+            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: TestEmitters.RefEmitBug);
 
             var ExpectedIl =
 @"
@@ -2622,7 +2622,7 @@ public class abcdef{
 }";
 
             CSharpCompilation comp = CreateWinRtCompilation(text);
-            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: EmitOptions.RefEmitBug);
+            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: TestEmitters.RefEmitBug);
 
             CSharpCompilation a = CreateWinRtCompilation(text);
 

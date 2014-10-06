@@ -701,7 +701,7 @@ public class X
             };
 
             // RefEmit has slightly different encoding of the type name
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs, emitOptions: EmitOptions.RefEmitBug);
+            var verifier = CompileAndVerifyFieldMarshal(source, blobs, emitOptions: TestEmitters.RefEmitBug);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -737,7 +737,7 @@ public class X
             // RefEmit emits assembly-qualified type names even for types contained in the assembly (X)
             CompileAndVerifyFieldMarshal(source, (fieldName, assembly, emitOptions) => 
             {
-                if (emitOptions != EmitOptions.RefEmit)
+                if (emitOptions != TestEmitters.RefEmit)
                 {
                     return cciBlobs[fieldName];
                 }
@@ -1368,7 +1368,7 @@ class C
                 references: new[] { comp1.EmitToImageReference() },  // it has to be real assembly, Comp2comp reference OK
                 assemblyName: "APP");
 
-            CompileAndVerify(comp2, emitOptions: EmitOptions.RefEmitBug, expectedOutput: @"0").VerifyIL("C.Main", @"
+            CompileAndVerify(comp2, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"0").VerifyIL("C.Main", @"
 {
   // Code size       17 (0x11)
   .maxstack  2

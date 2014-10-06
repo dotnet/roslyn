@@ -1828,7 +1828,7 @@ public class Program
     }
 }
 ";
-            CompileAndVerify(text, emitOptions: EmitOptions.RefEmitBug, expectedOutput: @"Writer wrote 0
+            CompileAndVerify(text, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"Writer wrote 0
 Reader read 0
 Writer wrote 1
 Reader read 1

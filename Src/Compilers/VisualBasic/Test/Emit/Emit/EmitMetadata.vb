@@ -539,7 +539,7 @@ End Class
 </compilation>, validator:=AddressOf EmittedModuleRecordValidator)
         End Sub
 
-        Private Sub EmittedModuleRecordValidator(assembly As PEAssembly, _omitted As EmitOptions)
+        Private Sub EmittedModuleRecordValidator(assembly As PEAssembly, _omitted As TestEmitters)
             Dim reader = assembly.GetMetadataReader()
 
             Dim typeDefs As TypeHandle() = reader.TypeDefinitions.AsEnumerable().ToArray()
@@ -595,7 +595,7 @@ End Class
 </compilation>, validator:=AddressOf EmitBeforeFieldInitValidator)
         End Sub
 
-        Private Sub EmitBeforeFieldInitValidator(assembly As PEAssembly, _omitted As EmitOptions)
+        Private Sub EmitBeforeFieldInitValidator(assembly As PEAssembly, _omitted As TestEmitters)
             Dim reader = assembly.GetMetadataReader()
             Dim typeDefs = reader.TypeDefinitions.AsEnumerable().ToArray()
 

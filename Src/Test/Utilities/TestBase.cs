@@ -547,7 +547,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Used to validate metadata blobs emitted for MarshalAs.
         /// </summary>
-        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, EmitOptions, byte[]> getExpectedBlob, EmitOptions emitOptions, bool isField = true)
+        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, TestEmitters emitOptions, bool isField = true)
         {
             var metadataReader = assembly.GetMetadataReader();
 

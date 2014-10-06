@@ -1801,7 +1801,7 @@ class C : object, B.I<string>
 {
 }
 ";
-            CompileWithCustomILSource(csharpSource, ilSource, emitOptions: EmitOptions.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [WorkItem(528913, "DevDiv")]

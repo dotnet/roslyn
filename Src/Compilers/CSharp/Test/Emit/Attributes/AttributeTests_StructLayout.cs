@@ -150,7 +150,7 @@ class Structs
 	[StructLayout(LayoutKind.Explicit, Pack = 1, Size = Int32.MaxValue)] struct E_P1_S2147483647 {}
 }
 ";
-            Action<PEAssembly, EmitOptions> validator = (assembly, _) =>
+            Action<PEAssembly, TestEmitters> validator = (assembly, _) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
                 
@@ -213,7 +213,7 @@ class Structs
             CompileAndVerify(unverifiable, assemblyValidator: validator, verify: false);
 
             // CLR limitation on type size, not a RefEmit bug:
-            CompileAndVerify(unloadable, emitOptions: EmitOptions.CCI, assemblyValidator: validator, verify: false);
+            CompileAndVerify(unloadable, emitOptions: TestEmitters.CCI, assemblyValidator: validator, verify: false);
         }
 
         [Fact]
@@ -331,7 +331,7 @@ public class C : B
 }
 ";
             // type C can't be loaded
-            CompileAndVerify(source, emitOptions: EmitOptions.CCI, verify: false);
+            CompileAndVerify(source, emitOptions: TestEmitters.CCI, verify: false);
         }
 
         [Fact]

@@ -1344,7 +1344,7 @@ struct C
         System.Console.WriteLine(c.str);
     }
 }";
-            var verifier = CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, expectedOutput: "b");
+            var verifier = CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "b");
         }
 
         [Fact, WorkItem(543440, "DevDiv")]

@@ -219,7 +219,7 @@ End Class
                     CSharpRef,
                     EventLibRef,
                     dynamicCommonRef},
-                emitOptions:=EmitOptions.RefEmitBug)
+                emitOptions:=TestEmitters.RefEmitBug)
             verifer.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      739 (0x2e3)
@@ -485,7 +485,7 @@ Public Partial Class A
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
                     EventLibRef},
-                emitOptions:=EmitOptions.RefEmitBug)
+                emitOptions:=TestEmitters.RefEmitBug)
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("A.Scenario1", <![CDATA[
 {

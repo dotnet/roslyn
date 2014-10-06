@@ -1202,7 +1202,7 @@ class B {
   }
 }
 ";
-            CompileWithCustomILSource(cSharpSource, ilSource, emitOptions: EmitOptions.RefEmitUnsupported);
+            CompileWithCustomILSource(cSharpSource, ilSource, emitOptions: TestEmitters.RefEmitUnsupported);
         }
 
         [Fact]
@@ -2618,7 +2618,7 @@ public interface IA
                 // We should see the same members from both source and metadata
                 var verifier = CompileAndVerify(
                     libSrc,
-                    emitOptions: EmitOptions.RefEmitBug,
+                    emitOptions: TestEmitters.RefEmitBug,
                     sourceSymbolValidator: validator,
                     symbolValidator: validator,
                     options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);

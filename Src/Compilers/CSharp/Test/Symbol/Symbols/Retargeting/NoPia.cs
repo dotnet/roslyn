@@ -2102,7 +2102,7 @@ public class Consumer
                 references: new[] { new CSharpCompilationReference(multiModule),
                                     new CSharpCompilationReference(pia1)});
 
-            CompileAndVerify(consumer, emitOptions: EmitOptions.RefEmitBug);
+            CompileAndVerify(consumer, emitOptions: TestEmitters.RefEmitBug);
         }
     }
 }

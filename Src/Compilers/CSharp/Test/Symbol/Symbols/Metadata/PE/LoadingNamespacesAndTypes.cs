@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 var constructor = structType.InstanceConstructors.Single();
                 Assert.False(constructor.IsImplicitlyDeclared);
             },
-            emitOptions: EmitOptions.RefEmitBug);
+            emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 var constructor = structType.InstanceConstructors.Single();
                 Assert.True(constructor.IsImplicitlyDeclared);
             },
-            emitOptions: EmitOptions.RefEmitBug);
+            emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.False(constructors[withParameterIndex].IsImplicitlyDeclared);
                 Assert.True(constructors[withoutParameterIndex].IsImplicitlyDeclared);
             },
-            emitOptions: EmitOptions.RefEmitBug);
+            emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact]

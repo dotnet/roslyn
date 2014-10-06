@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public enum EmitOptions
+    public enum TestEmitters
     {
         All,
 

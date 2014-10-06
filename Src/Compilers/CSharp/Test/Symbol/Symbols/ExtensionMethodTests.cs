@@ -2393,7 +2393,7 @@ B");
 
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.CCI,
+                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { SystemCoreRef },
                 sourceSymbolValidator: validator(true),
                 symbolValidator: validator(false),
@@ -2477,7 +2477,7 @@ static class S
                     "void S.M3<T, U>(U u, IEnumerable<T> t)");
             };
 
-            CompileAndVerify(compilation, emitOptions: EmitOptions.CCI, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         private void CheckExtensionMethod(
@@ -2536,7 +2536,7 @@ internal static class C
                 Assert.Equal(extensionAttrCtor.ContainingType, attr.GetType(context));
                 context.Diagnostics.Verify();
             };
-            CompileAndVerify(source, emitOptions: EmitOptions.CCI, additionalRefs: new[] { SystemCoreRef }, sourceSymbolValidator: validator, symbolValidator: null);
+            CompileAndVerify(source, emitOptions: TestEmitters.CCI, additionalRefs: new[] { SystemCoreRef }, sourceSymbolValidator: validator, symbolValidator: null);
         }
 
         [WorkItem(541327, "DevDiv")]
@@ -2686,7 +2686,7 @@ class Program
         {
             return CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.CCI,
+                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { SystemCoreRef },
                 expectedOutput: expectedOutput,
                 sourceSymbolValidator: validator,
@@ -2970,7 +2970,7 @@ static class Program
             var libCompilation = CreateCompilationWithMscorlibAndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
             var libReference = new CSharpCompilationReference(libCompilation);
 
-            CompileAndVerify(consumer, additionalRefs: new[] { libReference }, emitOptions: EmitOptions.RefEmitBug);
+            CompileAndVerify(consumer, additionalRefs: new[] { libReference }, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact, WorkItem(545800, "DevDiv")]
@@ -3162,7 +3162,7 @@ End Module";
 }";
             var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: EmitOptions.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
@@ -3175,7 +3175,7 @@ namespace NB
 }";
             var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "B");
             compilation2.VerifyDiagnostics();
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions: EmitOptions.CCI);
+            compilationVerifier = CompileAndVerify(compilation2, emitOptions: TestEmitters.CCI);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"using NB;

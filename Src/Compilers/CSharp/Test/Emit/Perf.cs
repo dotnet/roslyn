@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             ///GNAMBOO: Changing this code has implications for perf tests.
             CompileAndVerify(TestResources.PerfTests.CSPerfTest,
                              additionalRefs: new[] { SystemCoreRef },
-                             emitOptions: EmitOptions.RefEmitUnsupported).
+                             emitOptions: TestEmitters.RefEmitUnsupported).
                              VerifyDiagnostics(
                                 // (2416,9): info CS8019: Unnecessary using directive.
                                 //         using nested;

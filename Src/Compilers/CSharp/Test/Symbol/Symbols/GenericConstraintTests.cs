@@ -49,7 +49,7 @@ class D<T> where T : A<int>, new() { }";
 
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.RefEmitBug,
+                emitOptions: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -88,7 +88,7 @@ class B1 : A<int>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.RefEmitBug,
+                emitOptions: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -115,7 +115,7 @@ class C : I<C, object>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.RefEmitBug,
+                emitOptions: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -172,7 +172,7 @@ partial class B<T> : A<T>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.RefEmitBug,
+                emitOptions: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -3585,7 +3585,7 @@ class C : I
                     Assert.Equal("I2", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: EmitOptions.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -3619,7 +3619,7 @@ class C : I
                     Assert.Equal("I2`2", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: EmitOptions.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -3653,7 +3653,7 @@ class C : I
                     Assert.Equal("I2`1", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: EmitOptions.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -3687,7 +3687,7 @@ class C : I
                     Assert.Equal("I2`01", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: EmitOptions.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -4175,7 +4175,7 @@ class C : I
                     Assert.Equal(2, t.Arity);
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: EmitOptions.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
         }
 
         [WorkItem(542358, "DevDiv")]
@@ -4703,7 +4703,7 @@ abstract class E : D, IB
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.CCI,
+                emitOptions: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -4991,7 +4991,7 @@ interface I6<U> : I3<I<U>, I<U>> { }";
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.CCI,
+                emitOptions: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -5367,7 +5367,7 @@ class A1 : A<C>
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: EmitOptions.RefEmitBug,
+                emitOptions: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -6605,7 +6605,7 @@ class P
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) },
                 options: TestOptions.ReleaseExe);
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, emitOptions: EmitOptions.RefEmitBug, expectedOutput:
+            CompileAndVerify(compilation2, emitOptions: TestEmitters.RefEmitBug, expectedOutput:
 @"C0
 C1
 C2

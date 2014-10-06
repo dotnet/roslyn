@@ -997,7 +997,7 @@ class Override : MetadataModifiers
                         break;
                 }
             },
-            emitOptions: EmitOptions.RefEmitBug);
+            emitOptions: TestEmitters.RefEmitBug);
         }
 
         // Note that not all combinations are possible.

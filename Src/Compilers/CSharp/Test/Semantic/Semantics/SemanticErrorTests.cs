@@ -4190,7 +4190,7 @@ public class B : A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: EmitOptions.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
@@ -6898,7 +6898,7 @@ public class B : A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: EmitOptions.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
@@ -18621,7 +18621,7 @@ class MyClass
    }
 }
 ";
-            var verifier = CompileAndVerify(source: text, emitOptions: EmitOptions.RefEmitBug, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
+            var verifier = CompileAndVerify(source: text, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffff
 ffff");
 

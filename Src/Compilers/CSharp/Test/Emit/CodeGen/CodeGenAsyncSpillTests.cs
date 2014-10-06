@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             SynchronizationContext.SetSynchronizationContext(null);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, TestEmitters emitOptions = TestEmitters.All, CSharpCompilationOptions options = null)
         {
             references = (references != null) ? references.Concat(AsyncRefs) : AsyncRefs;
             return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, emitOptions: emitOptions);

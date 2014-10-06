@@ -341,7 +341,7 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, EmitOptions) =
+            Dim validator As Action(Of PEAssembly, TestEmitters) =
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
                     For Each typeHandle In reader.TypeDefinitions
@@ -389,7 +389,7 @@ End Class
 
             CompileAndVerify(verifiable, validator:=validator)
             CompileAndVerify(unverifiable, validator:=validator, verify:=False)
-            CompileAndVerify(unloadable, emitOptions:=EmitOptions.CCI, validator:=validator, verify:=False)
+            CompileAndVerify(unloadable, emitOptions:=TestEmitters.CCI, validator:=validator, verify:=False)
         End Sub
 
         <Fact>
@@ -565,7 +565,7 @@ End Class
     </file>
 </compilation>
             ' type C can't be loaded
-            CompileAndVerify(source, emitOptions:=EmitOptions.CCI, verify:=False)
+            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, verify:=False)
         End Sub
 
         <Fact>
