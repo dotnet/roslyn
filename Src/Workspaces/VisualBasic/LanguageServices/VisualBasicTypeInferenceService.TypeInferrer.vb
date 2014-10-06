@@ -197,9 +197,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return InferTypeInArgument(argumentOpt, index, symbols)
                         Else
                             ' It may be an array access
-                            Dim expressionType = _semanticModel.GetTypeInfo(invocation.Expression)
-                            If TypeOf expressionType.Type Is IArrayTypeSymbol Then
-                                Return SpecializedCollections.SingletonEnumerable(Compilation.GetSpecialType(SpecialType.System_Int32))
+                            Dim targetExpression As ExpressionSyntax = Nothing
+                            If invocation.Expression IsNot Nothing Then
+                                targetExpression = invocation.Expression
+                            ElseIf invocation.Parent.IsKind(SyntaxKind.ConditionalAccessExpression)
+                                targetExpression = DirectCast(invocation.Parent, ConditionalAccessExpressionSyntax).Expression
+                            End If
+
+                            If targetExpression IsNot Nothing Then
+                                Dim expressionType = _semanticModel.GetTypeInfo(targetExpression)
+                                If TypeOf expressionType.Type Is IArrayTypeSymbol Then
+                                    Return SpecializedCollections.SingletonEnumerable(Compilation.GetSpecialType(SpecialType.System_Int32))
+                                End If
                             End If
                         End If
                     ElseIf argumentList.IsParentKind(SyntaxKind.ObjectCreationExpression) Then

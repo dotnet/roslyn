@@ -50,5 +50,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return True
         End Function
 
+        <Extension>
+        Public Function GetExpression(invocationExpresion As InvocationExpressionSyntax) As ExpressionSyntax
+            If invocationExpresion.Expression IsNot Nothing Then
+                Return invocationExpresion.Expression
+            End If
+
+            If invocationExpresion.IsParentKind(SyntaxKind.ConditionalAccessExpression) Then
+                Return DirectCast(invocationExpresion.Parent, ConditionalAccessExpressionSyntax).Expression
+            End If
+
+            Return Nothing
+        End Function
+
     End Module
 End Namespace
