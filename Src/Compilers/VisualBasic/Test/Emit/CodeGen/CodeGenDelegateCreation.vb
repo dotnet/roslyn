@@ -2890,5 +2890,49 @@ End Class
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(629369, "DevDiv")>
+        Public Sub DelegateConversionOfNothing()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Imports System
+Module Module1
+ 
+    Sub Main()
+        Dim f As Func(Of Integer, Integer)
+        Dim f2 = Function(x As Integer) x
+        f2 = Nothing
+        f = f2
+        Console.WriteLine(If(f Is Nothing, "pass", "fail"))
+    End Sub
+ 
+End Module
+    </file>
+    </compilation>
+            CompileAndVerify(source, expectedOutput:="pass").VerifyDiagnostics()
+        End Sub
+
+        <Fact(), WorkItem(629369, "DevDiv")>
+        Public Sub DelegateConversionOfNothing_02()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Imports System
+Module Module1
+ 
+    Sub Main()
+        Dim f As Func(Of Integer, Integer)
+        Dim f2 = Function(x As Integer) CShort(x)
+        f2 = Nothing
+        f = f2
+        Console.WriteLine(If(f Is Nothing, "pass", "fail"))
+    End Sub
+ 
+End Module
+    </file>
+    </compilation>
+            CompileAndVerify(source, expectedOutput:="pass").VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace

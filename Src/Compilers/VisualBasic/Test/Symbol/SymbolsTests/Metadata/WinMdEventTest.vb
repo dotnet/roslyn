@@ -222,14 +222,18 @@ End Class
                 emitOptions:=TestEmitters.RefEmitBug)
             verifer.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size      739 (0x2e3)
+  // Code size      915 (0x393)
   .maxstack  4
   .locals init (A V_0, //a
-  B V_1, //b
-  VB$AnonymousDelegate_0 V_2, //void
-  VB$AnonymousDelegate_1(Of String) V_3, //str
-  VB$AnonymousDelegate_2(Of Object) V_4, //dyn
-  VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate) V_5) //del
+                B V_1, //b
+                VB$AnonymousDelegate_0 V_2, //void
+                VB$AnonymousDelegate_1(Of String) V_3, //str
+                VB$AnonymousDelegate_2(Of Object) V_4, //dyn
+                VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate) V_5, //del
+                VB$AnonymousDelegate_0 V_6,
+                VB$AnonymousDelegate_1(Of String) V_7,
+                VB$AnonymousDelegate_2(Of Object) V_8,
+                VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate) V_9)
   IL_0000:  newobj     "Sub A..ctor()"
   IL_0005:  stloc.0
   IL_0006:  newobj     "Sub B..ctor()"
@@ -283,158 +287,254 @@ End Class
   IL_00a1:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
   IL_00a7:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
   IL_00ac:  ldloc.2
-  IL_00ad:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_00b3:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
-  IL_00b8:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidVoidDelegate)(System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
-  IL_00bd:  ldloc.0
-  IL_00be:  dup
-  IL_00bf:  ldvirtftn  "Sub A.add_d2(EventLibrary.voidStringDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
-  IL_00c5:  newobj     "Sub System.Func(Of EventLibrary.voidStringDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_00ca:  ldloc.0
-  IL_00cb:  dup
-  IL_00cc:  ldvirtftn  "Sub A.remove_d2(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_00d2:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_00d7:  ldloc.3
-  IL_00d8:  ldftn      "Sub VB$AnonymousDelegate_1(Of String).Invoke(String)"
-  IL_00de:  newobj     "Sub EventLibrary.voidStringDelegate..ctor(Object, System.IntPtr)"
-  IL_00e3:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidStringDelegate)(System.Func(Of EventLibrary.voidStringDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidStringDelegate)"
-  IL_00e8:  ldloc.0
-  IL_00e9:  dup
-  IL_00ea:  ldvirtftn  "Sub A.add_d3(EventLibrary.voidDynamicDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
-  IL_00f0:  newobj     "Sub System.Func(Of EventLibrary.voidDynamicDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_00f5:  ldloc.0
-  IL_00f6:  dup
-  IL_00f7:  ldvirtftn  "Sub A.remove_d3(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_00fd:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_0102:  ldloc.s    V_4
-  IL_0104:  ldftn      "Sub VB$AnonymousDelegate_2(Of Object).Invoke(Object)"
-  IL_010a:  newobj     "Sub EventLibrary.voidDynamicDelegate..ctor(Object, System.IntPtr)"
-  IL_010f:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidDynamicDelegate)(System.Func(Of EventLibrary.voidDynamicDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDynamicDelegate)"
-  IL_0114:  ldloc.0
-  IL_0115:  dup
-  IL_0116:  ldvirtftn  "Sub A.add_d4(EventLibrary.voidDelegateDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
-  IL_011c:  newobj     "Sub System.Func(Of EventLibrary.voidDelegateDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_0121:  ldloc.0
-  IL_0122:  dup
-  IL_0123:  ldvirtftn  "Sub A.remove_d4(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0129:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_012e:  ldloc.s    V_5
-  IL_0130:  ldftn      "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate).Invoke(EventLibrary.voidVoidDelegate)"
-  IL_0136:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
-  IL_013b:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Func(Of EventLibrary.voidDelegateDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
-  IL_0140:  ldloc.0
-  IL_0141:  dup
-  IL_0142:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0148:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_014d:  ldloc.2
-  IL_014e:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0154:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
-  IL_0159:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidVoidDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
-  IL_015e:  ldloc.0
-  IL_015f:  dup
-  IL_0160:  ldvirtftn  "Sub A.remove_d2(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0166:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_016b:  ldloc.3
-  IL_016c:  ldftn      "Sub VB$AnonymousDelegate_1(Of String).Invoke(String)"
-  IL_0172:  newobj     "Sub EventLibrary.voidStringDelegate..ctor(Object, System.IntPtr)"
-  IL_0177:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidStringDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidStringDelegate)"
-  IL_017c:  ldloc.0
-  IL_017d:  dup
-  IL_017e:  ldvirtftn  "Sub A.remove_d3(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0184:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_0189:  ldloc.s    V_4
-  IL_018b:  ldftn      "Sub VB$AnonymousDelegate_2(Of Object).Invoke(Object)"
-  IL_0191:  newobj     "Sub EventLibrary.voidDynamicDelegate..ctor(Object, System.IntPtr)"
-  IL_0196:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDynamicDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDynamicDelegate)"
-  IL_019b:  ldloc.0
-  IL_019c:  dup
-  IL_019d:  ldvirtftn  "Sub A.remove_d4(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_01a3:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_01a8:  ldloc.s    V_5
-  IL_01aa:  ldftn      "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate).Invoke(EventLibrary.voidVoidDelegate)"
-  IL_01b0:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
-  IL_01b5:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
-  IL_01ba:  ldloc.1
-  IL_01bb:  dup
-  IL_01bc:  ldvirtftn  "Sub B.add_d1(EventLibrary.voidVoidDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
-  IL_01c2:  newobj     "Sub System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_01c7:  ldloc.1
-  IL_01c8:  dup
-  IL_01c9:  ldvirtftn  "Sub B.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_01cf:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_01d4:  ldloc.2
-  IL_01d5:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_01db:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
-  IL_01e0:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidVoidDelegate)(System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
-  IL_01e5:  ldloc.1
-  IL_01e6:  dup
-  IL_01e7:  ldvirtftn  "Sub B.add_d2(EventLibrary.voidStringDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
-  IL_01ed:  newobj     "Sub System.Func(Of EventLibrary.voidStringDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_01f2:  ldloc.1
-  IL_01f3:  dup
-  IL_01f4:  ldvirtftn  "Sub B.remove_d2(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_01fa:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_01ff:  ldloc.3
-  IL_0200:  ldftn      "Sub VB$AnonymousDelegate_1(Of String).Invoke(String)"
-  IL_0206:  newobj     "Sub EventLibrary.voidStringDelegate..ctor(Object, System.IntPtr)"
-  IL_020b:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidStringDelegate)(System.Func(Of EventLibrary.voidStringDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidStringDelegate)"
-  IL_0210:  ldloc.1
-  IL_0211:  dup
-  IL_0212:  ldvirtftn  "Sub B.add_d3(EventLibrary.voidDynamicDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
-  IL_0218:  newobj     "Sub System.Func(Of EventLibrary.voidDynamicDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_021d:  ldloc.1
-  IL_021e:  dup
-  IL_021f:  ldvirtftn  "Sub B.remove_d3(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0225:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_022a:  ldloc.s    V_4
-  IL_022c:  ldftn      "Sub VB$AnonymousDelegate_2(Of Object).Invoke(Object)"
-  IL_0232:  newobj     "Sub EventLibrary.voidDynamicDelegate..ctor(Object, System.IntPtr)"
-  IL_0237:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidDynamicDelegate)(System.Func(Of EventLibrary.voidDynamicDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDynamicDelegate)"
-  IL_023c:  ldloc.1
-  IL_023d:  dup
-  IL_023e:  ldvirtftn  "Sub B.add_d4(EventLibrary.voidDelegateDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
-  IL_0244:  newobj     "Sub System.Func(Of EventLibrary.voidDelegateDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_0249:  ldloc.1
-  IL_024a:  dup
-  IL_024b:  ldvirtftn  "Sub B.remove_d4(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0251:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_0256:  ldloc.s    V_5
-  IL_0258:  ldftn      "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate).Invoke(EventLibrary.voidVoidDelegate)"
-  IL_025e:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
-  IL_0263:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Func(Of EventLibrary.voidDelegateDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
-  IL_0268:  ldloc.1
-  IL_0269:  dup
-  IL_026a:  ldvirtftn  "Sub B.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0270:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_0275:  ldloc.2
-  IL_0276:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_027c:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
-  IL_0281:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidVoidDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
-  IL_0286:  ldloc.1
-  IL_0287:  dup
-  IL_0288:  ldvirtftn  "Sub B.remove_d2(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_028e:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_0293:  ldloc.3
-  IL_0294:  ldftn      "Sub VB$AnonymousDelegate_1(Of String).Invoke(String)"
-  IL_029a:  newobj     "Sub EventLibrary.voidStringDelegate..ctor(Object, System.IntPtr)"
-  IL_029f:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidStringDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidStringDelegate)"
-  IL_02a4:  ldloc.1
-  IL_02a5:  dup
-  IL_02a6:  ldvirtftn  "Sub B.remove_d3(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_02ac:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_02b1:  ldloc.s    V_4
-  IL_02b3:  ldftn      "Sub VB$AnonymousDelegate_2(Of Object).Invoke(Object)"
-  IL_02b9:  newobj     "Sub EventLibrary.voidDynamicDelegate..ctor(Object, System.IntPtr)"
-  IL_02be:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDynamicDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDynamicDelegate)"
-  IL_02c3:  ldloc.1
-  IL_02c4:  dup
-  IL_02c5:  ldvirtftn  "Sub B.remove_d4(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_02cb:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_02d0:  ldloc.s    V_5
-  IL_02d2:  ldftn      "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate).Invoke(EventLibrary.voidVoidDelegate)"
-  IL_02d8:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
-  IL_02dd:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
-  IL_02e2:  ret
+  IL_00ad:  stloc.s    V_6
+  IL_00af:  ldloc.s    V_6
+  IL_00b1:  brfalse.s  IL_00c2
+  IL_00b3:  ldloc.s    V_6
+  IL_00b5:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_00bb:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
+  IL_00c0:  br.s       IL_00c3
+  IL_00c2:  ldnull
+  IL_00c3:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidVoidDelegate)(System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
+  IL_00c8:  ldloc.0
+  IL_00c9:  dup
+  IL_00ca:  ldvirtftn  "Sub A.add_d2(EventLibrary.voidStringDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
+  IL_00d0:  newobj     "Sub System.Func(Of EventLibrary.voidStringDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_00d5:  ldloc.0
+  IL_00d6:  dup
+  IL_00d7:  ldvirtftn  "Sub A.remove_d2(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_00dd:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_00e2:  ldloc.3
+  IL_00e3:  stloc.s    V_7
+  IL_00e5:  ldloc.s    V_7
+  IL_00e7:  brfalse.s  IL_00f8
+  IL_00e9:  ldloc.s    V_7
+  IL_00eb:  ldftn      "Sub VB$AnonymousDelegate_1(Of String).Invoke(String)"
+  IL_00f1:  newobj     "Sub EventLibrary.voidStringDelegate..ctor(Object, System.IntPtr)"
+  IL_00f6:  br.s       IL_00f9
+  IL_00f8:  ldnull
+  IL_00f9:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidStringDelegate)(System.Func(Of EventLibrary.voidStringDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidStringDelegate)"
+  IL_00fe:  ldloc.0
+  IL_00ff:  dup
+  IL_0100:  ldvirtftn  "Sub A.add_d3(EventLibrary.voidDynamicDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
+  IL_0106:  newobj     "Sub System.Func(Of EventLibrary.voidDynamicDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_010b:  ldloc.0
+  IL_010c:  dup
+  IL_010d:  ldvirtftn  "Sub A.remove_d3(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_0113:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0118:  ldloc.s    V_4
+  IL_011a:  stloc.s    V_8
+  IL_011c:  ldloc.s    V_8
+  IL_011e:  brfalse.s  IL_012f
+  IL_0120:  ldloc.s    V_8
+  IL_0122:  ldftn      "Sub VB$AnonymousDelegate_2(Of Object).Invoke(Object)"
+  IL_0128:  newobj     "Sub EventLibrary.voidDynamicDelegate..ctor(Object, System.IntPtr)"
+  IL_012d:  br.s       IL_0130
+  IL_012f:  ldnull
+  IL_0130:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidDynamicDelegate)(System.Func(Of EventLibrary.voidDynamicDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDynamicDelegate)"
+  IL_0135:  ldloc.0
+  IL_0136:  dup
+  IL_0137:  ldvirtftn  "Sub A.add_d4(EventLibrary.voidDelegateDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
+  IL_013d:  newobj     "Sub System.Func(Of EventLibrary.voidDelegateDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0142:  ldloc.0
+  IL_0143:  dup
+  IL_0144:  ldvirtftn  "Sub A.remove_d4(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_014a:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_014f:  ldloc.s    V_5
+  IL_0151:  stloc.s    V_9
+  IL_0153:  ldloc.s    V_9
+  IL_0155:  brfalse.s  IL_0166
+  IL_0157:  ldloc.s    V_9
+  IL_0159:  ldftn      "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate).Invoke(EventLibrary.voidVoidDelegate)"
+  IL_015f:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
+  IL_0164:  br.s       IL_0167
+  IL_0166:  ldnull
+  IL_0167:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Func(Of EventLibrary.voidDelegateDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
+  IL_016c:  ldloc.0
+  IL_016d:  dup
+  IL_016e:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_0174:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0179:  ldloc.2
+  IL_017a:  stloc.s    V_6
+  IL_017c:  ldloc.s    V_6
+  IL_017e:  brfalse.s  IL_018f
+  IL_0180:  ldloc.s    V_6
+  IL_0182:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_0188:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
+  IL_018d:  br.s       IL_0190
+  IL_018f:  ldnull
+  IL_0190:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidVoidDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
+  IL_0195:  ldloc.0
+  IL_0196:  dup
+  IL_0197:  ldvirtftn  "Sub A.remove_d2(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_019d:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_01a2:  ldloc.3
+  IL_01a3:  stloc.s    V_7
+  IL_01a5:  ldloc.s    V_7
+  IL_01a7:  brfalse.s  IL_01b8
+  IL_01a9:  ldloc.s    V_7
+  IL_01ab:  ldftn      "Sub VB$AnonymousDelegate_1(Of String).Invoke(String)"
+  IL_01b1:  newobj     "Sub EventLibrary.voidStringDelegate..ctor(Object, System.IntPtr)"
+  IL_01b6:  br.s       IL_01b9
+  IL_01b8:  ldnull
+  IL_01b9:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidStringDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidStringDelegate)"
+  IL_01be:  ldloc.0
+  IL_01bf:  dup
+  IL_01c0:  ldvirtftn  "Sub A.remove_d3(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_01c6:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_01cb:  ldloc.s    V_4
+  IL_01cd:  stloc.s    V_8
+  IL_01cf:  ldloc.s    V_8
+  IL_01d1:  brfalse.s  IL_01e2
+  IL_01d3:  ldloc.s    V_8
+  IL_01d5:  ldftn      "Sub VB$AnonymousDelegate_2(Of Object).Invoke(Object)"
+  IL_01db:  newobj     "Sub EventLibrary.voidDynamicDelegate..ctor(Object, System.IntPtr)"
+  IL_01e0:  br.s       IL_01e3
+  IL_01e2:  ldnull
+  IL_01e3:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDynamicDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDynamicDelegate)"
+  IL_01e8:  ldloc.0
+  IL_01e9:  dup
+  IL_01ea:  ldvirtftn  "Sub A.remove_d4(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_01f0:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_01f5:  ldloc.s    V_5
+  IL_01f7:  stloc.s    V_9
+  IL_01f9:  ldloc.s    V_9
+  IL_01fb:  brfalse.s  IL_020c
+  IL_01fd:  ldloc.s    V_9
+  IL_01ff:  ldftn      "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate).Invoke(EventLibrary.voidVoidDelegate)"
+  IL_0205:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
+  IL_020a:  br.s       IL_020d
+  IL_020c:  ldnull
+  IL_020d:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
+  IL_0212:  ldloc.1
+  IL_0213:  dup
+  IL_0214:  ldvirtftn  "Sub B.add_d1(EventLibrary.voidVoidDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
+  IL_021a:  newobj     "Sub System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_021f:  ldloc.1
+  IL_0220:  dup
+  IL_0221:  ldvirtftn  "Sub B.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_0227:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_022c:  ldloc.2
+  IL_022d:  stloc.s    V_6
+  IL_022f:  ldloc.s    V_6
+  IL_0231:  brfalse.s  IL_0242
+  IL_0233:  ldloc.s    V_6
+  IL_0235:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_023b:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
+  IL_0240:  br.s       IL_0243
+  IL_0242:  ldnull
+  IL_0243:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidVoidDelegate)(System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
+  IL_0248:  ldloc.1
+  IL_0249:  dup
+  IL_024a:  ldvirtftn  "Sub B.add_d2(EventLibrary.voidStringDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
+  IL_0250:  newobj     "Sub System.Func(Of EventLibrary.voidStringDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0255:  ldloc.1
+  IL_0256:  dup
+  IL_0257:  ldvirtftn  "Sub B.remove_d2(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_025d:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0262:  ldloc.3
+  IL_0263:  stloc.s    V_7
+  IL_0265:  ldloc.s    V_7
+  IL_0267:  brfalse.s  IL_0278
+  IL_0269:  ldloc.s    V_7
+  IL_026b:  ldftn      "Sub VB$AnonymousDelegate_1(Of String).Invoke(String)"
+  IL_0271:  newobj     "Sub EventLibrary.voidStringDelegate..ctor(Object, System.IntPtr)"
+  IL_0276:  br.s       IL_0279
+  IL_0278:  ldnull
+  IL_0279:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidStringDelegate)(System.Func(Of EventLibrary.voidStringDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidStringDelegate)"
+  IL_027e:  ldloc.1
+  IL_027f:  dup
+  IL_0280:  ldvirtftn  "Sub B.add_d3(EventLibrary.voidDynamicDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
+  IL_0286:  newobj     "Sub System.Func(Of EventLibrary.voidDynamicDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_028b:  ldloc.1
+  IL_028c:  dup
+  IL_028d:  ldvirtftn  "Sub B.remove_d3(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_0293:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0298:  ldloc.s    V_4
+  IL_029a:  stloc.s    V_8
+  IL_029c:  ldloc.s    V_8
+  IL_029e:  brfalse.s  IL_02af
+  IL_02a0:  ldloc.s    V_8
+  IL_02a2:  ldftn      "Sub VB$AnonymousDelegate_2(Of Object).Invoke(Object)"
+  IL_02a8:  newobj     "Sub EventLibrary.voidDynamicDelegate..ctor(Object, System.IntPtr)"
+  IL_02ad:  br.s       IL_02b0
+  IL_02af:  ldnull
+  IL_02b0:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidDynamicDelegate)(System.Func(Of EventLibrary.voidDynamicDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDynamicDelegate)"
+  IL_02b5:  ldloc.1
+  IL_02b6:  dup
+  IL_02b7:  ldvirtftn  "Sub B.add_d4(EventLibrary.voidDelegateDelegate) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
+  IL_02bd:  newobj     "Sub System.Func(Of EventLibrary.voidDelegateDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_02c2:  ldloc.1
+  IL_02c3:  dup
+  IL_02c4:  ldvirtftn  "Sub B.remove_d4(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_02ca:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_02cf:  ldloc.s    V_5
+  IL_02d1:  stloc.s    V_9
+  IL_02d3:  ldloc.s    V_9
+  IL_02d5:  brfalse.s  IL_02e6
+  IL_02d7:  ldloc.s    V_9
+  IL_02d9:  ldftn      "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate).Invoke(EventLibrary.voidVoidDelegate)"
+  IL_02df:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
+  IL_02e4:  br.s       IL_02e7
+  IL_02e6:  ldnull
+  IL_02e7:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Func(Of EventLibrary.voidDelegateDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
+  IL_02ec:  ldloc.1
+  IL_02ed:  dup
+  IL_02ee:  ldvirtftn  "Sub B.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_02f4:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_02f9:  ldloc.2
+  IL_02fa:  stloc.s    V_6
+  IL_02fc:  ldloc.s    V_6
+  IL_02fe:  brfalse.s  IL_030f
+  IL_0300:  ldloc.s    V_6
+  IL_0302:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_0308:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
+  IL_030d:  br.s       IL_0310
+  IL_030f:  ldnull
+  IL_0310:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidVoidDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
+  IL_0315:  ldloc.1
+  IL_0316:  dup
+  IL_0317:  ldvirtftn  "Sub B.remove_d2(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_031d:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0322:  ldloc.3
+  IL_0323:  stloc.s    V_7
+  IL_0325:  ldloc.s    V_7
+  IL_0327:  brfalse.s  IL_0338
+  IL_0329:  ldloc.s    V_7
+  IL_032b:  ldftn      "Sub VB$AnonymousDelegate_1(Of String).Invoke(String)"
+  IL_0331:  newobj     "Sub EventLibrary.voidStringDelegate..ctor(Object, System.IntPtr)"
+  IL_0336:  br.s       IL_0339
+  IL_0338:  ldnull
+  IL_0339:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidStringDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidStringDelegate)"
+  IL_033e:  ldloc.1
+  IL_033f:  dup
+  IL_0340:  ldvirtftn  "Sub B.remove_d3(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_0346:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_034b:  ldloc.s    V_4
+  IL_034d:  stloc.s    V_8
+  IL_034f:  ldloc.s    V_8
+  IL_0351:  brfalse.s  IL_0362
+  IL_0353:  ldloc.s    V_8
+  IL_0355:  ldftn      "Sub VB$AnonymousDelegate_2(Of Object).Invoke(Object)"
+  IL_035b:  newobj     "Sub EventLibrary.voidDynamicDelegate..ctor(Object, System.IntPtr)"
+  IL_0360:  br.s       IL_0363
+  IL_0362:  ldnull
+  IL_0363:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDynamicDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDynamicDelegate)"
+  IL_0368:  ldloc.1
+  IL_0369:  dup
+  IL_036a:  ldvirtftn  "Sub B.remove_d4(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_0370:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0375:  ldloc.s    V_5
+  IL_0377:  stloc.s    V_9
+  IL_0379:  ldloc.s    V_9
+  IL_037b:  brfalse.s  IL_038c
+  IL_037d:  ldloc.s    V_9
+  IL_037f:  ldftn      "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate).Invoke(EventLibrary.voidVoidDelegate)"
+  IL_0385:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
+  IL_038a:  br.s       IL_038d
+  IL_038c:  ldnull
+  IL_038d:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
+  IL_0392:  ret
 }
 ]]>.Value)
         End Sub
@@ -489,9 +589,10 @@ Public Partial Class A
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("A.Scenario1", <![CDATA[
 {
-  // Code size      116 (0x74)
+  // Code size      132 (0x84)
   .maxstack  4
-  .locals init (VB$AnonymousDelegate_0 V_0) //testDelegate
+  .locals init (VB$AnonymousDelegate_0 V_0, //testDelegate
+                VB$AnonymousDelegate_0 V_1)
   IL_0000:  ldsfld     "A._ClosureCache$__2 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "A._ClosureCache$__2 As <generated method>"
@@ -511,30 +612,43 @@ Public Partial Class A
   IL_0030:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
   IL_0036:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
   IL_003b:  ldloc.0
-  IL_003c:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0042:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
-  IL_0047:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidVoidDelegate)(System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
-  IL_004c:  ldarg.0
-  IL_004d:  dup
-  IL_004e:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0054:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_0059:  ldloc.0
-  IL_005a:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0060:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
-  IL_0065:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidVoidDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
-  IL_006a:  ldarg.0
-  IL_006b:  ldfld      "A.d1Event As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable(Of EventLibrary.voidVoidDelegate)"
-  IL_0070:  ldnull
-  IL_0071:  ceq
-  IL_0073:  ret
+  IL_003c:  stloc.1
+  IL_003d:  ldloc.1
+  IL_003e:  brfalse.s  IL_004e
+  IL_0040:  ldloc.1
+  IL_0041:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_0047:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
+  IL_004c:  br.s       IL_004f
+  IL_004e:  ldnull
+  IL_004f:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidVoidDelegate)(System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
+  IL_0054:  ldarg.0
+  IL_0055:  dup
+  IL_0056:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_005c:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0061:  ldloc.0
+  IL_0062:  stloc.1
+  IL_0063:  ldloc.1
+  IL_0064:  brfalse.s  IL_0074
+  IL_0066:  ldloc.1
+  IL_0067:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_006d:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
+  IL_0072:  br.s       IL_0075
+  IL_0074:  ldnull
+  IL_0075:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidVoidDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
+  IL_007a:  ldarg.0
+  IL_007b:  ldfld      "A.d1Event As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable(Of EventLibrary.voidVoidDelegate)"
+  IL_0080:  ldnull
+  IL_0081:  ceq
+  IL_0083:  ret
 }
 ]]>.Value)
             verifier.VerifyIL("A.Scenario2", <![CDATA[
 {
-  // Code size      118 (0x76)
+  // Code size      134 (0x86)
   .maxstack  4
   .locals init (A V_0, //b
-  VB$AnonymousDelegate_0 V_1) //testDelegate
+                VB$AnonymousDelegate_0 V_1, //testDelegate
+                VB$AnonymousDelegate_0 V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldsfld     "A._ClosureCache$__4 As <generated method>"
@@ -556,22 +670,34 @@ Public Partial Class A
   IL_0032:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
   IL_0038:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
   IL_003d:  ldloc.1
-  IL_003e:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0044:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
-  IL_0049:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidVoidDelegate)(System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
-  IL_004e:  ldloc.0
-  IL_004f:  dup
-  IL_0050:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0056:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_005b:  ldloc.1
-  IL_005c:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0062:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
-  IL_0067:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidVoidDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
-  IL_006c:  ldloc.0
-  IL_006d:  ldfld      "A.d1Event As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable(Of EventLibrary.voidVoidDelegate)"
-  IL_0072:  ldnull
-  IL_0073:  ceq
-  IL_0075:  ret
+  IL_003e:  stloc.2
+  IL_003f:  ldloc.2
+  IL_0040:  brfalse.s  IL_0050
+  IL_0042:  ldloc.2
+  IL_0043:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_0049:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
+  IL_004e:  br.s       IL_0051
+  IL_0050:  ldnull
+  IL_0051:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventLibrary.voidVoidDelegate)(System.Func(Of EventLibrary.voidVoidDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
+  IL_0056:  ldloc.0
+  IL_0057:  dup
+  IL_0058:  ldvirtftn  "Sub A.remove_d1(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
+  IL_005e:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
+  IL_0063:  ldloc.1
+  IL_0064:  stloc.2
+  IL_0065:  ldloc.2
+  IL_0066:  brfalse.s  IL_0076
+  IL_0068:  ldloc.2
+  IL_0069:  ldftn      "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_006f:  newobj     "Sub EventLibrary.voidVoidDelegate..ctor(Object, System.IntPtr)"
+  IL_0074:  br.s       IL_0077
+  IL_0076:  ldnull
+  IL_0077:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidVoidDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidVoidDelegate)"
+  IL_007c:  ldloc.0
+  IL_007d:  ldfld      "A.d1Event As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable(Of EventLibrary.voidVoidDelegate)"
+  IL_0082:  ldnull
+  IL_0083:  ceq
+  IL_0085:  ret
 }
 ]]>.Value)
         End Sub

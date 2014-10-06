@@ -119,12 +119,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          node.Type.IsDelegateType() AndAlso
                          node.Type.SpecialType <> SpecialType.System_MulticastDelegate)
 
-            Return Visit(New BoundDelegateCreationExpression(node.Syntax, node.Operand,
-                                                             DirectCast(node.Operand.Type, NamedTypeSymbol).DelegateInvokeMethod,
-                                                             node.RelaxationLambdaOpt,
-                                                             node.RelaxationReceiverPlaceholderOpt,
-                                                             methodGroupOpt:=Nothing,
-                                                             type:=node.Type))
+            Dim F As New SyntheticBoundNodeFactory(Me.topMethod, Me.currentMethodOrLambda, node.Syntax, Me.compilationState, Me.diagnostics)
+            If (node.Operand.IsDefaultValueConstant) Then
+                Return F.Null(node.Type)
+            ElseIf (Not Me.inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand)) Then
+                Dim savedOriginalValue = F.SynthesizedLocal(node.Operand.Type)
+                Dim checkIfNothing = F.ReferenceIsNothing(F.Local(savedOriginalValue, False))
+                Dim conversionIfNothing = F.Null(node.Type)
+                Dim convertedValue = New BoundDelegateCreationExpression(node.Syntax, F.Local(savedOriginalValue, False),
+                                                                            DirectCast(node.Operand.Type, NamedTypeSymbol).DelegateInvokeMethod,
+                                                                            node.RelaxationLambdaOpt,
+                                                                            node.RelaxationReceiverPlaceholderOpt,
+                                                                            methodGroupOpt:=Nothing,
+                                                                            type:=node.Type)
+                Dim conditionalResult As BoundExpression = F.TernaryConditionalExpression(condition:=checkIfNothing, ifTrue:=conversionIfNothing, ifFalse:=convertedValue)
+                Return F.Sequence(savedOriginalValue,
+                                  F.AssignmentExpression(F.Local(savedOriginalValue, True), VisitExpression(node.Operand)),
+                                  VisitExpression(conditionalResult))
+            Else
+                Dim convertedValue = New BoundDelegateCreationExpression(node.Syntax, node.Operand,
+                                                                            DirectCast(node.Operand.Type, NamedTypeSymbol).DelegateInvokeMethod,
+                                                                            node.RelaxationLambdaOpt,
+                                                                            node.RelaxationReceiverPlaceholderOpt,
+                                                                            methodGroupOpt:=Nothing,
+                                                                            type:=node.Type)
+                Return VisitExpression(convertedValue)
+            End If
+
+        End Function
+
+        Private Function CouldPossiblyBeNothing(F As SyntheticBoundNodeFactory, node As BoundExpression) As Boolean
+            Select Case node.Kind
+                Case BoundKind.TernaryConditionalExpression
+                    Dim t = DirectCast(node, BoundTernaryConditionalExpression)
+                    Return CouldPossiblyBeNothing(F, t.WhenTrue) OrElse CouldPossiblyBeNothing(F, t.WhenFalse)
+                Case BoundKind.Conversion
+                    Dim t = DirectCast(node, BoundConversion)
+                    Return CouldPossiblyBeNothing(F, t.Operand)
+                Case BoundKind.Lambda
+                    Return False
+                Case BoundKind.Call
+                    Dim t = DirectCast(node, BoundCall)
+                    Return t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate, True) OrElse
+                        t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate4, True) OrElse
+                        t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, True)
+                Case Else
+                    Return True
+            End Select
         End Function
 
         Private Function RewriteNullableConversion(node As BoundConversion) As BoundExpression
