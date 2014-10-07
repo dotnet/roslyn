@@ -22,6 +22,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace MakeConstCS
 {
-    [ExportCodeFixProvider("MakeConstCS", LanguageNames.CSharp)]
+    [ExportCodeFixProvider("MakeConstCS", LanguageNames.CSharp), Shared]
     internal class MakeConstCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

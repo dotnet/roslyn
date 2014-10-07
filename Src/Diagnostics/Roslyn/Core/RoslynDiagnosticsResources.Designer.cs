@@ -97,6 +97,42 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parts exported with MEFv2 must be marked as Shared..
+        /// </summary>
+        internal static string MissingSharedAttributeDescription {
+            get {
+                return ResourceManager.GetString("MissingSharedAttributeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Part exported with MEFv2 must be marked with the Shared attribute..
+        /// </summary>
+        internal static string MissingSharedAttributeMessage {
+            get {
+                return ResourceManager.GetString("MissingSharedAttributeMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not mix attributes from different versions of MEF.
+        /// </summary>
+        internal static string MixedVersionsOfMefAttributesDescription {
+            get {
+                return ResourceManager.GetString("MixedVersionsOfMefAttributesDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; comes from a different version of MEF than the export attribute on &apos;{1}&apos;.
+        /// </summary>
+        internal static string MixedVersionsOfMefAttributesMessage {
+            get {
+                return ResourceManager.GetString("MixedVersionsOfMefAttributesMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Avoid zero-length array allocations..
         /// </summary>
         internal static string UseArrayEmptyDescription {

@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition.Hosting;
+using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -1193,12 +1193,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
         }
 
-        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, ServiceLayer.Default)]
+        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, ServiceLayer.Default), Shared]
         private class TestLanguageServiceA : ITestLanguageService
         {
         }
 
-        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, "Quasimodo")]
+        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, "Quasimodo"), Shared]
         private class TestLanguageServiceB : ITestLanguageService
         {
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Performance
     /// <summary>
     /// CA1813: Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes.
     /// </summary>
-    [ExportCodeFixProvider(CA1813DiagnosticAnalyzer.RuleId, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(CA1813DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
     public class CA1813CSharpCodeFixProvider : CA1813CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)

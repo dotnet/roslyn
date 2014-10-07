@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
             Dim compiler = New Vbc(BasicResponseFileName, Directory.GetCurrentDirectory(), args)
 
-            CompilerFatalError.Handler = AddressOf FailFast.OnFatalException
+            FatalError.Handler = AddressOf FailFast.OnFatalException
 
             ' We store original encoding and restore it later to revert 
             ' the changes that might be done by /utf8output options

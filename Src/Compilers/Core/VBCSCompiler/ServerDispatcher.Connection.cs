@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     {
                         return handler.HandleRequest(request, cancellationTokenSource.Token);
                     }
-                    catch (Exception e) if (CompilerFatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

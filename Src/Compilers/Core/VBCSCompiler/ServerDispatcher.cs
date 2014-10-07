@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.LogException(e, "Could not read AppSettings");
             }
 
-            CompilerFatalError.Handler = FailFast.OnFatalException;
+            FatalError.Handler = FailFast.OnFatalException;
 
             var dispatcher = new ServerDispatcher(BuildProtocolConstants.PipeName,
                                                   new CompilerRequestHandler(),
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 ConnectionCompleted();
             }
-            catch (Exception e) if (CompilerFatalError.Report(e))
+            catch (Exception e) if (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

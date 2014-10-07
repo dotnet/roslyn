@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             ////        return FxCopFixersResources.EnumsShouldZeroValueNotFlagsNoZeroValueCodeFix;
 
             ////    default:
-            ////        throw Contract.Unreachable;
+            ////        throw ExceptionUtilities.Unreachable;
             ////}
 
             throw new NotImplementedException();
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 ////    return GetUpdatedDocumentForRuleNameNoZeroValue(document, root, nodeToFix, enumType, cancellationToken);
 
                 default:
-                    throw Contract.Unreachable;
+                    throw ExceptionUtilities.Unreachable;
             }
         }
     }

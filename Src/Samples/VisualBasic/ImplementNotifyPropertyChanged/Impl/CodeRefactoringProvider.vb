@@ -20,6 +20,7 @@
 '
 ' *********************************************************
 
+Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -30,7 +31,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-<ExportCodeRefactoringProvider("ImplementNotifyPropertyChangedVB", LanguageNames.VisualBasic)>
+<ExportCodeRefactoringProvider("ImplementNotifyPropertyChangedVB", LanguageNames.VisualBasic), [Shared]>
 Friend Class ImplementNotifyPropertyChangedCodeRefactoringProvider
     Inherits CodeRefactoringProvider
 

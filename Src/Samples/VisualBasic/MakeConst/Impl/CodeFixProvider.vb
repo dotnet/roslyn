@@ -21,6 +21,7 @@
 ' *********************************************************
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -31,7 +32,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-<ExportCodeFixProvider("MakeConstVB", LanguageNames.VisualBasic)>
+<ExportCodeFixProvider("MakeConstVB", LanguageNames.VisualBasic), [Shared]>
 Class MakeConstCodeFixProvider
     Inherits CodeFixProvider
 

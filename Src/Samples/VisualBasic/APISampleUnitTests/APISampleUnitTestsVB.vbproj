@@ -29,6 +29,10 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop">
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
       <Private>false</Private>

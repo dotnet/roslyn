@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace AsyncPackage
     /// <summary>
     /// Codefix changes the synchronous operations to it's asynchronous equivalent. 
     /// </summary>
-    [ExportCodeFixProvider(BlockingAsyncAnalyzer.BlockingAsyncId, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(BlockingAsyncAnalyzer.BlockingAsyncId, LanguageNames.CSharp), Shared]
     public class BlockingAsyncCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

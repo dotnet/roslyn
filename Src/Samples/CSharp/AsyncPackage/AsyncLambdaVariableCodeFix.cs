@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace AsyncPackage
     /// <summary>
     /// Codefix that changes the type of a variable to be Func of Task instead of a void-returning delegate type.
     /// </summary>
-    [ExportCodeFixProvider(AsyncLambdaAnalyzer.AsyncLambdaId1, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(AsyncLambdaAnalyzer.AsyncLambdaId1, LanguageNames.CSharp), Shared]
     public class AsyncLambdaVariableCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

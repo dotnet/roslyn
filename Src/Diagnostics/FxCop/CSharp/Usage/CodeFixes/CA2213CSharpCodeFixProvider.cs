@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     /// <summary>
     /// CA2213: Disposable fields should be disposed
     /// </summary>
-    [ExportCodeFixProvider(CA2213DiagnosticAnalyzer.RuleId, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(CA2213DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
     public class CA2213CSharpCodeFixProvider : CA2213CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)

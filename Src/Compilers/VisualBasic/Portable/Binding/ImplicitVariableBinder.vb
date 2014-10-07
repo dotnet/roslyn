@@ -245,10 +245,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not _frozen Then
                 ' First time we're called, get the thread id. Subsequent times, check it hasn't changed.
                 If _threadIdForDeclaration = -1 Then
-                    Interlocked.CompareExchange(_threadIdForDeclaration, ThreadingUtilities.GetCurrentThreadId(), -1)
+                    Interlocked.CompareExchange(_threadIdForDeclaration, Environment.CurrentManagedThreadId, -1)
                 End If
 
-                Debug.Assert(_threadIdForDeclaration = ThreadingUtilities.GetCurrentThreadId())
+                Debug.Assert(_threadIdForDeclaration = Environment.CurrentManagedThreadId)
             End If
         End Sub
 #End If

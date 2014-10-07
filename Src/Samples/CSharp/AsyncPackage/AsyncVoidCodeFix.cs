@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace AsyncPackage
     /// <summary>
     /// This codefix replaces the void return type with Task in any method declaration the AsyncVoidAnalyzer catches
     /// </summary>
-    [ExportCodeFixProvider(AsyncVoidAnalyzer.AsyncVoidId, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(AsyncVoidAnalyzer.AsyncVoidId, LanguageNames.CSharp), Shared]
     public class AsyncVoidCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
 {
-    [ExportCodeFixProvider(PInvokeDiagnosticAnalyzer.CA2101, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(PInvokeDiagnosticAnalyzer.CA2101, LanguageNames.CSharp), Shared]
     public class CA2101CSharpCodeFixProvider : CA2101CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)

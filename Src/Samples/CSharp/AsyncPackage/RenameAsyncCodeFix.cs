@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace AsyncPackage
     /// <summary>
     /// This codefix adds "Async" to the end of the Method Identifier and does a basic spellcheck in case the user had already tried to type Async
     /// </summary>
-    [ExportCodeFixProvider(RenameAsyncAnalyzer.RenameAsyncId, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(RenameAsyncAnalyzer.RenameAsyncId, LanguageNames.CSharp), Shared]
     public class RenameAsyncCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

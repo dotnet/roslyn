@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
         internal static int Run(string[] args)
         {
 
-            CompilerFatalError.Handler = FailFast.OnFatalException;
+            FatalError.Handler = FailFast.OnFatalException;
 
             Csc compiler = new Csc(CSharpResponseFileName, Directory.GetCurrentDirectory(), args);
 

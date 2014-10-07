@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -13,7 +14,7 @@ using Roslyn.Diagnostics.Analyzers;
 namespace Microsoft.CodeAnalysis.Performance
 {
     /// <summary>Provides a code fix for the EmptyArrayDiagnosticAnalyzer.</summary>
-    [ExportCodeFixProvider("CSharpEmptyArrayCodeFixProvider", LanguageNames.CSharp)]
+    [ExportCodeFixProvider("CSharpEmptyArrayCodeFixProvider", LanguageNames.CSharp), Shared]
     public sealed class CSharpEmptyArrayCodeFixProvider : CodeFixProviderBase
     {
         public override ImmutableArray<string> GetFixableDiagnosticIds() { return ImmutableArray.Create(RoslynDiagnosticIds.UseArrayEmptyRuleId); }

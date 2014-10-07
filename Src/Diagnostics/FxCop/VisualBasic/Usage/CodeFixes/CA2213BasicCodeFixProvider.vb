@@ -8,12 +8,13 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     ' <summary>
     ' CA2213: Disposable fields should be disposed
     ' </summary>
-    <ExportCodeFixProvider(CA2213DiagnosticAnalyzer.RuleId, LanguageNames.VisualBasic)>
+    <ExportCodeFixProvider(CA2213DiagnosticAnalyzer.RuleId, LanguageNames.VisualBasic), [Shared]>
     Public Class CA2213BasicCodeFixProvider
         Inherits CA2213CodeFixProviderBase
 

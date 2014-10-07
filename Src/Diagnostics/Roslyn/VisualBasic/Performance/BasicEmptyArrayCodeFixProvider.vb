@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -11,7 +12,7 @@ Imports Roslyn.Diagnostics.Analyzers
 Namespace Microsoft.CodeAnalysis.Performance
 
     ''' <summary>Provides a code fix for the EmptyArrayDiagnosticAnalyzer.</summary>
-    <ExportCodeFixProvider("BasicEmptyArrayCodeFixProvider", LanguageNames.VisualBasic)>
+    <ExportCodeFixProvider("BasicEmptyArrayCodeFixProvider", LanguageNames.VisualBasic), [Shared]>
     Public NotInheritable Class BasicEmptyArrayCodeFixProvider
         Inherits CodeFixProviderBase
 

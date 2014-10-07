@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -9,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Diagnostics.Analyzers
 
 Namespace Roslyn.Diagnostics.CodeFixes.VisualBasic
-    <ExportCodeFixProvider(RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId, LanguageNames.VisualBasic)>
+    <ExportCodeFixProvider(RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId, LanguageNames.VisualBasic), [Shared]>
     Public Class BasicDirectlyAwaitingTaskFix
         Inherits DirectlyAwaitingTaskFix(Of ExpressionSyntax)
 

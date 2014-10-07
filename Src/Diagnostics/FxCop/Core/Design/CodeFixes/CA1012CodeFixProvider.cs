@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// <summary>
     /// CA1012: Abstract classes should not have public constructors
     /// </summary>
-    [ExportCodeFixProvider(CA1012DiagnosticAnalyzer.RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    [ExportCodeFixProvider(CA1012DiagnosticAnalyzer.RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     public sealed class CA1012CodeFixProvider : CodeFixProviderBase
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

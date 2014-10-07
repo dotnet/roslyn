@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace ConvertToAutoPropertyCS
 {
-    [ExportCodeRefactoringProvider("ConvertToAutoPropertyCS", LanguageNames.CSharp)]
+    [ExportCodeRefactoringProvider("ConvertToAutoPropertyCS", LanguageNames.CSharp), Shared]
     internal class ConvertToAutoPropertyCodeRefactoringProvider : CodeRefactoringProvider
     {
         public sealed override async Task<IEnumerable<CodeAction>> GetRefactoringsAsync(CodeRefactoringContext context)

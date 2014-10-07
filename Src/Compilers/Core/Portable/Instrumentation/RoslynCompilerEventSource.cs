@@ -16,13 +16,8 @@ namespace Microsoft.CodeAnalysis.Instrumentation
     /// <summary>
     /// This EventSource exposes our events to ETW.
     /// RoslynCompilerEventSource GUID is {9f93daf9-7fee-5301-ebea-643b538889b4}.
-    /// CodeSense.RoslynCompilerEventSource GUID is {08e567fa-f66d-52c7-4e58-d802264cc8db}.
     /// </summary>
-#if CODESENSE
-    [EventSource(Name = "CodeSense.RoslynCompilerEventSource")]
-#else
     [EventSource(Name = "RoslynCompilerEventSource")]
-#endif
     internal sealed class RoslynCompilerEventSource : EventSource
     {
         // We might not be "enabled" but we always have this singleton alive.

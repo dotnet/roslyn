@@ -20,7 +20,7 @@
 '
 ' *********************************************************
 
-Imports System.ComponentModel.Composition
+Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -32,7 +32,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-<ExportCodeRefactoringProvider("ConvertToAutoPropertyVB", LanguageNames.VisualBasic)>
+<ExportCodeRefactoringProvider("ConvertToAutoPropertyVB", LanguageNames.VisualBasic), [Shared]>
 Class ConvertToAutoPropertyCodeRefactoringProvider
     Inherits CodeRefactoringProvider
 
@@ -135,7 +135,7 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
         Dim oldRoot = DirectCast(Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False), SyntaxNode)
         Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-        Dim referenceRewriter = New ReferenceRewriter(propertyName, backingField, semanticModel)
+        Dim referenceRewriter = New referenceRewriter(propertyName, backingField, semanticModel)
         Dim newRoot = referenceRewriter.Visit(oldRoot)
 
         Return document.WithSyntaxRoot(newRoot)

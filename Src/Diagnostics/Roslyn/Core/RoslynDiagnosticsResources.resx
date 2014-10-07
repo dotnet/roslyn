@@ -129,6 +129,18 @@
   <data name="DontUseCodeActionCreateMessage" xml:space="preserve">
     <value>Consider creating unique code action type per different fix. it will help us to see how each code action is used. otherwise, we will only see bunch of generic code actions being used.</value>
   </data>
+  <data name="MissingSharedAttributeDescription" xml:space="preserve">
+    <value>Parts exported with MEFv2 must be marked as Shared.</value>
+  </data>
+  <data name="MissingSharedAttributeMessage" xml:space="preserve">
+    <value>Part exported with MEFv2 must be marked with the Shared attribute.</value>
+  </data>
+  <data name="MixedVersionsOfMefAttributesDescription" xml:space="preserve">
+    <value>Do not mix attributes from different versions of MEF</value>
+  </data>
+  <data name="MixedVersionsOfMefAttributesMessage" xml:space="preserve">
+    <value>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</value>
+  </data>
   <data name="UseArrayEmptyDescription" xml:space="preserve">
     <value>Avoid zero-length array allocations.</value>
   </data>

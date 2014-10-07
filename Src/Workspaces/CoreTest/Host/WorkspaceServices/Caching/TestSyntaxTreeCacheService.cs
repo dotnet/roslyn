@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Host.WorkspaceServices.Caching
 {
-    [ExportWorkspaceService(typeof(ISyntaxTreeCacheService), "Test")]
+    [ExportWorkspaceService(typeof(ISyntaxTreeCacheService), "Test"), Shared]
     internal class TestSyntaxTreeCacheService : ISyntaxTreeCacheService
     {
         private Dictionary<SyntaxNode, IWeakAction<SyntaxNode>> trees =

@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Sub()
                     Try
                         CompileNamespace(symbol)
-                    Catch e As Exception When CompilerFatalError.ReportUnlessCanceled(e)
+                    Catch e As Exception When FatalError.ReportUnlessCanceled(e)
                         Throw ExceptionUtilities.Unreachable
                     End Try
                 End Sub,
@@ -487,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Sub()
                     Try
                         CompileNamedType(symbol, filter)
-                    Catch e As Exception When CompilerFatalError.ReportUnlessCanceled(e)
+                    Catch e As Exception When FatalError.ReportUnlessCanceled(e)
                         Throw ExceptionUtilities.Unreachable
                     End Try
                 End Sub,

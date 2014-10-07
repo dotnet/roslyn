@@ -683,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Sub()
                                 Try
                                     visitor(symbol)
-                                Catch e As Exception When CompilerFatalError.ReportUnlessCanceled(e)
+                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
                                     Throw ExceptionUtilities.Unreachable
                                 End Try
                             End Sub,

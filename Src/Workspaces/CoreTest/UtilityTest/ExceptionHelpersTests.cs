@@ -33,19 +33,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We would need to disable Watson for that process.
         }
 
-        [Fact]
-        public void TestSuppressFailFast()
-        {
-            Assert.False(ExceptionHelpers.IsFailFastSuppressed());
-
-            using (ExceptionHelpers.SuppressFailFast())
-            {
-                Assert.True(ExceptionHelpers.IsFailFastSuppressed());
-            }
-
-            Assert.False(ExceptionHelpers.IsFailFastSuppressed());
-        }
-
         /// <summary>
         /// Test that throwing OperationCanceledException does NOT trigger FailFast
         /// </summary>
@@ -72,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     a();
                 }
-                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -113,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     {
                         a();
                     }
-                    catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                    catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

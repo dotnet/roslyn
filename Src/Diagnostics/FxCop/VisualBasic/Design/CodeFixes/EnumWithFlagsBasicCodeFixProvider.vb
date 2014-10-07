@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Design
@@ -10,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     ''' <summary>
     ''' CA2217: Do not mark enums with FlagsAttribute
     ''' </summary>
-    <ExportCodeFixProvider(EnumWithFlagsDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.VisualBasic)>
+    <ExportCodeFixProvider(EnumWithFlagsDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.VisualBasic), [Shared]>
     Public Class EnumWithFlagsBasicCodeFixProvider
         Inherits EnumWithFlagsCodeFixProviderBase
 
@@ -29,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
                 End If
             End If
 
-            Throw Contract.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace

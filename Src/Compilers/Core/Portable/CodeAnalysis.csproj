@@ -221,7 +221,7 @@
     <Compile Include="Instrumentation\RoslynCompilerEventSource.cs" />
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
-    <Compile Include="InternalUtilities\CompilerFatalError.cs" />
+    <Compile Include="InternalUtilities\FatalError.cs" />
     <Compile Include="InternalUtilities\ComStreamWrapper.cs" />
     <Compile Include="InternalUtilities\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="InternalUtilities\ConcurrentLruCache.cs" />
@@ -269,7 +269,6 @@
     <Compile Include="InternalUtilities\SuppressUnmanagedCodeSecurityAttribute.cs" />
     <Compile Include="InternalUtilities\TextChangeRangeExtensions.cs" />
     <Compile Include="InternalUtilities\TextKeyedCache.cs" />
-    <Compile Include="InternalUtilities\ThreadingUtilities.cs" />
     <Compile Include="InternalUtilities\ThreadSafeFlagOperations.cs" />
     <Compile Include="InternalUtilities\ThreeState.cs" />
     <Compile Include="InternalUtilities\ValueTuple.cs" />
