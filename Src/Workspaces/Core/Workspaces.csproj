@@ -821,8 +821,8 @@
     <Compile Include="Workspace\Host\HostLanguageServices.cs" />
     <Compile Include="Workspace\Host\HostServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefHostServices.cs" />
-    <Compile Include="Workspace\Host\Metadata\MetadataReferenceProviderServiceFactory.cs" />
-    <Compile Include="Workspace\Host\Metadata\IMetadataReferenceProviderService.cs" />
+    <Compile Include="Workspace\Host\Metadata\MetadataServiceFactory.cs" />
+    <Compile Include="Workspace\Host\Metadata\IMetadataService.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\AbstractPersistentStorage.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\IPersistentStorage.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\IPersistentStorageService.cs" />

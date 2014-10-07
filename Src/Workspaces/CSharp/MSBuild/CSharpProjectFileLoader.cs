@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
         {
-            return new CSharpProjectFile(this, loadedProject, this.workspaceServices.GetService<IMetadataReferenceProviderService>());
+            return new CSharpProjectFile(this, loadedProject, this.workspaceServices.GetService<IMetadataService>());
         }
     }
 }

@@ -27,17 +27,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function CreateProjectFile(loadedProject As MSB.Evaluation.Project) As ProjectFile
-            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataReferenceProviderService))
+            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataService))
         End Function
 
         Friend Class VisualBasicProjectFile
             Inherits ProjectFile
 
-            Private _metadataService As IMetadataReferenceProviderService
+            Private _metadataService As IMetadataService
 
-            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataServices As IMetadataReferenceProviderService)
+            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataService As IMetadataService)
                 MyBase.New(loader, loadedProject)
-                Me._metadataService = metadataServices
+                Me._metadataService = metadataService
             End Sub
 
             Public Overrides Function GetSourceCodeKind(documentFileName As String) As SourceCodeKind

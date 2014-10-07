@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         internal readonly ITextFactoryService TextFactory;
         internal readonly ITextCacheService TextCache;
         internal readonly ICompilationCacheService CompilationCacheService;
-        internal readonly IMetadataReferenceProviderService MetadataReferenceProviderService;
+        internal readonly IMetadataService MetadataService;
 
         public SolutionServices(Workspace workspace)
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             this.TextFactory = workspace.Services.GetService<ITextFactoryService>();
             this.TextCache = workspace.Services.GetService<ITextCacheService>();
             this.CompilationCacheService = workspace.Services.GetService<ICompilationCacheService>();
-            this.MetadataReferenceProviderService = workspace.Services.GetService<IMetadataReferenceProviderService>();
+            this.MetadataService = workspace.Services.GetService<IMetadataService>();
         }
     }
 }

@@ -854,9 +854,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
                 else
                 {
-                    var metadataService = this.Services.GetService<IMetadataReferenceProviderService>();
-                    var provider = metadataService.GetProvider();
-                    return provider.GetReference(outputFilePath, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases));
+                    var metadataService = this.Services.GetService<IMetadataService>();
+                    return metadataService.GetReference(outputFilePath, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases));
                 }
             }
 

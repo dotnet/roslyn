@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class CSharpProjectFile : ProjectFile
         {
-            private readonly IMetadataReferenceProviderService metadataService;
+            private readonly IMetadataService metadataService;
 
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataReferenceProviderService metadataService)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService)
                 : base(loader, project)
             {
                 this.metadataService = metadataService;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
             {
-                return documentFileName.EndsWith(".csx", System.StringComparison.OrdinalIgnoreCase)
+                return documentFileName.EndsWith(".csx", StringComparison.OrdinalIgnoreCase)
                     ? SourceCodeKind.Script
                     : SourceCodeKind.Regular;
             }
