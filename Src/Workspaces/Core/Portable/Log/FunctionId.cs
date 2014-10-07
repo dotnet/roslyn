@@ -270,6 +270,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         PersistedSemanticVersion_Info,
         Esent_Exceptions,
         WorkCoordinator_ShutdownTimeout,
-        Diagnostics_HyperLink
+        Diagnostics_HyperLink,
+
+        CodeFixes_FixAllOccurrencesSession,
+        CodeFixes_FixAllOccurrencesContext,
+        CodeFixes_FixAllOccurrencesComputation,
+        CodeFixes_FixAllOccurrencesComputationResult,
+        CodeFixes_FixAllOccurrencesComputation_Diagnostics,
+        CodeFixes_FixAllOccurrencesComputation_Fixes,
+        CodeFixes_FixAllOccurrencesComputation_Merge,
+        CodeFixes_FixAllOccurrencesPreviewChanges,
+        CodeFixes_FixAllOccurrencesPreviewChangesResult
     }
 }
