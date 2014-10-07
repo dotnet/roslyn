@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory);
 
                 var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
-                metadataReferences = commandLineArgs.ResolveMetadataReferences(resolver, this.metadataService.GetProvider());
+                metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, this.metadataService.GetProvider()));
                 analyzerReferences = commandLineArgs.ResolveAnalyzerReferences();
             }
 
@@ -295,8 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         OutputKind.ConsoleApplication,
                         xmlReferenceResolver: new XmlFileResolver(projectDirectory),
                         sourceReferenceResolver: new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory),
-                        metadataReferenceResolver: new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
-                        metadataReferenceProvider: MetadataFileReferenceProvider.Default,
+                        metadataReferenceResolver: new AssemblyReferenceResolver(
+                            new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
+                            MetadataFileReferenceProvider.Default),
                         strongNameProvider: new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputDirectory)),
                         assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
                     this.Warnings = new Dictionary<string, ReportDiagnostic>();
@@ -539,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetLangVersion(string langVersion)
                 {
-                    LanguageVersion? languageVersion = CompilationOptionsConversion.GetLanguageVersion(langVersion);
+                    var languageVersion = CompilationOptionsConversion.GetLanguageVersion(langVersion);
                     if (languageVersion.HasValue)
                     {
                         this.ParseOptions = this.ParseOptions.WithLanguageVersion(languageVersion.Value);

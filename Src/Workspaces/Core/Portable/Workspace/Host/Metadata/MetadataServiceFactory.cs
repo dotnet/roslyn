@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host
                 this.provider = new Provider(this);
             }
 
-            public MetadataReferenceProvider GetProvider()
+            public MetadataFileReferenceProvider GetProvider()
             {
                 return provider;
             }
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private sealed class Provider : MetadataReferenceProvider
+        private sealed class Provider : MetadataFileReferenceProvider
         {
             private readonly Service service;
 

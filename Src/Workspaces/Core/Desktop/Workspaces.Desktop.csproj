@@ -60,6 +60,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Desktop\AssemblyReferenceResolver.cs">
+      <Link>InternalUtilities\AssemblyReferenceResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Desktop\MetadataFileReferenceResolver.cs">
+      <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Desktop\EncodedStringText.cs">
       <Link>InternalUtilities\EncodedStringText.cs</Link>
     </Compile>
@@ -75,6 +81,10 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
+      <Link>InternalUtilities\GacFileResolver.cs</Link>
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="Options\ExportOptionsAttribute.cs" />
@@ -123,8 +133,11 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>

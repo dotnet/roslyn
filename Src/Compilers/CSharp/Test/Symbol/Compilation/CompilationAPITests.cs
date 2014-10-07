@@ -1464,7 +1464,9 @@ public class TestClass
         {
             var c1 = CSharpCompilation.Create("c", options: TestOptions.ReleaseDll);
 
-            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(new MetadataFileReferenceResolver(ImmutableArray.Create<string>(), null)));
+            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                new AssemblyReferenceResolver(new MetadataFileReferenceResolver(ImmutableArray.Create<string>(), null), MetadataFileReferenceProvider.Default)));
+
             Assert.False(c1.ReferenceManagerEquals(c2));
 
             var c3 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(c1.Options.MetadataReferenceResolver));
@@ -1480,18 +1482,6 @@ public class TestClass
             Assert.False(c1.ReferenceManagerEquals(c2));
 
             var c3 = c1.WithOptions(TestOptions.ReleaseDll.WithXmlReferenceResolver(c1.Options.XmlReferenceResolver));
-            Assert.True(c1.ReferenceManagerEquals(c3));
-        }
-
-        [Fact]
-        public void ReferenceManagerReuse_WithMetadataReferenceProvider()
-        {
-            var c1 = CSharpCompilation.Create("c", options: TestOptions.ReleaseDll);
-
-            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceProvider(new MetadataFileReferenceProvider()));
-            Assert.False(c1.ReferenceManagerEquals(c2));
-
-            var c3 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceProvider(c1.Options.MetadataReferenceProvider));
             Assert.True(c1.ReferenceManagerEquals(c3));
         }
 

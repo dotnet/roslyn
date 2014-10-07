@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, touchedFilesLogger);
 
             var externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger);
-            MetadataReferenceResolver referenceDirectiveResolver;
+            MetadataFileReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, out referenceDirectiveResolver);
             if (PrintErrors(diagnostics, consoleOutput))    
             {
@@ -163,8 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 trees.WhereNotNull(),
                 resolvedReferences,
                 Arguments.CompilationOptions.
-                    WithMetadataReferenceResolver(referenceDirectiveResolver).
-                    WithMetadataReferenceProvider(metadataProvider).
+                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(referenceDirectiveResolver, metadataProvider)).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithStrongNameProvider(strongNameProvider).
                     WithXmlReferenceResolver(xmlFileResolver).

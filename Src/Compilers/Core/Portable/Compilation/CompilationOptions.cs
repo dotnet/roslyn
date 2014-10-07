@@ -107,12 +107,6 @@ namespace Microsoft.CodeAnalysis
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }
 
         /// <summary>
-        /// Translates a resolved assembly reference path to an actual <see cref="PortableExecutableReference"/>.
-        /// Null if the compilation can't contain references to metadata other than those explicitly passed to its factory (such as #r directives in sources). 
-        /// </summary>
-        public MetadataReferenceProvider MetadataReferenceProvider { get; protected set; }
-
-        /// <summary>
         /// Resolves paths to metadata references specified in source via #r directives.
         /// Null if the compilation can't contain references to metadata other than those explicitly passed to its factory (such as #r directives in sources). 
         /// </summary>
@@ -168,7 +162,6 @@ namespace Microsoft.CodeAnalysis
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
             MetadataReferenceResolver metadataReferenceResolver,
-            MetadataReferenceProvider metadataReferenceProvider,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
@@ -191,7 +184,6 @@ namespace Microsoft.CodeAnalysis
             this.XmlReferenceResolver = xmlReferenceResolver;
             this.SourceReferenceResolver = sourceReferenceResolver;
             this.MetadataReferenceResolver = metadataReferenceResolver;
-            this.MetadataReferenceProvider = metadataReferenceProvider;
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
@@ -215,7 +207,6 @@ namespace Microsoft.CodeAnalysis
                 && this.OutputKind.IsNetModule() == other.OutputKind.IsNetModule()
                 && object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver)
                 && object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver)
-                && object.Equals(this.MetadataReferenceProvider, other.MetadataReferenceProvider)
                 && object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
         }
 
@@ -301,11 +292,6 @@ namespace Microsoft.CodeAnalysis
             return CommonWithSourceReferenceResolver(resolver);
         }
 
-        public CompilationOptions WithMetadataReferenceProvider(MetadataReferenceProvider provider)
-        {
-            return CommonWithMetadataReferenceProvider(provider);
-        }
-
         public CompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver resolver)
         {
             return CommonWithMetadataReferenceResolver(resolver);
@@ -332,7 +318,6 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver);
         protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver);
         protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver);
-        protected abstract CompilationOptions CommonWithMetadataReferenceProvider(MetadataReferenceProvider provider);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider);
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
@@ -380,7 +365,6 @@ namespace Microsoft.CodeAnalysis
                    string.Equals(this.ScriptClassName, other.ScriptClassName, StringComparison.Ordinal) &&
                    this.SpecificDiagnosticOptions.SequenceEqual(other.SpecificDiagnosticOptions, (left, right) => (left.Key == right.Key) && (left.Value == right.Value)) &&
                    this.WarningLevel == other.WarningLevel &&
-                   object.Equals(this.MetadataReferenceProvider, other.MetadataReferenceProvider) &&
                    object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver) &&
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
@@ -411,12 +395,11 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(Hash.CombineValues(this.SpecificDiagnosticOptions),
                    Hash.Combine(this.WarningLevel,
                    Hash.Combine(this.MetadataReferenceResolver,
-                   Hash.Combine(this.MetadataReferenceProvider,
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(Hash.CombineValues(this.Features, StringComparer.Ordinal), 0))))))))))))))))))))));
+                   Hash.Combine(Hash.CombineValues(this.Features, StringComparer.Ordinal), 0)))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

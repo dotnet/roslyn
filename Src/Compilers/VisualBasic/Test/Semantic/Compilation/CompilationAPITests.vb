@@ -1388,21 +1388,11 @@ End Class
         Public Sub ReferenceManagerReuse_WithMetadataReferenceResolver()
             Dim c1 = VBCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
-            Dim c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(New MetadataFileReferenceResolver(ImmutableArray.Create(Of String)(), Nothing)))
+            Dim c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                New AssemblyReferenceResolver(New MetadataFileReferenceResolver(ImmutableArray.Create(Of String)(), Nothing), MetadataFileReferenceProvider.Default)))
             Assert.False(c1.ReferenceManagerEquals(c2))
 
             Dim c3 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(c1.Options.MetadataReferenceResolver))
-            Assert.True(c1.ReferenceManagerEquals(c3))
-        End Sub
-
-        <Fact>
-        Public Sub ReferenceManagerReuse_WithMetadataReferenceProvider()
-            Dim c1 = VBCompilation.Create("c", options:=TestOptions.ReleaseDll)
-
-            Dim c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceProvider(New MetadataFileReferenceProvider()))
-            Assert.False(c1.ReferenceManagerEquals(c2))
-
-            Dim c3 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceProvider(c1.Options.MetadataReferenceProvider))
             Assert.True(c1.ReferenceManagerEquals(c3))
         End Sub
 

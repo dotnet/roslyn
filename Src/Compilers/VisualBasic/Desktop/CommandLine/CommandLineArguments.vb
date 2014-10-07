@@ -61,13 +61,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function ResolveMetadataReferences(
             metadataResolver As MetadataReferenceResolver,
-            metadataProvider As MetadataReferenceProvider,
             diagnostics As List(Of DiagnosticInfo),
             messageProvider As CommonMessageProvider,
             resolved As List(Of MetadataReference)
             ) As Boolean
 
-            If MyBase.ResolveMetadataReferences(metadataResolver, metadataProvider, diagnostics, messageProvider, resolved) Then
+            If MyBase.ResolveMetadataReferences(metadataResolver, diagnostics, messageProvider, resolved) Then
 
                 ' If there were no references, don't try to add default Cor library reference.
                 If Me.DefaultCoreLibraryReference IsNot Nothing AndAlso resolved.Count > 0 Then
@@ -105,9 +104,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 
                     ' None of the supplied references could be used as a Cor library. Let's add a default one.
-                    Dim defaultCorLibrary As MetadataReference = ResolveMetadataReference(Me.DefaultCoreLibraryReference.Value, metadataResolver, metadataProvider, diagnostics, messageProvider)
+                    Dim defaultCorLibrary = ResolveMetadataReference(Me.DefaultCoreLibraryReference.Value, metadataResolver, diagnostics, messageProvider).FirstOrDefault()
 
-                    If defaultCorLibrary.IsUnresolved Then
+                    If defaultCorLibrary Is Nothing OrElse defaultCorLibrary.IsUnresolved Then
                         Debug.Assert(diagnostics Is Nothing OrElse diagnostics.Any())
                         Return False
                     Else

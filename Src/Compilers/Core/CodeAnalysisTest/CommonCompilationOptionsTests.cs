@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "GeneralDiagnosticOption",
                 "MainTypeName",
                 "MetadataImportOptions",
-                "MetadataReferenceProvider",
                 "MetadataReferenceResolver",
                 "ModuleName",
                 "OptimizationLevel",

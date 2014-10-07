@@ -2676,7 +2676,7 @@ System.Diagnostics.Process.GetCurrentProcess();
             var compilation = CSharpCompilation.Create("foo",
                 syntaxTrees: trees,
                 references: new[] { MscorlibRef },
-                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new Resolver(data, core, system)).WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(new Resolver(data, core, system), MetadataFileReferenceProvider.Default)));
 
             var boundRefs = compilation.Assembly.BoundReferences();
 
@@ -2713,8 +2713,7 @@ System.Diagnostics.Process.GetCurrentProcess();
                 syntaxTrees: trees,
                 references: new[] { mscorlibRef },
                 options: TestOptions.ReleaseDll
-                    .WithMetadataReferenceResolver(new Resolver(data, core, system))
-                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+                    .WithMetadataReferenceResolver(new AssemblyReferenceResolver(new Resolver(data, core, system), MetadataFileReferenceProvider.Default)));
 
             compilation.VerifyDiagnostics(
                 // (3,1): error CS0006: Metadata file '~!@#$%^&*():\?/' could not be found
@@ -2729,7 +2728,7 @@ System.Diagnostics.Process.GetCurrentProcess();
 
         private static readonly string ResolvedPath = Path.GetPathRoot(Environment.CurrentDirectory) + "RESOLVED";
 
-        private class DummyFileProvider : MetadataReferenceProvider
+        private class DummyFileProvider : MetadataFileReferenceProvider
         {
             readonly string targetDll;
 
@@ -2773,7 +2772,7 @@ class C : Metadata.ICSPropImpl { }";
                     {
                         Parse(source, options: TestOptions.Script)
                     },
-                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver).WithMetadataReferenceProvider(provider));
+                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(resolver, provider)));
 
             compilation.VerifyDiagnostics();
         }
@@ -2797,8 +2796,7 @@ class C : Metadata.ICSPropImpl { }";
                 trees,
                 new[] { MscorlibRef },
                 TestOptions.ReleaseDll
-                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
-                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+                    .WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)));
 
             compilation.VerifyDiagnostics();
         }
@@ -2835,8 +2833,7 @@ class C : Metadata.ICSPropImpl { }";
                 syntaxTrees: trees,
                 references: new[] { MscorlibRef },
                 options: TestOptions.ReleaseDll
-                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
-                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+                    .WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)));
 
             compilation.VerifyDiagnostics();
         }
@@ -2862,8 +2859,7 @@ class C : Metadata.ICSPropImpl { }";
                 trees,
                 new[] { MscorlibRef },
                 TestOptions.ReleaseDll
-                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
-                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+                    .WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)));
 
             compilation.VerifyDiagnostics();
         }

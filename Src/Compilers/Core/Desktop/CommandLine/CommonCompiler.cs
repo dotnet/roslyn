@@ -86,17 +86,17 @@ namespace Microsoft.CodeAnalysis
         /// Resolves metadata references stored in command line arguments and reports errors for those that can't be resolved.
         /// </summary>
         internal List<MetadataReference> ResolveMetadataReferences(
-            MetadataReferenceResolver externalReferenceResolver,
-            MetadataReferenceProvider metadataProvider,
+            MetadataFileReferenceResolver externalReferenceResolver,
+            MetadataFileReferenceProvider metadataProvider,
             List<DiagnosticInfo> diagnostics,
             AssemblyIdentityComparer assemblyIdentityComparer,
             TouchedFileLogger touchedFiles,
-            out MetadataReferenceResolver referenceDirectiveResolver)
+            out MetadataFileReferenceResolver referenceDirectiveResolver)
         {
             using (Logger.LogBlock(FunctionId.Common_CommandLineCompiler_ResolveMetadataReferences))
             {
                 List<MetadataReference> resolved = new List<MetadataReference>();
-                Arguments.ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, this.MessageProvider, resolved);
+                Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
 
                 if (Arguments.IsInteractive)
                 {

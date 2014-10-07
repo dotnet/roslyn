@@ -52,7 +52,7 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    public class VirtualizedFileReferenceResolver : MetadataFileReferenceResolver
+    internal class VirtualizedFileReferenceResolver : MetadataFileReferenceResolver
     {
         private readonly HashSet<string> existingFullPaths;
 

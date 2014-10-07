@@ -298,11 +298,11 @@
     <Compile Include="MetadataReference\AssemblyMetadata.cs" />
     <Compile Include="MetadataReference\CompilationReference.cs" />
     <Compile Include="MetadataReference\Metadata.cs" />
+    <Compile Include="MetadataReference\MetadataFileReferenceProvider.cs" />
     <Compile Include="MetadataReference\MetadataImageKind.cs" />
     <Compile Include="MetadataReference\MetadataImageReference.cs" />
     <Compile Include="MetadataReference\MetadataReference.cs" />
     <Compile Include="MetadataReference\MetadataReferenceProperties.cs" />
-    <Compile Include="MetadataReference\MetadataReferenceProvider.cs" />
     <Compile Include="MetadataReference\MetadataReferenceResolver.cs" />
     <Compile Include="MetadataReference\ModuleMetadata.cs" />
     <Compile Include="MetadataReference\PortableExecutableReference.cs" />

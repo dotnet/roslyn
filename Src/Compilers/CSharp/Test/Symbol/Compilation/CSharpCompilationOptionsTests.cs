@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
 
             TestProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
-            TestProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new MetadataFileReferenceResolver(new string[0], null));
-            TestProperty((old, value) => old.WithMetadataReferenceProvider(value), opt => opt.MetadataReferenceProvider, new MetadataFileReferenceProvider());
+            TestProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new AssemblyReferenceResolver(new MetadataFileReferenceResolver(new string[0], null), new MetadataFileReferenceProvider()));
             TestProperty((old, value) => old.WithAssemblyIdentityComparer(value), opt => opt.AssemblyIdentityComparer, new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy()));
             TestProperty((old, value) => old.WithStrongNameProvider(value), opt => opt.StrongNameProvider, new DesktopStrongNameProvider());
         }
@@ -354,8 +353,7 @@ Parameter name: ModuleName")
             bool concurrentBuild = false;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
             SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
-            MetadataReferenceResolver metadataReferenceResolver = new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, null);
-            MetadataReferenceProvider metadataReferenceProvider = MetadataFileReferenceProvider.Default;    // Currently uses reference equality
+            MetadataReferenceResolver metadataReferenceResolver = new AssemblyReferenceResolver(new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, null), MetadataFileReferenceProvider.Default);
             AssemblyIdentityComparer assemblyIdentityComparer = AssemblyIdentityComparer.Default;           // Currently uses reference equality
             StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
             MetadataImportOptions metadataImportOptions = 0;
@@ -363,7 +361,7 @@ Parameter name: ModuleName")
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, 
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,  
-                concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider,
+                concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features);
         }
 

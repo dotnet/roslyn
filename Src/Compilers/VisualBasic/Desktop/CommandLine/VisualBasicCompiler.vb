@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim diagnostics = New List(Of DiagnosticInfo)()
 
             Dim assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
-            Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
+            Dim referenceDirectiveResolver As MetadataFileReferenceResolver = Nothing
             Dim metadataProvider As MetadataFileReferenceProvider = GetMetadataProvider()
 
             Dim externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger)
@@ -132,8 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  trees,
                  resolvedReferences,
                  Arguments.CompilationOptions.
-                     WithMetadataReferenceResolver(referenceDirectiveResolver).
-                     WithMetadataReferenceProvider(metadataProvider).
+                     WithMetadataReferenceResolver(New AssemblyReferenceResolver(referenceDirectiveResolver, metadataProvider)).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithStrongNameProvider(strongNameProvider).
                      WithXmlReferenceResolver(xmlFileResolver).

@@ -5,6 +5,6 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IMetadataService : IWorkspaceService
     {
         PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties);
-        MetadataReferenceProvider GetProvider();
+        MetadataFileReferenceProvider GetProvider();
     }
 }

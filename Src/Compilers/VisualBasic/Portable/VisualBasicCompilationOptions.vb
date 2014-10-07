@@ -56,7 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="xmlReferenceResolver">An optional parameter to specify the XML file resolver.</param>
         ''' <param name="sourceReferenceResolver">An optional parameter to specify the source file resolver.</param>
         ''' <param name="metadataReferenceResolver">An optional parameter to specify <see cref="CodeAnalysis.MetadataReferenceResolver"/>.</param>
-        ''' <param name="metadataReferenceProvider">An optional parameter to specify <see cref="CodeAnalysis.MetadataReferenceProvider"/>.</param>
         ''' <param name="assemblyIdentityComparer">An optional parameter to specify <see cref="CodeAnalysis.AssemblyIdentityComparer"/>.</param>
         ''' <param name="strongNameProvider">An optional parameter to specify <see cref="CodeAnalysis.StrongNameProvider"/>.</param>
         Public Sub New(
@@ -84,7 +83,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional xmlReferenceResolver As XmlReferenceResolver = Nothing,
             Optional sourceReferenceResolver As SourceReferenceResolver = Nothing,
             Optional metadataReferenceResolver As MetadataReferenceResolver = Nothing,
-            Optional metadataReferenceProvider As MetadataReferenceProvider = Nothing,
             Optional assemblyIdentityComparer As AssemblyIdentityComparer = Nothing,
             Optional strongNameProvider As StrongNameProvider = Nothing)
 
@@ -113,7 +111,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 xmlReferenceResolver,
                 sourceReferenceResolver,
                 metadataReferenceResolver,
-                metadataReferenceProvider,
                 assemblyIdentityComparer,
                 strongNameProvider,
                 MetadataImportOptions.Public,
@@ -146,7 +143,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
             metadataReferenceResolver As MetadataReferenceResolver,
-            metadataReferenceProvider As MetadataReferenceProvider,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
             metadataImportOptions As MetadataImportOptions,
@@ -170,7 +166,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,
-                metadataReferenceProvider:=metadataReferenceProvider,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=metadataImportOptions,
@@ -212,7 +207,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 xmlReferenceResolver:=other.XmlReferenceResolver,
                 sourceReferenceResolver:=other.SourceReferenceResolver,
                 metadataReferenceResolver:=other.MetadataReferenceResolver,
-                metadataReferenceProvider:=other.MetadataReferenceProvider,
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
                 metadataImportOptions:=other.MetadataImportOptions,
@@ -673,14 +667,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VBCompilationOptions(Me) With {.MetadataReferenceResolver = resolver}
         End Function
 
-        Public Shadows Function WithMetadataReferenceProvider(provider As MetadataReferenceProvider) As VBCompilationOptions
-            If provider Is Me.MetadataReferenceProvider Then
-                Return Me
-            End If
-
-            Return New VBCompilationOptions(Me) With {.MetadataReferenceProvider = provider}
-        End Function
-
         Public Shadows Function WithAssemblyIdentityComparer(comparer As AssemblyIdentityComparer) As VBCompilationOptions
             comparer = If(comparer, AssemblyIdentityComparer.Default)
 
@@ -725,10 +711,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonWithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As CompilationOptions
             Return WithMetadataReferenceResolver(resolver)
-        End Function
-
-        Protected Overrides Function CommonWithMetadataReferenceProvider(provider As MetadataReferenceProvider) As CompilationOptions
-            Return WithMetadataReferenceProvider(provider)
         End Function
 
         Protected Overrides Function CommonWithStrongNameProvider(provider As StrongNameProvider) As CompilationOptions

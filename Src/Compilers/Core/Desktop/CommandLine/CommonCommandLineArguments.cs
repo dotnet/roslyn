@@ -232,24 +232,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Resolves metadata references stored in <see cref="MetadataReferences"/> using given file resolver and metadata provider.
         /// </summary>
-        /// <param name="metadataResolver"><see cref="MetadataReferenceResolver"/> to use for assembly name and relative path resolution.</param>
-        /// <param name="metadataProvider"><see cref="MetadataReferenceProvider"/> to read metadata from resolved paths.</param>
+        /// <param name="metadataResolver"><see cref="MetadataFileReferenceResolver"/> to use for assembly name and relative path resolution.</param>
         /// <returns>Yields resolved metadata references or <see cref="UnresolvedMetadataReference"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="metadataResolver"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="metadataProvider"/> is null.</exception>
-        public IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider)
+        public IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver)
         {
             if (metadataResolver == null)
             {
                 throw new ArgumentNullException("metadataResolver");
             }
 
-            if (metadataProvider == null)
-            {
-                throw new ArgumentNullException("metadataProvider");
-            }
-
-            return ResolveMetadataReferences(metadataResolver, metadataProvider, diagnosticsOpt: null, messageProviderOpt: null);
+            return ResolveMetadataReferences(metadataResolver, diagnosticsOpt: null, messageProviderOpt: null);
         }
 
         /// <summary>
@@ -261,27 +254,26 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// called by CommonCompiler with diagnostics and message provider
         /// </remarks>
-        internal IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             Debug.Assert(metadataResolver != null);
-            Debug.Assert(metadataProvider != null);
 
             var resolved = new List<MetadataReference>();
-            this.ResolveMetadataReferences(metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt, resolved);
+            this.ResolveMetadataReferences(metadataResolver, diagnosticsOpt, messageProviderOpt, resolved);
 
             return resolved;
         }
 
-        internal virtual bool ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, List<MetadataReference> resolved)
+        internal virtual bool ResolveMetadataReferences(MetadataReferenceResolver metadataResolver,List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, List<MetadataReference> resolved)
         {
             bool result = true;
 
             foreach (CommandLineReference cmdReference in MetadataReferences)
             {
-                var r = ResolveMetadataReference(cmdReference, metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt);
-                if (r != null)
+                var references = ResolveMetadataReference(cmdReference, metadataResolver, diagnosticsOpt, messageProviderOpt);
+                if (!references.IsDefaultOrEmpty)
                 {
-                    resolved.Add(r);
+                    resolved.AddRange(references);
                 }
                 else
                 {
@@ -298,33 +290,30 @@ namespace Microsoft.CodeAnalysis
         }
 
         // TODO: change to private protected when available
-        internal static MetadataReference ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal static ImmutableArray<PortableExecutableReference> ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             Debug.Assert(metadataResolver != null);
-            Debug.Assert(metadataProvider != null);
             Debug.Assert((diagnosticsOpt == null) == (messageProviderOpt == null));
 
-            string resolvedPath = metadataResolver.ResolveReference(cmdReference.Reference, baseFilePath: null);
-            if (resolvedPath == null)
-            {
-                if (diagnosticsOpt != null)
-                {
-                    diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.ERR_MetadataFileNotFound, cmdReference.Reference));
-                }
-
-                return null;
-            }
-
+            ImmutableArray<PortableExecutableReference> references;
             try
             {
-                return metadataProvider.GetReference(resolvedPath, cmdReference.Properties);
+                references = metadataResolver.ResolveReference(cmdReference.Reference, baseFilePath: null, properties: cmdReference.Properties);
             }
             catch (Exception e) if (diagnosticsOpt != null && (e is BadImageFormatException || e is IOException))
             {
                 var diagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProviderOpt, Location.None, cmdReference.Reference, cmdReference.Properties.Kind);
                 diagnosticsOpt.Add(((DiagnosticWithInfo)diagnostic).Info);
-                return null;
+                return ImmutableArray<PortableExecutableReference>.Empty;
             }
+
+            if (references.IsDefaultOrEmpty && diagnosticsOpt != null)
+            {
+                diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.ERR_MetadataFileNotFound, cmdReference.Reference));
+                return ImmutableArray<PortableExecutableReference>.Empty;
+            }
+
+            return references;
         }
 
         #endregion

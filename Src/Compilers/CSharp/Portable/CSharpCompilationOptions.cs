@@ -48,13 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             XmlReferenceResolver xmlReferenceResolver = null,
             SourceReferenceResolver sourceReferenceResolver = null,
             MetadataReferenceResolver metadataReferenceResolver = null,
-            MetadataReferenceProvider metadataReferenceProvider = null,
             AssemblyIdentityComparer assemblyIdentityComparer = null,
             StrongNameProvider strongNameProvider = null)
             : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, delaySign, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild,
-                   xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: ImmutableArray<string>.Empty)
+                   xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: ImmutableArray<string>.Empty)
         {
         }
 
@@ -79,14 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
             MetadataReferenceResolver metadataReferenceResolver,
-            MetadataReferenceProvider metadataReferenceProvider,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
             ImmutableArray<string> features)
             : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimizationLevel, checkOverflow, 
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
-                   concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, 
+                   concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, 
                    strongNameProvider, metadataImportOptions, features)
         {
             this.Usings = usings.AsImmutableOrEmpty();
@@ -113,7 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             xmlReferenceResolver: other.XmlReferenceResolver,
             sourceReferenceResolver: other.SourceReferenceResolver,
             metadataReferenceResolver: other.MetadataReferenceResolver,
-            metadataReferenceProvider: other.MetadataReferenceProvider,
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
             metadataImportOptions: other.MetadataImportOptions,
@@ -366,16 +363,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { MetadataReferenceResolver = resolver };
         }
 
-        public new CSharpCompilationOptions WithMetadataReferenceProvider(MetadataReferenceProvider provider)
-        {
-            if (ReferenceEquals(provider, this.MetadataReferenceProvider))
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { MetadataReferenceProvider = provider };
-        }
-
         public new CSharpCompilationOptions WithAssemblyIdentityComparer(AssemblyIdentityComparer comparer)
         {
             comparer = comparer ?? AssemblyIdentityComparer.Default;
@@ -431,11 +418,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver)
         {
             return WithMetadataReferenceResolver(resolver);
-        }
-
-        protected override CompilationOptions CommonWithMetadataReferenceProvider(MetadataReferenceProvider provider)
-        {
-            return WithMetadataReferenceProvider(provider);
         }
 
         protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider)

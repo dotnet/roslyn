@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim commandLineParser = VBCommandLineParser.Default
                 Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory)
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
-                metadataReferences = commandLineArgs.ResolveMetadataReferences(resolver, Me._metadataService.GetProvider())
+                metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
                 analyzerReferences = commandLineArgs.ResolveAnalyzerReferences()
 
             End Sub
@@ -284,8 +284,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me._compilationOptions = New VBCompilationOptions(OutputKind.ConsoleApplication,
                         xmlReferenceResolver:=New XmlFileResolver(projectDirectory),
                         sourceReferenceResolver:=New SourceFileResolver(ImmutableArray(Of String).Empty, projectDirectory),
-                        metadataReferenceResolver:=New MetadataFileReferenceResolver(ImmutableArray(Of String).Empty, projectDirectory),
-                        metadataReferenceProvider:=MetadataFileReferenceProvider.Default,
+                        metadataReferenceResolver:=New AssemblyReferenceResolver(
+                            New MetadataFileReferenceResolver(ImmutableArray(Of String).Empty, projectDirectory),
+                            MetadataFileReferenceProvider.Default),
                         strongNameProvider:=New DesktopStrongNameProvider(ImmutableArray.Create(Of String)(projectDirectory, outputDirectory)),
                         assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
                     Me._sources = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()

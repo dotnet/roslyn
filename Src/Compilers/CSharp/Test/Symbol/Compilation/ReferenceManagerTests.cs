@@ -843,8 +843,9 @@ public class E : bar::C { }
                 },
                 references: new MetadataReference[] { MscorlibRef, r1, r2 },
                 options: TestOptions.ReleaseDll.
-                    WithMetadataReferenceResolver(new MappingReferenceResolver(assemblyNames: new Dictionary<string, string> { { "Foo", p3 } })).
-                    WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default)
+                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(
+                        new MappingReferenceResolver(assemblyNames: new Dictionary<string, string> { { "Foo", p3 } }),
+                        MetadataFileReferenceProvider.Default))
             );
 
             // no diagnostics expected, all duplicate references should be ignored as they all refer to the same file:
@@ -1271,8 +1272,7 @@ public class A
                     Parse("#r \"2.dll\"", options: TestOptions.Script),
                 },
                 options: TestOptions.ReleaseDll
-                    .WithMetadataReferenceResolver(resolver)
-                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+                    .WithMetadataReferenceResolver(new AssemblyReferenceResolver(resolver, MetadataFileReferenceProvider.Default)));
 
             Assert.NotNull(c1.Assembly); // force creation of SourceAssemblySymbol
 
@@ -1308,7 +1308,7 @@ public class A
             }
         }
 
-        private class ErroneousMetadataReferenceProvider : MetadataReferenceProvider
+        private class ErroneousMetadataReferenceProvider : MetadataFileReferenceProvider
         {
             public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
             {
@@ -1325,8 +1325,7 @@ public class A
         public void ReferenceResolution_ExceptionsFromResolver()
         {
             var options = TestOptions.ReleaseDll.
-                WithMetadataReferenceResolver(new ErroneousReferenceResolver()).
-                WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default);
+                WithMetadataReferenceResolver(new AssemblyReferenceResolver(new ErroneousReferenceResolver(), MetadataFileReferenceProvider.Default));
 
             foreach (var tree in new[] 
             {
@@ -1346,8 +1345,8 @@ public class A
             var c1 = CSharpCompilation.Create("c",
                 syntaxTrees: new[] { Parse(@"#r ""c:\throw.dll""", options: TestOptions.Script) },
                 options: TestOptions.ReleaseDll.
-                    WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\throw.dll", @"c:\throw.dll" } })).
-                    WithMetadataReferenceProvider(provider));
+                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\throw.dll", @"c:\throw.dll" } }), provider)));
+                    
 
             Assert.Throws<TestException>(() => { var a = c1.Assembly; });
 
@@ -1355,8 +1354,7 @@ public class A
                 references: new[] { MscorlibRef },
                 syntaxTrees: new[] { Parse(@"#r ""c:\null.dll""", options: TestOptions.Script) },
                 options: TestOptions.ReleaseDll.
-                    WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\null.dll", @"c:\null.dll" } })).
-                    WithMetadataReferenceProvider(provider));
+                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\null.dll", @"c:\null.dll" } }), provider)));
 
             c2.VerifyDiagnostics(
                 // (1,1): error CS0006: Metadata file 'c:\null.dll' could not be found
@@ -1906,7 +1904,8 @@ internal class C
            
             // w/o facades:
 
-            var main = CreateCompilation(mainSource, mainRefs, options: TestOptions.ReleaseDll.WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            var main = CreateCompilation(mainSource, mainRefs, options: TestOptions.ReleaseDll);
+
             main.VerifyDiagnostics(
                 // (1,18): error CS0012: The type 'System.Object' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("System.Object", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"));

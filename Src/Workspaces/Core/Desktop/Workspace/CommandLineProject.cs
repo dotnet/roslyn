@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 
             // resolve all metadata references.
-            var boundMetadataReferences = commandLineArguments.ResolveMetadataReferences(referenceResolver, referenceProvider);
+            var boundMetadataReferences = commandLineArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(referenceResolver, referenceProvider));
             var unresolvedMetadataReferences = boundMetadataReferences.FirstOrDefault(r => r is UnresolvedMetadataReference);
             if (unresolvedMetadataReferences != null)
             {
@@ -149,8 +149,7 @@ namespace Microsoft.CodeAnalysis
                     .WithXmlReferenceResolver(xmlFileResolver)
                     .WithAssemblyIdentityComparer(assemblyIdentityComparer)
                     .WithStrongNameProvider(strongNameProvider)
-                    .WithMetadataReferenceResolver(referenceResolver)
-                    .WithMetadataReferenceProvider(referenceProvider),
+                    .WithMetadataReferenceResolver(new AssemblyReferenceResolver(referenceResolver, referenceProvider)),
                 parseOptions: commandLineArguments.ParseOptions,
                 documents: docs,
                 additionalDocuments: additionalDocs,

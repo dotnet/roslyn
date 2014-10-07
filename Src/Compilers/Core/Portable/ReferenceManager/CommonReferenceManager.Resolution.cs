@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var referenceDirective in compilation.ReferenceDirectives)
                 {
-                    if (compilation.Options.MetadataReferenceResolver == null || compilation.Options.MetadataReferenceProvider == null)
+                    if (compilation.Options.MetadataReferenceResolver == null)
                     {
                         diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataReferencesNotSupported, referenceDirective.Location));
                         break;
@@ -733,15 +733,20 @@ namespace Microsoft.CodeAnalysis
 
             // checked earlier:
             Debug.Assert(compilation.Options.MetadataReferenceResolver != null);
-            Debug.Assert(compilation.Options.MetadataReferenceProvider != null);
 
-            string resolvedPath = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath);
-            if (resolvedPath == null)
+            var references = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath, MetadataReferenceProperties.Assembly);
+            if (references.IsDefaultOrEmpty)
             {
                 return null;
             }
 
-            return compilation.Options.MetadataReferenceProvider.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
+            if (references.Length > 1)
+            {
+                // TODO: implement
+                throw new NotSupportedException();
+            }
+
+            return references[0];
         }
 
         internal static AssemblyReferenceBinding[] ResolveReferencedAssemblies(

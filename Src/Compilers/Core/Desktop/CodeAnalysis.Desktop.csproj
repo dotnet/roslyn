@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="AdditionalFileStream.cs" />
     <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
+    <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="CodeAnalysisDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -82,7 +83,6 @@
     <Compile Include="MetadataCache.cs" />
     <Compile Include="AnalyzerFileReference.cs" />
     <Compile Include="MetadataFileReference.cs" />
-    <Compile Include="MetadataFileReferenceProvider.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />
@@ -139,6 +139,7 @@
     <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Portable\CodeAnalysis.csproj">

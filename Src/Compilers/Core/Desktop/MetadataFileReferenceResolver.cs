@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Resolves metadata references specified in source code (#r directives).
     /// </summary>
-    public class MetadataFileReferenceResolver : MetadataReferenceResolver
+    internal class MetadataFileReferenceResolver
     {
         public static readonly MetadataFileReferenceResolver Default = new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis
 
             if (baseDirectory != null && PathUtilities.GetPathKind(baseDirectory) != PathKind.Absolute)
             {
-                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory");
+                throw ExceptionUtilities.Unreachable;
+                ////throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory");
             }
 
             this.searchPaths = searchPaths;
@@ -54,12 +55,14 @@ namespace Microsoft.CodeAnalysis
         {
             if (paths.IsDefault)
             {
-                throw new ArgumentNullException(argName);
+                throw ExceptionUtilities.Unreachable;
+                ////throw new ArgumentNullException(argName);
             }
 
             if (paths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
-                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, argName);
+                throw ExceptionUtilities.Unreachable;
+                ////throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, argName);
             }
         }
 
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         /// Normalized absolute path to the referenced file or null if it can't be resolved.
         /// </returns>
-        public override string ResolveReference(string reference, string baseFilePath)
+        public virtual string ResolveReference(string reference, string baseFilePath)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, baseDirectory, searchPaths, FileExists);
             if (!FileExists(resolvedPath))
@@ -118,7 +121,8 @@ namespace Microsoft.CodeAnalysis
             string fullPath = ResolveReference(reference, baseFilePath);
             if (fullPath != null && !PathUtilities.IsAbsolute(fullPath))
             {
-                throw new InvalidOperationException(string.Format(CodeAnalysisResources.PathReturnedByResolveMetadataFileMustBeAbsolute, GetType().FullName, fullPath));
+                throw ExceptionUtilities.Unreachable;
+                //// throw new InvalidOperationException(string.Format(CodeAnalysisResources.PathReturnedByResolveMetadataFileMustBeAbsolute, GetType().FullName, fullPath));
             }
 
             return fullPath;
