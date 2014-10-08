@@ -133,7 +133,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override string ToString()
         {
-            return this.utcLastModified.ToString();
+            // 'o' is the roundtrip format that captures the most detail.
+            return this.utcLastModified.ToString("o") + "-" + globalIncrement + "-" + localIncrement;
         }
 
         public override int GetHashCode()
