@@ -688,7 +688,6 @@
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="Shared\Utilities\BloomFilter_Serialization.cs" />
-    <Compile Include="Shared\Utilities\CancellableReader.cs" />
     <Compile Include="Shared\Utilities\CommonFormattingHelpers.cs" />
     <Compile Include="Shared\Utilities\DocumentationComment.cs" />
     <Compile Include="Shared\Utilities\EditorBrowsableHelpers.cs" />
