@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (documentsAndDiagnosticsToFixMap != null && documentsAndDiagnosticsToFixMap.Any())
             {
-                Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, KeyValueLogMessage.Create(m =>
-                {
-                    m["DocumentsWithDiagnosticsToFix"] = documentsAndDiagnosticsToFixMap.Keys.Count().ToString();
-                    m["TotalDiagnosticsToFix"] = documentsAndDiagnosticsToFixMap.Values.Sum(v => v.Length).ToString();
-                }));
+                FixAllLogger.LogDiagnosticsStats(documentsAndDiagnosticsToFixMap);
 
                 var fixesBag = new ConcurrentBag<CodeAction>();
 
@@ -74,11 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, fixAllContext.CancellationToken))
                     {
-                        Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, KeyValueLogMessage.Create(m =>
-                        {
-                            m["FixesToMerge"] = fixesBag.Count.ToString();
-                        }));
-
+                        FixAllLogger.LogFixesToMergeStats(fixesBag);
                         return await TryGetMergedFixAsync(fixesBag, fixAllContext).ConfigureAwait(false);
                     }
                 }
@@ -124,21 +116,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())
             {
+                FixAllLogger.LogDiagnosticsStats(projectsAndDiagnosticsToFixMap);
+
                 var fixesBag = new ConcurrentBag<CodeAction>();
 
-                var options = new ParallelOptions();
-                options.CancellationToken = fixAllContext.CancellationToken;
-
-                Parallel.ForEach(projectsAndDiagnosticsToFixMap.Keys, options, project =>
+                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, fixAllContext.CancellationToken))
                 {
-                    options.CancellationToken.ThrowIfCancellationRequested();
-                    var diagnostics = projectsAndDiagnosticsToFixMap[project];
-                    AddProjectFixesAsync(project, diagnostics, fixesBag.Add, fixAllContext).Wait(options.CancellationToken);
-                });
+                    var options = new ParallelOptions();
+                    options.CancellationToken = fixAllContext.CancellationToken;
+
+                    Parallel.ForEach(projectsAndDiagnosticsToFixMap.Keys, options, project =>
+                    {
+                        options.CancellationToken.ThrowIfCancellationRequested();
+                        var diagnostics = projectsAndDiagnosticsToFixMap[project];
+                        AddProjectFixesAsync(project, diagnostics, fixesBag.Add, fixAllContext).Wait(options.CancellationToken);
+                    });
+                }
 
                 if (fixesBag.Any())
                 {
-                    return await TryGetMergedFixAsync(fixesBag, fixAllContext).ConfigureAwait(false);
+                    using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, fixAllContext.CancellationToken))
+                    {
+                        FixAllLogger.LogFixesToMergeStats(fixesBag);
+                        return await TryGetMergedFixAsync(fixesBag, fixAllContext).ConfigureAwait(false);
+                    }
                 }
             }
 

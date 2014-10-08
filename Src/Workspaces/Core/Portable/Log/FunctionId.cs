@@ -275,11 +275,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeFixes_FixAllOccurrencesSession,
         CodeFixes_FixAllOccurrencesContext,
         CodeFixes_FixAllOccurrencesComputation,
-        CodeFixes_FixAllOccurrencesComputationResult,
         CodeFixes_FixAllOccurrencesComputation_Diagnostics,
         CodeFixes_FixAllOccurrencesComputation_Fixes,
         CodeFixes_FixAllOccurrencesComputation_Merge,
-        CodeFixes_FixAllOccurrencesPreviewChanges,
-        CodeFixes_FixAllOccurrencesPreviewChangesResult
+        CodeFixes_FixAllOccurrencesPreviewChanges
     }
 }
