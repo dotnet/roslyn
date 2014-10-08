@@ -9681,7 +9681,9 @@ class MyMainClass
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [Fact, WorkItem(528060, "DevDiv")]
+        [WorkItem(528060, "DevDiv")]
+        [WorkItem(1043494, "DevDiv")]
+        [Fact(Skip = "1043494")]
         public void DoubleDivByNegativeZero()
         {
             string source = @"
@@ -13013,7 +13015,8 @@ True");
 ");
         }
 
-        [Fact]
+        [WorkItem(1043494, "DevDiv")]
+        [Fact(Skip = "1043494")]
         public void NegativeZeroIsNotAZero()
         {
             var source = @"
@@ -13097,7 +13100,8 @@ class A
 ");
         }
 
-        [Fact]
+        [WorkItem(1043494, "DevDiv")]
+        [Fact(Skip = "1043494")]
         public void NegativeZeroIsNotAZero1()
         {
             var source = @"

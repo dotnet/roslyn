@@ -1387,7 +1387,8 @@ ulong.MinValue --> 0";
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
         [WorkItem(529730, "DevDiv")]
-        [Fact]
+        [WorkItem(1043494, "DevDiv")]
+        [Fact(Skip = "1043494")]
         public void TestConstantFoldingDecimalOperations01()
         {
             var source =
