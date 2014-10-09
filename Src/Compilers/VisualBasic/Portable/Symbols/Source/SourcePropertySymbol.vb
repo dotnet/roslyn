@@ -170,10 +170,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If blockSyntaxOpt Is Nothing Then
                 ' Generate backing field for auto property.
                 If Not prop.IsMustOverride Then
+                    If isWriteOnly Then
+                        diagnostics.Add(ERRID.ERR_AutoPropertyCantBeWriteOnly, location)
+                    End If
+
                     Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
                     Dim fieldName = "_" + prop.m_name
-                    prop.m_backingField = New SynthesizedPropertyBackingFieldSymbol(prop, fieldName, IsShared:=prop.IsShared)
+                    prop.m_backingField = New SynthesizedPropertyBackingFieldSymbol(prop, fieldName, isShared:=prop.IsShared)
                 End If
 
                 Dim flags = prop.m_flags And Not SourceMemberFlags.MethodKindMask

@@ -6580,7 +6580,7 @@ BC30629: The feature 'Parameterless Instance Constructors in Structures' require
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC37241: Parameterless instance constructors in structures must be public.
+BC37242: Parameterless instance constructors in structures must be public.
                     Private Sub New()
                                 ~~~
                  ]]></errors>

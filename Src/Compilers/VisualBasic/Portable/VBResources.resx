@@ -3790,6 +3790,9 @@
   <data name="ERR_AutoPropertyCantHaveParams" xml:space="preserve">
     <value>Auto-implemented properties cannot have parameters.</value>
   </data>
+  <data name="ERR_AutoPropertyCantBeWriteOnly" xml:space="preserve">
+    <value>Auto-implemented properties cannot be WriteOnly.</value>
+  </data>
   <data name="ERR_IllegalOperandInIIFCount" xml:space="preserve">
     <value>'If' operator requires either two or three operands.</value>
   </data>
