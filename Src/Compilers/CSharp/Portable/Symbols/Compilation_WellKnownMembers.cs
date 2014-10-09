@@ -129,9 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAttributeType((TypeSymbol)type);
         }
 
-        internal bool IsExceptionType(TypeSymbol type)
+        internal bool IsExceptionType(TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteDiagnostics);
         }
 

@@ -2154,6 +2154,65 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)"));
         }
 
+        [WorkItem(939928, "DevDiv")]
+        [WorkItem(132, "CodePlex")]
+        [Fact]
+        public void MissingBaseTypeForCatch()
+        {
+
+            var source1 = @"
+using System;
+public class GeneralException : Exception {}";
+
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "Base");
+
+            var source2 = @"
+public class SpecificException : GeneralException
+{}";
+
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(comp1)});
+
+            var source3 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+            try 
+            { 
+                SpecificException e = null;
+                throw e;
+            }
+            catch (SpecificException) 
+            {
+            }
+    }
+}";
+
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { new CSharpCompilationReference(comp2) });
+
+            DiagnosticDescription[] expected =
+            {
+                // (9,23): error CS0155: The type caught or thrown must be derived from System.Exception
+                //                 throw e;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(9, 23),
+                // (9,23): error CS0012: The type 'GeneralException' is defined in an assembly that is not referenced. You must add a reference to assembly 'Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //                 throw e;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "e").WithArguments("GeneralException", "Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 23),
+                // (11,20): error CS0155: The type caught or thrown must be derived from System.Exception
+                //             catch (SpecificException) 
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "SpecificException").WithLocation(11, 20),
+                // (11,20): error CS0012: The type 'GeneralException' is defined in an assembly that is not referenced. You must add a reference to assembly 'Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             catch (SpecificException) 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "SpecificException").WithArguments("GeneralException", "Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 20)
+            };
+
+            comp3.VerifyDiagnostics(expected);
+
+            comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { comp2.EmitToImageReference() });
+
+            comp3.VerifyDiagnostics(expected);
+        }
+
         /// <summary>
         /// Trivial definitions of special types that will be required for testing use site errors in
         /// the attributes emitted for unsafe assemblies.

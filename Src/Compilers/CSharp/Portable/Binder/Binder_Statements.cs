@@ -300,11 +300,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // If the expression is a lambda, anonymous method, or method group then it will
                     // have no compile-time type; give the same error as if the type was wrong.
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveTypeNoUseSiteDiagnostics))
+                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
                     {
                         diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
                         hasErrors = true;
+                        diagnostics.Add(exprSyntax, useSiteDiagnostics);
                     }
                 }
             }
@@ -3011,7 +3013,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasError = false;
             TypeSymbol type = null;
-            TypeSymbol effectiveType = null;
             BoundExpression boundFilter = null;
             var declaration = node.Declaration;
             if (declaration != null)
@@ -3029,12 +3030,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    effectiveType = type.EffectiveTypeNoUseSiteDiagnostics;
-                    if (!Compilation.IsExceptionType(effectiveType))
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    TypeSymbol effectiveType = type.EffectiveType(ref useSiteDiagnostics);
+                    if (!Compilation.IsExceptionType(effectiveType, ref useSiteDiagnostics))
                     {
                         // "The type caught or thrown must be derived from System.Exception"
                         Error(diagnostics, ErrorCode.ERR_BadExceptionType, declaration.Type);
                         hasError = true;
+                        diagnostics.Add(declaration.Type, useSiteDiagnostics);
                     }
                 }
             }
