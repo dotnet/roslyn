@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Host
                         using (taskGuard.DisposableWait())
                         {
                             // force all save tasks to be in sequence so we don't hog all the threads
-                            saveTask = latestTask = latestTask.SafeContinueWith<Task>(t =>
-                                this.SaveAsync(instance, CancellationToken.None), CancellationToken.None, TaskScheduler.Default).Unwrap();
+                            saveTask = latestTask = latestTask.SafeContinueWithFromAsync(t =>
+                                this.SaveAsync(instance, CancellationToken.None), CancellationToken.None, TaskScheduler.Default);
                         }
 
                         // wait for this save to be done

@@ -81,7 +81,7 @@ namespace Roslyn.Utilities
             var task = factory.StartNew(actionAsync, cancellationToken, creationOptions, scheduler).Unwrap();
 
             // make it crash if exception has thrown
-            task.SafeContinueWith(t => FatalError.Report(t.Exception),
+            task.ContinueWith(t => FatalError.Report(t.Exception),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);
@@ -105,7 +105,7 @@ namespace Roslyn.Utilities
             var task = factory.StartNew(funcAsync, cancellationToken, creationOptions, scheduler).Unwrap();
 
             // make it crash if exception has thrown
-            task.SafeContinueWith(t => FatalError.Report(t.Exception),
+            task.ContinueWith(t => FatalError.Report(t.Exception),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);

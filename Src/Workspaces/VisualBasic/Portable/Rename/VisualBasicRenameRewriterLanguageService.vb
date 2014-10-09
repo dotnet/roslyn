@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
 
                 Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
-                    ConflictResolver.CreateDeclarationLocationAnnotationsAsync(solution, symbols, cancellationToken).WaitAndGetResult_Hack(cancellationToken)
+                    ConflictResolver.CreateDeclarationLocationAnnotationsAsync(solution, symbols, cancellationToken).WaitAndGetResult(cancellationToken)
 
                 Dim isNamespaceDeclarationReference = False
                 If isRenameLocation AndAlso token.GetPreviousToken().VBKind = SyntaxKind.NamespaceKeyword Then
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     End If
 
                     Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
-                        ConflictResolver.CreateDeclarationLocationAnnotationsAsync(solution, symbols, cancellationToken).WaitAndGetResult_Hack(cancellationToken)
+                        ConflictResolver.CreateDeclarationLocationAnnotationsAsync(solution, symbols, cancellationToken).WaitAndGetResult(cancellationToken)
 
                     Dim renameAnnotation = New RenameActionAnnotation(
                                             identifierToken.Span,

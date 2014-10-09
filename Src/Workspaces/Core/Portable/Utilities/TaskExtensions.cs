@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -23,15 +21,6 @@ namespace Roslyn.Utilities
             }
 #endif
 #endif
-            task.Wait(cancellationToken);
-            return task.Result;
-        }
-
-        /// <summary>
-        /// You should not call this method.. Use WaitAndGetResult instead.
-        /// </summary>
-        public static T WaitAndGetResult_Hack<T>(this Task<T> task, CancellationToken cancellationToken)
-        {
             task.Wait(cancellationToken);
             return task.Result;
         }
@@ -226,6 +215,124 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
                     _ => continuationAction(), cancellationToken, TaskContinuationOptions.None, scheduler),
+                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        public static Task<TResult> SafeContinueWithFromAsync<TInput, TResult>(
+            this Task<TInput> task,
+            Func<Task<TInput>, Task<TResult>> continuationFunction,
+            CancellationToken cancellationToken,
+            TaskContinuationOptions continuationOptions,
+            TaskScheduler scheduler)
+        {
+            return task.SafeContinueWithFromAsync<TResult>(
+                (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
+        }
+
+        public static Task<TResult> SafeContinueWithFromAsync<TResult>(
+            this Task task,
+            Func<Task, Task<TResult>> continuationFunction,
+            CancellationToken cancellationToken,
+            TaskContinuationOptions continuationOptions,
+            TaskScheduler scheduler)
+        {
+            // So here's the deal.  Say you do the following:
+#if false
+            // CancellationToken ct1 = ..., ct2 = ...;
+
+            // Task A = Task.Factory.StartNew(..., ct1);
+            // Task B = A.ContinueWith(..., ct1);
+            // Task C = B.ContinueWith(..., ct2);
+#endif
+            // If ct1 is cancelled then the following may occur: 
+            // 1) Task A can still be running (as it hasn't responded to the cancellation request
+            //    yet).
+            // 2) Task C can start running.  How?  Well if B hasn't started running, it may
+            //    immediately transition to the 'Cancelled/Completed' state.  Moving to that state will
+            //    immediately trigger C to run.
+            //
+            // We do not want this, so we pass the LazyCancellation flag to the TPL which implements
+            // the behavior we want.
+            // This is the only place in the code where we're allowed to call ContinueWith.
+            var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
+
+            nextTask.ContinueWith(t => FatalError.Report(t.Exception),
+               CancellationToken.None,
+               TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+               TaskScheduler.Default);
+
+            return nextTask;
+        }
+
+        public static Task SafeContinueWithFromAsync(
+           this Task task,
+           Func<Task, Task> continuationFunction,
+           CancellationToken cancellationToken,
+           TaskScheduler scheduler)
+        {
+            return task.SafeContinueWithFromAsync(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
+        }
+
+        public static Task SafeContinueWithFromAsync(
+            this Task task,
+            Func<Task, Task> continuationFunction,
+            CancellationToken cancellationToken,
+            TaskContinuationOptions continuationOptions,
+            TaskScheduler scheduler)
+        {
+            // So here's the deal.  Say you do the following:
+#if false
+            // CancellationToken ct1 = ..., ct2 = ...;
+
+            // Task A = Task.Factory.StartNew(..., ct1);
+            // Task B = A.ContinueWith(..., ct1);
+            // Task C = B.ContinueWith(..., ct2);
+#endif
+            // If ct1 is cancelled then the following may occur: 
+            // 1) Task A can still be running (as it hasn't responded to the cancellation request
+            //    yet).
+            // 2) Task C can start running.  How?  Well if B hasn't started running, it may
+            //    immediately transition to the 'Cancelled/Completed' state.  Moving to that state will
+            //    immediately trigger C to run.
+            //
+            // We do not want this, so we pass the LazyCancellation flag to the TPL which implements
+            // the behavior we want.
+            // This is the only place in the code where we're allowed to call ContinueWith.
+            var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
+
+            nextTask.ContinueWith(t => FatalError.Report(t.Exception),
+               CancellationToken.None,
+               TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+               TaskScheduler.Default);
+
+            return nextTask;
+        }
+
+        public static Task<TNResult> ContinueWithAfterDelayFromAsync<TNResult>(
+            this Task task,
+            Func<Task, Task<TNResult>> continuationFunction,
+            CancellationToken cancellationToken,
+            int millisecondsDelay,
+            TaskContinuationOptions taskContinuationOptions,
+            TaskScheduler scheduler)
+        {
+            return task.SafeContinueWith(t =>
+                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
+                    _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
+                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        public static Task ContinueWithAfterDelayFromAsync(
+            this Task task,
+            Func<Task, Task> continuationFunction,
+            CancellationToken cancellationToken,
+            int millisecondsDelay,
+            TaskContinuationOptions taskContinuationOptions,
+            TaskScheduler scheduler)
+        {
+            return task.SafeContinueWith(t =>
+                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
+                    _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
     }

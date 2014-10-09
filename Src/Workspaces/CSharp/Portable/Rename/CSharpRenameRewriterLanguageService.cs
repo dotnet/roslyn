@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 RenameDeclarationLocationReference[] renameDeclarationLocations =
                     ConflictResolver.CreateDeclarationLocationAnnotationsAsync(solution, symbols, cancellationToken)
-                            .WaitAndGetResult_Hack(cancellationToken);
+                            .WaitAndGetResult(cancellationToken);
 
                 var isNamespaceDeclarationReference = false;
                 if (isRenameLocation && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                                                                     solution,
                                                                                     symbols,
                                                                                     cancellationToken)
-                                                                                        .WaitAndGetResult_Hack(cancellationToken);
+                                                                                        .WaitAndGetResult(cancellationToken);
 
                     var renameAnnotation = new RenameActionAnnotation(
                                                 identifierToken.Span,
