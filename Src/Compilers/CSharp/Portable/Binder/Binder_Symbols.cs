@@ -1277,7 +1277,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
-                                    new object[] { where, first, second });
+                                    new object[] {
+                                        where,
+                                        new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
+                                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
                             }
                             else
                             {
@@ -1410,7 +1413,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
-                                    new object[] { where, first, second });
+                                    new object[] {
+                                        where,
+                                        new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
+                                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
+
                             }
                         }
                         else
