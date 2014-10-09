@@ -66,20 +66,25 @@ namespace Microsoft.CodeAnalysis.Rename
             }
             else
             {
-                var documentIdOfRenameSymbolDeclaration = solution.GetDocument(symbol.Locations.First(l => l.IsInSource).SourceTree);
+                var documentsOfRenameSymbolDeclaration = symbol.Locations.Where(l => l.IsInSource).Select(l => solution.GetDocument(l.SourceTree));
+                var projectIdsOfRenameSymbolDeclaration =
+                    documentsOfRenameSymbolDeclaration.SelectMany(d => d.GetLinkedDocumentIds())
+                    .Concat(documentsOfRenameSymbolDeclaration.First().Id)
+                    .Select(d => d.ProjectId).Distinct();
+
                 if (symbol.DeclaredAccessibility == Accessibility.Private)
                 {
-                    // private members or classes cannot be used outside of the project, so we should only scan documents of this project.
-                    Contract.ThrowIfFalse(renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Count() == 1);
-                    return documentIdOfRenameSymbolDeclaration.Project.Documents;
+                    // private members or classes cannot be used outside of the project they are declared in
+                    var isSubset = renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Except(projectIdsOfRenameSymbolDeclaration).IsEmpty();
+                    Contract.ThrowIfFalse(isSubset);
+                    return projectIdsOfRenameSymbolDeclaration.SelectMany(p => solution.GetProject(p).Documents);
                 }
                 else
                 {
                     // We are trying to figure out the projects that directly depend on the project that contains the declaration for 
                     // the rename symbol.  Other projects should not be affected by the rename.
-                    var symbolProjectId = documentIdOfRenameSymbolDeclaration.Project.Id;
-                    var relevantProjects = SpecializedCollections.SingletonEnumerable(symbolProjectId).Concat(
-                        solution.GetProjectDependencyGraph().GetProjectsThatDirectlyDependOnThisProject(symbolProjectId));
+                    var relevantProjects = projectIdsOfRenameSymbolDeclaration.Concat(projectIdsOfRenameSymbolDeclaration.SelectMany(p =>
+                       solution.GetProjectDependencyGraph().GetProjectsThatDirectlyDependOnThisProject(p))).Distinct();
                     return relevantProjects.SelectMany(p => solution.GetProject(p).Documents);
                 }
             }
