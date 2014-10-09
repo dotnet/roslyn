@@ -62,7 +62,7 @@ namespace ImplementNotifyPropertyChangedCS
 
 #pragma warning disable RS005
             return properties.Any()
-                ? new[] { CodeAction.Create("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c) ) }
+                ? new[] { CodeAction.Create("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)) }
                 : null;
 #pragma warning restore RS005
         }
