@@ -27,191 +27,137 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function CanCaptureReferenceToConditionalAccessReceiver(receiver As BoundExpression) As Boolean
-
-            If receiver IsNot Nothing Then
-                Debug.Assert(receiver.Type.IsTypeParameter())
-                ' We cannot capture readonly reference to an array element in a ByRef temp and requesting a writable refernce can fail.
-                Select Case receiver.Kind
-                    Case BoundKind.ArrayAccess
-                        Return False
-                    Case BoundKind.Sequence
-                        Return CanCaptureReferenceToConditionalAccessReceiver(DirectCast(receiver, BoundSequence).ValueOpt)
-                End Select
-            End If
-
-            Return True
-        End Function
-
         Public Overrides Function VisitConditionalAccess(node As BoundConditionalAccess) As BoundNode
             Debug.Assert(node.Type IsNot Nothing)
 
             Dim rewrittenReceiver As BoundExpression = VisitExpressionNode(node.Receiver)
             Dim receiverType As TypeSymbol = rewrittenReceiver.Type
 
-            Dim factory = New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
-            Dim condition As BoundExpression
-
-            Dim first As BoundExpression
-            Dim receiverForAccess As BoundExpression
-            Dim structAccess As BoundExpression = Nothing
-            Dim notReferenceType As BoundExpression = Nothing
+            Dim receiverOrCondition As BoundExpression
+            Dim placeholderReplacement As BoundExpression
+            Dim newPlaceholderId As Integer = 0
+            Dim newPlaceHolder As BoundConditionalAccessReceiverPlaceholder
+            Dim captureReceiver As Boolean
             Dim temp As LocalSymbol = Nothing
-            Dim byRefLocal As LocalSymbol = Nothing
+            Dim assignment As BoundExpression = Nothing
+            Dim needWhenNotNullPart As Boolean = True
+            Dim needWhenNullPart As Boolean = True
+
+            Dim factory = New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
 
             If receiverType.IsNullableType() Then
                 ' if( receiver.HasValue, receiver.GetValueOrDefault(). ... -> to Nullable, Nothing) 
-
-                If ShouldCaptureConditionalAccessReceiver(rewrittenReceiver) Then
-                    temp = New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
-                    first = factory.Sequence(ImmutableArray(Of LocalSymbol).Empty,
-                                             ImmutableArray.Create(Of BoundExpression)(
-                                                    factory.AssignmentExpression(factory.Local(temp, isLValue:=True),
-                                                                                 rewrittenReceiver.MakeRValue())),
-                                             factory.Local(temp, isLValue:=True))
-
-                    receiverForAccess = factory.Local(temp, isLValue:=True)
+                If HasNoValue(rewrittenReceiver) Then
+                    ' Nothing
+                    receiverOrCondition = Nothing
+                    needWhenNotNullPart = False
+                    placeholderReplacement = Nothing
+                ElseIf HasValue(rewrittenReceiver) Then
+                    ' receiver. ... -> to Nullable
+                    receiverOrCondition = Nothing
+                    needWhenNullPart = False
+                    placeholderReplacement = NullableValueOrDefault(rewrittenReceiver)
                 Else
-                    first = rewrittenReceiver
-                    receiverForAccess = rewrittenReceiver
+                    Dim first As BoundExpression
+
+                    If ShouldCaptureConditionalAccessReceiver(rewrittenReceiver) Then
+                        temp = New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
+
+                        assignment = factory.AssignmentExpression(factory.Local(temp, isLValue:=True), rewrittenReceiver.MakeRValue())
+                        first = factory.Local(temp, isLValue:=True)
+                        placeholderReplacement = factory.Local(temp, isLValue:=True)
+                    Else
+                        first = rewrittenReceiver
+                        placeholderReplacement = rewrittenReceiver
+                    End If
+
+                    receiverOrCondition = NullableHasValue(first)
+                    placeholderReplacement = NullableValueOrDefault(placeholderReplacement)
                 End If
 
-                condition = NullableHasValue(first)
-                receiverForAccess = NullableValueOrDefault(receiverForAccess)
-
-            ElseIf receiverType.IsReferenceType Then
-
-                ' if( receiver IsNot Nothing, receiver. ... -> to Nullable, Nothing) 
-                If ShouldCaptureConditionalAccessReceiver(rewrittenReceiver) Then
-                    temp = New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
-                    first = factory.AssignmentExpression(factory.Local(temp, isLValue:=True), rewrittenReceiver.MakeRValue())
-                    receiverForAccess = factory.Local(temp, isLValue:=False)
-                Else
-                    first = rewrittenReceiver.MakeRValue()
-                    receiverForAccess = first
-                End If
-
-                condition = factory.ReferenceIsNotNothing(first)
-                'TODO: Figure out how to suppress calvirt on this receiver
-
+                captureReceiver = False
+                newPlaceHolder = Nothing
             Else
 
-                Debug.Assert(Not receiverType.IsValueType)
-                Debug.Assert(receiverType.IsTypeParameter())
+                If rewrittenReceiver.IsConstant Then
+                    receiverOrCondition = Nothing
+                    captureReceiver = False
+                    newPlaceHolder = Nothing
 
-                ' if( receiver IsNot Nothing, receiver. ... -> to Nullable, Nothing) 
-
-                If ShouldCaptureConditionalAccessReceiver(rewrittenReceiver) Then
-
-                    notReferenceType = factory.ReferenceIsNotNothing(factory.DirectCast(factory.DirectCast(factory.Null(),
-                                                                                                           receiverType),
-                                                                                        factory.SpecialType(SpecialType.System_Object)))
-
-                    If Not Me.currentMethodOrLambda.IsAsync AndAlso Not Me.currentMethodOrLambda.IsIterator AndAlso
-                       CanCaptureReferenceToConditionalAccessReceiver(rewrittenReceiver) Then
-
-                        ' We introduce a ByRef local, which will be used to refer to the receiver from within AccessExpression.
-                        ' Initially ByRefLocal is set to refer to the rewrittenReceiver location.
-
-                        ' The "receiver IsNot Nothing" check becomes
-                        ' Not <receiver's type is refernce type> OrElse { <capture value pointed to by ByRefLocal in a temp>, <store reference to the temp in ByRefLocal>, temp IsNot Nothing }
-
-                        ' Note that after that condition is executed, if it returns true, the ByRefLocal ponts to the captured value of the reference type, which is proven to be Not Nothing,
-                        ' and won't change after the null check (we own the local where the value is captured).
-
-                        ' Also, if receiver's type is value type ByRefLocal still points to the original location, which allows access side effects to be observed. 
-
-                        ' The <receiver's type is refernce type> is performed by boxing default value of receiver's type and checking if it is a null reference. This makes Nullable
-                        ' type to be treated as a reference type, but it is Ok since it is immutable. The only strange thing is that we won't unwrap the nullable.
-
-                        temp = New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
-                        byRefLocal = New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp, isByRef:=True)
-
-                        Dim capture As BoundExpression = factory.ReferenceAssignment(byRefLocal, rewrittenReceiver).MakeRValue()
-
-                        condition = factory.LogicalOrElse(notReferenceType,
-                                                          factory.Sequence(ImmutableArray(Of LocalSymbol).Empty,
-                                                                           ImmutableArray.Create(Of BoundExpression)(factory.AssignmentExpression(factory.Local(temp, isLValue:=True),
-                                                                                                                                                  factory.Local(byRefLocal, isLValue:=False)),
-                                                                                                                     factory.ReferenceAssignment(byRefLocal,
-                                                                                                                                                 factory.Local(temp, isLValue:=True)).MakeRValue()),
-                                                                           factory.ReferenceIsNotNothing(factory.DirectCast(factory.Local(temp, isLValue:=False),
-                                                                                                                            factory.SpecialType(SpecialType.System_Object)))))
-
-                        condition = factory.Sequence(ImmutableArray(Of LocalSymbol).Empty,
-                                                     ImmutableArray.Create(capture),
-                                                     condition)
-
-                        receiverForAccess = factory.Local(byRefLocal, isLValue:=False)
+                    If rewrittenReceiver.ConstantValueOpt.IsNothing Then
+                        ' Nothing
+                        placeholderReplacement = Nothing
+                        needWhenNotNullPart = False
                     Else
-                        ' Async rewriter cannot handle the trick with ByRef local that we are doing above.
-                        ' For now we will duplicate access - one access for a value type case, one access for a class case.
-
-                        ' Value type case will use receiver as is.
-                        AddPlaceholderReplacement(node.Placeholder, rewrittenReceiver.MakeRValue())
-                        structAccess = VisitExpressionNode(node.AccessExpression)
-                        RemovePlaceholderReplacement(node.Placeholder)
-
-                        If Not node.Type.IsVoidType() AndAlso Not structAccess.Type.IsNullableType() AndAlso structAccess.Type.IsValueType Then
-                            structAccess = WrapInNullable(structAccess, node.Type)
-                        End If
-
-                        ' Class case is handled by capturing value in a temp
-                        temp = New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
-                        condition = factory.ReferenceIsNotNothing(
-                                                factory.DirectCast(factory.AssignmentExpression(factory.Local(temp, isLValue:=True), rewrittenReceiver.MakeRValue()),
-                                                                   factory.SpecialType(SpecialType.System_Object)))
-                        receiverForAccess = factory.Local(temp, isLValue:=False)
-
+                        ' receiver. ... -> to Nullable
+                        placeholderReplacement = rewrittenReceiver.MakeRValue()
+                        needWhenNullPart = False
                     End If
                 Else
-                    condition = factory.ReferenceIsNotNothing(factory.DirectCast(rewrittenReceiver.MakeRValue(), factory.SpecialType(SpecialType.System_Object)))
-                    receiverForAccess = rewrittenReceiver
+                    ' if( receiver IsNot Nothing, receiver. ... -> to Nullable, Nothing) 
+                    receiverOrCondition = rewrittenReceiver
+                    captureReceiver = ShouldCaptureConditionalAccessReceiver(rewrittenReceiver)
+                    Me.conditionalAccessReceiverPlaceholderId += 1
+                    newPlaceholderId = Me.conditionalAccessReceiverPlaceholderId
+                    Debug.Assert(newPlaceholderId <> 0)
+                    newPlaceHolder = New BoundConditionalAccessReceiverPlaceholder(node.Placeholder.Syntax, newPlaceholderId, node.Placeholder.Type)
+                    placeholderReplacement = newPlaceHolder
                 End If
-
             End If
 
-            AddPlaceholderReplacement(node.Placeholder, receiverForAccess.MakeRValue())
-            Dim whenTrue As BoundExpression = VisitExpressionNode(node.AccessExpression)
-            RemovePlaceholderReplacement(node.Placeholder)
+            Dim whenNotNull As BoundExpression
+            Dim accessResultType As TypeSymbol = node.AccessExpression.Type
 
-            Dim whenFalse As BoundExpression
+            If needWhenNotNullPart Then
+                AddPlaceholderReplacement(node.Placeholder, placeholderReplacement)
+                whenNotNull = VisitExpressionNode(node.AccessExpression)
+                RemovePlaceholderReplacement(node.Placeholder)
+            Else
+                whenNotNull = Nothing ' We should simply produce Nothing as the result, if we need the result.
+            End If
+
+            Dim whenNull As BoundExpression
 
             If node.Type.IsVoidType() Then
-                whenFalse = New BoundSequence(node.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray(Of BoundExpression).Empty, Nothing, node.Type)
-
-                If Not whenTrue.Type.IsVoidType() Then
-                    whenTrue = New BoundSequence(whenTrue.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(whenTrue), Nothing, node.Type)
-                End If
+                whenNull = Nothing
             Else
-                If Not whenTrue.Type.IsNullableType() AndAlso whenTrue.Type.IsValueType Then
-                    whenTrue = WrapInNullable(whenTrue, node.Type)
+                If needWhenNotNullPart AndAlso Not accessResultType.IsNullableType() AndAlso accessResultType.IsValueType Then
+                    whenNotNull = WrapInNullable(whenNotNull, node.Type)
                 End If
 
-                whenFalse = If(whenTrue.Type.IsNullableType(), NullableNull(node.Syntax, whenTrue.Type), factory.Null(whenTrue.Type))
+                If needWhenNullPart Then
+                    whenNull = If(node.Type.IsNullableType(), NullableNull(node.Syntax, node.Type), factory.Null(node.Type))
+                Else
+                    whenNull = Nothing
+                End If
             End If
 
+            Dim result As BoundExpression
 
-            Dim result As BoundExpression = TransformRewrittenTernaryConditionalExpression(factory.TernaryConditionalExpression(condition, whenTrue, whenFalse))
+            Debug.Assert(needWhenNotNullPart OrElse needWhenNullPart)
 
-            If structAccess IsNot Nothing Then
-                ' Result now handles class case. let's join it with the struct case
-                result = TransformRewrittenTernaryConditionalExpression(factory.TernaryConditionalExpression(notReferenceType, structAccess, result))
+            If needWhenNotNullPart Then
+                If needWhenNullPart Then
+                    result = New BoundLoweredConditionalAccess(node.Syntax, receiverOrCondition, captureReceiver, newPlaceholderId, whenNotNull, whenNull, node.Type)
+                Else
+                    Debug.Assert(receiverOrCondition Is Nothing)
+                    Debug.Assert(newPlaceHolder Is Nothing)
+                    result = whenNotNull
+                End If
+            ElseIf whenNull IsNot Nothing Then
+                Debug.Assert(receiverOrCondition Is Nothing)
+                result = whenNull
+            Else
+                Debug.Assert(receiverOrCondition Is Nothing)
+                Debug.Assert(node.Type.IsVoidType())
+                result = New BoundSequence(node.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray(Of BoundExpression).Empty, Nothing, node.Type)
             End If
 
             If temp IsNot Nothing Then
-                Dim temporaries As ImmutableArray(Of LocalSymbol)
-
-                If byRefLocal IsNot Nothing Then
-                    temporaries = ImmutableArray.Create(temp, byRefLocal)
-                Else
-                    temporaries = ImmutableArray.Create(temp)
-                End If
-
                 If result.Type.IsVoidType() Then
-                    result = New BoundSequence(node.Syntax, temporaries, ImmutableArray.Create(result), Nothing, result.Type)
+                    result = New BoundSequence(node.Syntax, ImmutableArray.Create(temp), ImmutableArray.Create(assignment, result), Nothing, result.Type)
                 Else
-                    result = New BoundSequence(node.Syntax, temporaries, ImmutableArray(Of BoundExpression).Empty, result, result.Type)
+                    result = New BoundSequence(node.Syntax, ImmutableArray.Create(temp), ImmutableArray.Create(assignment), result, result.Type)
                 End If
             End If
 

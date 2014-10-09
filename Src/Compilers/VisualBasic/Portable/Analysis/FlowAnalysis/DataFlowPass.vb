@@ -1754,7 +1754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitReferenceAssignment(node As BoundReferenceAssignment) As BoundNode
             MyBase.VisitReferenceAssignment(node)
-            Assign(node.ByRefLocal, node.Target)
+            Assign(node.ByRefLocal, node.LValue)
             Return Nothing
         End Function
 

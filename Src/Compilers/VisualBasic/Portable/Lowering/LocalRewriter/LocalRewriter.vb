@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private currentLineTemporary As LocalSymbol
 
         Private createSequencePointsForTopLevelNonCompilerGeneratedExpressions As Boolean
+        Private conditionalAccessReceiverPlaceholderId As Integer
 
 #If DEBUG Then
         ''' <summary>

@@ -1422,6 +1422,26 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
+            VisitRvalue(node.ReceiverOrCondition)
+            Dim savedState As LocalState = Me.State.Clone()
+
+            VisitRvalue(node.WhenNotNull)
+            IntersectWith(Me.State, savedState)
+
+            If node.WhenNullOpt IsNot Nothing Then
+                savedState = Me.State.Clone()
+                VisitRvalue(node.WhenNullOpt)
+                IntersectWith(Me.State, savedState)
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
+            Return Nothing
+        End Function
+
         Public Overrides Function VisitReturnStatement(node As BoundReturnStatement) As BoundNode
             ' Set unreachable and pending branch for all returns except for the final return that is auto generated
             If Not node.IsEndOfMethodReturn Then
@@ -1562,7 +1582,7 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitReferenceAssignment(node As BoundReferenceAssignment) As BoundNode
             VisitRvalue(node.ByRefLocal)
-            VisitRvalue(node.Target)
+            VisitRvalue(node.LValue)
             Return Nothing
         End Function
 

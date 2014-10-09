@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' ByRef local was not captured
                     Dim rewrittenLeft As BoundLocal = DirectCast(Me.VisitExpression(origByRefLocal), BoundLocal)
 
-                    Dim rewrittenRight As BoundExpression = Me.VisitExpression(node.Target)
+                    Dim rewrittenRight As BoundExpression = Me.VisitExpression(node.LValue)
                     Debug.Assert(rewrittenRight.IsLValue)
                     Dim rightRequiresSpill As Boolean = NeedsSpill(rewrittenRight)
 
@@ -470,6 +470,181 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function MakeAssignmentStatement(expression As BoundExpression, temp As LocalSymbol) As BoundStatement
                 Debug.Assert(Not NeedsSpill(expression))
                 Return Me.F.Assignment(Me.F.Local(temp, True), expression)
+            End Function
+
+            Private Class ConditionalAccessReceiverPlaceholderReplacementInfo
+                Public ReadOnly PlaceholderId As Integer
+                Public IsSpilled As Boolean
+
+                Public Sub New(placeholderId As Integer)
+                    Me.PlaceholderId = placeholderId
+                    Me.IsSpilled = False
+                End Sub
+
+            End Class
+
+            Private m_ConditionalAccessReceiverPlaceholderReplacementInfo As ConditionalAccessReceiverPlaceholderReplacementInfo = Nothing
+
+            Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
+                Dim type As TypeSymbol = Me.VisitType(node.Type)
+
+                Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
+                Dim receiverOrConditionNeedsSpill = NeedsSpill(receiverOrCondition)
+
+                Dim saveConditionalAccessReceiverPlaceholderReplacementInfo = m_ConditionalAccessReceiverPlaceholderReplacementInfo
+                Dim conditionalAccessReceiverPlaceholderReplacementInfo As ConditionalAccessReceiverPlaceholderReplacementInfo
+
+                If node.PlaceholderId <> 0 Then
+                    conditionalAccessReceiverPlaceholderReplacementInfo = New ConditionalAccessReceiverPlaceholderReplacementInfo(node.PlaceholderId)
+                Else
+                    conditionalAccessReceiverPlaceholderReplacementInfo = Nothing
+                End If
+
+                m_ConditionalAccessReceiverPlaceholderReplacementInfo = conditionalAccessReceiverPlaceholderReplacementInfo
+
+                Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
+                Dim whenNotNullNeedsSpill = NeedsSpill(whenNotNull)
+
+                Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse
+                             (Not conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled OrElse whenNotNullNeedsSpill))
+
+                m_ConditionalAccessReceiverPlaceholderReplacementInfo = Nothing
+
+                Dim whenNullOpt As BoundExpression = DirectCast(Me.Visit(node.WhenNullOpt), BoundExpression)
+                Dim whenNullNeedsSpill = If(whenNullOpt IsNot Nothing, NeedsSpill(whenNullOpt), False)
+
+                m_ConditionalAccessReceiverPlaceholderReplacementInfo = saveConditionalAccessReceiverPlaceholderReplacementInfo
+
+                If Not receiverOrConditionNeedsSpill AndAlso Not whenNotNullNeedsSpill AndAlso Not whenNullNeedsSpill Then
+                    Return node.Update(receiverOrCondition,
+                                       node.CaptureReceiver,
+                                       node.PlaceholderId,
+                                       whenNotNull,
+                                       whenNullOpt,
+                                       type)
+                End If
+
+                If Not whenNotNullNeedsSpill AndAlso Not whenNullNeedsSpill Then
+                    Debug.Assert(receiverOrConditionNeedsSpill)
+                    Dim spill = DirectCast(receiverOrCondition, BoundSpillSequence)
+                    Return SpillSequenceWithNewValue(spill, node.Update(spill.ValueOpt,
+                                                                        node.CaptureReceiver,
+                                                                        node.PlaceholderId,
+                                                                        whenNotNull,
+                                                                        whenNullOpt,
+                                                                        type))
+                End If
+
+                Dim builder As New SpillBuilder()
+
+                If receiverOrConditionNeedsSpill Then
+                    Dim spill = DirectCast(receiverOrCondition, BoundSpillSequence)
+                    builder.AddSpill(spill)
+                    receiverOrCondition = spill.ValueOpt
+                End If
+
+                If conditionalAccessReceiverPlaceholderReplacementInfo IsNot Nothing Then
+                    ' We need to revisit the whenNotNull expression to replace placeholder
+
+                    If node.CaptureReceiver OrElse conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled Then
+                        ' Let's use stack spilling to capture it.
+                        receiverOrCondition = SpillValue(receiverOrCondition, builder)
+                    End If
+
+                    Dim rewriter As New ConditionalAccessReceiverPlaceholderReplacement(node.PlaceholderId, receiverOrCondition)
+
+                    whenNotNull = DirectCast(rewriter.Visit(whenNotNull), BoundExpression)
+                    Debug.Assert(rewriter.Replaced)
+                End If
+
+                If Not receiverOrCondition.Type.IsBooleanType() Then
+                    ' We need to a add a null check for the receiver
+                    If receiverOrCondition.Type.IsReferenceType Then
+                        receiverOrCondition = Me.F.ReferenceIsNotNothing(receiverOrCondition.MakeRValue())
+                    Else
+                        Debug.Assert(Not receiverOrCondition.Type.IsValueType)
+                        Debug.Assert(receiverOrCondition.Type.IsTypeParameter())
+
+                        ' The "receiver IsNot Nothing" check becomes
+                        ' Not <receiver's type is refernce type> OrElse receiver IsNot Nothing 
+                        ' The <receiver's type is refernce type> is performed by boxing default value of receiver's type and checking if it is a null reference. 
+
+                        Dim notReferenceType = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(),
+                                                                                                          receiverOrCondition.Type),
+                                                                                          Me.F.SpecialType(SpecialType.System_Object)))
+
+                        receiverOrCondition = Me.F.LogicalOrElse(notReferenceType,
+                                                                 Me.F.ReferenceIsNotNothing(Me.F.DirectCast(receiverOrCondition.MakeRValue(),
+                                                                                                            Me.F.SpecialType(SpecialType.System_Object))))
+                    End If
+                End If
+
+                If whenNullOpt Is Nothing Then
+                    Debug.Assert(type.IsVoidType())
+                    builder.AddStatement(
+                    Me.F.If(condition:=receiverOrCondition,
+                            thenClause:=MakeExpressionStatement(whenNotNull, builder)))
+
+                    Return builder.BuildSequenceAndFree(Me.F, expression:=Nothing)
+                Else
+                    Debug.Assert(Not type.IsVoidType())
+                    Dim tempLocal As LocalSymbol = Me.F.SynthesizedLocal(type)
+
+                    builder.AddLocal(tempLocal)
+
+                    builder.AddStatement(Me.F.If(condition:=receiverOrCondition,
+                                                 thenClause:=MakeAssignmentStatement(whenNotNull, tempLocal, builder),
+                                                 elseClause:=MakeAssignmentStatement(whenNullOpt, tempLocal, builder)))
+
+                    Return builder.BuildSequenceAndFree(Me.F, expression:=Me.F.Local(tempLocal, False))
+                End If
+            End Function
+
+            Private Class ConditionalAccessReceiverPlaceholderReplacement
+                Inherits BoundTreeRewriter
+
+                Private ReadOnly m_PlaceholderId As Integer
+                Private ReadOnly m_ReplaceWith As BoundExpression
+                Private m_Replaced As Boolean
+
+                Public Sub New(placeholderId As Integer, replaceWith As BoundExpression)
+                    Me.m_PlaceholderId = placeholderId
+                    Me.m_ReplaceWith = replaceWith
+                End Sub
+
+                Public ReadOnly Property Replaced As Boolean
+                    Get
+                        Return m_Replaced
+                    End Get
+                End Property
+
+                Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
+                    Debug.Assert(m_PlaceholderId = node.PlaceholderId)
+
+                    If m_PlaceholderId = node.PlaceholderId Then
+                        Debug.Assert(Not m_Replaced)
+                        m_Replaced = True
+
+                        Dim result = m_ReplaceWith
+
+                        If node.IsLValue Then
+                            Debug.Assert(result.IsLValue)
+                            Return result
+                        Else
+                            Return result.MakeRValue()
+                        End If
+                    End If
+
+                    Return node
+                End Function
+            End Class
+
+            Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
+                If m_ConditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse m_ConditionalAccessReceiverPlaceholderReplacementInfo.PlaceholderId <> node.PlaceholderId Then
+                    Throw ExceptionUtilities.Unreachable
+                End If
+
+                Return MyBase.VisitConditionalAccessReceiverPlaceholder(node)
             End Function
 
             Public Overrides Function VisitArrayCreation(node As BoundArrayCreation) As BoundNode

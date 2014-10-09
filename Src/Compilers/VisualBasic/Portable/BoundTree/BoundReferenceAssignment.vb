@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundReferenceAssignment
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(ByRefLocal.LocalSymbol.IsByRef AndAlso Type = Target.Type)
+            Debug.Assert(ByRefLocal.LocalSymbol.IsByRef AndAlso LValue.IsLValue AndAlso Type = LValue.Type)
         End Sub
 #End If
 
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function MakeRValue() As BoundReferenceAssignment
             If _IsLValue Then
-                Return Update(ByRefLocal, Target, False, Type)
+                Return Update(ByRefLocal, LValue, False, Type)
             End If
 
             Return Me

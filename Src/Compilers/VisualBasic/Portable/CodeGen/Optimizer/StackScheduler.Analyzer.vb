@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Me.assignmentLocal = Nothing
 
                 ' Visit a l-value expression in context of 'address'
-                Dim right As BoundExpression = VisitExpression(node.Target, ExprContext.Address)
+                Dim right As BoundExpression = VisitExpression(node.LValue, ExprContext.Address)
 
                 ' record the Write to the local
                 Debug.Assert(storedAssignmentLocal IsNot Nothing)
@@ -551,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' this assert will fire if code relies on implicit CLR coercions 
                 ' - i.e assigns int value to a short local.
                 ' in that case we should force lhs to be a real local
-                Debug.Assert(node.ByRefLocal.Type.IsSameTypeIgnoringCustomModifiers(node.Target.Type),
+                Debug.Assert(node.ByRefLocal.Type.IsSameTypeIgnoringCustomModifiers(node.LValue.Type),
                              "cannot use stack when assignment involves implicit coercion of the value")
 
                 RecordVarWrite(storedAssignmentLocal.LocalSymbol)
@@ -843,6 +843,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EnsureStackState(cookie) ' implicit label here
 
                 Return node.Update(condition, whenTrue, whenFalse, node.ConstantValueOpt, node.Type)
+            End Function
+
+            Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
+                If Not node.ReceiverOrCondition.Type.IsBooleanType() Then
+                    ' We may need to load a reference to the receiver, or may need to  
+                    ' reload it after the null check. This won't work well 
+                    ' with a stack local.
+                    EnsureOnlyEvalStack()
+                End If
+
+                Dim origStack = Me.evalStack
+
+                Dim receiverOrCondition = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
+
+                Dim cookie = GetStackStateCookie()     ' implicit branch here
+
+                ' access Is evaluated with original stack 
+                ' (this Is Not entirely true, codegen will keep receiver on the stack, but that Is irrelevant here)
+                Me.evalStack = origStack
+
+                Dim whenNotNull = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
+
+                EnsureStackState(cookie)   ' implicit label here
+
+                Dim whenNull As BoundExpression = Nothing
+
+                If node.WhenNullOpt IsNot Nothing Then
+                    Me.evalStack = origStack
+                    whenNull = DirectCast(Me.Visit(node.WhenNullOpt), BoundExpression)
+                    EnsureStackState(cookie) ' implicit label here
+                End If
+
+                Return node.Update(receiverOrCondition, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNull, node.Type)
+            End Function
+
+            Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
+                Return MyBase.VisitConditionalAccessReceiverPlaceholder(node)
             End Function
 
             Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode

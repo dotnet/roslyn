@@ -1129,6 +1129,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return rewritten
         End Function
 
+        Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
+            Dim result = DirectCast(MyBase.VisitLoweredConditionalAccess(node), BoundLoweredConditionalAccess)
+
+            If Not result.CaptureReceiver AndAlso Not node.ReceiverOrCondition.Type.IsBooleanType() AndAlso
+               node.ReceiverOrCondition.Kind <> result.ReceiverOrCondition.Kind Then
+                ' It looks like the receiver got lifted into a closure, we cannot assume that it will not change between null check and the following access.
+                Return result.Update(result.ReceiverOrCondition, True, result.PlaceholderId, result.WhenNotNull, result.WhenNullOpt, result.Type)
+            Else
+                Return result
+            End If
+        End Function
+
         ''' <summary>
         ''' Optimize the case where we create an instance of a delegate and invoke it right away.
         ''' Skip the delegate creation and invoke the method directly. Specifically, we are targeting 

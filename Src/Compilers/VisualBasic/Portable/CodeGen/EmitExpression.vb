@@ -128,12 +128,166 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' which is to be able to pass Me reference of value type as ByRef argument in compiler
                     ' generated code, this is why we specifically prohibit emitting this as value
                     Throw ExceptionUtilities.UnexpectedValue(expression.Kind)
+
+                Case BoundKind.LoweredConditionalAccess
+                    EmitConditionalAccess(DirectCast(expression, BoundLoweredConditionalAccess), used)
+
+                Case BoundKind.ConditionalAccessReceiverPlaceholder
+                    EmitConditionalAccessReceiverPlaceholder(DirectCast(expression, BoundConditionalAccessReceiverPlaceholder), used)
+
                 Case Else
                     ' Code gen should not be invoked if there are errors.
                     ' Debug.Assert(expression.Kind <> BoundKind.BadExpression AndAlso expression.Kind <> BoundKind.Parenthesized)
                     Throw ExceptionUtilities.UnexpectedValue(expression.Kind)
                     Return
             End Select
+        End Sub
+
+        Private Sub EmitConditionalAccessReceiverPlaceholder(expression As BoundConditionalAccessReceiverPlaceholder, used As Boolean)
+            Debug.Assert(Not expression.Type.IsValueType)
+
+            If used AndAlso Not expression.Type.IsReferenceType Then
+                EmitLoadIndirect(expression.Type, expression.Syntax)
+            End If
+
+            EmitPopIfUnused(used)
+        End Sub
+
+        Private Sub EmitConditionalAccess(conditinal As BoundLoweredConditionalAccess, used As Boolean)
+
+            Debug.Assert(conditinal.WhenNullOpt IsNot Nothing OrElse Not used)
+
+            If conditinal.ReceiverOrCondition.Type.IsBooleanType() Then
+                ' This is a trivial case 
+                Debug.Assert(Not conditinal.CaptureReceiver)
+                Debug.Assert(conditinal.PlaceholderId = 0)
+
+                Dim doneLabel = New Object()
+
+                Dim consequenceLabel = New Object()
+
+                EmitCondBranch(conditinal.ReceiverOrCondition, consequenceLabel, sense:=True)
+
+                If conditinal.WhenNullOpt IsNot Nothing Then
+                    EmitExpression(conditinal.WhenNullOpt, used)
+                Else
+                    Debug.Assert(Not used)
+                End If
+
+                _builder.EmitBranch(ILOpCode.Br, doneLabel)
+                If used Then
+                    ' If we get to consequenceLabel, we should not have WhenFalse on stack, adjust for that.
+                    _builder.AdjustStack(-1)
+                End If
+
+                _builder.MarkLabel(consequenceLabel)
+                EmitExpression(conditinal.WhenNotNull, used)
+
+                _builder.MarkLabel(doneLabel)
+            Else
+                Debug.Assert(Not conditinal.ReceiverOrCondition.Type.IsValueType)
+
+                Dim receiverTemp As LocalDefinition = Nothing
+                Dim temp As LocalDefinition = Nothing
+
+                ' labels
+                Dim whenNotNullLabel As New Object()
+                Dim doneLabel As New Object()
+
+                ' we need a copy if we deal with nonlocal value (to capture the value)
+                ' Or if we have a ref-constrained T (to do box just once)
+                Dim receiver As BoundExpression = conditinal.ReceiverOrCondition
+                Dim receiverType As TypeSymbol = receiver.Type
+                Dim nullCheckOnCopy = conditinal.CaptureReceiver OrElse (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
+
+                If nullCheckOnCopy Then
+                    EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
+
+                    If Not receiverType.IsReferenceType Then
+                        ' unconstrained case needs to handle case where T Is actually a struct.
+                        ' such values are never nulls
+                        ' we will emit a check for such case, but the check Is realy a JIT-time 
+                        ' constant since JIT will know if T Is a struct Or Not.
+                        '
+                        ' if ((object)default(T) != null) 
+                        ' {
+                        '     goto whenNotNull
+                        ' }
+                        ' else
+                        ' {
+                        '     temp = receiverRef
+                        '     receiverRef = ref temp
+                        ' }
+                        EmitInitObj(receiverType, True, receiver.Syntax)
+                        EmitBox(receiverType, receiver.Syntax)
+                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel)
+                        EmitLoadIndirect(receiverType, receiver.Syntax)
+
+                        temp = AllocateTemp(receiverType, receiver.Syntax)
+                        _builder.EmitLocalStore(temp)
+                        _builder.EmitLocalAddress(temp)
+                        _builder.EmitLocalLoad(temp)
+                        EmitBox(receiver.Type, receiver.Syntax)
+
+                        ' here we have loaded a ref to a temp And its boxed value { &T, O }
+                    Else
+                        _builder.EmitOpCode(ILOpCode.Dup)
+                        ' here we have loaded two copies of a reference   { O, O }
+                    End If
+                Else
+                    EmitExpression(receiver, True)
+                    If Not receiverType.IsReferenceType Then
+                        EmitBox(receiverType, receiver.Syntax)
+                    End If
+
+                    ' here we have loaded just { O }
+                    ' we have the most trivial case where we can just reload O when needed
+                End If
+
+                _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel)
+
+                If nullCheckOnCopy Then
+                    _builder.EmitOpCode(ILOpCode.Pop)
+                End If
+
+                If conditinal.WhenNullOpt IsNot Nothing Then
+                    EmitExpression(conditinal.WhenNullOpt, used)
+                Else
+                    Debug.Assert(Not used)
+                End If
+
+                _builder.EmitBranch(ILOpCode.Br, doneLabel)
+
+                If used Then
+                    ' If we get to whenNotNullLabel, we should not have WhenNullOpt on stack, adjust for that.
+                    _builder.AdjustStack(-1)
+                End If
+
+                If nullCheckOnCopy Then
+                    ' whenNull branch pops copy of the receiver off the stack when nullCheckOnCopy
+                    ' however on this branch we still have the stack as it was and need 
+                    ' to adjust stack depth accordingly.
+                    _builder.AdjustStack(+1)
+                End If
+
+                _builder.MarkLabel(whenNotNullLabel)
+
+                If Not nullCheckOnCopy Then
+                    receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
+                    Debug.Assert(receiverTemp Is Nothing)
+                End If
+
+                EmitExpression(conditinal.WhenNotNull, used)
+                _builder.MarkLabel(doneLabel)
+
+                If temp IsNot Nothing Then
+                    FreeTemp(temp)
+                End If
+
+                If receiverTemp IsNot Nothing Then
+                    FreeTemp(receiverTemp)
+                End If
+            End If
         End Sub
 
         Private Sub EmitDelegateCreationExpression(expression As BoundDelegateCreationExpression, used As Boolean)
@@ -638,6 +792,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.FieldAccess
                     Return DirectCast(receiver, BoundFieldAccess).FieldSymbol.IsCapturedFrame
+
+                Case BoundKind.ConditionalAccessReceiverPlaceholder
+                    Return True
 
                     'TODO: there must be more non-null cases.
             End Select
@@ -1596,10 +1753,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitReferenceAssignment(capture As BoundReferenceAssignment, used As Boolean, Optional needReference As Boolean = False)
             Debug.Assert(Not needReference OrElse used)
 
-            Dim temp = EmitAddress(capture.Target, addressKind:=AddressKind.Writeable)
+            Dim temp = EmitAddress(capture.LValue, addressKind:=AddressKind.Writeable)
 
-            ' TODO: We can leak a temp here, but we don't have a good way to infer when it is safe to let it go. 
-            Debug.Assert(temp Is Nothing OrElse Not capture.Target.IsLValue, "reference assignment should not clone the referent")
+            Debug.Assert(temp Is Nothing, "reference assignment should not clone the referent")
 
             If used Then
                 _builder.EmitOpCode(ILOpCode.Dup)

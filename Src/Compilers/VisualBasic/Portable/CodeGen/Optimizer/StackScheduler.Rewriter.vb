@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Me.nodeCounter += 1
 
                 ' Visit the expression being assigned 
-                Dim right = DirectCast(Me.Visit(node.Target), BoundExpression)
+                Dim right = DirectCast(Me.Visit(node.LValue), BoundExpression)
 
                 ' this should not be the last store, why would be created such a variable after all???
                 Debug.Assert(locInfo.localDefs.Any(Function(d) nodeCounter = d.Start AndAlso nodeCounter <= d.End))
@@ -150,7 +150,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim right = DirectCast(Me.Visit(node.Right), BoundExpression)
 
                 ' do actual assignment
-
                 Debug.Assert(locInfo.localDefs.Any(Function(d) nodeCounter = d.Start AndAlso nodeCounter <= d.End))
                 Dim isLast As Boolean = IsLastAccess(locInfo, nodeCounter)
 
@@ -163,6 +162,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' codegen will keep value on stack when sees assignment "stackLocal = expr"
                     Return node.Update(left, node.LeftOnTheRightOpt, right, node.SuppressObjectClone, node.Type)
                 End If
+            End Function
+
+            Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
+                Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
+                Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
+                Dim whenNullOpt As BoundExpression = node.WhenNullOpt
+
+                If whenNullOpt IsNot Nothing Then
+                    whenNullOpt = DirectCast(Me.Visit(whenNullOpt), BoundExpression)
+                End If
+
+                Return node.Update(receiverOrCondition, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNullOpt, node.Type)
             End Function
 
         End Class

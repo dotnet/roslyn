@@ -286,6 +286,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Return array
 
+                    Case BoundKind.ConditionalAccessReceiverPlaceholder
+                        Throw ExceptionUtilities.Unreachable
+
                     Case BoundKind.FieldAccess
                         Dim fieldAccess = DirectCast(expr, BoundFieldAccess)
 
@@ -339,6 +342,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case BoundKind.ArrayInitialization
                         Dim arrayInit = DirectCast(expr, BoundArrayInitialization)
                         Return arrayInit.Update(SpillExpressionList(builder, arrayInit.Initializers), arrayInit.Type)
+
+                    Case BoundKind.ConditionalAccessReceiverPlaceholder
+                        If m_ConditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse
+                           m_ConditionalAccessReceiverPlaceholderReplacementInfo.PlaceholderId <> DirectCast(expr, BoundConditionalAccessReceiverPlaceholder).PlaceholderId Then
+                            Throw ExceptionUtilities.Unreachable
+                        End If
+
+                        m_ConditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled = True
+                        Return expr
 
                     Case Else
                         ' Create a field for a spill

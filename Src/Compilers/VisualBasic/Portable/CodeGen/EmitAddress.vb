@@ -65,6 +65,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.ReferenceAssignment
                     EmitReferenceAssignment(DirectCast(expression, BoundReferenceAssignment), used:=True, needReference:=True)
 
+                Case BoundKind.ConditionalAccessReceiverPlaceholder
+                    ' do nothing receiver ref must be already pushed
+                    Debug.Assert(Not expression.Type.IsReferenceType)
+                    Debug.Assert(Not expression.Type.IsValueType)
+
                 Case BoundKind.Parameter
                     EmitParameterAddress(DirectCast(expression, BoundParameter))
 
@@ -260,6 +265,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' Checks if it is allowed to take a writeable reference to expression according to VB rules.
         ''' </summary>
         Private Function AllowedToTakeRef(expression As BoundExpression, addressKind As AddressKind) As Boolean
+
+            If expression.Kind = BoundKind.ConditionalAccessReceiverPlaceholder Then
+                Return addressKind = AddressKind.ReadOnly OrElse addressKind = AddressKind.Immutable
+            End If
+
             ' taking immutable addresses is ok as long as expression has home
             If addressKind <> AddressKind.Immutable Then
 
@@ -444,7 +454,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return EmitAddress(receiver, AddressKind.ReadOnly)
                 Else
                     EmitExpression(receiver, used:=True)
-                    EmitBox(receiverType, receiver.Syntax)
+
+                    ' conditional receivers are already boxed if needed when pushed
+                    If receiver.Kind <> BoundKind.ConditionalAccessReceiverPlaceholder Then
+                        EmitBox(receiverType, receiver.Syntax)
+                    End If
+
                     Return Nothing
                 End If
             End If

@@ -778,6 +778,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We may also statically know if one is definitely not a null
             ' we cannot know, though, if whole operator yields null or not.
 
+            If rightHasValue AndAlso left.Kind = BoundKind.LoweredConditionalAccess Then
+                Dim rightValue = NullableValueOrDefault(right)
+                Dim conditional = DirectCast(left, BoundLoweredConditionalAccess)
+
+                If (rightValue.IsConstant OrElse rightValue.Kind = BoundKind.Local OrElse rightValue.Kind = BoundKind.Parameter) AndAlso
+                   HasValue(conditional.WhenNotNull) AndAlso HasNoValue(conditional.WhenNullOpt) Then
+
+                    Return conditional.Update(conditional.ReceiverOrCondition,
+                                              conditional.CaptureReceiver,
+                                              conditional.PlaceholderId,
+                                              WrapInNullable(ApplyUnliftedBinaryOp(node,
+                                                                                   NullableValueOrDefault(conditional.WhenNotNull),
+                                                                                   rightValue),
+                                                             node.Type),
+                                              NullableNull(conditional.WhenNullOpt, node.Type),
+                                              node.Type)
+                End If
+            End If
+
             Dim temps As ArrayBuilder(Of LocalSymbol) = Nothing
             Dim inits As ArrayBuilder(Of BoundExpression) = Nothing
 
@@ -1093,37 +1112,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return node
             End If
 
-            Dim isIs = node.OperatorKind = BinaryOperatorKind.Is
-            Dim operand = If(left.IsNothingLiteral, right, left)
+            Return RewriteNullableIsOrIsNotOperator(node.OperatorKind = BinaryOperatorKind.Is, If(left.IsNothingLiteral, right, left), node.Type)
+        End Function
 
+        Private Function RewriteNullableIsOrIsNotOperator(isIs As Boolean, operand As BoundExpression, resultType As TypeSymbol) As BoundExpression
+            Debug.Assert(resultType.IsBooleanType())
             Debug.Assert(operand.Type.IsNullableType)
 
-            Dim result As BoundExpression
             If HasNoValue(operand) Then
-                result = New BoundLiteral(operand.Syntax,
+                Return New BoundLiteral(operand.Syntax,
                                         If(isIs,
                                             ConstantValue.True,
                                             ConstantValue.False),
-                                        node.Type)
+                                        resultType)
 
             ElseIf HasValue(operand) Then
-                result = MakeSequence(operand, New BoundLiteral(operand.Syntax,
+                Return MakeSequence(operand, New BoundLiteral(operand.Syntax,
                                     If(isIs,
                                         ConstantValue.False,
                                         ConstantValue.True),
-                                    node.Type))
+                                    resultType))
             Else
+
+                If operand.Kind = BoundKind.LoweredConditionalAccess Then
+                    Dim conditional = DirectCast(operand, BoundLoweredConditionalAccess)
+
+                    If HasNoValue(conditional.WhenNullOpt) Then
+                        Return conditional.Update(conditional.ReceiverOrCondition,
+                                                  conditional.CaptureReceiver,
+                                                  conditional.PlaceholderId,
+                                                  RewriteNullableIsOrIsNotOperator(isIs, conditional.WhenNotNull, resultType),
+                                                  RewriteNullableIsOrIsNotOperator(isIs, conditional.WhenNullOpt, resultType),
+                                                  resultType)
+                    End If
+                End If
+
+                Dim result As BoundExpression
+
                 result = NullableHasValue(operand)
                 If isIs Then
                     result = New BoundUnaryOperator(result.Syntax,
                                                     UnaryOperatorKind.Not,
                                                     result,
                                                     False,
-                                                    result.Type)
+                                                    resultType)
                 End If
-            End If
 
-            Return result
+                Return result
+            End If
         End Function
 
         Private Function RewriteLiftedUserDefinedBinaryOperator(node As BoundUserDefinedBinaryOperator) As BoundNode

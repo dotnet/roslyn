@@ -284,6 +284,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' converting null
                         Return NullableNull(result.Syntax, resultType)
                     Else
+                        If rewrittenOperand.Kind = BoundKind.LoweredConditionalAccess Then
+                            Dim conditional = DirectCast(rewrittenOperand, BoundLoweredConditionalAccess)
+
+                            If HasValue(conditional.WhenNotNull) AndAlso HasNoValue(conditional.WhenNullOpt) Then
+                                Return conditional.Update(conditional.ReceiverOrCondition,
+                                                          conditional.CaptureReceiver,
+                                                          conditional.PlaceholderId,
+                                                          FinishRewriteNullableConversion(node, resultType, NullableValueOrDefault(conditional.WhenNotNull), Nothing, Nothing, Nothing),
+                                                          NullableNull(result.Syntax, resultType),
+                                                          resultType)
+                            End If
+                        End If
+
                         ' uncaptured locals are safe here because we are dealing with a single operand
                         result = ProcessNullableOperand(rewrittenOperand, operandHasValue, temps, inits, doNotCaptureLocals:=True)
                     End If
@@ -293,17 +306,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            Return FinishRewriteNullableConversion(node, resultType, result, operandHasValue, temps, inits)
+        End Function
+
+        Private Function FinishRewriteNullableConversion(
+            node As BoundConversion,
+            resultType As TypeSymbol,
+            operand As BoundExpression,
+            operandHasValue As BoundExpression,
+            temps As ArrayBuilder(Of LocalSymbol),
+            inits As ArrayBuilder(Of BoundExpression)
+        ) As BoundExpression
+            Debug.Assert(resultType Is node.Type)
+
             Dim unwrappedResultType = resultType.GetNullableUnderlyingTypeOrSelf
 
             ' apply unlifted conversion
-            If Not result.Type.IsSameTypeIgnoringCustomModifiers(unwrappedResultType) Then
+            If Not operand.Type.IsSameTypeIgnoringCustomModifiers(unwrappedResultType) Then
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim convKind = Conversions.ClassifyConversion(result.Type, unwrappedResultType, useSiteDiagnostics).Key
+                Dim convKind = Conversions.ClassifyConversion(operand.Type, unwrappedResultType, useSiteDiagnostics).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
                 diagnostics.Add(node, useSiteDiagnostics)
-                result = TransformRewrittenConversion(
+                operand = TransformRewrittenConversion(
                                 New BoundConversion(node.Syntax,
-                                                    result,
+                                                    operand,
                                                     convKind,
                                                     node.Checked,
                                                     node.ExplicitCastInCode,
@@ -316,27 +342,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' wrap if needed
             If resultType.IsNullableType Then
-                result = WrapInNullable(result, resultType)
+                operand = WrapInNullable(operand, resultType)
 
                 ' propagate null from the operand
                 If operandHasValue IsNot Nothing Then
-                    result = MakeTernaryConditionalExpression(node.Syntax,
+                    operand = MakeTernaryConditionalExpression(node.Syntax,
                                                             operandHasValue,
-                                                            result,
-                                                            NullableNull(result.Syntax, resultType))
+                                                            operand,
+                                                            NullableNull(operand.Syntax, resultType))
 
                     ' if used temps, arrange a sequence for temps and inits.
                     If temps IsNot Nothing Then
-                        result = New BoundSequence(result.Syntax,
+                        operand = New BoundSequence(operand.Syntax,
                                                    temps.ToImmutableAndFree,
                                                    inits.ToImmutableAndFree,
-                                                   result,
-                                                   result.Type)
+                                                   operand,
+                                                   operand.Type)
                     End If
                 End If
             End If
 
-            Return result
+            Return operand
         End Function
 
         Private Function RewriteNullableReferenceConversion(node As BoundConversion,

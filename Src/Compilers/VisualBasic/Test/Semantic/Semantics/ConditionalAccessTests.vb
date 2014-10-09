@@ -425,20 +425,18 @@ Null
             verifier.VerifyIL("Module1.Test4_IL_02",
             <![CDATA[
 {
-  // Code size       21 (0x15)
+  // Code size       20 (0x14)
   .maxstack  2
-  .locals init (C1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldind.ref
   IL_0002:  dup
-  IL_0003:  stloc.0
-  IL_0004:  brtrue.s   IL_0009
+  IL_0003:  brtrue.s   IL_0009
+  IL_0005:  pop
   IL_0006:  ldnull
-  IL_0007:  br.s       IL_000f
-  IL_0009:  ldloc.0
-  IL_000a:  callvirt   "Function C1.get_P2() As String"
-  IL_000f:  call       "Sub Module1.Do(Of String)(String)"
-  IL_0014:  ret
+  IL_0007:  br.s       IL_000e
+  IL_0009:  callvirt   "Function C1.get_P2() As String"
+  IL_000e:  call       "Sub Module1.Do(Of String)(String)"
+  IL_0013:  ret
 }
 ]]>)
 
@@ -461,41 +459,37 @@ Null
             verifier.VerifyIL("Module1.Test4_IL_04",
             <![CDATA[
 {
-  // Code size       21 (0x15)
+  // Code size       20 (0x14)
   .maxstack  2
-  .locals init (C1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldind.ref
   IL_0002:  dup
-  IL_0003:  stloc.0
-  IL_0004:  brtrue.s   IL_0009
+  IL_0003:  brtrue.s   IL_0009
+  IL_0005:  pop
   IL_0006:  ldnull
-  IL_0007:  br.s       IL_000f
-  IL_0009:  ldloc.0
-  IL_000a:  callvirt   "Function C1.get_P2() As String"
-  IL_000f:  call       "Sub Module1.Do(Of String)(String)"
-  IL_0014:  ret
+  IL_0007:  br.s       IL_000e
+  IL_0009:  callvirt   "Function C1.get_P2() As String"
+  IL_000e:  call       "Sub Module1.Do(Of String)(String)"
+  IL_0013:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test4_IL_05",
             <![CDATA[
 {
-  // Code size       22 (0x16)
+  // Code size       21 (0x15)
   .maxstack  2
-  .locals init (C1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  ldelem.ref
   IL_0003:  dup
-  IL_0004:  stloc.0
-  IL_0005:  brtrue.s   IL_000a
+  IL_0004:  brtrue.s   IL_000a
+  IL_0006:  pop
   IL_0007:  ldnull
-  IL_0008:  br.s       IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  callvirt   "Function C1.get_P2() As String"
-  IL_0010:  call       "Sub Module1.Do(Of String)(String)"
-  IL_0015:  ret
+  IL_0008:  br.s       IL_000f
+  IL_000a:  callvirt   "Function C1.get_P2() As String"
+  IL_000f:  call       "Sub Module1.Do(Of String)(String)"
+  IL_0014:  ret
 }
 ]]>)
 
@@ -520,33 +514,28 @@ Null
             verifier.VerifyIL("Module1.Test6_IL_02",
             <![CDATA[
 {
-  // Code size       57 (0x39)
-  .maxstack  1
-  .locals init (T V_0,
-                T& V_1,
-                T V_2)
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloca.s   V_2
-  IL_0004:  initobj    "T"
-  IL_000a:  ldloc.2
-  IL_000b:  box        "T"
-  IL_0010:  brtrue.s   IL_0027
-  IL_0012:  ldloc.1
-  IL_0013:  ldobj      "T"
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        "T"
-  IL_0022:  brtrue.s   IL_0027
-  IL_0024:  ldnull
-  IL_0025:  br.s       IL_0033
-  IL_0027:  ldloc.1
-  IL_0028:  constrained. "T"
-  IL_002e:  callvirt   "Function I1.get_P2() As String"
-  IL_0033:  call       "Sub Module1.Do(Of String)(String)"
-  IL_0038:  ret
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0025
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0025
+  IL_0021:  pop
+  IL_0022:  ldnull
+  IL_0023:  br.s       IL_0030
+  IL_0025:  constrained. "T"
+  IL_002b:  callvirt   "Function I1.get_P2() As String"
+  IL_0030:  call       "Sub Module1.Do(Of String)(String)"
+  IL_0035:  ret
 }
 ]]>)
 
@@ -571,107 +560,94 @@ Null
             verifier.VerifyIL("Module1.Test6_IL_04",
             <![CDATA[
 {
-  // Code size       57 (0x39)
-  .maxstack  1
-  .locals init (T V_0,
-                T& V_1,
-                T V_2)
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloca.s   V_2
-  IL_0004:  initobj    "T"
-  IL_000a:  ldloc.2
-  IL_000b:  box        "T"
-  IL_0010:  brtrue.s   IL_0027
-  IL_0012:  ldloc.1
-  IL_0013:  ldobj      "T"
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        "T"
-  IL_0022:  brtrue.s   IL_0027
-  IL_0024:  ldnull
-  IL_0025:  br.s       IL_0033
-  IL_0027:  ldloc.1
-  IL_0028:  constrained. "T"
-  IL_002e:  callvirt   "Function I1.get_P2() As String"
-  IL_0033:  call       "Sub Module1.Do(Of String)(String)"
-  IL_0038:  ret
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0025
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0025
+  IL_0021:  pop
+  IL_0022:  ldnull
+  IL_0023:  br.s       IL_0030
+  IL_0025:  constrained. "T"
+  IL_002b:  callvirt   "Function I1.get_P2() As String"
+  IL_0030:  call       "Sub Module1.Do(Of String)(String)"
+  IL_0035:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test6_IL_05",
             <![CDATA[
 {
-  // Code size       76 (0x4c)
+  // Code size       62 (0x3e)
   .maxstack  2
-  .locals init (T V_0,
-                T V_1)
-  IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    "T"
-  IL_0008:  ldloc.1
-  IL_0009:  box        "T"
-  IL_000e:  brtrue.s   IL_0032
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.0
-  IL_0012:  ldelem     "T"
-  IL_0017:  dup
-  IL_0018:  stloc.0
-  IL_0019:  box        "T"
-  IL_001e:  brtrue.s   IL_0023
-  IL_0020:  ldnull
-  IL_0021:  br.s       IL_0046
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  constrained. "T"
-  IL_002b:  callvirt   "Function I1.get_P2() As String"
-  IL_0030:  br.s       IL_0046
-  IL_0032:  ldarg.0
-  IL_0033:  ldc.i4.0
-  IL_0034:  readonly.
-  IL_0036:  ldelema    "T"
-  IL_003b:  constrained. "T"
-  IL_0041:  callvirt   "Function I1.get_P2() As String"
-  IL_0046:  call       "Sub Module1.Do(Of String)(String)"
-  IL_004b:  ret
-}]]>)
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    "T"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.0
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.0
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. "T"
+  IL_0033:  callvirt   "Function I1.get_P2() As String"
+  IL_0038:  call       "Sub Module1.Do(Of String)(String)"
+  IL_003d:  ret
+}
+]]>)
 
 
             verifier.VerifyIL("Module1.Test8",
             <![CDATA[
 {
-  // Code size       65 (0x41)
-  .maxstack  1
+  // Code size       62 (0x3e)
+  .maxstack  2
   .locals init (T V_0,
-                T& V_1,
-                T V_2,
-                T V_3)
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Module1.GetT(Of T)(T) As T"
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_3
-  IL_000c:  initobj    "T"
-  IL_0012:  ldloc.3
-  IL_0013:  box        "T"
-  IL_0018:  brtrue.s   IL_002f
-  IL_001a:  ldloc.1
-  IL_001b:  ldobj      "T"
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  stloc.1
-  IL_0024:  ldloc.0
-  IL_0025:  box        "T"
-  IL_002a:  brtrue.s   IL_002f
-  IL_002c:  ldnull
-  IL_002d:  br.s       IL_003b
-  IL_002f:  ldloc.1
-  IL_0030:  constrained. "T"
-  IL_0036:  callvirt   "Function I1.get_P2() As String"
-  IL_003b:  call       "Sub Module1.Do(Of String)(String)"
-  IL_0040:  ret
-}]]>)
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. "T"
+  IL_0033:  callvirt   "Function I1.get_P2() As String"
+  IL_0038:  call       "Sub Module1.Do(Of String)(String)"
+  IL_003d:  ret
+}
+]]>)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim typeInfo As TypeInfo
@@ -2194,6 +2170,54 @@ BC37239: Leading '?' can only appear inside a 'With' statement, but not inside a
         End Sub
 
         <Fact()>
+        Public Sub WithStatement_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Module Module1
+
+    Sub Main()
+
+        Dim s1 As S1? = New S1()
+
+        With "string"
+            s1?.M1(.Length)
+            Dim y = s1?(.Length)
+        End With
+
+    End Sub
+
+End Module
+
+
+Structure S1
+    Sub M1(x As Integer)
+        System.Console.WriteLine("M1 - {0}", x)
+    End Sub
+
+    Default ReadOnly Property P1(x As Integer) As Integer
+        Get
+            System.Console.WriteLine("P1 - {0}", x)
+            Return x
+        End Get
+    End Property
+End Structure
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ExperimentalReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+M1 - 6
+P1 - 6
+]]>)
+        End Sub
+
+        <Fact()>
         Public Sub ExpressionTree_01()
 
             Dim compilationDef =
@@ -3245,423 +3269,396 @@ Ext4 C1
             verifier.VerifyIL("Module1.Test1_1",
             <![CDATA[
 {
-  // Code size       15 (0xf)
+  // Code size       21 (0x15)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
-  IL_0006:  brfalse.s  IL_000e
-  IL_0008:  ldarg.0
-  IL_0009:  call       "Sub Module1.Ext1(Of T)(T)"
-  IL_000e:  ret
+  IL_0006:  brfalse.s  IL_0014
+  IL_0008:  ldarga.s   V_0
+  IL_000a:  ldobj      "T"
+  IL_000f:  call       "Sub Module1.Ext1(Of T)(T)"
+  IL_0014:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test1_2",
             <![CDATA[
 {
-  // Code size       48 (0x30)
-  .maxstack  1
-  .locals init (T V_0,
-                T& V_1,
-                T V_2)
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloca.s   V_2
-  IL_0004:  initobj    "T"
-  IL_000a:  ldloc.2
-  IL_000b:  box        "T"
-  IL_0010:  brtrue.s   IL_0024
-  IL_0012:  ldloc.1
-  IL_0013:  ldobj      "T"
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        "T"
-  IL_0022:  brfalse.s  IL_002f
-  IL_0024:  ldloc.1
-  IL_0025:  ldobj      "T"
-  IL_002a:  call       "Sub Module1.Ext1(Of T)(T)"
-  IL_002f:  ret
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0023
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  ldobj      "T"
+  IL_0028:  call       "Sub Module1.Ext1(Of T)(T)"
+  IL_002d:  ret
 }]]>)
 
             verifier.VerifyIL("Module1.Test1_3",
             <![CDATA[
 {
-  // Code size       15 (0xf)
+  // Code size       21 (0x15)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
-  IL_0006:  brfalse.s  IL_000e
-  IL_0008:  ldarg.0
-  IL_0009:  call       "Sub Module1.Ext1(Of T)(T)"
-  IL_000e:  ret
+  IL_0006:  brfalse.s  IL_0014
+  IL_0008:  ldarga.s   V_0
+  IL_000a:  ldobj      "T"
+  IL_000f:  call       "Sub Module1.Ext1(Of T)(T)"
+  IL_0014:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test1_4",
             <![CDATA[
 {
-  // Code size       48 (0x30)
-  .maxstack  1
-  .locals init (T V_0,
-                T& V_1,
-                T V_2)
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloca.s   V_2
-  IL_0004:  initobj    "T"
-  IL_000a:  ldloc.2
-  IL_000b:  box        "T"
-  IL_0010:  brtrue.s   IL_0024
-  IL_0012:  ldloc.1
-  IL_0013:  ldobj      "T"
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        "T"
-  IL_0022:  brfalse.s  IL_002f
-  IL_0024:  ldloc.1
-  IL_0025:  ldobj      "T"
-  IL_002a:  call       "Sub Module1.Ext1(Of T)(T)"
-  IL_002f:  ret
-}]]>)
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0023
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  ldobj      "T"
+  IL_0028:  call       "Sub Module1.Ext1(Of T)(T)"
+  IL_002d:  ret
+}
+]]>)
 
             verifier.VerifyIL("Module1.Test1_5",
             <![CDATA[
 {
-  // Code size       52 (0x34)
+  // Code size       54 (0x36)
   .maxstack  2
-  .locals init (T V_0,
-                T V_1)
-  IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    "T"
-  IL_0008:  ldloc.1
-  IL_0009:  box        "T"
-  IL_000e:  brtrue.s   IL_0027
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.0
-  IL_0012:  ldelem     "T"
-  IL_0017:  dup
-  IL_0018:  stloc.0
-  IL_0019:  box        "T"
-  IL_001e:  brfalse.s  IL_0033
-  IL_0020:  ldloc.0
-  IL_0021:  call       "Sub Module1.Ext1(Of T)(T)"
-  IL_0026:  ret
-  IL_0027:  ldarg.0
-  IL_0028:  ldc.i4.0
-  IL_0029:  ldelem     "T"
-  IL_002e:  call       "Sub Module1.Ext1(Of T)(T)"
-  IL_0033:  ret
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    "T"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.0
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002b
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.0
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002b
+  IL_0029:  pop
+  IL_002a:  ret
+  IL_002b:  ldobj      "T"
+  IL_0030:  call       "Sub Module1.Ext1(Of T)(T)"
+  IL_0035:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test1_6",
             <![CDATA[
 {
-  // Code size       56 (0x38)
-  .maxstack  1
+  // Code size       54 (0x36)
+  .maxstack  2
   .locals init (T V_0,
-                T& V_1,
-                T V_2,
-                T V_3)
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Module1.GetT(Of T)(T) As T"
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_3
-  IL_000c:  initobj    "T"
-  IL_0012:  ldloc.3
-  IL_0013:  box        "T"
-  IL_0018:  brtrue.s   IL_002c
-  IL_001a:  ldloc.1
-  IL_001b:  ldobj      "T"
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  stloc.1
-  IL_0024:  ldloc.0
-  IL_0025:  box        "T"
-  IL_002a:  brfalse.s  IL_0037
-  IL_002c:  ldloc.1
-  IL_002d:  ldobj      "T"
-  IL_0032:  call       "Sub Module1.Ext1(Of T)(T)"
-  IL_0037:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002b
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002b
+  IL_0029:  pop
+  IL_002a:  ret
+  IL_002b:  ldobj      "T"
+  IL_0030:  call       "Sub Module1.Ext1(Of T)(T)"
+  IL_0035:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test2_1",
             <![CDATA[
 {
-  // Code size       18 (0x12)
+  // Code size       24 (0x18)
   .maxstack  1
   .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
-  IL_0006:  brfalse.s  IL_0011
-  IL_0008:  ldarg.0
-  IL_0009:  stloc.0
-  IL_000a:  ldloca.s   V_0
-  IL_000c:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
-  IL_0011:  ret
+  IL_0006:  brfalse.s  IL_0017
+  IL_0008:  ldarga.s   V_0
+  IL_000a:  ldobj      "T"
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
+  IL_0017:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test2_2",
             <![CDATA[
 {
-  // Code size       51 (0x33)
-  .maxstack  1
+  // Code size       49 (0x31)
+  .maxstack  2
   .locals init (T V_0,
-                T& V_1,
-                T V_2)
+                T V_1)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloca.s   V_2
-  IL_0004:  initobj    "T"
-  IL_000a:  ldloc.2
-  IL_000b:  box        "T"
-  IL_0010:  brtrue.s   IL_0024
-  IL_0012:  ldloc.1
-  IL_0013:  ldobj      "T"
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        "T"
-  IL_0022:  brfalse.s  IL_0032
-  IL_0024:  ldloc.1
-  IL_0025:  ldobj      "T"
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_2
-  IL_002d:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
-  IL_0032:  ret
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0023
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  ldobj      "T"
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
+  IL_0030:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test2_3",
             <![CDATA[
 {
-  // Code size       18 (0x12)
+  // Code size       24 (0x18)
   .maxstack  1
   .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
-  IL_0006:  brfalse.s  IL_0011
-  IL_0008:  ldarg.0
-  IL_0009:  stloc.0
-  IL_000a:  ldloca.s   V_0
-  IL_000c:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
-  IL_0011:  ret
+  IL_0006:  brfalse.s  IL_0017
+  IL_0008:  ldarga.s   V_0
+  IL_000a:  ldobj      "T"
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
+  IL_0017:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test2_4",
             <![CDATA[
 {
-  // Code size       51 (0x33)
-  .maxstack  1
+  // Code size       49 (0x31)
+  .maxstack  2
   .locals init (T V_0,
-                T& V_1,
-                T V_2)
+                T V_1)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloca.s   V_2
-  IL_0004:  initobj    "T"
-  IL_000a:  ldloc.2
-  IL_000b:  box        "T"
-  IL_0010:  brtrue.s   IL_0024
-  IL_0012:  ldloc.1
-  IL_0013:  ldobj      "T"
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        "T"
-  IL_0022:  brfalse.s  IL_0032
-  IL_0024:  ldloc.1
-  IL_0025:  ldobj      "T"
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_2
-  IL_002d:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
-  IL_0032:  ret
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0023
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  ldobj      "T"
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
+  IL_0030:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test2_5",
             <![CDATA[
 {
-  // Code size       58 (0x3a)
+  // Code size       57 (0x39)
   .maxstack  2
   .locals init (T V_0,
                 T V_1)
-  IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    "T"
-  IL_0008:  ldloc.1
-  IL_0009:  box        "T"
-  IL_000e:  brtrue.s   IL_002a
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.0
-  IL_0012:  ldelem     "T"
-  IL_0017:  dup
-  IL_0018:  stloc.0
-  IL_0019:  box        "T"
-  IL_001e:  brfalse.s  IL_0039
-  IL_0020:  ldloc.0
-  IL_0021:  stloc.1
-  IL_0022:  ldloca.s   V_1
-  IL_0024:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
-  IL_0029:  ret
-  IL_002a:  ldarg.0
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldelem     "T"
-  IL_0031:  stloc.1
-  IL_0032:  ldloca.s   V_1
-  IL_0034:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
-  IL_0039:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    "T"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.0
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002b
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.0
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002b
+  IL_0029:  pop
+  IL_002a:  ret
+  IL_002b:  ldobj      "T"
+  IL_0030:  stloc.1
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  call       "Sub Module1.Ext2(Of T)(ByRef T)"
+  IL_0038:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test3_1",
             <![CDATA[
 {
-  // Code size       25 (0x19)
+  // Code size       31 (0x1f)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
-  IL_0006:  brfalse.s  IL_0018
-  IL_0008:  ldarg.0
-  IL_0009:  box        "T"
-  IL_000e:  castclass  "I1"
-  IL_0013:  call       "Sub Module1.Ext3(I1)"
-  IL_0018:  ret
+  IL_0006:  brfalse.s  IL_001e
+  IL_0008:  ldarga.s   V_0
+  IL_000a:  ldobj      "T"
+  IL_000f:  box        "T"
+  IL_0014:  castclass  "I1"
+  IL_0019:  call       "Sub Module1.Ext3(I1)"
+  IL_001e:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test3_2",
             <![CDATA[
 {
-  // Code size       58 (0x3a)
-  .maxstack  1
-  .locals init (T V_0,
-                T& V_1,
-                T V_2)
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloca.s   V_2
-  IL_0004:  initobj    "T"
-  IL_000a:  ldloc.2
-  IL_000b:  box        "T"
-  IL_0010:  brtrue.s   IL_0024
-  IL_0012:  ldloc.1
-  IL_0013:  ldobj      "T"
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        "T"
-  IL_0022:  brfalse.s  IL_0039
-  IL_0024:  ldloc.1
-  IL_0025:  ldobj      "T"
-  IL_002a:  box        "T"
-  IL_002f:  castclass  "I1"
-  IL_0034:  call       "Sub Module1.Ext3(I1)"
-  IL_0039:  ret
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0023
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  ldobj      "T"
+  IL_0028:  box        "T"
+  IL_002d:  castclass  "I1"
+  IL_0032:  call       "Sub Module1.Ext3(I1)"
+  IL_0037:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test4_1",
             <![CDATA[
 {
-  // Code size       28 (0x1c)
+  // Code size       34 (0x22)
   .maxstack  1
   .locals init (I1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
-  IL_0006:  brfalse.s  IL_001b
-  IL_0008:  ldarg.0
-  IL_0009:  box        "T"
-  IL_000e:  castclass  "I1"
-  IL_0013:  stloc.0
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  call       "Sub Module1.Ext4(ByRef I1)"
-  IL_001b:  ret
+  IL_0006:  brfalse.s  IL_0021
+  IL_0008:  ldarga.s   V_0
+  IL_000a:  ldobj      "T"
+  IL_000f:  box        "T"
+  IL_0014:  castclass  "I1"
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       "Sub Module1.Ext4(ByRef I1)"
+  IL_0021:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test4_2",
             <![CDATA[
 {
-  // Code size       61 (0x3d)
-  .maxstack  1
+  // Code size       59 (0x3b)
+  .maxstack  2
   .locals init (T V_0,
-                T& V_1,
-                T V_2,
-                I1 V_3)
+                I1 V_1)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloca.s   V_2
-  IL_0004:  initobj    "T"
-  IL_000a:  ldloc.2
-  IL_000b:  box        "T"
-  IL_0010:  brtrue.s   IL_0024
-  IL_0012:  ldloc.1
-  IL_0013:  ldobj      "T"
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        "T"
-  IL_0022:  brfalse.s  IL_003c
-  IL_0024:  ldloc.1
-  IL_0025:  ldobj      "T"
-  IL_002a:  box        "T"
-  IL_002f:  castclass  "I1"
-  IL_0034:  stloc.3
-  IL_0035:  ldloca.s   V_3
-  IL_0037:  call       "Sub Module1.Ext4(ByRef I1)"
-  IL_003c:  ret
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0023
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  ldobj      "T"
+  IL_0028:  box        "T"
+  IL_002d:  castclass  "I1"
+  IL_0032:  stloc.1
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  call       "Sub Module1.Ext4(ByRef I1)"
+  IL_003a:  ret
 }
 ]]>)
 
             verifier.VerifyIL("Module1.Test4_3",
             <![CDATA[
 {
-  // Code size       78 (0x4e)
+  // Code size       67 (0x43)
   .maxstack  2
   .locals init (T V_0,
-                T V_1,
-                I1 V_2)
-  IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    "T"
-  IL_0008:  ldloc.1
-  IL_0009:  box        "T"
-  IL_000e:  brtrue.s   IL_0034
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.0
-  IL_0012:  ldelem     "T"
-  IL_0017:  dup
-  IL_0018:  stloc.0
-  IL_0019:  box        "T"
-  IL_001e:  brfalse.s  IL_004d
-  IL_0020:  ldloc.0
-  IL_0021:  box        "T"
-  IL_0026:  castclass  "I1"
-  IL_002b:  stloc.2
-  IL_002c:  ldloca.s   V_2
-  IL_002e:  call       "Sub Module1.Ext4(ByRef I1)"
-  IL_0033:  ret
-  IL_0034:  ldarg.0
-  IL_0035:  ldc.i4.0
-  IL_0036:  ldelem     "T"
-  IL_003b:  box        "T"
-  IL_0040:  castclass  "I1"
-  IL_0045:  stloc.2
-  IL_0046:  ldloca.s   V_2
-  IL_0048:  call       "Sub Module1.Ext4(ByRef I1)"
-  IL_004d:  ret
+                I1 V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    "T"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.0
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002b
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.0
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002b
+  IL_0029:  pop
+  IL_002a:  ret
+  IL_002b:  ldobj      "T"
+  IL_0030:  box        "T"
+  IL_0035:  castclass  "I1"
+  IL_003a:  stloc.1
+  IL_003b:  ldloca.s   V_1
+  IL_003d:  call       "Sub Module1.Ext4(ByRef I1)"
+  IL_0042:  ret
 }
 ]]>)
         End Sub
@@ -4000,7 +3997,7 @@ Module Module1
         Dim x = Test1(Of S1)(s1)
         Task.WaitAll(x)
         System.Console.WriteLine(If(x.Result, "Null"))
-        System.Console.WriteLine("{0} <-- This number should be 2 (see Bug #1026678)", s1(0).F1)
+        System.Console.WriteLine("{0}", s1(0).F1)
 
         System.Console.WriteLine("---")
         Dim y = Test1(Of C1)({Nothing})
@@ -4100,7 +4097,7 @@ End Class
 1
 S1.CallAsync
 1
-1 <-- This number should be 2 (see Bug #1026678)
+2
 ---
 Null
 ---
@@ -4153,77 +4150,70 @@ End Interface
             verifier.VerifyIL("Module1.VB$StateMachine_0_Test1(Of SM$T).MoveNext",
             <![CDATA[
 {
-  // Code size      168 (0xa8)
+  // Code size      143 (0x8f)
   .maxstack  3
   .locals init (Short? V_0,
                 Integer V_1,
                 SM$T V_2,
-                SM$T V_3,
-                Short? V_4,
-                System.Exception V_5)
+                Short? V_3,
+                System.Exception V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "Friend $State As Integer"
   IL_0006:  stloc.1
   .try
   {
-    IL_0007:  ldloca.s   V_3
-    IL_0009:  initobj    "SM$T"
-    IL_000f:  ldloc.3
-    IL_0010:  box        "SM$T"
-    IL_0015:  brtrue.s   IL_004c
-    IL_0017:  ldarg.0
-    IL_0018:  ldfld      "Friend $VB$Local_x As SM$T()"
-    IL_001d:  ldc.i4.0
-    IL_001e:  ldelem     "SM$T"
-    IL_0023:  dup
-    IL_0024:  stloc.2
-    IL_0025:  box        "SM$T"
-    IL_002a:  brtrue.s   IL_0038
-    IL_002c:  ldloca.s   V_4
-    IL_002e:  initobj    "Short?"
-    IL_0034:  ldloc.s    V_4
-    IL_0036:  br.s       IL_006a
-    IL_0038:  ldloca.s   V_2
-    IL_003a:  constrained. "SM$T"
-    IL_0040:  callvirt   "Function I1.CallAsync() As Short"
-    IL_0045:  newobj     "Sub Short?..ctor(Short)"
-    IL_004a:  br.s       IL_006a
-    IL_004c:  ldarg.0
-    IL_004d:  ldfld      "Friend $VB$Local_x As SM$T()"
-    IL_0052:  ldc.i4.0
-    IL_0053:  readonly.
-    IL_0055:  ldelema    "SM$T"
-    IL_005a:  constrained. "SM$T"
-    IL_0060:  callvirt   "Function I1.CallAsync() As Short"
-    IL_0065:  newobj     "Sub Short?..ctor(Short)"
-    IL_006a:  stloc.0
-    IL_006b:  leave.s    IL_0091
+    IL_0007:  ldarg.0
+    IL_0008:  ldfld      "Friend $VB$Local_x As SM$T()"
+    IL_000d:  ldc.i4.0
+    IL_000e:  readonly.
+    IL_0010:  ldelema    "SM$T"
+    IL_0015:  ldloca.s   V_2
+    IL_0017:  initobj    "SM$T"
+    IL_001d:  ldloc.2
+    IL_001e:  box        "SM$T"
+    IL_0023:  brtrue.s   IL_0041
+    IL_0025:  ldobj      "SM$T"
+    IL_002a:  stloc.2
+    IL_002b:  ldloca.s   V_2
+    IL_002d:  ldloc.2
+    IL_002e:  box        "SM$T"
+    IL_0033:  brtrue.s   IL_0041
+    IL_0035:  pop
+    IL_0036:  ldloca.s   V_3
+    IL_0038:  initobj    "Short?"
+    IL_003e:  ldloc.3
+    IL_003f:  br.s       IL_0051
+    IL_0041:  constrained. "SM$T"
+    IL_0047:  callvirt   "Function I1.CallAsync() As Short"
+    IL_004c:  newobj     "Sub Short?..ctor(Short)"
+    IL_0051:  stloc.0
+    IL_0052:  leave.s    IL_0078
   }
   catch System.Exception
   {
-    IL_006d:  dup
-    IL_006e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_0073:  stloc.s    V_5
-    IL_0075:  ldarg.0
-    IL_0076:  ldc.i4.s   -2
-    IL_0078:  stfld      "Friend $State As Integer"
-    IL_007d:  ldarg.0
-    IL_007e:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?)"
-    IL_0083:  ldloc.s    V_5
-    IL_0085:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?).SetException(System.Exception)"
-    IL_008a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_008f:  leave.s    IL_00a7
+    IL_0054:  dup
+    IL_0055:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_005a:  stloc.s    V_4
+    IL_005c:  ldarg.0
+    IL_005d:  ldc.i4.s   -2
+    IL_005f:  stfld      "Friend $State As Integer"
+    IL_0064:  ldarg.0
+    IL_0065:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?)"
+    IL_006a:  ldloc.s    V_4
+    IL_006c:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?).SetException(System.Exception)"
+    IL_0071:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0076:  leave.s    IL_008e
   }
-  IL_0091:  ldarg.0
-  IL_0092:  ldc.i4.s   -2
-  IL_0094:  dup
-  IL_0095:  stloc.1
-  IL_0096:  stfld      "Friend $State As Integer"
-  IL_009b:  ldarg.0
-  IL_009c:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?)"
-  IL_00a1:  ldloc.0
-  IL_00a2:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?).SetResult(Short?)"
-  IL_00a7:  ret
+  IL_0078:  ldarg.0
+  IL_0079:  ldc.i4.s   -2
+  IL_007b:  dup
+  IL_007c:  stloc.1
+  IL_007d:  stfld      "Friend $State As Integer"
+  IL_0082:  ldarg.0
+  IL_0083:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?)"
+  IL_0088:  ldloc.0
+  IL_0089:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?).SetResult(Short?)"
+  IL_008e:  ret
 }
 ]]>)
         End Sub
@@ -4420,6 +4410,2308 @@ Null
 Test1
 123
 4
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_13()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim x = Test(Of S1)(New S1(10))
+        Task.WaitAll(x)
+        System.Console.WriteLine(If(x.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        Dim y = Test(Of C1)(Nothing)
+        Task.WaitAll(y)
+        System.Console.WriteLine(If(y.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        y = Test(Of C1)(New C1(20))
+        Task.WaitAll(y)
+        System.Console.WriteLine(If(y.Result, "Null"))
+    End Sub
+
+    Async Function Test(Of T As I1)(x As T) As Task(Of Object)
+        Dim y = x
+        Return y?.CallAsync(Await PassAsync())
+    End Function
+
+    Async Function PassAsync() As Task(Of Integer)
+        Return 1
+    End Function
+End Module
+
+Interface I1
+    Function CallAsync(x As Integer) As Object
+End Interface
+
+Structure S1
+    Implements I1
+
+    Private m_F1 As Integer
+
+    Sub New(f1 As Integer)
+        m_F1 = f1
+    End Sub
+
+    Public Function CallAsync(x As Integer) As Object Implements I1.CallAsync
+        System.Console.WriteLine("S1.CallAsync {0}", m_F1)
+        Return 1
+    End Function
+End Structure
+
+Class C1
+    Implements I1
+
+    Private m_F1 As Integer
+
+    Sub New(f1 As Integer)
+        m_F1 = f1
+    End Sub
+
+    Public Function CallAsync(x As Integer) As Object Implements I1.CallAsync
+        System.Console.WriteLine("C1.CallAsync {0}", m_F1)
+        Return 2
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+S1.CallAsync 10
+1
+---
+Null
+---
+C1.CallAsync 20
+2
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_14()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Test1()
+        System.Console.WriteLine("---")
+        Test2()
+        System.Console.WriteLine("---")
+        Test3()
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine(CStr(Nothing)?.ToString().Length)
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine("abc"?.ToString().Length)
+    End Sub
+
+    Sub Test3()
+        CStr(Nothing)?.ToString()
+    End Sub
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+
+---
+3
+---
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0006:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  IL_0000:  ldstr      "abc"
+  IL_0005:  callvirt   "Function String.ToString() As String"
+  IL_000a:  callvirt   "Function String.get_Length() As Integer"
+  IL_000f:  box        "Integer"
+  IL_0014:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0019:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test3",
+            <![CDATA[
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_15()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Test1()
+        System.Console.WriteLine("---")
+        Test2()
+        System.Console.WriteLine("---")
+        Test3()
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine(New Integer?()?.ToString())
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine(New Integer?(3)?.ToString())
+    End Sub
+
+    Sub Test3()
+        Call New Integer?()?.ToString()
+    End Sub
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+
+---
+3
+---
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       "Sub System.Console.WriteLine(String)"
+  IL_0006:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (Integer V_0)
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       "Function Integer.ToString() As String"
+  IL_0009:  call       "Sub System.Console.WriteLine(String)"
+  IL_000e:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test3",
+            <![CDATA[
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_16()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim x = Test(New S1())
+        Task.WaitAll(x)
+        System.Console.WriteLine(If(x.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        Dim y = Test(Nothing)
+        Task.WaitAll(y)
+        System.Console.WriteLine(If(y.Result, "Null"))
+
+        System.Console.WriteLine("---")
+    End Sub
+
+    Async Function Test(x As S1?) As Task(Of Object)
+        Return x?.CallAsync(Await PassAsync())
+    End Function
+
+    Async Function PassAsync() As Task(Of Integer)
+        Return 1
+    End Function
+End Module
+
+Structure S1
+    Public Function CallAsync(x As Integer) As Object
+        System.Console.WriteLine("S1.CallAsync")
+        Return 1
+    End Function
+End Structure
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+S1.CallAsync
+1
+---
+Null
+---
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_17()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim x = Test(New C1())
+        Task.WaitAll(x)
+        System.Console.WriteLine(If(x.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        Dim y = Test(Nothing)
+        Task.WaitAll(y)
+        System.Console.WriteLine(If(y.Result, "Null"))
+
+        System.Console.WriteLine("---")
+    End Sub
+
+    Async Function Test(x As C1) As Task(Of Object)
+        Return x?.CallAsync(Await PassAsync())
+    End Function
+
+    Async Function PassAsync() As Task(Of Integer)
+        Return 1
+    End Function
+End Module
+
+Class C1
+    Public Function CallAsync(x As Integer) As Object
+        System.Console.WriteLine("C1.CallAsync")
+        Return 1
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+C1.CallAsync
+1
+---
+Null
+---
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_18()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim x = Test(New C1())
+        Task.WaitAll(x)
+        System.Console.WriteLine(If(x.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        Dim y = Test(Nothing)
+        Task.WaitAll(y)
+        System.Console.WriteLine(If(y.Result, "Null"))
+
+        System.Console.WriteLine("---")
+    End Sub
+
+    Async Function Test(x As C1) As Task(Of Object)
+        Return (Await GetAsync(x))?.CallAsync(Await PassAsync())
+    End Function
+
+    Async Function PassAsync() As Task(Of Integer)
+        Return 1
+    End Function
+
+    Async Function GetAsync(x As C1) As Task(Of C1)
+        Return x
+    End Function
+End Module
+
+Class C1
+    Public Function CallAsync(x As Integer) As Object
+        System.Console.WriteLine("C1.CallAsync")
+        Return 1
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+C1.CallAsync
+1
+---
+Null
+---
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_19()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim x = Test(New C1())
+        Task.WaitAll(x)
+        System.Console.WriteLine(If(x.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        Dim y = Test(Nothing)
+        Task.WaitAll(y)
+        System.Console.WriteLine(If(y.Result, "Null"))
+
+        System.Console.WriteLine("---")
+    End Sub
+
+    Async Function Test(x As C1) As Task(Of Object)
+        Return (Await GetAsync(x))?.CallAsync(1)
+    End Function
+
+    Async Function GetAsync(x As C1) As Task(Of C1)
+        Return x
+    End Function
+End Module
+
+Class C1
+    Public Function CallAsync(x As Integer) As Object
+        System.Console.WriteLine("C1.CallAsync")
+        Return 1
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+C1.CallAsync
+1
+---
+Null
+---
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_20()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        
+    End Sub
+
+    Sub Test1()
+        Dim x = "abc"
+        Dim y = Sub()
+                    x = Nothing
+                End Sub
+                    
+        x?.ToString()
+    End Sub
+
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (Module1._Closure$__1 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub Module1._Closure$__1..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldstr      "abc"
+  IL_000c:  stfld      "Module1._Closure$__1.$VB$Local_x As String"
+  IL_0011:  ldloc.0
+  IL_0012:  ldfld      "Module1._Closure$__1.$VB$Local_x As String"
+  IL_0017:  dup
+  IL_0018:  brtrue.s   IL_001c
+  IL_001a:  pop
+  IL_001b:  ret
+  IL_001c:  callvirt   "Function String.ToString() As String"
+  IL_0021:  pop
+  IL_0022:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub CodeGen_21()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        
+    End Sub
+
+    Sub Test1()
+        Dim x = "abc"
+        Dim z = "abc"
+        Dim y = Sub()
+                    z = Nothing
+                End Sub
+                    
+        x?.ToString()
+    End Sub
+
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (String V_0) //x
+  IL_0000:  newobj     "Sub Module1._Closure$__1..ctor()"
+  IL_0005:  ldstr      "abc"
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  ldstr      "abc"
+  IL_0011:  stfld      "Module1._Closure$__1.$VB$Local_z As String"
+  IL_0016:  pop
+  IL_0017:  ldloc.0
+  IL_0018:  brfalse.s  IL_0021
+  IL_001a:  ldloc.0
+  IL_001b:  callvirt   "Function String.ToString() As String"
+  IL_0020:  pop
+  IL_0021:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub InlineNullableIsTrue_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim c1 As New C1(True)
+        Test1(c1)
+        Test2(c1)
+
+        c1 = New C1(False)
+        Test1(c1)
+        Test2(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+    End Sub
+
+    Sub Test1(x as C1)
+        if x?.M1()
+            System.Console.WriteLine("Test1.Then")
+        Else
+            System.Console.WriteLine("Test1.Else")
+        End If
+    End Sub
+
+    Sub Test2(x as C1)
+        if x?.M2()
+            System.Console.WriteLine("Test2.Then")
+        Else
+            System.Console.WriteLine("Test2.Else")
+        End If
+    End Sub
+End Module
+
+Class C1
+    Private m_Boolean As Boolean
+
+    Sub New (x as Boolean)
+        m_Boolean = x
+    End Sub
+
+    Function M1() As Boolean
+        return m_Boolean
+    End Function
+
+    Function M2() As Boolean?
+        return m_Boolean
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Test1.Then
+Test2.Then
+Test1.Else
+Test2.Else
+Test1.Else
+Test2.Else
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       36 (0x24)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.0
+  IL_0004:  br.s       IL_000c
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M1() As Boolean"
+  IL_000c:  brfalse.s  IL_0019
+  IL_000e:  ldstr      "Test1.Then"
+  IL_0013:  call       "Sub System.Console.WriteLine(String)"
+  IL_0018:  ret
+  IL_0019:  ldstr      "Test1.Else"
+  IL_001e:  call       "Sub System.Console.WriteLine(String)"
+  IL_0023:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       44 (0x2c)
+  .maxstack  1
+  .locals init (Boolean? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.0
+  IL_0004:  br.s       IL_0014
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M2() As Boolean?"
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0014:  brfalse.s  IL_0021
+  IL_0016:  ldstr      "Test2.Then"
+  IL_001b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0020:  ret
+  IL_0021:  ldstr      "Test2.Else"
+  IL_0026:  call       "Sub System.Console.WriteLine(String)"
+  IL_002b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineBinaryConditional_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+        Test3(c1)
+
+        c1 = New C1(2)
+        Test1(c1)
+        Test2(c1)
+        Test3(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+        Test3(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        Test3(c1)
+    End Sub
+
+    Function GetX(x as Integer) As Integer
+        return x
+    End Function
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(if(x?.M1(), GetX(101)))
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(if(x?.M2(), GetX(201)))
+    End Sub
+
+    Sub Test3(x as C1)
+        System.Console.WriteLine(if(x?.M2(), 301))
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+1
+1
+1
+2
+2
+2
+101
+201
+301
+201
+301
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       24 (0x18)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000c
+  IL_0003:  ldc.i4.s   101
+  IL_0005:  call       "Function Module1.GetX(Integer) As Integer"
+  IL_000a:  br.s       IL_0012
+  IL_000c:  ldarg.0
+  IL_000d:  call       "Function C1.M1() As Integer"
+  IL_0012:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0017:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_002c
+  IL_0020:  ldc.i4     0xc9
+  IL_0025:  call       "Function Module1.GetX(Integer) As Integer"
+  IL_002a:  br.s       IL_0033
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0033:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0038:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test3",
+            <![CDATA[
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_0027
+  IL_0020:  ldc.i4     0x12d
+  IL_0025:  br.s       IL_002e
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_002e:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0033:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineBinaryConditional_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+        Test3(c1)
+
+        c1 = New C1(2)
+        Test1(c1)
+        Test2(c1)
+        Test3(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+        Test3(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        Test3(c1)
+    End Sub
+
+    Function GetX(x as Integer) As Long
+        return x
+    End Function
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(if(x?.M1(), GetX(101)))
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(if(x?.M2(), GetX(201)))
+    End Sub
+
+    Sub Test3(x as C1)
+        System.Console.WriteLine(if(x?.M2(), CLng(301)))
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+1
+1
+1
+2
+2
+2
+101
+201
+301
+201
+301
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000c
+  IL_0003:  ldc.i4.s   101
+  IL_0005:  call       "Function Module1.GetX(Integer) As Long"
+  IL_000a:  br.s       IL_0013
+  IL_000c:  ldarg.0
+  IL_000d:  call       "Function C1.M1() As Integer"
+  IL_0012:  conv.i8
+  IL_0013:  call       "Sub System.Console.WriteLine(Long)"
+  IL_0018:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_002c
+  IL_0020:  ldc.i4     0xc9
+  IL_0025:  call       "Function Module1.GetX(Integer) As Long"
+  IL_002a:  br.s       IL_0034
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0033:  conv.i8
+  IL_0034:  call       "Sub System.Console.WriteLine(Long)"
+  IL_0039:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test3",
+            <![CDATA[
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_0028
+  IL_0020:  ldc.i4     0x12d
+  IL_0025:  conv.i8
+  IL_0026:  br.s       IL_0030
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_002f:  conv.i8
+  IL_0030:  call       "Sub System.Console.WriteLine(Long)"
+  IL_0035:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineBinaryConditional_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+        Test3(c1)
+
+        c1 = New C1(2)
+        Test1(c1)
+        Test2(c1)
+        Test3(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+        Test3(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        Test3(c1)
+    End Sub
+
+    Function GetX(x as Integer) As Long?
+        return x
+    End Function
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(if(x?.M1(), GetX(101)))
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(if(x?.M2(), GetX(201)))
+    End Sub
+
+    Sub Test3(x as C1)
+        System.Console.WriteLine(if(x?.M2(), new Long?(301)))
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+1
+1
+1
+2
+2
+2
+101
+201
+301
+201
+301
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       35 (0x23)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000c
+  IL_0003:  ldc.i4.s   101
+  IL_0005:  call       "Function Module1.GetX(Integer) As Long?"
+  IL_000a:  br.s       IL_0018
+  IL_000c:  ldarg.0
+  IL_000d:  call       "Function C1.M1() As Integer"
+  IL_0012:  conv.i8
+  IL_0013:  newobj     "Sub Long?..ctor(Long)"
+  IL_0018:  box        "Long?"
+  IL_001d:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0022:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_002c
+  IL_0020:  ldc.i4     0xc9
+  IL_0025:  call       "Function Module1.GetX(Integer) As Long?"
+  IL_002a:  br.s       IL_0039
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0033:  conv.i8
+  IL_0034:  newobj     "Sub Long?..ctor(Long)"
+  IL_0039:  box        "Long?"
+  IL_003e:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0043:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test3",
+            <![CDATA[
+{
+  // Code size       69 (0x45)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_002d
+  IL_0020:  ldc.i4     0x12d
+  IL_0025:  conv.i8
+  IL_0026:  newobj     "Sub Long?..ctor(Long)"
+  IL_002b:  br.s       IL_003a
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0034:  conv.i8
+  IL_0035:  newobj     "Sub Long?..ctor(Long)"
+  IL_003a:  box        "Long?"
+  IL_003f:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0044:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineBinaryConditional_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+        Test3(c1)
+
+        c1 = New C1(2)
+        Test1(c1)
+        Test2(c1)
+        Test3(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+        Test3(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        Test3(c1)
+    End Sub
+
+    Function GetX(x as Integer) As Integer?
+        return x
+    End Function
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(if(x?.M1(), GetX(101)))
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(if(x?.M2(), GetX(201)))
+    End Sub
+
+    Sub Test3(x as C1)
+        System.Console.WriteLine(if(x?.M2(), new Integer?(301)))
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+1
+1
+1
+2
+2
+2
+101
+201
+301
+201
+301
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000c
+  IL_0003:  ldc.i4.s   101
+  IL_0005:  call       "Function Module1.GetX(Integer) As Integer?"
+  IL_000a:  br.s       IL_0017
+  IL_000c:  ldarg.0
+  IL_000d:  call       "Function C1.M1() As Integer"
+  IL_0012:  newobj     "Sub Integer?..ctor(Integer)"
+  IL_0017:  box        "Integer?"
+  IL_001c:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0021:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_002c
+  IL_0020:  ldc.i4     0xc9
+  IL_0025:  call       "Function Module1.GetX(Integer) As Integer?"
+  IL_002a:  br.s       IL_002d
+  IL_002c:  ldloc.0
+  IL_002d:  box        "Integer?"
+  IL_0032:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0037:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test3",
+            <![CDATA[
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_002c
+  IL_0020:  ldc.i4     0x12d
+  IL_0025:  newobj     "Sub Integer?..ctor(Integer)"
+  IL_002a:  br.s       IL_002d
+  IL_002c:  ldloc.0
+  IL_002d:  box        "Integer?"
+  IL_0032:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0037:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineConversion_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(CType(x?.M1(), Long?))
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(CType(x?.M2(), Long?))
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+1
+1
+
+
+
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (Long? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    "Long?"
+  IL_000b:  ldloc.0
+  IL_000c:  br.s       IL_001a
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M1() As Integer"
+  IL_0014:  conv.i8
+  IL_0015:  newobj     "Sub Long?..ctor(Long)"
+  IL_001a:  box        "Long?"
+  IL_001f:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0024:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       65 (0x41)
+  .maxstack  1
+  .locals init (Integer? V_0,
+                Integer? V_1,
+                Long? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001c:  brtrue.s   IL_0029
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  initobj    "Long?"
+  IL_0026:  ldloc.2
+  IL_0027:  br.s       IL_0036
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0030:  conv.i8
+  IL_0031:  newobj     "Sub Long?..ctor(Long)"
+  IL_0036:  box        "Long?"
+  IL_003b:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0040:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineIs_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(x?.M1() Is Nothing)
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(x?.M2() Is Nothing)
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        System.Console.WriteLine("M2")
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+False
+M2
+False
+True
+True
+M2
+True
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.1
+  IL_0004:  br.s       IL_000e
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M1() As Integer"
+  IL_000c:  pop
+  IL_000d:  ldc.i4.0
+  IL_000e:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0013:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (Integer? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.1
+  IL_0004:  br.s       IL_0017
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M2() As Integer?"
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0014:  ldc.i4.0
+  IL_0015:  ceq
+  IL_0017:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_001c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineIs_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(Nothing Is x?.M1())
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(Nothing Is x?.M2())
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        System.Console.WriteLine("M2")
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+False
+M2
+False
+True
+True
+M2
+True
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.1
+  IL_0004:  br.s       IL_000e
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M1() As Integer"
+  IL_000c:  pop
+  IL_000d:  ldc.i4.0
+  IL_000e:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0013:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (Integer? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.1
+  IL_0004:  br.s       IL_0017
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M2() As Integer?"
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0014:  ldc.i4.0
+  IL_0015:  ceq
+  IL_0017:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_001c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineIsNot_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(x?.M1() IsNot Nothing)
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(x?.M2() IsNot Nothing)
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        System.Console.WriteLine("M2")
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+True
+M2
+True
+False
+False
+M2
+False
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.0
+  IL_0004:  br.s       IL_000e
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M1() As Integer"
+  IL_000c:  pop
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0013:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (Integer? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.0
+  IL_0004:  br.s       IL_0014
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M2() As Integer?"
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0014:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0019:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineIsNot_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(Nothing IsNot x?.M1())
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(Nothing IsNot x?.M2())
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        System.Console.WriteLine("M2")
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+True
+M2
+True
+False
+False
+M2
+False
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.0
+  IL_0004:  br.s       IL_000e
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M1() As Integer"
+  IL_000c:  pop
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0013:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (Integer? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.0
+  IL_0004:  br.s       IL_0014
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M2() As Integer?"
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0014:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0019:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineBinary_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as C1)
+        System.Console.WriteLine(x?.M1() = 1)
+    End Sub
+
+    Sub Test2(x as C1)
+        System.Console.WriteLine(x?.M2() = 1)
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        System.Console.WriteLine("M2")
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+True
+M2
+True
+
+
+M2
+
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (Boolean? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    "Boolean?"
+  IL_000b:  ldloc.0
+  IL_000c:  br.s       IL_001c
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M1() As Integer"
+  IL_0014:  ldc.i4.1
+  IL_0015:  ceq
+  IL_0017:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_001c:  box        "Boolean?"
+  IL_0021:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0026:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       67 (0x43)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1,
+                Boolean? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001c:  brtrue.s   IL_0029
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  initobj    "Boolean?"
+  IL_0026:  ldloc.2
+  IL_0027:  br.s       IL_0038
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0030:  ldc.i4.1
+  IL_0031:  ceq
+  IL_0033:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0038:  box        "Boolean?"
+  IL_003d:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0042:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineBinary_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim c1 As New C1(1)
+        Test1(c1)
+        Test2(c1)
+
+        Test1(Nothing)
+        Test2(Nothing)
+
+        c1 = New C1(Nothing)
+        Test2(c1)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as C1)
+        Dim val = 1
+        System.Console.WriteLine(x?.M1() <> val)
+    End Sub
+
+    Sub Test2(x as C1)
+        Dim val = 1
+        System.Console.WriteLine(x?.M2() <> val)
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        System.Console.WriteLine("M2")
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+False
+M2
+False
+
+
+M2
+
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (Integer V_0, //val
+                Boolean? V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  brtrue.s   IL_0010
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  initobj    "Boolean?"
+  IL_000d:  ldloc.1
+  IL_000e:  br.s       IL_0021
+  IL_0010:  ldarg.0
+  IL_0011:  call       "Function C1.M1() As Integer"
+  IL_0016:  ldloc.0
+  IL_0017:  ceq
+  IL_0019:  ldc.i4.0
+  IL_001a:  ceq
+  IL_001c:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0021:  box        "Boolean?"
+  IL_0026:  call       "Sub System.Console.WriteLine(Object)"
+  IL_002b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init (Integer V_0, //val
+                Integer? V_1,
+                Integer? V_2,
+                Boolean? V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  brtrue.s   IL_0010
+  IL_0005:  ldloca.s   V_2
+  IL_0007:  initobj    "Integer?"
+  IL_000d:  ldloc.2
+  IL_000e:  br.s       IL_0016
+  IL_0010:  ldarg.0
+  IL_0011:  call       "Function C1.M2() As Integer?"
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001e:  brtrue.s   IL_002b
+  IL_0020:  ldloca.s   V_3
+  IL_0022:  initobj    "Boolean?"
+  IL_0028:  ldloc.3
+  IL_0029:  br.s       IL_003d
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0032:  ldloc.0
+  IL_0033:  ceq
+  IL_0035:  ldc.i4.0
+  IL_0036:  ceq
+  IL_0038:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_003d:  box        "Boolean?"
+  IL_0042:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0047:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineBinary_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim c1 As New C1(1)
+        Test1(c1, 2)
+        Test2(c1, 2)
+
+        Test1(Nothing, 2)
+        Test2(Nothing, 2)
+
+        c1 = New C1(Nothing)
+        Test2(c1, 2)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as C1, val as Integer)
+        If x?.M1() < CInt(val)
+            System.Console.WriteLine("Then")
+        Else
+            System.Console.WriteLine("Else")
+        End If
+    End Sub
+
+    Sub Test2(x as C1, val as Integer)
+        If x?.M2() < CInt(val)
+            System.Console.WriteLine("Then")
+        Else
+            System.Console.WriteLine("Else")
+        End If
+    End Sub
+End Module
+
+Class C1
+    Private m_Integer As Integer?
+
+    Sub New (x as Integer?)
+        m_Integer = x
+    End Sub
+
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return m_Integer.Value
+    End Function
+
+    Function M2() As Integer?
+        System.Console.WriteLine("M2")
+        return m_Integer
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+Then
+M2
+Then
+Else
+Else
+M2
+Else
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.0
+  IL_0004:  br.s       IL_000f
+  IL_0006:  ldarg.0
+  IL_0007:  call       "Function C1.M1() As Integer"
+  IL_000c:  ldarg.1
+  IL_000d:  clt
+  IL_000f:  brfalse.s  IL_001c
+  IL_0011:  ldstr      "Then"
+  IL_0016:  call       "Sub System.Console.WriteLine(String)"
+  IL_001b:  ret
+  IL_001c:  ldstr      "Else"
+  IL_0021:  call       "Sub System.Console.WriteLine(String)"
+  IL_0026:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.Test2",
+            <![CDATA[
+{
+  // Code size       88 (0x58)
+  .maxstack  2
+  .locals init (Integer? V_0,
+                Integer? V_1,
+                Boolean? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    "Integer?"
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function C1.M2() As Integer?"
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_001c:  brtrue.s   IL_0029
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  initobj    "Boolean?"
+  IL_0026:  ldloc.2
+  IL_0027:  br.s       IL_0038
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0030:  ldarg.1
+  IL_0031:  clt
+  IL_0033:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0038:  stloc.2
+  IL_0039:  ldloca.s   V_2
+  IL_003b:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0040:  brfalse.s  IL_004d
+  IL_0042:  ldstr      "Then"
+  IL_0047:  call       "Sub System.Console.WriteLine(String)"
+  IL_004c:  ret
+  IL_004d:  ldstr      "Else"
+  IL_0052:  call       "Sub System.Console.WriteLine(String)"
+  IL_0057:  ret
+}
 ]]>)
         End Sub
 
