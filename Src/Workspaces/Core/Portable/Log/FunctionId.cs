@@ -278,6 +278,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeFixes_FixAllOccurrencesComputation_Diagnostics,
         CodeFixes_FixAllOccurrencesComputation_Fixes,
         CodeFixes_FixAllOccurrencesComputation_Merge,
-        CodeFixes_FixAllOccurrencesPreviewChanges
+        CodeFixes_FixAllOccurrencesPreviewChanges,
+
+        SolutionExplorer_AnalyzerItemSource_GetItems,
+        SolutionExplorer_DiagnosticItemSource_GetItems,
     }
 }
