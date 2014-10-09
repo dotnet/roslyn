@@ -2619,7 +2619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ReclassifyInvocationExpressionAsStatement(BindExpression(expression, diagnostics), diagnostics)
         End Function
 
-        Private Function ReclassifyInvocationExpressionAsStatement(boundInvocation As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Function ReclassifyInvocationExpressionAsStatement(boundInvocation As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
             Select Case boundInvocation.Kind
                 Case BoundKind.PropertyAccess
                     boundInvocation = MakeRValue(boundInvocation, diagnostics)
