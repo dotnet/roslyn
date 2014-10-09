@@ -60,11 +60,11 @@ namespace ImplementNotifyPropertyChangedCS
 
             var properties = ExpansionChecker.GetExpandableProperties(textSpan, root, model);
 
-#pragma warning disable RS0005
+#pragma warning disable RS005
             return properties.Any()
-                ? new[] { CodeAction.Create("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)) }
+                ? new[] { CodeAction.Create("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c) ) }
                 : null;
-#pragma warning restore RS0005
+#pragma warning restore RS005
         }
 
         private async Task<Document> ImplementNotifyPropertyChangedAsync(Document document, CompilationUnitSyntax root, SemanticModel model, IEnumerable<ExpandablePropertyInfo> properties, CancellationToken cancellationToken)
