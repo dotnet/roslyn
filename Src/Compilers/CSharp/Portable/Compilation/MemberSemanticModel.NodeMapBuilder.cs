@@ -102,14 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                // The following assert is commented out because of Bug 985811.
-                                // When the bug is resolved, please remove it completely or uncomment (depending on resolution).
-
-                                ////FailFast.Assert(
-                                ////    (object)existing[i] == added[i] || !(key is StatementSyntax), 
-                                ////    string.Format(
-                                ////        CultureInfo.InvariantCulture,
-                                ////        "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
+                                FailFast.Assert(
+                                    (object)existing[i] == added[i] || !(key is StatementSyntax),
+                                    string.Format(
+                                        CultureInfo.InvariantCulture,
+                                        "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
                             }
                         }
 #endif

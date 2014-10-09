@@ -1010,77 +1010,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambda;
         }
 
-        private ImmutableArray<BoundNode> GetBoundNodesFromMap(CSharpSyntaxNode node)
+        private ImmutableArray<BoundNode> GuardedGetBoundNodesFromMap(CSharpSyntaxNode node)
         {
-            using (nodeMapLock.DisposableRead())
-            {
-                ImmutableArray<BoundNode> result;
-                return this.guardedNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
-            }
+            Debug.Assert(nodeMapLock.IsWriteLockHeld || nodeMapLock.IsReadLockHeld);
+            ImmutableArray<BoundNode> result;
+            return this.guardedNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
         // Adds every syntax/bound pair in a tree rooted at the given bound node to the map, and the
         // performs a lookup of the given syntax node in the map. 
-        private ImmutableArray<BoundNode> AddBoundTreeAndGetBoundNodeFromMap(CSharpSyntaxNode syntax, BoundNode bound)
+        private ImmutableArray<BoundNode> GuardedAddBoundTreeAndGetBoundNodeFromMap(CSharpSyntaxNode syntax, BoundNode bound)
         {
+            Debug.Assert(nodeMapLock.IsWriteLockHeld);
+
             bool alreadyInTree = false;
 
             if (bound != null)
             {
-                using (nodeMapLock.DisposableRead())
-                {
-                    alreadyInTree = this.guardedNodeMap.ContainsKey(bound.Syntax);
-                }
+                alreadyInTree = this.guardedNodeMap.ContainsKey(bound.Syntax);
             }
 
             // check if we already have node in the cache.
             // this may happen if we have races and in such case we are no longer interested in adding
             if (!alreadyInTree)
             {
-                using (nodeMapLock.DisposableWrite())
-                {
-                    NodeMapBuilder.AddToMap(bound, this.guardedNodeMap);
-                }
+                NodeMapBuilder.AddToMap(bound, this.guardedNodeMap);
             }
 
-            using (nodeMapLock.DisposableRead())
+            ImmutableArray<BoundNode> result;
+            return this.guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
+        }
+
+        internal void UnguardedAddBoundTreeForStandaloneSyntax(CSharpSyntaxNode syntax, BoundNode bound)
+        {
+            using (nodeMapLock.DisposableWrite())
             {
-                ImmutableArray<BoundNode> result;
-                return this.guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
+                GuardedAddBoundTreeForStandaloneSyntax(syntax, bound);
             }
         }
 
-        internal protected void AddBoundTreeForStandaloneSyntax(CSharpSyntaxNode syntax, BoundNode bound)
+        protected void GuardedAddBoundTreeForStandaloneSyntax(CSharpSyntaxNode syntax, BoundNode bound)
         {
+            Debug.Assert(nodeMapLock.IsWriteLockHeld);
             bool alreadyInTree = false;
 
             // check if we already have node in the cache.
             // this may happen if we have races and in such case we are no longer interested in adding
             if (bound != null)
             {
-                using (nodeMapLock.DisposableRead())
-                {
-                    alreadyInTree = this.guardedNodeMap.ContainsKey(bound.Syntax);
-                }
+                alreadyInTree = this.guardedNodeMap.ContainsKey(bound.Syntax);
             }
 
             if (!alreadyInTree)
             {
-                using (nodeMapLock.DisposableWrite())
+                if ((this.IsSpeculativeSemanticModel && syntax == this.root) || syntax is StatementSyntax)
                 {
-                    if ((this.IsSpeculativeSemanticModel && syntax == this.root) || syntax is StatementSyntax)
-                    {
-                        // Note: For speculative model we want to always cache the entire bound tree.
-                        // If syntax is a statement, we need to add all its children.
-                        // Node cache assumes that if statement is cached, then all 
-                        // its children are cached too.
-                        NodeMapBuilder.AddToMap(bound, this.guardedNodeMap);
-                    }
-                    else
-                    {
-                        // expressions can be added individually.
-                        NodeMapBuilder.AddToMap(bound, this.guardedNodeMap, syntax);
-                    }
+                    // Note: For speculative model we want to always cache the entire bound tree.
+                    // If syntax is a statement, we need to add all its children.
+                    // Node cache assumes that if statement is cached, then all 
+                    // its children are cached too.
+                    NodeMapBuilder.AddToMap(bound, this.guardedNodeMap);
+                }
+                else
+                {
+                    // expressions can be added individually.
+                    NodeMapBuilder.AddToMap(bound, this.guardedNodeMap, syntax);
                 }
             }
         }
@@ -1166,21 +1160,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // In the third case, we're in a child lambda. Have we already cached a binder for it?
             // If not, bind the outermost expression containing the lambda and then fill in the map.
-            if (GetBoundNodesFromMap(innerLambda).IsDefaultOrEmpty)
+
+            ImmutableArray<BoundNode> nodes;
+
+            using (nodeMapLock.DisposableRead())
+            {
+                nodes = GuardedGetBoundNodesFromMap(innerLambda);
+            }
+
+            if (nodes.IsDefaultOrEmpty)
             {
                 CSharpSyntaxNode outerLambda = GetOutermostLambdaOrQuery(innerLambda);
                 Debug.Assert(outerLambda != null);
                 Debug.Assert(outerLambda != this.Root);
                 CSharpSyntaxNode outerExpression = GetBindingRoot(outerLambda);
-                BoundNode boundOuterExpression = this.Bind(GetEnclosingBinder(outerExpression, position), outerExpression, this.ignoredDiagnostics);
-                AddBoundTreeAndGetBoundNodeFromMap(innerLambda, boundOuterExpression);
+
+                using (nodeMapLock.DisposableWrite())
+                {
+                    BoundNode boundOuterExpression = this.Bind(GetEnclosingBinder(outerExpression, position), outerExpression, this.ignoredDiagnostics);
+                    GuardedAddBoundTreeAndGetBoundNodeFromMap(innerLambda, boundOuterExpression);
+                }
             }
 
             // If there is a bug in the binder such that we "lose" a sub-expression containing a
             // lambda, and never put bound state for it into the bound tree, then the bound lambda
             // that comes back from the map lookup will be null. This can occur in error recovery
             // situations.  If it is null, we fall back to the outer binder.
-            if (GetBoundNodesFromMap(innerLambda).IsDefaultOrEmpty)
+
+            using (nodeMapLock.DisposableRead())
+            {
+                nodes = GuardedGetBoundNodesFromMap(innerLambda);
+            }
+
+            if (nodes.IsDefaultOrEmpty)
             {
                 return GetEnclosingBinder(node, position);
             }
@@ -1350,7 +1362,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // reader-writer lock.
             //
             // Have we already got the desired bound node in the mutable map? If so, return it.
-            ImmutableArray<BoundNode> results = GetBoundNodesFromMap(node);
+            ImmutableArray<BoundNode> results;
+
+            using (nodeMapLock.DisposableRead())
+            {
+                results = GuardedGetBoundNodesFromMap(node);
+            }
+
             if (!results.IsDefaultOrEmpty)
             {
                 return results;
@@ -1365,8 +1383,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var statementBinder = GetEnclosingBinder(GetAdjustedNodePosition(nodeToBind));
             Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
 
-            BoundNode boundStatement = this.Bind(incrementalBinder, nodeToBind, this.ignoredDiagnostics);
-            results = AddBoundTreeAndGetBoundNodeFromMap(node, boundStatement);
+            using (nodeMapLock.DisposableWrite())
+            {
+                BoundNode boundStatement = this.Bind(incrementalBinder, nodeToBind, this.ignoredDiagnostics);
+                results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, boundStatement);
+            }
+
             if (!results.IsDefaultOrEmpty)
             {
                 return results;
@@ -1380,13 +1402,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to avoid duplicates in the map if a parent of this node comes through this code path also.
 
             var binder = GetEnclosingBinder(GetAdjustedNodePosition(node));
-            results = GetBoundNodesFromMap(node);
+
+            using (nodeMapLock.DisposableRead())
+            {
+                results = GuardedGetBoundNodesFromMap(node);
+            }
+
             if (results.IsDefaultOrEmpty)
             {
-                var boundNode = this.Bind(binder, node, this.ignoredDiagnostics);
-                AddBoundTreeForStandaloneSyntax(node, boundNode);
+                using (nodeMapLock.DisposableWrite())
+                {
+                    var boundNode = this.Bind(binder, node, this.ignoredDiagnostics);
+                    GuardedAddBoundTreeForStandaloneSyntax(node, boundNode);
+                    results = GuardedGetBoundNodesFromMap(node);
+                }
 
-                results = GetBoundNodesFromMap(node);
                 if (!results.IsDefaultOrEmpty)
                 {
                     return results;
@@ -1639,7 +1669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
             {
                 // Check the bound node cache to see if the statement was already bound.
-                ImmutableArray<BoundNode> boundNodes = this.semanticModel.GetBoundNodesFromMap(node);
+                ImmutableArray<BoundNode> boundNodes = this.semanticModel.GuardedGetBoundNodesFromMap(node);
 
                 if (boundNodes.IsDefaultOrEmpty)
                 {

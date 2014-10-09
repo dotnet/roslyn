@@ -1018,7 +1018,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As VBSyntaxNode = Nothing)
-            SemanticModelMapsBuilder.CacheBoundNodes(boundNode, Me, Me.guardedNodeMap, thisSyntaxNodeOnly)
+            rwLock.EnterWriteLock()
+            Try
+                SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, Me.guardedNodeMap, thisSyntaxNodeOnly)
+            Finally
+                rwLock.ExitWriteLock()
+            End Try
         End Sub
 
         Private Class CompilerGeneratedNodeFinder
@@ -1119,7 +1124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function GetBoundNodesFromMap(node As VBSyntaxNode) As ImmutableArray(Of BoundNode)
+        Private Function GuardedGetBoundNodesFromMap(node As VBSyntaxNode) As ImmutableArray(Of BoundNode)
+            Debug.Assert(rwLock.IsReadLockHeld OrElse rwLock.IsWriteLockHeld)
             Dim result As ImmutableArray(Of BoundNode) = Nothing
             Return If(Me.guardedNodeMap.TryGetValue(node, result), result, Nothing)
         End Function
@@ -1713,7 +1719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' First, look in the cached bounds nodes.
             rwLock.EnterReadLock()
             Try
-                bound = GetBoundNodesFromMap(node)
+                bound = GuardedGetBoundNodesFromMap(node)
             Finally
                 rwLock.ExitReadLock()
             End Try
@@ -1733,11 +1739,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             rwLock.EnterWriteLock()
             Try
-                bound = GetBoundNodesFromMap(node)
+                bound = GuardedGetBoundNodesFromMap(node)
                 If bound.IsDefault Then
                     GuardedIncrementalBind(bindingRoot, bindingRootBinder)
                 End If
-                bound = GetBoundNodesFromMap(node)
+                bound = GuardedGetBoundNodesFromMap(node)
 
                 If Not bound.IsDefault Then
                     Return bound
@@ -1757,15 +1763,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 rwLock.EnterWriteLock()
                 Try
-                    bound = GetBoundNodesFromMap(node)
+                    bound = GuardedGetBoundNodesFromMap(node)
 
                     If bound.IsDefault Then
                         ' Bind the node and cache any associated bound nodes we find.
                         Dim boundNode = Me.Bind(binder, node, Me.guardedDiagnostics)
-                        SemanticModelMapsBuilder.CacheBoundNodes(boundNode, Me, guardedNodeMap, node)
+                        SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, guardedNodeMap, node)
                     End If
 
-                    bound = GetBoundNodesFromMap(node)
+                    bound = GuardedGetBoundNodesFromMap(node)
 
                     If Not bound.IsDefault Then
                         Return bound
@@ -1805,6 +1811,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' root of this model). Side effect is to store nodes into the guarded node map.
         ''' </summary>
         Private Sub GuardedIncrementalBind(bindingRoot As VBSyntaxNode, enclosingBinder As Binder)
+            Debug.Assert(rwLock.IsWriteLockHeld)
+
             If guardedNodeMap.ContainsKey(bindingRoot) Then
                 ' We've already bound this. No need to bind it again (saves a bit of 
                 ' work below).
@@ -1820,7 +1828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            SemanticModelMapsBuilder.CacheBoundNodes(boundRoot, Me, guardedNodeMap)
+            SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundRoot, Me, guardedNodeMap)
 
             If Not guardedNodeMap.ContainsKey(bindingRoot) Then
                 ' Generally 'bindingRoot' is supposed to be found in node map at this point,
@@ -1935,7 +1943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function BindStatement(node As StatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
                 ' Check the bound node cache to see if the statement was already bound.
-                Dim boundNodes As ImmutableArray(Of BoundNode) = _binding.GetBoundNodesFromMap(node)
+                Dim boundNodes As ImmutableArray(Of BoundNode) = _binding.GuardedGetBoundNodesFromMap(node)
 
                 If boundNodes.IsDefault Then
                     ' Not bound already. Bind it. It will get added to the cache later by the SemanticModelMapsBuilder.
@@ -1989,12 +1997,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _nodeCache = nodeCache
             End Sub
 
-            Public Shared Sub CacheBoundNodes(
+            Public Shared Sub GuardedCacheBoundNodes(
                 root As BoundNode,
                 semanticModel As MemberSemanticModel,
                 nodeCache As SmallDictionary(Of VBSyntaxNode, ImmutableArray(Of BoundNode)),
                 Optional thisSyntaxNodeOnly As VBSyntaxNode = Nothing
             )
+                Debug.Assert(semanticModel.rwLock.IsWriteLockHeld)
+
                 Dim additionalNodes = OrderPreservingMultiDictionary(Of VBSyntaxNode, BoundNode).GetInstance()
 
                 Dim walker = New SemanticModelMapsBuilder(semanticModel, thisSyntaxNodeOnly, additionalNodes)

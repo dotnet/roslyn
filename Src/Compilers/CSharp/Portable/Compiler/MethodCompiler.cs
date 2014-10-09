@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var memberModel = semanticModel.GetMemberModel(syntax);
                         if (memberModel != null)
                         {
-                            memberModel.AddBoundTreeForStandaloneSyntax(syntax, body);
+                            memberModel.UnguardedAddBoundTreeForStandaloneSyntax(syntax, body);
                         }
                         return semanticModel;
                     });
