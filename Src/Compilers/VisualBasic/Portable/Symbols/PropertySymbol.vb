@@ -119,8 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Indicates if the property can be written into, which means this 
-        ''' type overrides OR inherits a setter for this property.
-        ''' Or is a getter only autoproperty accessed in a corresponding constructor or initializer
+        ''' property has a setter or it is a getter only autoproperty accessed 
+        ''' in a corresponding constructor or initializer
         ''' </summary>
         Friend Function IsWritable(receiver As BoundExpression, containingBinder As Binder) As Boolean
             If Me.HasSet Then

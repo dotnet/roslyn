@@ -674,8 +674,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not argument.IsLValue())
 
-            If argument.HasErrors OrElse argument.Kind <> BoundKind.FieldAccess Then
+            If argument.HasErrors Then
                 Return False
+            End If
+
+            Dim containingMember As Symbol = Me.ContainingMember
+            If containingMember Is Nothing Then
+                Return False
+            End If
+
+
+            Dim receiverOpt As BoundExpression
+            Dim field As FieldSymbol
+
+            If argument.Kind = BoundKind.PropertyAccess Then
+                Dim propAccess = DirectCast(argument, BoundPropertyAccess)
+                Dim propSym = TryCast(propAccess.PropertySymbol, SourcePropertySymbol)
+
+                If propSym Is Nothing OrElse Not propSym.IsReadOnly Then
+                    Return False
+                End If
+
+                field = propSym.AssociatedField
+                receiverOpt = propAccess.ReceiverOpt
+
+                If field Is Nothing Then
+                    Return False
+                End If
+
+            ElseIf argument.Kind = BoundKind.FieldAccess Then
+                Dim fieldAccess = DirectCast(argument, BoundFieldAccess)
+                receiverOpt = fieldAccess.ReceiverOpt
+                field = fieldAccess.FieldSymbol
+                receiverOpt = fieldAccess.ReceiverOpt
+
+            Else
+                Return False
+
             End If
 
             ' The business of figuring out whether a field access should be considered an LValue is rather complicated, 
@@ -684,10 +719,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' binder for a field or property initializer. 
             ' We will construct some throw-away nodes in the process, but I believe it is a good tradeoff.
 
-            Dim containingMember As Symbol = Me.ContainingMember
             Dim nonLambdaBinder As Binder = Nothing
 
-            If containingMember IsNot Nothing AndAlso containingMember.IsLambdaMethod Then
+            If containingMember.IsLambdaMethod Then
 
                 Dim binderForExpressionContainingLambda As Binder = Nothing
 
@@ -712,19 +746,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Dim fieldAccess = DirectCast(argument, BoundFieldAccess)
-            Dim receiverOpt As BoundExpression = fieldAccess.ReceiverOpt
-
             If receiverOpt Is Nothing OrElse receiverOpt.Kind <> BoundKind.FieldAccess Then
                 ' Simple case only one field access in the chain.
-                Return nonLambdaBinder.IsLValueFieldAccess(fieldAccess.FieldSymbol, receiverOpt)
+                Return nonLambdaBinder.IsLValueFieldAccess(field, receiverOpt)
             Else
                 Dim fields = ArrayBuilder(Of FieldSymbol).GetInstance()
 
-                fields.Add(fieldAccess.FieldSymbol)
+                fields.Add(field)
 
                 Do
-                    fieldAccess = DirectCast(receiverOpt, BoundFieldAccess)
+                    Dim fieldAccess = DirectCast(receiverOpt, BoundFieldAccess)
                     fields.Add(fieldAccess.FieldSymbol)
                     receiverOpt = fieldAccess.ReceiverOpt
                 Loop While receiverOpt IsNot Nothing AndAlso receiverOpt.Kind = BoundKind.FieldAccess

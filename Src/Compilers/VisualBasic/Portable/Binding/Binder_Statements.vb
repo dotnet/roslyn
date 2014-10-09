@@ -1858,6 +1858,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         Dim setMethod = propertySymbol.GetMostDerivedSetMethod()
 
+                        ' NOTE: the setMethod could not be present, while it would still be
+                        '       possible to write to the property in a case
+                        '       where the property is a getter-only autoproperty 
+                        '       and the writing is happening in the corresponding constructor or initializer
                         If setMethod IsNot Nothing Then
                             ReportDiagnosticsIfObsolete(diagnostics, setMethod, node)
 

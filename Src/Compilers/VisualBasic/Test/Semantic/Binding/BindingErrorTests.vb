@@ -16910,6 +16910,30 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
         End Sub
 
         <Fact()>
+        Public Sub BC36602ERR_ReadOnlyInClosure1()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="ReadOnlyInClosure">
+        <file name="a.vb">
+        Class Class1
+            ReadOnly property m As Integer
+            Sub New()
+                Dim f = Function() Test(m)
+            End Sub
+            Function Test(ByRef n As Integer) As String
+                Return Nothing
+            End Function
+        End Class
+    </file>
+    </compilation>)
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+    <expected>
+BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda expression inside a constructor.
+                Dim f = Function() Test(m)
+                                        ~
+</expected>)
+        End Sub
+
+        <Fact()>
         Public Sub BC36603ERR_ExprTreeNoMultiDimArrayCreation()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
     <compilation name="ExprTreeNoMultiDimArrayCreation">

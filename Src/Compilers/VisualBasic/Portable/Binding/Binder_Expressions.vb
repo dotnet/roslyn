@@ -1337,7 +1337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Determine whether field access should be treated as LValue. 
         ''' </summary>
-        Private Function IsLValueFieldAccess(field As FieldSymbol, receiver As BoundExpression) As Boolean
+        Friend Function IsLValueFieldAccess(field As FieldSymbol, receiver As BoundExpression) As Boolean
 
             If field.IsConst Then
                 Return False

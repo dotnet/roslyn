@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Conditional("DEBUG")>
-        Private Shared Sub AssertIsWritableFromMember(node As BoundPropertyAccess, fromMember As Symbol)
+        Private Shared Sub AssertIsWriteableFromMember(node As BoundPropertyAccess, fromMember As Symbol)
             Dim receiver = node.ReceiverOpt
 
             Dim sourceProperty As SourcePropertySymbol = DirectCast(node.PropertySymbol, SourcePropertySymbol)
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim setMethod = [property].GetMostDerivedSetMethod()
 
             If (setMethod Is Nothing) Then
-                AssertIsWritableFromMember(setNode, Me.currentMethodOrLambda)
+                AssertIsWriteableFromMember(setNode, Me.currentMethodOrLambda)
 
                 Dim backingField = setNode.PropertySymbol.AssociatedField
                 Debug.Assert(backingField IsNot Nothing, "autoproperty must have a backing field")
