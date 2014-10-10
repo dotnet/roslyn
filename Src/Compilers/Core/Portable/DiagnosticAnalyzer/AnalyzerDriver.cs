@@ -271,7 +271,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                           "diagnostic analyzer worker threw an exception " + ex,
                           category: Diagnostic.CompilerDiagnosticCategory,
                           defaultSeverity: DiagnosticSeverity.Error,
-                          isEnabledByDefault: true);
+                          isEnabledByDefault: true,
+                          customTags: WellKnownDiagnosticTags.AnalyzerException);
                     addDiagnostic(Diagnostic.Create(desc, Location.None));
                 }
             }
@@ -414,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (d != null)
                 {
                     var suppressMessageState = suppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
-                    if (!suppressMessageState.IsDiagnosticSuppressed(d.Id, locationOpt: d.Location, symbolOpt: symbolOpt))
+                    if (!suppressMessageState.IsDiagnosticSuppressed(d, symbolOpt: symbolOpt))
                     {
                         DiagnosticQueue.Enqueue(d);
                     }
@@ -447,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (diagnostic != null)
                 {
                     var effectiveDiagnostic = compilation.FilterDiagnostic(diagnostic);
-                    if (effectiveDiagnostic != null && !suppressMessageState.IsDiagnosticSuppressed(effectiveDiagnostic.Id, effectiveDiagnostic.Location))
+                    if (effectiveDiagnostic != null && !suppressMessageState.IsDiagnosticSuppressed(effectiveDiagnostic))
                     {
                         yield return effectiveDiagnostic;
                     }
@@ -607,7 +608,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 string.Format(CodeAnalysisResources.CompilerAnalyzerThrows, analyzerName, message),
                 category: Diagnostic.CompilerDiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Info,
-                isEnabledByDefault: true);
+                isEnabledByDefault: true,
+                customTags: WellKnownDiagnosticTags.AnalyzerException);
         }
 
         public void Dispose()
