@@ -1648,7 +1648,7 @@ End Module
 
     <WorkItem(927138, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseXmlLargeNumberOfTrainingNewLines()
+    Public Sub ParseXmlLargeNumberOfTrailingNewLines()
         ParseAndVerify(<![CDATA[
 Module Module1
     Sub Main()
@@ -4473,6 +4473,87 @@ Imports <xmlns = ""http://xml"">
     <Fact(Skip:="969980")>
     Public Sub UnaliasedXmlImport_Project()
         CreateCompilationWithMscorlib({""}, compOptions:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("<xmlns = ""http://xml"">"))).VerifyDiagnostics()
+    End Sub
+
+    <WorkItem(1042696)>
+    <Fact(Skip:="1042696")>
+    Public Sub ParseXmlTrailingNewLinesBeforeDistinct()
+        ParseAndVerify(<![CDATA[
+Module M
+    Dim x = From y in "" Select <?xml version="1.0"?>
+        <x/>
+
+        <!-- -->
+
+
+    Dim y = x
+End Module
+]]>)
+        ParseAndVerify(<![CDATA[
+Module M
+    Dim x = <?xml version="1.0"?>
+        <x/>
+
+        <!-- -->
+
+
+    Distinct
+End Module
+]]>,
+            Diagnostic(ERRID.ERR_ExpectedDeclaration, "Distinct"))
+        ParseAndVerify(<![CDATA[
+Module M
+    Dim x = From y in "" Select <?xml version="1.0"?>
+        <x/>
+
+        <!-- -->
+
+
+    Distinct
+End Module
+]]>)
+        ParseAndVerify(<![CDATA[
+Module M
+    Dim x = From y in "" Select <?xml version="1.0"?>
+        <x/>
+
+
+    Distinct
+End Module
+]]>)
+        ParseAndVerify(<![CDATA[
+Module M
+    Dim x = From y in "" Select <x/>
+
+
+    Distinct
+End Module
+]]>,
+            Diagnostic(ERRID.ERR_ExpectedDeclaration, "Distinct"))
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub F()
+        If Nothing Is <?xml version="1.0"?>
+            <x/>
+
+
+        Then
+        End If
+    End Sub
+End Module
+]]>,
+            Diagnostic(ERRID.ERR_Syntax, "Then"))
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub F()
+        If Nothing Is <?xml version="1.0"?>
+            <x/>
+
+            <!-- --> Then
+        End If
+    End Sub
+End Module
+]]>)
     End Sub
 
 End Class
