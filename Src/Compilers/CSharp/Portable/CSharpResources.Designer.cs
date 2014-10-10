@@ -737,6 +737,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to “Auto-implemented properties must override all accessors of the overridden property.”.
+        /// </summary>
+        internal static string ERR_AutoPropertyMustOverrideSet {
+            get {
+                return ResourceManager.GetString("ERR_AutoPropertyMustOverrideSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot await in an unsafe context.
         /// </summary>
         internal static string ERR_AwaitInUnsafeContext {

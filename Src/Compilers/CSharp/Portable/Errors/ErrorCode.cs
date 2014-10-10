@@ -1290,5 +1290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InsufficientStack = 8078,
 
         ERR_UseDefViolationProperty = 8079,
+        ERR_AutoPropertyMustOverrideSet = 8080,
     }
 }

@@ -329,6 +329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (object)explicitlyImplementedProperty == null ?
                     ImmutableArray<PropertySymbol>.Empty :
                     ImmutableArray.Create(explicitlyImplementedProperty);
+
+            // get-only autoproperty should not override settable properties
+            if (this.isAutoProperty && (object)this.setMethod == null && !this.IsReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
+            }
         }
 
         internal bool IsExpressionBodied
