@@ -1105,11 +1105,37 @@ End Class
                 Diagnostic("TypeDeclaration", "C").WithLocation(9, 7));
         }
 
+        [Fact]
+        public void SuppressDuplicateAnalyzerExceptionDiagnostics()
+        {
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = (ex, a) => true;
+
+            VerifyCSharp(@"
+public class C
+{
+}
+public class C1
+{
+}
+public class C2
+{
+}
+",
+                new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
+                continueOnAnalyzerException,
+                Diagnostic("AnalyzerDriver", null).WithLocation(1, 1));
+        }
+
         #endregion
 
         protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Verify(source, LanguageNames.CSharp, analyzers, diagnostics);
+        }
+
+        protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, params DiagnosticDescription[] diagnostics)
+        {
+            Verify(source, LanguageNames.CSharp, analyzers, diagnostics, continueOnAnalyzerException);
         }
 
         protected void VerifyTokenDiagnosticsCSharp(string markup, params DiagnosticDescription[] diagnostics)
@@ -1120,7 +1146,7 @@ End Class
         protected void VerifyBasic(string source, string rootNamespace, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Assert.False(string.IsNullOrWhiteSpace(rootNamespace), string.Format("Invalid root namespace '{0}'", rootNamespace));
-            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, rootNamespace);
+            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, continueOnAnalyzerException: null, rootNamespace: rootNamespace);
         }
 
         protected void VerifyBasic(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
@@ -1128,16 +1154,21 @@ End Class
             Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics);
         }
 
+        protected void VerifyBasic(string source, DiagnosticAnalyzer[] analyzers, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, params DiagnosticDescription[] diagnostics)
+        {
+            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, continueOnAnalyzerException);
+        }
+
         protected void VerifyTokenDiagnosticsBasic(string markup, params DiagnosticDescription[] diagnostics)
         {
             VerifyTokenDiagnostics(markup, LanguageNames.VisualBasic, diagnostics);
         }
 
-        protected virtual void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, string rootNamespace = null)
+        protected virtual void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, string rootNamespace = null)
         {
             Assert.True(analyzers != null && analyzers.Length > 0, "Must specify at least one diagnostic analyzer to test suppression");
             var compilation = CreateCompilation(source, language, analyzers, rootNamespace);
-            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: diagnostics);
+            compilation.VerifyAnalyzerDiagnostics(analyzers, continueOnAnalyzerException: continueOnAnalyzerException, expected: diagnostics);
         }
 
         // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed

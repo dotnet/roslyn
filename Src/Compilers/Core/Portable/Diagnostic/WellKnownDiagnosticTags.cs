@@ -1,4 +1,6 @@
-﻿namespace Microsoft.CodeAnalysis
+﻿using Microsoft.CodeAnalysis.Diagnostics;
+
+namespace Microsoft.CodeAnalysis
 {
     public static class WellKnownDiagnosticTags
     {
@@ -26,5 +28,10 @@
         /// Indicates that the diagnostic is not configurable in the ruleset editor.
         /// </summary>
         public const string NotConfigurable = "NotConfigurable";
+
+        /// <summary>
+        /// Indicates that the diagnostic is related to an exception thrown by a <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        public const string AnalyzerException = "AnalyzerException";
     }
 }

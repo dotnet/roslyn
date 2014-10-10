@@ -246,6 +246,35 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
+        // Throws an exception on every AnalyzeSymbol on named types
+        protected class ThrowExceptionForEachNamedTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public const string Id = "ThrowException";
+            private static DiagnosticDescriptor rule = GetRule(Id);
+            
+            public ThrowExceptionForEachNamedTypeAnalyzer()
+            {
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(rule);
+                }
+            }
+
+            public override void Initialize(AnalysisContext analysisContext)
+            {
+                analysisContext.RegisterSymbolAction(
+                    (context) =>
+                    {
+                        throw new Exception("ThrowExceptionAnalyzer exception");
+                    },
+                    SymbolKind.NamedType);
+            }
+        }
+
         protected static DiagnosticDescriptor GetRule(string id)
         {
             return new DiagnosticDescriptor(

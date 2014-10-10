@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private GlobalSuppressions lazyGlobalSuppressions;
         private ConcurrentDictionary<ISymbol, ImmutableArray<string>> localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
         private ISymbol lazySuppressMessageAttribute;
+        private ConcurrentSet<string> faultedAnalyzerMessages;
 
         private class GlobalSuppressions
         {
@@ -71,16 +73,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.compilation = compilation;
         }
 
-        public bool IsDiagnosticSuppressed(string id, Location locationOpt = null, ISymbol symbolOpt = null)
+        public bool IsDiagnosticSuppressed(Diagnostic diagnostic, ISymbol symbolOpt = null)
         {
-            Debug.Assert(id != null);
+            // Suppress duplicate analyzer exception diagnostics from the analyzer driver.
+            if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException))
+            {
+                if (faultedAnalyzerMessages == null)
+                {
+                    Interlocked.CompareExchange(ref this.faultedAnalyzerMessages, new ConcurrentSet<string>(), null);
+                }
 
-            if (symbolOpt != null && IsDiagnosticSuppressed(id, symbolOpt))
+                var message = diagnostic.GetMessage();
+                if (!faultedAnalyzerMessages.Add(message))
+                {
+                    return true;
+                }
+            }
+
+            if (symbolOpt != null && IsDiagnosticSuppressed(diagnostic.Id, symbolOpt))
             {
                 return true;
             }
 
-            return IsDiagnosticSuppressed(id, locationOpt ?? Location.None);
+            return IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location);
         }
 
         private bool IsDiagnosticSuppressed(string id, ISymbol symbol)
