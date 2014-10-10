@@ -1524,6 +1524,221 @@ public class Test
             // NOTE: Dev10 reports NO ERRORS
         }
 
+        [WorkItem(948674, "DevDiv")]
+        [Fact]
+        public void UseSiteErrorViaImplementedInterfaceMember_1()
+        {
+
+            var source1 = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+public struct ImageMoniker
+{ }";
+
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "Pia948674_1");
+
+            var source2 = @"
+public interface IBar
+{
+    ImageMoniker? Moniker { get; }
+}";
+
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_1");
+
+            var source3 = @"
+public class BarImpl : IBar
+{
+    public ImageMoniker? Moniker    
+    {
+        get { return null; }
+    }
+}";
+
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+
+            comp3.VerifyDiagnostics(
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
+                );
+
+            comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+
+            comp3.VerifyDiagnostics(
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24),
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
+                );
+        }
+
+        [WorkItem(948674, "DevDiv")]
+        [Fact]
+        public void UseSiteErrorViaImplementedInterfaceMember_2()
+        {
+
+            var source1 = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+public struct ImageMoniker
+{ }";
+
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "Pia948674_2");
+
+            var source2 = @"
+public interface IBar
+{
+    ImageMoniker? Moniker { get; }
+}";
+
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_2");
+
+            var source3 = @"
+public class BarImpl : IBar
+{
+    ImageMoniker? IBar.Moniker    
+    {
+        get { return null; }
+    }
+}";
+
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+
+            comp3.VerifyDiagnostics(
+    // (4,24): error CS0539: 'BarImpl.Moniker' in explicit interface declaration is not a member of interface
+    //     ImageMoniker? IBar.Moniker    
+    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Moniker").WithArguments("BarImpl.Moniker").WithLocation(4, 24),
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
+                );
+
+            comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+
+            comp3.VerifyDiagnostics(
+    // (4,24): error CS0539: 'BarImpl.Moniker' in explicit interface declaration is not a member of interface
+    //     ImageMoniker? IBar.Moniker    
+    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Moniker").WithArguments("BarImpl.Moniker").WithLocation(4, 24),
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
+                );
+        }
+
+        [WorkItem(948674, "DevDiv")]
+        [Fact]
+        public void UseSiteErrorViaImplementedInterfaceMember_3()
+        {
+
+            var source1 = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+public struct ImageMoniker
+{ }";
+
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "Pia948674_3");
+
+            var source2 = @"
+public interface IBar
+{
+    void SetMoniker(ImageMoniker? moniker);
+}";
+
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_3");
+
+            var source3 = @"
+public class BarImpl : IBar
+{
+    public void SetMoniker(ImageMoniker? moniker)
+    {}
+}";
+
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+
+            comp3.VerifyDiagnostics(
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
+                );
+
+            comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+
+            comp3.VerifyDiagnostics(
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
+                );
+        }
+
+        [WorkItem(948674, "DevDiv")]
+        [Fact]
+        public void UseSiteErrorViaImplementedInterfaceMember_4()
+        {
+
+            var source1 = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+public struct ImageMoniker
+{ }";
+
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "Pia948674_4");
+
+            var source2 = @"
+public interface IBar
+{
+    void SetMoniker(ImageMoniker? moniker);
+}";
+
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_4");
+
+            var source3 = @"
+public class BarImpl : IBar
+{
+    void IBar.SetMoniker(ImageMoniker? moniker)
+    {}
+}";
+
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+
+            comp3.VerifyDiagnostics(
+    // (4,15): error CS0539: 'BarImpl.SetMoniker(ImageMoniker?)' in explicit interface declaration is not a member of interface
+    //     void IBar.SetMoniker(ImageMoniker? moniker)
+    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "SetMoniker").WithArguments("BarImpl.SetMoniker(ImageMoniker?)").WithLocation(4, 15),
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
+                );
+
+            comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+
+            comp3.VerifyDiagnostics(
+    // (4,15): error CS0539: 'BarImpl.SetMoniker(ImageMoniker?)' in explicit interface declaration is not a member of interface
+    //     void IBar.SetMoniker(ImageMoniker? moniker)
+    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "SetMoniker").WithArguments("BarImpl.SetMoniker(ImageMoniker?)").WithLocation(4, 15),
+    // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // public class BarImpl : IBar
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
+                );
+        }
+
         [WorkItem(541246, "DevDiv")]
         [Fact]
         public void NamespaceQualifiedGenericTypeName()

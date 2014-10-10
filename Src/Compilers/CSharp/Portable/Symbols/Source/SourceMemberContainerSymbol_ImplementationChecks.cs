@@ -209,7 +209,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // Suppress for bogus properties and events and for indexed properties.
                                 if (!interfaceMember.MustCallMethodsDirectly() && !interfaceMember.IsIndexedProperty())
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_UnimplementedInterfaceMember, GetImplementsLocation(@interface) ?? this.Locations[0], this, interfaceMember);
+                                    DiagnosticInfo useSiteDiagnostic = interfaceMember.GetUseSiteDiagnostic();
+
+                                    if (useSiteDiagnostic != null && useSiteDiagnostic.DefaultSeverity == DiagnosticSeverity.Error)
+                                    {
+                                        diagnostics.Add(useSiteDiagnostic, GetImplementsLocation(@interface));
+                                    }
+                                    else
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_UnimplementedInterfaceMember, GetImplementsLocation(@interface) ?? this.Locations[0], this, interfaceMember);
+                                    }
                                 }
                             }
                         }

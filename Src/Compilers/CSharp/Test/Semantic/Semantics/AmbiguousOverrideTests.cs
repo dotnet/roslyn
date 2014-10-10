@@ -343,13 +343,16 @@ class CBar : IFoo // CS0535 * 2
             var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilationWithMscorlib(text, new[] { asm }).VerifyDiagnostics(
-                // (4,38): warning CS0473: Explicit interface implementation 'CFoo.Metadata.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)"),
-                // (2,14): error CS0535: 'CFoo' does not implement interface member
-                // 'Metadata.IFooAmbiguous<string, long>.M(?)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)"),
-                // (2,14): error CS0535: 'CFoo' does not implement interface member 'Metadata.IFooAmbiguous<string, long>.M(string)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(?)"));
+    // (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
+    // class CBar : IFoo // CS0535 * 2
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)").WithLocation(7, 14),
+    // (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
+    // class CBar : IFoo // CS0535 * 2
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)").WithLocation(7, 14),
+    // (2,21): error CS0570: 'IFooAmbiguous<T, R>.M(?)' is not supported by the language
+    // public class CFoo : IFooAmbiguous<string, long> // CS0535
+    Diagnostic(ErrorCode.ERR_BindToBogus, "IFooAmbiguous<string, long>").WithArguments("Metadata.IFooAmbiguous<T, R>.M(?)").WithLocation(2, 21)
+            );
         }
 
         [WorkItem(540518, "DevDiv")]
@@ -365,15 +368,16 @@ public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
             var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilationWithMscorlib(text, new[] { asm }).VerifyDiagnostics(
-                // (4,38): warning CS0473: Explicit interface implementation 'CFoo.Metadata.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
-                // (2,21): error CS0535: 'CFoo' does not implement interface member 'Metadata.IFooAmbiguous<string, long>.M(string)'
-                // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
-                // (2,21): error CS0535: 'CFoo' does not implement interface member 'Metadata.IFooAmbiguous<string, long>.M(?)'
-                // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(?)").WithLocation(2, 21));
+    // (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+    //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
+    Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
+    // (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
+    // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
+    // (2,21): error CS0570: 'IFooAmbiguous<T, R>.M(?)' is not supported by the language
+    // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
+    Diagnostic(ErrorCode.ERR_BindToBogus, "IFooAmbiguous<string, long>").WithArguments("Metadata.IFooAmbiguous<T, R>.M(?)").WithLocation(2, 21)
+                );
         }
 
         [Fact]

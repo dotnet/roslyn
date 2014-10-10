@@ -4181,14 +4181,12 @@ Derived.M(y:2)");
                 referencedCompilations: new[] { A });
             CompileAndVerify(B).VerifyDiagnostics();
 
-            // This doesn't necessarily have to generate specifically this diagnostic - it could
-            // very well signal a missing assembly - but it must not report NO diagnostics.
             var D = CreateCSharpCompilation("D", @"public class D : C, B { }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { B, C }).VerifyDiagnostics(
-                // (1,14): error CS0535: 'D' does not implement interface member 'B.M(A)'
-                // public class D : C, B { }
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("D", "B.M(A)")
+    // (1,21): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    // public class D : C, B { }
+    Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("A", "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 21)
                 );
         }
 
