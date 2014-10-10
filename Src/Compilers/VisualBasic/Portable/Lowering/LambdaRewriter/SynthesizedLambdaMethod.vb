@@ -238,17 +238,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Shadows Function GetSyntax() As LambdaExpressionSyntax
-            Return DirectCast(Me.Syntax, LambdaExpressionSyntax)
-        End Function
-
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
-            Dim syntax = Me.GetSyntax()
+            Dim syntax = TryCast(Me.Syntax, LambdaExpressionSyntax)
 
             ' Assign -1 offset to all variables that are associated with the header.
             ' We can't assign >=0 since user-defined variables defined in the first statement of the body have 0
             ' and user-defined variables need to have a unique syntax offset.
-            If localPosition = syntax.Begin.SpanStart Then
+            If syntax Is Nothing OrElse localPosition = syntax.Begin.SpanStart Then
                 Return -1
             End If
 

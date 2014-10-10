@@ -10816,6 +10816,27 @@ End Module
             CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseDll).AssertNoDiagnostics()
 
         End Sub
+
+        <Fact, WorkItem(1042011)>
+        Public Sub LambdaWithClosureInQueryExpressionAndPDB()
+            Dim compilationDef =
+<compilation name="QueryExpressions">
+    <file name="a.vb">
+Imports System.Linq
+
+Module Module1
+
+    Sub Main()
+        Dim x = From y In {1} Select Function() y
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            CompileAndVerify(compilationDef, options:=TestOptions.DebugExe)
+        End Sub
+
     End Class
 
 End Namespace
