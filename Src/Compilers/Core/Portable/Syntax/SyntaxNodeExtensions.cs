@@ -62,13 +62,11 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new tree of nodes with the specified old node replaced with a new node.
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
-        /// <typeparam name="TNode">The type of the replaced node.</typeparam>
         /// <param name="root">The root node of the tree of nodes.</param>
         /// <param name="oldNode">The node to be replaced; a descendant of the root node.</param>
         /// <param name="newNode">The new node to use in the new tree in place of the old node.</param>
-        public static TRoot ReplaceNode<TRoot, TNode>(this TRoot root, TNode oldNode, TNode newNode)
+        public static TRoot ReplaceNode<TRoot>(this TRoot root, SyntaxNode oldNode, SyntaxNode newNode)
             where TRoot : SyntaxNode
-            where TNode : SyntaxNode
         {
             return (TRoot)root.ReplaceCore(nodes: new[] { oldNode }, computeReplacementNode: (o, r) => newNode);
         }
@@ -77,13 +75,11 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new tree of nodes with specified old node replaced with a new nodes.
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
-        /// <typeparam name="TNode">The type of the replaced node.</typeparam>
         /// <param name="root">The root of the tree of nodes.</param>
         /// <param name="oldNode">The node to be replaced; a descendant of the root node and an element of a list member.</param>
         /// <param name="newNodes">A sequence of nodes to use in the tree in place of the old node.</param>
-        public static TRoot ReplaceNode<TRoot, TNode>(this TRoot root, TNode oldNode, IEnumerable<TNode> newNodes)
+        public static TRoot ReplaceNode<TRoot>(this TRoot root, SyntaxNode oldNode, IEnumerable<SyntaxNode> newNodes)
             where TRoot : SyntaxNode
-            where TNode : SyntaxNode
         {
             return (TRoot)root.ReplaceNodeInListCore(oldNode, newNodes);
         }

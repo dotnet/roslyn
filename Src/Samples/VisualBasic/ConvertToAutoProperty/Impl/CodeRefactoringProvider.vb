@@ -178,7 +178,7 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
             .WithAdditionalAnnotations(Formatter.Annotation)
 
         Dim oldRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-        Dim newRoot = oldRoot.ReplaceNode(Of SyntaxNode)(propertyBlock, autoProperty)
+        Dim newRoot = oldRoot.ReplaceNode(propertyBlock, autoProperty)
 
         Return document.WithSyntaxRoot(newRoot)
     End Function
