@@ -3,6 +3,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion></ProductVersion>
     <SchemaVersion></SchemaVersion>
@@ -14,7 +15,6 @@
     <MyType>Windows</MyType>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <VBRuntime>Embed</VBRuntime>
-    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

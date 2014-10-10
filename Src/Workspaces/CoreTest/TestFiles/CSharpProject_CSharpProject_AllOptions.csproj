@@ -3,6 +3,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -17,7 +18,6 @@
     <AssemblyOriginatorKeyFile>snKey.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <BaseAddress>4194304</BaseAddress>
-    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
