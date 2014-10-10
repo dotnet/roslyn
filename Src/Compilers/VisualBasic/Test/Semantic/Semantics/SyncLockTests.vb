@@ -479,7 +479,7 @@ End Class
 
 #Region "Help Method"
 
-        Private Function GetExpressionFromSyncLock(Compilation As VBCompilation, Optional which As Integer = 1) As ExpressionSyntax
+        Private Function GetExpressionFromSyncLock(Compilation As VisualBasicCompilation, Optional which As Integer = 1) As ExpressionSyntax
             Dim tree = Compilation.SyntaxTrees.[Single]()
             Dim model = Compilation.GetSemanticModel(tree)
             Dim SyncLockBlock = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of SyncLockStatementSyntax)().ToList()

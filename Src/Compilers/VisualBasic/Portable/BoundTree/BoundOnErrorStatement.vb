@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundOnErrorStatement
 
-        Public Sub New(syntax As VBSyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VisualBasicSyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             Me.New(syntax, OnErrorStatementKind.GoToLabel, label, labelExpressionOpt, hasErrors)
             Debug.Assert(labelExpressionOpt IsNot Nothing)
         End Sub

@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub WithRootAndOptions_ParsedTree()
             Dim oldTree = SyntaxFactory.ParseSyntaxTree("Class B : End Class")
             Dim newRoot = SyntaxFactory.ParseCompilationUnit("Class C : End Class")
-            Dim newOptions = New VBParseOptions()
+            Dim newOptions = New VisualBasicParseOptions()
             Dim newTree = oldTree.WithRootAndOptions(newRoot, newOptions)
             Dim newText = newTree.GetText()
 
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim oldTree = SyntaxFactory.ParseSyntaxTree(oldText)
 
             Dim newRoot = SyntaxFactory.ParseCompilationUnit("Class C : End Class")
-            Dim newOptions = New VBParseOptions()
+            Dim newOptions = New VisualBasicParseOptions()
             Dim newTree = oldTree.WithRootAndOptions(newRoot, newOptions)
             Dim newText = newTree.GetText()
 
@@ -37,9 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub WithRootAndOptions_DummyTree()
-            Dim dummy = New VBSyntaxTree.DummySyntaxTree()
+            Dim dummy = New VisualBasicSyntaxTree.DummySyntaxTree()
             Dim newRoot = SyntaxFactory.ParseCompilationUnit("Class C : End Class")
-            Dim newOptions = New VBParseOptions()
+            Dim newOptions = New VisualBasicParseOptions()
             Dim newTree = dummy.WithRootAndOptions(newRoot, newOptions)
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString())
             Assert.Same(newOptions, newTree.Options)
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub WithFilePath_DummyTree()
-            Dim oldTree = New VBSyntaxTree.DummySyntaxTree()
+            Dim oldTree = New VisualBasicSyntaxTree.DummySyntaxTree()
             Dim newTree = oldTree.WithFilePath("new.vb")
 
             Assert.Equal(newTree.FilePath, "new.vb")

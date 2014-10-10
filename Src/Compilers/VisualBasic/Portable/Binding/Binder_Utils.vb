@@ -256,8 +256,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create the Nullable version of a type.
         ''' </summary>
         Public Function CreateNullableOf(typeArgument As TypeSymbol,
-                                         syntax As VBSyntaxNode,
-                                         syntaxTypeArgument As VBSyntaxNode,
+                                         syntax As VisualBasicSyntaxNode,
+                                         syntaxTypeArgument As VisualBasicSyntaxNode,
                                          diagBag As DiagnosticBag) As NamedTypeSymbol
             ' Get the Nullable type
             Dim nullableType As NamedTypeSymbol = DirectCast(GetSpecialType(SpecialType.System_Nullable_T, syntax, diagBag), NamedTypeSymbol)
@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function DecodeModifiedIdentifierType(modifiedIdentifier As ModifiedIdentifierSyntax,
                                                      asClauseOrValueType As TypeSymbol,
                                                      asClauseSyntaxOpt As AsClauseSyntax,
-                                                     initializerSyntaxOpt As VBSyntaxNode,
+                                                     initializerSyntaxOpt As VisualBasicSyntaxNode,
                                                      getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
                                                      diagBag As DiagnosticBag,
                                                      Optional decoderContext As ModifiedIdentifierTypeDecoderContext = ModifiedIdentifierTypeDecoderContext.None
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 modifiedIdentifier,
                                                 If(asClauseSyntaxOpt IsNot Nothing,
                                                    asClauseSyntaxOpt.Type,
-                                                   DirectCast(modifiedIdentifier, VBSyntaxNode)),
+                                                   DirectCast(modifiedIdentifier, VisualBasicSyntaxNode)),
                                                 diagBag)
                 End If
             End If
@@ -722,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return specialType
         End Function
 
-        Public Shared Function ExtractTypeCharacter(node As VBSyntaxNode) As TypeCharacter
+        Public Shared Function ExtractTypeCharacter(node As VisualBasicSyntaxNode) As TypeCharacter
             Dim result As TypeCharacter = TypeCharacter.None
 
             If node IsNot Nothing Then
@@ -1076,7 +1076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AccessCheck.VerifyAccessExposureForParameterType(container, newParam.Name,
                                                                      If(paramSyntax.AsClause IsNot Nothing,
                                                                             paramSyntax.AsClause.Type,
-                                                                            DirectCast(paramSyntax, VBSyntaxNode)),
+                                                                            DirectCast(paramSyntax, VisualBasicSyntaxNode)),
                                                                      newParam.Type, diagBag)
                 End If
 

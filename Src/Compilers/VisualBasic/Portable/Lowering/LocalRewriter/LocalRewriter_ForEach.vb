@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntaxNode">The syntax node.</param>
         ''' <param name="boundIndex">The bound index expression (bound local).</param>
         Private Function CreateIndexIncrement(
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             boundIndex As BoundLocal
         ) As BoundStatement
             ' collectionIndex += 1
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="node">The bound for each node.</param>
         ''' <returns>The lowered statement list for the while statement.</returns>
         Private Function CreateLoweredWhileStatements(
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             node As BoundForEachStatement,
             limit As BoundExpression,
             index As BoundLocal,
@@ -713,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' inherits or implements IDisposable or not.</param>
         ''' <param name="rewrittenDisposeConversion">Conversion from the local type to IDisposable</param>
         Public Function GenerateDisposeCallForForeachAndUsing(
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             rewrittenBoundLocal As BoundLocal,
             rewrittenCondition As BoundExpression,
             IsOrInheritsFromOrImplementsIDisposable As Boolean,

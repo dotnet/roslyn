@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
     Public Class TypedConstantTests
         Inherits BasicTestBase
 
-        Private ReadOnly _compilation As VBCompilation
+        Private ReadOnly _compilation As VisualBasicCompilation
 
         Private ReadOnly _namedType As NamedTypeSymbol
 
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
         Private ReadOnly _arrayType As ArrayTypeSymbol
 
         Public Sub New()
-            _compilation = VBCompilation.Create("foo")
+            _compilation = VisualBasicCompilation.Create("foo")
             _namedType = _compilation.GetSpecialType(SpecialType.System_Byte)
             _systemType = _compilation.GetWellKnownType(WellKnownType.System_Type)
             _arrayType = _compilation.CreateArrayTypeSymbol(_compilation.GetSpecialType(SpecialType.System_Object))

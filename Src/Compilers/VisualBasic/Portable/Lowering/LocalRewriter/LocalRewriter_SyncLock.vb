@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GenerateMonitorEnter(
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             boundLockObject As BoundExpression,
             <Out> ByRef boundLockTakenLocal As BoundLocal,
             <Out> ByRef boundLockTakenInitialization As BoundStatement
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GenerateMonitorExit(
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             boundLockObject As BoundExpression,
             boundLockTakenLocal As BoundLocal
         ) As BoundStatement

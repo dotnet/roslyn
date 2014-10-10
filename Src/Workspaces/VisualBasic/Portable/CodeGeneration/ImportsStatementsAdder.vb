@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Select symbol
 
             Dim compilationImports =
-                DirectCast(semanticModel.Compilation, VBCompilation).MemberImports.OfType(Of INamespaceSymbol)()
+                DirectCast(semanticModel.Compilation, VisualBasicCompilation).MemberImports.OfType(Of INamespaceSymbol)()
 
             Return memberImports.Concat(compilationImports).
                                  Distinct().

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Parser.ParseStatementInMethodBody()
         End Function
 
-        Friend Overrides Function ProcessSyntax(node As VBSyntaxNode) As BlockContext
+        Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
             If Parser.IsDeclarationStatement(node.Kind) Then
                 ' VS 314714
                 ' When we have specifiers or attributes preceding an invalid method declaration,
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
-        Friend Overrides Function TryLinkSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Overrides Function TryLinkSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
             newContext = Nothing
             Select Case node.Kind
                 ' these are errors, but ParseStatementInMethodBody accepts them for error recovery

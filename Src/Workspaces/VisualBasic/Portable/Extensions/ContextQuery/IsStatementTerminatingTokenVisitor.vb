@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
     ''' is more than one keyword that could terminate the statement.
     ''' </summary>
     Friend Class IsStatementTerminatingTokenVisitor
-        Inherits VBSyntaxVisitor(Of Boolean)
+        Inherits VisualBasicSyntaxVisitor(Of Boolean)
 
         Private ReadOnly _targetToken As SyntaxToken
 

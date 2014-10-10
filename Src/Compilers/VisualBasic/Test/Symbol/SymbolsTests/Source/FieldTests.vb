@@ -423,7 +423,7 @@ Class Outer
         End Sub
     End Class
 End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             vbCompilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ObjectReferenceNotSupplied, "field"))
         End Sub
 

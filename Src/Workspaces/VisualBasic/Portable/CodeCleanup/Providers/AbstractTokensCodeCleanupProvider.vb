@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         End Function
 
         Protected MustInherit Class Rewriter
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             Protected ReadOnly _spans As SimpleIntervalTree(Of TextSpan)
             Protected ReadOnly _cancellationToken As CancellationToken

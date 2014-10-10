@@ -1224,12 +1224,12 @@ End Module]]>,
         ]]>.Value
 
         ' define DEBUG, IDE, and then undefine DEBUG
-        Dim options = VBParseOptions.Default.WithPreprocessorSymbols({
+        Dim options = VisualBasicParseOptions.Default.WithPreprocessorSymbols({
                           New KeyValuePair(Of String, Object)("DEBUG", True),
                           New KeyValuePair(Of String, Object)("Ide", True),
                           New KeyValuePair(Of String, Object)("DeBuG", Nothing)})
 
-        Dim tree = VBSyntaxTree.ParseText(SourceText.From(text), options, "")
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), options, "")
 
         Dim tk = tree.GetRoot().FindToken(text.IndexOf("class c2"))
         Assert.Equal(SyntaxKind.ClassKeyword, tk.VBKind)
@@ -1549,7 +1549,7 @@ BC30059: Constant expression is required.
 
         Dim psymbols = ImmutableArray.Create({KeyValuePair.Create("Blah", CObj(False)), KeyValuePair.Create("blah", CObj(True))})
 
-        Dim options As VBParseOptions = VBParseOptions.Default.WithPreprocessorSymbols(psymbols)
+        Dim options As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(psymbols)
 
         ParseAndVerify(
         <![CDATA[

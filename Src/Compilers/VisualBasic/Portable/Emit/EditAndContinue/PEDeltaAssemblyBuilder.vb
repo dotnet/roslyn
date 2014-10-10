@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
-                Dim previousAssembly = DirectCast(previousGeneration.Compilation, VBCompilation).SourceAssembly
+                Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
                 Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
                 matchToPrevious = New VisualBasicSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext)
             End If

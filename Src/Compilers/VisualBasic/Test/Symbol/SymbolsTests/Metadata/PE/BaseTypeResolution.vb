@@ -289,13 +289,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
 
-            Dim c1 = VBCompilation.Create("Test", references:={mscorlibRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={mscorlibRef})
 
             Assert.Equal("System.Object", DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol).GetCorLibType(SpecialType.System_Object).ToTestDisplayString())
 
             Dim MTTestLib1Ref = TestReferences.SymbolsTests.V1.MTTestLib1.dll
 
-            Dim c2 = VBCompilation.Create("Test2", references:={MTTestLib1Ref})
+            Dim c2 = VisualBasicCompilation.Create("Test2", references:={MTTestLib1Ref})
             Assert.Equal("System.Object[missing]", DirectCast(c2.Assembly.Modules(0), SourceModuleSymbol).GetCorLibType(SpecialType.System_Object).ToTestDisplayString())
 
         End Sub

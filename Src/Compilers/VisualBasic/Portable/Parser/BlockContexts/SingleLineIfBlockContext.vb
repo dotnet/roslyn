@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(DirectCast(statement, IfStatementSyntax).ThenKeyword IsNot Nothing)
         End Sub
 
-        Friend Overrides Function ProcessSyntax(node As VBSyntaxNode) As BlockContext
+        Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
             Select Case node.Kind
                 Case SyntaxKind.IfStatement
                     Dim ifStmt = DirectCast(node, IfStatementSyntax)
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MyBase.ProcessSyntax(node)
         End Function
 
-        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VBSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VisualBasicSyntaxNode
             Debug.Assert(endStmt Is Nothing)
             Return CreateIfBlockSyntax()
         End Function

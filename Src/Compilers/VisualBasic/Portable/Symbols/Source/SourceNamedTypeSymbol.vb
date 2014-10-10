@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Syntax"
 
-        Friend Function GetTypeIdentifierToken(node As VBSyntaxNode) As SyntaxToken
+        Friend Function GetTypeIdentifierToken(node As VisualBasicSyntaxNode) As SyntaxToken
             Select Case node.Kind
                 Case SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock
                     Return DirectCast(node, TypeBlockSyntax).Begin.Identifier
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim foundPartial As Boolean = False
             Dim nodeNameIsAlreadyDefined As Boolean = False
-            Dim firstNode As VBSyntaxNode = Nothing
+            Dim firstNode As VisualBasicSyntaxNode = Nothing
             Dim countMissingPartial = 0
 
             For Each syntaxRef In SyntaxReferences
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Declare all the non-type members in a single part of this type, and add them to the member list.
         Private Function AddMembersInPart(binder As Binder,
-                                          node As VBSyntaxNode,
+                                          node As VisualBasicSyntaxNode,
                                           diagBag As DiagnosticBag,
                                           accessModifiers As DeclarationModifiers,
                                           members As MembersAndInitializersBuilder,
@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return foundModifiers
         End Function
 
-        Private Function CheckDeclarationModifiers(node As VBSyntaxNode,
+        Private Function CheckDeclarationModifiers(node As VisualBasicSyntaxNode,
                                                    binder As Binder,
                                                    diagBag As DiagnosticBag,
                                                    accessModifiers As DeclarationModifiers) As DeclarationModifiers
@@ -387,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return foundModifiers
         End Function
 
-        Private Function DecodeDeclarationModifiers(node As VBSyntaxNode,
+        Private Function DecodeDeclarationModifiers(node As VisualBasicSyntaxNode,
                                             binder As Binder,
                                             diagBag As DiagnosticBag,
                                             ByRef modifiers As SyntaxTokenList,
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Sub CheckDeclarationNameAndTypeParameters(node As VBSyntaxNode,
+        Private Sub CheckDeclarationNameAndTypeParameters(node As VisualBasicSyntaxNode,
                                                           binder As Binder,
                                                           diagBag As DiagnosticBag,
                                                           ByRef nodeNameIsAlreadyDeclared As Boolean)
@@ -529,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 ' But we should report errors on the first namespace locations 
                                 Dim errorReported As Boolean = False
                                 For Each location In s.Locations
-                                    If location.IsInSource AndAlso Not DirectCast(location.SourceTree, VBSyntaxTree).IsEmbeddedSyntaxTree Then
+                                    If location.IsInSource AndAlso Not DirectCast(location.SourceTree, VisualBasicSyntaxTree).IsEmbeddedSyntaxTree Then
                                         Binder.ReportDiagnostic(diagBag, location, ERRID.ERR_TypeClashesWithVbCoreType4,
                                                                 _3rdArg, s.Name, Me.GetKindText(), id.ToString)
                                         errorReported = True
@@ -622,8 +622,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub CheckDeclarationPart(tree As SyntaxTree,
-                                            node As VBSyntaxNode,
-                                            firstNode As VBSyntaxNode,
+                                            node As VisualBasicSyntaxNode,
+                                            firstNode As VisualBasicSyntaxNode,
                                             foundPartial As Boolean,
                                             diagBag As DiagnosticBag)
 
@@ -937,7 +937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return typeParameters.AsImmutableOrNull()
         End Function
 
-        Private Shared Function GetTypeParameterListSyntax(syntax As VBSyntaxNode) As TypeParameterListSyntax
+        Private Shared Function GetTypeParameterListSyntax(syntax As VisualBasicSyntaxNode) As TypeParameterListSyntax
             Select Case syntax.Kind
                 Case SyntaxKind.StructureBlock, SyntaxKind.ClassBlock, SyntaxKind.InterfaceBlock
                     Return DirectCast(syntax, TypeBlockSyntax).Begin.TypeParameterList
@@ -993,7 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #Region "Base Type and Interfaces (phase 4)"
 
         Private Sub MakeDeclaredBaseInPart(tree As SyntaxTree,
-                                           syntaxNode As VBSyntaxNode,
+                                           syntaxNode As VisualBasicSyntaxNode,
                                            ByRef baseType As NamedTypeSymbol,
                                            basesBeingResolved As ConsList(Of Symbol),
                                            diagBag As DiagnosticBag)
@@ -1022,7 +1022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub MakeDeclaredInterfacesInPart(tree As SyntaxTree,
-                                                syntaxNode As VBSyntaxNode,
+                                                syntaxNode As VisualBasicSyntaxNode,
                                                 interfaces As HashSet(Of NamedTypeSymbol),
                                                 basesBeingResolved As ConsList(Of Symbol),
                                                 diagBag As DiagnosticBag)
@@ -1363,7 +1363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
-            Dim compilation As VBCompilation = Me.DeclaringCompilation
+            Dim compilation As VisualBasicCompilation = Me.DeclaringCompilation
 
             Dim declaredBase As NamedTypeSymbol = Me.GetDeclaredBase(Nothing)
             If declaredBase IsNot Nothing Then

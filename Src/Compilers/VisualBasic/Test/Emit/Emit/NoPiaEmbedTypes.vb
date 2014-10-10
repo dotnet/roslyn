@@ -495,7 +495,7 @@ BC36923: Type 'D1(Of T)' cannot be embedded because it has generic argument. Con
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
 
-        Private Shared Sub VerifyEmitDiagnostics(compilation As VBCompilation, Optional errors As XElement = Nothing)
+        Private Shared Sub VerifyEmitDiagnostics(compilation As VisualBasicCompilation, Optional errors As XElement = Nothing)
             If errors Is Nothing Then
                 errors = <errors/>
             End If
@@ -505,7 +505,7 @@ BC36923: Type 'D1(Of T)' cannot be embedded because it has generic argument. Con
             End Using
         End Sub
 
-        Private Shared Sub VerifyEmitMetadataOnlyDiagnostics(compilation As VBCompilation, Optional errors As XElement = Nothing)
+        Private Shared Sub VerifyEmitMetadataOnlyDiagnostics(compilation As VisualBasicCompilation, Optional errors As XElement = Nothing)
             If errors Is Nothing Then
                 errors = <errors/>
             End If

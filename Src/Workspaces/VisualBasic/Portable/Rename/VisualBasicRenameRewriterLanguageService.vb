@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         End Function
 
         Private Class RenameRewriter
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly documentId As DocumentId
             Private ReadOnly renameRenamableSymbolDeclaration As RenameAnnotation

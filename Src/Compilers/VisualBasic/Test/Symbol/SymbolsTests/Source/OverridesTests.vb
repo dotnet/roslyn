@@ -4240,7 +4240,7 @@ End Class
                                                                         "Derived.M4")
             compilation.VerifyDiagnostics()
 
-            Dim derived = DirectCast(compilation.Compilation, VBCompilation).GetTypeByMetadataName("Derived")
+            Dim derived = DirectCast(compilation.Compilation, VisualBasicCompilation).GetTypeByMetadataName("Derived")
 
             Assert.IsAssignableFrom(Of SourceSimpleParameterSymbol)(derived.GetMember(Of MethodSymbol)("M1").Parameters(0))
             Assert.IsAssignableFrom(Of SourceSimpleParameterSymbol)(derived.GetMember(Of MethodSymbol)("M2").Parameters(0))

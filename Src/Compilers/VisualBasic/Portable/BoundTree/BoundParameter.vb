@@ -6,19 +6,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundParameter
 
-        Public Sub New(syntax As VBSyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             Me.New(syntax, parameterSymbol, isLValue, suppressVirtualCalls:=False, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VBSyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol)
+        Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol)
             Me.New(syntax, parameterSymbol, isLValue, suppressVirtualCalls:=False, type:=type)
         End Sub
 
-        Public Sub New(syntax As VBSyntaxNode, parameterSymbol As ParameterSymbol, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, type As TypeSymbol, hasErrors As Boolean)
             Me.New(syntax, parameterSymbol, isLValue:=True, suppressVirtualCalls:=False, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VBSyntaxNode, parameterSymbol As ParameterSymbol, type As TypeSymbol)
+        Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, type As TypeSymbol)
             Me.New(syntax, parameterSymbol, isLValue:=True, suppressVirtualCalls:=False, type:=type)
         End Sub
 

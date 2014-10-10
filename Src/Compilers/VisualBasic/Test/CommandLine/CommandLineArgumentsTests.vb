@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Dim dict As IReadOnlyDictionary(Of String, Object)
 
             text = "Nightly=1, Alpha=2, Beta=3, RC=4, Release=5, Config=Nightly, Config2=""Nightly"", Framework = 4"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(8, dict.Count)
             Assert.Equal(1, dict("Config"))
             Assert.Equal(GetType(Integer), (dict("Config")).GetType)
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(GetType(Integer), (dict("Alpha")).GetType)
 
             text = "OnlyEqualsNoValue1, OnlyEqualsNoValue2"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(2, dict.Count)
             Assert.Equal(True, dict("OnlyEqualsNoValue1"))
             Assert.Equal(GetType(Boolean), (dict("OnlyEqualsNoValue1")).GetType)
@@ -38,58 +38,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(GetType(Boolean), (dict("OnlyEqualsNoValue2")).GetType)
 
             text = ",,,,,foo=bar,,,,,,,,,,"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, dict.Count)
 
             text = ",,,=,,,"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(0, dict.Count)
             Assert.Equal(1, errors.Count)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "= ^^ ^^ "))
 
             Dim previousSymbols As New Dictionary(Of String, Object)() From {{"Foo", 1}, {"Bar", "Foo"}}
             text = ",,,=,,,"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors, previousSymbols)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors, previousSymbols)
             Assert.Equal(2, dict.Count)
             Assert.Equal(1, errors.Count)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "= ^^ ^^ "))
 
             text = "OnlyEqualsNoValue1=, Bar=foo"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(0, dict.Count)
             Assert.Equal(1, errors.Count)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Expression expected.", "OnlyEqualsNoValue1= ^^ ^^ "))
 
             text = "Bar=foo, OnlyEqualsNoValue1="
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, dict.Count)
             Assert.Equal(1, errors.Count)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Expression expected.", "OnlyEqualsNoValue1= ^^ ^^ "))
 
             text = """""OnlyEqualsNoValue1"""""
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, dict.Count)
             Assert.Equal(True, dict("OnlyEqualsNoValue1"))
             Assert.Equal(GetType(Boolean), (dict("OnlyEqualsNoValue1")).GetType)
 
             text = "key=\""value\"""
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, dict.Count)
             Assert.Equal("value", dict("key"))
             Assert.Equal(GetType(String), (dict("key")).GetType)
 
             text = "then=bar" ' keyword :)
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, errors.Count)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "then ^^ ^^ =bar"))
 
             text = "bar=then" ' keyword :)
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, errors.Count)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Syntax error in conditional compilation expression.", "bar= ^^ ^^ then"))
 
             text = "FOO:BAR"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(2, dict.Count)
             Assert.Equal(True, dict("FOO"))
             Assert.Equal(GetType(Boolean), (dict("FOO")).GetType)
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(GetType(Boolean), (dict("BAR")).GetType)
 
             text = "FOO::::::::BAR"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(2, dict.Count)
             Assert.Equal(True, dict("FOO"))
             Assert.Equal(GetType(Boolean), (dict("FOO")).GetType)
@@ -105,17 +105,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(GetType(Boolean), (dict("BAR")).GetType)
 
             text = "FOO=23::,,:::BAR"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, errors.Count)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "FOO=23:: ^^ , ^^ ,:::"))
 
             text = "FOO=23,:BAR"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, errors.Count)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "FOO=23, ^^ : ^^ BAR"))
 
             text = "FOO::BAR,,BAZ"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(3, dict.Count)
             Assert.Equal(True, dict("FOO"))
             Assert.Equal(GetType(Boolean), (dict("FOO")).GetType)
@@ -132,32 +132,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Dim dict As IReadOnlyDictionary(Of String, Object)
 
             text = "bar=1+2"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
             Assert.Equal(3, dict("bar"))
 
             text = "bar=1.2+1.0"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
             Assert.Equal(2.2, dict("bar"))
 
             text = "foo=1,bar=foo+2"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
             Assert.Equal(3, dict("bar"))
 
             text = "bar=foo+2,foo=1"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
             Assert.Equal(2, dict("bar")) ' foo is known, but not yet initialized
 
             ' dev 10 does not crash here, not sure what the value is
             text = "bar=1/0"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
 
             text = "A=""A"",B=""B"",T=IF(1>0, A, B)+B+""C"""
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
             Assert.Equal(0, errors.Count)
             Assert.Equal("A", dict("A"))
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal("ABC", dict("T"))
 
             text = "BAR0=nothing, BAR1=2#, BAR2=000.03232323@, BAR3A=True, BAR3b=BAR3A OrElse False"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
             Assert.Equal(5, dict.Count)
             Assert.Equal(Nothing, dict("BAR0"))
@@ -178,42 +178,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(GetType(Boolean), (dict("BAR3b")).GetType)
 
             text = "A=""A"",B=""B"",T=IF(1>0, A, B)+B+""C"",RRR=1+""3"""
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Conversion from 'String' to 'Double' cannot occur in a constant expression.", "RRR=1+""3"" ^^ ^^ "))
 
             text = "A=""A"",B=""B"",T=IF(1>0, A, B)+B+""C"",X=IF(1,,,,,RRR=1"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(
                 Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("')' expected.", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
                 Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("'If' operator requires either two or three operands.", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
                 Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Expression expected.", "X=IF(1,,,,,RRR=1 ^^ ^^ "))
 
             text = "A=CHR(128)"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "A=CHR ^^ ^^ (128)"))
 
             text = "A=ASCW(""G"")"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "A=ASCW ^^ ^^ (""G"")"))
 
             text = "A=1--1,B=1 1"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "B=1  ^^ ^^ 1"))
 
             text = "A=1--1,B=1 C=1"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "B=1  ^^ ^^ C=1"))
 
             text = "A=111111111111111111111111"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Overflow.", "A=111111111111111111111111 ^^ ^^ "))
 
             text = "A= 2 + " + vbCrLf + "2"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Syntax error in conditional compilation expression.", "A= 2 + " + vbCrLf + " ^^ ^^ 2"))
 
             text = "A= 2 + _" + vbCrLf + "2"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify()
             Assert.Equal(1, dict.Count)
             Assert.Equal(4, dict("A"))
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Public Sub TestParseConditionalCompilationCaseInsensitiveSymbols()
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
             Dim text = "Blah,blah"
-            Dim dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            Dim dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(0, errors.Count)
             Assert.Equal(1, dict.Count)
             Assert.Equal(True, dict("Blah"))
@@ -249,7 +249,7 @@ End Module
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
-                                                                                               parseOptions:=New VBParseOptions(preprocessorSymbols:=dict.AsImmutable()))
+                                                                                               parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,
                              expectedOutput:=<![CDATA[
 Blah
@@ -257,7 +257,7 @@ blah
             ]]>)
 
             text = "Blah=false,blah=true"
-            dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(0, errors.Count)
             Assert.Equal(1, dict.Count)
             Assert.Equal(True, dict("Blah"))
@@ -265,7 +265,7 @@ blah
 
             comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
-                                                                                               parseOptions:=New VBParseOptions(preprocessorSymbols:=dict.AsImmutable()))
+                                                                                               parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,
                              expectedOutput:=<![CDATA[
 Blah
@@ -279,7 +279,7 @@ blah
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
 
             Dim text = "'Blah'"
-            Dim dict = VBCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
+            Dim dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", " ^^ 'Blah' ^^ "))
         End Sub
 

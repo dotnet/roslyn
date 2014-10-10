@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Represents a <see cref="T:Roslyn.Microsoft.CodeAnalysis.VisualBasic.SyntaxVisitor"/> that descends an entire <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxNode"/> graph
     ''' visiting each SyntaxNode and its child SyntaxNodes and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxToken"/>s in depth-first order.
     ''' </summary>
-    Public MustInherit Class VBSyntaxWalker
-        Inherits VBSyntaxVisitor
+    Public MustInherit Class VisualBasicSyntaxWalker
+        Inherits VisualBasicSyntaxVisitor
 
         Protected ReadOnly Depth As SyntaxWalkerDepth
 
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Sub VisitTrivia(trivia As SyntaxTrivia)
             If Depth >= SyntaxWalkerDepth.StructuredTrivia AndAlso trivia.HasStructure Then
-                Visit(DirectCast(trivia.GetStructure(), VBSyntaxNode))
+                Visit(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode))
             End If
         End Sub
     End Class
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Represents a <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxNode"/> visitor that visits only the single SyntaxNode
     ''' passed into its <see cref="M:Roslyn.Compilers.VisualBasic.SyntaxVisitor.Visit(Roslyn.Compilers.VisualBasic.SyntaxNode)"/> method.
     ''' </summary>
-    Partial Public MustInherit Class VBSyntaxVisitor
+    Partial Public MustInherit Class VisualBasicSyntaxVisitor
     End Class
 
     ''' <summary>
@@ -86,6 +86,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <typeparam name="TResult">
     ''' The type of the return value this visitor's Visit method.
     ''' </typeparam>
-    Partial Public MustInherit Class VBSyntaxVisitor(Of TResult)
+    Partial Public MustInherit Class VisualBasicSyntaxVisitor(Of TResult)
     End Class
 End Namespace

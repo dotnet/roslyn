@@ -26,7 +26,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Friend Class ReferenceRewriter
-    Inherits VBSyntaxRewriter
+    Inherits VisualBasicSyntaxRewriter
 
     Private ReadOnly _name As String
     Private ReadOnly _symbol As ISymbol

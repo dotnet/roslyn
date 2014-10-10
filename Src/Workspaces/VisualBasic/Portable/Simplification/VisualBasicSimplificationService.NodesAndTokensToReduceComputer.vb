@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Inherits AbstractSimplificationService(Of ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
 
         Private Class NodesAndTokensToReduceComputer
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _nodesAndTokensToReduce As List(Of NodeOrTokenToReduce)
             Private ReadOnly _isNodeOrTokenOutsideSimplifySpans As Func(Of SyntaxNodeOrToken, Boolean)

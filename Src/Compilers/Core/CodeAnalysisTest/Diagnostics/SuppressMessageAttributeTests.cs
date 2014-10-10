@@ -1158,7 +1158,7 @@ End Class
 
             var syntaxTree = language == LanguageNames.CSharp ?
                 CSharpSyntaxTree.ParseText(source, path: fileName) :
-                VBSyntaxTree.ParseText(source, path: fileName);
+                VisualBasicSyntaxTree.ParseText(source, path: fileName);
 
             if (language == LanguageNames.CSharp)
             {
@@ -1169,11 +1169,11 @@ End Class
             }
             else
             {
-                return VBCompilation.Create(
+                return VisualBasicCompilation.Create(
                     projectName,
                     syntaxTrees: new[] { syntaxTree },
                     references: new[] { TestBase.MscorlibRef },
-                    options: new VBCompilationOptions(
+                    options: new VisualBasicCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary,
                         rootNamespace: rootNamespace));
             }

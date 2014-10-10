@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxFacts.IsMultiLineLambdaExpression(contextKind))
         End Sub
 
-        Friend Overrides Function ProcessSyntax(node As VBSyntaxNode) As BlockContext
+        Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
 
             If Statements.Count = 0 Then
                 Dim trailingTrivia = BeginStatement.LastTriviaIfAny()
@@ -50,9 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MyBase.ProcessSyntax(node)
         End Function
 
-        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VBSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VisualBasicSyntaxNode
             Dim endBlockStmt As EndBlockStatementSyntax = DirectCast(endStmt, EndBlockStatementSyntax)
-            Dim result As VBSyntaxNode
+            Dim result As VisualBasicSyntaxNode
 
             Select Case BlockKind
                 Case SyntaxKind.SubBlock,
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        Friend Overrides Function TryLinkSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Overrides Function TryLinkSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
 
             ' Reparse a method block if the Async modifier is added or removed.
             '

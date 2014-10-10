@@ -1081,7 +1081,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim sourceRangeVariables = source.RangeVariables
                 Dim joinSelectorRangeVariables As ImmutableArray(Of RangeVariableSymbol) = sourceRangeVariables.Concat(manySelector.RangeVariables)
                 Dim joinSelectorDeclaredRangeVariables As ImmutableArray(Of RangeVariableSymbol)
-                Dim joinSelectorSyntax As VBSyntaxNode
+                Dim joinSelectorSyntax As VisualBasicSyntaxNode
                 Dim joinSelector As BoundExpression
                 Dim group As BoundQueryClauseBase = Nothing
                 Dim intoBinder As IntoClauseDisallowGroupReferenceBinder = Nothing
@@ -1430,7 +1430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim joinSelectorDeclaredRangeVariables As ImmutableArray(Of RangeVariableSymbol)
-            Dim joinSelectorSyntax As VBSyntaxNode
+            Dim joinSelectorSyntax As VisualBasicSyntaxNode
             Dim joinSelector As BoundExpression
             Dim group As BoundQueryClauseBase = Nothing
             Dim intoBinder As IntoClauseDisallowGroupReferenceBinder = Nothing
@@ -2157,7 +2157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function GetQueryLambdaParameterSyntax(syntaxNode As VBSyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol)) As VBSyntaxNode
+        Private Function GetQueryLambdaParameterSyntax(syntaxNode As VisualBasicSyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol)) As VisualBasicSyntaxNode
             If rangeVariables.Length = 1 Then
                 Return rangeVariables(0).Syntax
             End If
@@ -2169,7 +2169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             name As String,
             ordinal As Integer,
             type As TypeSymbol,
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             rangeVariables As ImmutableArray(Of RangeVariableSymbol)
         ) As BoundLambdaParameterSymbol
             syntaxNode = Me.GetQueryLambdaParameterSyntax(syntaxNode, rangeVariables)
@@ -2181,7 +2181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             name As String,
             ordinal As Integer,
             type As TypeSymbol,
-            syntaxNode As VBSyntaxNode
+            syntaxNode As VisualBasicSyntaxNode
         ) As BoundLambdaParameterSymbol
             Dim param = New BoundLambdaParameterSymbol(name, ordinal, type, isByRef:=False, syntaxNode:=syntaxNode, location:=syntaxNode.GetLocation())
             Return param
@@ -3116,7 +3116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
                 leftRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                 rightRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                <Out()> ByRef joinSelectorSyntax As VBSyntaxNode,
+                <Out()> ByRef joinSelectorSyntax As VisualBasicSyntaxNode,
                 <Out()> ByRef joinSelectorDeclaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                 <Out()> ByRef group As BoundQueryClauseBase,
                 <Out()> ByRef intoBinder As IntoClauseDisallowGroupReferenceBinder,
@@ -3179,7 +3179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Mixed selector: Function(a, b) New With {a, b, letExpressionRangeVariable}
             ''' </summary>
             Public Function BuildJoinSelector(
-                syntax As VBSyntaxNode,
+                syntax As VisualBasicSyntaxNode,
                 mustProduceFlatCompoundVariable As Boolean,
                 diagnostics As DiagnosticBag,
                 Optional rangeVarOpt As RangeVariableSymbol = Nothing,
@@ -4571,7 +4571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Note, returned group might have ResultKind = "Inaccessible".
         ''' </summary>
         Private Function LookupQueryOperator(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             source As BoundExpression,
             operatorName As String,
             typeArgumentsOpt As BoundTypeArguments,
@@ -4609,7 +4609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private Function BindQueryOperatorCall(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             source As BoundExpression,
             operatorName As String,
             arguments As ImmutableArray(Of BoundExpression),
@@ -4626,7 +4626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindQueryOperatorCall(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             source As BoundExpression,
             operatorName As String,
             typeArgumentsOpt As BoundTypeArguments,
@@ -4647,7 +4647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' [methodGroup] can be Nothing if lookup didn't find anything.
         ''' </summary>
         Private Function BindQueryOperatorCall(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             source As BoundExpression,
             operatorName As String,
             methodGroup As BoundMethodGroup,

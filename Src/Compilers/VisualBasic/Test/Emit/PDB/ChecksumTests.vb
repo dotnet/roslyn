@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class ChecksumTests
         Inherits BasicTestBase
 
-        Private Shared Function CreateCompilationWithChecksums(source As XCData, filePath As String, baseDirectory As String) As VBCompilation
+        Private Shared Function CreateCompilationWithChecksums(source As XCData, filePath As String, baseDirectory As String) As VisualBasicCompilation
 
             Dim tree As SyntaxTree
             Using stream = New MemoryStream
@@ -20,18 +20,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
                     writer.Flush()
                     stream.Position = 0
                     Dim text = EncodedStringText.Create(stream, defaultEncoding:=Nothing)
-                    tree = VBSyntaxTree.ParseText(text, path:=filePath)
+                    tree = VisualBasicSyntaxTree.ParseText(text, path:=filePath)
                 End Using
             End Using
 
             Dim resolver As New SourceFileResolver(ImmutableArray(Of String).Empty, baseDirectory)
-            Return VBCompilation.Create(GetUniqueName(), {tree}, {MscorlibRef}, TestOptions.DebugDll.WithSourceReferenceResolver(resolver))
+            Return VisualBasicCompilation.Create(GetUniqueName(), {tree}, {MscorlibRef}, TestOptions.DebugDll.WithSourceReferenceResolver(resolver))
         End Function
 
 
         <Fact>
         Public Sub CheckSumDirectiveClashesSameTree()
-            Dim other As VBCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -75,7 +75,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveClashesDifferentLength()
-            Dim other As VBCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -111,7 +111,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveClashesDifferentTrees()
-            Dim other As VBCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -153,7 +153,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveFullWidth()
-            Dim other As VBCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C

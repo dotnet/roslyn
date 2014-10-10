@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Mark all deferred types as referenced
         ''' </summary>
-        Public Sub MarkAllDeferredSymbolsAsReferenced(compilation As VBCompilation)
+        Public Sub MarkAllDeferredSymbolsAsReferenced(compilation As VisualBasicCompilation)
             If Me._standardModuleAttributeReferenced Then
                 MarkSymbolAsReferenced(
                     compilation.GetWellKnownType(

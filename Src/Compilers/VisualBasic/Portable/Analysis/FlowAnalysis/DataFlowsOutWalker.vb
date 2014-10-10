@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub ReportUnassigned(local As Symbol,
-                                                 node As VBSyntaxNode,
+                                                 node As VisualBasicSyntaxNode,
                                                  rwContext As ReadWriteContext,
                                                  Optional slot As Integer = SlotKind.NotTracked,
                                                  Optional boundFieldAccess As BoundFieldAccess = Nothing)

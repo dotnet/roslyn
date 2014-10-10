@@ -5,9 +5,9 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class VBSyntaxTree
+    Partial Class VisualBasicSyntaxTree
         Friend Class DummySyntaxTree
-            Inherits VBSyntaxTree
+            Inherits VisualBasicSyntaxTree
 
             Private ReadOnly _node As CompilationUnitSyntax
 
@@ -34,9 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property Options As VBParseOptions
+            Public Overrides ReadOnly Property Options As VisualBasicParseOptions
                 Get
-                    Return VBParseOptions.Default
+                    Return VisualBasicParseOptions.Default
                 End Get
             End Property
 
@@ -54,11 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New InvalidOperationException()
             End Function
 
-            Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
+            Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
                 Return _node
             End Function
 
-            Public Overrides Function TryGetRoot(ByRef root As VBSyntaxNode) As Boolean
+            Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
                 root = _node
                 Return True
             End Function

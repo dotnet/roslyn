@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The compilation in which the analysis is taking place.  This is needed to determine which
         ''' conditional methods will be compiled and which will be omitted.
         ''' </summary>
-        Protected ReadOnly compilation As VBCompilation
+        Protected ReadOnly compilation As VisualBasicCompilation
 
         ''' <summary>
         ''' The symbol of method whose body is being analyzed or field or property whose 

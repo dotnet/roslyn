@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="ArgumentException">Path is empty or invalid.</exception>
         ''' <exception cref="IOException">An error occurred while reading or writing a file.</exception>
         <Extension>
-        Function Emit(compilation As VBCompilation,
+        Function Emit(compilation As VisualBasicCompilation,
                       outputPath As String,
                       Optional pdbPath As String = Nothing,
                       Optional xmlDocPath As String = Nothing,

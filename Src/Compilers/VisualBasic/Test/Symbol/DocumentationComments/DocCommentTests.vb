@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly OptionsDiagnoseDocComments As VBParseOptions = VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
+        Private Shared ReadOnly OptionsDiagnoseDocComments As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
 
         <Fact>
         Public Sub NoXmlResolver()
@@ -73,7 +73,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                sources, parseOptions:=(New VBParseOptions()).WithDocumentationMode(DocumentationMode.None))
+                sources, parseOptions:=(New VisualBasicParseOptions()).WithDocumentationMode(DocumentationMode.None))
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim moduleStatement = tree.FindNodeOrTokenByKind(SyntaxKind.ModuleStatement)
@@ -104,7 +104,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                sources, parseOptions:=(New VBParseOptions()).WithDocumentationMode(DocumentationMode.Parse))
+                sources, parseOptions:=(New VisualBasicParseOptions()).WithDocumentationMode(DocumentationMode.Parse))
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim moduleStatement = tree.FindNodeOrTokenByKind(SyntaxKind.ModuleStatement)
@@ -11910,7 +11910,7 @@ xmlDoc)
         End Function
 
         Private Function GetEnclosingCrefReference(syntax As ExpressionSyntax) As CrefReferenceSyntax
-            Dim node As VBSyntaxNode = syntax
+            Dim node As VisualBasicSyntaxNode = syntax
             While node IsNot Nothing AndAlso node.Kind <> SyntaxKind.CrefReference
                 node = node.Parent
             End While
@@ -12014,7 +12014,7 @@ xmlDoc)
             Assert.Equal(ConversionKind.Identity, conversion.Kind)
         End Sub
 
-        Friend Shared Function FindNodesOfTypeFromText(Of TNode As VBSyntaxNode)(tree As SyntaxTree, textToFind As String) As TNode()
+        Friend Shared Function FindNodesOfTypeFromText(Of TNode As VisualBasicSyntaxNode)(tree As SyntaxTree, textToFind As String) As TNode()
             Dim text As String = tree.GetText().ToString()
             Dim list As New List(Of TNode)
 
@@ -12038,10 +12038,10 @@ xmlDoc)
                                                                      Optional expectedDocXml As XElement = Nothing,
                                                                      Optional withDiagnostics As Boolean = True,
                                                                      Optional stringMapper As Func(Of Object, Object) = Nothing,
-                                                                     Optional additionalRefs As MetadataReference() = Nothing) As VBCompilation
+                                                                     Optional additionalRefs As MetadataReference() = Nothing) As VisualBasicCompilation
 
-            Dim parseOptions As VBParseOptions =
-                VBParseOptions.Default.WithDocumentationMode(
+            Dim parseOptions As VisualBasicParseOptions =
+                VisualBasicParseOptions.Default.WithDocumentationMode(
                     If(withDiagnostics,
                        DocumentationMode.Diagnose,
                        DocumentationMode.Parse))
@@ -12070,7 +12070,7 @@ xmlDoc)
             Return compilation
         End Function
 
-        Private Shared Sub CheckXmlDocument(compilation As VBCompilation, expectedDocXml As XElement, Optional stringMapper As Func(Of Object, Object) = Nothing)
+        Private Shared Sub CheckXmlDocument(compilation As VisualBasicCompilation, expectedDocXml As XElement, Optional stringMapper As Func(Of Object, Object) = Nothing)
             Assert.NotNull(expectedDocXml)
 
             Using output = New MemoryStream()

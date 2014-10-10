@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteWithBlockStatements(block As BoundBlock,
-                                                    syntax As VBSyntaxNode,
+                                                    syntax As VisualBasicSyntaxNode,
                                                     generateUnstructuredExceptionHandlingResumeCode As Boolean,
                                                     locals As ImmutableArray(Of LocalSymbol),
                                                     initializers As ImmutableArray(Of BoundExpression),

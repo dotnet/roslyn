@@ -3051,7 +3051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Represents an alias identifier followed by an "=" token in an Imports clause.
         ''' </summary>
-        ImportAliasClause = 754                   ' ImportAliasClauseSyntax : VBSyntaxNode
+        ImportAliasClause = 754                   ' ImportAliasClauseSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents an identifier name followed by a ":=" token in a named argument.
@@ -3061,67 +3061,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Represents a "Do ... Loop" block.
         ''' </summary>
-        SimpleDoLoopBlock = 756                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+        SimpleDoLoopBlock = 756                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "Do ... Loop" block.
         ''' </summary>
-        DoWhileLoopBlock = 757                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+        DoWhileLoopBlock = 757                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "Do ... Loop" block.
         ''' </summary>
-        DoUntilLoopBlock = 758                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+        DoUntilLoopBlock = 758                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "Do ... Loop" block.
         ''' </summary>
-        DoLoopWhileBlock = 759                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+        DoLoopWhileBlock = 759                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "Do ... Loop" block.
         ''' </summary>
-        DoLoopUntilBlock = 760                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VBSyntaxNode
+        DoLoopUntilBlock = 760                 ' DoLoopBlockSyntax : ExecutableStatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a simple "Do" statement that begins a "Do ... Loop" block.
         ''' </summary>
-        SimpleDoStatement = 770                 ' DoStatement : StatementSyntax : VBSyntaxNode
+        SimpleDoStatement = 770                 ' DoStatement : StatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "Do While" statement that begins a "Do ... Loop" block.
         ''' </summary>
-        DoWhileStatement = 771                 ' DoStatement : StatementSyntax : VBSyntaxNode
+        DoWhileStatement = 771                 ' DoStatement : StatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "Do Until" statement that begins a "Do ... Loop" block.
         ''' </summary>
-        DoUntilStatement = 772                 ' DoStatement : StatementSyntax : VBSyntaxNode
+        DoUntilStatement = 772                 ' DoStatement : StatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a simple "Loop" statement that end a "Do ... Loop" block.
         ''' </summary>
-        SimpleLoopStatement = 773               ' LoopStatement : StatementSyntax : VBSyntaxNode
+        SimpleLoopStatement = 773               ' LoopStatement : StatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "Loop While" statement that end a "Do ... Loop" block.
         ''' </summary>
-        LoopWhileStatement = 774               ' LoopStatement : StatementSyntax : VBSyntaxNode
+        LoopWhileStatement = 774               ' LoopStatement : StatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "Loop Until" statement that end a "Do ... Loop" block.
         ''' </summary>
-        LoopUntilStatement = 775               ' LoopStatement : StatementSyntax : VBSyntaxNode
+        LoopUntilStatement = 775               ' LoopStatement : StatementSyntax : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents a "While ..." clause of a "Do" or "Loop" statement.
         ''' </summary>
-        WhileClause = 776                       ' WhileOrUntilClause : VBSyntaxNode
+        WhileClause = 776                       ' WhileOrUntilClause : VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Represents an "Until ..." clause of a "Do" or "Loop" statement.
         ''' </summary>
-        UntilClause = 777                       ' WhileOrUntilClause : VBSyntaxNode
+        UntilClause = 777                       ' WhileOrUntilClause : VisualBasicSyntaxNode
 
     End Enum
 

@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Set up a binder for this part of the type.
                 Dim containingModule = field.ContainingSourceType.ContainingSourceModule
                 Dim binder As Binder = BinderBuilder.CreateBinderForType(containingModule, equalsValueOrAsNewNodeRef.SyntaxTree, field.ContainingSourceType)
-                Dim initValueSyntax As VBSyntaxNode = equalsValueOrAsNewNodeRef.GetVisualBasicSyntax()
+                Dim initValueSyntax As VisualBasicSyntaxNode = equalsValueOrAsNewNodeRef.GetVisualBasicSyntax()
 
                 If initValueSyntax Is Nothing Then
                     value = ConstantValue.Bad
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function BindFieldOrEnumInitializer(binder As Binder,
                                                     fieldOrEnumSymbol As FieldSymbol,
-                                                    equalsValueOrAsNewSyntax As VBSyntaxNode,
+                                                    equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
                                                     diagnostics As DiagnosticBag,
                                                     <Out> ByRef constValue As ConstantValue) As BoundExpression
 

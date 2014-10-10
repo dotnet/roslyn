@@ -1267,7 +1267,7 @@ End Module
     ]]></file>
                                  </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             CompileAndVerify(compilation, expectedOutput:="2")
         End Sub
@@ -1303,7 +1303,7 @@ End Module
     ]]></file>
                                  </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
@@ -1363,7 +1363,7 @@ End Module
     ]]></file>
                                  </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub

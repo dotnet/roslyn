@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(Of VBSyntaxNode)(Locations)
+                Return GetDeclaringSyntaxReferenceHelper(Of VisualBasicSyntaxNode)(Locations)
             End Get
         End Property
 

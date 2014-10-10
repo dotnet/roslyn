@@ -106,7 +106,7 @@ namespace System
 ENd NAmespace
 </source>
 
-            Dim c1 = VBCompilation.Create("CorLib", syntaxTrees:={VBSyntaxTree.ParseText(source.Value)})
+            Dim c1 = VisualBasicCompilation.Create("CorLib", syntaxTrees:={VisualBasicSyntaxTree.ParseText(source.Value)})
 
             Assert.Same(c1.Assembly, c1.Assembly.CorLibrary)
 
@@ -163,8 +163,8 @@ namespace System
 End Namespace
 </source>
 
-            Dim c1 = VBCompilation.Create("Test1",
-                syntaxTrees:={VBSyntaxTree.ParseText(source1.Value)},
+            Dim c1 = VisualBasicCompilation.Create("Test1",
+                syntaxTrees:={VisualBasicSyntaxTree.ParseText(source1.Value)},
                 references:={TestReferences.NetFx.v4_0_21006.mscorlib})
 
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist"))
@@ -177,15 +177,15 @@ End Namespace
             Assert.NotNull(c1TestClassT)
             Assert.Null(c1.GetTypeByMetadataName("System.TestClass`2"))
 
-            Dim c2 = VBCompilation.Create("Test2",
-                        syntaxTrees:={VBSyntaxTree.ParseText(source2.Value)},
+            Dim c2 = VisualBasicCompilation.Create("Test2",
+                        syntaxTrees:={VisualBasicSyntaxTree.ParseText(source2.Value)},
                         references:={New VisualBasicCompilationReference(c1),
                                         TestReferences.NetFx.v4_0_21006.mscorlib})
 
             Dim c2TestClass As NamedTypeSymbol = c2.GetTypeByMetadataName("System.TestClass")
             Assert.Same(c2.Assembly, c2TestClass.ContainingAssembly)
 
-            Dim c3 = VBCompilation.Create("Test3",
+            Dim c3 = VisualBasicCompilation.Create("Test3",
                         references:={New VisualBasicCompilationReference(c2),
                                     TestReferences.NetFx.v4_0_21006.mscorlib})
 
@@ -195,7 +195,7 @@ End Namespace
 
             Assert.Null(c3.GetTypeByMetadataName("System.TestClass`1"))
 
-            Dim c4 = VBCompilation.Create("Test4",
+            Dim c4 = VisualBasicCompilation.Create("Test4",
                         references:={New VisualBasicCompilationReference(c1), New VisualBasicCompilationReference(c2),
                                     TestReferences.NetFx.v4_0_21006.mscorlib})
 

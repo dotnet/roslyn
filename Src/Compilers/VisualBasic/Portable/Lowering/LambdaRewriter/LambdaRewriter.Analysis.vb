@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' It checks for cases where variable is declared outside of the lambda in which it is being accessed
             ''' If capture is detected, than it marks variable as capturED and all lambdas involved as capturING
             ''' </summary>
-            Private Sub ReferenceVariable(variableOrParameter As Symbol, syntax As VBSyntaxNode)
+            Private Sub ReferenceVariable(variableOrParameter As Symbol, syntax As VisualBasicSyntaxNode)
                 ' No need to do anything if we are not in a lambda.
                 If currentParent.MethodKind <> MethodKind.LambdaMethod Then
                     Return
@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Sub
 
-            Private Sub VerifyCaptured(variableOrParameter As Symbol, syntax As VBSyntaxNode)
+            Private Sub VerifyCaptured(variableOrParameter As Symbol, syntax As VisualBasicSyntaxNode)
                 Dim type As TypeSymbol
                 Dim asParameter = TryCast(variableOrParameter, ParameterSymbol)
 

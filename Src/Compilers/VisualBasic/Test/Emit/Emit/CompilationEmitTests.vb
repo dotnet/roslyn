@@ -528,7 +528,7 @@ End Module
             Dim c As Compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim s = New MemoryStream()
             Assert.True(c.Emit(s).Success)
-            c = VBCompilation.Create("Nothing", references:={MetadataReference.CreateFromImage(s.ToImmutable())})
+            c = VisualBasicCompilation.Create("Nothing", references:={MetadataReference.CreateFromImage(s.ToImmutable())})
 
             Dim m = c.GlobalNamespace.GetModuleMembers()
             Assert.Equal(m.Single().TypeKind, TypeKind.Module)
@@ -576,17 +576,17 @@ End Module
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
 
-            compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X86))
+            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X86))
             peHeaders = New peHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly Or CorFlags.Requires32Bit, peHeaders.CorHeader.Flags)
 
-            compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
+            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
             peHeaders = New peHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
             Assert.True(peHeaders.Requires64Bits)
             Assert.True(peHeaders.RequiresAmdInstructionSet)
 
-            compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu32BitPreferred))
+            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu32BitPreferred))
             peHeaders = New peHeaders(compilation.EmitToStream())
             Assert.False(peHeaders.Requires64Bits)
             Assert.False(peHeaders.RequiresAmdInstructionSet)
@@ -605,7 +605,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.AnyCpu))
+            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.AnyCpu))
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -630,7 +630,7 @@ End Module
             Assert.Equal(&H1000UL, peHeaders.PEHeader.SizeOfHeapCommit)
 
             ' test an exe as well:
-            compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
+            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
             peHeaders = New peHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -666,7 +666,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm))
+            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm))
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -691,7 +691,7 @@ End Module
             Assert.Equal(&H1000UL, peHeaders.PEHeader.SizeOfHeapCommit)
 
             ' test an exe as well:
-            compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
+            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
             peHeaders = New peHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -727,7 +727,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64))
+            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64))
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -747,7 +747,7 @@ End Module
             Assert.Equal(CType(&H8540, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE
 
             ' test an exe as well:
-            compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
+            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
             peHeaders = New peHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -803,7 +803,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VBCompilationOptions(OutputKind.WindowsRuntimeApplication))
+            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeApplication))
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
             Assert.Equal(CType(&H9540, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
@@ -1043,7 +1043,7 @@ Imports System
         ''' <summary>
         ''' Validate the contents of the DeclSecurity metadata table.
         ''' </summary>
-        Private Shared Sub ValidateDeclSecurity(compilation As VBCompilation, ParamArray expectedEntries As DeclSecurityEntry())
+        Private Shared Sub ValidateDeclSecurity(compilation As VisualBasicCompilation, ParamArray expectedEntries As DeclSecurityEntry())
             Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
             Assert.Equal(expectedEntries.Length, metadataReader.DeclarativeSecurityAttributes.Count)
 
@@ -2066,7 +2066,7 @@ End Class
 
             Dim syntaxTree = CreateParseTree(source)
             Dim resolver = New XmlFileResolver(tempDir.Path)
-            Dim comp = VBCompilation.Create(
+            Dim comp = VisualBasicCompilation.Create(
                 GetUniqueName(),
                 {syntaxTree},
                 {MscorlibRef},
@@ -2220,11 +2220,11 @@ End Class
 </compilation>
 
             Dim syntaxTree = CreateParseTree(source)
-            Dim comp As VBCompilation
+            Dim comp As VisualBasicCompilation
 
             ' create file with no file sharing allowed and verify ERR_PermissionSetAttributeFileReadError during emit
             Using File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None)
-                comp = VBCompilation.Create(
+                comp = VisualBasicCompilation.Create(
                     GetUniqueName(),
                     {syntaxTree},
                     {MscorlibRef},

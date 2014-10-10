@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundArrayCreation
         Inherits BoundExpression
 
-        Public Sub New(syntax As VBSyntaxNode, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VisualBasicSyntaxNode, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, False, bounds, initializerOpt, type, hasErrors)
         End Sub
 

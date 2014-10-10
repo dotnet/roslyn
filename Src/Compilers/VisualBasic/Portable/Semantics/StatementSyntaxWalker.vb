@@ -15,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' delegate back to the base.
     ''' </summary>
     Friend Class StatementSyntaxWalker
-        Inherits VBSyntaxVisitor
+        Inherits VisualBasicSyntaxVisitor
 
-        Public Overridable Sub VisitList(list As IEnumerable(Of VBSyntaxNode))
+        Public Overridable Sub VisitList(list As IEnumerable(Of VisualBasicSyntaxNode))
             For Each n In list
                 Visit(n)
             Next

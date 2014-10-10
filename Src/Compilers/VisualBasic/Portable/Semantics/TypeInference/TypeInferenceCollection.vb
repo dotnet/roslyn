@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Next
 
                             Dim inferredElementType = DirectCast(resultList(0).ResultType, ArrayLiteralTypeSymbol).ArrayLiteral.
-                                    Binder.InferDominantTypeOfExpressions(VBSyntaxTree.Dummy.GetRoot(Nothing), elements, New DiagnosticBag(), Nothing)
+                                    Binder.InferDominantTypeOfExpressions(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing), elements, New DiagnosticBag(), Nothing)
 
                             If inferredElementType IsNot Nothing Then
                                 ' That should match an element type inferred for one of the array literals 

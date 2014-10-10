@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private _listIndex As Integer
             Private _currentChild As GreenNode
 
-            Friend Sub New(node As VBSyntaxNode)
+            Friend Sub New(node As VisualBasicSyntaxNode)
                 _node = node
                 _childIndex = -1
                 _listIndex = -1

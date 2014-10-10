@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Public Class VBCompilation
+    Partial Public Class VisualBasicCompilation
 
         Partial Friend Class DocumentationCommentCompiler
             Inherits VisualBasicSymbolVisitor
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private ReadOnly _symbol As Symbol
                 Private ReadOnly _tagsSupport As WellKnownTagsSupport
                 Private ReadOnly _sourceIncludeElementNodes As ArrayBuilder(Of XmlNodeSyntax)
-                Private ReadOnly _compilation As VBCompilation
+                Private ReadOnly _compilation As VisualBasicCompilation
                 Private ReadOnly _tree As SyntaxTree
                 Private ReadOnly _onlyDiagnosticsFromTree As SyntaxTree
                 Private ReadOnly _filterSpanWithinTree As TextSpan?
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Private Sub New(symbol As Symbol,
                                 sourceIncludeElementNodes As ArrayBuilder(Of XmlNodeSyntax),
-                                compilation As VBCompilation,
+                                compilation As VisualBasicCompilation,
                                 includedFileCache As DocumentationCommentIncludeCache,
                                 onlyDiagnosticsFromTree As SyntaxTree,
                                 filterSpanWithinTree As TextSpan?,
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Friend Shared Function ProcessIncludes(unprocessed As String,
                                                        memberSymbol As Symbol,
                                                        sourceIncludeElementNodes As ArrayBuilder(Of XmlNodeSyntax),
-                                                       compilation As VBCompilation,
+                                                       compilation As VisualBasicCompilation,
                                                        onlyDiagnosticsFromTree As SyntaxTree,
                                                        filterSpanWithinTree As TextSpan?,
                                                        ByRef includedFileCache As DocumentationCommentIncludeCache,

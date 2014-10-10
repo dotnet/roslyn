@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _isInAsyncMethodDeclarationHeader As Boolean
         Private _isInIteratorMethodDeclarationHeader As Boolean
 
-        Friend Sub New(text As SourceText, options As VBParseOptions, Optional cancellationToken As CancellationToken = Nothing)
+        Friend Sub New(text As SourceText, options As VisualBasicParseOptions, Optional cancellationToken As CancellationToken = Nothing)
             MyClass.New(New Scanner(text, options))
             Debug.Assert(text IsNot Nothing)
             Debug.Assert(options IsNot Nothing)
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Because new lines and colons are eagerly attached as trivia, missing tokens can end up incorrectly after the new line.
         ''' This method moves the trailing non-whitespace trivia from the last token to the last zero with token.
         ''' </summary>
-        Private Shared Function AdjustTriviaForMissingTokens(Of T As VBSyntaxNode)(node As T) As T
+        Private Shared Function AdjustTriviaForMissingTokens(Of T As VisualBasicSyntaxNode)(node As T) As T
             If Not node.ContainsDiagnostics Then
                 ' no errors means no skipped tokens.
                 Return node
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Slow part of AdjustTriviaForMissingTokensCore where we actually do the work when we need to.
         ''' </summary>
-        Private Shared Function AdjustTriviaForMissingTokensCore(Of T As VBSyntaxNode)(node As T) As T
+        Private Shared Function AdjustTriviaForMissingTokensCore(Of T As VisualBasicSyntaxNode)(node As T) As T
             Dim redNode = node.CreateRed(Nothing, 0)
 
             ' here we have last token with some actual content. 
@@ -404,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Function GetCurrentSyntaxNodeIfApplicable(<Out()> ByRef curSyntaxNode As VBSyntaxNode) As BlockContext
+        Private Function GetCurrentSyntaxNodeIfApplicable(<Out()> ByRef curSyntaxNode As VisualBasicSyntaxNode) As BlockContext
             Dim result As BlockContext.LinkResult
             Dim incrementalContext = _context
 
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 GetNextToken()
 
                 While True
-                    Dim curSyntaxNode As VBSyntaxNode = Nothing
+                    Dim curSyntaxNode As VisualBasicSyntaxNode = Nothing
                     Dim incrementalContext = GetCurrentSyntaxNodeIfApplicable(curSyntaxNode)
 
                     If incrementalContext IsNot Nothing Then
@@ -525,10 +525,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End While
 
             Dim result = _syntaxFactory.CompilationUnit(
-                New SyntaxList(Of VBSyntaxNode)(),
-                New SyntaxList(Of VBSyntaxNode)(),
-                New SyntaxList(Of VBSyntaxNode)(),
-                New SyntaxList(Of VBSyntaxNode)(),
+                New SyntaxList(Of VisualBasicSyntaxNode)(),
+                New SyntaxList(Of VisualBasicSyntaxNode)(),
+                New SyntaxList(Of VisualBasicSyntaxNode)(),
+                New SyntaxList(Of VisualBasicSyntaxNode)(),
                 DirectCast(CurrentToken, PunctuationSyntax))
 
             Return result.AddLeadingSyntax(builder.ToList(Of SyntaxToken)(), ERRID.ERR_InsufficientStack)
@@ -2147,7 +2147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim fromKeyword As KeywordSyntax = Nothing
 
             ' Are there attributes before the type of the property?
-            Dim attributesNode As VBSyntaxNode = Nothing
+            Dim attributesNode As VisualBasicSyntaxNode = Nothing
 
             If CurrentToken.Kind = SyntaxKind.AsKeyword Then
                 asKeyword = DirectCast(CurrentToken, KeywordSyntax)
@@ -5550,13 +5550,13 @@ checkNullable:
             End Get
         End Property
 
-        Friend Function IsFirstStatementOnLine(node As VBSyntaxNode) As Boolean
+        Friend Function IsFirstStatementOnLine(node As VisualBasicSyntaxNode) As Boolean
             If _possibleFirstStatementOnLine = PossibleFirstStatementKind.No Then
                 Return False
             End If
 
             If node.HasLeadingTrivia Then
-                Dim triviaList = New SyntaxList(Of VBSyntaxNode)(node.GetLeadingTrivia)
+                Dim triviaList = New SyntaxList(Of VisualBasicSyntaxNode)(node.GetLeadingTrivia)
 
                 For triviaIndex = triviaList.Count - 1 To 0 Step -1
                     Dim kind = triviaList(triviaIndex).Kind
@@ -5893,7 +5893,7 @@ checkNullable:
         ''' <summary>
         ''' Attaches an error to the node if feature is not available
         ''' </summary>
-        Private Function AssertLanguageFeature(Of T As VBSyntaxNode)(
+        Private Function AssertLanguageFeature(Of T As VisualBasicSyntaxNode)(
             feature As ERRID,
             node As T
         ) As T
@@ -5977,7 +5977,7 @@ checkNullable:
             Return kinds.Contains(token.Kind)
         End Function
 
-        Friend Function ConsumeUnexpectedTokens(Of TNode As VBSyntaxNode)(node As TNode) As TNode
+        Friend Function ConsumeUnexpectedTokens(Of TNode As VisualBasicSyntaxNode)(node As TNode) As TNode
             If Me.CurrentToken.Kind = SyntaxKind.EndOfFileToken Then Return node
             Dim b As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
             While (Me.CurrentToken.Kind <> SyntaxKind.EndOfFileToken)

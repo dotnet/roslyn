@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitIfStatement(node As BoundIfStatement) As BoundNode
             Dim syntax = node.Syntax
 
-            Dim conditionSyntax As VBSyntaxNode = Nothing
+            Dim conditionSyntax As VisualBasicSyntaxNode = Nothing
 
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
             Dim unstructuredExceptionHandlingResumeTarget As ImmutableArray(Of BoundStatement) = Nothing
@@ -104,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteIfStatement(
-            syntaxNode As VBSyntaxNode,
-            conditionSyntax As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
+            conditionSyntax As VisualBasicSyntaxNode,
             rewrittenCondition As BoundExpression,
             rewrittenConsequence As BoundStatement,
             rewrittenAlternative As BoundStatement,

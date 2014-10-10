@@ -4356,7 +4356,7 @@ End Module
                 Diagnostic(ERRID.ERR_ExpressionOverflow1, "Integer.MaxValue + 1").WithArguments("Integer"))
         End Sub
 
-        Private Function GetTypeParameterSymbol(compilation As VBCompilation,
+        Private Function GetTypeParameterSymbol(compilation As VisualBasicCompilation,
                                              semanticModel As SemanticModel,
                                              treeName As String,
                                              stringInDecl As String,

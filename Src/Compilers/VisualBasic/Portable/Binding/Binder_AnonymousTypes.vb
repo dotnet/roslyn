@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return AnonymousTypeCreationBinder.BindAnonymousObjectInitializer(Me, node, node.Initializer, node.NewKeyword, diagnostics)
         End Function
 
-        Private Function BindAnonymousObjectCreationExpression(node As VBSyntaxNode,
+        Private Function BindAnonymousObjectCreationExpression(node As VisualBasicSyntaxNode,
                                                                typeDescr As AnonymousTypeDescriptor,
                                                                initExpressions As ImmutableArray(Of BoundExpression),
                                                                diagnostics As DiagnosticBag) As BoundExpression
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateAnonymousObjectCreationExpression(node, typeDescr, initExpressions)
         End Function
 
-        Private Function CreateAnonymousObjectCreationExpression(node As VBSyntaxNode,
+        Private Function CreateAnonymousObjectCreationExpression(node As VisualBasicSyntaxNode,
                                                                typeDescr As AnonymousTypeDescriptor,
                                                                initExpressions As ImmutableArray(Of BoundExpression),
                                                                Optional hasErrors As Boolean = False) As BoundExpression
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateAnonymousObjectCreationExpression(node, anonymousType, initExpressions, hasErrors)
         End Function
 
-        Protected Overridable Function CreateAnonymousObjectCreationExpression(node As VBSyntaxNode,
+        Protected Overridable Function CreateAnonymousObjectCreationExpression(node As VisualBasicSyntaxNode,
                                                                                anonymousType As AnonymousTypeManager.AnonymousTypePublicSymbol,
                                                                                initExpressions As ImmutableArray(Of BoundExpression),
                                                                                Optional hasErrors As Boolean = False) As BoundAnonymousTypeCreationExpression
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _freeze As Boolean
 
             Friend Shared Function BindAnonymousObjectInitializer(containingBinder As Binder,
-                                                                  owningSyntax As VBSyntaxNode,
+                                                                  owningSyntax As VisualBasicSyntaxNode,
                                                                   initializerSyntax As ObjectMemberInitializerSyntax,
                                                                   typeLocationToken As SyntaxToken,
                                                                   diagnostics As DiagnosticBag) As BoundExpression
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim fieldSyntax As FieldInitializerSyntax = initializers(fieldIndex)
 
                     Dim fieldName As String = Nothing
-                    Dim fieldNode As VBSyntaxNode = Nothing
+                    Dim fieldNode As VisualBasicSyntaxNode = Nothing
                     Dim fieldIsKey As Boolean = False
 
                     ' get field's name 
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Else
                             ' field name successfully infered
                             fieldName = fieldNameToken.ValueText
-                            fieldNode = DirectCast(fieldNameToken.Parent, VBSyntaxNode)
+                            fieldNode = DirectCast(fieldNameToken.Parent, VisualBasicSyntaxNode)
                             fieldIsKey = inferredFieldInitializer.KeyKeyword.VBKind = SyntaxKind.KeyKeyword
                         End If
 
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Binding of anonymous type creation field initializers"
 
-            Private Function BindInitializersAndCreateBoundNode(owningSyntax As VBSyntaxNode,
+            Private Function BindInitializersAndCreateBoundNode(owningSyntax As VisualBasicSyntaxNode,
                                                                 initializerSyntax As ObjectMemberInitializerSyntax,
                                                                 diagnostics As DiagnosticBag,
                                                                 typeLocationToken As SyntaxToken) As BoundExpression
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return result
             End Function
 
-            Protected Overrides Function CreateAnonymousObjectCreationExpression(node As VBSyntaxNode,
+            Protected Overrides Function CreateAnonymousObjectCreationExpression(node As VisualBasicSyntaxNode,
                                                                                  anonymousType As AnonymousTypeManager.AnonymousTypePublicSymbol,
                                                                                  initExpressions As ImmutableArray(Of BoundExpression),
                                                                                  Optional hasErrors As Boolean = False) As BoundAnonymousTypeCreationExpression

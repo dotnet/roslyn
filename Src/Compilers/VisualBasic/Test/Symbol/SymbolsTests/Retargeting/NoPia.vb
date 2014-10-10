@@ -317,7 +317,7 @@ End Class
             LocalTypeSubstitution1(compilation1, compilation2)
         End Sub
 
-        Private Sub LocalTypeSubstitution1(compilation1 As VBCompilation, compilation2 As VBCompilation)
+        Private Sub LocalTypeSubstitution1(compilation1 As VisualBasicCompilation, compilation2 As VisualBasicCompilation)
             Dim assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(New Object() {
                     compilation1,
                     compilation2,
@@ -567,9 +567,9 @@ End Class
         Private Sub CyclicReference(piaRef As MetadataReference, localTypes1Ref As CompilationReference)
             Dim mscorlibRef = TestReferences.SymbolsTests.MDTestLib1
             Dim cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll
-            Dim tc1 = VBCompilation.Create("Cyclic1", references:={mscorlibRef, cyclic2Ref, piaRef, localTypes1Ref})
+            Dim tc1 = VisualBasicCompilation.Create("Cyclic1", references:={mscorlibRef, cyclic2Ref, piaRef, localTypes1Ref})
             Assert.NotNull(tc1.Assembly)
-            Dim tc2 = VBCompilation.Create("Cyclic1", references:={mscorlibRef, cyclic2Ref, piaRef, localTypes1Ref})
+            Dim tc2 = VisualBasicCompilation.Create("Cyclic1", references:={mscorlibRef, cyclic2Ref, piaRef, localTypes1Ref})
             Assert.NotNull(tc2.Assembly)
             Assert.NotSame(tc1.GetReferencedAssemblySymbol(localTypes1Ref), tc2.GetReferencedAssemblySymbol(localTypes1Ref))
             GC.KeepAlive(tc1)
@@ -603,7 +603,7 @@ End Class
             GenericsClosedOverLocalTypes1(compilation3)
         End Sub
 
-        Private Sub GenericsClosedOverLocalTypes1(compilation3 As VBCompilation)
+        Private Sub GenericsClosedOverLocalTypes1(compilation3 As VisualBasicCompilation)
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({
                     compilation3,
                     TestReferences.SymbolsTests.NoPia.Pia1

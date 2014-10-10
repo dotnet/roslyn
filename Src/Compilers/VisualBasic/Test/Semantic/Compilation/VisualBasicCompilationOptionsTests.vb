@@ -12,11 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class VisualBasicCompilationOptionsTests
         Inherits BasicTestBase
 
-        Private Sub TestProperty(Of T)(factory As Func(Of VBCompilationOptions, T, VBCompilationOptions),
-                                       getter As Func(Of VBCompilationOptions, T),
+        Private Sub TestProperty(Of T)(factory As Func(Of VisualBasicCompilationOptions, T, VisualBasicCompilationOptions),
+                                       getter As Func(Of VisualBasicCompilationOptions, T),
                                        validNonDefaultValue As T)
 
-            Dim oldOpt1 = New VBCompilationOptions(OutputKind.ConsoleApplication)
+            Dim oldOpt1 = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
             Dim validDefaultValue = getter(oldOpt1)
 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithOptionCompareText(value), Function(opt) opt.OptionCompareText, True)
 
             TestProperty(Function(old, value) old.WithParseOptions(value), Function(opt) opt.ParseOptions,
-                         New VBParseOptions(kind:=SourceCodeKind.Interactive))
+                         New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive))
 
             TestProperty(Function(old, value) old.WithEmbedVbCoreRuntime(value), Function(opt) opt.EmbedVbCoreRuntime, True)
             TestProperty(Function(old, value) old.WithOptimizationLevel(value), Function(opt) opt.OptimizationLevel, OptimizationLevel.Release)
@@ -84,74 +84,74 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         Sub WithXxx()
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName(Nothing).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName(Nothing).Errors,
 <expected>
 BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah" & ChrW(0) & "foo").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah" & ChrW(0) & "foo").Errors,
 <expected>
 BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'ScriptClassName'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("").Errors,
 <expected>
 BC2014: the value '' is invalid for option 'ScriptClassName'
 </expected>)
 
-            Assert.True(New VBCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName(Nothing).Errors.IsEmpty)
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah" & ChrW(0) & "foo").Errors,
+            Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName(Nothing).Errors.IsEmpty)
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah" & ChrW(0) & "foo").Errors,
 <expected>
 BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'MainTypeName'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("").Errors,
 <expected>
 BC2014: the value '' is invalid for option 'MainTypeName'
 </expected>)
 
-            Assert.True(New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(Nothing).Errors.IsEmpty)
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("blah" & ChrW(0) & "foo").Errors,
+            Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(Nothing).Errors.IsEmpty)
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("blah" & ChrW(0) & "foo").Errors,
 <expected>
 BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'RootNamespace'
 </expected>)
 
-            Assert.True(New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("").Errors.IsEmpty)
+            Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("").Errors.IsEmpty)
 
-            Assert.Equal(0, New VBCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Foo.Bar")).WithGlobalImports(DirectCast(Nothing, IEnumerable(Of GlobalImport))).GlobalImports.Count)
-            Assert.Equal(0, New VBCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Foo.Bar")).WithGlobalImports(DirectCast(Nothing, GlobalImport())).GlobalImports.Count)
+            Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Foo.Bar")).WithGlobalImports(DirectCast(Nothing, IEnumerable(Of GlobalImport))).GlobalImports.Count)
+            Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Foo.Bar")).WithGlobalImports(DirectCast(Nothing, GlobalImport())).GlobalImports.Count)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(CType(Int32.MaxValue, OutputKind)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(CType(Int32.MaxValue, OutputKind)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OutputKind'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(CType(Int32.MinValue, OutputKind)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(CType(Int32.MinValue, OutputKind)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OutputKind'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MaxValue, OptimizationLevel)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MaxValue, OptimizationLevel)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'DebugInformationKind'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MinValue, OptimizationLevel)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MinValue, OptimizationLevel)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'DebugInformationKind'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(CType(3, OptionStrict)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(CType(3, OptionStrict)).Errors,
 <expected>
 BC2014: the value '3' is invalid for option 'OptionStrict'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(CType(Int32.MaxValue, Platform)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(CType(Int32.MaxValue, Platform)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'Platform'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(CType(Int32.MinValue, Platform)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(CType(Int32.MinValue, Platform)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
 </expected>)
@@ -196,74 +196,74 @@ Parameter name: ModuleName
 
         <Fact>
         Public Sub ConstructorValidation()
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:=Nothing)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:=Nothing)
             Assert.Equal("Script", options.ScriptClassName)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="blah" & ChrW(0) & "foo").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="blah" & ChrW(0) & "foo").Errors,
 <expected>
 BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'ScriptClassName'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="").Errors,
 <expected>
 BC2014: the value '' is invalid for option 'ScriptClassName'
 </expected>)
 
 
-            Assert.True(New VBCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=Nothing).Errors.IsEmpty)
+            Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=Nothing).Errors.IsEmpty)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=("blah" & ChrW(0) & "foo")).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=("blah" & ChrW(0) & "foo")).Errors,
 <expected>
 BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'MainTypeName'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:="").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:="").Errors,
 <expected>
 BC2014: the value '' is invalid for option 'MainTypeName'
 </expected>)
 
 
-            Assert.True(New VBCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=Nothing).Errors.IsEmpty)
+            Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=Nothing).Errors.IsEmpty)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=("blah" & ChrW(0) & "foo")).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=("blah" & ChrW(0) & "foo")).Errors,
 <expected>
 BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'RootNamespace'
 </expected>)
 
-            Assert.True(New VBCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:="").Errors.IsEmpty)
+            Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:="").Errors.IsEmpty)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(outputKind:=CType(Int32.MaxValue, OutputKind)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(outputKind:=CType(Int32.MaxValue, OutputKind)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OutputKind'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(outputKind:=CType(Int32.MinValue, OutputKind)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(outputKind:=CType(Int32.MinValue, OutputKind)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OutputKind'
 </expected>)
 
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MaxValue, OptimizationLevel)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MaxValue, OptimizationLevel)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OptimizationLevel'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MinValue, OptimizationLevel)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MinValue, OptimizationLevel)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OptimizationLevel'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=CType(3, OptionStrict)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=CType(3, OptionStrict)).Errors,
 <expected>
 BC2014: the value '3' is invalid for option 'OptionStrict'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, platform:=CType(Int32.MaxValue, Platform)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, platform:=CType(Int32.MaxValue, Platform)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'Platform'
 </expected>)
 
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication, platform:=CType(Int32.MinValue, Platform)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, platform:=CType(Int32.MinValue, Platform)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
 </expected>)
@@ -271,7 +271,7 @@ BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
 
         ' Make sure the given root namespace is good and parses as expected
         Private Sub CheckRootNamespaceIsGood(rootNs As String, rootNsArray As String())
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(rootNs)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(rootNs)
 
             Assert.Equal(options.RootNamespace, rootNs)
             Assert.True(options.Errors.IsEmpty)
@@ -281,9 +281,9 @@ BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
         ' we have an empty root namespace as a result.
         Private Sub CheckRootNamespaceIsBad(rootNs As String)
             If rootNs Is Nothing Then
-                Assert.True(New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(rootNs).Errors.IsEmpty)
+                Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(rootNs).Errors.IsEmpty)
             Else
-                AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(rootNs).Errors,
+                AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(rootNs).Errors,
 <expected>
 BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
 </expected>)
@@ -309,7 +309,7 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
         End Sub
 
         Private Sub CheckImportsAreGood(importStrings As String())
-            Dim opt = New VBCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse(importStrings))
+            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse(importStrings))
 
             Assert.Equal(importStrings.Length, opt.GlobalImports.Count)
             For i = 0 To importStrings.Length - 1
@@ -359,7 +359,7 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
 
         <Fact>
         Public Sub WarningTest()
-            Assert.Equal(0, New VBCompilationOptions(OutputKind.ConsoleApplication).WithSpecificDiagnosticOptions(Nothing).SpecificDiagnosticOptions.Count)
+            Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithSpecificDiagnosticOptions(Nothing).SpecificDiagnosticOptions.Count)
 
             Dim source =
                 <compilation name="WarningTest">
@@ -378,7 +378,7 @@ End Module
                 </compilation>
 
             ' Baseline
-            Dim commonoption = New VBCompilationOptions(OutputKind.ConsoleApplication)
+            Dim commonoption = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, commonoption)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
@@ -469,7 +469,7 @@ End Module
 
         <Fact, WorkItem(529809, "DevDiv")>
         Public Sub NetModuleWithVbCore()
-            Dim options As New VBCompilationOptions(OutputKind.NetModule, embedVbCoreRuntime:=True)
+            Dim options As New VisualBasicCompilationOptions(OutputKind.NetModule, embedVbCoreRuntime:=True)
 
             Assert.Equal(2042, options.Errors.Single().Code)
 
@@ -488,7 +488,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
         <Fact>
         Public Sub TestFieldsForEqualsAndGetHashCode()
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
-                (GetType(VBCompilationOptions)),
+                (GetType(VisualBasicCompilationOptions)),
                 "GlobalImports",
                 "RootNamespace",
                 "OptionStrict",
@@ -501,7 +501,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
 
         <Fact>
         Public Sub Serializability1()
-            VerifySerializability(New VBSerializableCompilationOptions(New VBCompilationOptions(
+            VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
                 outputKind:=OutputKind.WindowsApplication,
                 generalDiagnosticOption:=ReportDiagnostic.Hidden,
                 specificDiagnosticOptions:={KeyValuePair.Create("VB0001", ReportDiagnostic.Suppress)},
@@ -510,9 +510,9 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
 
         <Fact>
         Public Sub Serializability2()
-            VerifySerializability(New VBSerializableCompilationOptions(New VBCompilationOptions(
+            VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
                 outputKind:=OutputKind.WindowsApplication,
-                parseOptions:=New VBParseOptions(
+                parseOptions:=New VisualBasicParseOptions(
                     languageVersion:=LanguageVersion.Experimental,
                     documentationMode:=DocumentationMode.Diagnose,
                     preprocessorSymbols:={KeyValuePair.Create(Of String, Object)("s", 1), KeyValuePair.Create(Of String, Object)("t", 2)}))))
@@ -520,13 +520,13 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
 
         <Fact>
         Public Sub Serializability3()
-            Dim parseOptions = New VBParseOptions(
+            Dim parseOptions = New VisualBasicParseOptions(
                 languageVersion:=LanguageVersion.VisualBasic10,
                 documentationMode:=DocumentationMode.Diagnose,
                 kind:=SourceCodeKind.Regular,
                 preprocessorSymbols:=ImmutableArray.Create(New KeyValuePair(Of String, Object)("key", "Value")))
 
-            Dim compilationOptions = New VBCompilationOptions(
+            Dim compilationOptions = New VisualBasicCompilationOptions(
                 OutputKind.ConsoleApplication,
                 globalImports:={GlobalImport.Parse("Foo.Bar")},
                 rootNamespace:="Alpha.Beta",
@@ -540,10 +540,10 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
             Dim stream = New MemoryStream()
             Dim formatter = New BinaryFormatter()
 
-            formatter.Serialize(stream, New VBSerializableCompilationOptions(compilationOptions))
+            formatter.Serialize(stream, New VisualBasicSerializableCompilationOptions(compilationOptions))
             stream.Position = 0
 
-            Dim deserializedCompilationOptions = DirectCast(formatter.Deserialize(stream), VBSerializableCompilationOptions).Options
+            Dim deserializedCompilationOptions = DirectCast(formatter.Deserialize(stream), VisualBasicSerializableCompilationOptions).Options
 
             Assert.Equal(compilationOptions.GlobalImports.First().Name,
                          deserializedCompilationOptions.GlobalImports.First().Name)

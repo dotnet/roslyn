@@ -5534,7 +5534,7 @@ Module Program
         x.Foo(1)
     End Sub
 End Module",
-                compilationOptions: new Microsoft.CodeAnalysis.VisualBasic.VBCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions: new Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations: new[] { csCompilation });
             vbCompilation.VerifyDiagnostics();
         }

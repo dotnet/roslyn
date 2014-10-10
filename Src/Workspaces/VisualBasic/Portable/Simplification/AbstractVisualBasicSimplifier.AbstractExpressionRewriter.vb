@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend MustInherit Class AbstractVisualBasicReducer
         Friend MustInherit Class AbstractExpressionRewriter
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
             Implements IExpressionRewriter
 
             Protected ReadOnly CancellationToken As CancellationToken

@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
     Friend Class LabelConflictVisitor
-        Inherits VBSyntaxVisitor
+        Inherits VisualBasicSyntaxVisitor
 
         Private ReadOnly _tracker As ConflictingIdentifierTracker
 

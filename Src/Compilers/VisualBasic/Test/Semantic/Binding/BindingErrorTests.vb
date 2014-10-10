@@ -19425,7 +19425,7 @@ BC42032: Operands of type Object used for operator '&lt;&gt;'; use the 'IsNot' o
                 End Sub
             End Module
         </file>
-    </compilation>, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+    </compilation>, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC42036: Operands of type Object used in expressions for 'Select', 'Case' statements; runtime errors could occur.
                     Select Case o
@@ -19451,7 +19451,7 @@ BC42016: Implicit conversion from 'Object' to 'Boolean'.
                 End Sub
             End Module
         </file>
-    </compilation>, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+    </compilation>, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC42016: Implicit conversion from 'Object' to 'Boolean'.
                         Case 2, o

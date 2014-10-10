@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindInsideCrefReferenceName(name As TypeSyntax, argCount As Integer, preserveAliases As Boolean, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
             ' NOTE: in code here and below 'parent' may be Nothing in 
             '       case of speculative binding (which is NYI)
-            Dim parent As VBSyntaxNode = name.Parent
+            Dim parent As VisualBasicSyntaxNode = name.Parent
 
             ' Type parameter
             If name.Kind = SyntaxKind.IdentifierName AndAlso parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.TypeArgumentList Then
@@ -413,7 +413,7 @@ lAgain:
         Private Function GetEnclosingCrefReference(nameFromCref As TypeSyntax, <Out> ByRef partOfSignatureOrReturnType As Boolean) As CrefReferenceSyntax
             partOfSignatureOrReturnType = False
 
-            Dim node As VBSyntaxNode = nameFromCref
+            Dim node As VisualBasicSyntaxNode = nameFromCref
             While node IsNot Nothing
 
                 Select Case node.Kind

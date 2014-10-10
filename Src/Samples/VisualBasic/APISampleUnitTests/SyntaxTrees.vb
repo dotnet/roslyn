@@ -104,7 +104,7 @@ End Class
     End Sub
 
     Private Class FileContentsDumper
-        Inherits VBSyntaxWalker
+        Inherits VisualBasicSyntaxWalker
 
         Private ReadOnly sb As New StringBuilder()
 
@@ -162,7 +162,7 @@ End Class
     End Sub
 
     Private Class RemoveMethodsRewriter
-        Inherits VBSyntaxRewriter
+        Inherits VisualBasicSyntaxRewriter
 
         Public Overrides Function VisitMethodBlock(node As MethodBlockSyntax) As SyntaxNode
             ' Returning nothing removes the syntax node

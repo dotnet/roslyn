@@ -25,7 +25,7 @@ End Class
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
-            Dim parseOptions = New VBParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
@@ -6845,7 +6845,7 @@ End Class
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
-            Dim parseOptions = New VBParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
@@ -7492,8 +7492,8 @@ End Class
                 KeyValuePair.Create(Of String, Object)("TRACE", -1),
                 KeyValuePair.Create(Of String, Object)("PLATFORM", "AnyCPU"))
 
-            Dim parseOptions As VBParseOptions = New VBParseOptions(preprocessorSymbols:=defines)
-            Dim compOptions As VBCompilationOptions = New VBCompilationOptions(
+            Dim parseOptions As VisualBasicParseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim compOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(
                 OutputKind.WindowsApplication,
                 optimizationLevel:=OptimizationLevel.Debug,
                 parseOptions:=parseOptions,

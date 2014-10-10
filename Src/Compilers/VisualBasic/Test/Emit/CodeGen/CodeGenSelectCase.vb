@@ -3379,7 +3379,7 @@ End Module
 
             ' verify that hash method is Friend
             Dim reference = compVerifier.Compilation.EmitToImageReference()
-            Dim comp = VBCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Where(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>")).Single(), NamedTypeSymbol)
 

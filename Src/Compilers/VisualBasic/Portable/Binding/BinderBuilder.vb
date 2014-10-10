@@ -292,14 +292,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a binder for a source attribute block when a containing binder is available. Used by semantic model.
         ''' </summary>
-        Public Shared Function CreateBinderForAttribute(tree As SyntaxTree, containingBinder As Binder, node As VBSyntaxNode) As AttributeBinder
+        Public Shared Function CreateBinderForAttribute(tree As SyntaxTree, containingBinder As Binder, node As VisualBasicSyntaxNode) As AttributeBinder
             Return New AttributeBinder(containingBinder, tree, node)
         End Function
 
         Public Shared Function CreateBinderForParameterDefaultValue(moduleSymbol As SourceModuleSymbol,
                                                                     tree As SyntaxTree,
                                                                     parameterSymbol As ParameterSymbol,
-                                                                    node As VBSyntaxNode) As Binder
+                                                                    node As VisualBasicSyntaxNode) As Binder
             Dim containingBinder As Binder
             Dim containingSymbol = ParameterSymbol.ContainingSymbol
             Dim methodSymbol = TryCast(containingSymbol, SourceMethodSymbol)
@@ -321,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a binder for binding a source parameter's default value.
         ''' </summary>
-        Public Shared Function CreateBinderForParameterDefaultValue(parameterSymbol As ParameterSymbol, containingBinder As Binder, node As VBSyntaxNode) As Binder
+        Public Shared Function CreateBinderForParameterDefaultValue(parameterSymbol As ParameterSymbol, containingBinder As Binder, node As VisualBasicSyntaxNode) As Binder
             Dim methodSymbol = TryCast(parameterSymbol.ContainingSymbol, SourceMethodSymbol)
 
             If methodSymbol IsNot Nothing Then
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' before it. Method type parameters and parameters are in scope.
         ' If Option Explicit Off is in effect, an ImplicitVariableBinder
         ' is created also.
-        Public Shared Function CreateBinderForMethodBody(methodSymbol As MethodSymbol, root As VBSyntaxNode, containingBinder As Binder) As Binder
+        Public Shared Function CreateBinderForMethodBody(methodSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder) As Binder
             Dim methodDeclBinder As Binder = CreateBinderForMethodDeclaration(methodSymbol, containingBinder)
 
             If methodDeclBinder.OptionExplicit = False Then
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert((fieldOrProperty.Kind = SymbolKind.Field) OrElse (fieldOrProperty.Kind = SymbolKind.Property))
             Debug.Assert(containingBinder IsNot Nothing)
 
-            Dim declarationSyntax As VBSyntaxNode
+            Dim declarationSyntax As VisualBasicSyntaxNode
 
             If fieldOrProperty.Kind = SymbolKind.Field Then
                 declarationSyntax = DirectCast(fieldOrProperty, SourceFieldSymbol).DeclarationSyntax

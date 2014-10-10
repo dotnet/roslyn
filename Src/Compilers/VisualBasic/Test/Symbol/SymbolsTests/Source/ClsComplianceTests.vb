@@ -2679,8 +2679,8 @@ Namespace N{0}
 End Namespace
 ]]>.Value.Replace(vbCr, vbCrLf)
 
-            Dim tree1 = VBSyntaxTree.ParseText(String.Format(sourceTemplate, 1), path:="a.vb")
-            Dim tree2 = VBSyntaxTree.ParseText(String.Format(sourceTemplate, 2), path:="b.vb")
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1), path:="a.vb")
+            Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2), path:="b.vb")
             Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, TestOptions.ReleaseDll)
 
             ' Two copies of each diagnostic - one from each file.

@@ -26,15 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 
-        private static VBCompilation CreateCompilationWithMscorlib(string source, string assemblyName, IEnumerable<MetadataReference> references)
+        private static VisualBasicCompilation CreateCompilationWithMscorlib(string source, string assemblyName, IEnumerable<MetadataReference> references)
         {
             if (assemblyName == null)
             {
                 assemblyName = TestBase.GetUniqueName();
             }
-            var tree = VBSyntaxTree.ParseText(source);
-            var options = new VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
-            return VBCompilation.Create(assemblyName, new[] { tree }, references, options);
+            var tree = VisualBasicSyntaxTree.ParseText(source);
+            var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
+            return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, options);
         }
 
         private static BasicTestBase Instance = new BasicTestBase();

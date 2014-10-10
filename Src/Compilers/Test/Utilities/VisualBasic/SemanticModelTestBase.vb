@@ -7,20 +7,20 @@ Imports Xunit
 
 Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
 
-    Protected Function GetNode(compilation As VBCompilation, treeName As String, textToFind As String) As VBSyntaxNode
+    Protected Function GetNode(compilation As VisualBasicCompilation, treeName As String, textToFind As String) As VisualBasicSyntaxNode
         Dim tree = CompilationUtils.GetTree(compilation, treeName)
-        Dim node = DirectCast(CompilationUtils.FindTokenFromText(tree, textToFind).Parent, VBSyntaxNode)
+        Dim node = DirectCast(CompilationUtils.FindTokenFromText(tree, textToFind).Parent, VisualBasicSyntaxNode)
         Return node
     End Function
 
-    Protected Function GetPosition(compilation As VBCompilation, treeName As String, textToFind As String) As Integer
+    Protected Function GetPosition(compilation As VisualBasicCompilation, treeName As String, textToFind As String) As Integer
         Dim tree = CompilationUtils.GetTree(compilation, treeName)
         Dim text As String = tree.GetText().ToString()
         Dim position As Integer = text.IndexOf(textToFind)
         Return position
     End Function
 
-    Private Function GetAncestor(Of T As VBSyntaxNode)(node As VBSyntaxNode) As T
+    Private Function GetAncestor(Of T As VisualBasicSyntaxNode)(node As VisualBasicSyntaxNode) As T
         If node Is Nothing Then
             Throw New ArgumentNullException("node")
         End If

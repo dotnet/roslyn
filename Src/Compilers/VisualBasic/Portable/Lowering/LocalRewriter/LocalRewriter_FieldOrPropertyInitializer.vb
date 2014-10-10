@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundStatementList(node.Syntax, rewrittenStatements.ToImmutableAndFree())
         End Function
 
-        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VBSyntaxNode, nameIndex As Integer) As BoundStatement
+        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode, nameIndex As Integer) As BoundStatement
             If Not GenerateDebugInfo Then
                 Return rewrittenStatement
             End If

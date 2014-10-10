@@ -1270,7 +1270,7 @@ End Module
             Assert.Equal(ConversionKind.Identity, loopInfo1.CurrentConversion.Kind) ' Now identity
         End Sub
 
-        Private Function SemanticInfoTypeTestForeach(compilation As VBCompilation, index As Integer, ParamArray names As String()) As SemanticInfoSummary
+        Private Function SemanticInfoTypeTestForeach(compilation As VisualBasicCompilation, index As Integer, ParamArray names As String()) As SemanticInfoSummary
             Dim node = GetForEachStatement(compilation, index)
             Dim expression = node.Expression
             Dim model = GetModel(compilation)
@@ -1301,7 +1301,7 @@ End Module
             Return semanticInfo
         End Function
 
-        Private Function GetDeclareSymbolTestForeach(compilation As VBCompilation, symName As String, Optional index As Integer = 1) As Symbol
+        Private Function GetDeclareSymbolTestForeach(compilation As VisualBasicCompilation, symName As String, Optional index As Integer = 1) As Symbol
             Dim node = GetForEachStatement(compilation, index)
             Dim model = GetModel(compilation)
             Dim symbol = model.GetDeclaredSymbolFromSyntaxNode(node)
@@ -1316,7 +1316,7 @@ End Module
             Return symbol
         End Function
 
-        Private Function AnalyzeRegionDataFlowTestForeach(compilation As VBCompilation, VariablesDeclaredSymbol As String,
+        Private Function AnalyzeRegionDataFlowTestForeach(compilation As VisualBasicCompilation, VariablesDeclaredSymbol As String,
                          ReadInsideSymbol As String, ReadOutsideSymbol As String, WrittenInsideSymbol As String,
                          WrittenOutsideSymbol As String, AlwaysAssignedSymbol As String,
                          DataFlowsInSymbol As String, DataFlowsOutSymbol As String,
@@ -1336,7 +1336,7 @@ End Module
         End Function
 
         Private Function AnalyzeRegionControlFlowTestForeach(
-                         compilation As VBCompilation,
+                         compilation As VisualBasicCompilation,
                          Optional EntryPoints As Integer = 0,
                          Optional ExitPoints As Integer = 0,
                          Optional EndPointIsReachable As Boolean = True,
@@ -1350,7 +1350,7 @@ End Module
             Return analyze
         End Function
 
-        Private Function ClassfiConversionTestForeach(compilation As VBCompilation, Optional index As Integer = 1) As Conversion
+        Private Function ClassfiConversionTestForeach(compilation As VisualBasicCompilation, Optional index As Integer = 1) As Conversion
             Dim node = GetForEachStatement(compilation, index)
             Dim expression = node.Expression
             Dim model = GetModel(compilation)
@@ -1381,26 +1381,26 @@ End Module
             Return String.Join(", ", symbols.Select(Function(symbol) symbol.Name).OrderBy(Function(name) name))
         End Function
 
-        Private Function GetModel(compilation As VBCompilation) As SemanticModel
+        Private Function GetModel(compilation As VisualBasicCompilation) As SemanticModel
             Dim tree = compilation.SyntaxTrees.First
             Dim model = compilation.GetSemanticModel(tree)
             Return model
         End Function
 
-        Private Function GetForEachStatement(compilation As VBCompilation, index As Integer) As ForEachStatementSyntax
+        Private Function GetForEachStatement(compilation As VisualBasicCompilation, index As Integer) As ForEachStatementSyntax
             Dim tree = compilation.SyntaxTrees.First
             Dim node = tree.FindNodeOrTokenByKind(SyntaxKind.ForEachStatement, index).AsNode()
             Dim ForEachStatement = TryCast(node, ForEachStatementSyntax)
             Return ForEachStatement
         End Function
 
-        Private Function GetForEachBlock(compilation As VBCompilation, index As Integer) As ForEachBlockSyntax
+        Private Function GetForEachBlock(compilation As VisualBasicCompilation, index As Integer) As ForEachBlockSyntax
             Dim tree = compilation.SyntaxTrees.First
             Dim node = tree.FindNodeOrTokenByKind(SyntaxKind.ForEachBlock, index).AsNode()
             Return DirectCast(node, ForEachBlockSyntax)
         End Function
 
-        Private Function VerifyForeachSemanticInfo(compilation As VBCompilation, Optional index As Integer = 1) As ForEachStatementInfo
+        Private Function VerifyForeachSemanticInfo(compilation As VisualBasicCompilation, Optional index As Integer = 1) As ForEachStatementInfo
             Dim node = GetForEachBlock(compilation, index)
             Dim semanticModel = GetModel(compilation)
             Dim foreachStatementInfo = semanticModel.GetForEachStatementInfo(node)
@@ -1412,7 +1412,7 @@ End Module
             Return (foreachStatementInfo)
         End Function
 
-        'Private Function GetVariableDeclarator(compilation As VBCompilation, index As Integer) As VariableDeclaratorSyntax
+        'Private Function GetVariableDeclarator(compilation As VisualBasicCompilation, index As Integer) As VariableDeclaratorSyntax
         '    Dim node = GetForEachStatement(compilation, index)
         '    Dim VariableDeclarator = node.DescendantNodes.Select(Function(x) TryCast(x, VariableDeclaratorSyntax)).Where(Function(x) x IsNot Nothing).ToList()
         '    Assert.True(VariableDeclarator.Count() <= 1)

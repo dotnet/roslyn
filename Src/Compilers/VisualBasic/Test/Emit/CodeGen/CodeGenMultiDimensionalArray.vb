@@ -1473,7 +1473,7 @@ Module Module1
         System.Console.Writeline(x(1,1))
     End Sub
 End Module]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             Dim vbVerifier = CompileAndVerify(vbCompilation,
                 expectedOutput:=<![CDATA[

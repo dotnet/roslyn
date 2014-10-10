@@ -10,7 +10,7 @@ Imports Xunit
 
 Public Class DeclarationTests
     Private Function ParseFile(text As String) As SyntaxTree
-        Dim tree = VBSyntaxTree.ParseText(SourceText.From(text), VBParseOptions.Default, "")
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), VisualBasicParseOptions.Default, "")
         Assert.False(tree.GetRoot().ContainsDiagnostics)
         Return tree
     End Function

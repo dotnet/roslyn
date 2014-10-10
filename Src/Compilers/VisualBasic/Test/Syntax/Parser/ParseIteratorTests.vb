@@ -79,7 +79,7 @@ End Class]]>)
 
     <Fact>
     Sub ParseYieldStatements()
-        Dim tree = VBSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
 Module Program
 
     Iterator Function M()
@@ -210,7 +210,7 @@ End Module]]>.Value)
 
     <Fact>
     Public Sub ParseYieldStatementsWithPrecedence()
-        Dim tree = VBSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
 Module Program
     Iterator Function M(a As Task(Of Integer), x As Task(Of Integer), y As Task(Of Integer), b As Task(Of Integer)) As Task(Of Integer)
 
@@ -270,7 +270,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseIteratorWithNesting()
-        Dim tree = VBSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
 Imports Iterator = System.Threading.Tasks.Task
 
 Class C
@@ -371,7 +371,7 @@ End Class]]>.Value)
 
         For Each mode In {SourceCodeKind.Script, SourceCodeKind.Interactive}
 
-            Dim tree = VBSyntaxTree.ParseText(<![CDATA[
+            Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
 Yield T                                     ' No
 Yield (T)                                   ' No
 Yield T + Yield (T)                         ' No, No
@@ -403,7 +403,7 @@ Iterator Function F()
     Dim i = Yield T + Yield (T)             ' No, No
     Return Yield T                          ' No
 End Function]]>.Value,
-                options:=VBParseOptions.Default.WithKind(mode))
+                options:=VisualBasicParseOptions.Default.WithKind(mode))
 
             Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
 

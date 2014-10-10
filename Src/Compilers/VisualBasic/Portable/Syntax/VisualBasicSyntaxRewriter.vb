@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Represents a <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxVisitor`1"/> which descends an entire <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxNode"/> graph and
     ''' may replace or remove visited SyntaxNodes in depth-first order.
     ''' </summary>
-    Partial Public Class VBSyntaxRewriter
-        Inherits VBSyntaxVisitor(Of SyntaxNode)
+    Partial Public Class VisualBasicSyntaxRewriter
+        Inherits VisualBasicSyntaxVisitor(Of SyntaxNode)
 
         Private ReadOnly _visitIntoStructuredTrivia As Boolean
 
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
             If Me.VisitIntoStructuredTrivia AndAlso trivia.HasStructure Then
-                Dim [structure] = DirectCast(trivia.GetStructure(), VBSyntaxNode)
+                Dim [structure] = DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode)
                 Dim newStructure = DirectCast(Me.Visit([structure]), StructuredTriviaSyntax)
                 If newStructure IsNot [structure] Then
                     Return SyntaxFactory.Trivia(newStructure)

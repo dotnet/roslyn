@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' Remarks, not "ContainingCompilation" because it isn't transitive.
         ''' </remarks>
-        Friend Overridable ReadOnly Property DeclaringCompilation As VBCompilation
+        Friend Overridable ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Select Case Me.Kind
                     Case SymbolKind.ErrorType
@@ -282,16 +282,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' Helper for implementing DeclaringSyntaxNodes for derived classes that store a location but not a  SyntaxNode or SyntaxReference. 
         ''' </summary>
-        Friend Shared Function GetDeclaringSyntaxNodeHelper(Of TNode As VBSyntaxNode)(locations As ImmutableArray(Of Location)) As ImmutableArray(Of VBSyntaxNode)
+        Friend Shared Function GetDeclaringSyntaxNodeHelper(Of TNode As VisualBasicSyntaxNode)(locations As ImmutableArray(Of Location)) As ImmutableArray(Of VisualBasicSyntaxNode)
             If locations.IsEmpty Then
-                Return ImmutableArray(Of VBSyntaxNode).Empty
+                Return ImmutableArray(Of VisualBasicSyntaxNode).Empty
             Else
-                Dim builder As ArrayBuilder(Of VBSyntaxNode) = ArrayBuilder(Of VBSyntaxNode).GetInstance()
+                Dim builder As ArrayBuilder(Of VisualBasicSyntaxNode) = ArrayBuilder(Of VisualBasicSyntaxNode).GetInstance()
                 For Each location In locations
                     If location.IsInSource AndAlso location.SourceTree IsNot Nothing Then
                         Dim token = CType(location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start), SyntaxToken)
                         If token.VBKind <> SyntaxKind.None Then
-                            Dim node As VBSyntaxNode = token.Parent.FirstAncestorOrSelf(Of TNode)()
+                            Dim node As VisualBasicSyntaxNode = token.Parent.FirstAncestorOrSelf(Of TNode)()
                             If node IsNot Nothing Then
                                 builder.Add(node)
                             End If
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' Helper for implementing DeclaringSyntaxNodes for derived classes that store a location but not a  SyntaxNode or SyntaxReference. 
         ''' </summary>
-        Friend Shared Function GetDeclaringSyntaxReferenceHelper(Of TNode As VBSyntaxNode)(locations As ImmutableArray(Of Location)) As ImmutableArray(Of SyntaxReference)
+        Friend Shared Function GetDeclaringSyntaxReferenceHelper(Of TNode As VisualBasicSyntaxNode)(locations As ImmutableArray(Of Location)) As ImmutableArray(Of SyntaxReference)
             Dim nodes = GetDeclaringSyntaxNodeHelper(Of TNode)(locations)
 
             If nodes.IsEmpty Then
@@ -592,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Function IsFromCompilation(compilation As VBCompilation) As Boolean
+        Friend Function IsFromCompilation(compilation As VisualBasicCompilation) As Boolean
             Debug.Assert(compilation IsNot Nothing)
             Return compilation Is Me.DeclaringCompilation
         End Function

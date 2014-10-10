@@ -930,7 +930,7 @@ End Namespace
 
 
             'Check Expected Behaviour - Expect no diagnostic errors without retargeting            
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -1294,7 +1294,7 @@ End Namespace
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -1486,7 +1486,7 @@ End Namespace
 
 
             'Check Expected Behaviour             
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibraryMetaData = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={referenceLibraryMetaData})
@@ -1673,7 +1673,7 @@ Imports System
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -1875,7 +1875,7 @@ End Class
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -2153,7 +2153,7 @@ End Class
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -2351,7 +2351,7 @@ End Class
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -2678,7 +2678,7 @@ End Class
     </file>
 </compilation>
             ''//All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
             Dim main_NoRetarget = CompileAndVerify(sourceMain, additionalRefs:={referenceLibrary_Compilation.ToMetadataReference})
             main_NoRetarget.VerifyDiagnostics()
 
@@ -2958,7 +2958,7 @@ End Class
     </file>
 </compilation>
             ''//All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
             Dim main_NoRetarget = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceMain, additionalRefs:={referenceLibrary_Compilation.ToMetadataReference})
             main_NoRetarget.VerifyDiagnostics(Diagnostic(ERRID.ERR_GenericConstraintNotSatisfied2, "NewClass").WithArguments("NewClass", "ClassLibrary1.TestInterface"),
                                               Diagnostic(ERRID.ERR_NoSuitableNewForNewConstraint2, "ClassLibrary1.TestInterface").WithArguments("ClassLibrary1.TestInterface", "t"),
@@ -3068,7 +3068,7 @@ End Namespace
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VBCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -3133,8 +3133,8 @@ End Namespace
             Assert.Equal(CType(sourceType.GetMember("Del_G_Sub_Constraint"), SourceNamedTypeSymbol).TypeParameters(0).ConstraintTypes(0), CType(retargetingType.GetMember("Del_G_Sub_Constraint"), RetargetingNamedTypeSymbol).UnderlyingNamedType.TypeParameters(0).ConstraintTypes(0))
         End Sub
 
-        Friend Function RetargetCompilationToV2MsCorlib(C As VBCompilation) As VisualBasicCompilationReference
-            Dim NewCompilation As VBCompilation = Nothing
+        Friend Function RetargetCompilationToV2MsCorlib(C As VisualBasicCompilation) As VisualBasicCompilationReference
+            Dim NewCompilation As VisualBasicCompilation = Nothing
 
             Dim OldReference As MetadataReference = Nothing
             Dim OldVBReference As MetadataReference = Nothing

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class Binder
 
         Private Function CreateBoundMethodGroup(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             lookupResult As LookupResult,
             lookupOptionsUsed As LookupOptions,
             receiver As BoundExpression,
@@ -57,12 +57,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me.ContainingMember.Kind = SymbolKind.Method AndAlso DirectCast(Me.ContainingMember, MethodSymbol).MethodKind = MethodKind.Constructor Then
                 ' (a) we are in an instance constructor body
 
-                Dim node As VBSyntaxNode = invocationExpression.Parent
+                Dim node As VisualBasicSyntaxNode = invocationExpression.Parent
                 If node Is Nothing OrElse (node.Kind <> SyntaxKind.CallStatement AndAlso node.Kind <> SyntaxKind.ExpressionStatement) Then
                     Return False
                 End If
 
-                Dim nodeParent As VBSyntaxNode = node.Parent
+                Dim nodeParent As VisualBasicSyntaxNode = node.Parent
                 If nodeParent Is Nothing OrElse nodeParent.Kind <> SyntaxKind.ConstructorBlock Then
                     Return False
                 End If
@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' Note, that default Query Indexer may be a method, not a property.
         ''' </summary>
-        Private Function BindDefaultPropertyGroup(node As VBSyntaxNode, target As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindDefaultPropertyGroup(node As VisualBasicSyntaxNode, target As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
             Dim result = LookupResult.GetInstance()
             Dim defaultMemberGroup As BoundExpression = Nothing
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -556,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Tests whether or not the method or property group should be bound without arguments. 
         ''' In case of method group it may also update the group by filtering out all subs
         ''' </summary>
-        Private Function ShouldBindWithoutArguments(node As VBSyntaxNode, ByRef group As BoundMethodOrPropertyGroup, diagnostics As DiagnosticBag) As Boolean
+        Private Function ShouldBindWithoutArguments(node As VisualBasicSyntaxNode, ByRef group As BoundMethodOrPropertyGroup, diagnostics As DiagnosticBag) As Boolean
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
             Dim result = ShouldBindWithoutArguments(group, useSiteDiagnostics)
             diagnostics.Add(node, useSiteDiagnostics)
@@ -699,14 +699,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindInvocationExpression(
-            node As VBSyntaxNode,
-            target As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
+            target As VisualBasicSyntaxNode,
             typeChar As TypeCharacter,
             group As BoundMethodOrPropertyGroup,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VBSyntaxNode,
+            callerInfoOpt As VisualBasicSyntaxNode,
             Optional allowConstructorCall As Boolean = False,
             Optional suppressAbstractCallDiagnostics As Boolean = False,
             Optional isDefaultMemberAccess As Boolean = False,
@@ -797,8 +797,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateBoundCallOrPropertyAccess(
-            node As VBSyntaxNode,
-            target As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
+            target As VisualBasicSyntaxNode,
             typeChar As TypeCharacter,
             group As BoundMethodOrPropertyGroup,
             boundArguments As ImmutableArray(Of BoundExpression),
@@ -860,7 +860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not asyncLambdaSubToFunctionMismatch.IsEmpty Then
                 For Each lambda In asyncLambdaSubToFunctionMismatch
-                    Dim errorLocation As VBSyntaxNode = lambda.Syntax
+                    Dim errorLocation As VisualBasicSyntaxNode = lambda.Syntax
                     Dim lambdaNode = TryCast(errorLocation, LambdaExpressionSyntax)
 
                     If lambdaNode IsNot Nothing Then
@@ -1053,7 +1053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function OptimizeLibraryCall(
             method As MethodSymbol,
             arguments As ImmutableArray(Of BoundExpression),
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             ByRef hasErrors As Boolean,
             diagnostics As DiagnosticBag
         ) As ConstantValue
@@ -1158,13 +1158,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             group As BoundMethodOrPropertyGroup,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             <[In]> ByRef results As OverloadResolution.OverloadResolutionResult,
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VBSyntaxNode,
+            callerInfoOpt As VisualBasicSyntaxNode,
             Optional overrideCommonReturnType As TypeSymbol = Nothing,
             Optional queryMode As Boolean = False,
             Optional boundTypeExpression As BoundTypeExpression = Nothing,
@@ -1188,13 +1188,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             lookupResult As LookupResultKind,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             <[In]> ByRef results As OverloadResolution.OverloadResolutionResult,
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VBSyntaxNode,
+            callerInfoOpt As VisualBasicSyntaxNode,
             Optional groupOpt As BoundMethodOrPropertyGroup = Nothing,
             Optional overrideCommonReturnType As TypeSymbol = Nothing,
             Optional queryMode As Boolean = False,
@@ -1235,7 +1235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             group As BoundMethodOrPropertyGroup,
             bestCandidates As ArrayBuilder(Of OverloadResolution.CandidateAnalysisResult),
             bestSymbols As ImmutableArray(Of Symbol),
@@ -1243,7 +1243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VBSyntaxNode,
+            callerInfoOpt As VisualBasicSyntaxNode,
             Optional delegateSymbol As Symbol = Nothing,
             Optional queryMode As Boolean = False,
             Optional boundTypeExpression As BoundTypeExpression = Nothing,
@@ -1266,8 +1266,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        representCandidateInDiagnosticsOpt)
         End Function
 
-        Shared Function GetLocationForOverloadResolutionDiagnostic(node As VBSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
-            Dim result As VBSyntaxNode
+        Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
+            Dim result As VisualBasicSyntaxNode
 
             If groupOpt IsNot Nothing Then
                 If node.SyntaxTree Is groupOpt.Syntax.SyntaxTree AndAlso node.Span.Contains(groupOpt.Syntax.Span) Then
@@ -1310,7 +1310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             lookupResult As LookupResultKind,
             bestCandidates As ArrayBuilder(Of OverloadResolution.CandidateAnalysisResult),
             bestSymbols As ImmutableArray(Of Symbol),
@@ -1318,7 +1318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VBSyntaxNode,
+            callerInfoOpt As VisualBasicSyntaxNode,
             Optional groupOpt As BoundMethodOrPropertyGroup = Nothing,
             Optional delegateSymbol As Symbol = Nothing,
             Optional queryMode As Boolean = False,
@@ -1782,7 +1782,7 @@ ProduceBoundNode:
 
 
         Private Sub ReportOverloadResolutionFailureForASetOfCandidates(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             diagnosticLocation As Location,
             lookupResult As LookupResultKind,
             errorNo As ERRID,
@@ -1792,7 +1792,7 @@ ProduceBoundNode:
             diagnostics As DiagnosticBag,
             delegateSymbol As Symbol,
             queryMode As Boolean,
-            callerInfoOpt As VBSyntaxNode
+            callerInfoOpt As VisualBasicSyntaxNode
         )
             Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance(candidates.Count)
 
@@ -1851,7 +1851,7 @@ ProduceBoundNode:
                         Next
                     Else
                         For Each iDiagnostic In sealedCandidateDiagnostics
-                            Dim msg = VBDiagnosticFormatter.Instance.Format(iDiagnostic.WithLocation(Location.None))
+                            Dim msg = VisualBasicDiagnosticFormatter.Instance.Format(iDiagnostic.WithLocation(Location.None))
                             diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, symbol, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
                         Next
                     End If
@@ -1888,7 +1888,7 @@ ProduceBoundNode:
         ''' this function as well. 
         ''' </summary>
         Private Sub ReportOverloadResolutionFailureForASingleCandidate(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             diagnosticLocation As Location,
             lookupResult As LookupResultKind,
             ByRef candidateAnalysisResult As OverloadResolution.CandidateAnalysisResult,
@@ -1901,7 +1901,7 @@ ProduceBoundNode:
             diagnostics As DiagnosticBag,
             delegateSymbol As Symbol,
             queryMode As Boolean,
-            callerInfoOpt As VBSyntaxNode,
+            callerInfoOpt As VisualBasicSyntaxNode,
             representCandidateInDiagnosticsOpt As Symbol
         )
             Dim candidate As OverloadResolution.Candidate = candidateAnalysisResult.Candidate
@@ -2367,7 +2367,7 @@ ProduceBoundNode:
             targetType As TypeSymbol,
             reportNarrowingConversions As Boolean,
             diagnostics As DiagnosticBag,
-            Optional diagnosticNode As VBSyntaxNode = Nothing,
+            Optional diagnosticNode As VisualBasicSyntaxNode = Nothing,
             Optional delegateSymbol As Symbol = Nothing
         )
 
@@ -2437,7 +2437,7 @@ ProduceBoundNode:
             targetType As TypeSymbol,
             reportNarrowingConversions As Boolean,
             diagnostics As DiagnosticBag,
-            Optional diagnosticNode As VBSyntaxNode = Nothing,
+            Optional diagnosticNode As VisualBasicSyntaxNode = Nothing,
             Optional delegateSymbol As Symbol = Nothing
         ) As Boolean
 
@@ -2519,7 +2519,7 @@ ProduceBoundNode:
         ''' data this function operates on.
         ''' </summary>
         Private Function PassArguments(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             ByRef candidate As OverloadResolution.CandidateAnalysisResult,
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As DiagnosticBag
@@ -2953,7 +2953,7 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As VBSyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As VBSyntaxNode) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As VisualBasicSyntaxNode) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
@@ -3123,7 +3123,7 @@ ProduceBoundNode:
         ''' Return true if the node is an immediate child of a call statement.
         ''' </summary>
         Private Shared Function IsCallStatementContext(node As InvocationExpressionSyntax) As Boolean
-            Dim parent As VBSyntaxNode = node.Parent
+            Dim parent As VisualBasicSyntaxNode = node.Parent
 
             ' Dig through conditional access
             If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.ConditionalAccessExpression Then

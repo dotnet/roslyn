@@ -1450,7 +1450,7 @@ End Module
 
             CompileWithCustomILSource(vbSource, AttributesWithReadWriteProperties.Value,
                                       emitOptions:=TestEmitters.RefEmitBug,
-                                      options:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                                      options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                                       expectedOutput:=<![CDATA[
 Void .ctor()(..0..)
 Int32 P_rw_r_w:=(Int32)1
@@ -4276,7 +4276,7 @@ Partial Class C1(Of T)
         End Sub
     End Class
 End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             Dim vbVerifier = CompileAndVerify(vbCompilation,
                 expectedOutput:=<![CDATA[Success
@@ -4349,7 +4349,7 @@ Interface I(Of T)
         End Sub
     End Structure
 End Interface]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
             Dim vbVerifier = CompileAndVerify(vbCompilation,
                 expectedOutput:=<![CDATA[S.Foo - Integer
 S.Foo - Long
@@ -7700,7 +7700,7 @@ Class S
     End Sub
 End Class
 ]]>,
-                            compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                             referencedCompilations:={csCompilation})
             Dim vbexeVerifier = CompileAndVerify(vbCompilation,
                                                  expectedOutput:="isStatic = True, isSupa = False; isStatic = False, isSupa = True; ")
@@ -7721,7 +7721,7 @@ Public Structure STRUCT
     End Sub
 End Structure
 ]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             vbCompilationA.VerifyDiagnostics()
 
             Dim vbCompilationB = CreateVisualBasicCompilation("VBExeB",
@@ -7733,7 +7733,7 @@ Class S
     End Sub
 End Class
 ]]>,
-                            compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                             referencedCompilations:={vbCompilationA})
             Dim vbexeVerifier = CompileAndVerify(vbCompilationB,
                                                  expectedOutput:="Public Sub New(Optional ByVal x As Integer = 0)")
@@ -7754,7 +7754,7 @@ Public Structure STRUCT
     End Sub
 End Structure
 ]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             vbCompilationA.VerifyDiagnostics()
 
             Dim vbCompilationB = CreateVisualBasicCompilation("VBExeB",
@@ -7766,7 +7766,7 @@ Class S
     End Sub
 End Class
 ]]>,
-                            compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                             referencedCompilations:={vbCompilationA})
             Dim vbexeVerifier = CompileAndVerify(vbCompilationB,
                                                  expectedOutput:="ParamArray x() As Integer")
@@ -7917,7 +7917,7 @@ Class S
     End Sub
 End Class
 ]]>,
-                            compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                             referencedCompilations:={csCompilation})
             Dim vbexeVerifier = CompileAndVerify(vbCompilation,
                                                  expectedOutput:="M(int k, int l = 0);M(int k, int l = 0, int m = 0);")
@@ -7960,7 +7960,7 @@ Class S
     End Sub
 End Class
 ]]>,
-                            compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                             referencedCompilations:={csCompilation})
 
             CompilationUtils.AssertTheseDiagnostics(vbCompilation,
@@ -10191,7 +10191,7 @@ End Module
             <![CDATA[Public Module Program
     Property P As Integer
 End Module]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim vbVerifier = CompileAndVerify(vbCompilation, expectedSignatures:=
             {
@@ -10972,7 +10972,7 @@ Module Test
         End Sub
     End Class
 End Module]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             Dim vbVerifier = CompileAndVerify(vbCompilation,
                 expectedOutput:=<![CDATA[

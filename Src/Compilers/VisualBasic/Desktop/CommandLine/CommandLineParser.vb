@@ -15,19 +15,19 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
-    ''' The VBCommandLineParser class contains members used to perform various Visual Basic command line parsing operations.
+    ''' The VisualBasicCommandLineParser class contains members used to perform various Visual Basic command line parsing operations.
     ''' </summary>
-    Public Class VBCommandLineParser
+    Public Class VisualBasicCommandLineParser
         Inherits CommandLineParser
         ''' <summary>
         ''' Gets the current command line parser.
         ''' </summary>
-        Public Shared ReadOnly [Default] As VBCommandLineParser = New VBCommandLineParser()
+        Public Shared ReadOnly [Default] As VisualBasicCommandLineParser = New VisualBasicCommandLineParser()
 
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Public Shared ReadOnly Interactive As VBCommandLineParser = New VBCommandLineParser(isInteractive:=True)
+        Public Shared ReadOnly Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="baseDirectory">The base directory used for qualifying file locations.</param>
         ''' <param name="additionalReferencePaths">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
-        Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, Optional additionalReferencePaths As String = Nothing) As VBCommandLineArguments
+        Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, Optional additionalReferencePaths As String = Nothing) As VisualBasicCommandLineArguments
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Using (Logger.LogBlock(FunctionId.VisualBasic_CommandLineParser_Parse))
@@ -1092,7 +1092,7 @@ lVbRuntimePlus:
                     AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
                 End If
 
-                Dim parseOptions = New VBParseOptions(
+                Dim parseOptions = New VisualBasicParseOptions(
                     languageVersion:=languageVersion,
                     documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                     kind:=SourceCodeKind.Regular,
@@ -1100,7 +1100,7 @@ lVbRuntimePlus:
 
                 Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
-                Dim options = New VBCompilationOptions(
+                Dim options = New VisualBasicCompilationOptions(
                         outputKind:=outputKind,
                         moduleName:=moduleName,
                         mainTypeName:=mainTypeName,
@@ -1142,7 +1142,7 @@ lVbRuntimePlus:
                     documentationPath = documentationPath + ".xml"
                 End If
 
-                Return New VBCommandLineArguments With
+                Return New VisualBasicCommandLineArguments With
                 {
                     .IsInteractive = IsInteractive,
                     .BaseDirectory = baseDirectory,
@@ -1749,7 +1749,7 @@ lVbRuntimePlus:
         ''' but explicit one (like ".... _\r\n ....") should work fine
         ''' </summary>
         Private Shared Function ParseConditionalCompilationExpression(symbolList As String, offset As Integer) As ExpressionSyntax
-            Using p = New InternalSyntax.Parser(SyntaxFactory.MakeSourceText(symbolList, offset), VBParseOptions.Default)
+            Using p = New InternalSyntax.Parser(SyntaxFactory.MakeSourceText(symbolList, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Return DirectCast(p.ParseConditionalCompilationExpression().CreateRed(Nothing, 0), ExpressionSyntax)
             End Using

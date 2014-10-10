@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Function GetLexicalSortKey(compilation As VBCompilation) As LexicalSortKey
+        Public Function GetLexicalSortKey(compilation As VisualBasicCompilation) As LexicalSortKey
             ' Return first sort key from all declarations.
             Dim sortKey As LexicalSortKey = New LexicalSortKey(_declarations(0).NameLocation, compilation)
             For i = 1 To _declarations.Length - 1

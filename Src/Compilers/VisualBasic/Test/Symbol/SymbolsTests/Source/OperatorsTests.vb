@@ -180,7 +180,7 @@ End Module
             }
 
             For i As Integer = 1 To 27
-                operatorSyntax = GetEnclosingOperatorStatement(CompilationUtils.FindBindingText(Of VBSyntaxNode)(compilation, "a.vb", i))
+                operatorSyntax = GetEnclosingOperatorStatement(CompilationUtils.FindBindingText(Of VisualBasicSyntaxNode)(compilation, "a.vb", i))
                 op = DirectCast(model.GetDeclaredSymbol(operatorSyntax), MethodSymbol)
                 Assert.Equal(baseLine(i - 1).Kind, op.MethodKind)
                 Assert.Equal(baseLine(i - 1).Name, op.Name)
@@ -244,7 +244,7 @@ op_UnaryPlus - True
             End Sub
         End Structure
 
-        Public Shared Function GetEnclosingOperatorStatement(node As VBSyntaxNode) As OperatorStatementSyntax
+        Public Shared Function GetEnclosingOperatorStatement(node As VisualBasicSyntaxNode) As OperatorStatementSyntax
             Do
                 If node.Kind = SyntaxKind.OperatorStatement Then
                     Return DirectCast(node, OperatorStatementSyntax)
@@ -378,7 +378,7 @@ End Class
             }
 
             For i As Integer = 1 To 20
-                operatorSyntax = GetEnclosingOperatorStatement(CompilationUtils.FindBindingText(Of VBSyntaxNode)(compilation, "a.vb", i))
+                operatorSyntax = GetEnclosingOperatorStatement(CompilationUtils.FindBindingText(Of VisualBasicSyntaxNode)(compilation, "a.vb", i))
                 op = DirectCast(model.GetDeclaredSymbol(operatorSyntax), MethodSymbol)
                 Assert.Equal(baseLine(i - 1).Kind, op.MethodKind)
                 Assert.Equal(baseLine(i - 1).Name, op.Name)
@@ -537,7 +537,7 @@ End Class
             }
 
             For i As Integer = 1 To 11
-                operatorSyntax = GetEnclosingOperatorStatement(CompilationUtils.FindBindingText(Of VBSyntaxNode)(compilation, "a.vb", i))
+                operatorSyntax = GetEnclosingOperatorStatement(CompilationUtils.FindBindingText(Of VisualBasicSyntaxNode)(compilation, "a.vb", i))
                 op = DirectCast(model.GetDeclaredSymbol(operatorSyntax), MethodSymbol)
                 Assert.Equal(baseLine(i - 1).Kind, op.MethodKind)
                 Assert.Equal(baseLine(i - 1).Name, op.Name)
@@ -914,7 +914,7 @@ BC30651: operator parameters cannot be declared 'ByRef'.
             Dim op As MethodSymbol
 
             For i As Integer = 1 To 3
-                operatorSyntax = GetEnclosingOperatorStatement(CompilationUtils.FindBindingText(Of VBSyntaxNode)(compilation, "a.vb", i))
+                operatorSyntax = GetEnclosingOperatorStatement(CompilationUtils.FindBindingText(Of VisualBasicSyntaxNode)(compilation, "a.vb", i))
                 op = DirectCast(model.GetDeclaredSymbol(operatorSyntax), MethodSymbol)
                 Dim param = op.Parameters(0)
                 Assert.False(param.IsByRef)

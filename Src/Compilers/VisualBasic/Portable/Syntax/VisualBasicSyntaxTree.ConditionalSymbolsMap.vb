@@ -8,7 +8,7 @@ Imports PreprocessorState = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSy
 Imports Scanner = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Scanner
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class VBSyntaxTree
+    Partial Class VisualBasicSyntaxTree
         ''' <summary>
         ''' Map containing information about all conditional symbol definitions in the source file corresponding to a parsed syntax tree.
         ''' </summary>
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
 #Region "Build conditional symbols map"
-            Friend Shared Function Create(syntaxRoot As VBSyntaxNode, options As VBParseOptions) As ConditionalSymbolsMap
+            Friend Shared Function Create(syntaxRoot As VisualBasicSyntaxNode, options As VisualBasicParseOptions) As ConditionalSymbolsMap
                 Dim symbolsMapBuilder = New ConditionalSymbolsMapBuilder()
                 Dim conditionalSymbolsMap As ImmutableDictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer))) = symbolsMapBuilder.Build(syntaxRoot, options)
                 Debug.Assert(conditionalSymbolsMap Is Nothing OrElse conditionalSymbolsMap.Count > 0)
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private m_conditionalsMap As Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
                 Private m_preprocessorState As PreprocessorState
 
-                Friend Function Build(root As SyntaxNodeOrToken, options As VBParseOptions) As ImmutableDictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
+                Friend Function Build(root As SyntaxNodeOrToken, options As VisualBasicParseOptions) As ImmutableDictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
                     Me.m_conditionalsMap = New Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))(IdentifierComparison.Comparer)
 
                     ' Process command line preprocessor symbol definitions.

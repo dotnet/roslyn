@@ -19,12 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </remarks>
     Friend Class SynthesizedSubmissionFields
         Private ReadOnly _declaringSubmissionClass As NamedTypeSymbol
-        Private ReadOnly _compilation As VBCompilation
+        Private ReadOnly _compilation As VisualBasicCompilation
 
         Private _hostObjectField As FieldSymbol
         Private _previousSubmissionFieldMap As Dictionary(Of ImplicitNamedTypeSymbol, FieldSymbol)
 
-        Public Sub New(compilation As VBCompilation, submissionClass As NamedTypeSymbol)
+        Public Sub New(compilation As VisualBasicCompilation, submissionClass As NamedTypeSymbol)
             Debug.Assert(compilation IsNot Nothing)
             Debug.Assert(submissionClass.IsSubmissionClass)
             _declaringSubmissionClass = submissionClass

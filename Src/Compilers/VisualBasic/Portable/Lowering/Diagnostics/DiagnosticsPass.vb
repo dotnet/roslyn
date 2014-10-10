@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits BoundTreeWalker
 
         Private ReadOnly _diagnostics As DiagnosticBag
-        Private ReadOnly _compilation As VBCompilation
+        Private ReadOnly _compilation As VisualBasicCompilation
         Private _containingSymbol As MethodSymbol
         Private _withExpressionPlaceholderMap As Dictionary(Of BoundValuePlaceholderBase, BoundWithStatement)
         Private _expressionsBeingVisited As Stack(Of BoundExpression)
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnosticPass.Visit(node)
         End Sub
 
-        Private Sub New(compilation As VBCompilation, diagnostics As DiagnosticBag, containingSymbol As MethodSymbol)
+        Private Sub New(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag, containingSymbol As MethodSymbol)
             Me._compilation = compilation
             Me._diagnostics = diagnostics
             Me._containingSymbol = containingSymbol

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Partial Friend Class SyntaxTrivia
-        Inherits VBSyntaxNode
+        Inherits VisualBasicSyntaxNode
 
         Private ReadOnly _text As String
 
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend NotOverridable Overrides Function GetTrailingTrivia() As VBSyntaxNode
+        Friend NotOverridable Overrides Function GetTrailingTrivia() As VisualBasicSyntaxNode
             Return Nothing
         End Function
 
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return 0
         End Function
 
-        Friend NotOverridable Overrides Function GetLeadingTrivia() As VBSyntaxNode
+        Friend NotOverridable Overrides Function GetLeadingTrivia() As VisualBasicSyntaxNode
             Return Nothing
         End Function
 
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Public NotOverridable Overrides Function Accept(visitor As VBSyntaxVisitor) As VBSyntaxNode
+        Public NotOverridable Overrides Function Accept(visitor As VisualBasicSyntaxVisitor) As VisualBasicSyntaxNode
             Return visitor.VisitSyntaxTrivia(Me)
         End Function
 

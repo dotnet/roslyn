@@ -254,7 +254,7 @@ Class RedNodeFactoryWriter
 
         If nodeStructure.IsToken Then
             ' tokens have trivia
-            _writer.Write(", DirectCast(leadingTrivia.Node, InternalSyntax.VBSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VBSyntaxNode)")
+            _writer.Write(", DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)")
         End If
 
         ' Generate parameters for each field and child
@@ -268,7 +268,7 @@ Class RedNodeFactoryWriter
             Else
                 If child.IsList Then
                     If KindTypeStructure(child.ChildKind).IsToken Then
-                        _writer.Write(", DirectCast({0}.Node, Syntax.InternalSyntax.VBSyntaxNode)", ChildParamName(child, factoryFunctionName))
+                        _writer.Write(", DirectCast({0}.Node, Syntax.InternalSyntax.VisualBasicSyntaxNode)", ChildParamName(child, factoryFunctionName))
                     Else
                         _writer.Write(", {0}.Node", ChildParamName(child, factoryFunctionName))
                     End If

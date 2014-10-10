@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class PropertyDocumentationCommentTests
 
-        Private m_compilation As VBCompilation
+        Private m_compilation As VisualBasicCompilation
         Private m_acmeNamespace As NamespaceSymbol
         Private m_widgetClass As NamedTypeSymbol
 

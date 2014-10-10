@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Enum
 
     Partial Class BoundPropertyAccess
-        Public Sub New(syntax As VBSyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VisualBasicSyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
             Me.New(syntax, propertySymbol, propertyGroupOpt, accessKind, isWriteable, receiverOpt, arguments, GetTypeFromAccessKind(propertySymbol, accessKind), hasErrors)
         End Sub
 

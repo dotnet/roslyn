@@ -9,16 +9,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundAssignmentOperator
         Inherits BoundExpression
 
-        Public Sub New(syntax As VBSyntaxNode, left As BoundExpression, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VisualBasicSyntaxNode, left As BoundExpression, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, left, leftOnTheRightOpt:=Nothing, right:=right, suppressObjectClone:=suppressObjectClone, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VBSyntaxNode, left As BoundExpression, right As BoundExpression, suppressObjectClone As Boolean, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VisualBasicSyntaxNode, left As BoundExpression, right As BoundExpression, suppressObjectClone As Boolean, Optional hasErrors As Boolean = False)
             Me.New(syntax, left, leftOnTheRightOpt:=Nothing, right:=right, suppressObjectClone:=suppressObjectClone, hasErrors:=hasErrors)
         End Sub
 
         Public Sub New(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             left As BoundExpression,
             leftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder,
             right As BoundExpression,

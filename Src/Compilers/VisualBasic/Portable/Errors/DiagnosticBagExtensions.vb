@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <System.Runtime.CompilerServices.Extension()>
         Friend Function Add(
             diagnostics As DiagnosticBag,
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As Boolean
             Return Not useSiteDiagnostics.IsNullOrEmpty AndAlso diagnostics.Add(node.GetLocation, useSiteDiagnostics)

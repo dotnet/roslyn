@@ -359,7 +359,7 @@ Public Class XmlInternalSyntax
         ]]>.Value
 
         code = code & ChrW(0)
-        VBSyntaxTree.ParseText(code)
+        VisualBasicSyntaxTree.ParseText(code)
     End Sub
 
     <Fact(), WorkItem(825859, "DevDiv")>

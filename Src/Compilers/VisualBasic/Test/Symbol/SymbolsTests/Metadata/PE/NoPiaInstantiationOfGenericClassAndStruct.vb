@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports ReferenceManager = Microsoft.CodeAnalysis.VisualBasic.VBCompilation.ReferenceManager
+Imports ReferenceManager = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ReferenceManager
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -483,7 +483,7 @@ End class
             Next
         End Sub
 
-        Public Function CreateCompilation(source As String) As VBCompilation
+        Public Function CreateCompilation(source As String) As VisualBasicCompilation
 
             Dim compilationDef =
 <compilation name="Dummy">

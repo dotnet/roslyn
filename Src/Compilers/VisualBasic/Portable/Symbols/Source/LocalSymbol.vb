@@ -847,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return New BoundLiteral(_initializerOpt, _evaluatedConstant.Value, _evaluatedConstant.Type)
                     End If
 
-                    Return New BoundBadExpression(If(DirectCast(_initializerOpt, VBSyntaxNode), _modifiedIdentifierOpt),
+                    Return New BoundBadExpression(If(DirectCast(_initializerOpt, VisualBasicSyntaxNode), _modifiedIdentifierOpt),
                                                   LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, _evaluatedConstant.Type, hasErrors:=True)
                 End If
 

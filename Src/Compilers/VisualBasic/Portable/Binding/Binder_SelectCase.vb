@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim expressionStmt = New BoundExpressionStatement(selectExprStatementSyntax, expression)
 
             ' Get the binder for the select block. This defines the exit label.
-            Dim selectBinder = GetBinder(DirectCast(node, VBSyntaxNode))
+            Dim selectBinder = GetBinder(DirectCast(node, VisualBasicSyntaxNode))
 
             ' Flag to determine if we need to generate switch table based code or If list based code.
             ' See OptimizeSelectStatement method for more details.

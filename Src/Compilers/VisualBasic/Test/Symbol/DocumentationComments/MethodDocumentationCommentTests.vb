@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class MethodDocumentationCommentTests
         Inherits BasicTestBase
 
-        Private m_compilation As VBCompilation
+        Private m_compilation As VisualBasicCompilation
         Private m_acmeNamespace As NamespaceSymbol
         Private m_widgetClass As NamedTypeSymbol
 

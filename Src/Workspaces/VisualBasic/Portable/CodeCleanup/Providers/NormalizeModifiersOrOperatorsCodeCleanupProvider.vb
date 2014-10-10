@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         End Function
 
         Private Class Rewriter
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             ' list of modifier syntax kinds in order
             ' this order will be used when the rewriter re-order modifiers

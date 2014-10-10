@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._capturedLocals.Add(parameter)
         End Sub
 
-        Protected Overrides Sub ReportUnassigned(symbol As Symbol, node As VBSyntaxNode, rwContext As ReadWriteContext, Optional slot As Integer = -1, Optional boundFieldAccess As BoundFieldAccess = Nothing)
+        Protected Overrides Sub ReportUnassigned(symbol As Symbol, node As VisualBasicSyntaxNode, rwContext As ReadWriteContext, Optional slot As Integer = -1, Optional boundFieldAccess As BoundFieldAccess = Nothing)
             If symbol.Kind = SymbolKind.Field Then
                 Dim sym As Symbol = GetNodeSymbol(boundFieldAccess)
 

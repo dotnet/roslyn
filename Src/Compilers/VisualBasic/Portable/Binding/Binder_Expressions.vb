@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Create a BoundBadExpression node for the given syntax node. No symbols or bound nodes are associated with it.
         ''' </summary>
-        Protected Shared Function BadExpression(node As VBSyntaxNode, resultType As TypeSymbol) As BoundBadExpression
+        Protected Shared Function BadExpression(node As VisualBasicSyntaxNode, resultType As TypeSymbol) As BoundBadExpression
             Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, resultType, hasErrors:=True)
         End Function
 
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create a BoundBadExpression node for the given childexpression, which is preserved as a sub-expression. 
         ''' No ResultKind is associated
         ''' </summary>
-        Private Shared Function BadExpression(node As VBSyntaxNode, expr As BoundNode, resultType As TypeSymbol) As BoundBadExpression
+        Private Shared Function BadExpression(node As VisualBasicSyntaxNode, expr As BoundNode, resultType As TypeSymbol) As BoundBadExpression
             Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), resultType, hasErrors:=True)
         End Function
 
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create a BoundBadExpression node for the given childexpression, which is preserved as a sub-expression. 
         ''' A ResultKind explains why the node is bad.
         ''' </summary>
-        Private Shared Function BadExpression(node As VBSyntaxNode, expr As BoundNode, resultKind As LookupResultKind, resultType As TypeSymbol) As BoundBadExpression
+        Private Shared Function BadExpression(node As VisualBasicSyntaxNode, expr As BoundNode, resultKind As LookupResultKind, resultType As TypeSymbol) As BoundBadExpression
             Return New BoundBadExpression(node, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), resultType, hasErrors:=True)
         End Function
 
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create a BoundBadExpression node for the given child expression, which is preserved as a sub-expression. Symbols
         ''' associated with the child node are not given a result kind.
         ''' </summary>
-        Private Shared Function BadExpression(node As VBSyntaxNode, exprs As ImmutableArray(Of BoundNode), resultType As TypeSymbol) As BoundBadExpression
+        Private Shared Function BadExpression(node As VisualBasicSyntaxNode, exprs As ImmutableArray(Of BoundNode), resultType As TypeSymbol) As BoundBadExpression
             Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, exprs, resultType, hasErrors:=True)
         End Function
 
@@ -460,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''  * will turn TypeOrValueExpression into a value expression
         ''' </summary>
         Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
-                              node As VBSyntaxNode,
+                              node As VisualBasicSyntaxNode,
                               isShared As Boolean,
                               clearIfShared As Boolean,
                               diagnostics As DiagnosticBag) As BoundExpression
@@ -495,7 +495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''  * will turn Unknown property access into Get property access
         ''' </summary>
         Private Function AdjustReceiverValue(receiver As BoundExpression,
-                      node As VBSyntaxNode,
+                      node As VisualBasicSyntaxNode,
                       diagnostics As DiagnosticBag) As BoundExpression
 
             If Not receiver.IsValue() Then
@@ -638,7 +638,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 "End Class" & vbCrLf
 
             ' It looks like Dev11 ignores project level conditional compilation here, which makes sense since expression cannot contain #If directives.
-            Dim tree = VBSyntaxTree.ParseText(codeToParse)
+            Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
             Dim root As CompilationUnitSyntax = tree.GetCompilationUnitRoot()
             Dim hasErrors As Boolean = False
 
@@ -1004,7 +1004,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReclassifyArrayLiteralExpression(conversionSemantics As SyntaxKind,
-                                                          tree As VBSyntaxNode,
+                                                          tree As VisualBasicSyntaxNode,
                                                           conv As ConversionKind,
                                                           isExplicit As Boolean,
                                                           arrayLiteral As BoundArrayLiteral,
@@ -1217,7 +1217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindAssignmentTarget(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             expression As BoundExpression,
             diagnostics As DiagnosticBag
         ) As BoundExpression
@@ -1637,7 +1637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function AnalyzeConversionAndCreateBinaryConditionalExpression(
-                                        syntax As VBSyntaxNode,
+                                        syntax As VisualBasicSyntaxNode,
                                         testExpression As BoundExpression,
                                         elseExpression As BoundExpression,
                                         constantValueOpt As ConstantValue,
@@ -1841,7 +1841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Create a reference to Me, without error checking.
-        Private Function CreateMeReference(node As VBSyntaxNode, Optional isSynthetic As Boolean = False) As BoundMeReference
+        Private Function CreateMeReference(node As VisualBasicSyntaxNode, Optional isSynthetic As Boolean = False) As BoundMeReference
             Dim containingMethod = TryCast(ContainingMember, MethodSymbol)
             Dim result = New BoundMeReference(node, If(Me.ContainingType, ErrorTypeSymbol.UnknownResultType))
 
@@ -1891,7 +1891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Dim parent As VBSyntaxNode = nameSyntax.Parent
+            Dim parent As VisualBasicSyntaxNode = nameSyntax.Parent
 
             If parent IsNot Nothing Then
                 Select Case parent.Kind
@@ -2034,7 +2034,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' when we have already looked up for the name.
         ''' </summary>
         Private Function BindSimpleName(result As LookupResult,
-                                        node As VBSyntaxNode,
+                                        node As VisualBasicSyntaxNode,
                                         options As LookupOptions,
                                         typeArguments As TypeArgumentListSyntax,
                                         diagnostics As DiagnosticBag) As BoundExpression
@@ -2090,7 +2090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function TryBindInteractiveReceiver(syntax As VBSyntaxNode, currentMember As Symbol, currentType As NamedTypeSymbol, memberDeclaringType As NamedTypeSymbol) As BoundExpression
+        Private Function TryBindInteractiveReceiver(syntax As VisualBasicSyntaxNode, currentMember As Symbol, currentType As NamedTypeSymbol, memberDeclaringType As NamedTypeSymbol) As BoundExpression
             If currentType.TypeKind = TypeKind.Submission AndAlso Not currentMember.IsShared Then
                 If memberDeclaringType.TypeKind = TypeKind.Submission Then
                     Return New BoundPreviousSubmissionReference(syntax, currentType, memberDeclaringType)
@@ -2302,7 +2302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The method is protected, so that it can be called from other 
         ''' binders overriding TryBindMemberAccessWithLeftOmitted
         ''' </remarks>
-        Protected Function BindMemberAccess(node As VBSyntaxNode, left As BoundExpression, right As SimpleNameSyntax, eventContext As Boolean, allowIntrinsicAliases As Boolean, diagnostics As DiagnosticBag) As BoundExpression
+        Protected Function BindMemberAccess(node As VisualBasicSyntaxNode, left As BoundExpression, right As SimpleNameSyntax, eventContext As Boolean, allowIntrinsicAliases As Boolean, diagnostics As DiagnosticBag) As BoundExpression
             Debug.Assert(node IsNot Nothing)
             Debug.Assert(left IsNot Nothing)
             Debug.Assert(right IsNot Nothing)
@@ -2552,7 +2552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">diagnostic bag if errors are to be reported</param>
         ''' <returns>Returns the symbol's type or an ErrorTypeSymbol if the local is referenced before its definition or if the symbol is still being bound.</returns>
         ''' <remarks>This method safely returns a local symbol's type by checking for circular references or references before declaration.</remarks>
-        Private Function GetLocalSymbolType(localSymbol As LocalSymbol, node As VBSyntaxNode, Optional diagnostics As DiagnosticBag = Nothing) As TypeSymbol
+        Private Function GetLocalSymbolType(localSymbol As LocalSymbol, node As VisualBasicSyntaxNode, Optional diagnostics As DiagnosticBag = Nothing) As TypeSymbol
             Dim localType As TypeSymbol = Nothing
             ' Check if local symbol is used before it's definition.
             ' Do span comparison first in order to optimize performance for non-error cases. 
@@ -2610,7 +2610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Bind access to a symbol, either qualified (LHS.Symbol) or unqualified (Symbol). This kind of qualification is indicated by qualKind.
         ' receiver is set to a value expression indicating the receiver that the symbol is being accessed off of.
         ' lookupResult must refer to one or more symbols. If lookupResult has a diagnostic associated with it, that diagnostic is reported.
-        Private Function BindSymbolAccess(node As VBSyntaxNode,
+        Private Function BindSymbolAccess(node As VisualBasicSyntaxNode,
                                           lookupResult As LookupResult,
                                           lookupOptionsUsed As LookupOptions,
                                           receiver As BoundExpression,
@@ -2958,7 +2958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return namespaceReceiver
         End Function
 
-        Friend Shared Function AddReceiverNamespaces(namespaces As SmallDictionary(Of NamespaceSymbol, Boolean), candidate As Symbol, compilation As VBCompilation) As Boolean
+        Friend Shared Function AddReceiverNamespaces(namespaces As SmallDictionary(Of NamespaceSymbol, Boolean), candidate As Symbol, compilation As VisualBasicCompilation) As Boolean
             If candidate.Kind = SymbolKind.Namespace AndAlso
                DirectCast(candidate, NamespaceSymbol).NamespaceKind = NamespaceKindNamespaceGroup Then
                 For Each constituent In DirectCast(candidate, NamespaceSymbol).ConstituentNamespaces
@@ -2973,7 +2973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Shared Function AddContainingNamespaces(namespaces As SmallDictionary(Of NamespaceSymbol, Boolean), candidate As Symbol, compilation As VBCompilation) As Boolean
+        Private Shared Function AddContainingNamespaces(namespaces As SmallDictionary(Of NamespaceSymbol, Boolean), candidate As Symbol, compilation As VisualBasicCompilation) As Boolean
             If candidate Is Nothing OrElse candidate.Kind = SymbolKind.ErrorType Then
                 Return False
             End If
@@ -3043,7 +3043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Sub CheckMemberTypeAccessibility(diagnostics As DiagnosticBag, node As VBSyntaxNode, member As Symbol)
+        Private Sub CheckMemberTypeAccessibility(diagnostics As DiagnosticBag, node As VisualBasicSyntaxNode, member As Symbol)
             ' We are not doing this check during lookup due to a performance impact it has on IDE scenarios.
             ' In any case, an accessible member with inaccassible type is beyond language spec, so we have
             ' some freedom how to deal with it.
@@ -3169,7 +3169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Report diagnostics relating to access shared/nonshared symbols. Returns true if an ERROR (but not a warning)
         ''' was reported. Also replaces receiver as a type with DefaultPropertyInstance when appropriate.
         ''' </summary>
-        Private Function CheckSharedSymbolAccess(node As VBSyntaxNode, isShared As Boolean, <[In], Out> ByRef receiver As BoundExpression, qualKind As QualificationKind, diagnostics As DiagnosticBag) As Boolean
+        Private Function CheckSharedSymbolAccess(node As VisualBasicSyntaxNode, isShared As Boolean, <[In], Out> ByRef receiver As BoundExpression, qualKind As QualificationKind, diagnostics As DiagnosticBag) As Boolean
             If isShared Then
                 If qualKind = QualificationKind.QualifiedViaValue AndAlso receiver IsNot Nothing AndAlso
                         receiver.Kind <> BoundKind.TypeOrValueExpression AndAlso receiver.Kind <> BoundKind.MyBaseReference AndAlso
@@ -3484,7 +3484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' If we can't find a common type, create an error type. If all the types have a common name,
         ' that name is used as the type of the error type (useful in ambiguous type lookup situations)
         Private Function GetCommonExpressionType(
-            symbolReference As VBSyntaxNode,
+            symbolReference As VisualBasicSyntaxNode,
             symbols As ImmutableArray(Of Symbol),
             constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
         ) As TypeSymbol
@@ -3530,7 +3530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Get the "expression type" of a symbol when used in an expression.
         Private Function GetExpressionType(
-            symbolReference As VBSyntaxNode,
+            symbolReference As VisualBasicSyntaxNode,
             s As Symbol,
             constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol),
             diagnostics As DiagnosticBag
@@ -3562,7 +3562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Given the expression part of a named argument, get the token of it's name. We use this for error reported, and its more efficient
         ' to calculate it only when needed when reported a diagnostic.
-        Private Shared Function GetNamedArgumentIdentifier(argumentExpression As VBSyntaxNode) As SyntaxToken
+        Private Shared Function GetNamedArgumentIdentifier(argumentExpression As VisualBasicSyntaxNode) As SyntaxToken
             Dim parent = TryCast(argumentExpression.Parent, SimpleArgumentSyntax)
 
             If parent Is Nothing OrElse Not parent.IsNamed Then
@@ -3652,7 +3652,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundArrayLiteral(node, hasDominantType, numberOfCandidates, inferredArrayType, sizes, arrayInitializer, Me)
         End Function
 
-        Private Function CreateArrayBounds(node As VBSyntaxNode, knownSizes() As DimensionSize, diagnostics As DiagnosticBag) As ImmutableArray(Of BoundExpression)
+        Private Function CreateArrayBounds(node As VisualBasicSyntaxNode, knownSizes() As DimensionSize, diagnostics As DiagnosticBag) As ImmutableArray(Of BoundExpression)
             Dim rank = knownSizes.Length
             Dim sizes = New BoundExpression(rank - 1) {}
             Dim Int32Type = GetSpecialType(SpecialType.System_Int32, node, diagnostics)
@@ -4001,7 +4001,7 @@ lElseClause:
         End Function
 
         Friend Function InferDominantTypeOfExpressions(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             Expressions As ArrayBuilder(Of BoundExpression),
             diagnostics As DiagnosticBag,
             ByRef numCandidates As Integer,
@@ -4176,7 +4176,7 @@ lElseClause:
         End Function
 
         Private Function BindAwait(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             operand As BoundExpression,
             diagnostics As DiagnosticBag,
             bindAsStatement As Boolean

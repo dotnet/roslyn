@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Class SyntaxRemover
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _nodesToRemove As HashSet(Of SyntaxNode)
             Private ReadOnly _options As SyntaxRemoveOptions

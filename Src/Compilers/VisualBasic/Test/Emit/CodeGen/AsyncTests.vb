@@ -8155,7 +8155,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=Me.LatestReferences)
-            Dim options As VBCompilationOptions
+            Dim options As VisualBasicCompilationOptions
 
             options = TestOptions.ReleaseExe
             Assert.False(options.EnableEditAndContinue)

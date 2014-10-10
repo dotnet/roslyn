@@ -13,13 +13,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Structure FlowAnalysisInfo
 
-        Public ReadOnly Compilation As VBCompilation
+        Public ReadOnly Compilation As VisualBasicCompilation
 
         Public ReadOnly Symbol As Symbol
 
         Public ReadOnly Node As BoundNode
 
-        Public Sub New(_compilation As VBCompilation, _symbol As Symbol, _node As BoundNode)
+        Public Sub New(_compilation As VisualBasicCompilation, _symbol As Symbol, _node As BoundNode)
             Debug.Assert(_compilation IsNot Nothing)
             Debug.Assert(_symbol IsNot Nothing)
             Debug.Assert(_node IsNot Nothing)

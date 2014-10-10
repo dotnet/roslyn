@@ -1339,7 +1339,7 @@ End Module
 
         <Fact()>
         Public Sub ForEachVariablesDeclared()
-            Dim tree = VBSyntaxTree.ParseText(<file>
+            Dim tree = VisualBasicSyntaxTree.ParseText(<file>
 Public Module Program
     Public Sub Main()
         Dim args = new String(){ "hi" }
@@ -1349,7 +1349,7 @@ Public Module Program
     End Sub
 End Module
                     </file>.Value)
-            Dim comp = VBCompilation.Create("ForEach",
+            Dim comp = VisualBasicCompilation.Create("ForEach",
                                           syntaxTrees:={tree},
                                           references:={MsvbRef, MscorlibRef})
             Dim semanticModel = comp.GetSemanticModel(tree)

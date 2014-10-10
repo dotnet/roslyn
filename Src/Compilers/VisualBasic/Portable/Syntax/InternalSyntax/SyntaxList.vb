@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend MustInherit Class SyntaxList
-        Inherits VBSyntaxNode
+        Inherits VisualBasicSyntaxNode
 
         Protected Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation())
             MyBase.New(SyntaxKind.List, errors, annotations)
@@ -27,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(SyntaxKind.List)
         End Sub
 
-        Friend Shared Function List(child As VBSyntaxNode) As VBSyntaxNode
+        Friend Shared Function List(child As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
             Return child
         End Function
 
-        Friend Shared Function List(child0 As VBSyntaxNode, child1 As VBSyntaxNode) As WithTwoChildren
+        Friend Shared Function List(child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode) As WithTwoChildren
 
             Dim hash As Integer
             Dim cached As GreenNode = SyntaxNodeCache.TryGetNode(SyntaxKind.List, child0, child1, hash)
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        Friend Shared Function List(child0 As VBSyntaxNode, child1 As VBSyntaxNode, child2 As VBSyntaxNode) As WithThreeChildren
+        Friend Shared Function List(child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode) As WithThreeChildren
             Dim hash As Integer
             Dim cached As GreenNode = SyntaxNodeCache.TryGetNode(SyntaxKind.List, child0, child1, child2, hash)
             If cached IsNot Nothing Then
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        Friend Shared Function List(nodes As ArrayElement(Of VBSyntaxNode)()) As SyntaxList
+        Friend Shared Function List(nodes As ArrayElement(Of VisualBasicSyntaxNode)()) As SyntaxList
             ' "WithLotsOfChildren" list will alocate a separate array to hold
             ' precomputed node offsets. It may not be worth it for smallish lists.
             If nodes.Length < 10 Then
@@ -72,12 +72,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
-        Friend Shared Function List(nodes As VBSyntaxNode()) As SyntaxList
+        Friend Shared Function List(nodes As VisualBasicSyntaxNode()) As SyntaxList
             Return List(nodes, nodes.Length)
         End Function
 
-        Friend Shared Function List(nodes As VBSyntaxNode(), count As Integer) As SyntaxList
-            Dim array = New ArrayElement(Of VBSyntaxNode)(count - 1) {}
+        Friend Shared Function List(nodes As VisualBasicSyntaxNode(), count As Integer) As SyntaxList
+            Dim array = New ArrayElement(Of VisualBasicSyntaxNode)(count - 1) {}
             Debug.Assert(array.Length = count)
             For i = 0 To count - 1
                 array(i).Value = nodes(i)
@@ -86,9 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return List(array)
         End Function
 
-        Friend MustOverride Sub CopyTo(array As ArrayElement(Of VBSyntaxNode)(), offset As Integer)
+        Friend MustOverride Sub CopyTo(array As ArrayElement(Of VisualBasicSyntaxNode)(), offset As Integer)
 
-        Friend Shared Function Concat(left As VBSyntaxNode, right As VBSyntaxNode) As VBSyntaxNode
+        Friend Shared Function Concat(left As VisualBasicSyntaxNode, right As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
 
             If (left Is Nothing) Then
                 Return right
@@ -97,25 +97,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return left
             End If
 
-            Dim tmp As ArrayElement(Of VBSyntaxNode)()
+            Dim tmp As ArrayElement(Of VisualBasicSyntaxNode)()
             Dim leftList As SyntaxList = TryCast(left, SyntaxList)
             Dim rightList As SyntaxList = TryCast(right, SyntaxList)
 
             If leftList IsNot Nothing Then
                 If rightList IsNot Nothing Then
-                    tmp = New ArrayElement(Of VBSyntaxNode)(left.SlotCount + right.SlotCount - 1) {}
+                    tmp = New ArrayElement(Of VisualBasicSyntaxNode)(left.SlotCount + right.SlotCount - 1) {}
                     leftList.CopyTo(tmp, 0)
                     rightList.CopyTo(tmp, left.SlotCount)
                     Return SyntaxList.List(tmp)
                 End If
-                tmp = New ArrayElement(Of VBSyntaxNode)((left.SlotCount + 1) - 1) {}
+                tmp = New ArrayElement(Of VisualBasicSyntaxNode)((left.SlotCount + 1) - 1) {}
                 leftList.CopyTo(tmp, 0)
                 tmp(left.SlotCount).Value = right
                 Return SyntaxList.List(tmp)
             End If
 
             If rightList IsNot Nothing Then
-                tmp = New ArrayElement(Of VBSyntaxNode)((rightList.SlotCount + 1) - 1) {}
+                tmp = New ArrayElement(Of VisualBasicSyntaxNode)((rightList.SlotCount + 1) - 1) {}
                 tmp(0).Value = left
                 rightList.CopyTo(tmp, 1)
                 Return SyntaxList.List(tmp)
@@ -127,10 +127,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend NotInheritable Class WithTwoChildren
             Inherits SyntaxList
 
-            Private _child0 As VBSyntaxNode
-            Private _child1 As VBSyntaxNode
+            Private _child0 As VisualBasicSyntaxNode
+            Private _child1 As VisualBasicSyntaxNode
 
-            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VBSyntaxNode, child1 As VBSyntaxNode)
+            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode)
                 MyBase.New(errors, annotations)
 
                 MyBase._slotCount = 2
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._child1 = child1
             End Sub
 
-            Friend Sub New(child0 As VBSyntaxNode, child1 As VBSyntaxNode)
+            Friend Sub New(child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode)
                 MyBase.New()
 
                 MyBase._slotCount = 2
@@ -159,9 +159,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 MyBase._slotCount = 2
 
-                Me._child0 = DirectCast(reader.ReadValue(), VBSyntaxNode)
+                Me._child0 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
                 MyBase.AdjustFlagsAndWidth(_child0)
-                Me._child1 = DirectCast(reader.ReadValue(), VBSyntaxNode)
+                Me._child1 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
                 MyBase.AdjustFlagsAndWidth(_child1)
             End Sub
 
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 writer.WriteValue(Me._child1)
             End Sub
 
-            Friend Overrides Sub CopyTo(array As ArrayElement(Of VBSyntaxNode)(), offset As Integer)
+            Friend Overrides Sub CopyTo(array As ArrayElement(Of VisualBasicSyntaxNode)(), offset As Integer)
                 array(offset).Value = Me._child0
                 array((offset + 1)).Value = Me._child1
             End Sub
@@ -206,11 +206,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend NotInheritable Class WithThreeChildren
             Inherits SyntaxList
 
-            Private _child0 As VBSyntaxNode
-            Private _child1 As VBSyntaxNode
-            Private _child2 As VBSyntaxNode
+            Private _child0 As VisualBasicSyntaxNode
+            Private _child1 As VisualBasicSyntaxNode
+            Private _child2 As VisualBasicSyntaxNode
 
-            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VBSyntaxNode, child1 As VBSyntaxNode, child2 As VBSyntaxNode)
+            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode)
                 MyBase.New(errors, annotations)
 
                 MyBase._slotCount = 3
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._child2 = child2
             End Sub
 
-            Friend Sub New(child0 As VBSyntaxNode, child1 As VBSyntaxNode, child2 As VBSyntaxNode)
+            Friend Sub New(child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode)
                 MyBase.New()
 
                 MyBase._slotCount = 3
@@ -244,11 +244,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 MyBase.New(reader)
                 MyBase._slotCount = 3
 
-                Me._child0 = DirectCast(reader.ReadValue(), VBSyntaxNode)
+                Me._child0 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
                 MyBase.AdjustFlagsAndWidth(_child0)
-                Me._child1 = DirectCast(reader.ReadValue(), VBSyntaxNode)
+                Me._child1 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
                 MyBase.AdjustFlagsAndWidth(_child1)
-                Me._child2 = DirectCast(reader.ReadValue(), VBSyntaxNode)
+                Me._child2 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
                 MyBase.AdjustFlagsAndWidth(_child2)
             End Sub
 
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 writer.WriteValue(Me._child2)
             End Sub
 
-            Friend Overrides Sub CopyTo(array As ArrayElement(Of VBSyntaxNode)(), offset As Integer)
+            Friend Overrides Sub CopyTo(array As ArrayElement(Of VisualBasicSyntaxNode)(), offset As Integer)
                 array(offset).Value = Me._child0
                 array(offset + 1).Value = Me._child1
                 array(offset + 2).Value = Me._child2
@@ -297,15 +297,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend MustInherit Class WithManyChildrenBase
             Inherits SyntaxList
 
-            Protected ReadOnly _children As ArrayElement(Of VBSyntaxNode)()
+            Protected ReadOnly _children As ArrayElement(Of VisualBasicSyntaxNode)()
 
-            Protected Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), children As ArrayElement(Of VBSyntaxNode)())
+            Protected Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), children As ArrayElement(Of VisualBasicSyntaxNode)())
                 MyBase.New(errors, annotations)
                 Me._children = children
                 InitChildren()
             End Sub
 
-            Friend Sub New(children As ArrayElement(Of VBSyntaxNode)())
+            Friend Sub New(children As ArrayElement(Of VisualBasicSyntaxNode)())
                 MyBase.New()
                 Me._children = children
                 InitChildren()
@@ -331,16 +331,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Protected Sub New(reader As ObjectReader)
                 MyBase.New(reader)
-                Me._children = ArrayElement(Of VBSyntaxNode).MakeElementArray(DirectCast(reader.ReadValue(), VBSyntaxNode()))
+                Me._children = ArrayElement(Of VisualBasicSyntaxNode).MakeElementArray(DirectCast(reader.ReadValue(), VisualBasicSyntaxNode()))
                 InitChildren()
             End Sub
 
             Friend Overrides Sub WriteTo(writer As ObjectWriter)
                 MyBase.WriteTo(writer)
-                writer.WriteValue(ArrayElement(Of VBSyntaxNode).MakeArray(Me._children))
+                writer.WriteValue(ArrayElement(Of VisualBasicSyntaxNode).MakeArray(Me._children))
             End Sub
 
-            Friend Overrides Sub CopyTo(nodes As ArrayElement(Of VBSyntaxNode)(), offset As Integer)
+            Friend Overrides Sub CopyTo(nodes As ArrayElement(Of VisualBasicSyntaxNode)(), offset As Integer)
                 Array.Copy(Me._children, 0, nodes, offset, Me._children.Length)
             End Sub
 
@@ -389,11 +389,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend NotInheritable Class WithManyChildren
             Inherits WithManyChildrenBase
 
-            Friend Sub New(children As ArrayElement(Of VBSyntaxNode)())
+            Friend Sub New(children As ArrayElement(Of VisualBasicSyntaxNode)())
                 MyBase.New(children)
             End Sub
 
-            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), children As ArrayElement(Of VBSyntaxNode)())
+            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), children As ArrayElement(Of VisualBasicSyntaxNode)())
                 MyBase.New(errors, annotations, children)
             End Sub
 
@@ -418,12 +418,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Inherits WithManyChildrenBase
 
             Private ReadOnly _childOffsets As Integer()
-            Friend Sub New(children As ArrayElement(Of VBSyntaxNode)())
+            Friend Sub New(children As ArrayElement(Of VisualBasicSyntaxNode)())
                 MyBase.New(children)
                 _childOffsets = CalculateOffsets(children)
             End Sub
 
-            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), children As ArrayElement(Of VBSyntaxNode)(), childOffsets As Integer())
+            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), children As ArrayElement(Of VisualBasicSyntaxNode)(), childOffsets As Integer())
                 MyBase.New(errors, annotations, children)
                 _childOffsets = childOffsets
             End Sub
@@ -449,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return New WithLotsOfChildren(Me.GetDiagnostics(), annotations, Me._children, Me._childOffsets)
             End Function
 
-            Private Shared Function CalculateOffsets(children As ArrayElement(Of VBSyntaxNode)()) As Integer()
+            Private Shared Function CalculateOffsets(children As ArrayElement(Of VisualBasicSyntaxNode)()) As Integer()
                 Dim n = children.Length
                 Dim childOffsets = New Integer(n - 1) {}
                 Dim offset = 0
@@ -465,33 +465,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Class SyntaxListBuilder
         Private _count As Integer
-        Private _nodes As ArrayElement(Of VBSyntaxNode)()
+        Private _nodes As ArrayElement(Of VisualBasicSyntaxNode)()
 
         Public Shared Function Create() As SyntaxListBuilder
             Return New SyntaxListBuilder(8)
         End Function
 
         Public Sub New(size As Integer)
-            Me._nodes = New ArrayElement(Of VBSyntaxNode)(size - 1) {}
+            Me._nodes = New ArrayElement(Of VisualBasicSyntaxNode)(size - 1) {}
         End Sub
 
-        Public Function Add(item As VBSyntaxNode) As SyntaxListBuilder
+        Public Function Add(item As VisualBasicSyntaxNode) As SyntaxListBuilder
             EnsureAdditionalCapacity(1)
             Return Me.AddUnsafe(item)
         End Function
 
         Private Function AddUnsafe(item As GreenNode) As SyntaxListBuilder
             Debug.Assert(item IsNot Nothing)
-            Me._nodes(Me._count).Value = DirectCast(item, VBSyntaxNode)
+            Me._nodes(Me._count).Value = DirectCast(item, VisualBasicSyntaxNode)
             Me._count += 1
             Return Me
         End Function
 
-        Public Function AddRange(Of TNode As VBSyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
+        Public Function AddRange(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
             Return Me.AddRange(Of TNode)(list, 0, list.Count)
         End Function
 
-        Public Function AddRange(Of TNode As VBSyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
+        Public Function AddRange(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
             EnsureAdditionalCapacity(length - offset)
 
             Dim oldCount = Me._count
@@ -540,8 +540,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Array.Resize(Me._nodes, newSize)
         End Sub
 
-        Friend Function ToArray() As ArrayElement(Of VBSyntaxNode)()
-            Dim dst As ArrayElement(Of VBSyntaxNode)() = New ArrayElement(Of VBSyntaxNode)(Me._count - 1) {}
+        Friend Function ToArray() As ArrayElement(Of VisualBasicSyntaxNode)()
+            Dim dst As ArrayElement(Of VisualBasicSyntaxNode)() = New ArrayElement(Of VisualBasicSyntaxNode)(Me._count - 1) {}
 
             'TODO: workaround for range check hoisting bug
             ' <<< FOR LOOP
@@ -557,7 +557,7 @@ enter:
             Return dst
         End Function
 
-        Friend Function ToListNode() As VBSyntaxNode
+        Friend Function ToListNode() As VisualBasicSyntaxNode
             Select Case Me._count
                 Case 0
                     Return Nothing
@@ -585,25 +585,25 @@ enter:
             End Get
         End Property
 
-        Default Public Property Item(index As Integer) As VBSyntaxNode
+        Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
             Get
                 Return Me._nodes(index)
             End Get
-            Set(value As VBSyntaxNode)
+            Set(value As VisualBasicSyntaxNode)
                 Me._nodes(index).Value = value
             End Set
         End Property
 
-        Public Function ToList() As SyntaxList(Of VBSyntaxNode)
-            Return New SyntaxList(Of VBSyntaxNode)(ToListNode)
+        Public Function ToList() As SyntaxList(Of VisualBasicSyntaxNode)
+            Return New SyntaxList(Of VisualBasicSyntaxNode)(ToListNode)
         End Function
 
-        Public Function ToList(Of TDerived As VBSyntaxNode)() As SyntaxList(Of TDerived)
+        Public Function ToList(Of TDerived As VisualBasicSyntaxNode)() As SyntaxList(Of TDerived)
             Return New SyntaxList(Of TDerived)(ToListNode)
         End Function
     End Class
 
-    Friend Structure SyntaxListBuilder(Of TNode As VBSyntaxNode)
+    Friend Structure SyntaxListBuilder(Of TNode As VisualBasicSyntaxNode)
         Private builder As SyntaxListBuilder
 
         Public Shared Function Create() As SyntaxListBuilder(Of TNode)
@@ -682,7 +682,7 @@ enter:
         End Operator
     End Structure
 
-    Friend Structure SeparatedSyntaxListBuilder(Of TNode As VBSyntaxNode)
+    Friend Structure SeparatedSyntaxListBuilder(Of TNode As VisualBasicSyntaxNode)
         Private builder As SyntaxListBuilder
         Public Sub New(size As Integer)
             Me.New(New SyntaxListBuilder(size))
@@ -704,11 +704,11 @@ enter:
             End Get
         End Property
 
-        Default Public Property Item(index As Integer) As VBSyntaxNode
+        Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
             Get
                 Return Me.builder.Item(index)
             End Get
-            Set(value As VBSyntaxNode)
+            Set(value As VisualBasicSyntaxNode)
                 Me.builder.Item(index) = value
             End Set
         End Property
@@ -739,11 +739,11 @@ enter:
         End Function
 
         Public Function ToList() As SeparatedSyntaxList(Of TNode)
-            Return New SeparatedSyntaxList(Of TNode)(New SyntaxList(Of VBSyntaxNode)(Me.builder.ToListNode))
+            Return New SeparatedSyntaxList(Of TNode)(New SyntaxList(Of VisualBasicSyntaxNode)(Me.builder.ToListNode))
         End Function
 
         Public Function ToList(Of TDerivedNode As TNode)() As SeparatedSyntaxList(Of TDerivedNode)
-            Return New SeparatedSyntaxList(Of TDerivedNode)(New SyntaxList(Of VBSyntaxNode)(Me.builder.ToListNode))
+            Return New SeparatedSyntaxList(Of TDerivedNode)(New SyntaxList(Of VisualBasicSyntaxNode)(Me.builder.ToListNode))
         End Function
 
         Public Shared Widening Operator CType(builder As SeparatedSyntaxListBuilder(Of TNode)) As SyntaxListBuilder
@@ -751,7 +751,7 @@ enter:
         End Operator
     End Structure
 
-    Friend Structure SyntaxList(Of TNode As VBSyntaxNode)
+    Friend Structure SyntaxList(Of TNode As VisualBasicSyntaxNode)
         Implements IEquatable(Of SyntaxList(Of TNode))
 
         Private _node As GreenNode
@@ -760,9 +760,9 @@ enter:
             Me._node = node
         End Sub
 
-        Friend ReadOnly Property Node As VBSyntaxNode
+        Friend ReadOnly Property Node As VisualBasicSyntaxNode
             Get
-                Return DirectCast(Me._node, VBSyntaxNode)
+                Return DirectCast(Me._node, VisualBasicSyntaxNode)
             End Get
         End Property
 
@@ -848,7 +848,7 @@ enter:
             Return If((Not Me._node Is Nothing), Me._node.GetHashCode, 0)
         End Function
 
-        Friend Function AsSeparatedList(Of TOther As VBSyntaxNode)() As SeparatedSyntaxList(Of TOther)
+        Friend Function AsSeparatedList(Of TOther As VisualBasicSyntaxNode)() As SeparatedSyntaxList(Of TOther)
             Return New SeparatedSyntaxList(Of TOther)(New SyntaxList(Of TOther)(Me._node))
         End Function
 
@@ -856,8 +856,8 @@ enter:
             Return New SyntaxList(Of TNode)(node)
         End Operator
 
-        Public Shared Widening Operator CType(nodes As SyntaxList(Of TNode)) As SyntaxList(Of VBSyntaxNode)
-            Return New SyntaxList(Of VBSyntaxNode)(nodes._node)
+        Public Shared Widening Operator CType(nodes As SyntaxList(Of TNode)) As SyntaxList(Of VisualBasicSyntaxNode)
+            Return New SyntaxList(Of VisualBasicSyntaxNode)(nodes._node)
         End Operator
     End Structure
 End Namespace

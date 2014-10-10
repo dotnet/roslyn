@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Module SyntaxNodeExtensions
 
         <Extension()>
-        Public Function WithAnnotations(Of TNode As VBSyntaxNode)(node As TNode, ParamArray annotations As SyntaxAnnotation()) As TNode
+        Public Function WithAnnotations(Of TNode As VisualBasicSyntaxNode)(node As TNode, ParamArray annotations As SyntaxAnnotation()) As TNode
             Return DirectCast(node.Green.SetAnnotations(annotations).CreateRed(), TNode)
         End Function
 
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns></returns>
         ''' <remarks></remarks>
         <Extension()> _
-        Public Function ContainingWithStatement(node As VBSyntaxNode) As WithStatementSyntax
+        Public Function ContainingWithStatement(node As VisualBasicSyntaxNode) As WithStatementSyntax
             Debug.Assert(node IsNot Nothing)
 
             If node Is Nothing Then
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension()> _
-        Public Sub GetAncestors(Of T As VBSyntaxNode, C As VBSyntaxNode)(node As VBSyntaxNode, result As ArrayBuilder(Of T))
+        Public Sub GetAncestors(Of T As VisualBasicSyntaxNode, C As VisualBasicSyntaxNode)(node As VisualBasicSyntaxNode, result As ArrayBuilder(Of T))
 
             Dim current = node.Parent
             Do While current IsNot Nothing AndAlso Not (TypeOf current Is C)
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         <Extension()> _
-        Public Function GetAncestorOrSelf(Of T As VBSyntaxNode)(node As VBSyntaxNode) As T
+        Public Function GetAncestorOrSelf(Of T As VisualBasicSyntaxNode)(node As VisualBasicSyntaxNode) As T
 
             Do While node IsNot Nothing
                 Dim result = TryCast(node, T)
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension()>
-        Public Function IsLambdaExpressionSyntax(this As VBSyntaxNode) As Boolean
+        Public Function IsLambdaExpressionSyntax(this As VisualBasicSyntaxNode) As Boolean
             Select Case this.Kind
                 Case SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression,
@@ -201,8 +201,8 @@ TryAgain:
 
         <Extension>
         Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
-            Dim access As VBSyntaxNode = node
-            Dim parent As VBSyntaxNode = access.Parent
+            Dim access As VisualBasicSyntaxNode = node
+            Dim parent As VisualBasicSyntaxNode = access.Parent
 
             While parent IsNot Nothing
                 Select Case parent.Kind
@@ -302,7 +302,7 @@ TryAgain:
         ''' Returns true if all arguments are of the specified kind and they are also missing.
         ''' </summary>
         <Extension()>
-        Function AllAreMissing(arguments As IEnumerable(Of VBSyntaxNode), kind As SyntaxKind) As Boolean
+        Function AllAreMissing(arguments As IEnumerable(Of VisualBasicSyntaxNode), kind As SyntaxKind) As Boolean
             Return Not arguments.Any(Function(arg) Not (arg.Kind = kind AndAlso DirectCast(arg, IdentifierNameSyntax).IsMissing))
         End Function
 
@@ -311,7 +311,7 @@ TryAgain:
         ''' </summary>
         ''' <param name="arguments"></param>
         <Extension()>
-        Function AllAreMissingIdentifierName(arguments As IEnumerable(Of VBSyntaxNode)) As Boolean
+        Function AllAreMissingIdentifierName(arguments As IEnumerable(Of VisualBasicSyntaxNode)) As Boolean
             Return arguments.AllAreMissing(SyntaxKind.IdentifierName)
         End Function
 
@@ -319,7 +319,7 @@ TryAgain:
         ''' Given a syntax node of query clause returns its leading keyword
         ''' </summary>
         <Extension()>
-        Function QueryClauseKeywordOrRangeVariableIdentifier(syntax As VBSyntaxNode) As SyntaxToken
+        Function QueryClauseKeywordOrRangeVariableIdentifier(syntax As VisualBasicSyntaxNode) As SyntaxToken
             Select Case syntax.Kind
 
                 Case SyntaxKind.CollectionRangeVariable
@@ -373,7 +373,7 @@ TryAgain:
         End Function
 
         <Extension>
-        Friend Function EnclosingStructuredTrivia(node As VBSyntaxNode) As StructuredTriviaSyntax
+        Friend Function EnclosingStructuredTrivia(node As VisualBasicSyntaxNode) As StructuredTriviaSyntax
             While node IsNot Nothing
                 If node.IsStructuredTrivia Then
                     Return DirectCast(node, StructuredTriviaSyntax)

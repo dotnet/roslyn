@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub TypeInNamespace()
-            Dim comp = VBCompilation.Create("Dummy", references:={MscorlibRef, SystemCoreRef})
+            Dim comp = VisualBasicCompilation.Create("Dummy", references:={MscorlibRef, SystemCoreRef})
 
             Dim corlibAssembly = comp.GetReferencedAssemblySymbol(MscorlibRef)
             Assert.NotNull(corlibAssembly)
@@ -901,7 +901,7 @@ End Namespace
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer(Of String).Default))
         End Sub
 
-        Private Shared Function EnumerateNamespaces(comp As VBCompilation) As IEnumerable(Of String)
+        Private Shared Function EnumerateNamespaces(comp As VisualBasicCompilation) As IEnumerable(Of String)
             Return EnumerateNamespaces(comp.GlobalNamespace, "")
         End Function
 

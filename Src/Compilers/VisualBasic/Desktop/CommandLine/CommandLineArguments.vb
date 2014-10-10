@@ -18,19 +18,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' The CommandLineArguments class provides members to Set and Get Visual Basic compilation and parse options.
     ''' </summary>
-    Public NotInheritable Class VBCommandLineArguments
+    Public NotInheritable Class VisualBasicCommandLineArguments
         Inherits CommandLineArguments
         ''' <summary>
         ''' Set and Get the Visual Basic compilation options.
         ''' </summary>
         ''' <returns>The currently set Visual Basic compilation options.</returns>
-        Public Overloads Property CompilationOptions As VBCompilationOptions
+        Public Overloads Property CompilationOptions As VisualBasicCompilationOptions
 
         ''' <summary>
         ''' Set and Get  the Visual Basic parse parse options.
         ''' </summary>
         ''' <returns>The currently set Visual Basic parse options.</returns>
-        Public Overloads Property ParseOptions As VBParseOptions
+        Public Overloads Property ParseOptions As VisualBasicParseOptions
 
         Friend OutputLevel As OutputLevel
 

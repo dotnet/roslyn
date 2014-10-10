@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MethodBodySemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VBSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
+        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
             MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition)
         End Sub
 
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a speculative MethodBodySemanticModel that allows asking semantic questions about an attribute node that did not appear in the original source code.
         ''' </summary>
-        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As VBSyntaxNode, binder As Binder, position As Integer) As MethodBodySemanticModel
+        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, position As Integer) As MethodBodySemanticModel
             Debug.Assert(parentSemanticModel IsNot Nothing)
             Debug.Assert(root IsNot Nothing)
             Debug.Assert(binder IsNot Nothing)

@@ -78,7 +78,7 @@ End Module]]>.Value
         Dim text As SourceText = SourceText.From(s)
         Dim tree As SyntaxTree = Nothing
         Dim root As SyntaxNode = Nothing
-        tree = VBSyntaxTree.ParseText(text)
+        tree = VisualBasicSyntaxTree.ParseText(text)
         root = tree.GetRoot()
 
         Assert.Equal(False, root.ContainsDiagnostics)
@@ -100,7 +100,7 @@ End Module]]>.Value
     Public Sub TypeAFile()
         Dim text As SourceText = SourceText.From("")
         Dim tree As SyntaxTree = Nothing
-        tree = VBSyntaxTree.ParseText(text)
+        tree = VisualBasicSyntaxTree.ParseText(text)
 
         Assert.Equal(False, tree.GetRoot().ContainsDiagnostics)
 
@@ -108,7 +108,7 @@ End Module]]>.Value
             ' add next character in file 's' to text
             Dim newText = text.WithChanges(New TextChange(New TextSpan(text.Length, 0), s.Substring(i, 1)))
             Dim newTree = tree.WithChangedText(newText)
-            Dim tmpTree = VBSyntaxTree.ParseText(newText)
+            Dim tmpTree = VisualBasicSyntaxTree.ParseText(newText)
 
             VerifyEquivalent(newTree, tmpTree)
             text = newText
@@ -119,13 +119,13 @@ End Module]]>.Value
     <Fact>
     Public Sub Preprocessor()
         Dim oldText = SourceText.From(s)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         ' commenting out the #const
         Dim pos = s.IndexOf("#const")
         Dim newText = oldText.WithChanges(New TextChange(New TextSpan(pos, 0), "'"))
         Dim newTree = oldTree.WithChangedText(newText)
-        Dim tmpTree = VBSyntaxTree.ParseText(newText)
+        Dim tmpTree = VisualBasicSyntaxTree.ParseText(newText)
 
         VerifyEquivalent(newTree, tmpTree)
 
@@ -134,7 +134,7 @@ End Module]]>.Value
         pos = newString.IndexOf("'#const")
         Dim anotherText = newText.WithChanges(New TextChange(New TextSpan(pos, 1), ""))
         newTree = newTree.WithChangedText(anotherText)
-        tmpTree = VBSyntaxTree.ParseText(anotherText)
+        tmpTree = VisualBasicSyntaxTree.ParseText(anotherText)
 
         VerifyEquivalent(newTree, tmpTree)
     End Sub
@@ -697,12 +697,12 @@ End Class]]>).Value
 End Class]]>).Value
 
         Dim oldText = SourceText.From(code)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim newText = oldText.WithChanges(New TextChange(New TextSpan(22, 0), " Sub "))
 
         Dim incTree = oldTree.WithChangedText(newText)
-        Dim newTree = VBSyntaxTree.ParseText(newText)
+        Dim newTree = VisualBasicSyntaxTree.ParseText(newText)
 
         Dim exp1 = newTree.GetRoot().ChildNodesAndTokens()(0).ChildNodesAndTokens()(1)
         Dim inc1 = incTree.GetRoot().ChildNodesAndTokens()(0).ChildNodesAndTokens()(1)
@@ -736,11 +736,11 @@ End Module
 ]]>).Value
 
         Dim oldText = SourceText.From(code)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim newText = oldText.WithChanges(New TextChange(New TextSpan(103, 0), " "))
         Dim incTree = oldTree.WithChangedText(newText)
-        Dim newTree = VBSyntaxTree.ParseText(newText)
+        Dim newTree = VisualBasicSyntaxTree.ParseText(newText)
 
         Assert.Equal(False, oldTree.GetRoot().ContainsDiagnostics)
         Assert.Equal(False, newTree.GetRoot().ContainsDiagnostics)
@@ -761,11 +761,11 @@ End Module
 ]]>).Value
 
         Dim oldText = SourceText.From(code)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim insertionPoint = code.IndexOf("Console")
         Dim newText = oldText.WithChanges(New TextChange(New TextSpan(insertionPoint, 0), " "))
-        Dim expectedTree = VBSyntaxTree.ParseText(newText)
+        Dim expectedTree = VisualBasicSyntaxTree.ParseText(newText)
         Dim incrementalTree = oldTree.WithChangedText(newText)
 
         Assert.Equal(False, expectedTree.GetRoot().ContainsDiagnostics)
@@ -792,7 +792,7 @@ End Module
 ]]>.Value
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Assert.Equal(1, oldTree.GetDiagnostics().Count)
         Assert.Equal("Syntax error.", oldTree.GetDiagnostics()(0).GetMessage)
         Assert.Equal("[131..134)", oldTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
@@ -803,7 +803,7 @@ End Module
 
         Dim newTree = oldTree.WithChangedText(newText)
 
-        Dim tmpTree = VBSyntaxTree.ParseText(newText)
+        Dim tmpTree = VisualBasicSyntaxTree.ParseText(newText)
         Assert.Equal(1, tmpTree.GetDiagnostics().Count)
         Assert.Equal("Syntax error.", tmpTree.GetDiagnostics()(0).GetMessage)
         Assert.Equal("[132..135)", tmpTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
@@ -834,12 +834,12 @@ Enum E
 End Enum
 ]]>.Value.Trim()
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         ' Insert a single character at the beginning.
         Dim newText = oldText.Replace(start:=0, length:=0, newText:="B")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(546680, "DevDiv")>
@@ -853,7 +853,7 @@ Module M
 End Module
 ]]>.Value
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Replace "True" with "True".
         Dim str = "True"
         Dim position = oldText.ToString().IndexOf(str)
@@ -874,7 +874,7 @@ Module M
 End Module
 ]]>.Value.Trim()
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         ' Change "End Module" to "End module".
         Dim position = oldText.ToString().LastIndexOf("Module")
@@ -883,7 +883,7 @@ End Module
         Dim diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree)
         ' MultiLineIfBlock should not have been reused.
         Assert.True(diffs.Any(Function(n) n.IsKind(SyntaxKind.MultiLineIfBlock)))
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     ''' <summary>
@@ -903,7 +903,7 @@ Module M
 End Module
 ]]>.Value.Trim()
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         ' Change "False" to "True".
         Dim position = oldText.ToString().IndexOf("False")
@@ -912,7 +912,7 @@ End Module
         Dim diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree)
         ' MultiLineIfBlock should have been reused and should not appear in diffs.
         Assert.False(diffs.Any(Function(n) n.IsKind(SyntaxKind.MultiLineIfBlock)))
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     ''' <summary>
@@ -932,7 +932,7 @@ Module M
 End Module
 ]]>.Value.Trim()
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         ' Change "End Module" to "End module".
         Dim position = oldText.ToString().LastIndexOf("Module")
@@ -941,7 +941,7 @@ End Module
         Dim diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree)
         ' MultiLineIfBlock should have been reused and should not appear in diffs.
         Assert.False(diffs.Any(Function(n) n.IsKind(SyntaxKind.MultiLineIfBlock)))
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(546692, "DevDiv")>
@@ -956,13 +956,13 @@ Module M
 End Module
 ]]>.Value
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Add newline after first single line If
         Dim str = "y = x"
         Dim position = oldText.ToString().IndexOf(str) + str.Length
         Dim newText = oldText.Replace(start:=position, length:=0, newText:=vbCrLf)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(546698, "DevDiv")>
@@ -978,12 +978,12 @@ Module M
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Uncomment "Else".
         Dim position = oldText.ToString().IndexOf("'Else")
         Dim newText = oldText.Replace(start:=position, length:=1, newText:="")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(530662, "DevDiv")>
@@ -998,12 +998,12 @@ Module M
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Remove "X".
         Dim position = oldText.ToString().IndexOf("X")
         Dim newText = oldText.Replace(start:=position, length:=1, newText:="")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(546774, "DevDiv")>
@@ -1021,7 +1021,7 @@ Class C
 End Class
 ]]>.Value.Trim()
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         ' Append "Class".
         Dim position = oldText.ToString().Length
@@ -1030,7 +1030,7 @@ End Class
         Dim diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree)
         ' Original Namespace should have been reused.
         Assert.False(diffs.Any(Function(n) n.IsKind(SyntaxKind.NamespaceBlock)))
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(530841, "DevDiv")>
@@ -1047,13 +1047,13 @@ Module M
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Sub M()"
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position + str.Length, length:=0, newText:=vbCrLf)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(531017, "DevDiv")>
@@ -1073,13 +1073,13 @@ Module M
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Remove second instance of "Dim ch As Char".
         Dim str = "Dim ch As Char"
         Dim position = oldText.ToString().LastIndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:=String.Empty)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact, WorkItem(547242, "DevDiv")>
@@ -1089,14 +1089,14 @@ Module M
     Public obj0 As Object
     Public obj1 A]]>.Value
 
-        Dim tree = VBSyntaxTree.ParseText(code)
+        Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Dim oldIText = tree.GetText()
         ' Remove first N characters.
         Dim span = New TextSpan(0, code.IndexOf("j0"))
         Dim change = New TextChange(span, "")
         Dim newIText = oldIText.WithChanges(change)
         Dim newTree = tree.WithChangedText(newIText)
-        Dim fulltree = VBSyntaxTree.ParseText(newIText.ToString())
+        Dim fulltree = VisualBasicSyntaxTree.ParseText(newIText.ToString())
 
         Dim children1 = newTree.GetRoot().ChildNodesAndTokens()
         Dim children2 = fulltree.GetRoot().ChildNodesAndTokens()
@@ -1111,7 +1111,7 @@ Module M
         Try
         Catch ex A]]>.Value
 
-        Dim fullTree = VBSyntaxTree.ParseText(code)
+        Dim fullTree = VisualBasicSyntaxTree.ParseText(code)
         Dim fullText = fullTree.GetText()
         Dim newTree = fullTree.WithChangedText(fullText)
         Assert.NotSame(newTree, fullTree) ' Relies on #550027 where WithChangedText returns an instance with changes.
@@ -1126,7 +1126,7 @@ Module M
 ]]>.Value
         Dim code1 As String = <![CDATA[    Property foo() A]]>.Value
 
-        Dim tree = VBSyntaxTree.ParseText(code)
+        Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Dim oldIText = tree.GetText()
         ' insert code1 after code
         Dim span = New TextSpan(oldIText.Length, 0)
@@ -1141,7 +1141,7 @@ Module M
         ' InvalidCastException
         newTree = newTree.WithChangedText(newIText)
 
-        Dim fulltree = VBSyntaxTree.ParseText(newIText.ToString())
+        Dim fulltree = VisualBasicSyntaxTree.ParseText(newIText.ToString())
         Assert.Equal(fulltree.GetRoot().ToFullString(), newTree.GetRoot().ToFullString())
 
     End Sub
@@ -1154,7 +1154,7 @@ Module M
         If True Then
         ElseIf False T]]>.Value
 
-        Dim fullTree = VBSyntaxTree.ParseText(code)
+        Dim fullTree = VisualBasicSyntaxTree.ParseText(code)
         Dim fullText = fullTree.GetText()
         Dim newTree = fullTree.WithChangedText(fullText)
         Assert.NotSame(newTree, fullTree) ' Relies on #550027 where WithChangedText returns an instance with changes.
@@ -1172,14 +1172,14 @@ Module M
     End Sub
 End Module]]>.Value
 
-        Dim tree = VBSyntaxTree.ParseText(code)
+        Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Dim oldText = tree.GetText()
         ' insert line break after '='
         Dim span = New TextSpan(code.IndexOf("="c), 0)
         Dim change = New TextChange(span, vbCrLf)
         Dim newText = oldText.WithChanges(change)
         Dim newTree = tree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(578279, "DevDiv")>
@@ -1191,13 +1191,13 @@ End Module]]>.Value
     Private F = 1
 End Class]]>.Value
         Dim oldText = SourceText.From(code)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' insert line break
         Dim position = code.IndexOf("En ")
         Dim change = New TextChange(New TextSpan(position, 2), "End" + vbCrLf)
         Dim newText = oldText.WithChanges(change)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact()>
@@ -1209,13 +1209,13 @@ Module M
     End Function
 End Module]]>.Value
         Dim oldText = SourceText.From(code)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert "Select c" at end of method.
         Dim position = code.IndexOf("    End Function")
         Dim change = New TextChange(New TextSpan(position, 0), "               Select c" + vbCrLf)
         Dim newText = oldText.WithChanges(change)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
 #Region "Async & Iterator"
@@ -1234,13 +1234,13 @@ End Class
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Async"
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1258,13 +1258,13 @@ End Class
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Async"
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1282,13 +1282,13 @@ End Class
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Function "
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="Async Function ")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1306,13 +1306,13 @@ End Class
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Function()"
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="Async Function ")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1329,13 +1329,13 @@ End Class
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Async"
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1352,13 +1352,13 @@ End Class
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Function "
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="Async Function ")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1372,13 +1372,13 @@ End Module
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Iterator"
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1392,13 +1392,13 @@ End Module
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Function "
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="Iterator Function ")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1412,13 +1412,13 @@ End Module
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Iterator"
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1432,13 +1432,13 @@ End Module
 ]]>)
 
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
         Dim str = "Function "
         Dim position = oldText.ToString().IndexOf(str)
         Dim newText = oldText.Replace(start:=position, length:=str.Length, newText:="Iterator Function ")
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
 #End Region
@@ -1457,12 +1457,12 @@ Module M
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Split comment at "#".
         Dim position = oldText.ToString().IndexOf("#")
         Dim newText = oldText.Replace(start:=position, length:=0, newText:=vbCrLf)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(586698, "DevDiv")>
@@ -1487,7 +1487,7 @@ Module Module1
 End Module
 ]]>)
         Dim oldText = SourceText.From(oldSource)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Changes:
         ' 1. "" => "System\r\nImports "
         ' 2. "System\r\nImports " => ""
@@ -1495,7 +1495,7 @@ End Module
             New TextChange(TextSpan.FromBounds(8, 8), "System" + vbCrLf + "Imports "),
             New TextChange(TextSpan.FromBounds(29, 45), ""))
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1521,14 +1521,14 @@ Class C
 End Class
 ]]>)
         Dim oldText = SourceText.From(oldSource)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim startOfNew = newSource.IndexOf("Dim")
         Dim endOfNew = newSource.LastIndexOf("Select") + 6
         Dim startOfOld = startOfNew
         Dim endOfOld = oldSource.Length - newSource.Length + endOfNew
         Dim newText = oldText.Replace(TextSpan.FromBounds(startOfOld, endOfOld), newSource.Substring(startOfNew, endOfNew - startOfNew + 1))
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(604044, "DevDiv")>
@@ -1552,12 +1552,12 @@ End Module
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Add enter after &HFFFFFFFFFF:.
         Dim position = oldText.ToString().IndexOf("&HFFFFFFFFFF:")
         Dim newText = oldText.Replace(start:=position + "&HFFFFFFFFFF:".Length, length:=0, newText:=vbCrLf)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(625612, "DevDiv")>
@@ -1641,7 +1641,7 @@ End Module
 
     Private Sub LabelAfterColon(valid As Boolean, code As String)
         Dim oldText = SourceText.From(code)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim diagnostics = oldTree.GetDiagnostics()
         Assert.Equal(valid, diagnostics.Count = 0)
         ' Replace "70".
@@ -1649,7 +1649,7 @@ End Module
         Dim change = New TextChange(New TextSpan(position, 2), "71")
         Dim newText = oldText.WithChanges(change)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(529260, "DevDiv")>
@@ -1664,13 +1664,13 @@ End Class
 
         ' NOTE: We're using the class statement, rather than the block, because the
         ' change region is expanded enough to impinge on the block.
-        Dim extractGreenClassC As Func(Of SyntaxTree, Syntax.InternalSyntax.VBSyntaxNode) =
-            Function(tree) DirectCast(tree.GetRoot().DescendantNodes().First(Function(n) n.IsKind(SyntaxKind.ClassStatement)), VBSyntaxNode).VbGreen
+        Dim extractGreenClassC As Func(Of SyntaxTree, Syntax.InternalSyntax.VisualBasicSyntaxNode) =
+            Function(tree) DirectCast(tree.GetRoot().DescendantNodes().First(Function(n) n.IsKind(SyntaxKind.ClassStatement)), VisualBasicSyntaxNode).VbGreen
 
                 ''''''''''
                 ' Check reuse after a trivial change in an unannotated tree.
                 ''''''''''
-        Dim oldTree1 = VBSyntaxTree.ParseText(text)
+        Dim oldTree1 = VisualBasicSyntaxTree.ParseText(text)
         Dim newTree1 = oldTree1.WithInsertAt(text.Length, " ")
 
         ' Class declaration is reused.
@@ -1680,14 +1680,14 @@ End Class
         ''''''''''
         ' Check reuse after a trivial change in an annotated tree.
         ''''''''''
-        Dim tempTree2 = VBSyntaxTree.ParseText(text)
+        Dim tempTree2 = VisualBasicSyntaxTree.ParseText(text)
         Dim tempRoot2 = tempTree2.GetRoot()
         Dim tempToken2 = tempRoot2.DescendantTokens().First(Function(t) t.VBKind = SyntaxKind.IdentifierToken)
         Dim oldRoot2 = tempRoot2.ReplaceToken(tempToken2, tempToken2.WithAdditionalAnnotations(New SyntaxAnnotation()))
         Assert.True(oldRoot2.ContainsAnnotations, "Should contain annotations.")
         Assert.Equal(text, oldRoot2.ToFullString())
 
-        Dim oldTree2 = VBSyntaxTree.Create(DirectCast(oldRoot2, VBSyntaxNode), DirectCast(tempTree2.Options, VBParseOptions), tempTree2.FilePath, Encoding.UTF8)
+        Dim oldTree2 = VisualBasicSyntaxTree.Create(DirectCast(oldRoot2, VisualBasicSyntaxNode), DirectCast(tempTree2.Options, VisualBasicParseOptions), tempTree2.FilePath, Encoding.UTF8)
         Dim newTree2 = oldTree2.WithInsertAt(text.Length, " ")
 
         Dim oldClassC2 = extractGreenClassC(oldTree2)
@@ -1738,14 +1738,14 @@ End Namespace
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "Module M"
         Dim TextToAdd As String = ""
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1765,14 +1765,14 @@ Module M
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Sub"
         Dim TextToAdd As String = ""
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1794,14 +1794,14 @@ Module M
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Sub"
         Dim TextToAdd As String = ""
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact()>
@@ -1814,14 +1814,14 @@ Option Explicit On
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Sub"
         Dim TextToAdd As String = "Module Module1" & Environment.NewLine & "Sub Foo()" & Environment.NewLine
         Dim position = 0
         Dim newText = oldText.Replace(start:=position, length:=1, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact()>
@@ -1833,14 +1833,14 @@ Imports System.Collections
 Imports Microsoft.Visualbasic
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Sub"
         Dim TextToAdd As String = "Module Module1" & Environment.NewLine & "Sub Foo()" & Environment.NewLine
         Dim position = 0
         Dim newText = oldText.Replace(start:=position, length:=1, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
 
@@ -1859,14 +1859,14 @@ End Module
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Sub"
         Dim TextToAdd As String = ""
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1891,7 +1891,7 @@ End Module
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "Class SomeClass"
         Dim TextToAdd As String = ""
@@ -1899,7 +1899,7 @@ End Module
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1925,7 +1925,7 @@ End Module
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "Class SomeClass"
         Dim TextToAdd As String = ""
@@ -1933,7 +1933,7 @@ End Module
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1956,14 +1956,14 @@ Module Module1
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "Class SomeClass"
         Dim TextToAdd As String = ""
 
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -1987,14 +1987,14 @@ Namespace NS1
 End Namespace
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "End Module 'Remove"
         Dim TextToAdd As String = ""
 
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -2019,14 +2019,14 @@ Namespace NS1
 End Namespace
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "End Module 'Remove"
         Dim TextToAdd As String = ""
 
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -2049,14 +2049,14 @@ End Namespace
     End Class
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "Sub abc() 'Remove"
         Dim TextToAdd As String = ""
 
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -2080,7 +2080,7 @@ End Class
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Property"
         Dim TextToAdd As String = ""
@@ -2088,7 +2088,7 @@ End Class
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -2182,7 +2182,7 @@ Class OtherClass
 End Class
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Select"
         Dim TextToAdd As String = ""
@@ -2190,7 +2190,7 @@ End Class
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -2214,7 +2214,7 @@ Module Module1
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "RemoveHandler(ByVal value As EventHandler)"
         Dim TextToAdd As String = ""
@@ -2222,7 +2222,7 @@ End Module
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -2248,7 +2248,7 @@ End Module
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "_P = 3"
         Dim TextToAdd As String = ""
@@ -2256,7 +2256,7 @@ End Module
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -2274,7 +2274,7 @@ End Module
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Interface"
         Dim TextToAdd As String = ""
@@ -2282,7 +2282,7 @@ End Module
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact>
@@ -2305,7 +2305,7 @@ End Module
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "End Interface"
         Dim TextToAdd As String = ""
@@ -2313,7 +2313,7 @@ End Module
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     'Skip 66178
@@ -2349,14 +2349,14 @@ Module Module1
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "Case 2, 3"
         Dim TextToAdd As String = ""
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact(skip:="66178")>
@@ -2386,7 +2386,7 @@ End Module
 
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "Catch ex As ArgumentException 'Remove"
         Dim TextToAdd As String = ""
@@ -2394,7 +2394,7 @@ End Module
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact()>
@@ -2414,7 +2414,7 @@ End Module
 End Namespace
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "Module ModuleTemp 'Remove"
         Dim TextToAdd As String = ""
@@ -2422,7 +2422,7 @@ End Namespace
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <Fact(skip:="66178")>
@@ -2449,7 +2449,7 @@ Module Module1
 End Module
 ]]>)
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         Dim TextToRemove As String = "elseIf x = 2 Then"
         Dim TextToAdd As String = ""
@@ -2457,7 +2457,7 @@ End Module
         Dim position = oldText.ToString.IndexOf(TextToRemove)
         Dim newText = oldText.Replace(start:=position, length:=TextToRemove.Length, newText:=TextToAdd)
         Dim newTree = oldTree.WithChangedText(newText)
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(719787, "DevDiv")>
@@ -2478,14 +2478,14 @@ End Namespace
         Dim position = source.Length
         source += vbCrLf
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Add "Delegate" to end of file between line breaks.
         Dim newText = oldText.Replace(start:=position, length:=0, newText:="Delegate")
         Dim newTree = oldTree.WithChangedText(newText)
         Dim diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree)
         ' Most of the Namespace should have been reused.
         Assert.False(diffs.Any(Function(n) n.IsKind(SyntaxKind.StructureStatement)))
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
     <WorkItem(719787, "DevDiv")>
@@ -2530,7 +2530,7 @@ Class C
 End Class
 ]]>.Value.Trim()
         Dim oldText = SourceText.From(source)
-        Dim oldTree = VBSyntaxTree.ParseText(oldText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim toReplace = "' Comment"
         Dim position = source.IndexOf(toReplace)
         ' Replace "' Comment" with "Property"
@@ -2539,13 +2539,13 @@ End Class
         Dim diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree)
         ' The ElseIfBlocks should have been reused.
         Assert.False(diffs.Any(Function(n) n.IsKind(SyntaxKind.ElseIfBlock)))
-        VerifyEquivalent(newTree, VBSyntaxTree.ParseText(newText))
+        VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
 #Region "Helpers"
 
-    Private Shared Function GetTokens(root As SyntaxNode) As InternalSyntax.VBSyntaxNode()
-        Return root.DescendantTokens().Select(Function(t) DirectCast(t.Node, InternalSyntax.VBSyntaxNode)).ToArray()
+    Private Shared Function GetTokens(root As SyntaxNode) As InternalSyntax.VisualBasicSyntaxNode()
+        Return root.DescendantTokens().Select(Function(t) DirectCast(t.Node, InternalSyntax.VisualBasicSyntaxNode)).ToArray()
     End Function
 
     Private Shared Sub VerifyTokensEquivalent(rootA As SyntaxNode, rootB As SyntaxNode)

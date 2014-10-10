@@ -7,7 +7,7 @@ Imports System.Xml
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Public Class VBCompilation
+    Partial Public Class VisualBasicCompilation
 
         Partial Friend Class DocumentationCommentCompiler
             Inherits VisualBasicSymbolVisitor

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SpeculativeBinder(containingBinder)
         End Function
 
-        Public Overrides Function GetSyntaxReference(node As VBSyntaxNode) As SyntaxReference
+        Public Overrides Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
             Throw New NotSupportedException()   ' shouldn't happen within speculative binding.
         End Function
 

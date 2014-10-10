@@ -406,8 +406,8 @@ BC30487: Operator '-' is not defined for type 'Date'.
         <Fact>
         Public Sub Test3()
 
-            Dim c1 = VBCompilation.Create("Test3",
-                syntaxTrees:={VBSyntaxTree.ParseText(
+            Dim c1 = VisualBasicCompilation.Create("Test3",
+                syntaxTrees:={VisualBasicSyntaxTree.ParseText(
 <text>
 Option Strict Off
 
@@ -696,7 +696,7 @@ End Class
         Private Sub TestIntrinsicSymbol(
             op As UnaryOperatorKind,
             type As TypeSymbol,
-            compilation As VBCompilation,
+            compilation As VisualBasicCompilation,
             semanticModel As SemanticModel,
             node1 As UnaryExpressionSyntax,
             node2 As UnaryExpressionSyntax,

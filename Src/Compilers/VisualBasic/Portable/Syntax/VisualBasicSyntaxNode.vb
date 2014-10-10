@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' The base class for all nodes in the VB syntax tree.
     ''' </summary>
-    Partial Public MustInherit Class VBSyntaxNode
+    Partial Public MustInherit Class VisualBasicSyntaxNode
         Inherits SyntaxNode
 
         ' Constructor. Called only by derived classes.
@@ -38,9 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         'TODO: may be eventually not needed
-        Friend ReadOnly Property VbGreen As InternalSyntax.VBSyntaxNode
+        Friend ReadOnly Property VbGreen As InternalSyntax.VisualBasicSyntaxNode
             Get
-                Return DirectCast(Me.Green, InternalSyntax.VBSyntaxNode)
+                Return DirectCast(Me.Green, InternalSyntax.VisualBasicSyntaxNode)
             End Get
         End Property
 
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a clone of a red node that can be used as a root of given syntaxTree.
         ''' New node has no parents, position == 0, and syntaxTree as specified.
         ''' </summary>
-        Friend Shared Function CloneNodeAsRoot(Of T As VBSyntaxNode)(node As T, syntaxTree As SyntaxTree) As T
+        Friend Shared Function CloneNodeAsRoot(Of T As VisualBasicSyntaxNode)(node As T, syntaxTree As SyntaxTree) As T
             Dim clone = DirectCast(node.Green.CreateRed(Nothing, 0), T)
             clone._syntaxTree = syntaxTree
 
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If tree Is Nothing Then
                         Debug.Assert(rootCandidate IsNot Nothing)
-                        tree = VBSyntaxTree.CreateWithoutClone(DirectCast(rootCandidate, VBSyntaxNode))
+                        tree = VisualBasicSyntaxTree.CreateWithoutClone(DirectCast(rootCandidate, VisualBasicSyntaxNode))
                     End If
 
                     Debug.Assert(tree IsNot Nothing)
@@ -102,9 +102,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public MustOverride Function Accept(Of TResult)(visitor As VBSyntaxVisitor(Of TResult)) As TResult
+        Public MustOverride Function Accept(Of TResult)(visitor As VisualBasicSyntaxVisitor(Of TResult)) As TResult
 
-        Public MustOverride Sub Accept(visitor As VBSyntaxVisitor)
+        Public MustOverride Sub Accept(visitor As VisualBasicSyntaxVisitor)
 
         ''' <summary>
         ''' The kind of this node.
@@ -138,9 +138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The parent of this node.
         ''' </summary>
         ''' <value>The parent node of this node, or Nothing if this node is the root.</value>
-        Friend Shadows ReadOnly Property Parent As VBSyntaxNode
+        Friend Shadows ReadOnly Property Parent As VisualBasicSyntaxNode
             Get
-                Return DirectCast(MyBase.Parent, VBSyntaxNode)
+                Return DirectCast(MyBase.Parent, VisualBasicSyntaxNode)
             End Get
         End Property
 
@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
             Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxNode_DeserializeFrom, cancellationToken:=cancellationToken)
                 Using reader = New ObjectReader(stream, defaultData:=GetDefaultObjectReaderData(), binder:=_binder)
-                    Return DirectCast(reader.ReadValue(), InternalSyntax.VBSyntaxNode).CreateRed(Nothing, 0)
+                    Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
                 End Using
             End Using
         End Function
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim data = New Object() {
                     GetType(Object).GetTypeInfo().Assembly.FullName,
                     GetType(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName,
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.VBSyntaxNode).GetTypeInfo().Assembly.FullName,
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).GetTypeInfo().Assembly.FullName,
                     GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxToken.TriviaInfo),
                     GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SimpleIdentifierSyntax),
                     GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ComplexIdentifierSyntax),
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     nodeOrToken = nodesToProcess.Pop()
                     Dim node = nodeOrToken.UnderlyingNode
                     If node.ContainsDiagnostics Then
-                        Dim errors = DirectCast(node, Syntax.InternalSyntax.VBSyntaxNode).GetDiagnostics
+                        Dim errors = DirectCast(node, Syntax.InternalSyntax.VisualBasicSyntaxNode).GetDiagnostics
                         If errors IsNot Nothing Then
                             For i = 0 To errors.Count - 1
                                 Dim greenError = errors(i)
@@ -374,9 +374,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(n.VBKind <> SyntaxKind.None)
                 If n.UnderlyingNode.ContainsDiagnostics Then
                     If n.HasStructure Then
-                        stack.Push(DirectCast(n.GetStructure, VBSyntaxNode))
+                        stack.Push(DirectCast(n.GetStructure, VisualBasicSyntaxNode))
                     Else
-                        Dim errors = DirectCast(n.UnderlyingNode, InternalSyntax.VBSyntaxNode).GetDiagnostics
+                        Dim errors = DirectCast(n.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode).GetDiagnostics
                         If errors IsNot Nothing Then
                             For i = 0 To errors.Length - 1
                                 Dim e = errors(i)
@@ -408,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Compares to tree for structural equivalence.
         ''' </summary>
-        Friend Shadows Function IsEquivalentTo(other As VBSyntaxNode) As Boolean
+        Friend Shadows Function IsEquivalentTo(other As VisualBasicSyntaxNode) As Boolean
             If other Is Nothing Then
                 Return False
             End If
@@ -428,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A new node, with no parent, that has this error added to it.</returns>
         ''' <remarks>Since nodes are immutable, the only way to create nodes with errors attached is to create a node without an error,
         ''' then add an error with this method to create another node.</remarks>
-        Friend Function AddError(err As DiagnosticInfo) As VBSyntaxNode
+        Friend Function AddError(err As DiagnosticInfo) As VisualBasicSyntaxNode
             Dim errorInfos() As DiagnosticInfo
 
             ' If the green node already has errors, add those on.
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' convert to red node with no parent.
             Dim result = greenWithDiagnostics.CreateRed(Nothing, 0)
             Debug.Assert(result IsNot Nothing)
-            Return DirectCast(result, VBSyntaxNode)
+            Return DirectCast(result, VisualBasicSyntaxNode)
         End Function
 
         Public Shadows Function GetFirstToken(Optional includeZeroWidth As Boolean = False,
@@ -474,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each child In Me.ChildNodesAndTokens()
                 If child.ContainsDirectives Then
                     If child.IsNode Then
-                        Dim d As DirectiveTriviaSyntax = DirectCast(child.AsNode, VBSyntaxNode).GetFirstDirective(predicate)
+                        Dim d As DirectiveTriviaSyntax = DirectCast(child.AsNode, VisualBasicSyntaxNode).GetFirstDirective(predicate)
                         If d IsNot Nothing Then
                             Return d
                         End If
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each child In Me.ChildNodesAndTokens().Reverse
                 If child.ContainsDirectives Then
                     If child.IsNode Then
-                        Dim d As DirectiveTriviaSyntax = DirectCast(child.AsNode, VBSyntaxNode).GetLastDirective(predicate)
+                        Dim d As DirectiveTriviaSyntax = DirectCast(child.AsNode, VisualBasicSyntaxNode).GetLastDirective(predicate)
                         If d IsNot Nothing Then
                             Return d
                         End If
@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 For Each trivia In token.LeadingTrivia
                                     If textOffset < trivia.FullWidth Then
                                         If trivia.HasStructure AndAlso stepInto IsNot Nothing AndAlso stepInto(trivia) Then
-                                            Return FindTriviaByOffset(DirectCast(trivia.GetStructure(), VBSyntaxNode), textOffset, stepInto)
+                                            Return FindTriviaByOffset(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode), textOffset, stepInto)
                                         End If
 
                                         Return trivia
@@ -547,7 +547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 For Each trivia In token.TrailingTrivia
                                     If textOffset < trivia.FullWidth Then
                                         If trivia.HasStructure AndAlso stepInto IsNot Nothing AndAlso stepInto(trivia) Then
-                                            Return FindTriviaByOffset(DirectCast(trivia.GetStructure(), VBSyntaxNode), textOffset, stepInto)
+                                            Return FindTriviaByOffset(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode), textOffset, stepInto)
                                         End If
 
                                         Return trivia
@@ -587,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Core Overloads"
         Protected NotOverridable Overrides Function EquivalentToCore(other As SyntaxNode) As Boolean
-            Return Me.IsEquivalentTo(TryCast(other, VBSyntaxNode))
+            Return Me.IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
         End Function
 
         Protected NotOverridable Overrides Function FindTokenCore(position As Integer, findInsideTrivia As Boolean) As SyntaxToken
@@ -684,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function IsEquivalentToCore(node As SyntaxNode, Optional topLevel As Boolean = False) As Boolean
-            Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VBSyntaxNode), topLevel)
+            Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
         End Function
 
     End Class

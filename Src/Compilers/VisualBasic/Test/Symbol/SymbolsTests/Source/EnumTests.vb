@@ -1303,7 +1303,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
             Return VerifyEnumsValue(comp, enumName, underlyingType, expectedEnumValues)
         End Function
 
-        Private Shared Function VerifyEnumsValue(comp As VBCompilation, enumName As String, underlyingType As SpecialType, ParamArray expectedEnumValues As Object()) As List(Of Symbol)
+        Private Shared Function VerifyEnumsValue(comp As VisualBasicCompilation, enumName As String, underlyingType As SpecialType, ParamArray expectedEnumValues As Object()) As List(Of Symbol)
             Dim symEnum = TryCast(GetSymbolByFullName(comp, enumName), NamedTypeSymbol)
             Assert.NotNull(symEnum)
 
@@ -1337,7 +1337,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
             Return fields.ToList()
         End Function
 
-        Private Shared Function GetSymbolByFullName(compilation As VBCompilation, memberName As String) As Symbol
+        Private Shared Function GetSymbolByFullName(compilation As VisualBasicCompilation, memberName As String) As Symbol
             Dim names As String() = memberName.Split("."c)
             Dim currentSymbol As Symbol = compilation.GlobalNamespace
             For Each name In names

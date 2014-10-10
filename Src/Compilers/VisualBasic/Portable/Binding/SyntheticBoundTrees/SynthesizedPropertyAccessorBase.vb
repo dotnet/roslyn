@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim propertySymbol = DirectCast(accessor.AssociatedSymbol, PropertySymbol)
 
-            Dim syntax = DirectCast(VisualBasic.VBSyntaxTree.Dummy.GetRoot(), VBSyntaxNode)
+            Dim syntax = DirectCast(VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot(), VisualBasicSyntaxNode)
             Dim meSymbol As ParameterSymbol = Nothing
             Dim meReference As BoundExpression = Nothing
 

@@ -4368,7 +4368,7 @@ End Namespace
                     End Sub
                 End Module
             ]]>,
-        VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+        VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42302" warning="True"/>
         </errors>)
@@ -4403,7 +4403,7 @@ End Namespace
                         '''
                     End Sub
                 End Module
-            ]]>, VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+            ]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
     End Sub
 
     ' old name -ParseNestedCDATA_ERR_ExpectedLT
@@ -4424,7 +4424,7 @@ End Namespace
     -->.Value
         ParseAndVerify(code)
         ParseAndVerify(code,
-                       VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+                       VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
                        <errors>
                            <error id="42304" warning="True"/>
                        </errors>)
@@ -4666,12 +4666,12 @@ BC31042: 'Sub New' cannot implement interface members.
     Public Sub BC30182_ERR_UnrecognizedType()
 
         Dim Keypair = New KeyValuePair(Of String, Object)("CompErrorTest", -1)
-        Dim opt = VBParseOptions.Default.WithPreprocessorSymbols(Keypair)
+        Dim opt = VisualBasicParseOptions.Default.WithPreprocessorSymbols(Keypair)
 
         Dim code = <![CDATA[
     Protected Property p As New
     ]]>.Value
-        VBSyntaxTree.ParseText(code, options:=opt, path:="")
+        VisualBasicSyntaxTree.ParseText(code, options:=opt, path:="")
     End Sub
 
     <WorkItem(541284, "DevDiv")>
@@ -4684,7 +4684,7 @@ I<
  
     ]]>.Value
         code = code & ChrW(0)
-        VBSyntaxTree.ParseText(code)
+        VisualBasicSyntaxTree.ParseText(code)
     End Sub
 
     <WorkItem(541286, "DevDiv")>
@@ -4698,7 +4698,7 @@ I<
     End Operator
 End Class
     ]]>.Value
-        VBSyntaxTree.ParseText(code)
+        VisualBasicSyntaxTree.ParseText(code)
     End Sub
 
     <WorkItem(541291, "DevDiv")>
@@ -4707,7 +4707,7 @@ End Class
         Dim code = <![CDATA[Dim=<><%=">
 <
     ]]>.Value
-        Dim tree = VBSyntaxTree.ParseText(code)
+        Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
 
@@ -4715,7 +4715,7 @@ End Class
     <Fact()>
     Public Sub RoundTrip_1()
         Dim code = <![CDATA[Property)As new t(Of Integer) FROM {1, 2, 3}]]>.Value
-        Dim tree = VBSyntaxTree.ParseText(code)
+        Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
 
@@ -4725,7 +4725,7 @@ End Class
         Dim code = <![CDATA[Dim=<><%={%>
 <
     ]]>.Value
-        Dim tree = VBSyntaxTree.ParseText(code)
+        Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
 
@@ -4734,7 +4734,7 @@ End Class
     Public Sub ManySkippedTokens()
         Const numTokens As Integer = 500000 ' Prohibitively slow without fix.
         Dim source As New String("`"c, numTokens)
-        Dim tree = VBSyntaxTree.ParseText(source)
+        Dim tree = VisualBasicSyntaxTree.ParseText(source)
         Dim emptyStatement = tree.GetRoot().DescendantNodes().OfType(Of EmptyStatementSyntax).Single()
         Assert.Equal(numTokens, emptyStatement.FullWidth)
         Assert.Equal(numTokens, emptyStatement.GetTrailingTrivia().Single().GetStructure().DescendantTokens().Count) ' Confirm that we built a list.

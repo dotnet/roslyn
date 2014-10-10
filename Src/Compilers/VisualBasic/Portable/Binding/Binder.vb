@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Caching these items in the nearest binder is a performance win.
         Private ReadOnly m_syntaxTree As SyntaxTree
-        Private ReadOnly m_compilation As VBCompilation
+        Private ReadOnly m_compilation As VisualBasicCompilation
         Private ReadOnly m_sourceModule As SourceModuleSymbol
         Private ReadOnly m_isEarlyAttributeBinder As Boolean
         Private ReadOnly m_ignoreBaseClassesInLookup As Boolean
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             m_syntaxTree = syntaxTree
         End Sub
 
-        Protected Sub New(containingBinder As Binder, sourceModule As SourceModuleSymbol, compilation As VBCompilation)
+        Protected Sub New(containingBinder As Binder, sourceModule As SourceModuleSymbol, compilation As VisualBasicCompilation)
             Me.New(containingBinder)
             m_sourceModule = sourceModule
             m_compilation = compilation
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Some nodes have special binder's for their contents
         ''' </summary>
-        Public Overridable Function GetBinder(node As VBSyntaxNode) As Binder
+        Public Overridable Function GetBinder(node As VisualBasicSyntaxNode) As Binder
             Return m_containingBinder.GetBinder(node)
         End Function
 
@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         ''' type isn't found.
         ''' </summary>
-        Friend Function GetWellKnownType(type As WellKnownType, syntax As VBSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+        Friend Function GetWellKnownType(type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol As NamedTypeSymbol = Me.Compilation.GetWellKnownType(type)
             Debug.Assert(typeSymbol IsNot Nothing)
 
@@ -456,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the assembly version that generates a diagnostic if the well-known
         ''' member isn't found.
         ''' </summary>
-        Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As VBSyntaxNode, diagnostics As DiagnosticBag) As Symbol
+        Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
             Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(Me.ContainingMember.ContainingAssembly, member, useSiteError)
 
@@ -485,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         ''' member isn't found.
         ''' </summary>
-        Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As VBSyntaxNode, diagBag As DiagnosticBag) As Symbol
+        Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
             Dim memberSymbol As Symbol = GetWellKnownTypeMember(Me.Compilation, member, useSiteError)
 
@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return memberSymbol
         End Function
 
-        Friend Shared Function GetWellKnownTypeMember(compilation As VBCompilation, member As WellKnownMember, ByRef useSiteError As DiagnosticInfo) As Symbol
+        Friend Shared Function GetWellKnownTypeMember(compilation As VisualBasicCompilation, member As WellKnownMember, ByRef useSiteError As DiagnosticInfo) As Symbol
             Dim memberSymbol As Symbol = compilation.GetWellKnownTypeMember(member)
 
             useSiteError = GetUseSiteErrorForWellKnownTypeMember(memberSymbol, member, compilation.Options.EmbedVbCoreRuntime)
@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get the compilation.
         ''' </summary>
-        Public ReadOnly Property Compilation As VBCompilation
+        Public ReadOnly Property Compilation As VisualBasicCompilation
             Get
                 Return m_compilation
             End Get
@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get a SyntaxReference associated with a given syntax node.
         ''' </summary>
-        Public Overridable Function GetSyntaxReference(node As VBSyntaxNode) As SyntaxReference
+        Public Overridable Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
             Return m_containingBinder.GetSyntaxReference(node)
         End Function
 
@@ -794,11 +794,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' information to report diagnostics, then store the symbols so that diagnostics
         ''' can be reported at a later stage.
         ''' </summary>
-        Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As VBSyntaxNode)
+        Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As VisualBasicSyntaxNode)
             ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
         End Sub
 
-        Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As VBSyntaxNode)
+        Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As VisualBasicSyntaxNode)
             Debug.Assert(context IsNot Nothing)
             Debug.Assert(symbol IsNot Nothing)
 
@@ -910,7 +910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Function ReportUseSiteErrorForSynthesizedAttribute(
             attributeCtor As WellKnownMember,
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             diagnostics As DiagnosticBag
         ) As Boolean
             Dim useSiteError As DiagnosticInfo = Nothing
@@ -936,7 +936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function ReportUseSiteErrorForSynthesizedAttribute(
             attributeCtor As WellKnownMember,
-            compilation As VBCompilation,
+            compilation As VisualBasicCompilation,
             location As Location,
             diagnostics As DiagnosticBag
         ) As Boolean

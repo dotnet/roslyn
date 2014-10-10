@@ -1040,7 +1040,7 @@ Class RedNodeWriter
         _writer.WriteLine("                Return{0}", If(withResult, " Nothing", ""))
         _writer.WriteLine("            End If")
         _writer.WriteLine("")
-        _writer.WriteLine("            {0}DirectCast(node, VBSyntaxNode).Accept(Me){1}", If(withResult, "Return ", ""), If(withResult, "", ": Return"))
+        _writer.WriteLine("            {0}DirectCast(node, VisualBasicSyntaxNode).Accept(Me){1}", If(withResult, "Return ", ""), If(withResult, "", ": Return"))
         _writer.WriteLine("        End {0}", If(withResult, "Function", "Sub"))
 
         _writer.WriteLine("        Public Overridable {0} DefaultVisit(ByVal node As SyntaxNode){1}",
@@ -1151,7 +1151,7 @@ Class RedNodeWriter
         For Each child In allChildren
             If child.IsList Then
                 If KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.Write(", DirectCast({0}.Node, Syntax.InternalSyntax.VBSyntaxNode)", ChildNewVarName(child))
+                    _writer.Write(", DirectCast({0}.Node, Syntax.InternalSyntax.VisualBasicSyntaxNode)", ChildNewVarName(child))
                 Else
                     _writer.Write(", {0}.Node", ChildNewVarName(child))
                 End If

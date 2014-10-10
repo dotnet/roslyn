@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' The field of the generated iterator class that underlies the Current property.
             ''' </summary>
             Private ReadOnly _current As FieldSymbol
-            Private ReadOnly _originalMethodDeclaration As VBSyntaxNode
+            Private ReadOnly _originalMethodDeclaration As VisualBasicSyntaxNode
 
             Private _exitLabel As LabelSymbol
             Private _methodValue As LocalSymbol
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Protected Overrides Function MaterializeProxy(origExpression As BoundExpression, proxy As FieldSymbol) As BoundNode
-                Dim syntax As VBSyntaxNode = Me.F.Syntax
+                Dim syntax As VisualBasicSyntaxNode = Me.F.Syntax
                 Dim framePointer As BoundExpression = Me.FramePointer(syntax, proxy.ContainingType)
                 Dim proxyFieldParented = proxy.AsMember(DirectCast(framePointer.Type, NamedTypeSymbol))
                 Return Me.F.Field(framePointer, proxyFieldParented, origExpression.IsLValue)

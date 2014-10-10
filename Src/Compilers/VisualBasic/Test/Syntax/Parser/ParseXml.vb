@@ -212,7 +212,7 @@ End Class
 Class C
 End Class
             ]]>,
-            VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+            VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
             <errors>
                 <error id="42304"/>
                 <error id="42304"/>
@@ -1914,7 +1914,7 @@ End Module
         '                   0123456789ABC
         Dim code = <![CDATA[Dim=<><%=">
 <]]>.Value
-        Dim tree = VBSyntaxTree.ParseText(code)
+        Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
 
@@ -1952,7 +1952,7 @@ End Module
 
 
 ]]>,
-            VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+            VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
             Diagnostic(ERRID.WRN_XMLDocParseError1, "</").WithArguments("error BC31207: XML end element must be preceded by a matching start element."),
             Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("error BC30636: '>' expected."))
     End Sub

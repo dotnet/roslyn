@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Attribute Decoding"
 
-        Friend Function IsSecurityAttribute(comp As VBCompilation) As Boolean
+        Friend Function IsSecurityAttribute(comp As VisualBasicCompilation) As Boolean
             ' CLI spec (Partition II Metadata), section 21.11 "DeclSecurity : 0x0E" states:
             ' SPEC:    If the attribute’s type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
             ' SPEC:    it is a security custom attribute and requires special treatment.
@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return m_lazyIsSecurityAttribute.Value
         End Function
 
-        Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VBCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim hasErrors As Boolean = False
             Dim action As Cci.SecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, arguments.Diagnostics)
             If Not hasErrors Then
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function DecodeSecurityAttributeAction(
             targetSymbol As Symbol,
-            compilation As VBCompilation,
+            compilation As VisualBasicCompilation,
             nodeOpt As AttributeSyntax,
             ByRef hasErrors As Boolean,
             diagnostics As DiagnosticBag
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' See <see cref="Microsoft.CodeAnalysis.CodeGen.PermissionSetAttributeWithFileReference"/> for remaining fixup steps.
         ''' </remarks>
         ''' <returns>String containing the resolved file path if PermissionSetAttribute needs fixup during codegen, null otherwise.</returns>
-        Friend Function DecodePermissionSetAttribute(compilation As VBCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation)) As String
+        Friend Function DecodePermissionSetAttribute(compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation)) As String
             Dim resolvedFilePath As String = Nothing
             Dim namedArgs = Me.CommonNamedArguments
 

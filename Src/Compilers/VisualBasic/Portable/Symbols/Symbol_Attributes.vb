@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function GetAttributesToBind(attributeDeclarationSyntaxLists As OneOrMany(Of SyntaxList(Of AttributeListSyntax)),
                                              symbolPart As AttributeLocation,
-                                             compilation As VBCompilation,
+                                             compilation As VisualBasicCompilation,
                                              <Out> ByRef binders As ImmutableArray(Of Binder)) As ImmutableArray(Of AttributeSyntax)
 
             Dim attributeTarget = DirectCast(Me, IAttributeTargetSymbol)
@@ -492,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ValidateAttributeUsage(
             attribute As VisualBasicAttributeData,
             node As AttributeSyntax,
-            compilation As VBCompilation,
+            compilation As VisualBasicCompilation,
             symbolPart As AttributeLocation,
             diagnostics As DiagnosticBag,
             uniqueAttributeTypes As HashSet(Of NamedTypeSymbol)) As Boolean
@@ -593,7 +593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Sub ReportExtensionAttributeUseSiteError(attribute As VisualBasicAttributeData, nodeOpt As AttributeSyntax, compilation As VBCompilation, diagnostics As DiagnosticBag)
+        Private Sub ReportExtensionAttributeUseSiteError(attribute As VisualBasicAttributeData, nodeOpt As AttributeSyntax, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag)
             ' report issues with a custom extension attribute everywhere, where the attribute is used in source
             ' (we will not report in location where it's implicitly used (like the containing module or assembly of extension methods)
             Dim useSiteError As DiagnosticInfo = Nothing
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub MarkEmbeddedAttributeTypeReference(attribute As VisualBasicAttributeData, nodeOpt As AttributeSyntax, compilation As VBCompilation)
+        Private Sub MarkEmbeddedAttributeTypeReference(attribute As VisualBasicAttributeData, nodeOpt As AttributeSyntax, compilation As VisualBasicCompilation)
             Debug.Assert(Not attribute.HasErrors)
 
             ' Mark embedded attribute type reference only if the owner is itself not

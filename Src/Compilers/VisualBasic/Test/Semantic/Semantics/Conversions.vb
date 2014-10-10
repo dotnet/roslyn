@@ -30,7 +30,7 @@ Class C1
     End Sub
 End Class
 </file>
-            Dim dummyTree = VBSyntaxTree.ParseText(dummyCode.Value)
+            Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
             ' Tests are based on the source code used to compile VBConversions.dll, VBConversions.vb is
             ' checked in next to the DLL.
@@ -38,7 +38,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VBCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -97,9 +97,9 @@ End Class
             Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(u), m13p(v), methodBodyBinder)) ' Integer()) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of Integer' because 'MT4' is not derived from 'Integer'.
             Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(v), m13p(u), methodBodyBinder)) ' MT4())     'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of MT4' because 'Integer' is not derived from 'MT4'.
 
-            Dim [nothing] = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), VBSyntaxNode), ConstantValue.Nothing, Nothing)
-            Dim intZero = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), VBSyntaxNode), ConstantValue.Create(0I), m13p(c))
-            Dim longZero = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), VBSyntaxNode), ConstantValue.Create(0L), m13p(d))
+            Dim [nothing] = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), ConstantValue.Nothing, Nothing)
+            Dim intZero = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), ConstantValue.Create(0I), m13p(c))
+            Dim longZero = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), ConstantValue.Create(0L), m13p(d))
 
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyDirectCastAssignment(m13p(a), [nothing], methodBodyBinder))
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyDirectCastAssignment(m13p(b), [nothing], methodBodyBinder))
@@ -218,9 +218,9 @@ Class C1
     End Sub
 End Class
 </file>
-            Dim dummyTree = VBSyntaxTree.ParseText(dummyCode.Value)
+            Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VBCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -268,7 +268,7 @@ End Class
 
             ' -------------- NOTHING literal conversions
 
-            Dim _nothing = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), VBSyntaxNode), ConstantValue.Nothing, Nothing)
+            Dim _nothing = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), ConstantValue.Nothing, Nothing)
 
             Dim resultValue As ConstantValue
             Dim integerOverflow As Boolean
@@ -308,7 +308,7 @@ End Class
             For Each integralType In integralTypes
 
                 Dim zero = ConstantValue.Default(integralType.GetConstantValueTypeDiscriminator())
-                literal = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), VBSyntaxNode), zero, integralType)
+                literal = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), zero, integralType)
                 constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), literal, ConversionKind.Widening, True, True, zero, integralType, Nothing)
 
                 Assert.Equal(If(integralType Is int32Type, ConversionKind.WideningNumeric Or ConversionKind.InvolvesEnumTypeConversions, If(integralType Is typeCodeType, ConversionKind.Identity, ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions)),
@@ -335,7 +335,7 @@ End Class
                     Dim zero = ConstantValue.Default(If(convertibleType.IsStringType(), ConstantValueTypeDiscriminator.Nothing, convertibleType.GetConstantValueTypeDiscriminator()))
 
                     If convertibleType.IsStringType() Then
-                        literal = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), VBSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.WideningNothingLiteral, False, True, zero, convertibleType, Nothing)
+                        literal = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.WideningNothingLiteral, False, True, zero, convertibleType, Nothing)
                     Else
                         literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), zero, convertibleType)
                     End If
@@ -366,7 +366,7 @@ End Class
                 Dim zero = ConstantValue.Default(If(type1.IsStringType(), ConstantValueTypeDiscriminator.Nothing, type1.GetConstantValueTypeDiscriminator()))
 
                 If type1.IsStringType() Then
-                    literal = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.WideningNothingLiteral, False, True, zero, type1, Nothing)
+                    literal = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.WideningNothingLiteral, False, True, zero, type1, Nothing)
                 Else
                     literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), zero, type1)
                 End If
@@ -625,7 +625,7 @@ End Class
 
                 literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), v, mv.Type)
                 constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing),
-                                               New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), ConstantValue.Null, Nothing),
+                                               New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Null, Nothing),
                                                ConversionKind.Widening, True, True, v, mv.Type, Nothing)
 
                 For Each numericType In numericTypes
@@ -749,7 +749,7 @@ End Class
                     End If
 
                     Dim nullableType2 = nullableType.Construct(numericType)
-                    Dim zero = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, ConstantValue.Default(mv.Type.GetConstantValueTypeDiscriminator()), mv.Type, Nothing)
+                    Dim zero = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, ConstantValue.Default(mv.Type.GetConstantValueTypeDiscriminator()), mv.Type, Nothing)
 
                     conv = ClassifyConversion(mv.Type, nullableType2) Or
                         (ClassifyConversion(zero, nullableType2, methodBodyBinder) And ConversionKind.InvolvesNarrowingFromNumericConstant)
@@ -1073,9 +1073,9 @@ Class C1
     End Sub
 End Class
 </file>
-            Dim dummyTree = VBSyntaxTree.ParseText(dummyCode.Value)
+            Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VBCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib},
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib},
                                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
@@ -1122,7 +1122,7 @@ End Class
 
             Dim floatingTypes = New HashSet(Of TypeSymbol)({doubleType, singleType})
 
-            Dim _nothing = New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), ConstantValue.Nothing, Nothing)
+            Dim _nothing = New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Nothing, Nothing)
 
             Dim resultValue As ConstantValue
             Dim integerOverflow As Boolean
@@ -1189,7 +1189,7 @@ End Class
 
                 literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), v, mv.Type)
                 constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing),
-                                               New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VBSyntaxNode), ConstantValue.Null, Nothing),
+                                               New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Null, Nothing),
                                                ConversionKind.Widening, True, True, v, mv.Type, Nothing)
 
                 For Each numericType In numericTypes
@@ -1439,7 +1439,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VBCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim asmVBConversions = c1.GetReferencedAssemblySymbol(vbConversionsRef)
             Dim asmModifiers = c1.GetReferencedAssemblySymbol(modifiersRef)
@@ -2028,7 +2028,7 @@ End Class
         <Fact()>
         Public Sub BuiltIn()
 
-            Dim c1 = VBCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib})
 
             Dim nullable = c1.GetSpecialType(System_Nullable_T)
 
@@ -2768,7 +2768,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -2822,7 +2822,7 @@ End Class
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "TI1Array").WithArguments("TestInterface1()", "Integer()", "TestInterface1", "Integer"),
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "InArray").WithArguments("Integer()", "TestInterface1()", "Integer", "TestInterface1"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -2873,7 +2873,7 @@ End Class
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "TI1Array").WithArguments("TestInterface1()", "Integer()", "TestInterface1", "Integer"),
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "InArray").WithArguments("Integer()", "TestInterface1()", "Integer", "TestInterface1"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -3039,7 +3039,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3076,7 +3076,7 @@ End Class
                 Diagnostic(ERRID.ERR_IdentityDirectCastForFloat, "[Do]"),
                 Diagnostic(ERRID.ERR_TypeMismatch2, "Si").WithArguments("Single", "Double"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3216,7 +3216,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3244,7 +3244,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeMismatch2, "St").WithArguments("String", "Char()"),
                 Diagnostic(ERRID.ERR_TryCastOfUnconstrainedTypeParam1, "T").WithArguments("T"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -4020,7 +4020,7 @@ Public Module Program
         Console.WriteLine(x.ToString)
     End Sub
 End Module]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
             CompileAndVerify(vbCompilation, expectedOutput:="A").VerifyDiagnostics()
         End Sub
 
@@ -4059,7 +4059,7 @@ End Module
 </text>.Value
 
             Dim tree = Parse(source)
-            Dim c As VBCompilation = VBCompilation.Create("MyCompilation").AddReferences(MscorlibRef).AddSyntaxTrees(tree)
+            Dim c As VisualBasicCompilation = VisualBasicCompilation.Create("MyCompilation").AddReferences(MscorlibRef).AddSyntaxTrees(tree)
 
             Dim model = c.GetSemanticModel(tree)
 
@@ -4145,7 +4145,7 @@ End Module
 </text>.Value
 
             Dim tree = Parse(source)
-            Dim c As VBCompilation = VBCompilation.Create("MyCompilation").AddReferences(MscorlibRef).AddSyntaxTrees(tree)
+            Dim c As VisualBasicCompilation = VisualBasicCompilation.Create("MyCompilation").AddReferences(MscorlibRef).AddSyntaxTrees(tree)
 
             Dim model = c.GetSemanticModel(tree)
 

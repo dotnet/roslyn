@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         ' Check that the given symbol has the expected number of declaring syntax nodes.
         ' and that each declared node goes back to the given symbol.
-        Private Function CheckDeclaringSyntaxNodes(compilation As VBCompilation, symbol As Symbol, expectedNumber As Integer) As ImmutableArray(Of SyntaxReference)
+        Private Function CheckDeclaringSyntaxNodes(compilation As VisualBasicCompilation, symbol As Symbol, expectedNumber As Integer) As ImmutableArray(Of SyntaxReference)
             Dim declaringNodes As ImmutableArray(Of SyntaxReference) = symbol.DeclaringSyntaxReferences
             Assert.Equal(expectedNumber, declaringNodes.Length)
             If expectedNumber = 0 Then
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return declaringNodes
         End Function
 
-        Private Function CheckDeclaringSyntaxNodesIncludingParameters(compilation As VBCompilation, symbol As Symbol, expectedNumber As Integer) As ImmutableArray(Of SyntaxReference)
+        Private Function CheckDeclaringSyntaxNodesIncludingParameters(compilation As VisualBasicCompilation, symbol As Symbol, expectedNumber As Integer) As ImmutableArray(Of SyntaxReference)
             Dim nodes As ImmutableArray(Of SyntaxReference) = CheckDeclaringSyntaxNodes(compilation, symbol, expectedNumber)
             Dim meth As MethodSymbol = TryCast(symbol, MethodSymbol)
             If meth IsNot Nothing Then
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         ' Check that the given symbol has the expected number of declaring syntax nodes.
         ' and that the syntax has the expected kind. Does NOT test GetDeclaringSymbol
-        Private Function CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(compilation As VBCompilation, symbol As Symbol, expectedNumber As Integer, expectedSyntaxKind As SyntaxKind) As ImmutableArray(Of SyntaxReference)
+        Private Function CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(compilation As VisualBasicCompilation, symbol As Symbol, expectedNumber As Integer, expectedSyntaxKind As SyntaxKind) As ImmutableArray(Of SyntaxReference)
             Dim declaringNodes As ImmutableArray(Of SyntaxReference) = symbol.DeclaringSyntaxReferences
             Assert.Equal(expectedNumber, declaringNodes.Length)
             If expectedNumber = 0 Then
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return declaringNodes
         End Function
 
-        Private Sub CheckDeclaringSyntax(Of TNode As VBSyntaxNode)(comp As VBCompilation, tree As SyntaxTree, name As String, kind As SymbolKind)
+        Private Sub CheckDeclaringSyntax(Of TNode As VisualBasicSyntaxNode)(comp As VisualBasicCompilation, tree As SyntaxTree, name As String, kind As SymbolKind)
             Dim model = comp.GetSemanticModel(tree)
             Dim code As String = tree.GetText().ToString()
             Dim position As Integer = code.IndexOf(name)
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             CheckDeclaringSyntaxNodes(comp, sym, 1)
         End Sub
 
-        Private Sub CheckDeclaringSyntaxIsNoDeclaration(Of TNode As VBSyntaxNode)(comp As VBCompilation, tree As SyntaxTree, name As String)
+        Private Sub CheckDeclaringSyntaxIsNoDeclaration(Of TNode As VisualBasicSyntaxNode)(comp As VisualBasicCompilation, tree As SyntaxTree, name As String)
             Dim model = comp.GetSemanticModel(tree)
             Dim code As String = tree.GetText().ToString()
             Dim position As Integer = code.IndexOf(name)
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Null(sym)
         End Sub
 
-        Private Sub CheckLambdaDeclaringSyntax(Of TNode As ExpressionSyntax)(comp As VBCompilation, tree As SyntaxTree, textToSearchFor As String)
+        Private Sub CheckLambdaDeclaringSyntax(Of TNode As ExpressionSyntax)(comp As VisualBasicCompilation, tree As SyntaxTree, textToSearchFor As String)
             Dim model = comp.GetSemanticModel(tree)
             Dim code As String = tree.GetText().ToString()
             Dim position As Integer = code.IndexOf(textToSearchFor)
@@ -377,7 +377,7 @@ End Namespace
 Namespace Global.N4
 End Namespace
 </file>
-    </compilation>, New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("N1"))
+    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("N1"))
 
             Dim tree = comp.SyntaxTrees(0)
             Dim globalNS = comp.GlobalNamespace

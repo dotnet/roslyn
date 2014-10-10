@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If vbloc IsNot Nothing Then
                 Return vbloc.PossiblyEmbeddedOrMySourceTree
             Else
-                Return DirectCast(location.SourceTree, VBSyntaxTree)
+                Return DirectCast(location.SourceTree, VisualBasicSyntaxTree)
             End If
         End Function
 

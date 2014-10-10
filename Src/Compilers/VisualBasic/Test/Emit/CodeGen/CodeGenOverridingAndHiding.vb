@@ -172,7 +172,7 @@ End Module
             <![CDATA[Public MustInherit Class C1
     MustOverride Sub foo()
 End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
             vb1Verifier.VerifyDiagnostics()
 
@@ -196,7 +196,7 @@ Public Class C3 : Inherits C2
         Console.WriteLine("C3")
     End Sub
 End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation, cs1Compilation})
             Dim vb2Verifier = CompileAndVerify(vb2Compilation)
             vb2Verifier.VerifyDiagnostics()
@@ -227,7 +227,7 @@ Public Class C4 : Inherits C3
             y.Foo()
         End Sub
 End Module]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={vb1Compilation, cs1Compilation, vb2Compilation})
 
             Dim vb3Verifier = CompileAndVerify(vb3Compilation,
@@ -244,7 +244,7 @@ C5]]>)
             <![CDATA[Public MustInherit Class C1
         MustOverride Sub foo()
     End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
             vb1Verifier.VerifyDiagnostics()
 
@@ -269,7 +269,7 @@ C5]]>)
             Console.WriteLine("C3")
         End Sub
     End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation, cs1Compilation})
             Dim vb2Verifier = CompileAndVerify(vb2Compilation)
             vb2Verifier.VerifyDiagnostics()
@@ -295,7 +295,7 @@ C5]]>)
             y.foo
         End Sub
     End Module]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={vb1Compilation, cs1Compilation, vb2Compilation})
 
             Dim vb3Verifier = CompileAndVerify(vb3Compilation,
@@ -311,7 +311,7 @@ C2]]>)
             <![CDATA[Public MustInherit Class C1
         MustOverride Sub foo()
     End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
             vb1Verifier.VerifyDiagnostics()
 
@@ -332,7 +332,7 @@ C2]]>)
         Public Overrides Sub foo
         End Sub
     End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation, cs1Compilation})
             Dim vb2Verifier = CompileAndVerify(vb2Compilation)
             vb2Verifier.VerifyDiagnostics()
@@ -352,7 +352,7 @@ C2]]>)
         Friend Overrides Sub foo()
         End Sub
     End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation, cs1Compilation, vb2Compilation})
             vb3Compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadOverrideAccess2, "foo").WithArguments("Public Overrides Sub foo()", "Friend Overridable Overloads Sub foo()"),
@@ -369,7 +369,7 @@ C2]]>)
             <![CDATA[Public MustInherit Class C1
         MustOverride Sub foo()
     End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
             vb1Verifier.VerifyDiagnostics()
 
@@ -390,7 +390,7 @@ C2]]>)
         Friend Overrides Sub foo()
         End Sub
     End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation, cs1Compilation})
 
             CompileAndVerify(vb2Compilation).VerifyDiagnostics()
@@ -424,7 +424,7 @@ Class AfterStatementTerminatorTokenTrivia
   Inherits AbstractLineBreakTrivia
 End Class
 ]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={cs1Compilation})
 
             CompileAndVerify(vb2Compilation).VerifyDiagnostics()
@@ -458,7 +458,7 @@ Class AfterStatementTerminatorTokenTrivia
   Inherits AbstractLineBreakTrivia
 End Class
 ]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={cs1Compilation})
 
             CompilationUtils.AssertTheseDiagnostics(vb2Compilation, <expected>

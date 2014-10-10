@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ApplyDirectCastConversion(
-             node As VBSyntaxNode,
+             node As VisualBasicSyntaxNode,
              argument As BoundExpression,
              targetType As TypeSymbol,
              diagnostics As DiagnosticBag
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ApplyTryCastConversion(
-             node As VBSyntaxNode,
+             node As VisualBasicSyntaxNode,
              argument As BoundExpression,
              targetType As TypeSymbol,
              diagnostics As DiagnosticBag
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of non-identity conversion.
         ''' </summary>
         Friend Function ApplyImplicitConversion(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             targetType As TypeSymbol,
             expression As BoundExpression,
             diagnostics As DiagnosticBag,
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of explicit or non-identity conversion.
         ''' </summary>
         Private Function ApplyConversion(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             targetType As TypeSymbol,
             argument As BoundExpression,
             isExplicit As Boolean,
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of non-identity conversion.
         ''' </summary>
         Private Function CreateConversionAndReportDiagnostic(
-            tree As VBSyntaxNode,
+            tree As VisualBasicSyntaxNode,
             argument As BoundExpression,
             convKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             isExplicit As Boolean,
@@ -643,7 +643,7 @@ DoneWithDiagnostics:
         ''' </summary>
         Private Function MakeVarianceConversionSuggestion(
             convKind As ConversionKind,
-            location As VBSyntaxNode,
+            location As VisualBasicSyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag,
@@ -947,7 +947,7 @@ DoneWithDiagnostics:
         End Function
 
         Private Function CreatePredefinedConversion(
-            tree As VBSyntaxNode,
+            tree As VisualBasicSyntaxNode,
             argument As BoundExpression,
             convKind As ConversionKind,
             isExplicit As Boolean,
@@ -1020,7 +1020,7 @@ DoneWithDiagnostics:
         End Function
 
         Private Function CreateUserDefinedConversion(
-            tree As VBSyntaxNode,
+            tree As VisualBasicSyntaxNode,
             argument As BoundExpression,
             convKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             isExplicit As Boolean,
@@ -1125,7 +1125,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyExpression(
             ByRef argument As BoundExpression,
             conversionSemantics As SyntaxKind,
-            tree As VBSyntaxNode,
+            tree As VisualBasicSyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1233,7 +1233,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyUnboundLambdaExpression(
             unboundLambda As UnboundLambda,
             conversionSemantics As SyntaxKind,
-            tree As VBSyntaxNode,
+            tree As VisualBasicSyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1436,7 +1436,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyQueryLambdaExpression(
             lambda As BoundQueryLambda,
             conversionSemantics As SyntaxKind,
-            tree As VBSyntaxNode,
+            tree As VisualBasicSyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1513,7 +1513,7 @@ DoneWithDiagnostics:
             If delegateInvoke.OriginalDefinition.ReturnType.IsTypeParameter() Then
                 Dim restrictedType As TypeSymbol = Nothing
                 If delegateReturnType.IsRestrictedTypeOrArrayType(restrictedType) Then
-                    Dim location As VBSyntaxNode
+                    Dim location As VisualBasicSyntaxNode
 
                     If lambda.Expression.Kind = BoundKind.RangeVariableAssignment Then
                         location = DirectCast(lambda.Expression, BoundRangeVariableAssignment).Value.Syntax
@@ -1549,7 +1549,7 @@ DoneWithDiagnostics:
 
         Private Sub WarnOnNarrowingConversionBetweenSealedClassAndAnInterface(
             convKind As ConversionKind,
-            location As VBSyntaxNode,
+            location As VisualBasicSyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag
@@ -1588,7 +1588,7 @@ DoneWithDiagnostics:
         End Function
 
         Private Sub ReportNoConversionError(
-            location As VBSyntaxNode,
+            location As VisualBasicSyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag,

@@ -7846,7 +7846,7 @@ End Class
         builder.AppendLine(")")
         builder.AppendLine("End Class")
         Dim text = builder.ToString()
-        Dim tree = VBSyntaxTree.ParseText(text)
+        Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim root = tree.GetRoot()
         Dim walker = New TokenAndTriviaWalker()
         walker.Visit(root)
@@ -7873,7 +7873,7 @@ End Class
         builder.AppendLine("Class C")
         builder.AppendLine("End Class")
         Dim text = builder.ToString()
-        Dim tree = VBSyntaxTree.ParseText(text, options:=New VBParseOptions(documentationMode:=DocumentationMode.Parse))
+        Dim tree = VisualBasicSyntaxTree.ParseText(text, options:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Parse))
         Dim root = tree.GetRoot()
         Dim walker = New TokenAndTriviaWalker()
         walker.Visit(root)
@@ -7883,7 +7883,7 @@ End Class
     End Sub
 
     Private NotInheritable Class TokenAndTriviaWalker
-        Inherits VBSyntaxWalker
+        Inherits VisualBasicSyntaxWalker
         Public Tokens As Integer
         Public Sub New()
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)

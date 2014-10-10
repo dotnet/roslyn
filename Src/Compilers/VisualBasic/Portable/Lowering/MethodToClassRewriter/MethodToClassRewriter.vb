@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected MustOverride ReadOnly Property TypeMap As TypeSubstitution
 
-        Friend MustOverride Function FramePointer(syntax As VBSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
+        Friend MustOverride Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
 
         ''' <summary>
         ''' The method (e.g. lambda) which is currently being rewritten. If we are 

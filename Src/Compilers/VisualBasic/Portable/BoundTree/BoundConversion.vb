@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundConversion
 
         Public Sub New(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             checked As Boolean,
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub New(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             checked As Boolean,
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub New(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             checked As Boolean,
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub New(
-                syntax As VBSyntaxNode,
+                syntax As VisualBasicSyntaxNode,
                 operand As BoundExpression,
                 conversionKind As ConversionKind,
                 checked As Boolean,
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Public Sub New(syntax As VBSyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, constructorOpt As MethodSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VisualBasicSyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, constructorOpt As MethodSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt, constructorOpt,
                    RelaxationLambdaOpt:=Nothing, RelaxationReceiverPlaceholderOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub

@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Property
 
                 Public Overrides Function GetSyntax(Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
-                    Return DirectCast(Me.GetNode(_tree.GetRoot(cancellationToken)), VBSyntaxNode)
+                    Return DirectCast(Me.GetNode(_tree.GetRoot(cancellationToken)), VisualBasicSyntaxNode)
                 End Function
 
                 Public Overrides Async Function GetSyntaxAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode)

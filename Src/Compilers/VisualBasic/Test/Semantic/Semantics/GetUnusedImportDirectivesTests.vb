@@ -290,7 +290,7 @@ End Class
 </compilation>
 
             ' Without doc comments.
-            CreateCompilationWithMscorlib(source, parseOptions:=New VBParseOptions(documentationMode:=DocumentationMode.None)).AssertTheseDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.None)).AssertTheseDiagnostics(
                 <errors>
 BC50001: Unused import statement.
 Imports System
@@ -298,7 +298,7 @@ Imports System
                 </errors>, suppressInfos:=False)
 
             ' With doc comments.
-            CreateCompilationWithMscorlib(source, parseOptions:=New VBParseOptions(documentationMode:=DocumentationMode.Diagnose)).AssertTheseDiagnostics(<errors></errors>, suppressInfos:=False)
+            CreateCompilationWithMscorlib(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)).AssertTheseDiagnostics(<errors></errors>, suppressInfos:=False)
         End Sub
     End Class
 End Namespace

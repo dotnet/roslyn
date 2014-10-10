@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         ' Check that "basRootNS" is actually a bad root namespace
         Private Sub BadDefaultNS(badRootNS As String)
-            AssertTheseDiagnostics(New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(badRootNS).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(badRootNS).Errors,
 <expected>
 BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
 </expected>)
@@ -434,14 +434,14 @@ End Namespace
             Dim compRef1 = New VisualBasicCompilationReference(comp1)
             Dim compRef2 = New VisualBasicCompilationReference(comp2)
 
-            Dim comp = VBCompilation.Create("Test3", {VBSyntaxTree.ParseText(text3)}, {MscorlibRef, compRef1, compRef2})
+            Dim comp = VisualBasicCompilation.Create("Test3", {VisualBasicSyntaxTree.ParseText(text3)}, {MscorlibRef, compRef1, compRef2})
 
             Dim globalNS = comp.GlobalNamespace
             Dim ns = DirectCast(globalNS.GetMembers("N1").Single(), NamespaceSymbol)
             Assert.Equal(3, ns.GetTypeMembers().Length())
             Dim ext = ns.Extent
             Assert.Equal(NamespaceKind.Compilation, ext.Kind)
-            Assert.Equal("Compilation: " & GetType(VBCompilation).FullName, ext.ToString())
+            Assert.Equal("Compilation: " & GetType(VisualBasicCompilation).FullName, ext.ToString())
 
             Dim constituents = ns.ConstituentNamespaces
             Assert.Equal(3, constituents.Length)
@@ -480,13 +480,13 @@ End Namespace
     End Namespace
     ]]>.Value
 
-            Dim comp1 = VBCompilation.Create("Test1", syntaxTrees:={VBSyntaxTree.ParseText(text1)})
-            Dim comp2 = VBCompilation.Create("Test2", syntaxTrees:={VBSyntaxTree.ParseText(text2)})
+            Dim comp1 = VisualBasicCompilation.Create("Test1", syntaxTrees:={VisualBasicSyntaxTree.ParseText(text1)})
+            Dim comp2 = VisualBasicCompilation.Create("Test2", syntaxTrees:={VisualBasicSyntaxTree.ParseText(text2)})
 
             Dim compRef1 = New VisualBasicCompilationReference(comp1)
             Dim compRef2 = New VisualBasicCompilationReference(comp2)
 
-            Dim comp = VBCompilation.Create("Test3", {VBSyntaxTree.ParseText(text3)}, {compRef1, compRef2})
+            Dim comp = VisualBasicCompilation.Create("Test3", {VisualBasicSyntaxTree.ParseText(text3)}, {compRef1, compRef2})
 
             Dim globalNS = comp.GlobalNamespace
             Dim ns = DirectCast(globalNS.GetMembers("N1").Single(), NamespaceSymbol)

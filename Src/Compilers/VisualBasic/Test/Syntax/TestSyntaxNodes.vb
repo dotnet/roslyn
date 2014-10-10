@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Verify spans within a list of consecutive nodes are all consistent.
-        Private Sub VerifyListSpans(Of T As VBSyntaxNode)(list As SyntaxList(Of T), expectedFullSpan As TextSpan)
+        Private Sub VerifyListSpans(Of T As VisualBasicSyntaxNode)(list As SyntaxList(Of T), expectedFullSpan As TextSpan)
             If list.Count > 0 Then
                 ' List should fill up the full span.
                 Assert.Equal(expectedFullSpan.Start, list(0).FullSpan.Start)
@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Check that empty separated list works.
         <Fact>
         Public Sub TestEmptySeparatedList()
-            CheckEmptySeparatedList(New SeparatedSyntaxList(Of TypeSyntax)(DirectCast(Nothing, VBSyntaxNode), 0))
+            CheckEmptySeparatedList(New SeparatedSyntaxList(Of TypeSyntax)(DirectCast(Nothing, VisualBasicSyntaxNode), 0))
             Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=spaceTrivia), (New SeparatedSyntaxListBuilder(Of TypeSyntax)).ToList)
             CheckEmptySeparatedList(statement.Types)
 
@@ -872,7 +872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         ' Check that a given list of errors on a node matches the given set.
-        Private Sub CheckErrorList(node As VBSyntaxNode, expectedErrorCodes As Integer(), expectedSpans As TextSpan())
+        Private Sub CheckErrorList(node As VisualBasicSyntaxNode, expectedErrorCodes As Integer(), expectedSpans As TextSpan())
             Dim errorList As New List(Of Diagnostic)
             errorList.AddRange(node.GetSyntaxErrorsNoTree())
             errorList.Sort(AddressOf CompareDiagnostics)
@@ -957,7 +957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia)),
                                                                      SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param2", False, "Param2", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
                                                                      SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword, trailing:=spaceTrivia))), Nothing).AddError(CreateDiagnosticInfo(101)))
-            bldr.Add(DirectCast(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia).Node.AddError(CreateDiagnosticInfo(33)), InternalSyntax.VBSyntaxNode))
+            bldr.Add(DirectCast(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia).Node.AddError(CreateDiagnosticInfo(33)), InternalSyntax.VisualBasicSyntaxNode))
             bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(New SyntaxToken(Nothing, CType(SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=spaceTrivia).Node.AddError(CreateDiagnosticInfo(44)), InternalSyntax.KeywordSyntax), 0, 0)),
                                                                      SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param3", False, "Param3", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
                                                                      SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword, trailing:=spaceTrivia))), Nothing))
@@ -1016,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         ' A test rewriting visitor
         Private Class TestVisitor
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             ' Optional to control which rewritings we do
             Public IncrementInts As Boolean = False
@@ -1099,7 +1099,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRewritingVisitor()
-            Dim rewriter As VBSyntaxRewriter
+            Dim rewriter As VisualBasicSyntaxRewriter
             Dim simpleTree = CreateSimpleTree()
             Assert.Equal(simpleTree.ToString, "1- X( 3, 4+ 8, 9)")
 
@@ -1588,7 +1588,7 @@ End Class</x>.Value)
             'Assert.Null(node.Parent)
             '
             ' When this breaks, uncomment above
-            Dim tree As SyntaxTree = VBSyntaxTree.ParseText(SourceText.From(" Module M1" & vbCrLf & "End Module"))
+            Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText(SourceText.From(" Module M1" & vbCrLf & "End Module"))
             Dim node As SyntaxNode = tree.GetRoot()
             Assert.Equal(False, tree.GetDiagnostics(node).Any)
             Assert.Equal(0, tree.GetRoot().FindToken(node.FullSpan.Length - 1).TrailingTrivia.Count)
@@ -1618,7 +1618,7 @@ End Class</x>.Value)
             'Assert.Contains(30678, From d In node.Errors Select d.Code)
             '
             ' When this breaks, uncomment above
-            Dim tree As SyntaxTree = VBSyntaxTree.ParseText(SourceText.From("Module M1" & vbCrLf & "End"))
+            Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText(SourceText.From("Module M1" & vbCrLf & "End"))
             Dim node As SyntaxNode = tree.GetRoot()
             Assert.Equal(True, tree.GetDiagnostics(node).Any)
             Assert.Equal(2, tree.GetDiagnostics(node).Count)
@@ -1839,7 +1839,7 @@ End Module
                 "Class C(Of T)" & vbCrLf &
                 "    Dim l As List(Of T)" &
                 "End Class"
-            Dim tree = VBSyntaxTree.ParseText(text)
+            Dim tree = VisualBasicSyntaxTree.ParseText(text)
 
             Dim location = text.IndexOf("List(Of T)")
             Dim openParenToken = CType(tree.GetRoot().FindToken(location + "List".Length), SyntaxToken)
@@ -1987,7 +1987,7 @@ End Class
         <Fact>
         Public Sub TestNodeTokenConversion02()
 
-            Dim node As VBSyntaxNode = Nothing
+            Dim node As VisualBasicSyntaxNode = Nothing
             ' This should not throw - it should convert to a 'null' (default) struct 
             Dim sn As SyntaxNodeOrToken = node
             Assert.True(sn.IsNode)
@@ -2004,7 +2004,7 @@ End Class
         <WorkItem(538362, "DevDiv")>
         <Fact, WorkItem(530316, "DevDiv")>
         Public Sub TestGetNextTokenCommon()
-            Dim tree As SyntaxTree = VBSyntaxTree.ParseText("public class foo : end class")
+            Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText("public class foo : end class")
 
             Dim tokens As List(Of SyntaxToken) = tree.GetRoot().DescendantTokens().ToList()
             Dim list As List(Of SyntaxToken) = New List(Of SyntaxToken)()
@@ -2045,7 +2045,7 @@ End Class
 Class Bar
 End Class]]>
                        </code>.Value
-            Dim tree = VBSyntaxTree.ParseText(code)
+            Dim tree = VisualBasicSyntaxTree.ParseText(code)
             Dim root = tree.GetRoot()
             Assert.Equal(root, root.FindNode(root.Span, findInsideTrivia:=False))
             Assert.Equal(root, root.FindNode(root.Span, findInsideTrivia:=True))
@@ -2103,7 +2103,7 @@ End Class]]>
     Sub Bar()
     End Sub
 End Class</code>.Value
-            Dim tree = VBSyntaxTree.ParseText(code)
+            Dim tree = VisualBasicSyntaxTree.ParseText(code)
             Dim position = tree.GetText().Lines(1).End
             'position points to the end of the line that has "Sub Bar()"
             'There should be end of line trivia there.
@@ -2541,12 +2541,12 @@ End Class
         <Fact>
         Public Sub Test_SyntaxTree_ParseTextInvalid()
             Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        Dim treeFromSourceWithPath_Invalid1 = VBSyntaxTree.ParseText("", path:=Nothing)
+                                                        Dim treeFromSourceWithPath_Invalid1 = VisualBasicSyntaxTree.ParseText("", path:=Nothing)
                                                     End Sub)
 
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim st As SourceText = Nothing
-                                                        Dim treeFromSource_invalid = VBSyntaxTree.ParseText(st)
+                                                        Dim treeFromSource_invalid = VisualBasicSyntaxTree.ParseText(st)
                                                     End Sub)
         End Sub
 
@@ -2566,7 +2566,7 @@ Module Module1
 End Module
                            </String>
 
-            Dim tree = VBSyntaxTree.ParseText(SourceText.ToString)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.ToString)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
 
             'Get the Imports Clauses
@@ -2612,7 +2612,7 @@ Module Module1
 End Module
                            </String>
 
-            Dim tree = VBSyntaxTree.ParseText(SourceText.ToString)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.ToString)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
 
             Dim FirstImportsClause As ImportsStatementSyntax = Root.Imports(0)
@@ -2623,7 +2623,7 @@ End Module
 
         <Fact, WorkItem(658329, "DevDiv")>
         Public Sub TestSyntaxTree_GetChangeSpans()
-            Dim oldTree = VBSyntaxTree.ParseText("class A : End Class")
+            Dim oldTree = VisualBasicSyntaxTree.ParseText("class A : End Class")
             Dim newTree = oldTree.WithInsertAt(0, "class B : End Class")
 
             ' Valid operations
@@ -2656,7 +2656,7 @@ End Module
                            </String>
 
             'Construct a SyntaxList and verify the bounds exceptions
-            Dim tree = VBSyntaxTree.ParseText(SourceText.ToString)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.ToString)
             Dim x As New SyntaxList(Of SyntaxNode)
             For Each node In tree.GetRoot.ChildNodes
                 x = x.Add(node)
@@ -2956,7 +2956,7 @@ End Interface
 
             Dim text = SourceText.Value
             'Construct a SyntaxList and verify the bounds exceptions
-            Dim tree = VBSyntaxTree.ParseText(text)
+            Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
 
             'We want to insert a Implements clause or Implements into Modules
@@ -2999,7 +2999,7 @@ End Interface
             'Verify Compile Errors when try to use
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 compilationDef,
-                New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).VerifyDiagnostics(BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
+                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).VerifyDiagnostics(BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
                                                                                                                               BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
         End Sub
 
@@ -3027,7 +3027,7 @@ End Module
 
             Dim text = SourceText.Value
 
-            Dim tree = VBSyntaxTree.ParseText(text)
+            Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
 
             Dim x = Root.GetDirectives()
@@ -3053,7 +3053,7 @@ End Module
 
             Dim text = SourceText.Value
 
-            Dim tree = VBSyntaxTree.ParseText(text)
+            Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim x = Root.GetDirectives()
             Assert.Equal(0, x.Count)
@@ -3077,7 +3077,7 @@ End Module
 
             Dim text = SourceText.Value
 
-            Dim tree = VBSyntaxTree.ParseText(text)
+            Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim x = Root.GetDirectives()
             Assert.Equal(1, x.Count)
@@ -3101,7 +3101,7 @@ End Module
 </String>
 
             Dim text = SourceText.Value
-            Dim tree = VBSyntaxTree.ParseText(text)
+            Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim x = Root.GetDirectives()
             Assert.Equal(1, x.Count)
@@ -3120,7 +3120,7 @@ Module Module1
 End Module
                            </String>
 
-            Dim tree = VBSyntaxTree.ParseText(SourceText.ToString)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.ToString)
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim FirstImportsClause As ImportsStatementSyntax = Root.Imports(0)
             Dim Obj1 As New GlobalImport(FirstImportsClause.ImportsClauses(0), "ttt")
@@ -3200,9 +3200,9 @@ End Module
 
         <Fact>
         Public Sub Test_ParseOptions_Equals()
-            Dim po1 = New VBParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
-            Dim po2 = New VBParseOptions(languageVersion:=LanguageVersion.VisualBasic9)
-            Dim po3 = New VBParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
+            Dim po1 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
+            Dim po2 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic9)
+            Dim po3 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
 
             Dim POcompilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compile1">

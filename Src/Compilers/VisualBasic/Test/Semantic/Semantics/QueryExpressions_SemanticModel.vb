@@ -119,7 +119,7 @@ End Module
             Dim s6 = semanticModel1.GetDeclaredSymbol(node6)
             Assert.Same(s1, s6)
 
-            Assert.Same(s6, semanticModel1.GetDeclaredSymbol(DirectCast(node6, VBSyntaxNode)))
+            Assert.Same(s6, semanticModel1.GetDeclaredSymbol(DirectCast(node6, VisualBasicSyntaxNode)))
             Assert.Same(s6, semanticModel1.GetDeclaredSymbol(DirectCast(node6.Parent, CollectionRangeVariableSyntax)))
             Assert.Same(s6, semanticModel1.GetDeclaredSymbol(node6.Parent))
 
@@ -1129,7 +1129,7 @@ End Module
             Assert.NotSame(y1, y3)
             Assert.NotSame(y2, y3)
 
-            Assert.Same(y3, semanticModel.GetDeclaredSymbol(DirectCast(node7, VBSyntaxNode)))
+            Assert.Same(y3, semanticModel.GetDeclaredSymbol(DirectCast(node7, VisualBasicSyntaxNode)))
 
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(semanticModel, node7.Expression)
             Assert.Same(y2, semanticInfo.Symbol)
@@ -1164,7 +1164,7 @@ End Module
             Assert.Equal("z", z.Name)
             Assert.Equal("System.Int32", z.Type.ToTestDisplayString())
 
-            Assert.Same(z, semanticModel.GetDeclaredSymbol(DirectCast(node10, VBSyntaxNode)))
+            Assert.Same(z, semanticModel.GetDeclaredSymbol(DirectCast(node10, VisualBasicSyntaxNode)))
 
             Dim commonSymbolInfo As SymbolInfo
 
@@ -2687,7 +2687,7 @@ End Module
             Assert.Equal("System.Int32", i1.Type.ToTestDisplayString())
 
             Assert.Same(i1, semanticModel.GetDeclaredSymbol(DirectCast(node1.Parent.Parent, ExpressionRangeVariableSyntax).NameEquals.Identifier))
-            Assert.Same(i1, semanticModel.GetDeclaredSymbol(DirectCast(DirectCast(node1.Parent.Parent, ExpressionRangeVariableSyntax).NameEquals.Identifier, VBSyntaxNode)))
+            Assert.Same(i1, semanticModel.GetDeclaredSymbol(DirectCast(DirectCast(node1.Parent.Parent, ExpressionRangeVariableSyntax).NameEquals.Identifier, VisualBasicSyntaxNode)))
 
             Dim node2 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 2)
 
@@ -2738,7 +2738,7 @@ End Module
             Assert.Equal("System.Int16", k1.Type.ToTestDisplayString())
 
             Assert.Same(k1, semanticModel.GetDeclaredSymbol(DirectCast(node4.Parent.Parent, ExpressionRangeVariableSyntax).NameEquals.Identifier))
-            Assert.Same(k1, semanticModel.GetDeclaredSymbol(DirectCast(DirectCast(node4.Parent.Parent, ExpressionRangeVariableSyntax).NameEquals.Identifier, VBSyntaxNode)))
+            Assert.Same(k1, semanticModel.GetDeclaredSymbol(DirectCast(DirectCast(node4.Parent.Parent, ExpressionRangeVariableSyntax).NameEquals.Identifier, VisualBasicSyntaxNode)))
 
             Dim node5 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 5)
 
@@ -2769,7 +2769,7 @@ End Module
             Assert.Equal("Group", gr.Name)
             Assert.Equal("QueryAble(Of <anonymous type: Key i1 As System.Int32, Key x As System.Byte, Key $2080 As System.Byte>)", gr.Type.ToTestDisplayString())
 
-            Assert.Same(gr, semanticModel.GetDeclaredSymbol(DirectCast(node7, VBSyntaxNode)))
+            Assert.Same(gr, semanticModel.GetDeclaredSymbol(DirectCast(node7, VisualBasicSyntaxNode)))
 
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(semanticModel, node7.Aggregation)
 
@@ -2795,7 +2795,7 @@ End Module
             Assert.Equal("k1", k2.Name)
             Assert.Equal("System.Int32", k2.Type.ToTestDisplayString())
             Assert.Same(k2, semanticModel.GetDeclaredSymbol(DirectCast(node8.Parent.Parent, AggregationRangeVariableSyntax)))
-            Assert.Same(k2, semanticModel.GetDeclaredSymbol(DirectCast(node8, VBSyntaxNode)))
+            Assert.Same(k2, semanticModel.GetDeclaredSymbol(DirectCast(node8, VisualBasicSyntaxNode)))
             Assert.Same(k2, semanticModel.GetDeclaredSymbol(node8))
             Assert.NotSame(k1, k2)
 
@@ -2922,7 +2922,7 @@ End Module
             Assert.Equal("x", x4.Name)
             Assert.Equal("QueryAble(Of System.Byte)", x4.Type.ToTestDisplayString())
 
-            Assert.Same(x4, semanticModel.GetDeclaredSymbol(DirectCast(node8, VBSyntaxNode)))
+            Assert.Same(x4, semanticModel.GetDeclaredSymbol(DirectCast(node8, VisualBasicSyntaxNode)))
             Assert.Same(x4, semanticModel.GetDeclaredSymbol(DirectCast(node8.Parent.Parent, AggregationRangeVariableSyntax)))
             Assert.Same(x4, semanticModel.GetDeclaredSymbol(node8.Parent.Parent))
             Assert.NotSame(x1, x4)
@@ -3040,7 +3040,7 @@ End Module
             Assert.Equal("s", s1.Name)
             Assert.Equal("System.Int32", s1.Type.ToTestDisplayString())
 
-            Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1, VBSyntaxNode)))
+            Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1, VisualBasicSyntaxNode)))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(node1.Parent))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1.Parent, CollectionRangeVariableSyntax)))
 
@@ -3056,7 +3056,7 @@ End Module
             Assert.Equal("x", x1.Name)
             Assert.Equal("?", x1.Type.ToTestDisplayString())
 
-            Assert.Same(x1, semanticModel.GetDeclaredSymbol(DirectCast(node3, VBSyntaxNode)))
+            Assert.Same(x1, semanticModel.GetDeclaredSymbol(DirectCast(node3, VisualBasicSyntaxNode)))
             Assert.Same(x1, semanticModel.GetDeclaredSymbol(DirectCast(node3.Parent.Parent, AggregationRangeVariableSyntax)))
             Assert.Same(x1, semanticModel.GetDeclaredSymbol(node3.Parent.Parent))
 
@@ -3246,7 +3246,7 @@ End Module
             Assert.Equal("s", s1.Name)
             Assert.Equal("System.Int32", s1.Type.ToTestDisplayString())
 
-            Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1, VBSyntaxNode)))
+            Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1, VisualBasicSyntaxNode)))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(node1.Parent))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1.Parent, CollectionRangeVariableSyntax)))
 
@@ -3262,7 +3262,7 @@ End Module
             Assert.Equal("x", x1.Name)
             Assert.Equal("?", x1.Type.ToTestDisplayString())
 
-            Assert.Same(x1, semanticModel.GetDeclaredSymbol(DirectCast(node3, VBSyntaxNode)))
+            Assert.Same(x1, semanticModel.GetDeclaredSymbol(DirectCast(node3, VisualBasicSyntaxNode)))
             Assert.Same(x1, semanticModel.GetDeclaredSymbol(DirectCast(node3.Parent.Parent, AggregationRangeVariableSyntax)))
             Assert.Same(x1, semanticModel.GetDeclaredSymbol(node3.Parent.Parent))
 

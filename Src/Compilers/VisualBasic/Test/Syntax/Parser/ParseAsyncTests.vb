@@ -297,7 +297,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseAsyncWithNesting()
-        Dim tree = VBSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
 Imports Async = System.Threading.Tasks.Task
 
 Class C
@@ -411,7 +411,7 @@ End Class]]>.Value)
 
         For Each mode In {SourceCodeKind.Script, SourceCodeKind.Interactive}
 
-            Dim tree = VBSyntaxTree.ParseText(<![CDATA[
+            Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
 Dim i = Await T + Await(T)      ' Yes, Yes
 
 Dim l = Sub()
@@ -430,7 +430,7 @@ End Sub
 Async Function F()
     Return Await(T)             ' Yes
 End Function]]>.Value,
-                options:=VBParseOptions.Default.WithKind(mode))
+                options:=VisualBasicParseOptions.Default.WithKind(mode))
 
             Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
 

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Protected ReadOnly m_isShared As Boolean
 
-        Protected ReadOnly m_SyntaxNode As VBSyntaxNode
+        Protected ReadOnly m_SyntaxNode As VisualBasicSyntaxNode
 
         '  NOTE: m_voidType may be nothing if we generate the constructor for PE symbol
         Protected ReadOnly m_voidType As TypeSymbol
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="container">The containing type for the synthesized constructor.</param>
         ''' <param name="isShared">if set to <c>true</c> if this is a shared constructor.</param>
         Protected Sub New(
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             container As NamedTypeSymbol,
             isShared As Boolean,
             binder As Binder,
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property Syntax As VBSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
                 Return m_SyntaxNode
             End Get

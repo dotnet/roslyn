@@ -2235,7 +2235,7 @@ End Namespace
 #End If
 ]]>.Value
 
-        Friend Shared ReadOnly WindowsFormsMyTemplateTree As SyntaxTree = VBSyntaxTree.ParseText(WindowsFormsMyTemplateSource, isMyTemplate:=True, path:="17d14f5c-a337-4978-8281-53493378c107.vb") ' The name used by native compiler
+        Friend Shared ReadOnly WindowsFormsMyTemplateTree As SyntaxTree = VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource, isMyTemplate:=True, path:="17d14f5c-a337-4978-8281-53493378c107.vb") ' The name used by native compiler
 
         <Fact>
         Public Sub DefaultInstanceAlias1()
@@ -2466,7 +2466,7 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
             compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemRef},
                                                                                  TestOptions.ReleaseDll.WithRootNamespace("WindowsApplication1"))
 
-            compilation = compilation.AddSyntaxTrees(VBSyntaxTree.ParseText(WindowsFormsMyTemplateSource))
+            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource))
 
             compilation.MyTemplate = Nothing
 
@@ -2865,7 +2865,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VBSyntaxTree.ParseText(
+            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
                 <![CDATA[
 Imports System
 
@@ -2926,7 +2926,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VBSyntaxTree.ParseText(
+            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
                 <![CDATA[
 Imports System
 
@@ -3007,7 +3007,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VBSyntaxTree.ParseText(
+            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
                 <![CDATA[
 Imports System
 
@@ -3103,7 +3103,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VBSyntaxTree.ParseText(
+            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
                 <![CDATA[
 Imports System
 
@@ -3165,7 +3165,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VBSyntaxTree.ParseText(
+            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
                 <![CDATA[
 Imports System
 
@@ -3231,7 +3231,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VBSyntaxTree.ParseText(
+            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
                 <![CDATA[
 Imports System
 
@@ -3300,7 +3300,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VBSyntaxTree.ParseText(
+            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
                 <![CDATA[
 Imports System
 
