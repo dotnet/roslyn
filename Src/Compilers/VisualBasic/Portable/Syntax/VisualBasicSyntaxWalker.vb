@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
-    ''' Represents a <see cref="T:Roslyn.Microsoft.CodeAnalysis.VisualBasic.SyntaxVisitor"/> that descends an entire <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxNode"/> graph
-    ''' visiting each SyntaxNode and its child SyntaxNodes and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxToken"/>s in depth-first order.
+    ''' Represents a <see cref="VBSyntaxVisitor"/> that descends an entire <see cref="SyntaxNode"/> tree
+    ''' visiting each SyntaxNode and its child <see cref="SyntaxNode"/>s and <see cref="SyntaxToken"/>s in depth-first order.
     ''' </summary>
     Public MustInherit Class VBSyntaxWalker
         Inherits VBSyntaxVisitor
@@ -72,15 +72,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     ''' <summary>
-    ''' Represents a <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxNode"/> visitor that visits only the single SyntaxNode
-    ''' passed into its <see cref="M:Roslyn.Compilers.VisualBasic.SyntaxVisitor.Visit(Roslyn.Compilers.VisualBasic.SyntaxNode)"/> method.
+    ''' Represents a <see cref="SyntaxNode"/> visitor that visits only the single SyntaxNode
+    ''' passed into its <see cref="Visit(SyntaxNode)"/> method.
     ''' </summary>
     Partial Public MustInherit Class VBSyntaxVisitor
     End Class
 
     ''' <summary>
-    ''' Represents a <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxNode"/> visitor that visits only the single SyntaxNode
-    ''' passed into its <see cref="M:Roslyn.Compilers.VisualBasic.SyntaxVisitor`1.Visit(Roslyn.Compilers.VisualBasic.SyntaxNode)"/> method and produces 
+    ''' Represents a <see cref="SyntaxNode"/> visitor that visits only the single SyntaxNode
+    ''' passed into its <see cref="Visit(SyntaxNode)"/> method and produces 
     ''' a value of the type specified by the <typeparamref name="TResult"/> parameter.
     ''' </summary>
     ''' <typeparam name="TResult">
