@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
 
         private SerializableProjectReference(SerializationInfo info, StreamingContext context)
         {
-            var projectId = (ProjectId)info.GetValue("projectId", typeof(ProjectId));
+            var projectId = ((SerializableProjectId)info.GetValue("projectId", typeof(SerializableProjectId))).ProjectId;
             var aliases = ImmutableArray.Create((string[])info.GetValue("aliases", typeof(string[])));
             var embedInteropTypes = info.GetBoolean("embedInteropTypes");
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
 
         void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue("projectId", this.projectReference.ProjectId);
+            info.AddValue("projectId", new SerializableProjectId(this.projectReference.ProjectId));
             info.AddValue("aliases", this.projectReference.Aliases.IsDefault ? null : this.projectReference.Aliases.ToArray(), typeof(string[]));
             info.AddValue("embedInteropTypes", this.projectReference.EmbedInteropTypes);
         }

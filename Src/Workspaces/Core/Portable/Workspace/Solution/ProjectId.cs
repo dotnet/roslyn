@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis
             this.debugName = debugName;
         }
 
+        internal ProjectId(Guid guid, string debugName)
+        {
+            this.Id = guid;
+            this.debugName = debugName;
+        }
+
         /// <summary>
         /// Create a new ProjectId instance.
         /// </summary>
@@ -40,6 +46,11 @@ namespace Microsoft.CodeAnalysis
         private string GetDebuggerDisplay()
         {
             return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, this.debugName);
+        }
+
+        internal string DebugName
+        {
+            get { return debugName; }
         }
 
         public override string ToString()
