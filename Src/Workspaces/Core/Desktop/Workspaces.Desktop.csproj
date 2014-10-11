@@ -123,7 +123,10 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
+    <Compile Include="Workspace\Solution\SerializableDocumentId.cs" />
+    <Compile Include="Workspace\Solution\SerializableProjectId.cs" />
     <Compile Include="Workspace\Solution\SerializableProjectReference.cs" />
+    <Compile Include="Workspace\Solution\SerializableVersionStamp.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop" />

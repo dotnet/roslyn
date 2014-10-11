@@ -28,6 +28,13 @@ namespace Microsoft.CodeAnalysis
             this.debugName = debugName;
         }
 
+        internal DocumentId(ProjectId projectId, Guid guid, string debugName)
+        {
+            this.ProjectId = projectId;
+            this.Id = guid;
+            this.debugName = debugName;
+        }
+
         /// <summary>
         /// Creates a new <see cref="DocumentId"/> instance.
         /// </summary>
@@ -47,6 +54,8 @@ namespace Microsoft.CodeAnalysis
         {
             return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, this.debugName);
         }
+
+        internal string DebugName { get { return debugName; } }
 
         public override string ToString()
         {
