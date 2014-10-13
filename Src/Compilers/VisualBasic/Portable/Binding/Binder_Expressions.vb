@@ -1254,7 +1254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return expression
         End Function
 
-        Private Shared Function IsValidAssignmentTarget(expression As BoundExpression) As Boolean
+        Friend Shared Function IsValidAssignmentTarget(expression As BoundExpression) As Boolean
             Select Case expression.Kind
                 Case BoundKind.PropertyAccess
                     Dim propertyAccess = DirectCast(expression, BoundPropertyAccess)

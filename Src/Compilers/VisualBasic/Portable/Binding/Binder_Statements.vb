@@ -1838,7 +1838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             result.Free()
         End Sub
 
-        Private Function AdjustAssignmentTarget(node As VBSyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
+        Friend Function AdjustAssignmentTarget(node As VBSyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
             Select Case op1.Kind
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(op1, BoundXmlMemberAccess)
