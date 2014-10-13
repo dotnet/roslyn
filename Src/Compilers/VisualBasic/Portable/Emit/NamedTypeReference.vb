@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Cci.PrimitiveTypeCode.NotPrimitive
         End Function
 
-        Private ReadOnly Property ITypeReferenceTypeDef As TypeHandle Implements Cci.ITypeReference.TypeDef
+        Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements Cci.ITypeReference.TypeDef
             Get
                 Return Nothing
             End Get

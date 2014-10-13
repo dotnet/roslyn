@@ -571,11 +571,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return Cci.PrimitiveTypeCode.NotPrimitive;
             }
 
-            TypeHandle Cci.ITypeReference.TypeDef
+            TypeDefinitionHandle Cci.ITypeReference.TypeDef
             {
                 get
                 {
-                    return default(TypeHandle);
+                    return default(TypeDefinitionHandle);
                 }
             }
 

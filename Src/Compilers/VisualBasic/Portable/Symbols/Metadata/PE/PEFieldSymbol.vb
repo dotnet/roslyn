@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     Friend NotInheritable Class PEFieldSymbol
         Inherits FieldSymbol
 
-        Private ReadOnly m_Handle As FieldHandle
+        Private ReadOnly m_Handle As FieldDefinitionHandle
         Private ReadOnly m_Name As String
         Private ReadOnly m_Flags As FieldAttributes
         Private ReadOnly m_ContainingType As PENamedTypeSymbol
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
             containingType As PENamedTypeSymbol,
-            handle As FieldHandle
+            handle As FieldDefinitionHandle
         )
             Debug.Assert(moduleSymbol IsNot Nothing)
             Debug.Assert(containingType IsNot Nothing)
@@ -390,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return m_lazyUseSiteErrorInfo
         End Function
 
-        Friend ReadOnly Property Handle As FieldHandle
+        Friend ReadOnly Property Handle As FieldDefinitionHandle
             Get
                 Return m_Handle
             End Get

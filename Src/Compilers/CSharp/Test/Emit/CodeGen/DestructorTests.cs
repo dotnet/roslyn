@@ -599,12 +599,12 @@ public class A
                     Select(handle => new { handle = handle, row = peFileReader.GetTypeDefinition(handle) }).
                     Single(pair => peFileReader.GetString(pair.row.Name) == "A" && 
                         string.IsNullOrEmpty(peFileReader.GetString(pair.row.Namespace)));
-                TypeHandle handleA = pairA.handle;
+                TypeDefinitionHandle handleA = pairA.handle;
                 TypeDefinition typeA = pairA.row;
 
                 // Find the handle for A's destructor.
-                MethodHandle handleDestructorA = typeA.GetMethods().AsEnumerable().
-                    Single(handle => peFileReader.GetString(peFileReader.GetMethod(handle).Name) == WellKnownMemberNames.DestructorName);
+                MethodDefinitionHandle handleDestructorA = typeA.GetMethods().AsEnumerable().
+                    Single(handle => peFileReader.GetString(peFileReader.GetMethodDefinition(handle).Name) == WellKnownMemberNames.DestructorName);
 
 
                 // Find the handle for System.Object.
@@ -621,7 +621,7 @@ public class A
 
 
                 // Find the MethodImpl row for A.
-                MethodImpl methodImpl = typeA.GetMethodImplementations().AsEnumerable().
+                MethodImplementation methodImpl = typeA.GetMethodImplementations().AsEnumerable().
                     Select(handle => peFileReader.GetMethodImplementation(handle)).
                     Single();
 

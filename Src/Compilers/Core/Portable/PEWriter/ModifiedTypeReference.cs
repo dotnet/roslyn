@@ -60,7 +60,7 @@ namespace Microsoft.Cci
             return PrimitiveTypeCode.NotPrimitive;
         }
 
-        TypeHandle ITypeReference.TypeDef
+        TypeDefinitionHandle ITypeReference.TypeDef
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

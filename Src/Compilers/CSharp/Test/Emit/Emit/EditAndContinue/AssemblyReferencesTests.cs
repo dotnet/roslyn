@@ -59,7 +59,7 @@ class C
             var mdStream = new MemoryStream();
             var ilStream = new MemoryStream();
             var pdbStream = new MemoryStream();
-            var updatedMethods = new List<MethodHandle>();
+            var updatedMethods = new List<MethodDefinitionHandle>();
 
             c2.EmitDifference(baseline, new[]
             {
@@ -128,7 +128,7 @@ class C
             var mdStream = new MemoryStream();
             var ilStream = new MemoryStream();
             var pdbStream = new MemoryStream();
-            var updatedMethods = new List<MethodHandle>();
+            var updatedMethods = new List<MethodDefinitionHandle>();
 
             c2.EmitDifference(baseline, new[]
             {

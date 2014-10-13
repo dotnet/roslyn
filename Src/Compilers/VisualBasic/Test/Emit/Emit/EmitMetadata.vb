@@ -294,7 +294,7 @@ End Class
                 Assert.False(file1.HashValue.IsNil)
                 Assert.False(file2.HashValue.IsNil)
 
-                Dim moduleRefName = reader.GetModuleReferenceName(reader.GetModuleReferences().Single())
+                Dim moduleRefName = reader.GetModuleReference(reader.GetModuleReferences().Single()).Name
                 Assert.Equal("netModule1.netmodule", reader.GetString(moduleRefName))
                 Assert.Equal(5, reader.GetTableRowCount(TableIndex.ExportedType))
             End Using
@@ -542,7 +542,7 @@ End Class
         Private Sub EmittedModuleRecordValidator(assembly As PEAssembly, _omitted As TestEmitters)
             Dim reader = assembly.GetMetadataReader()
 
-            Dim typeDefs As TypeHandle() = reader.TypeDefinitions.AsEnumerable().ToArray()
+            Dim typeDefs As TypeDefinitionHandle() = reader.TypeDefinitions.AsEnumerable().ToArray()
             Assert.Equal(2, typeDefs.Length)
 
             Assert.Equal("<Module>", reader.GetString(reader.GetTypeDefinition(typeDefs(0)).Name))

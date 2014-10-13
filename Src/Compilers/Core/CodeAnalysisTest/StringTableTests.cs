@@ -78,5 +78,45 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var s2 = new StringTable().Add(' ');
             Assert.Same(s1, s2);
         }
+
+        private unsafe static bool TestTextEqualsASCII(string str, string ascii)
+        {
+            fixed (byte* ptr = Encoding.ASCII.GetBytes(ascii))
+            {
+                var ptrResult = StringTable.TextEqualsASCII(str, ptr, ascii.Length);
+                var sbResult = StringTable.TextEquals(str, new StringBuilder(ascii));
+                var substrResult = StringTable.TextEquals(str, "xxx" + ascii + "yyy", 3, ascii.Length);
+                Assert.Equal(substrResult, sbResult);
+                Assert.Equal(ptrResult, sbResult);
+                return ptrResult;
+            }
+        }
+
+        [Fact]
+        public void TextEquals1()
+        {
+            Assert.True(TestTextEqualsASCII("", ""));
+            Assert.False(TestTextEqualsASCII("a", ""));
+            Assert.False(TestTextEqualsASCII("", "a"));
+            Assert.True(TestTextEqualsASCII("a", "a"));
+            Assert.False(TestTextEqualsASCII("a", "ab"));
+            Assert.False(TestTextEqualsASCII("ab", "a"));
+            Assert.False(TestTextEqualsASCII("abc", "a"));
+            Assert.False(TestTextEqualsASCII("abcd", "a"));
+            Assert.False(TestTextEqualsASCII("abcde", "a"));
+            Assert.False(TestTextEqualsASCII("abcdef", "a"));
+            Assert.False(TestTextEqualsASCII("abcdefg", "a"));
+            Assert.False(TestTextEqualsASCII("abcdefgh", "a"));
+            Assert.False(TestTextEqualsASCII("a", "ab"));
+            Assert.False(TestTextEqualsASCII("a", "abc"));
+            Assert.False(TestTextEqualsASCII("a", "abcd"));
+            Assert.False(TestTextEqualsASCII("a", "abcde"));
+            Assert.False(TestTextEqualsASCII("a", "abcdef"));
+            Assert.False(TestTextEqualsASCII("a", "abcdefg"));
+            Assert.False(TestTextEqualsASCII("a", "abcdefgh"));
+            Assert.False(TestTextEqualsASCII("\u1234", "a"));
+            Assert.False(TestTextEqualsASCII("\ud800", "xx"));
+            Assert.False(TestTextEqualsASCII("\uffff", ""));
+        }
     }
 }

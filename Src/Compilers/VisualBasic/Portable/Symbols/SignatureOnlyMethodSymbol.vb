@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsVararg() As Boolean
             Get
-                Return SignatureHeader.IsVarArgCallSignature(CByte(m_callingConvention))
+                Return New SignatureHeader(CByte(m_callingConvention)).CallingConvention = SignatureCallingConvention.VarArgs
             End Get
         End Property
 

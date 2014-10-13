@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, CSharpCustomModifier.Convert(customModifiers));
         }
 
-        protected override ConcurrentDictionary<TypeHandle, TypeSymbol> GetTypeHandleToTypeMap()
+        protected override ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> GetTypeHandleToTypeMap()
         {
             return moduleSymbol.TypeHandleToTypeMap;
         }
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         protected override TypeSymbol SubstituteNoPiaLocalType(
-            TypeHandle typeDef,
+            TypeDefinitionHandle typeDef,
             ref MetadataTypeName name,
             string interfaceGuid,
             string scope,
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if ((object)result != null)
             {
-                ConcurrentDictionary<TypeHandle, TypeSymbol> cache = GetTypeHandleToTypeMap();
+                ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> cache = GetTypeHandleToTypeMap();
 
                 if (cache != null)
                 {
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return result;
         }
 
-        protected override MethodSymbol FindMethodSymbolInType(TypeSymbol typeSymbol, MethodHandle targetMethodDef)
+        protected override MethodSymbol FindMethodSymbolInType(TypeSymbol typeSymbol, MethodDefinitionHandle targetMethodDef)
         {
             Debug.Assert(typeSymbol is PENamedTypeSymbol || typeSymbol is ErrorTypeSymbol);
 
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return null;
         }
 
-        protected override FieldSymbol FindFieldSymbolInType(TypeSymbol typeSymbol, FieldHandle fieldDef)
+        protected override FieldSymbol FindFieldSymbolInType(TypeSymbol typeSymbol, FieldDefinitionHandle fieldDef)
         {
             Debug.Assert(typeSymbol is PENamedTypeSymbol || typeSymbol is ErrorTypeSymbol);
 
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return memberRefDecoder.FindMember(targetTypeSymbol, memberRef, methodsOnly);
         }
 
-        protected override void EnqueueTypeSymbolInterfacesAndBaseTypes(Queue<TypeHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
+        protected override void EnqueueTypeSymbolInterfacesAndBaseTypes(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
         {
             foreach (NamedTypeSymbol @interface in typeSymbol.InterfacesNoUseSiteDiagnostics)
             {
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, typeSymbol.BaseTypeNoUseSiteDiagnostics);
         }
 
-        protected override void EnqueueTypeSymbol(Queue<TypeHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
+        protected override void EnqueueTypeSymbol(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
         {
             if ((object)typeSymbol != null)
             {
@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        protected override MethodHandle GetMethodHandle(MethodSymbol method)
+        protected override MethodDefinitionHandle GetMethodHandle(MethodSymbol method)
         {
             PEMethodSymbol peMethod = method as PEMethodSymbol;
             if ((object)peMethod != null && ReferenceEquals(peMethod.ContainingModule, moduleSymbol))
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return peMethod.Handle;
             }
 
-            return default(MethodHandle);
+            return default(MethodDefinitionHandle);
         }
     }
 }

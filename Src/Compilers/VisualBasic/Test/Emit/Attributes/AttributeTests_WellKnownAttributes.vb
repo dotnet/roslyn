@@ -700,7 +700,7 @@ End Class
 
                     For Each method In reader.GetImportedMethods()
                         Dim import = method.GetImport()
-                        Dim moduleName As String = reader.GetString(reader.GetModuleReferenceName(import.Module))
+                        Dim moduleName As String = reader.GetString(reader.GetModuleReference(import.Module).Name)
                         Dim methodName As String = reader.GetString(method.Name)
                         Select Case methodName
                             Case "InvalidCharacter"
@@ -776,7 +776,7 @@ End Class
                     Dim reader = assembly.GetMetadataReader()
 
                     ' ModuleRef:
-                    Dim moduleRefName = reader.GetModuleReferenceName(reader.GetModuleReferences().Single())
+                    Dim moduleRefName = reader.GetModuleReference(reader.GetModuleReferences().Single()).Name
                     Assert.Equal("mscorlib", reader.GetString(moduleRefName))
 
                     ' FileRef:
@@ -797,9 +797,9 @@ End Class
                                  MethodImportAttributes.ThrowOnUnmappableCharEnable, import.Attributes)
 
                     ' MethodDef:
-                    Dim methodDefs As MethodHandle() = reader.MethodDefinitions.AsEnumerable().ToArray()
+                    Dim methodDefs As MethodDefinitionHandle() = reader.MethodDefinitions.AsEnumerable().ToArray()
                     Assert.Equal(2, methodDefs.Length) ' ctor, M
-                    Assert.Equal(MethodImplAttributes.PreserveSig, reader.GetMethod(methodDefs(1)).ImplAttributes)
+                    Assert.Equal(MethodImplAttributes.PreserveSig, reader.GetMethodDefinition(methodDefs(1)).ImplAttributes)
                 End Sub
 
             Dim symValidator As Action(Of ModuleSymbol) =
@@ -936,7 +936,7 @@ End Class
 
                     Dim method = reader.GetImportedMethods().Single()
                     Dim import = method.GetImport()
-                    Dim moduleName As String = reader.GetString(reader.GetModuleReferenceName(import.Module))
+                    Dim moduleName As String = reader.GetString(reader.GetModuleReference(import.Module).Name)
                     Dim entryPointName As String = reader.GetString(method.Name)
 
                     Assert.Equal("op_Addition", entryPointName)
@@ -968,7 +968,7 @@ End Class
                     Assert.Equal(1, peFileReader.GetTableRowCount(TableIndex.ImplMap))
 
                     Dim method = peFileReader.GetImportedMethods().Single()
-                    Dim moduleName As String = peFileReader.GetString(peFileReader.GetModuleReferenceName(method.GetImport().Module))
+                    Dim moduleName As String = peFileReader.GetString(peFileReader.GetModuleReference(method.GetImport().Module).Name)
                     Dim entryPointName As String = peFileReader.GetString(method.Name)
 
                     Assert.Equal("op_Explicit", entryPointName)
@@ -1003,7 +1003,7 @@ End Class
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
 
                     Dim method = reader.GetImportedMethods().Single()
-                    Dim moduleName As String = reader.GetString(reader.GetModuleReferenceName(method.GetImport().Module))
+                    Dim moduleName As String = reader.GetString(reader.GetModuleReference(method.GetImport().Module).Name)
                     Dim entryPointName As String = reader.GetString(method.Name)
 
                     Assert.Equal("module name", moduleName)
@@ -1319,7 +1319,7 @@ End Class
                     Dim peReader = assembly.GetMetadataReader()
 
                     For Each methodDef In peReader.MethodDefinitions
-                        Dim row = peReader.GetMethod(methodDef)
+                        Dim row = peReader.GetMethodDefinition(methodDef)
                         Dim actualFlags = row.ImplAttributes
                         Dim expectedFlags As MethodImplAttributes
 
@@ -1404,7 +1404,7 @@ End Class
             Dim peReader = ModuleMetadata.CreateFromImage(image).Module.GetMetadataReader()
 
             For Each methodDef In peReader.MethodDefinitions
-                Dim row = peReader.GetMethod(methodDef)
+                Dim row = peReader.GetMethodDefinition(methodDef)
                 Dim actualFlags = row.ImplAttributes
                 Dim actualHasBody = row.RelativeVirtualAddress <> 0
 
@@ -1608,7 +1608,7 @@ End Class
                 Sub(assembly, _omitted)
                     Dim peReader = assembly.GetMetadataReader()
                     For Each methodDef In peReader.MethodDefinitions
-                        Dim row = peReader.GetMethod(methodDef)
+                        Dim row = peReader.GetMethodDefinition(methodDef)
                         Dim actualFlags = row.ImplAttributes
                         Dim expectedFlags As MethodImplAttributes
                         Dim name = peReader.GetString(row.Name)
@@ -1636,7 +1636,7 @@ End Class
                     ' no custom attributes applied on methods:
                     For Each ca In peReader.CustomAttributes
                         Dim parent = peReader.GetCustomAttribute(ca).Parent
-                        Assert.NotEqual(parent.HandleType, HandleType.Method)
+                        Assert.NotEqual(parent.Kind, HandleKind.MethodDefinition)
                     Next
                 End Sub)
         End Sub
@@ -1718,7 +1718,7 @@ BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
             implFlags As MethodImplAttributes()
         )
             Dim m = assembly.Modules(0)
-            Dim dissableOptDef As TypeHandle = Nothing
+            Dim dissableOptDef As TypeDefinitionHandle = Nothing
             Dim name As String = Nothing
 
             For Each typeDef In m.GetMetadataReader().TypeDefinitions
@@ -1732,7 +1732,7 @@ BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
 
             Assert.NotEqual(Nothing, dissableOptDef)
 
-            Dim map As New Dictionary(Of String, MethodHandle)()
+            Dim map As New Dictionary(Of String, MethodDefinitionHandle)()
 
             For Each methodDef In m.GetMethodsOfTypeOrThrow(dissableOptDef)
                 map.Add(m.GetMethodDefNameOrThrow(methodDef), methodDef)
@@ -2014,7 +2014,7 @@ End Class
                     Dim reader = assembly.GetMetadataReader()
 
                     ' ModuleRef:
-                    Dim moduleRefName = reader.GetModuleReferenceName(reader.GetModuleReferences().Single())
+                    Dim moduleRefName = reader.GetModuleReference(reader.GetModuleReferences().Single()).Name
                     Assert.Equal("Foo", reader.GetString(moduleRefName))
 
                     ' FileRef:
@@ -2033,9 +2033,9 @@ End Class
                                  MethodImportAttributes.SetLastError, import.Attributes)
 
                     ' MethodDef:
-                    Dim methodDefs As MethodHandle() = reader.MethodDefinitions.AsEnumerable().ToArray()
+                    Dim methodDefs As MethodDefinitionHandle() = reader.MethodDefinitions.AsEnumerable().ToArray()
                     Assert.Equal(2, methodDefs.Length) ' ctor, M
-                    Assert.Equal(MethodImplAttributes.PreserveSig, reader.GetMethod(methodDefs(1)).ImplAttributes)
+                    Assert.Equal(MethodImplAttributes.PreserveSig, reader.GetMethodDefinition(methodDefs(1)).ImplAttributes)
                 End Sub
 
             CompileAndVerify(source, validator:=validator)
@@ -2069,7 +2069,8 @@ End Class
 
                     For Each method In peFileReader.GetImportedMethods()
                         Dim import = method.GetImport()
-                        Dim moduleName As String = peFileReader.GetString(peFileReader.GetModuleReferenceName(import.Module))
+                        Dim moduleName As String = peFileReader.GetString(peFileReader.GetModuleReference(import.Module).Name
+                                                                        )
                         Dim entryPointName As String = peFileReader.GetString(method.Name)
                         Dim importname As String = peFileReader.GetString(import.Name)
 
@@ -2473,12 +2474,12 @@ End Structure
                     Next
 
                     For Each methodDef In peFileReader.MethodDefinitions
-                        Dim flags = peFileReader.GetMethod(methodDef).Attributes
+                        Dim flags = peFileReader.GetMethodDefinition(methodDef).Attributes
                         Assert.Equal(MethodAttributes.SpecialName, flags And MethodAttributes.SpecialName)
                     Next
 
                     For Each fieldDef In peFileReader.FieldDefinitions
-                        Dim field = peFileReader.GetField(fieldDef)
+                        Dim field = peFileReader.GetFieldDefinition(fieldDef)
                         Dim name = peFileReader.GetString(field.Name)
                         Dim flags = field.Attributes
                         Select Case name
@@ -2494,7 +2495,7 @@ End Structure
                     Next
 
                     For Each propertyDef In peFileReader.PropertyDefinitions
-                        Dim prop = peFileReader.GetProperty(propertyDef)
+                        Dim prop = peFileReader.GetPropertyDefinition(propertyDef)
                         Dim name = peFileReader.GetString(prop.Name)
                         Dim flags = prop.Attributes
                         Select Case name
@@ -2510,7 +2511,7 @@ End Structure
                     Next
 
                     For Each eventDef In peFileReader.EventDefinitions
-                        Dim flags = peFileReader.GetEvent(eventDef).Attributes
+                        Dim flags = peFileReader.GetEventDefinition(eventDef).Attributes
                         Assert.Equal(EventAttributes.SpecialName, flags And EventAttributes.SpecialName)
                     Next
                 End Sub)
@@ -2599,7 +2600,7 @@ End Class
                     Next
 
                     For Each fieldDef In peFileReader.FieldDefinitions
-                        Dim field = peFileReader.GetField(fieldDef)
+                        Dim field = peFileReader.GetFieldDefinition(fieldDef)
                         Dim name = peFileReader.GetString(field.Name)
                         Dim flags = field.Attributes
                         Select Case name
@@ -3462,7 +3463,7 @@ End Class
                 Sub(m, _omitted)
                     Dim reader = m.GetMetadataReader()
                     For Each methodDef In reader.MethodDefinitions
-                        Dim row = reader.GetMethod(methodDef)
+                        Dim row = reader.GetMethodDefinition(methodDef)
                         Dim name = reader.GetString(row.Name)
                         Dim actual = row.ImplAttributes
 

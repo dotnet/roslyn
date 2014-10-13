@@ -518,7 +518,7 @@ namespace Roslyn.Test.Utilities
         internal static string GetAttributeName(MetadataReader metadataReader, CustomAttributeHandle customAttribute)
         {
             var ctorHandle = metadataReader.GetCustomAttribute(customAttribute).Constructor;
-            if (ctorHandle.HandleType == HandleType.MemberReference) // MemberRef
+            if (ctorHandle.Kind == HandleKind.MemberReference) // MemberRef
             {
                 var container = metadataReader.GetMemberReference((MemberReferenceHandle)ctorHandle).Parent;
                 var name = metadataReader.GetTypeReference((TypeReferenceHandle)container).Name;
@@ -564,19 +564,19 @@ namespace Roslyn.Test.Utilities
                 // fields
                 foreach (var fieldDef in metadataReader.FieldDefinitions)
                 {
-                    var field = metadataReader.GetField(fieldDef);
+                    var field = metadataReader.GetFieldDefinition(fieldDef);
                     string fieldName = metadataReader.GetString(field.Name);
 
                     byte[] expectedBlob = getExpectedBlob(fieldName, assembly, emitOptions);
                     if (expectedBlob != null)
                     {
-                        BlobHandle descriptor = metadataReader.GetField(fieldDef).GetMarshallingDescriptor();
+                        BlobHandle descriptor = metadataReader.GetFieldDefinition(fieldDef).GetMarshallingDescriptor();
                         Assert.False(descriptor.IsNil, "Expecting record in FieldMarshal table");
 
                         Assert.NotEqual(0, (int)(field.Attributes & FieldAttributes.HasFieldMarshal));
                         expectedMarshalCount++;
 
-                        byte[] actualBlob = metadataReader.GetBytes(descriptor);
+                        byte[] actualBlob = metadataReader.GetBlobBytes(descriptor);
                         AssertEx.Equal(expectedBlob, actualBlob);
                     }
                     else
@@ -590,7 +590,7 @@ namespace Roslyn.Test.Utilities
                 // parameters
                 foreach (var methodHandle in metadataReader.MethodDefinitions)
                 {
-                    var methodDef = metadataReader.GetMethod(methodHandle);
+                    var methodDef = metadataReader.GetMethodDefinition(methodHandle);
                     string memberName = metadataReader.GetString(methodDef.Name);
                     foreach (var paramHandle in methodDef.GetParameters())
                     {
@@ -606,7 +606,7 @@ namespace Roslyn.Test.Utilities
                             BlobHandle descriptor = metadataReader.GetParameter(paramHandle).GetMarshallingDescriptor();
                             Assert.False(descriptor.IsNil, "Expecting record in FieldMarshal table");
 
-                            byte[] actualBlob = metadataReader.GetBytes(descriptor);
+                            byte[] actualBlob = metadataReader.GetBlobBytes(descriptor);
 
                             AssertEx.Equal(expectedBlob, actualBlob);
                         }

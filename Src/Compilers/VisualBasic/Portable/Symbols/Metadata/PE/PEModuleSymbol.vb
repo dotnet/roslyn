@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' for metadata coming from this module. The map is lazily populated
         ''' as we load types from the module.
         ''' </summary>
-        Friend ReadOnly TypeHandleToTypeMap As New ConcurrentDictionary(Of TypeHandle, TypeSymbol)(concurrencyLevel:=2, capacity:=DefaultTypeMapCapacity)
+        Friend ReadOnly TypeHandleToTypeMap As New ConcurrentDictionary(Of TypeDefinitionHandle, TypeSymbol)(concurrencyLevel:=2, capacity:=DefaultTypeMapCapacity)
 
         ''' <summary>
         ''' This is a map from TypeRef row id to the target <see cref="TypeSymbol"/>. 

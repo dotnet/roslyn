@@ -1055,7 +1055,7 @@ Imports System
                 Assert.Equal(expected.ActionFlags, actual.Action)
                 Assert.Equal(GetExpectedParentToken(metadataReader, expected), actual.Parent)
 
-                Dim actualPermissionSetBytes = metadataReader.GetBytes(actual.PermissionSet)
+                Dim actualPermissionSetBytes = metadataReader.GetBlobBytes(actual.PermissionSet)
                 Dim actualPermissionSet = New String(actualPermissionSetBytes.Select(Function(b) ChrW(b)).ToArray())
 
                 Assert.Equal(expected.PermissionSet, actualPermissionSet)
@@ -1080,7 +1080,7 @@ Imports System
             End Select
         End Function
 
-        Private Shared Function GetTokenForType(metadataReader As MetadataReader, typeName As String) As TypeHandle
+        Private Shared Function GetTokenForType(metadataReader As MetadataReader, typeName As String) As TypeDefinitionHandle
             Assert.NotNull(typeName)
             Assert.NotEmpty(typeName)
 
@@ -1097,12 +1097,12 @@ Imports System
             Return Nothing
         End Function
 
-        Private Shared Function GetTokenForMethod(metadataReader As MetadataReader, methodName As String) As MethodHandle
+        Private Shared Function GetTokenForMethod(metadataReader As MetadataReader, methodName As String) As MethodDefinitionHandle
             Assert.NotNull(methodName)
             Assert.NotEmpty(methodName)
 
             For Each methodDef In metadataReader.MethodDefinitions
-                Dim name = metadataReader.GetString(metadataReader.GetMethod(methodDef).Name)
+                Dim name = metadataReader.GetString(metadataReader.GetMethodDefinition(methodDef).Name)
 
                 If methodName.Equals(name) Then
                     Return methodDef
@@ -2802,13 +2802,13 @@ End interface
 
                 Dim typeDef = metadataReader.GetTypeDefinition(handle)
 
-                If (metadataReader.StringEquals(typeDef.Name, "Viewable")) Then
+                If (metadataReader.StringComparer.Equals(typeDef.Name, "Viewable")) Then
                     For Each m In typeDef.GetMethods()
-                        Dim method = metadataReader.GetMethod(m)
-                        If (metadataReader.StringEquals(method.Name, "get_P1")) Then
+                        Dim method = metadataReader.GetMethodDefinition(m)
+                        If (metadataReader.StringComparer.Equals(method.Name, "get_P1")) Then
                             P1RVA = method.RelativeVirtualAddress
                         End If
-                        If (metadataReader.StringEquals(method.Name, "get_P2")) Then
+                        If (metadataReader.StringComparer.Equals(method.Name, "get_P2")) Then
                             P2RVA = method.RelativeVirtualAddress
                         End If
                     Next

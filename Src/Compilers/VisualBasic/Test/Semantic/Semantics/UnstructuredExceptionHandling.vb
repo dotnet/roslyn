@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -18452,11 +18453,13 @@ Procedure call or argument is not valid.
 
         <Fact()>
         Sub ErrorHandler_InCollectionInitializer()
+
+
             'As we are handling the error in the Add, we should handle two items to the collection
             'In other collection initializer we would result in all or nothing behaviour
             Dim compilationDef =
-    <compilation name="ErrorHandlerTest">
-        <file name="a.vb">
+        <compilation name="ErrorHandlerTest">
+            <file name="a.vb">
 Imports System
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
@@ -18489,10 +18492,11 @@ handler:
     End Sub
 End Module
         </file>
-    </compilation>
+        </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="2")
+                    Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+                    CompileAndVerify(compilation, expectedOutput:="2")
+
         End Sub
 
         <Fact()>

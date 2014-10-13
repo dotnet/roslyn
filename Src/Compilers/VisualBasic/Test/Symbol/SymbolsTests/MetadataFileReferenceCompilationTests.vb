@@ -18,7 +18,7 @@ Public Class MetadataFileReferenceCompilationTests
         Dim ref = MetadataReference.CreateFromImage({}, filePath:="Foo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BadRefLib1">
-    <file name="a.vb">
+<file name="a.vb">
 Class C1
 End Class
     </file>
@@ -36,14 +36,14 @@ BC31519: 'Foo.dll' cannot be referenced because it is not a valid assembly.
         Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Foo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BadRefLib1">
-    <file name="a.vb">
+<file name="a.vb">
 Class C1
 End Class
     </file>
 </compilation>)
         compilation1 = compilation1.AddReferences(ref)
         Dim expectedErrors1 = <errors>
-BC31007: Unable to load module file 'Foo.dll': Image too small to contain DOS header.
+BC31007: Unable to load module file 'Foo.dll': Image is too small.
                  </errors>
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
@@ -83,7 +83,7 @@ BC31007: Unable to load module file 'Foo.dll': Image too small to contain DOS he
 
         Dim b = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="b">
-    <file name="b.vb">
+<file name="b.vb">
 Public Class B
     Public Shared Function Main() As Integer
         Return C.Main()
@@ -91,14 +91,14 @@ Public Class B
 End Class
     </file>
 </compilation>,
-            references:={MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2)},
-            options:=TestOptions.ReleaseDll)
+        references:={MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2)},
+        options:=TestOptions.ReleaseDll)
 
         Dim metadata3 = AssemblyMetadata.CreateFromImage(b.EmitToArray())
 
         Dim a = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="a">
-    <file name="a.vb">
+<file name="a.vb">
 Class A
         Public Shared Sub Main()
             B.Main()
@@ -106,8 +106,8 @@ Class A
 End Class
     </file>
 </compilation>,
-            references:={metadata1.GetReference(filePath:="file1.dll"), metadata2.GetReference(filePath:="file2.dll"), metadata3.GetReference(filePath:="file1.dll")},
-            options:=TestOptions.ReleaseDll)
+        references:={metadata1.GetReference(filePath:="file1.dll"), metadata2.GetReference(filePath:="file2.dll"), metadata3.GetReference(filePath:="file1.dll")},
+        options:=TestOptions.ReleaseDll)
 
         Using stream = New MemoryStream()
             a.Emit(stream)

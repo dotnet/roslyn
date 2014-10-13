@@ -1780,7 +1780,7 @@ public sealed class ContentType
                 foreach (var typeRef in reader.TypeReferences)
                 {
                     Handle scope = reader.GetTypeReference(typeRef).ResolutionScope;
-                    if (scope.HandleType == HandleType.TypeReference)
+                    if (scope.Kind == HandleKind.TypeReference)
                     {
                         Assert.InRange(reader.GetRowNumber(scope), 1, reader.GetRowNumber(typeRef) - 1);
                     }
@@ -2610,16 +2610,16 @@ class Viewable
             {
                 var typeDef = peReader.GetTypeDefinition(handle);
                 
-                if (peReader.StringEquals(typeDef.Name, "Viewable"))
+                if (peReader.StringComparer.Equals(typeDef.Name, "Viewable"))
                 {
                     foreach (var m in typeDef.GetMethods())
                     {
-                        var method = peReader.GetMethod(m);
-                        if (peReader.StringEquals(method.Name, "get_P1"))
+                        var method = peReader.GetMethodDefinition(m);
+                        if (peReader.StringComparer.Equals(method.Name, "get_P1"))
                         {
                             P1RVA = method.RelativeVirtualAddress;
                         }
-                        if (peReader.StringEquals(method.Name, "get_P2"))
+                        if (peReader.StringComparer.Equals(method.Name, "get_P2"))
                         {
                             P2RVA = method.RelativeVirtualAddress;
                         }

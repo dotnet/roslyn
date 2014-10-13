@@ -1357,7 +1357,7 @@ namespace NS
                 Assert.Equal(forwardedTypeFullNames.Length, metadataReader.GetTableRowCount(TableIndex.ExportedType));
 
                 int i = 0;
-                foreach (var exportedType in metadataReader.GetExportedTypes())
+                foreach (var exportedType in metadataReader.ExportedTypes)
                 {
                     ValidateExportedTypeRow(exportedType, metadataReader, forwardedTypeFullNames[i]);
                     i++;
@@ -1465,7 +1465,7 @@ public class CF1
 
             var peReader = metadata.GetMetadataReader();
             Assert.Equal(1, peReader.GetTableRowCount(TableIndex.ExportedType));
-            ValidateExportedTypeRow(peReader.GetExportedTypes().First(), peReader, "CF1");
+            ValidateExportedTypeRow(peReader.ExportedTypes.First(), peReader, "CF1");
 
             Handle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
@@ -1476,7 +1476,7 @@ public class CF1
                 {
                     var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
                     Assert.Equal(1, peReader1.GetTableRowCount(TableIndex.ExportedType));
-                    ValidateExportedTypeRow(peReader1.GetExportedTypes().First(), peReader1, "CF1");
+                    ValidateExportedTypeRow(peReader1.ExportedTypes.First(), peReader1, "CF1");
 
                     // Attributes should not actually be emitted.
                     Assert.Equal(0, m.ContainingAssembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
@@ -1618,7 +1618,7 @@ public class CF1
                 Assert.Equal(forwardedTypeFullNames.Length, peReader.GetTableRowCount(TableIndex.ExportedType));
 
                 int i = 0;
-                foreach (var exportedType in peReader.GetExportedTypes())
+                foreach (var exportedType in peReader.ExportedTypes)
                 {
                     ValidateExportedTypeRow(exportedType, peReader, forwardedTypeFullNames[i]);
                     i++;
@@ -1626,8 +1626,9 @@ public class CF1
             }
         }
 
-        private static void ValidateExportedTypeRow(ExportedTypeRow exportedTypeRow, MetadataReader reader, string expectedFullName)
+        private static void ValidateExportedTypeRow(ExportedTypeHandle exportedTypeHandle, MetadataReader reader, string expectedFullName)
         {
+            ExportedType exportedTypeRow = reader.GetExportedType(exportedTypeHandle);
             var split = expectedFullName.Split('.');
             int numParts = split.Length;
             Assert.InRange(numParts, 1, int.MaxValue);
@@ -1637,18 +1638,18 @@ public class CF1
             if (expectedFullName.Contains('+'))
             {
                 Assert.Equal((TypeAttributes)0, exportedTypeRow.Attributes & TypeAttributesMissing.Forwarder);
-                Assert.Equal(0u, exportedTypeRow.TypeDefId);
-                Assert.Equal(expectedType.Split('+').Last(), reader.GetString(exportedTypeRow.TypeName)); //Only the actual type name.
-                Assert.Equal("", reader.GetString(exportedTypeRow.TypeNamespace)); //Empty - presumably there's enough info on the containing type.
-                Assert.Equal(HandleType.TypeForwarder, exportedTypeRow.Implementation.HandleType);
+                Assert.Equal(0, exportedTypeRow.GetTypeDefinitionId());
+                Assert.Equal(expectedType.Split('+').Last(), reader.GetString(exportedTypeRow.Name)); //Only the actual type name.
+                Assert.Equal("", reader.GetString(exportedTypeRow.Namespace)); //Empty - presumably there's enough info on the containing type.
+                Assert.Equal(HandleKind.ExportedType, exportedTypeRow.Implementation.Kind);
             }
             else
             {
                 Assert.Equal(TypeAttributes.NotPublic | TypeAttributesMissing.Forwarder, exportedTypeRow.Attributes);
-                Assert.Equal(0u, exportedTypeRow.TypeDefId);
-                Assert.Equal(expectedType, reader.GetString(exportedTypeRow.TypeName));
-                Assert.Equal(expectedNamespace, reader.GetString(exportedTypeRow.TypeNamespace));
-                Assert.Equal(HandleType.AssemblyReference, exportedTypeRow.Implementation.HandleType);
+                Assert.Equal(0, exportedTypeRow.GetTypeDefinitionId());
+                Assert.Equal(expectedType, reader.GetString(exportedTypeRow.Name));
+                Assert.Equal(expectedNamespace, reader.GetString(exportedTypeRow.Namespace));
+                Assert.Equal(HandleKind.AssemblyReference, exportedTypeRow.Implementation.Kind);
             }
         }
 

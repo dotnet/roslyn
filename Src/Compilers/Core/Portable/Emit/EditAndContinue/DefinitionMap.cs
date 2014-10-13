@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return methodMap;
         }
 
-        internal abstract bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeHandle handle);
-        internal abstract bool TryGetEventHandle(Cci.IEventDefinition def, out EventHandle handle);
-        internal abstract bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldHandle handle);
-        internal abstract bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodHandle handle);
-        internal abstract bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyHandle handle);
+        internal abstract bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle);
+        internal abstract bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle);
+        internal abstract bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle);
+        internal abstract bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle);
+        internal abstract bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle);
 
         internal abstract VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method);
 

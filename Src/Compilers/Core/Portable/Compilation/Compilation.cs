@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodHandle> updatedMethods,
+            ICollection<MethodDefinitionHandle> updatedMethods,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (baseline == null)
@@ -1385,7 +1385,7 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodHandle> updatedMethodHandles,
+            ICollection<MethodDefinitionHandle> updatedMethodHandles,
             CompilationTestData testData,
             CancellationToken cancellationToken);
 

@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return PrimitiveTypeCode.NotPrimitive
         End Function
 
-        Private ReadOnly Property ITypeReferenceTypeDef As TypeHandle Implements ITypeReference.TypeDef
+        Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements ITypeReference.TypeDef
             Get
                 Return Nothing
             End Get

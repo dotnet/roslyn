@@ -1,5 +1,4 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -3552,7 +3551,7 @@ End Class
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(
                     ModuleMetadata.CreateFromImage(bytes0),
                     Function(m)
-                        Select Case md0.MetadataReader.GetString(md0.MetadataReader.GetMethod(m).Name)
+                        Select Case md0.MetadataReader.GetString(md0.MetadataReader.GetMethodDefinition(m).Name)
                             Case "F" : Return testData0.GetMethodData("B.F").GetEncDebugInfo()
                             Case "G" : Return testData0.GetMethodData("B.G").GetEncDebugInfo()
                         End Select
@@ -3733,7 +3732,7 @@ End Class
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(
                     ModuleMetadata.CreateFromImage(bytes0),
                     Function(m)
-                        Select Case md0.MetadataReader.GetString(md0.MetadataReader.GetMethod(m).Name)
+                        Select Case md0.MetadataReader.GetString(md0.MetadataReader.GetMethodDefinition(m).Name)
                             Case "F" : Return testData0.GetMethodData("C.F").GetEncDebugInfo()
                             Case "G" : Return testData0.GetMethodData("C.G").GetEncDebugInfo()
                         End Select
@@ -4009,7 +4008,7 @@ End Module
         End Sub
 
 #Region "Helpers"
-        Private Shared ReadOnly EmptyLocalsProvider As Func(Of MethodHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
+        Private Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
 
         Private Shared Function GetAllLocals(compilation As VisualBasicCompilation, method As MethodSymbol) As ImmutableArray(Of LocalSymbol)
             Dim methodSyntax = method.DeclaringSyntaxReferences(0).GetSyntax().Parent
@@ -4130,7 +4129,7 @@ End Module
 
         Private Shared Function EncLogRowToString(row As EditAndContinueLogEntry) As String
             Dim index As TableIndex = 0
-            MetadataTokens.TryGetTableIndex(row.Handle.HandleType, index)
+            MetadataTokens.TryGetTableIndex(row.Handle.Kind, index)
             Return String.Format(
                 "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
                 MetadataTokens.GetRowNumber(row.Handle),
@@ -4140,7 +4139,7 @@ End Module
 
         Private Shared Function EncMapRowToString(handle As Handle) As String
             Dim index As TableIndex = 0
-            MetadataTokens.TryGetTableIndex(handle.HandleType, index)
+            MetadataTokens.TryGetTableIndex(handle.Kind, index)
             Return String.Format(
                 "Handle({0}, TableIndex.{1})",
                 MetadataTokens.GetRowNumber(handle),

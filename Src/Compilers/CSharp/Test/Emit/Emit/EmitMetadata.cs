@@ -280,7 +280,7 @@ public class Test : Class1
                 Assert.False(file2.HashValue.IsNil);
 
                 Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef));
-                var moduleRefName = reader.GetModuleReferenceName(MetadataTokens.ModuleReferenceHandle(1));
+                var moduleRefName = reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(1)).Name;
                 Assert.Equal("netModule1.netmodule", reader.GetString(moduleRefName));
 
                 Assert.Equal(5, reader.GetTableRowCount(TableIndex.ExportedType));

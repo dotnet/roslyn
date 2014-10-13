@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For i = 0 To description.Signatures.Length - 1
                 Dim targetSignature = description.Signatures(i)
-                If targetSignature(0) <> SignatureHeader.HasThis Then
+                If targetSignature(0) <> SignatureAttributes.Instance Then
                     Continue For
                 End If
 

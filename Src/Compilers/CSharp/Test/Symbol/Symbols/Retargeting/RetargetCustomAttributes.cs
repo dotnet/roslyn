@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             private static readonly AttributeDescription attribute = new AttributeDescription(
                 "System.Diagnostics",
                 "DebuggerTypeProxyAttribute",
-                new byte[][] { new byte[] { SignatureHeader.HasThis, 1, (byte)SignatureTypeCode.Void, (byte)SignatureTypeCode.TypeHandle, (byte)AttributeDescription.TypeHandleTarget.SystemType } });
+                new byte[][] { new byte[] { (byte)SignatureAttributes.Instance, 1, (byte)SignatureTypeCode.Void, (byte)SignatureTypeCode.TypeHandle, (byte)AttributeDescription.TypeHandleTarget.SystemType } });
 
             public Test01()
             {

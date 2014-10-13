@@ -120,16 +120,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Try
                 Dim memberName As String = [Module].GetMemberRefNameOrThrow(memberRef)
                 Dim signatureHandle = [Module].GetSignatureOrThrow(memberRef)
-                Dim callingConvention As Byte
-                Dim signaturePointer As BlobReader = Me.DecodeSignatureHeaderOrThrow(signatureHandle, callingConvention)
+                Dim signatureHeader As SignatureHeader
+                Dim signaturePointer As BlobReader = Me.DecodeSignatureHeaderOrThrow(signatureHandle, signatureHeader)
 
-                Select Case callingConvention And SignatureHeader.CallingConventionMask
-                    Case SignatureHeader.DefaultCall, SignatureHeader.VarArgCall, SignatureHeader.Generic
+                Select Case signatureHeader.RawValue And SignatureHeader.CallingConventionOrKindMask
+                    Case SignatureCallingConvention.Default, SignatureCallingConvention.VarArgs
                         Dim typeParamCount As Integer
-                        Dim targetParamInfo As ParamInfo() = Me.DecodeSignatureParametersOrThrow(signaturePointer, callingConvention, typeParamCount)
-                        Return FindMethodBySignature(targetTypeSymbol, memberName, callingConvention, typeParamCount, targetParamInfo)
+                        Dim targetParamInfo As ParamInfo() = Me.DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount)
+                        Return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo)
 
-                    Case SignatureHeader.Field
+                    Case SignatureKind.Field
                         If methodsOnly Then
                             ' skip
                             Return Nothing
@@ -165,12 +165,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Private Shared Function FindMethodBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, targetMemberCallingConvention As Byte, targetMemberTypeParamCount As Integer, targetParamInfo As ParamInfo()) As MethodSymbol
+        Private Shared Function FindMethodBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, targetMemberSignatureHeader As SignatureHeader, targetMemberTypeParamCount As Integer, targetParamInfo As ParamInfo()) As MethodSymbol
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim method = TryCast(member, MethodSymbol)
 
                 If method IsNot Nothing AndAlso
-                   (CType(method.CallingConvention, Byte) = targetMemberCallingConvention) AndAlso
+                   (CType(method.CallingConvention, Byte) = targetMemberSignatureHeader.RawValue) AndAlso
                    (targetMemberTypeParamCount = method.Arity) AndAlso
                    MethodSymbolMatchesParamInfo(method, targetParamInfo) Then
 

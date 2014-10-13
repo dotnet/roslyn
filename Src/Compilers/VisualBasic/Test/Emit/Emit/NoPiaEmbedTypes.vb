@@ -1295,11 +1295,11 @@ End Class
                                                            Assert.Equal(MethodAttributes.Public Or MethodAttributes.RTSpecialName Or MethodAttributes.SpecialName, flags)
                                                            Assert.Equal(MethodImplAttributes.IL Or MethodImplAttributes.Runtime, implFlags)
 
-                                                           Dim callingConvention As Byte = Nothing
+                                                           Dim signatureHeader As SignatureHeader = Nothing
                                                            Dim mrEx As BadImageFormatException = Nothing
-                                                           Dim paramInfo = New MetadataDecoder(DirectCast([module], PEModuleSymbol), itest17).GetSignatureForMethod(gapMethodDef, callingConvention, mrEx)
+                                                           Dim paramInfo = New MetadataDecoder(DirectCast([module], PEModuleSymbol), itest17).GetSignatureForMethod(gapMethodDef, signatureHeader, mrEx)
                                                            Assert.Null(mrEx)
-                                                           Assert.Equal(SignatureHeader.DefaultCall Or SignatureHeader.HasThis, callingConvention)
+                                                           Assert.Equal(CByte(SignatureCallingConvention.Default) Or CByte(SignatureAttributes.Instance), signatureHeader.RawValue)
                                                            Assert.Equal(1, paramInfo.Length)
                                                            Assert.Equal(SpecialType.System_Void, paramInfo(0).Type.SpecialType)
                                                            Assert.False(paramInfo(0).IsByRef)
@@ -1423,7 +1423,7 @@ End Class
                                                            Assert.Equal(2, itest24.GetMembers().Length)
                                                            Assert.False(p4.HasSpecialName)
                                                            Assert.False(p4.HasRuntimeSpecialName)
-                                                           Assert.Equal(SignatureHeader.Property Or SignatureHeader.HasThis, CType(p4.CallingConvention, Byte))
+                                                           Assert.Equal(CByte(SignatureKind.Property) Or CByte(SignatureAttributes.Instance), CByte(p4.CallingConvention))
 
                                                            Dim set_P4 = itest24.GetMember(Of PEMethodSymbol)("set_P4")
 

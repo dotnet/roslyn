@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override Cci.CallingConvention CallingConvention { get { return callingConvention; } }
 
-        public override bool IsVararg { get { return SignatureHeader.IsVarArgCallSignature((byte)callingConvention); } }
+        public override bool IsVararg { get { return new SignatureHeader((byte)callingConvention).CallingConvention == SignatureCallingConvention.VarArgs; } }
 
         public override bool IsGenericMethod { get { return Arity > 0; } }
 

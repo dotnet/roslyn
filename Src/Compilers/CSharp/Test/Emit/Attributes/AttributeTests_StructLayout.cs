@@ -43,15 +43,15 @@ using System.Runtime.InteropServices;
                 {
                     var type = metadataReader.GetTypeDefinition(typeHandle);
 
-                    uint classSize, packingSize;
-                    if (type.GetTypeLayout(out classSize, out packingSize))
+                    var layout = type.GetLayout();
+                    if (!layout.IsDefault)
                     {
                         Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes & typeDefMask);
                         string typeName = metadataReader.GetString(type.Name);
 
                         int expectedAlignment = int.Parse(typeName.Substring("Pack".Length));
-                        Assert.Equal((uint)expectedAlignment, packingSize);
-                        Assert.Equal((uint)1, classSize);
+                        Assert.Equal(expectedAlignment, layout.PackingSize);
+                        Assert.Equal(1, layout.Size);
                     }
                 }
             });
@@ -158,8 +158,8 @@ class Structs
                 {
                     var type = metadataReader.GetTypeDefinition(typeHandle);
 
-                    uint actualClassSize, actualPackingSize;
-                    if (!type.GetTypeLayout(out actualClassSize, out actualPackingSize))
+                    var layout = type.GetLayout();
+                    if (layout.IsDefault)
                     {
                         continue;
                     }
@@ -203,8 +203,8 @@ class Structs
                     // unlike Dev10, we don't add ClassLayout if .pack == 0 & .size == 0
                     Assert.False(expectedPack == 0 && expectedSize == 0, "Either expectedPack or expectedSize should be non-zero");
 
-                    Assert.Equal(expectedPack, actualPackingSize);
-                    Assert.Equal(expectedSize, actualClassSize);
+                    Assert.Equal(expectedPack, layout.PackingSize);
+                    Assert.Equal(expectedSize, (uint)layout.Size);
                     Assert.Equal(expectedKind, type.Attributes & TypeAttributes.LayoutMask);
                 }
             };
@@ -358,7 +358,7 @@ public class A
 
                 foreach (var fieldHandle in reader.FieldDefinitions)
                 {
-                    var field = reader.GetField(fieldHandle);
+                    var field = reader.GetFieldDefinition(fieldHandle);
                     string name = reader.GetString(field.Name);
 
                     int expectedOffset;
@@ -552,9 +552,8 @@ partial struct C
                 {
                     var type = reader.GetTypeDefinition(typeHandle);
                     var name = reader.GetString(type.Name);
-                    uint classSize, packingSize;
-                    bool hasClassLayout = type.GetTypeLayout(out classSize, out packingSize);
-
+                    var mdLayout = type.GetLayout();
+                    bool hasClassLayout = !mdLayout.IsDefault;
                     TypeLayout layout = module.Module.GetTypeLayout(typeHandle);
                     switch (name)
                     {
@@ -566,30 +565,30 @@ partial struct C
                         case "S1":
                             // invalid size/pack value
                             Assert.True(hasClassLayout);
-                            Assert.Equal(0xaaaaaaaaU, classSize);
-                            Assert.Equal(0xffffU, packingSize);
+                            Assert.Equal(unchecked((int)0xaaaaaaaa), mdLayout.Size);
+                            Assert.Equal(0xffff, mdLayout.PackingSize);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), layout);
                             break;
 
                         case "S2":
                             // invalid size value
                             Assert.True(hasClassLayout);
-                            Assert.Equal(0xffffffffU, classSize);
-                            Assert.Equal(0x0002U, packingSize);
+                            Assert.Equal(-1, mdLayout.Size);
+                            Assert.Equal(0x0002, mdLayout.PackingSize);
                             Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 2), layout);
                             break;
 
                         case "S3":
                             Assert.True(hasClassLayout);
-                            Assert.Equal(1U, classSize);
-                            Assert.Equal(2U, packingSize);
+                            Assert.Equal(1, mdLayout.Size);
+                            Assert.Equal(2, mdLayout.PackingSize);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 1, alignment: 2), layout);
                             break;
 
                         case "S4":
                             Assert.True(hasClassLayout);
-                            Assert.Equal(0x12345678U, classSize);
-                            Assert.Equal(0U, packingSize);
+                            Assert.Equal(unchecked((int)0x12345678), mdLayout.Size);
+                            Assert.Equal(0, mdLayout.PackingSize);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0x12345678, alignment: 0), layout);
                             break;
 

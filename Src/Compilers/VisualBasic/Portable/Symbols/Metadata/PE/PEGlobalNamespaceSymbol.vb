@@ -60,12 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Protected Overrides Sub EnsureAllMembersLoaded()
             If m_lazyTypes Is Nothing OrElse m_lazyMembers Is Nothing Then
-                Dim groups As IEnumerable(Of IGrouping(Of String, TypeHandle))
+                Dim groups As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
 
                 Try
                     groups = m_ModuleSymbol.Module.GroupTypesByNamespaceOrThrow(IdentifierComparison.Comparer)
                 Catch mrEx As BadImageFormatException
-                    groups = SpecializedCollections.EmptyEnumerable(Of IGrouping(Of String, TypeHandle))()
+                    groups = SpecializedCollections.EmptyEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))()
                 End Try
 
                 LoadAllMembers(groups)

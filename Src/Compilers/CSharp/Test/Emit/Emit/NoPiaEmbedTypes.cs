@@ -1450,7 +1450,7 @@ class UsePia4
                     Assert.Equal("_VtblGap1_4", methodNames[1]);
                     Assert.Equal("M19", methodNames[2]);
 
-                    MethodHandle gapMethodDef = metadata.GetMethodsOfTypeOrThrow(itest17.Handle).AsEnumerable().ElementAt(1);
+                    MethodDefinitionHandle gapMethodDef = metadata.GetMethodsOfTypeOrThrow(itest17.Handle).AsEnumerable().ElementAt(1);
                     string name;
                     MethodImplAttributes implFlags;
                     MethodAttributes flags;
@@ -1461,11 +1461,11 @@ class UsePia4
                     Assert.Equal(MethodAttributes.Public | MethodAttributes.RTSpecialName | MethodAttributes.SpecialName, flags);
                     Assert.Equal(MethodImplAttributes.IL | MethodImplAttributes.Runtime, implFlags);
 
-                    byte callingConvention;
+                    SignatureHeader signatureHeader;
                     BadImageFormatException mrEx;
-                    MetadataDecoder.ParamInfo[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out callingConvention, out mrEx);
+                    MetadataDecoder.ParamInfo[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx);
                     Assert.Null(mrEx);
-                    Assert.Equal(SignatureHeader.DefaultCall | SignatureHeader.HasThis, callingConvention);
+                    Assert.Equal((byte)SignatureCallingConvention.Default | (byte)SignatureAttributes.Instance, signatureHeader.RawValue);
                     Assert.Equal(1, paramInfo.Length);
                     Assert.Equal(SpecialType.System_Void, paramInfo[0].Type.SpecialType);
                     Assert.False(paramInfo[0].IsByRef);
@@ -1591,7 +1591,7 @@ class UsePia4
                     Assert.Equal(2, itest24.GetMembers().Length);
                     Assert.False(p4.HasSpecialName);
                     Assert.False(p4.HasRuntimeSpecialName);
-                    Assert.Equal(SignatureHeader.Property | SignatureHeader.HasThis, (byte)p4.CallingConvention);
+                    Assert.Equal((byte)SignatureKind.Property | (byte)SignatureAttributes.Instance, (byte)p4.CallingConvention);
 
                     var set_P4 = (PEMethodSymbol)itest24.GetMembers("set_P4").Single();
 

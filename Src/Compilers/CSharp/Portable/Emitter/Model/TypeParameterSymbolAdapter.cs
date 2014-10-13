@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Cci.PrimitiveTypeCode.NotPrimitive;
         }
 
-        TypeHandle Cci.ITypeReference.TypeDef
+        TypeDefinitionHandle Cci.ITypeReference.TypeDef
         {
-            get { return default(TypeHandle); }
+            get { return default(TypeDefinitionHandle); }
         }
 
         Cci.IGenericMethodParameter Cci.IGenericParameter.AsGenericMethodParameter

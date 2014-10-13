@@ -148,6 +148,33 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
+        /// Compute the FNV-1a hash of a sequence of bytes and determines if the byte
+        /// sequence is valid ASCII and hence the hash code matches a char sequence
+        /// encoding the same text.
+        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+        /// </summary>
+        /// <param name="data">The sequence of bytes that are likely to be ASCII text.</param>
+        /// <param name="length">The length of the sequence.</param>
+        /// <param name="isAscii">True if the sequence contains only characters in the ASCII range.</param>
+        /// <returns>The FNV-1a hash of <paramref name="data"/></returns>
+        internal static unsafe int GetFNVHashCode(byte* data, int length, out bool isAscii)
+        {
+            int hashCode = Hash.FnvOffsetBias;
+
+            byte asciiMask = 0;
+
+            for (int i = 0; i < length; i++)
+            {
+                byte b = data[i];
+                asciiMask |= b;
+                hashCode = unchecked((hashCode ^ b) * Hash.FnvPrime);
+            }
+
+            isAscii = (asciiMask & 0x80) == 0;
+            return hashCode;
+        }
+
+        /// <summary>
         /// Compute the FNV-1a hash of a sequence of bytes
         /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
         /// </summary>

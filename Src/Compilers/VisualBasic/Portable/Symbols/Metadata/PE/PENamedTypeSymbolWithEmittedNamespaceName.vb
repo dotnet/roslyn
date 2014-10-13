@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
             containingNamespace As PENamespaceSymbol,
-            typeDef As TypeHandle,
+            typeDef As TypeDefinitionHandle,
             emittedNamespaceName As String
         )
             MyBase.New(moduleSymbol, containingNamespace, typeDef)

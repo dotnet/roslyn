@@ -18,12 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private ReadOnly m_name As String
         Private ReadOnly m_flags As PropertyAttributes
         Private ReadOnly m_containingType As PENamedTypeSymbol
-        Private ReadOnly m_callingConvention As Byte
+        Private ReadOnly m_signatureHeader As SignatureHeader
         Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
         Private ReadOnly m_propertyType As TypeSymbol
         Private ReadOnly m_getMethod As PEMethodSymbol
         Private ReadOnly m_setMethod As PEMethodSymbol
-        Private ReadOnly m_handle As PropertyHandle
+        Private ReadOnly m_handle As PropertyDefinitionHandle
         Private ReadOnly m_typeCustomModifiers As ImmutableArray(Of CustomModifier)
         Private m_lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Sub New(
                       moduleSymbol As PEModuleSymbol,
                       containingType As PENamedTypeSymbol,
-                      handle As PropertyHandle,
+                      handle As PropertyDefinitionHandle,
                       getMethod As PEMethodSymbol,
                       setMethod As PEMethodSymbol)
 
@@ -67,16 +67,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             m_getMethod = getMethod
             m_setMethod = setMethod
 
-            Dim metadataDecoder = New metadataDecoder(moduleSymbol, containingType)
+            Dim metadataDecoder = New MetadataDecoder(moduleSymbol, containingType)
             Dim propEx As BadImageFormatException = Nothing
-            Dim propertyParams = metadataDecoder.GetSignatureForProperty(handle, m_callingConvention, propEx)
+            Dim propertyParams = MetadataDecoder.GetSignatureForProperty(handle, m_signatureHeader, propEx)
             Debug.Assert(propertyParams.Length > 0)
 
-            Dim unusedCallingConvention As Byte = 0
+            Dim unusedSignatureHeader As SignatureHeader = Nothing
             Dim getEx As BadImageFormatException = Nothing
-            Dim getParams = If(m_getMethod Is Nothing, Nothing, metadataDecoder.GetSignatureForMethod(m_getMethod.Handle, unusedCallingConvention, getEx))
+            Dim getParams = If(m_getMethod Is Nothing, Nothing, MetadataDecoder.GetSignatureForMethod(m_getMethod.Handle, unusedSignatureHeader, getEx))
             Dim setEx As BadImageFormatException = Nothing
-            Dim setParams = If(m_setMethod Is Nothing, Nothing, metadataDecoder.GetSignatureForMethod(m_setMethod.Handle, unusedCallingConvention, setEx))
+            Dim setParams = If(m_setMethod Is Nothing, Nothing, MetadataDecoder.GetSignatureForMethod(m_setMethod.Handle, unusedSignatureHeader, setEx))
 
             Dim signaturesMatch = DoSignaturesMatch(metadataDecoder, propertyParams, m_getMethod, getParams, m_setMethod, setParams)
             Dim parametersMatch = True
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property CallingConvention As CallingConvention
             Get
-                Return CType(m_callingConvention, CallingConvention)
+                Return CType(m_signatureHeader.RawValue, CallingConvention)
             End Get
         End Property
 
@@ -502,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return m_lazyUseSiteErrorInfo
         End Function
 
-        Friend ReadOnly Property Handle As PropertyHandle
+        Friend ReadOnly Property Handle As PropertyDefinitionHandle
             Get
                 Return m_handle
             End Get

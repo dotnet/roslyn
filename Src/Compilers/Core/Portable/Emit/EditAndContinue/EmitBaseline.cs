@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The slot ordering thus no longer matches the syntax ordering. It is therefore necessary to pass <see cref="EmitDifferenceResult.Baseline"/>
         /// to the next generation (rather than e.g. create new <see cref="EmitBaseline"/>s from scratch based on metadata produced by subsequent compilations).
         /// </remarks>
-        public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, Func<MethodHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
+        public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
         {
             if (module == null)
             {
@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousTypeMap: null, // Unset for initial metadata
                 localsForMethodsAddedOrChanged: new Dictionary<uint, ImmutableArray<EncLocalInfo>>(),
                 debugInformationProvider: debugInformationProvider,
-                typeToEventMap: reader.CalculateTypeEventMap(),
-                typeToPropertyMap: reader.CalculateTypePropertyMap(),
+                typeToEventMap: CalculateTypeEventMap(reader),
+                typeToPropertyMap: CalculateTypePropertyMap(reader),
                 methodImpls: CalculateMethodImpls(reader));
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Local variable names for methods from metadata,
         /// indexed by method row.
         /// </summary>
-        internal readonly Func<MethodHandle, EditAndContinueMethodDebugInformation> DebugInformationProvider;
+        internal readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> DebugInformationProvider;
 
         internal readonly ImmutableArray<int> TableSizes;
         internal readonly IReadOnlyDictionary<uint, uint> TypeToEventMap;
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             IReadOnlyDictionary<uint, ImmutableArray<EncLocalInfo>> localsForMethodsAddedOrChanged,
-            Func<MethodHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
+            Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             IReadOnlyDictionary<uint, uint> typeToEventMap,
             IReadOnlyDictionary<uint, uint> typeToPropertyMap,
             IReadOnlyDictionary<MethodImplKey, uint> methodImpls)
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             IReadOnlyDictionary<uint, ImmutableArray<EncLocalInfo>> localsForMethodsAddedOrChanged,
-            Func<MethodHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
+            Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
         {
             Debug.Assert((this.AnonymousTypeMap == null) || (anonymousTypeMap != null));
             Debug.Assert((this.AnonymousTypeMap == null) || (anonymousTypeMap.Count >= this.AnonymousTypeMap.Count));
@@ -355,6 +355,36 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return ImmutableArray.Create(sizes);
+        }
+
+        private static Dictionary<uint, uint> CalculateTypePropertyMap(MetadataReader reader)
+        {
+            var result = new Dictionary<uint, uint>();
+
+            uint rowId = 1;
+            foreach (var parentType in reader.GetTypesWithProperties())
+            {
+                Debug.Assert(!parentType.IsNil);
+                result.Add((uint)reader.GetRowNumber(parentType), rowId);
+                rowId++;
+            }
+
+            return result;
+        }
+
+        private static Dictionary<uint, uint> CalculateTypeEventMap(MetadataReader reader)
+        {
+            var result = new Dictionary<uint, uint>();
+
+            uint rowId = 1;
+            foreach (var parentType in reader.GetTypesWithEvents())
+            {
+                Debug.Assert(!parentType.IsNil);
+                result.Add((uint)reader.GetRowNumber(parentType), rowId);
+                rowId++;
+            }
+
+            return result;
         }
 
         private static Dictionary<MethodImplKey, uint> CalculateMethodImpls(MetadataReader reader)

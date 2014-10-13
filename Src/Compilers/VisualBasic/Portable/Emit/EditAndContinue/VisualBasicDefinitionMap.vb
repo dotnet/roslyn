@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Me.mapToPrevious.TryGetAnonymousTypeName(template, name, index)
         End Function
 
-        Friend Overrides Function TryGetTypeHandle(def As Cci.ITypeDefinition, <Out> ByRef handle As TypeHandle) As Boolean
+        Friend Overrides Function TryGetTypeHandle(def As Cci.ITypeDefinition, <Out> ByRef handle As TypeDefinitionHandle) As Boolean
             Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Friend Overrides Function TryGetEventHandle(def As Cci.IEventDefinition, <Out> ByRef handle As EventHandle) As Boolean
+        Friend Overrides Function TryGetEventHandle(def As Cci.IEventDefinition, <Out> ByRef handle As EventDefinitionHandle) As Boolean
             Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEEventSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Friend Overrides Function TryGetFieldHandle(def As Cci.IFieldDefinition, <Out> ByRef handle As FieldHandle) As Boolean
+        Friend Overrides Function TryGetFieldHandle(def As Cci.IFieldDefinition, <Out> ByRef handle As FieldDefinitionHandle) As Boolean
             Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEFieldSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Friend Overrides Function TryGetMethodHandle(def As Cci.IMethodDefinition, <Out> ByRef handle As MethodHandle) As Boolean
+        Friend Overrides Function TryGetMethodHandle(def As Cci.IMethodDefinition, <Out> ByRef handle As MethodDefinitionHandle) As Boolean
             Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEMethodSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Private Overloads Function TryGetMethodHandle(baseline As EmitBaseline, def As Cci.IMethodDefinition, <Out> ByRef handle As MethodHandle) As Boolean
+        Private Overloads Function TryGetMethodHandle(baseline As EmitBaseline, def As Cci.IMethodDefinition, <Out> ByRef handle As MethodDefinitionHandle) As Boolean
             If Me.TryGetMethodHandle(def, handle) Then
                 Return True
             End If
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If def IsNot Nothing Then
                 Dim methodIndex As UInteger = 0
                 If baseline.MethodsAdded.TryGetValue(def, methodIndex) Then
-                    handle = MetadataTokens.MethodHandle(CInt(methodIndex))
+                    handle = MetadataTokens.MethodDefinitionHandle(CInt(methodIndex))
                     Return True
                 End If
             End If
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Friend Overrides Function TryGetPropertyHandle(def As Cci.IPropertyDefinition, <Out> ByRef handle As PropertyHandle) As Boolean
+        Friend Overrides Function TryGetPropertyHandle(def As Cci.IPropertyDefinition, <Out> ByRef handle As PropertyDefinitionHandle) As Boolean
             Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEPropertySymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(baseline As EmitBaseline, method As IMethodSymbol) As VariableSlotAllocator
-            Dim handle As MethodHandle = Nothing
+            Dim handle As MethodDefinitionHandle = Nothing
             If Not Me.TryGetMethodHandle(baseline, CType(method, Cci.IMethodDefinition), handle) Then
                 ' Unrecognized method. Must have been added in the current compilation.
                 Return Nothing

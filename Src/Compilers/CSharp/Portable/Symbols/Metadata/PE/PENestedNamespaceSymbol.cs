@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// as soon as symbols for children are created.
         /// </summary>
         /// <remarks></remarks>
-        private IEnumerable<IGrouping<string, TypeHandle>> typesByNS;
+        private IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS;
 
         /// <summary>
         /// Constructor.
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal PENestedNamespaceSymbol(
             string name,
             PENamespaceSymbol containingNamespace,
-            IEnumerable<IGrouping<string, TypeHandle>> typesByNS)
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS)
         {
             Debug.Assert(name != null && name.Length > 0);
             Debug.Assert((object)containingNamespace != null);

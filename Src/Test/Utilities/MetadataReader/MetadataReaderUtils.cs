@@ -55,10 +55,10 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        internal static IEnumerable<Method> GetImportedMethods(this MetadataReader reader)
+        internal static IEnumerable<MethodDefinition> GetImportedMethods(this MetadataReader reader)
         {
             return from handle in reader.MethodDefinitions
-                   let method = reader.GetMethod(handle)
+                   let method = reader.GetMethodDefinition(handle)
                    let import = method.GetImport()
                    where !import.Name.IsNil
                    select method;
@@ -118,17 +118,17 @@ namespace Roslyn.Test.Utilities
 
         public static StringHandle[] GetEventDefNames(this MetadataReader reader)
         {
-            return reader.EventDefinitions.Select(handle => reader.GetEvent(handle).Name).ToArray();
+            return reader.EventDefinitions.Select(handle => reader.GetEventDefinition(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetFieldDefNames(this MetadataReader reader)
         {
-            return reader.FieldDefinitions.Select(handle => reader.GetField(handle).Name).ToArray();
+            return reader.FieldDefinitions.Select(handle => reader.GetFieldDefinition(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetMethodDefNames(this MetadataReader reader)
         {
-            return reader.MethodDefinitions.Select(handle => reader.GetMethod(handle).Name).ToArray();
+            return reader.MethodDefinitions.Select(handle => reader.GetMethodDefinition(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetMemberRefNames(this MetadataReader reader)
@@ -143,18 +143,18 @@ namespace Roslyn.Test.Utilities
 
         public static StringHandle[] GetPropertyDefNames(this MetadataReader reader)
         {
-            return reader.PropertyDefinitions.Select(handle => reader.GetProperty(handle).Name).ToArray();
+            return reader.PropertyDefinitions.Select(handle => reader.GetPropertyDefinition(handle).Name).ToArray();
         }
 
         public static StringHandle GetName(this MetadataReader reader, Handle token)
         {
-            switch (token.HandleType)
+            switch (token.Kind)
             {
-                case HandleType.TypeReference:
+                case HandleKind.TypeReference:
                     var typeRef = reader.GetTypeReference((TypeReferenceHandle)token);
                     return typeRef.Name;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(token.HandleType);
+                    throw ExceptionUtilities.UnexpectedValue(token.Kind);
             }
         }
 

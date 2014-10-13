@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return Cci.CustomDebugInfoWriter.GetEncDebugInfo(methodData.ILBuilder.LocalSlotManager.LocalsInOrder());
         }
 
-        internal static Func<MethodHandle, EditAndContinueMethodDebugInformation> EncDebugInfoProvider(this CompilationTestData.MethodData methodData)
+        internal static Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EncDebugInfoProvider(this CompilationTestData.MethodData methodData)
         {
             return _ => methodData.GetEncDebugInfo();
         }

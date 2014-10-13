@@ -9,18 +9,18 @@ namespace Roslyn.Test.Utilities
 {
     internal class PinnedMetadata : IDisposable
     {
-        private readonly PinnedImmutableArray bytes;
+        private GCHandle bytes; // non-readonly as Free() mutates to prevent double-free.
         public readonly MetadataReader Reader;
 
-        public PinnedMetadata(ImmutableArray<byte> metadata)
+        public unsafe PinnedMetadata(ImmutableArray<byte> metadata)
         {
-            bytes = PinnedImmutableArray.Create(metadata);
-            this.Reader = new MetadataReader(bytes.Pointer, metadata.Length, MetadataReaderOptions.None, null);
+            bytes = GCHandle.Alloc(ImmutableArrayInterop.DangerousGetUnderlyingArray(metadata), GCHandleType.Pinned);
+            this.Reader = new MetadataReader((byte*)bytes.AddrOfPinnedObject(), metadata.Length, MetadataReaderOptions.None, null);
         }
 
         public void Dispose()
         {
-            bytes.Dispose();
+            bytes.Free();
         }
     }
 }

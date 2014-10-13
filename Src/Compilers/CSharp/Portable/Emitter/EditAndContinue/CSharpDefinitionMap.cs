@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return this.mapToPrevious.TryGetAnonymousTypeName(template, out name, out index);
         }
 
-        internal override bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeHandle handle)
+        internal override bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle)
         {
             var other = this.mapToMetadata.MapDefinition(def) as PENamedTypeSymbol;
             if ((object)other != null)
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else
             {
-                handle = default(TypeHandle);
+                handle = default(TypeDefinitionHandle);
                 return false;
             }
         }
 
-        internal override bool TryGetEventHandle(Cci.IEventDefinition def, out EventHandle handle)
+        internal override bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle)
         {
             var other = this.mapToMetadata.MapDefinition(def) as PEEventSymbol;
             if ((object)other != null)
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else
             {
-                handle = default(EventHandle);
+                handle = default(EventDefinitionHandle);
                 return false;
             }
         }
 
-        internal override bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldHandle handle)
+        internal override bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle)
         {
             var other = this.mapToMetadata.MapDefinition(def) as PEFieldSymbol;
             if ((object)other != null)
@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else
             {
-                handle = default(FieldHandle);
+                handle = default(FieldDefinitionHandle);
                 return false;
             }
         }
 
-        internal override bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodHandle handle)
+        internal override bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
         {
             var other = this.mapToMetadata.MapDefinition(def) as PEMethodSymbol;
             if ((object)other != null)
@@ -101,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else
             {
-                handle = default(MethodHandle);
+                handle = default(MethodDefinitionHandle);
                 return false;
             }
         }
 
-        private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodHandle handle)
+        private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
         {
             if (this.TryGetMethodHandle(def, out handle))
             {
@@ -119,16 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 uint methodIndex;
                 if (baseline.MethodsAdded.TryGetValue(def, out methodIndex))
                 {
-                    handle = MetadataTokens.MethodHandle((int)methodIndex);
+                    handle = MetadataTokens.MethodDefinitionHandle((int)methodIndex);
                     return true;
                 }
             }
 
-            handle = default(MethodHandle);
+            handle = default(MethodDefinitionHandle);
             return false;
         }
 
-        internal override bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyHandle handle)
+        internal override bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle)
         {
             var other = this.mapToMetadata.MapDefinition(def) as PEPropertySymbol;
             if ((object)other != null)
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else
             {
-                handle = default(PropertyHandle);
+                handle = default(PropertyDefinitionHandle);
                 return false;
             }
         }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method)
         {
-            MethodHandle handle;
+            MethodDefinitionHandle handle;
             if (!this.TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out handle))
             {
                 // Unrecognized method. Must have been added in the current compilation.

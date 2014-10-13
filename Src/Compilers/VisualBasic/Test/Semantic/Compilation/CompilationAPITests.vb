@@ -1550,12 +1550,15 @@ End Class
             Dim moduleBytes = TestResources.MetadataTests.NetModule01.ModuleCS00
             Dim headers = New PEHeaders(New MemoryStream(moduleBytes))
 
-            Using pinnedPEImage = PinnedImmutableArray.Create(moduleBytes.AsImmutable())
-                Using mdModule = ModuleMetadata.CreateFromMetadata(pinnedPEImage.Pointer + headers.MetadataStartOffset, headers.MetadataSize)
+            Dim pinnedPEImage = GCHandle.Alloc(moduleBytes.ToArray(), GCHandleType.Pinned)
+            Try
+                Using mdModule = ModuleMetadata.CreateFromMetadata(pinnedPEImage.AddrOfPinnedObject() + headers.MetadataStartOffset, headers.MetadataSize)
                     Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, mdModule.GetReference(display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
                     c.VerifyDiagnostics(Diagnostic(ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1))
                 End Using
-            End Using
+                Finally
+                pinnedPEImage.Free()
+                End Try
         End Sub
 
         <Fact>

@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If Not def.Namespace.IsNil Then
                     Continue For
                 End If
-                If Not reader.StringStartsWith(def.Name, GeneratedNames.AnonymousTypeOrDelegateCommonPrefix) Then
+                If Not reader.StringComparer.StartsWith(def.Name, GeneratedNames.AnonymousTypeOrDelegateCommonPrefix) Then
                     Continue For
                 End If
                 Dim metadataName = reader.GetString(def.Name)

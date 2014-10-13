@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEMethodSymbol : MethodSymbol
     {
-        private readonly MethodHandle handle;
+        private readonly MethodDefinitionHandle handle;
         private readonly string name;
         private readonly MethodImplAttributes implFlags;
         private readonly MethodAttributes flags;
@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private class SignatureData
         {
-            public readonly byte CallingConvention;
+            public readonly SignatureHeader Header;
             public readonly ImmutableArray<ParameterSymbol> Parameters;
             public readonly PEParameterSymbol ReturnParam;
 
-            public SignatureData(byte callingConvention, ImmutableArray<ParameterSymbol> parameters, PEParameterSymbol returnParam)
+            public SignatureData(SignatureHeader header, ImmutableArray<ParameterSymbol> parameters, PEParameterSymbol returnParam)
             {
-                this.CallingConvention = callingConvention;
+                this.Header = header;
                 this.Parameters = parameters;
                 this.ReturnParam = returnParam;
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal PEMethodSymbol(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
-            MethodHandle methodDef)
+            MethodDefinitionHandle methodDef)
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return SignatureHeader.IsVarArgCallSignature(lazySignature.CallingConvention);
+                return lazySignature.Header.CallingConvention == SignatureCallingConvention.VarArgs;
             }
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal MethodHandle Handle
+        internal MethodDefinitionHandle Handle
         {
             get
             {
@@ -619,13 +619,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var moduleSymbol = this.containingType.ContainingPEModule;
 
-            byte callingConvention;
+            SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            MetadataDecoder.ParamInfo[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(this.handle, out callingConvention, out mrEx);
+            MetadataDecoder.ParamInfo[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(this.handle, out signatureHeader, out mrEx);
             bool makeBad = (mrEx != null);
 
             // If method is not generic, let's assign empty list for type parameters
-            if (!SignatureHeader.IsGeneric(callingConvention) &&
+            if (!signatureHeader.IsGeneric &&
                 lazyTypeParameters.IsDefault)
             {
                 ImmutableInterlocked.InterlockedCompareExchange(ref lazyTypeParameters,
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                              ((object)old != null && old.Code == (int)ErrorCode.ERR_BindToBogus && old.Arguments.Length == 1 && old.Arguments[0] == (object)this));
             }
 
-            var signature = new SignatureData(callingConvention, @params, returnParam);
+            var signature = new SignatureData(signatureHeader, @params, returnParam);
 
             Interlocked.CompareExchange(ref lazySignature, signature, null);
         }
@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return (Microsoft.Cci.CallingConvention)lazySignature.CallingConvention;
+                return (Microsoft.Cci.CallingConvention)lazySignature.Header.RawValue;
             }
         }
 

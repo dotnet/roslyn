@@ -141,8 +141,6 @@ End Module
 
         <Fact()>
         Public Sub MyWinformApp()
-
-
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[
 
@@ -214,6 +212,7 @@ End Class
             Dim compilationOptions = TestOptions.ReleaseExe.WithOutputKind(OutputKind.WindowsApplication).WithParseOptions(parseOptions).WithMainTypeName("Form1")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, {SystemWindowsFormsRef, SystemDrawingRef}, compilationOptions)
+            compilation.VerifyDiagnostics()
 
             CompileAndVerify(compilation, expectedOutput:="HelloWinform")
 

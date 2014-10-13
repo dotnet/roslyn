@@ -899,13 +899,13 @@ End Class
 
                 For Each handle In reader.GetConstants()
                     Dim constant = reader.GetConstant(handle)
-                    Dim field = reader.GetField(CType(constant.Parent, FieldHandle))
+                    Dim field = reader.GetFieldDefinition(CType(constant.Parent, FieldDefinitionHandle))
                     Dim name = reader.GetString(field.Name)
 
-                    Dim actual = reader.GetBytes(constant.Value)
+                    Dim actual = reader.GetBlobBytes(constant.Value)
                     AssertEx.Equal(ZERO4, actual)
 
-                    Dim constType = constant.Type
+                    Dim constType = constant.TypeCode
 
                     Select Case name
                         Case "F9", "F3", "F33", "F22", "F7", "F8"
@@ -967,99 +967,99 @@ End Class
 
                 For Each handle In reader.GetConstants()
                     Dim constant = reader.GetConstant(handle)
-                    Dim field = reader.GetField(CType(constant.Parent, FieldHandle))
+                    Dim field = reader.GetFieldDefinition(CType(constant.Parent, FieldDefinitionHandle))
                     Dim name = reader.GetString(field.Name)
 
                     Select Case name
                         Case "F1"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.Type)
-                            AssertEx.Equal(ZERO4, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
                             ' Field type: System.Object
                             AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_OBJECT},
-                                           reader.GetBytes(field.Signature))
+                                           reader.GetBlobBytes(field.Signature))
 
                         Case "F2"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.Type)
-                            AssertEx.Equal(ZERO4, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
                             ' Field type: int32
                             AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_I4},
-                                           reader.GetBytes(field.Signature))
+                                           reader.GetBlobBytes(field.Signature))
 
                         Case "F3"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.Type)
-                            AssertEx.Equal(ZERO1, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(ZERO1, reader.GetBlobBytes(constant.Value))
                             ' Field type: System.Object
                             AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_OBJECT},
-                                           reader.GetBytes(field.Signature))
+                                           reader.GetBlobBytes(field.Signature))
 
                         Case "F4"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.Type)
-                            AssertEx.Equal(ZERO1, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(ZERO1, reader.GetBlobBytes(constant.Value))
                             ' Field type: uint8
                             AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_U1},
-                                           reader.GetBytes(field.Signature))
+                                           reader.GetBlobBytes(field.Signature))
 
                         Case "F5"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.Type)
-                            AssertEx.Equal(ONE4, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(ONE4, reader.GetBlobBytes(constant.Value))
                             ' Field type: int32
                             AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_I4},
-                                           reader.GetBytes(field.Signature))
+                                           reader.GetBlobBytes(field.Signature))
 
                         Case "F6"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.Type)
-                            AssertEx.Equal(ONE1, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(ONE1, reader.GetBlobBytes(constant.Value))
                             ' Field type: uint8
                             AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_U1},
-                                           reader.GetBytes(field.Signature))
+                                           reader.GetBlobBytes(field.Signature))
 
                         Case "F7"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.Type)
-                            AssertEx.Equal(ZERO4, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
                             ' Field type: EI (valuetype)
-                            AssertAnyValueType(reader.GetBytes(field.Signature))
+                            AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "F8"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.Type)
-                            AssertEx.Equal(ZERO1, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(ZERO1, reader.GetBlobBytes(constant.Value))
                             ' Field type: EB (valuetype)
-                            AssertAnyValueType(reader.GetBytes(field.Signature))
+                            AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "AI"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.Type)
-                            AssertEx.Equal(ZERO4, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
                             ' Field type: EI (valuetype)
-                            AssertAnyValueType(reader.GetBytes(field.Signature))
+                            AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "BI"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.Type)
-                            AssertEx.Equal(ONE4, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(ONE4, reader.GetBlobBytes(constant.Value))
                             ' Field type: EI (valuetype)
-                            AssertAnyValueType(reader.GetBytes(field.Signature))
+                            AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "AB"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.Type)
-                            AssertEx.Equal(ZERO1, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(ZERO1, reader.GetBlobBytes(constant.Value))
                             ' Field type: EB (valuetype)
-                            AssertAnyValueType(reader.GetBytes(field.Signature))
+                            AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "BB"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.Type)
-                            AssertEx.Equal(ONE1, reader.GetBytes(constant.Value))
+                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(ONE1, reader.GetBlobBytes(constant.Value))
                             ' Field type: EB (valuetype)
-                            AssertAnyValueType(reader.GetBytes(field.Signature))
+                            AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case Else
                             Assert.True(False)
@@ -1306,7 +1306,7 @@ End Interface
                 For Each handle In reader.GetConstants()
                     Dim constant = reader.GetConstant(handle)
 
-                    If constant.Parent.HandleType = HandleType.Parameter Then
+                    If constant.Parent.Kind = HandleKind.Parameter Then
                         Dim paramRow = reader.GetParameter(CType(constant.Parent, ParameterHandle))
                         Dim name = reader.GetString(paramRow.Name)
 
@@ -1314,18 +1314,18 @@ End Interface
                             Case "F1", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
                                  "F13", "F14", "F19", "F20", "F21", "F26", "F27", "F28", "F34", "F39"
                                 ' Constant: nullref
-                                Assert.Equal(ELEMENT_TYPE_CLASS, constant.Type)
-                                AssertEx.Equal(ZERO4, reader.GetBytes(constant.Value))
+                                Assert.Equal(ELEMENT_TYPE_CLASS, constant.TypeCode)
+                                AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
 
                             Case "F2", "F30", "F31", "F32", "F33", "F40"
                                 ' Constant: int32(0)
-                                Assert.Equal(ELEMENT_TYPE_I4, constant.Type)
-                                AssertEx.Equal(ZERO4, reader.GetBytes(constant.Value))
+                                Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
+                                AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
 
                             Case "F22", "F23", "F24", "F25", "F35", "F36", "F37", "F38", "F41"
                                 ' Constant: int32(1)
-                                Assert.Equal(ELEMENT_TYPE_I4, constant.Type)
-                                AssertEx.Equal(ONE4, reader.GetBytes(constant.Value))
+                                Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
+                                AssertEx.Equal(ONE4, reader.GetBlobBytes(constant.Value))
 
                             Case Else
                                 Assert.True(False, "Unknown field: " + name)

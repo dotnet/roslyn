@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public readonly Stream PdbDelta;
         public readonly CompilationTestData TestData;
         public readonly EmitDifferenceResult EmitResult;
-        public readonly ImmutableArray<MethodHandle> UpdatedMethods;
+        public readonly ImmutableArray<MethodDefinitionHandle> UpdatedMethods;
 
         public CompilationDifference(
             ImmutableArray<byte> metadata, 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitBaseline nextGeneration,
             CompilationTestData testData,
             EmitDifferenceResult result,
-            ImmutableArray<MethodHandle> methodHandles)
+            ImmutableArray<MethodDefinitionHandle> methodHandles)
         {
             this.MetadataDelta = metadata;
             this.ILDelta = il;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName, 
             string expectedIL, 
             Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null, 
-            MethodHandle methodToken = default(MethodHandle),
+            MethodDefinitionHandle methodToken = default(MethodDefinitionHandle),
             [CallerFilePath]string callerPath = null, 
             [CallerLineNumber]int callerLine = 0)
         {

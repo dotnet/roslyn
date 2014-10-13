@@ -87,7 +87,6 @@ namespace Roslyn.Test.MetadataUtilities
             WriteAssembly();                
             WriteAssemblyRef();             
             WriteFile();
-            WriteForwarders();
             WriteExportedType();            
             WriteManifestResource();        
             WriteGenericParam();            
@@ -192,7 +191,7 @@ namespace Roslyn.Test.MetadataUtilities
             var encMap = encMaps[generation - 1];
 
             int start, count;
-            if (!TryGetHandleRange(encMap, generationHandle.HandleType, out start, out count))
+            if (!TryGetHandleRange(encMap, generationHandle.Kind, out start, out count))
             {
                 throw new BadImageFormatException(string.Format("EncMap is missing record for {0:8X}.", MetadataTokens.GetToken(generationHandle)));
             }
@@ -200,7 +199,7 @@ namespace Roslyn.Test.MetadataUtilities
             return encMap[start + MetadataTokens.GetRowNumber(generationHandle) - 1];
         }
 
-        private static bool TryGetHandleRange(ImmutableArray<Handle> handles, HandleType handleType, out int start, out int count)
+        private static bool TryGetHandleRange(ImmutableArray<Handle> handles, HandleKind handleType, out int start, out int count)
         {
             TableIndex tableIndex;
             MetadataTokens.TryGetTableIndex(handleType, out tableIndex);
@@ -214,13 +213,13 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
             int s = mapIndex;
-            while (s >= 0 && handles[s].HandleType == handleType)
+            while (s >= 0 && handles[s].Kind == handleType)
             {
                 s--;
             }
 
             int e = mapIndex;
-            while (e < handles.Length && handles[e].HandleType == handleType)
+            while (e < handles.Length && handles[e].Kind == handleType)
             {
                 e++;
             }
@@ -230,14 +229,14 @@ namespace Roslyn.Test.MetadataUtilities
             return true;
         }
 
-        private Method GetMethod(MethodHandle handle)
+        private MethodDefinition GetMethod(MethodDefinitionHandle handle)
         {
-            return Get(handle, (reader, h) => reader.GetMethod((MethodHandle)h));
+            return Get(handle, (reader, h) => reader.GetMethodDefinition((MethodDefinitionHandle)h));
         }
 
-        private BlobHandle GetLocalSignature(LocalSignatureHandle handle)
+        private BlobHandle GetLocalSignature(StandaloneSignatureHandle handle)
         {
-            return Get(handle, (reader, h) => reader.GetLocalSignature((LocalSignatureHandle)h));
+            return Get(handle, (reader, h) => reader.GetStandaloneSignature((StandaloneSignatureHandle)h).Signature);
         }
 
         private TEntity Get<TEntity>(Handle handle, Func<MetadataReader, Handle, TEntity> getter)
@@ -259,9 +258,9 @@ namespace Roslyn.Test.MetadataUtilities
             return Literal(handle, (r, h) => "'" + r.GetString((StringHandle)h) + "'");
         }
 
-        private string Literal(NamespaceHandle handle)
+        private string Literal(NamespaceDefinitionHandle handle)
         {
-            return Literal(handle, (r, h) => "'" + r.GetString((NamespaceHandle)h) + "'");
+            return Literal(handle, (r, h) => "'" + r.GetString((NamespaceDefinitionHandle)h) + "'");
         }
 
         private string Literal(GuidHandle handle)
@@ -271,7 +270,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string Literal(BlobHandle handle)
         {
-            return Literal(handle, (r, h) => BitConverter.ToString(r.GetBytes((BlobHandle)h)));
+            return Literal(handle, (r, h) => BitConverter.ToString(r.GetBlobBytes((BlobHandle)h)));
         }
 
         private string Literal(Handle handle, Func<MetadataReader, Handle, string> getValue)
@@ -328,7 +327,7 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
             TableIndex table;
-            if (displayTable && MetadataTokens.TryGetTableIndex(handle.HandleType, out table))
+            if (displayTable && MetadataTokens.TryGetTableIndex(handle.Kind, out table))
             {
                 return string.Format("0x{0:x8} ({1})", reader.GetToken(handle), table);
             }
@@ -429,20 +428,22 @@ namespace Roslyn.Test.MetadataUtilities
             {
                 var entry = reader.GetTypeDefinition(handle);
 
-                uint size, packingSize;
-                bool hasLayout = entry.GetTypeLayout(out size, out packingSize);
+                var layout = entry.GetLayout();
+              
+                // TODO: Visualize InterfaceImplementations
+                var implementedInterfaces = entry.GetInterfaceImplementations().Select(h => reader.GetInterfaceImplementation(h).Interface).ToArray();
 
                 AddRow(
                     Literal(entry.Name),
                     Literal(entry.Namespace),
                     Token(entry.GetDeclaringType()),
                     Token(entry.BaseType),
-                    TokenList(entry.GetImplementedInterfaces()),
+                    TokenList(implementedInterfaces),
                     TokenRange(entry.GetFields(), h => h),
                     TokenRange(entry.GetMethods(), h => h),
                     EnumValue<int>(entry.Attributes),
-                    hasLayout ? size.ToString() : "n/a",
-                    hasLayout ? packingSize.ToString() : "n/a"
+                    !layout.IsDefault ? layout.Size.ToString() : "n/a",
+                    !layout.IsDefault ? layout.PackingSize.ToString() : "n/a"
                 );
             }
 
@@ -462,7 +463,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             foreach (var handle in reader.FieldDefinitions)
             {
-                var entry = reader.GetField(handle);
+                var entry = reader.GetFieldDefinition(handle);
 
                 int offset = entry.GetOffset();
 
@@ -496,7 +497,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             foreach (var handle in reader.MethodDefinitions)
             {
-                var entry = reader.GetMethod(handle);
+                var entry = reader.GetMethodDefinition(handle);
                 var import = entry.GetImport();
 
                 AddRow(
@@ -576,7 +577,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Token(entry.Parent),
-                    EnumValue<byte>(entry.Type),
+                    EnumValue<byte>(entry.TypeCode),
                     Literal(entry.Value)
                 );
             }
@@ -634,7 +635,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             for (int i = 1, count = reader.GetTableRowCount(TableIndex.StandAloneSig); i <= count; i++)
             {
-                var value = reader.GetLocalSignature(MetadataTokens.LocalSignatureHandle(i));
+                var value = reader.GetStandaloneSignature(MetadataTokens.StandaloneSignatureHandle(i)).Signature;
 
                 AddRow(Literal(value));
             }
@@ -654,14 +655,14 @@ namespace Roslyn.Test.MetadataUtilities
 
             foreach (var handle in reader.EventDefinitions)
             {
-                var entry = reader.GetEvent(handle);
-                var accessors = entry.GetAssociatedMethods();
+                var entry = reader.GetEventDefinition(handle);
+                var accessors = entry.GetAccessors();
 
                 AddRow(
                     Literal(entry.Name),
-                    Token(accessors.AddOn),
-                    Token(accessors.RemoveOn),
-                    Token(accessors.Fire),
+                    Token(accessors.Adder),
+                    Token(accessors.Remover),
+                    Token(accessors.Raiser),
                     EnumValue<int>(entry.Attributes)
                 );
             }
@@ -680,8 +681,8 @@ namespace Roslyn.Test.MetadataUtilities
 
             foreach (var handle in reader.PropertyDefinitions)
             {
-                var entry = reader.GetProperty(handle);
-                var accessors = entry.GetAssociatedMethods();
+                var entry = reader.GetPropertyDefinition(handle);
+                var accessors = entry.GetAccessors();
 
                 AddRow(
                     Literal(entry.Name),
@@ -722,7 +723,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             for (int i = 1, count = reader.GetTableRowCount(TableIndex.ModuleRef); i <= count; i++)
             {
-                var value = reader.GetModuleReferenceName(MetadataTokens.ModuleReferenceHandle(i));
+                var value = reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(i)).Name;
                 AddRow(Literal(value));
             }
 
@@ -735,7 +736,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             for (int i = 1, count = reader.GetTableRowCount(TableIndex.TypeSpec); i <= count; i++)
             {
-                var value = reader.GetSignature(MetadataTokens.TypeSpecificationHandle(i));
+                var value = reader.GetTypeSpecification(MetadataTokens.TypeSpecificationHandle(i)).Signature;
                 AddRow(Literal(value));
             }
 
@@ -870,30 +871,29 @@ namespace Roslyn.Test.MetadataUtilities
 
             WriteRows("File (0x26):");
         }
-
-        private void WriteForwarders()
+        private void WriteExportedType()
         {
             AddHeader(
                 "Name",
                 "Namespace",
-                "Assembly"
+                "Attributes",
+                "Implementation",
+                "TypeDefinitionId"
             );
 
-            foreach (var handle in reader.TypeForwarders)
+            foreach (var handle in reader.ExportedTypes)
             {
-                var entry = reader.GetTypeForwarder(handle);
+                var entry = reader.GetExportedType(handle);
                 AddRow(
                     Literal(entry.Name),
                     Literal(entry.Namespace),
-                    Token(entry.Implementation));
+                    entry.Attributes.ToString(),
+                    Token(entry.Implementation),
+                    Hex(entry.GetTypeDefinitionId())
+                );
             }
 
-            WriteRows("ExportedType - forwarders (0x27):");
-        }
-
-        private void WriteExportedType()
-        {
-            // TODO
+            WriteRows("ExportedType (0x27):");
         }
 
         private void WriteManifestResource()
@@ -1039,7 +1039,7 @@ namespace Roslyn.Test.MetadataUtilities
             var handle = MetadataTokens.BlobHandle(0);
             do
             {
-                byte[] value = reader.GetBytes(handle);
+                byte[] value = reader.GetBlobBytes(handle);
                 writer.WriteLine("  {0:x}: {1}", reader.GetHeapOffset(handle), BitConverter.ToString(value));
                 handle = reader.GetNextHandle(handle);
             }
@@ -1068,12 +1068,12 @@ namespace Roslyn.Test.MetadataUtilities
             writer.WriteLine();
         }
 
-        public void VisualizeMethodBody(MethodBodyBlock body, MethodHandle generationHandle, int generation, bool emitHeader = true)
+        public void VisualizeMethodBody(MethodBodyBlock body, MethodDefinitionHandle generationHandle, int generation, bool emitHeader = true)
         {
-            VisualizeMethodBody(body, (MethodHandle)GetAggregateHandle(generationHandle, generation), emitHeader);
+            VisualizeMethodBody(body, (MethodDefinitionHandle)GetAggregateHandle(generationHandle, generation), emitHeader);
         }
 
-        public void VisualizeMethodBody(MethodBodyBlock body, MethodHandle methodHandle, bool emitHeader = true)
+        public void VisualizeMethodBody(MethodBodyBlock body, MethodDefinitionHandle methodHandle, bool emitHeader = true)
         {
             StringBuilder builder = new StringBuilder();
 
@@ -1111,7 +1111,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             public int Compare(Handle x, Handle y)
             {
-                return x.HandleType.CompareTo(y.HandleType);
+                return x.Kind.CompareTo(y.Kind);
             }
         }
     }

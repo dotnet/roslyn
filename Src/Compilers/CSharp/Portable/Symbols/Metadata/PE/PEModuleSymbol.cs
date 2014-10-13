@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// for metadata coming from this module. The map is lazily populated
         /// as we load types from the module.
         /// </summary>
-        internal readonly ConcurrentDictionary<TypeHandle, TypeSymbol> TypeHandleToTypeMap =
-                                    new ConcurrentDictionary<TypeHandle, TypeSymbol>(concurrencyLevel: 2, capacity: DefaultTypeMapCapacity);
+        internal readonly ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> TypeHandleToTypeMap =
+                                    new ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol>(concurrencyLevel: 2, capacity: DefaultTypeMapCapacity);
 
         /// <summary>
         /// This is a map from TypeRef row id to the target <see cref="TypeSymbol"/>. 

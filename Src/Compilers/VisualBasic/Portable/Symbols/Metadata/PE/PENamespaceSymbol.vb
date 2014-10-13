@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' A map of NoPia local types immediately contained in this assembly.
         ''' Maps fully-qualified type name to the row id.
         ''' </summary>
-        Private m_lazyNoPiaLocalTypes As Dictionary(Of String, TypeHandle)
+        Private m_lazyNoPiaLocalTypes As Dictionary(Of String, TypeDefinitionHandle)
 
         ' Lazily filled in collection of all contained modules.
         Private m_lazyModules As ImmutableArray(Of NamedTypeSymbol)
@@ -153,18 +153,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' immediately contained within Global namespace. Therefore, all types in THIS namespace, 
         ''' if any, must be in several first IGroupings.
         ''' </param>
-        Protected Sub LoadAllMembers(typesByNS As IEnumerable(Of IGrouping(Of String, TypeHandle)))
+        Protected Sub LoadAllMembers(typesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)))
             Debug.Assert(typesByNS IsNot Nothing)
 
             ' A sequence of TypeDef handles for types immediately contained within this namespace.
-            Dim nestedTypes As IEnumerable(Of IGrouping(Of String, TypeHandle)) = Nothing
+            Dim nestedTypes As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)) = Nothing
 
             ' A sequence with information about namespaces immediately contained within this namespace.
             ' For each pair:
             '    Key - contains simple name of a child namespace.
             '    Value – contains a sequence similar to the one passed to this function, but
             '            calculated for the child namespace. 
-            Dim nestedNamespaces As IEnumerable(Of KeyValuePair(Of String, IEnumerable(Of IGrouping(Of String, TypeHandle)))) = Nothing
+            Dim nestedNamespaces As IEnumerable(Of KeyValuePair(Of String, IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)))) = Nothing
 
             'TODO: Perhaps there is a cheaper way to calculate the length of the name without actually building it with ToDisplayString.
             MetadataHelpers.GetInfoForImmediateNamespaceMembers(
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' Create symbols for nested namespaces and initialize m_Namespaces map.
         ''' </summary>
         Private Sub LazyInitializeNamespaces(
-            childNamespaces As IEnumerable(Of KeyValuePair(Of String, IEnumerable(Of IGrouping(Of String, TypeHandle))))
+            childNamespaces As IEnumerable(Of KeyValuePair(Of String, IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))))
         )
             If m_lazyMembers Is Nothing Then
 
@@ -216,14 +216,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <summary>
         ''' Create symbols for nested types and initialize m_Types map.
         ''' </summary>
-        Private Sub LazyInitializeTypes(typeGroups As IEnumerable(Of IGrouping(Of String, TypeHandle)))
+        Private Sub LazyInitializeTypes(typeGroups As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)))
 
             If m_lazyTypes Is Nothing Then
 
                 Dim moduleSymbol = ContainingPEModule
                 Dim children = ArrayBuilder(Of PENamedTypeSymbol).GetInstance()
                 Dim skipCheckForPiaType = Not moduleSymbol.Module.ContainsNoPiaLocalTypes()
-                Dim noPiaLocalTypes As Dictionary(Of String, TypeHandle) = Nothing
+                Dim noPiaLocalTypes As Dictionary(Of String, TypeDefinitionHandle) = Nothing
                 Dim isGlobal = Me.IsGlobalNamespace
 
                 For Each g In typeGroups
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                 Dim typeDefName As String = moduleSymbol.Module.GetTypeDefNameOrThrow(t)
 
                                 If noPiaLocalTypes Is Nothing Then
-                                    noPiaLocalTypes = New Dictionary(Of String, TypeHandle)()
+                                    noPiaLocalTypes = New Dictionary(Of String, TypeDefinitionHandle)()
                                 End If
                                 Dim qualifiedName = MetadataHelpers.BuildQualifiedName(g.Key, typeDefName)
                                 noPiaLocalTypes(qualifiedName) = t
@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If TypeOf result Is MissingMetadataTypeSymbol Then
                 EnsureAllMembersLoaded()
-                Dim typeDef As TypeHandle = Nothing
+                Dim typeDef As TypeDefinitionHandle = Nothing
 
                 ' See if this is a NoPia local type, which we should unify.
                 If m_lazyNoPiaLocalTypes IsNot Nothing AndAlso

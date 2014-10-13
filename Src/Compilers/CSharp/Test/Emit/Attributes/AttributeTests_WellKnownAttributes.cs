@@ -789,7 +789,7 @@ public class C
                             throw TestExceptionUtilities.UnexpectedValue(name);
                     }
 
-                    var actual = metadataReader.GetBytes(constant.Value);
+                    var actual = metadataReader.GetBlobBytes(constant.Value);
                     AssertEx.Equal(expectedConstant, actual);
                 }
             });
@@ -811,7 +811,7 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
 
                 foreach (var methodHandle in metadataReader.MethodDefinitions)
                 {
-                    var methodDef = metadataReader.GetMethod(methodHandle);
+                    var methodDef = metadataReader.GetMethodDefinition(methodHandle);
                     string methodName = metadataReader.GetString(methodDef.Name);
 
                     foreach (var paramDef in methodDef.GetParameters())
@@ -874,7 +874,7 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
                             throw TestExceptionUtilities.UnexpectedValue(name);
                     }
 
-                    var actual = metadataReader.GetBytes(constant.Value);
+                    var actual = metadataReader.GetBlobBytes(constant.Value);
                     AssertEx.Equal(expectedConstant, actual);
                 }
             });
@@ -2127,7 +2127,7 @@ class Program
                 foreach (var method in metadataReader.GetImportedMethods())
                 {
                     var import = method.GetImport();
-                    string moduleName = metadataReader.GetString(metadataReader.GetModuleReferenceName(import.Module));
+                    string moduleName = metadataReader.GetString(metadataReader.GetModuleReference(import.Module).Name);
                     string methodName = metadataReader.GetString(method.Name);
                     switch (methodName)
                     {
@@ -2177,7 +2177,7 @@ public class C
                 var metadataReader = assembly.GetMetadataReader();
 
                 // ModuleRef:
-                var moduleRefName = metadataReader.GetModuleReferenceName(metadataReader.GetModuleReferences().Single());
+                var moduleRefName = metadataReader.GetModuleReference(metadataReader.GetModuleReferences().Single()).Name;
                 Assert.Equal("mscorlib", metadataReader.GetString(moduleRefName));
 
                 // FileRef:
@@ -2200,9 +2200,9 @@ public class C
                     MethodImportAttributes.ThrowOnUnmappableCharEnable, import.Attributes);
 
                 // MethodDef:
-                MethodHandle[] methodDefs = metadataReader.MethodDefinitions.AsEnumerable().ToArray();
+                MethodDefinitionHandle[] methodDefs = metadataReader.MethodDefinitions.AsEnumerable().ToArray();
                 Assert.Equal(2, methodDefs.Length); // M, ctor
-                Assert.Equal(MethodImplAttributes.PreserveSig, metadataReader.GetMethod(methodDefs[0]).ImplAttributes);
+                Assert.Equal(MethodImplAttributes.PreserveSig, metadataReader.GetMethodDefinition(methodDefs[0]).ImplAttributes);
             },
             symbolValidator: module =>
             {
@@ -2301,7 +2301,7 @@ public class C
 
                 foreach (var method in metadataReader.GetImportedMethods())
                 {
-                    string moduleName = metadataReader.GetString(metadataReader.GetModuleReferenceName(method.GetImport().Module));
+                    string moduleName = metadataReader.GetString(metadataReader.GetModuleReference(method.GetImport().Module).Name);
                     string entryPointName = metadataReader.GetString(method.Name);
                     switch (entryPointName)
                     {
@@ -2559,7 +2559,7 @@ abstract class C
                 var peReader = assembly.GetMetadataReader();
                 foreach (var methodHandle in peReader.MethodDefinitions)
                 {
-                    var methodDef = peReader.GetMethod(methodHandle);
+                    var methodDef = peReader.GetMethodDefinition(methodHandle);
                     var actualFlags = methodDef.ImplAttributes;
                     MethodImplAttributes expectedFlags;
 
@@ -2635,7 +2635,7 @@ class C<T>
                 var metadataReader = metadata.MetadataReader;
                 foreach (var methodHandle in metadataReader.MethodDefinitions)
                 {
-                    var methodDef = metadataReader.GetMethod(methodHandle);
+                    var methodDef = metadataReader.GetMethodDefinition(methodHandle);
                     var actualFlags = methodDef.ImplAttributes;
                     MethodImplAttributes expectedFlags;
 
@@ -2770,7 +2770,7 @@ abstract class C
                 var peReader = assembly.GetMetadataReader();
                 foreach (var methodHandle in peReader.MethodDefinitions)
                 {
-                    var row = peReader.GetMethod(methodHandle);
+                    var row = peReader.GetMethodDefinition(methodHandle);
                     var actualFlags = row.ImplAttributes;
                     MethodImplAttributes expectedFlags;
                     var name = peReader.GetString(row.Name);
@@ -2823,7 +2823,7 @@ abstract class C
                 foreach (var ca in peReader.CustomAttributes)
                 {
                     var ctor = peReader.GetCustomAttribute(ca).Constructor;
-                    Assert.NotEqual(ctor.HandleType, HandleType.Method);
+                    Assert.NotEqual(ctor.Kind, HandleKind.MethodDefinition);
                 }
             });
         }
@@ -4234,13 +4234,13 @@ struct S { }
 
                 foreach (var methodHandle in metadataReader.MethodDefinitions)
                 {
-                    var flags = metadataReader.GetMethod(methodHandle).Attributes;
+                    var flags = metadataReader.GetMethodDefinition(methodHandle).Attributes;
                     Assert.Equal(MethodAttributes.SpecialName, flags & MethodAttributes.SpecialName);
                 }
 
                 foreach (var fieldDef in metadataReader.FieldDefinitions)
                 {
-                    var field = metadataReader.GetField(fieldDef);
+                    var field = metadataReader.GetFieldDefinition(fieldDef);
                     var name = metadataReader.GetString(field.Name);
                     var flags = field.Attributes;
                     switch (name)
@@ -4263,13 +4263,13 @@ struct S { }
 
                 foreach (var propertyDef in metadataReader.PropertyDefinitions)
                 {
-                    var flags = metadataReader.GetProperty(propertyDef).Attributes;
+                    var flags = metadataReader.GetPropertyDefinition(propertyDef).Attributes;
                     Assert.Equal(PropertyAttributes.SpecialName, flags & PropertyAttributes.SpecialName);
                 }
 
                 foreach (var eventDef in metadataReader.EventDefinitions)
                 {
-                    var flags = metadataReader.GetEvent(eventDef).Attributes;
+                    var flags = metadataReader.GetEventDefinition(eventDef).Attributes;
                     Assert.Equal(EventAttributes.SpecialName, flags & EventAttributes.SpecialName);
                 }
             });
@@ -4344,7 +4344,7 @@ delegate void D();
 
                 foreach (var fieldDef in metadataReader.FieldDefinitions)
                 {
-                    var field = metadataReader.GetField(fieldDef);
+                    var field = metadataReader.GetFieldDefinition(fieldDef);
                     var name = metadataReader.GetString(field.Name);
                     var flags = field.Attributes;
                     switch (name)

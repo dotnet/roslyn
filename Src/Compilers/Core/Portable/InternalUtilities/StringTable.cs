@@ -352,6 +352,41 @@ namespace Roslyn.Utilities
             return e;
         }
 
+        private static unsafe string FindSharedEntryASCII(int hashCode, byte* asciiChars, int length)
+        {
+            var arr = sharedTable;
+            int idx = SharedIdxFromHash(hashCode);
+
+            string e = null;
+            // we use quadratic probing here
+            // bucket positions are (n^2 + n)/2 relative to the masked hashcode
+            for (int i = 1; i < SharedBucketSize + 1; i++)
+            {
+                e = arr[idx].Text;
+                int hash = arr[idx].HashCode;
+
+                if (e != null)
+                {
+                    if (hash == hashCode && TextEqualsASCII(e, asciiChars, length))
+                    {
+                        break;
+                    }
+
+                    // this is not e we are looking for
+                    e = null;
+                }
+                else
+                {
+                    // once we see unfilled entry, the rest of the bucket will be empty
+                    break;
+                }
+
+                idx = (idx + i) & SharedSizeMask;
+            }
+
+            return e;
+        }
+
         private static string FindSharedEntry(char chars, int hashCode)
         {
             var arr = sharedTable;
@@ -544,7 +579,48 @@ namespace Roslyn.Utilities
 
         private static string AddSharedSlow(int hashCode, StringBuilder builder)
         {
-            var text = builder.ToString();
+            string text = builder.ToString();
+            AddSharedSlow(hashCode, text);
+            return text;
+        }
+
+        internal static unsafe string AddSharedUTF8(byte* bytes, int byteCount)
+        {
+            bool isAscii;
+            int hashCode = Hash.GetFNVHashCode(bytes, byteCount, out isAscii);
+
+            if (isAscii)
+            {
+                string shared = FindSharedEntryASCII(hashCode, bytes, byteCount);
+                if (shared != null)
+                {
+                    return shared;
+                }
+            }
+
+            return AddSharedSlow(hashCode, bytes, byteCount, isAscii);
+        }
+
+        private static unsafe string AddSharedSlow(int hashCode, byte* utf8Bytes, int byteCount, bool isAscii)
+        {
+            // TODO: This should be Encoding.UTF8.GetString (for better layering) but the unsafe variant isn't portable. 
+            //       The MetadataReader has code to light it up and even fall back to internal String.CreateStringFromEncoding
+            //       on .NET < 4.5.3. Use that instead of copying the light-up code here.
+            string text = System.Reflection.Metadata.MetadataStringDecoder.DefaultUTF8.GetString(utf8Bytes, byteCount);
+
+            // Don't add non-ascii strings to table. The hashCode we have here is not correct and we won't find them again.
+            // Non-ascii in UTF8-encoded parts of metadata (the only use of this at the moment) is assumed to be rare in 
+            // practice. If that turns out to be wrong, we could decode to pooled memory and rehash here.
+            if (isAscii)
+            {
+                AddSharedSlow(hashCode, text);
+            }
+
+            return text;
+        }
+
+        private static void AddSharedSlow(int hashCode, string text)
+        {
             var arr = sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
@@ -571,8 +647,6 @@ namespace Roslyn.Utilities
         foundIdx:
             arr[idx].HashCode = hashCode;
             Volatile.Write(ref arr[idx].Text, text);
-
-            return text;
         }
 
         private static int LocalIdxFromHash(int hash)
@@ -627,6 +701,31 @@ namespace Roslyn.Utilities
             for (var i = array.Length - 1; i >= 0; i--)
             {
                 if (array[i] != text[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal static unsafe bool TextEqualsASCII(string text, byte* ascii, int length)
+        {
+#if DEBUG
+            for (var i = 0; i < length; i++)
+            {
+                Debug.Assert((ascii[i] & 0x80) == 0, "The byte* input to this method must be valid ASCII.");
+            }
+#endif
+
+            if (length != text.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < length; i++)
+            {
+                if (ascii[i] != text[i])
                 {
                     return false;
                 }

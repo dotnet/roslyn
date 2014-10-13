@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
             Private Shared ReadOnly attribute As AttributeDescription = New AttributeDescription(
                 "System.Diagnostics",
                 "DebuggerTypeProxyAttribute",
-                {New Byte() {SignatureHeader.HasThis, 1, CByte(SignatureTypeCode.Void), CByte(SignatureTypeCode.TypeHandle), CByte(AttributeDescription.TypeHandleTarget.SystemType)}})
+                {New Byte() {CByte(SignatureAttributes.Instance), 1, CByte(SignatureTypeCode.Void), CByte(SignatureTypeCode.TypeHandle), CByte(AttributeDescription.TypeHandleTarget.SystemType)}})
 
             Public Sub New()
                 Dim source =

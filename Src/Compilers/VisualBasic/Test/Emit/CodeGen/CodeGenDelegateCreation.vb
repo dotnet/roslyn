@@ -64,9 +64,9 @@ End Class
                         Assert.Equal("System.IntPtr", ctor.Parameters(1).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
                         Assert.Equal("TargetMethod", ctor.Parameters(1).Name)
                         Dim methodDef = CType(ctor, PEMethodSymbol).Handle
-                        Dim methodFlags = reader.GetMethod(methodDef).Attributes
+                        Dim methodFlags = reader.GetMethodDefinition(methodDef).Attributes
                         Assert.Equal(expectedConstructorMethodFlags, methodFlags)
-                        Dim methodImplFlags = reader.GetMethod(methodDef).ImplAttributes
+                        Dim methodImplFlags = reader.GetMethodDefinition(methodDef).ImplAttributes
                         Dim expectedMethodImplFlags = MethodImplAttributes.Runtime
                         Assert.Equal(expectedMethodImplFlags, methodImplFlags)
                         'Assert.True(CType(ctor, PEMethodSymbol).IsImplicitlyDeclared) ' does not work for PEMethodSymbols
@@ -85,9 +85,9 @@ End Class
                         Assert.Equal("param2", invoke.Parameters(1).Name)
                         Assert.True(invoke.Parameters(1).IsByRef)
                         methodDef = CType(invoke, PEMethodSymbol).Handle
-                        methodFlags = reader.GetMethod(methodDef).Attributes
+                        methodFlags = reader.GetMethodDefinition(methodDef).Attributes
                         Assert.Equal(expectedMethodMethodFlags, methodFlags)
-                        methodImplFlags = reader.GetMethod(methodDef).ImplAttributes
+                        methodImplFlags = reader.GetMethodDefinition(methodDef).ImplAttributes
                         expectedMethodImplFlags = MethodImplAttributes.Runtime
                         Assert.Equal(expectedMethodImplFlags, methodImplFlags)
                         'Assert.True(CType(invoke, PEMethodSymbol).IsImplicitlyDeclared) ' does not work for PEMethodSymbols
@@ -116,9 +116,9 @@ End Class
                         Assert.Equal("DelegateAsyncState", beginInvoke.Parameters(3).Name)
                         Assert.False(beginInvoke.Parameters(3).IsByRef)
                         methodDef = CType(beginInvoke, PEMethodSymbol).Handle
-                        methodFlags = reader.GetMethod(methodDef).Attributes
+                        methodFlags = reader.GetMethodDefinition(methodDef).Attributes
                         Assert.Equal(expectedMethodMethodFlags, methodFlags)
-                        methodImplFlags = reader.GetMethod(methodDef).ImplAttributes
+                        methodImplFlags = reader.GetMethodDefinition(methodDef).ImplAttributes
                         expectedMethodImplFlags = MethodImplAttributes.Runtime
                         Assert.Equal(expectedMethodImplFlags, methodImplFlags)
                         'Assert.True(CType(beginInvoke, PEMethodSymbol).IsImplicitlyDeclared) ' does not work for PEMethodSymbols
@@ -138,9 +138,9 @@ End Class
                         Assert.Equal("DelegateAsyncResult", endInvoke.Parameters(1).Name)
                         Assert.False(endInvoke.Parameters(1).IsByRef)
                         methodDef = CType(endInvoke, PEMethodSymbol).Handle
-                        methodFlags = reader.GetMethod(methodDef).Attributes
+                        methodFlags = reader.GetMethodDefinition(methodDef).Attributes
                         Assert.Equal(expectedMethodMethodFlags, methodFlags)
-                        methodImplFlags = reader.GetMethod(methodDef).ImplAttributes
+                        methodImplFlags = reader.GetMethodDefinition(methodDef).ImplAttributes
                         expectedMethodImplFlags = MethodImplAttributes.Runtime
                         Assert.Equal(expectedMethodImplFlags, methodImplFlags)
                         'Assert.True(CType(endInvoke, PEMethodSymbol).IsImplicitlyDeclared) ' does not work for PEMethodSymbols
@@ -163,9 +163,9 @@ End Class
                         Assert.Equal("param2", invoke.Parameters(1).Name)
                         Assert.False(invoke.Parameters(1).IsByRef)
                         methodDef = CType(invoke, PEMethodSymbol).Handle
-                        methodFlags = reader.GetMethod(methodDef).Attributes
+                        methodFlags = reader.GetMethodDefinition(methodDef).Attributes
                         Assert.Equal(expectedMethodMethodFlags, methodFlags)
-                        methodImplFlags = reader.GetMethod(methodDef).ImplAttributes
+                        methodImplFlags = reader.GetMethodDefinition(methodDef).ImplAttributes
                         expectedMethodImplFlags = MethodImplAttributes.Runtime
                         Assert.Equal(expectedMethodImplFlags, methodImplFlags)
                         'Assert.True(CType(invoke, PEMethodSymbol).IsImplicitlyDeclared) ' does not work for PEMethodSymbols
@@ -181,9 +181,9 @@ End Class
                         Assert.Equal("DelegateAsyncResult", endInvoke.Parameters(0).Name)
                         Assert.False(endInvoke.Parameters(0).IsByRef)
                         methodDef = CType(endInvoke, PEMethodSymbol).Handle
-                        methodFlags = reader.GetMethod(methodDef).Attributes
+                        methodFlags = reader.GetMethodDefinition(methodDef).Attributes
                         Assert.Equal(expectedMethodMethodFlags, methodFlags)
-                        methodImplFlags = reader.GetMethod(methodDef).ImplAttributes
+                        methodImplFlags = reader.GetMethodDefinition(methodDef).ImplAttributes
                         expectedMethodImplFlags = MethodImplAttributes.Runtime
                         Assert.Equal(expectedMethodImplFlags, methodImplFlags)
                         'Assert.True(CType(endInvoke, PEMethodSymbol).IsImplicitlyDeclared) ' does not work for PEMethodSymbols

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static readonly Dictionary<string, ImmutableArray<PENamedTypeSymbol>> emptyNestedTypes = new Dictionary<string, ImmutableArray<PENamedTypeSymbol>>();
 
         private readonly NamespaceOrTypeSymbol container;
-        private readonly TypeHandle handle;
+        private readonly TypeDefinitionHandle handle;
         private readonly string name;
         private readonly TypeAttributes flags;
         private readonly SpecialType corTypeId;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static PENamedTypeSymbol Create(
             PEModuleSymbol moduleSymbol,
             PENamespaceSymbol containingNamespace,
-            TypeHandle handle,
+            TypeDefinitionHandle handle,
             string emittedNamespaceName)
         {
             GenericParameterHandleCollection genericParameterHandles;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return result;
         }
 
-        private static void GetGenericInfo(PEModuleSymbol moduleSymbol, TypeHandle handle, out GenericParameterHandleCollection genericParameterHandles, out ushort arity, out BadImageFormatException mrEx)
+        private static void GetGenericInfo(PEModuleSymbol moduleSymbol, TypeDefinitionHandle handle, out GenericParameterHandleCollection genericParameterHandles, out ushort arity, out BadImageFormatException mrEx)
         {
             try
             {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static PENamedTypeSymbol Create(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
-            TypeHandle handle)
+            TypeDefinitionHandle handle)
         {
             GenericParameterHandleCollection genericParameterHandles;
             ushort metadataArity;
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private PENamedTypeSymbol(
             PEModuleSymbol moduleSymbol,
             NamespaceOrTypeSymbol container,
-            TypeHandle handle,
+            TypeDefinitionHandle handle,
             string emittedNamespaceName,
             ushort arity,
             out bool mangleName)
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get;
         }
 
-        internal TypeHandle Handle
+        internal TypeDefinitionHandle Handle
         {
             get
             {
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             try
             {
                 var moduleSymbol = ContainingPEModule;
-                var interfaceImpls = moduleSymbol.Module.GetImplementedInterfacesOrThrow(handle);
+                var interfaceImpls = moduleSymbol.Module.GetInterfaceImplementationsOrThrow(handle);
 
                 if (interfaceImpls.Count > 0)
                 {
@@ -460,7 +460,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     int i = 0;
                     foreach (var interfaceImpl in interfaceImpls)
                     {
-                        TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceImpl);
+                        Handle interfaceHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface;
+                        TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol;
                         symbols[i++] = (object)namedTypeSymbol != null ? namedTypeSymbol : new UnsupportedMetadataTypeSymbol(); // interface tmpList contains a bad type
@@ -728,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Non-static fields of enum types are not imported by default because they are not bindable,
             // but we need them for NoPia.
 
-            var fieldDefs = ArrayBuilder<FieldHandle>.GetInstance();
+            var fieldDefs = ArrayBuilder<FieldDefinitionHandle>.GetInstance();
 
             try
             {
@@ -844,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var method = (PEMethodSymbol)members[index];
                 var module = this.ContainingPEModule.Module;
 
-                var methodDefs = ArrayBuilder<MethodHandle>.GetInstance();
+                var methodDefs = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
 
                 try
                 {
@@ -1085,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     // Create a dictionary of method symbols indexed by metadata handle
                     // (to allow efficient lookup when matching property accessors).
-                    Dictionary<MethodHandle, PEMethodSymbol> methodHandleToSymbol = this.CreateMethods(members);
+                    Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol = this.CreateMethods(members);
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
@@ -1572,7 +1573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
-            ImmutableArray<TypeHandle> nestedTypeDefs;
+            ImmutableArray<TypeDefinitionHandle> nestedTypeDefs;
 
             try
             {
@@ -1638,11 +1639,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             { }
         }
 
-        private Dictionary<MethodHandle, PEMethodSymbol> CreateMethods(ArrayBuilder<Symbol> members)
+        private Dictionary<MethodDefinitionHandle, PEMethodSymbol> CreateMethods(ArrayBuilder<Symbol> members)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
-            var map = new Dictionary<MethodHandle, PEMethodSymbol>();
+            var map = new Dictionary<MethodDefinitionHandle, PEMethodSymbol>();
 
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
@@ -1665,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return map;
         }
 
-        private void CreateProperties(Dictionary<MethodHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members)
+        private void CreateProperties(Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
@@ -1694,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             { }
         }
 
-        private void CreateEvents(Dictionary<MethodHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members)
+        private void CreateEvents(Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
@@ -1708,8 +1709,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         var methods = module.GetEventMethodsOrThrow(eventRid);
 
                         // NOTE: C# ignores all other accessors (most notably, raise/fire).
-                        PEMethodSymbol addMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.AddOn);
-                        PEMethodSymbol removeMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.RemoveOn);
+                        PEMethodSymbol addMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Adder);
+                        PEMethodSymbol removeMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Remover);
 
                         // NOTE: both accessors are required, but that will be reported separately.
                         // Create the symbol unless both accessors are missing.
@@ -1726,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             { }
         }
 
-        private PEMethodSymbol GetAccessorMethod(PEModule module, Dictionary<MethodHandle, PEMethodSymbol> methodHandleToSymbol, MethodHandle methodDef)
+        private PEMethodSymbol GetAccessorMethod(PEModule module, Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, MethodDefinitionHandle methodDef)
         {
             if (methodDef.IsNil)
             {
@@ -2023,7 +2024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal PENamedTypeSymbolNonGeneric(
                 PEModuleSymbol moduleSymbol,
                 NamespaceOrTypeSymbol container,
-                TypeHandle handle,
+                TypeDefinitionHandle handle,
                 string emittedNamespaceName,
                 out bool mangleName) :
                 base(moduleSymbol, container, handle, emittedNamespaceName, 0, out mangleName)
@@ -2070,7 +2071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal PENamedTypeSymbolGeneric(
                     PEModuleSymbol moduleSymbol,
                     NamespaceOrTypeSymbol container,
-                    TypeHandle handle,
+                    TypeDefinitionHandle handle,
                     string emittedNamespaceName,
                     GenericParameterHandleCollection genericParameterHandles,
                     ushort arity,

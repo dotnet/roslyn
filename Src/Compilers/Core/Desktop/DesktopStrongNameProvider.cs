@@ -390,16 +390,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="IOException"/>
-        private static void Sign(string filePath, ImmutableArray<byte> keyPair)
+        private static unsafe void Sign(string filePath, ImmutableArray<byte> keyPair)
         {
             try
             {
                 ICLRStrongName strongName = GetStrongNameInterface();
 
-                using (var pinned = PinnedImmutableArray.Create(keyPair))
+                fixed (byte* pinned = ImmutableArrayInterop.DangerousGetUnderlyingArray(keyPair))
                 {
                     int unused;
-                    strongName.StrongNameSignatureGeneration(filePath, null, pinned.Pointer, keyPair.Length, null, out unused);
+                    strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, out unused);
                 }
             }
             catch (COMException ex)

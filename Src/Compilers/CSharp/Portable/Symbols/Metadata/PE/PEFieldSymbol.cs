@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEFieldSymbol : FieldSymbol
     {
-        private readonly FieldHandle handle;
+        private readonly FieldDefinitionHandle handle;
         private readonly string name;
         private readonly FieldAttributes flags;
         private readonly PENamedTypeSymbol containingType;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal PEFieldSymbol(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
-            FieldHandle fieldDef)
+            FieldDefinitionHandle fieldDef)
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal FieldHandle Handle
+        internal FieldDefinitionHandle Handle
         {
             get
             {

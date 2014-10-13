@@ -14,9 +14,9 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
-        public TypeHandle TypeDef
+        public TypeDefinitionHandle TypeDef
         {
-            get { return default(TypeHandle); }
+            get { return default(TypeDefinitionHandle); }
         }
 
         public ITypeDefinition ResolvedType
