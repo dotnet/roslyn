@@ -745,6 +745,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me Is obj
         End Function
 
+        Public Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
+            Return Me.[Equals](CObj(other))
+        End Function
+
         ' By default, we do reference equality. This can be overridden.
         Public Overrides Function GetHashCode() As Integer
             Return MyBase.GetHashCode()

@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Compare two symbol objects to see if they refer to the same symbol. You should always
-        /// use <see cref="operator =="/> and <see cref="operator !="/>, or the <see cref="Equals"/> method, to compare two symbols for equality.
+        /// use <see cref="operator =="/> and <see cref="operator !="/>, or the <see cref="Equals(object)"/> method, to compare two symbols for equality.
         /// </summary>
         public static bool operator ==(Symbol left, Symbol right)
         {
@@ -571,6 +571,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(object obj)
         {
             return (object)this == obj;
+        }
+
+        public bool Equals(ISymbol other)
+        {
+            return this.Equals((object)other);
         }
 
         // By default, we do reference equality. This can be overridden.

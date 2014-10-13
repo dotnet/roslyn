@@ -294,6 +294,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 throw new NotImplementedException();
             }
+
+            public bool Equals(ISymbol other)
+            {
+                return this.Equals((object)other);
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a symbol (namespace, class, method, parameter, etc.)
     /// exposed by the compiler.
     /// </summary>
-    public interface ISymbol
+    public interface ISymbol : IEquatable<ISymbol>
     {
         /// <summary>
         /// Gets the <see cref="E:Microsoft.CodeAnalysis.SymbolKind"/> indicating what kind of symbol it is.

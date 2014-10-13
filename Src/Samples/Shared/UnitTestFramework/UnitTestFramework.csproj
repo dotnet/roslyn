@@ -18,33 +18,25 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
+  <ItemGroup Label="File References">
     <Reference Include="Microsoft.CodeAnalysis">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Desktop">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Desktop.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Desktop">
+      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.Desktop.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\..\..\packages\Microsoft.Bcl.Immutable.1.1.20-beta\lib\portable-net45+win8\System.Collections.Immutable.dll</HintPath>
     </Reference>

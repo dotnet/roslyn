@@ -292,5 +292,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
         }
+
+        public bool Equals(ISymbol other)
+        {
+            return this.Equals((object)other);
+        }
     }
 }
