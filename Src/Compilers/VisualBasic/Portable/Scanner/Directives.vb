@@ -8,8 +8,6 @@ Option Strict On
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports System.Runtime.InteropServices
 
@@ -261,9 +259,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Sub
         End Class
 
-        ' The class needs to be immutable. 
-        ' as its instances can get associated with multiple on prefetched tokens.
-        Friend Class PreprocessorState
+        ' The class needs to be immutable
+        ' as its instances can get associated with multiple tokens.
+        Friend NotInheritable Class PreprocessorState
             Private ReadOnly _symbols As ImmutableDictionary(Of String, CConst)
             Private ReadOnly _conditionals As ImmutableStack(Of ConditionalState)
             Private ReadOnly _regionDirectives As ImmutableStack(Of RegionDirectiveTriviaSyntax)

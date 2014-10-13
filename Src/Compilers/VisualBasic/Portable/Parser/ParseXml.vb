@@ -59,8 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim node As VBSyntaxNode = prologue
                 Dim precedingMisc = ParseXmlMisc(True, whitespaceChecker, node)
                 prologue = DirectCast(node, XmlDeclarationSyntax)
-                Dim body As XmlNodeSyntax = Nothing
-                Dim followingMisc As SyntaxList(Of XmlNodeSyntax) = Nothing
+                Dim body As XmlNodeSyntax
 
                 ' // Get root element
                 ' // This is either a single xml expression hole or an xml element
@@ -82,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ' // More PI's and comments
                 node = body
-                followingMisc = ParseXmlMisc(False, whitespaceChecker, node)
+                Dim followingMisc = ParseXmlMisc(False, whitespaceChecker, node)
                 body = DirectCast(node, XmlNodeSyntax)
 
                 Return SyntaxFactory.XmlDocument(prologue, precedingMisc, body, followingMisc)

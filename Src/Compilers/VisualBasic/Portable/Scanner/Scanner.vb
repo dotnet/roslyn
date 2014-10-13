@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function GetScratch() As StringBuilder
             ' the normal pattern is that we clean scratch after use.
-            ' hitting this asert very likely indicates that you 
+            ' hitting this assert very likely indicates that you 
             ' did not release scratch content or worse trying to use
             ' scratch in two places at a time.
             Debug.Assert(_sb.Length = 0, "trying to use dirty buffer?")
@@ -107,6 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _scannerPreprocessorState = New PreprocessorState(GetPreprocessorConstants(options))
             _isScanningForExpressionCompiler = isScanningForExpressionCompiler
         End Sub
+
         Friend Sub Dispose() Implements IDisposable.Dispose
             If Not _isDisposed Then
                 _isDisposed = True
@@ -132,6 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Array.Clear(Me._pages, 0, Me._pages.Length)
             End If
         End Sub
+
         Friend ReadOnly Property Options As VBParseOptions
             Get
                 Return _options
