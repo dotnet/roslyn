@@ -391,6 +391,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
         }
 
+        public static bool IsInsideNameOf(this ExpressionSyntax expression)
+        {
+            return expression.Ancestors().Any(a => a.IsKind(SyntaxKind.NameOfExpression));
+        }
+
         private static bool CanReplace(ISymbol symbol)
         {
             switch (symbol.Kind)
