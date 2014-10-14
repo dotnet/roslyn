@@ -39,30 +39,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.1.0.17-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="CorApi">
-      <HintPath>..\..\..\packages\MDbg.0.1.0\lib\net40\CorApi.dll</HintPath>
-    </Reference>
-    <Reference Include="CorApiRaw">
-      <HintPath>..\..\..\packages\MDbg.0.1.0\lib\net40\CorApiRaw.dll</HintPath>
-    </Reference>
-    <Reference Include="MDbgEng">
-      <HintPath>..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgEng.dll</HintPath>
-    </Reference>
-    <Reference Include="MDbgExt">
-      <HintPath>..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgExt.dll</HintPath>
-    </Reference>
-    <Reference Include="MDbgUtility">
-      <HintPath>..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgUtility.dll</HintPath>
-    </Reference>
-    <Reference Include="NativeDebugWrappers">
-      <HintPath>..\..\..\packages\MDbg.0.1.0\lib\net40\NativeDebugWrappers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\packages\System.Collections.Immutable.1.1.32-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
+    <Reference Include="..\..\..\packages\System.Reflection.Metadata.1.0.17-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\CorApi.dll" />
+    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\CorApiRaw.dll" />
+    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgEng.dll" />
+    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgExt.dll" />
+    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgUtility.dll" />
+    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\NativeDebugWrappers.dll" />
+    <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.32-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
