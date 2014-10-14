@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(ISyntaxTreeStorageService), ServiceLayer.Default), Shared]
     internal class SyntaxTreeStorageService : ISyntaxTreeStorageService
     {
-        private static readonly ConditionalWeakTable<SyntaxTree, ITemporaryStorage> map =
-            new ConditionalWeakTable<SyntaxTree, ITemporaryStorage>();
+        private static readonly ConditionalWeakTable<SyntaxTree, ITemporaryStreamStorage> map =
+            new ConditionalWeakTable<SyntaxTree, ITemporaryStreamStorage>();
 
         private readonly SimpleTaskQueue queue = new SimpleTaskQueue(TaskScheduler.Default);
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public async Task StoreAsync(SyntaxTree tree, SyntaxNode root, ITemporaryStorageService service, CancellationToken cancellationToken)
         {
-            ITemporaryStorage storage;
+            ITemporaryStreamStorage storage;
             if (map.TryGetValue(tree, out storage))
             {
                 // we already have it serialized to temporary storage
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Host
                 root.SerializeTo(stream, cancellationToken);
                 stream.Position = 0;
 
-                storage = service.CreateTemporaryStorage(cancellationToken);
+                storage = service.CreateTemporaryStreamStorage(cancellationToken);
                 await storage.WriteStreamAsync(stream, cancellationToken).ConfigureAwait(false);
             }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public void Store(SyntaxTree tree, SyntaxNode root, ITemporaryStorageService service, CancellationToken cancellationToken)
         {
-            ITemporaryStorage storage;
+            ITemporaryStreamStorage storage;
             if (map.TryGetValue(tree, out storage))
             {
                 // we already have it serialized to temporary storage
@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.Host
                 root.SerializeTo(stream, cancellationToken);
                 stream.Position = 0;
 
-                storage = service.CreateTemporaryStorage(cancellationToken);
+                storage = service.CreateTemporaryStreamStorage(cancellationToken);
                 storage.WriteStream(stream, cancellationToken);
             }
 
             SaveTreeToMap(tree, storage);
         }
 
-        private static void SaveTreeToMap(SyntaxTree tree, ITemporaryStorage storage)
+        private static void SaveTreeToMap(SyntaxTree tree, ITemporaryStreamStorage storage)
         {
             var saved = map.GetValue(tree, _ => storage);
 
@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis.Host
 
         public bool CanRetrieve(SyntaxTree tree)
         {
-            ITemporaryStorage unused;
+            ITemporaryStreamStorage unused;
             return map.TryGetValue(tree, out unused);
         }
 
         public SyntaxNode Retrieve(SyntaxTree tree, ISyntaxTreeFactoryService service, CancellationToken cancellationToken)
         {
-            ITemporaryStorage storage;
+            ITemporaryStreamStorage storage;
             if (!map.TryGetValue(tree, out storage))
             {
                 return null;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public async Task<SyntaxNode> RetrieveAsync(SyntaxTree tree, ISyntaxTreeFactoryService service, CancellationToken cancellationToken)
         {
-            ITemporaryStorage storage;
+            ITemporaryStreamStorage storage;
             if (!map.TryGetValue(tree, out storage))
             {
                 return null;

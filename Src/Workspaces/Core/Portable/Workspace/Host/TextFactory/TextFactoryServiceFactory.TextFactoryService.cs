@@ -7,14 +7,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal partial class DesktopTextFactoryServiceFactory
+    internal partial class TextFactoryServiceFactory
     {
         public class TextFactoryService : ITextFactoryService
         {
             public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                return EncodedStringText.Create(stream, defaultEncoding);
+                return SourceText.From(stream, defaultEncoding);
             }
         }
     }

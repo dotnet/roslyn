@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ITemporaryStorageService storageService;
 
         // these fields are assigned once during call to SaveAsync
-        private ITemporaryStorage storage;
+        private ITemporaryTextStorage storage;
         private VersionStamp storedVersion;
         private string storedFilePath;
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override async Task SaveAsync(TextAndVersion textAndVersion, CancellationToken cancellationToken)
         {
-            this.storage = this.storageService.CreateTemporaryStorage(CancellationToken.None);
+            this.storage = this.storageService.CreateTemporaryTextStorage(CancellationToken.None);
             this.storedVersion = textAndVersion.Version;
             this.storedFilePath = textAndVersion.FilePath;
             await storage.WriteTextAsync(textAndVersion.Text).ConfigureAwait(false);

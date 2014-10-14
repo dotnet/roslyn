@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnitTests.Host.WorkspaceServices.Caching;
 using Microsoft.CodeAnalysis.UnitTests.Persistence;
-using Microsoft.CodeAnalysis.UnitTests.TemporaryStorage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host.UnitTests

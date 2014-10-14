@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     public interface ITemporaryStorageService : IWorkspaceService
     {
-        ITemporaryStorage CreateTemporaryStorage(CancellationToken cancellationToken = default(CancellationToken));
+        ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default(CancellationToken));
+        ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default(CancellationToken));
     }
 }

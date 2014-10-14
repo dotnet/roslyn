@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Host), Shared]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -35,17 +35,22 @@ namespace Microsoft.CodeAnalysis.Host
                 this.textFactory = textFactory;
             }
 
-            public ITemporaryStorage CreateTemporaryStorage(CancellationToken cancellationToken)
+            public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
             {
-                return new TemporaryStorage(this);
+                return new TemporaryTextStorage(this);
             }
 
-            private class TemporaryStorage : ITemporaryStorage
+            public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
+            {
+                return new TemporaryStreamStorage(this);
+            }
+
+            private class TemporaryTextStorage : ITemporaryTextStorage
             {
                 private readonly TemporaryStorageService service;
                 private MemoryMappedInfo memoryMappedInfo;
 
-                public TemporaryStorage(TemporaryStorageService service)
+                public TemporaryTextStorage(TemporaryStorageService service)
                 {
                     this.service = service;
                 }
@@ -121,6 +126,29 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     // See commentary in ReadTextAsync for why this is implemented this way.
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+                }
+            }
+
+            private class TemporaryStreamStorage : ITemporaryStreamStorage
+            {
+                private readonly TemporaryStorageService service;
+                private MemoryMappedInfo memoryMappedInfo;
+
+                public TemporaryStreamStorage(TemporaryStorageService service)
+                {
+                    this.service = service;
+                }
+
+                public void Dispose()
+                {
+                    if (memoryMappedInfo != null)
+                    {
+                        // Destructors of SafeHandle and FileStream in MemoryMappedFile
+                        // will eventually release resources if this Dispose is not called
+                        // explicitly
+                        memoryMappedInfo.Dispose();
+                        memoryMappedInfo = null;
+                    }
                 }
 
                 public Stream ReadStream(CancellationToken cancellationToken)

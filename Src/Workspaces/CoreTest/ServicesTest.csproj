@@ -123,8 +123,6 @@
     <Compile Include="Formatting\FormattingTestBase.cs" />
     <Compile Include="GeneratedCodeRecognitionTests.cs" />
     <Compile Include="Host\WorkspaceServices\Caching\TestSyntaxTreeCacheService.cs" />
-    <Compile Include="Host\WorkspaceServices\TemporaryStorage\TestTemporaryStorage.cs" />
-    <Compile Include="Host\WorkspaceServices\TemporaryStorage\TestTemporaryStorageService.cs" />
     <Compile Include="LanguageServiceTests\SyntaxTreeFactoryServiceTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTestBase.cs" />
