@@ -409,7 +409,14 @@ namespace Roslyn.Utilities.Pdb
                 return default(ImmutableArray<ImmutableArray<string>>);
             }
 
-            ImmutableArray<string> importStrings = reader.GetMethodByVersion(methodToken, methodVersion).GetImportStrings();
+            var method = reader.GetMethodByVersion(methodToken, methodVersion);
+            if (method == null)
+            {
+                // TODO: remove this workaround for DevDiv #1060879.
+                return default(ImmutableArray<ImmutableArray<string>>);
+            }
+
+            ImmutableArray<string> importStrings = method.GetImportStrings();
             int numImportStrings = importStrings.Length;
 
             ArrayBuilder<ImmutableArray<string>> resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
@@ -523,6 +530,17 @@ namespace Roslyn.Utilities.Pdb
         /// </remarks>
         private static ImmutableArray<string> GetImportStrings(this ISymUnmanagedMethod method)
         {
+            if (method == null)
+            {
+                // TODO: remove this workaround for DevDiv #1060879.
+                // If methodToken was updated (because the method we started with forwards to another method),
+                // we have no way to know what version the new method is on.  If it's not the same as the
+                // version we stared with (e.g. because it has been changed less frequently), then we may not
+                // find a corresponding ISymUnmanagedMethod.
+                // Note: The real fix is to not use CDI forwarding in EnC PDBs.
+                return ImmutableArray<string>.Empty;
+            }
+
             ISymUnmanagedScope rootScope = method.GetRootScope();
             if (rootScope == null)
             {
