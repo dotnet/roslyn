@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         private readonly Document document;
         private readonly TextSpan span;
-        private readonly IEnumerable<Diagnostic> diagnostics;
+        private readonly Diagnostic diagnostic;
         private readonly CancellationToken cancellationToken;
 
         /// <summary>
@@ -27,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public TextSpan Span { get { return this.span; } }
 
         /// <summary>
-        /// Diagnostics to fix.
+        /// Diagnostic to fix.
         /// </summary>
-        public IEnumerable<Diagnostic> Diagnostics { get { return this.diagnostics; } }
+        public Diagnostic Diagnostic { get { return this.diagnostic; } }
 
         /// <summary>
         /// CancellationToken.
@@ -41,13 +39,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CodeFixContext(
             Document document,
-            TextSpan span, 
-            IEnumerable<Diagnostic> diagnostics,
+            TextSpan span,
+            Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
             this.document = document;
             this.span = span;
-            this.diagnostics = diagnostics;
+            this.diagnostic = diagnostic;
             this.cancellationToken = cancellationToken;
         }
 
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
-            : this(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken)
+            : this(document, diagnostic.Location.SourceSpan, diagnostic, cancellationToken)
         {
         }
     }

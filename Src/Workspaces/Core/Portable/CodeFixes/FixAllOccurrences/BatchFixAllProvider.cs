@@ -170,16 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public virtual string GetFixAllTitle(FixAllContext fixAllContext)
         {
-            var diagnosticIds = fixAllContext.DiagnosticIds;
-            string diagnosticId;
-            if (diagnosticIds.Count() == 1)
-            {
-                diagnosticId = diagnosticIds.Single();
-            }
-            else
-            {
-                diagnosticId = string.Join(",", diagnosticIds.ToArray());
-            }
+            var diagnosticId = fixAllContext.DiagnosticId;
 
             switch (fixAllContext.Scope)
             {
@@ -330,11 +321,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var documentIdsWithChanges = solutionChanges
                     .GetProjectChanges()
                     .SelectMany(p => p.GetChangedDocuments());
-                
+
                 foreach (var documentId in documentIdsWithChanges)
                 {
                     var document = changedSolution.GetDocument(documentId);
-                    
+
                     Document existingDocument;
                     if (changedDocumentsMap.TryGetValue(documentId, out existingDocument))
                     {

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CodeFixes
@@ -28,22 +27,21 @@ namespace Roslyn.Diagnostics.CodeFixes
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            return GetFixesCore(context.Document, root, context.Diagnostics, context.CancellationToken);
+            return GetFixesCore(context.Document, root, context.Diagnostic, context.CancellationToken);
         }
 
-        private IEnumerable<CodeAction> GetFixesCore(Document document, SyntaxNode root, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private IEnumerable<CodeAction> GetFixesCore(Document document, SyntaxNode root, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            foreach (var diagnostic in diagnostics)
-            {
-                var expression = root.FindNode(diagnostic.Location.SourceSpan) as TExpressionSyntax;
+            var expression = root.FindNode(diagnostic.Location.SourceSpan) as TExpressionSyntax;
 
-                if (expression != null)
-                {
-                    yield return new MyCodeAction(
-                        "Append .ConfigureAwait(" + FalseLiteralString + ")",
-                        c => GetFix(document, root, expression, c));
-                }
+            if (expression != null)
+            {
+                return ImmutableArray.Create(new MyCodeAction(
+                    "Append .ConfigureAwait(" + FalseLiteralString + ")",
+                    c => GetFix(document, root, expression, c)));
             }
+
+            return null;
         }
 
         private Task<Document> GetFix(Document document, SyntaxNode root, TExpressionSyntax expression, CancellationToken cancellationToken)
