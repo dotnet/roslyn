@@ -695,6 +695,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim warningId As Integer
                             If Int32.TryParse(warning, warningId) Then
                                 Me._warnings("BC" + warningId.ToString("0000")) = reportStyle
+                            Else
+                                Me._warnings(warning) = reportStyle
                             End If
                         Next
                     End If
