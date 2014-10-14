@@ -317,53 +317,52 @@ namespace Microsoft.CodeAnalysis.Text
             return true;
         }
 
-        private static bool StartsWith(byte[] bytes, byte[] prefix)
-        {
-            if (bytes.Length < prefix.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < prefix.Length; i++)
-            {
-                if (bytes[i] != prefix[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        [ThreadStatic]
+        private static byte[] bomBytes;
 
         internal static Encoding TryReadByteOrderMark(Stream data)
         {
+            // PERF: Avoid repeated calls to Stream.ReadByte since that method allocates a 1-byte array on each call.
+            // Instead, using a thread local byte array.
+            if (bomBytes == null)
+            {
+                bomBytes = new byte[2];
+            }
+
             data.Seek(0, SeekOrigin.Begin);
 
-            switch (data.ReadByte())
+            int bytesRead = data.Read(bomBytes, 0, 2);
+            if (bytesRead == 2)
             {
-                case 0xFE:
-                    if (data.ReadByte() == 0xFF)
-                    {
-                        return Encoding.BigEndianUnicode;
-                    }
+                switch (bomBytes[0])
+                {
+                    case 0xFE:
+                        if (bomBytes[1] == 0xFF)
+                        {
+                            return Encoding.BigEndianUnicode;
+                        }
 
-                    break;
+                        break;
 
-                case 0xFF:
-                    if (data.ReadByte() == 0xFE)
-                    {
-                        return Encoding.Unicode;
-                    }
+                    case 0xFF:
+                        if (bomBytes[1] == 0xFE)
+                        {
+                            return Encoding.Unicode;
+                        }
 
-                    break;
+                        break;
 
-                case 0xEF:
-                    if (data.ReadByte() == 0xBB && data.ReadByte() == 0xBF)
-                    {
-                        return Encoding.UTF8;
-                    }
+                    case 0xEF:
+                        if (bomBytes[1] == 0xBB)
+                        {
+                            if (data.Read(bomBytes, 0, 1) == 1 && bomBytes[0] == 0xBF)
+                            {
+                                return Encoding.UTF8;
+                            }
+                        }
 
-                    break;
+                        break;
+                }
             }
 
             data.Seek(0, SeekOrigin.Begin);
