@@ -1,0 +1,32 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
+
+namespace Microsoft.CodeAnalysis.Simplification
+{
+    [ExportOptionProvider, Shared]
+    internal class SimplificationOptionsProvider : IOptionProvider
+    {
+        private IEnumerable<IOption> options = new List<IOption>
+            {
+                SimplificationOptions.PreferAliasToQualification,
+                SimplificationOptions.PreferOmittingModuleNamesInQualification,
+                SimplificationOptions.PreferImplicitTypeInference,
+                SimplificationOptions.PreferImplicitTypeInLocalDeclaration,
+                SimplificationOptions.AllowSimplificationToGenericType,
+                SimplificationOptions.AllowSimplificationToBaseType,
+                SimplificationOptions.QualifyMemberAccessWithThisOrMe,
+                SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess
+            }.ToImmutableArray();
+
+        public IEnumerable<IOption> GetOptions()
+        {
+            return options;
+        }
+    }
+}
