@@ -482,6 +482,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 this.Warnings["CS" + warningId.ToString("0000")] = reportStyle;
                             }
+                            else
+                            {
+                                this.Warnings[warning] = reportStyle;
+                            }
                         }
                     }
                 }
