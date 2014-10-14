@@ -179,6 +179,7 @@
     <Compile Include="Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="Extensions\VariableDeclaratorExtensions.cs" />
     <Compile Include="Formatting\CSharpFormattingOptions.cs" />
+    <Compile Include="Formatting\CSharpFormattingOptionsProvider.cs" />
     <Compile Include="Formatting\CSharpSyntaxFormattingService.cs" />
     <Compile Include="Formatting\DefaultOperationProvider.cs" />
     <Compile Include="Formatting\Engine\AggregatedFormattingResult.cs" />
