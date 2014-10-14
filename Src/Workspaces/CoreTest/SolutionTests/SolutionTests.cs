@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestLoadProjectFromCommandLine()
         {
             string commandLine = @"foo.cs subdir\bar.cs /out:foo.dll /target:library";
-            var ws = new CustomWorkspace();
+            var ws = new CustomWorkspace(MSBuild.MSBuildWorkspace.CreateMefHostServices());
             var info = CommandLineProject.CreateProjectInfo(ws, "TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
             ws.AddProject(info);
             var project = ws.CurrentSolution.GetProject(info.Id);

@@ -103,38 +103,45 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var assemblyNames = new string[]
             {
                 "Microsoft.CodeAnalysis.Workspaces",
-                "Microsoft.CodeAnalysis.Workspaces.Desktop",
                 "Microsoft.CodeAnalysis.CSharp.Workspaces",
-                "Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop",
                 "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
-                "Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop",
             };
 
-            var assemblies = new List<Assembly>();
+            return LoadNearbyAssemblies(assemblyNames);
+        }
 
-            var thisAssemblyName = typeof(MefHostServices).Assembly.GetName();
-            var assemblyShortName = thisAssemblyName.Name;
-            var assemblyVersion = thisAssemblyName.Version;
-            var publicKeyToken = thisAssemblyName.GetPublicKeyToken().Aggregate(string.Empty, (s, b) => s + b.ToString("x2"));
+        internal static ImmutableArray<Assembly> LoadNearbyAssemblies(string[] assemblyNames)
+        {
+            var assemblies = new List<Assembly>();
 
             foreach (var assemblyName in assemblyNames)
             {
-                LoadAssembly(assemblies,
-                    string.Format("{0}, Version={1}, Culture=neutral, PublicKeyToken={2}", assemblyName, assemblyVersion, publicKeyToken));
+                var assembly = TryLoadNearbyAssembly(assemblyName);
+                if (assembly != null)
+                {
+                    assemblies.Add(assembly);
+                }
             }
 
             return assemblies.ToImmutableArray();
         }
 
-        private static void LoadAssembly(List<Assembly> assemblies, string assemblyName)
+        private static Assembly TryLoadNearbyAssembly(string assemblySimpleName)
         {
+            var thisAssemblyName = typeof(MefHostServices).GetTypeInfo().Assembly.GetName();
+            var assemblyShortName = thisAssemblyName.Name;
+            var assemblyVersion = thisAssemblyName.Version;
+            var publicKeyToken = thisAssemblyName.GetPublicKeyToken().Aggregate(string.Empty, (s, b) => s + b.ToString("x2"));
+
+            var assemblyName = new AssemblyName(string.Format("{0}, Version={1}, Culture=neutral, PublicKeyToken={2}", assemblySimpleName, assemblyVersion, publicKeyToken));
+
             try
             {
-                var loadedAssembly = Assembly.Load(assemblyName);
-                assemblies.Add(loadedAssembly);
+                return Assembly.Load(assemblyName);
             }
             catch (Exception)
             {
+                return null;
             }
         }
 

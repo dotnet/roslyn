@@ -15,6 +15,7 @@ using Microsoft.Build.Construction;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -65,7 +66,22 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public static MSBuildWorkspace Create(IDictionary<string, string> properties)
         {
-            return Create(properties, Host.Mef.MefHostServices.DefaultHost);
+            MefHostServices mefHostServices = CreateMefHostServices();
+            return Create(properties, mefHostServices);
+        }
+
+        internal static MefHostServices CreateMefHostServices()
+        {
+            var assemblyNames = new string[]
+            {
+                "Microsoft.CodeAnalysis.Workspaces.Desktop",
+                "Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop",
+                "Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop",
+            };
+
+            var assemblies = MefHostServices.DefaultAssemblies.Concat(MefHostServices.LoadNearbyAssemblies(assemblyNames));
+            var mefHostServices = MefHostServices.Create(assemblies);
+            return mefHostServices;
         }
 
         /// <summary>
@@ -245,7 +261,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             return false;
                         }
                     }
-                    else 
+                    else
                     {
                         loader = ProjectFileLoader.GetLoaderForProjectFileExtension(this, extension);
 
@@ -773,7 +789,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private async Task<ResolvedReferences> ResolveProjectReferencesAsync(
             string thisProjectPath,
-            IReadOnlyList<ProjectFileReference> projectFileReferences, 
+            IReadOnlyList<ProjectFileReference> projectFileReferences,
             bool preferMetadata,
             List<ProjectInfo> loadedProjects,
             CancellationToken cancellationToken)
@@ -861,9 +877,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return null;
         }
-#endregion
+        #endregion
 
-#region Apply Changes
+        #region Apply Changes
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
@@ -902,7 +918,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var projectPath = project.FilePath;
                     IProjectFileLoader loader;
                     if (this.TryGetLoaderFromProjectPath(projectPath, ReportMode.Ignore, out loader))
-                    { 
+                    {
                         try
                         {
                             this.applyChangesProjectFile = loader.LoadProjectFileAsync(projectPath, this.properties, CancellationToken.None).Result;
@@ -1076,5 +1092,5 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
     }
-#endregion
+    #endregion
 }

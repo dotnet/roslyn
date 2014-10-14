@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis
         public static readonly MetadataOnlyImage Empty = new MetadataOnlyImage(storage: null, assemblyName: string.Empty);
         private static readonly EmitOptions EmitOptions = new EmitOptions(metadataOnly: true);
 
-        private readonly ITemporaryStorage storage;
+        private readonly ITemporaryStreamStorage storage;
         private readonly string assemblyName;
 
-        private MetadataOnlyImage(ITemporaryStorage storage, string assemblyName)
+        private MetadataOnlyImage(ITemporaryStreamStorage storage, string assemblyName)
         {
             this.storage = storage;
             this.assemblyName = assemblyName;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (emitResult.Success)
                     {
-                        var storage = service.CreateTemporaryStorage(cancellationToken);
+                        var storage = service.CreateTemporaryStreamStorage(cancellationToken);
 
                         stream.Position = 0;
                         storage.WriteStream(stream, cancellationToken);

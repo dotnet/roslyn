@@ -11,13 +11,16 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// TemporaryStorage can be used to read and write text to a temporary storage location.
     /// </summary>
-    public interface ITemporaryStorage : IDisposable
+    public interface ITemporaryTextStorage : IDisposable
     {
         SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken));
         Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default(CancellationToken));
         void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken));
         Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken));
+    }
 
+    public interface ITemporaryStreamStorage : IDisposable
+    {
         Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken));
         Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken));
         void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken));
