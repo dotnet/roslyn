@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -27,20 +26,18 @@ namespace Microsoft.CodeAnalysis
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var actions = SpecializedCollections.EmptyEnumerable<CodeAction>();
-            foreach (var diagnostic in context.Diagnostics)
+            var diagnostic = context.Diagnostic;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var nodeToFix = root.FindNode(diagnostic.Location.SourceSpan);
+
+            var newDocument = await GetUpdatedDocumentAsync(document, model, root, nodeToFix, diagnostic.Id, cancellationToken).ConfigureAwait(false);
+
+            Debug.Assert(newDocument != null);
+            if (newDocument != document)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var nodeToFix = root.FindNode(diagnostic.Location.SourceSpan);
-
-                var newDocument = await GetUpdatedDocumentAsync(document, model, root, nodeToFix, diagnostic.Id, cancellationToken).ConfigureAwait(false);
-
-                Debug.Assert(newDocument != null);
-                if (newDocument != document)
-                {
-                    var codeFixDescription = GetCodeFixDescription(diagnostic.Id);
-                    actions = actions.Concat(new MyCodeAction(codeFixDescription, newDocument));
-                }
+                var codeFixDescription = GetCodeFixDescription(diagnostic.Id);
+                actions = actions.Concat(new MyCodeAction(codeFixDescription, newDocument));
             }
 
             return actions;
