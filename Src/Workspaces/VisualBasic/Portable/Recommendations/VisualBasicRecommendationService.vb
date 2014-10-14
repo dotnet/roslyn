@@ -123,16 +123,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 lookupPosition = context.Position
             End If
 
-            Dim symbols = If(
+            Dim symbols As IEnumerable(Of ISymbol) = If(
                 context.TargetToken.Parent.IsInStaticContext(),
                 context.SemanticModel.LookupStaticMembers(lookupPosition),
                 context.SemanticModel.LookupSymbols(lookupPosition))
 
             If filterOutOfScopeLocals Then
-                Return symbols.Where(Function(symbol) Not symbol.IsInaccessibleLocal(context.Position))
+                symbols = symbols.Where(Function(symbol) Not symbol.IsInaccessibleLocal(context.Position))
             End If
 
-            Return symbols
+            ' Hide backing fields and events
+
+            Return symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
         End Function
 
         Private Function GetSymbolsForQualifiedNameSyntax(
@@ -322,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         ''' </summary>
         Private Shared Function FilterEventsAndGeneratedSymbols(node As MemberAccessExpressionSyntax, s As ISymbol) As Boolean
             If s.Kind = SymbolKind.Event Then
-                Return node.GetAncestor(Of AddRemoveHandlerStatementSyntax) IsNot Nothing
+                Return node IsNot Nothing AndAlso node.GetAncestor(Of AddRemoveHandlerStatementSyntax) IsNot Nothing
             ElseIf s.Kind = SymbolKind.Field AndAlso s.IsImplicitlyDeclared Then
                 Dim associatedSymbol = DirectCast(s, IFieldSymbol).AssociatedSymbol
                 If associatedSymbol IsNot Nothing Then
