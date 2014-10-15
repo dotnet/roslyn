@@ -719,6 +719,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to error.
+        /// </summary>
+        internal static string SeverityError {
+            get {
+                return ResourceManager.GetString("SeverityError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hidden.
+        /// </summary>
+        internal static string SeverityHidden {
+            get {
+                return ResourceManager.GetString("SeverityHidden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to info.
+        /// </summary>
+        internal static string SeverityInfo {
+            get {
+                return ResourceManager.GetString("SeverityInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to warning.
+        /// </summary>
+        internal static string SeverityWarning {
+            get {
+                return ResourceManager.GetString("SeverityWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Size has to be positive..
         /// </summary>
         internal static string SizeHasToBePositive {

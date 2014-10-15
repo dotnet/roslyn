@@ -81,16 +81,16 @@ namespace Microsoft.CodeAnalysis
             switch (diagnostic.Severity)
             {
                 case DiagnosticSeverity.Hidden:
-                    prefix = "hidden";
+                    prefix = CodeAnalysisResources.SeverityHidden;
                     break;
                 case DiagnosticSeverity.Info:
-                    prefix = "info";
+                    prefix = CodeAnalysisResources.SeverityInfo;
                     break;
                 case DiagnosticSeverity.Warning:
-                    prefix = "warning";
+                    prefix = CodeAnalysisResources.SeverityWarning;
                     break;
                 case DiagnosticSeverity.Error:
-                    prefix = "error";
+                    prefix = CodeAnalysisResources.SeverityError;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
