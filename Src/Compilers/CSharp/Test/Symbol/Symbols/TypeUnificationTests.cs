@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -395,6 +394,24 @@ public class L<T>
             AssertCannotUnify(type5, type6);
 
             AssertCanUnify(type6, type6);
+        }
+
+        [WorkItem(1042692)]
+        [Fact]
+        public void SubstituteWithOtherTypeParameter()
+        {
+            var text =
+@"interface IA<T, U>
+{
+}
+interface IB<T, U> : IA<U, object>, IA<T, U>
+{
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            var type = comp.GetMember<NamedTypeSymbol>("IB");
+            AssertCanUnify(type.Interfaces[0], type.Interfaces[1]);
+            DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics(),
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 4, Column = 11 });
         }
 
         private static void AssertCanUnify(TypeSymbol t1, TypeSymbol t2)

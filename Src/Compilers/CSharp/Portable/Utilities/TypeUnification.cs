@@ -3,8 +3,6 @@
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -18,10 +16,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MutableTypeMap substitution = null;
             bool result = CanUnifyHelper(t1, t2, ref substitution);
-            Debug.Assert(!result || (substitution == null && t1 == t2) ||
-                substitution.SubstituteType(t1) == substitution.SubstituteType(t2));
+#if DEBUG
+            Debug.Assert(!result ||
+                SubstituteAllTypeParameters(substitution, t1) == SubstituteAllTypeParameters(substitution, t2));
+#endif
             return result;
         }
+
+#if DEBUG
+        private static TypeSymbol SubstituteAllTypeParameters(AbstractTypeMap substitution, TypeSymbol type)
+        {
+            if (substitution != null)
+            {
+                TypeSymbol previous;
+                do
+                {
+                    previous = type;
+                    type = substitution.SubstituteType(type);
+                } while (type != previous);
+            }
+            return type;
+        }
+#endif
 
         /// <summary>
         /// Determine whether there is any substitution of type parameters that will

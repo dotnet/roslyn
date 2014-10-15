@@ -1,15 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.IO
-Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -15895,6 +15891,27 @@ BC32120: Cannot inherit interface 'interfaceA(Of t2)' because it could be identi
                                             ~~~~~~~~~~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <WorkItem(1042692)>
+        <Fact()>
+        Public Sub BC32120ERR_InterfaceUnifiesWithInterface2_SubstituteWithOtherTypeParameter()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Interface IA(Of T, U)
+End Interface
+Interface IB(Of T, U)
+    Inherits IA(Of U, Object), IA(Of T, U)
+End Interface
+        ]]></file>
+    </compilation>)
+            compilation1.AssertTheseDeclarationDiagnostics(
+                <errors><![CDATA[
+BC32120: Cannot inherit interface 'IA(Of T, U)' because it could be identical to interface 'IA(Of U, Object)' for some type arguments.
+    Inherits IA(Of U, Object), IA(Of T, U)
+                               ~~~~~~~~~~~
+     ]]></errors>)
         End Sub
 
         <Fact(), WorkItem(543726, "DevDiv")>

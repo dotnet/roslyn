@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -19,10 +17,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim substitution As TypeSubstitution = Nothing
             Dim result As Boolean = CanUnifyHelper(containingGenericType, t1, t2, substitution)
-            Debug.Assert(Not result OrElse (substitution Is Nothing AndAlso t1 = t2) OrElse
-                         t1.InternalSubstituteTypeParameters(substitution) = t2.InternalSubstituteTypeParameters(substitution))
+#If DEBUG Then
+            Debug.Assert(Not result OrElse
+                SubstituteAllTypeParameters(substitution, t1) = SubstituteAllTypeParameters(substitution, t2))
+#End If
             Return result
         End Function
+
+#If DEBUG Then
+        Private Shared Function SubstituteAllTypeParameters(substitution As TypeSubstitution, type As TypeSymbol) As TypeSymbol
+            If substitution IsNot Nothing Then
+                Dim previous As TypeSymbol
+                Do
+                    previous = type
+                    type = type.InternalSubstituteTypeParameters(substitution)
+                Loop While previous <> type
+            End If
+            Return type
+        End Function
+#End If
 
         ''' <summary>
         ''' Determine whether there is any substitution of type parameters that will
