@@ -25,6 +25,12 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        public override bool CanApplyChange(ApplyChangesKind feature)
+        {
+            // all kinds supported.
+            return true;
+        }
+
         /// <summary>
         /// Clears all projects and documents from the workspace.
         /// </summary>

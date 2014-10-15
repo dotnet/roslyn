@@ -160,10 +160,10 @@
     <value>Duplicate source file '{0}' in project '{1}'</value>
   </data>
   <data name="RemovingProjectsNotSupported" xml:space="preserve">
-    <value>Removing projects not supported in ApplyChanges.</value>
+    <value>Removing projects is not supported.</value>
   </data>
   <data name="AddingProjectsNotSupported" xml:space="preserve">
-    <value>Adding projects not supported in ApplyChanges.</value>
+    <value>Adding projects is not supported.</value>
   </data>
   <data name="WorkspaceIsNotEmpty" xml:space="preserve">
     <value>Workspace is not empty.</value>
@@ -362,5 +362,47 @@
   </data>
   <data name="InvalidCodePage" xml:space="preserve">
     <value>Invalid CodePage value: {0}</value>
+  </data>
+  <data name="AddingAdditionalDocumentsNotSupported" xml:space="preserve">
+    <value>Adding additional documents is not supported.</value>
+  </data>
+  <data name="AddingAnalyzerReferencesNotSupported" xml:space="preserve">
+    <value>Adding analyzer references is not supported.</value>
+  </data>
+  <data name="AddingDocumentsNotSupported" xml:space="preserve">
+    <value>Adding documents is not supported.</value>
+  </data>
+  <data name="AddingMetadataReferenceNotSupported" xml:space="preserve">
+    <value>Adding metadata references is not supported.</value>
+  </data>
+  <data name="AddingProjectReferencesNotSupported" xml:space="preserve">
+    <value>Adding project references is not supported.</value>
+  </data>
+  <data name="ChangingAdditionalDocumentsIsNotSupported" xml:space="preserve">
+    <value>Changing additional documents is not supported.</value>
+  </data>
+  <data name="ChangingDocumentsNotSupported" xml:space="preserve">
+    <value>Changing documents is not supported.</value>
+  </data>
+  <data name="ChangingProjectPropertiesNotSupported" xml:space="preserve">
+    <value>Changing project properties is not supported.</value>
+  </data>
+  <data name="RemovingAdditionalDocumentsIsNotSupported" xml:space="preserve">
+    <value>Removing additional documents is not supported.</value>
+  </data>
+  <data name="RemovingAnalyzerReferencesNotSupported" xml:space="preserve">
+    <value>Removing analyzer references is not supported.</value>
+  </data>
+  <data name="RemovingDocumentsNotSupported" xml:space="preserve">
+    <value>Removing documents is not supported.</value>
+  </data>
+  <data name="RemovingMetadataReferencesNotSupported" xml:space="preserve">
+    <value>Removing metadata references is not supported.</value>
+  </data>
+  <data name="RemovingProjectReferencesNotSupported" xml:space="preserve">
+    <value>Removing project references is not supported.</value>
+  </data>
+  <data name="WorkspaceServicesUnavailable" xml:space="preserve">
+    <value>Services required to accomplish the task are not available from the workspace.</value>
   </data>
 </root>

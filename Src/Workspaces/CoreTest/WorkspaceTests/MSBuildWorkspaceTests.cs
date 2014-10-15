@@ -1623,6 +1623,70 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestApplyChanges_NotSupportedChangesFail()
+        {
+#if !MSBUILD12
+            var csharpProjPath = @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj";
+            var vbProjPath = @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj";
+            CreateFiles(GetAnalyzerReferenceSolutionFiles());
+
+            var ws = MSBuildWorkspace.Create();
+
+            var cspid = ws.OpenProjectAsync(GetSolutionFileName(csharpProjPath)).Result.Id;
+            var vbpid = ws.OpenProjectAsync(GetSolutionFileName(vbProjPath)).Result.Id;
+
+            // adding additional documents not supported.
+            Assert.Equal(false, ws.CanApplyChange(ApplyChangesKind.AddAdditionalDocument));
+            Assert.Throws<NotSupportedException>(delegate
+            {
+                ws.TryApplyChanges(ws.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(cspid), "foo.xaml", SourceText.From("<foo></foo>")));
+            });
+
+            var xaml = ws.CurrentSolution.GetProject(cspid).AdditionalDocuments.FirstOrDefault(d => d.Name == "XamlFile.xaml");
+            Assert.NotNull(xaml);
+
+            // removing additional documents not supported
+            Assert.Equal(false, ws.CanApplyChange(ApplyChangesKind.RemoveAdditionalDocument));
+            Assert.Throws<NotSupportedException>(delegate
+            {
+                ws.TryApplyChanges(ws.CurrentSolution.RemoveAdditionalDocument(xaml.Id));
+            });
+
+#if false // No current text changing API's for additional documents
+            // chanding additional documents not supported
+            Assert.Throws<NotSupportedException>(delegate
+            {
+            });
+#endif
+            // adding analyzer references is not supported.
+            Assert.Equal(false, ws.CanApplyChange(ApplyChangesKind.AddAnalyzerReference));
+            Assert.Throws<NotSupportedException>(delegate
+            {
+                var p = ws.CurrentSolution.GetProject(cspid);
+                var a = new AnalyzerFileReference(GetSolutionFileName("myAnalyzer.dll"));
+                ws.TryApplyChanges(p.AddAnalyzerReference(a).Solution);
+            });
+
+            // removing analyzer references is not supported.
+            Assert.Equal(false, ws.CanApplyChange(ApplyChangesKind.RemoveAnalyzerReference));
+            Assert.Throws<NotSupportedException>(delegate
+            {
+                var p = ws.CurrentSolution.GetProject(cspid);
+                var a = p.AnalyzerReferences.First();
+                ws.TryApplyChanges(p.RemoveAnalyzerReference(a).Solution);
+            });
+
+            // adding project references is not supported
+            Assert.Equal(false, ws.CanApplyChange(ApplyChangesKind.AddProjectReference));
+            Assert.Throws<NotSupportedException>(delegate
+            {
+                var p = ws.CurrentSolution.GetProject(cspid);
+                ws.TryApplyChanges(p.AddProjectReference(new ProjectReference(vbpid)).Solution);
+            });
+#endif
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWorkspaceChangedEvent()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());

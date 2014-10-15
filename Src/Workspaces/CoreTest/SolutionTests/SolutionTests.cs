@@ -1118,8 +1118,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestLoadProjectFromCommandLine()
         {
             string commandLine = @"foo.cs subdir\bar.cs /out:foo.dll /target:library";
-            var ws = new CustomWorkspace(MSBuild.MSBuildWorkspace.CreateMefHostServices());
-            var info = CommandLineProject.CreateProjectInfo(ws, "TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
+            var ws = new CustomWorkspace();
             ws.AddProject(info);
             var project = ws.CurrentSolution.GetProject(info.Id);
 
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             string commandLine = @"..\foo.cs";
             var ws = new CustomWorkspace();
-            var info = CommandLineProject.CreateProjectInfo(ws, "TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
             Assert.Equal(0, docInfo.Folders.Count);

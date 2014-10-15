@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis
         RemoveMetadataReference = 5,
         AddDocument = 6,
         RemoveDocument = 7,
-        ChangeDocument = 8
+        ChangeDocument = 8,
+        AddAnalyzerReference = 9,
+        RemoveAnalyzerReference = 10,
+        AddAdditionalDocument = 11,
+        RemoveAdditionalDocument = 12,
+        ChangeAdditionalDocument = 13
     }
 }

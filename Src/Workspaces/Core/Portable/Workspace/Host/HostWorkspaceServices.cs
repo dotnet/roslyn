@@ -23,14 +23,33 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public abstract Workspace Workspace { get; }
 
+        /// <summary>
+        /// Gets a workspace specific service provided by the host identified by the service type. 
+        /// If the host does not provide the service, this method returns null.
+        /// </summary>
         public abstract TWorkspaceService GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService;
+
+        /// <summary>
+        /// Gets a workspace specific service provided by the host identified by the service type. 
+        /// If the host does not provide the service, this method returns <see cref="InvalidOperationException"/>.
+        /// </summary>
+        public TWorkspaceService GetRequiredService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService
+        {
+            var service = GetService<TWorkspaceService>();
+            if (service == null)
+            {
+                throw new InvalidOperationException(WorkspacesResources.WorkspaceServicesUnavailable);
+            }
+
+            return service;
+        }
 
         /// <summary>
         /// A service for storing information across that can be retrieved in a separate process.
         /// </summary>
         public virtual IPersistentStorageService PersistentStorage
         {
-            get { return this.GetService<IPersistentStorageService>(); }
+            get { return this.GetRequiredService<IPersistentStorageService>(); }
         }
 
         /// <summary>
@@ -38,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public virtual ITemporaryStorageService TemporaryStorage
         {
-            get { return this.GetService<ITemporaryStorageService>(); }
+            get { return this.GetRequiredService<ITemporaryStorageService>(); }
         }
 
         /// <summary>
@@ -46,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public virtual ITextFactoryService TextFactory
         {
-            get { return this.GetService<ITextFactoryService>(); }
+            get { return this.GetRequiredService<ITextFactoryService>(); }
         }
 
         /// <summary>

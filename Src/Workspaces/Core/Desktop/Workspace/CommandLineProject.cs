@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
@@ -19,22 +20,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a <see cref="ProjectInfo"/> structure initialized from a compilers command line arguments.
         /// </summary>
-        public static ProjectInfo CreateProjectInfo(Workspace workspace, string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory)
+        public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace workspace = null)
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
-
-            var languageServices = workspace.Services.GetLanguageServices(language);
+            var tmpWorkspace = workspace ?? new CustomWorkspace(DesktopMefHostServices.DefaultServices);
+            var languageServices = tmpWorkspace.Services.GetLanguageServices(language);
             if (languageServices == null)
             {
                 throw new ArgumentException(WorkspacesResources.UnrecognizedLanguageName);
             }
 
-            var commandLineArgumentsFactory = languageServices.GetService<ICommandLineArgumentsFactoryService>();
+            var commandLineArgumentsFactory = languageServices.GetRequiredService<ICommandLineArgumentsFactoryService>();
             var commandLineArguments = commandLineArgumentsFactory.CreateCommandLineArguments(commandLineArgs, projectDirectory, isInteractive: false);
 
             // TODO (tomat): to match csc.exe/vbc.exe we should use CommonCommandLineCompiler.ExistingReferencesResolver to deal with #r's
             var referenceResolver = new MetadataFileReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
-            var referenceProvider = workspace.Services.GetService<IMetadataService>().GetProvider();
+            var referenceProvider = tmpWorkspace.Services.GetRequiredService<IMetadataService>().GetProvider();
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 
@@ -162,10 +163,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a <see cref="ProjectInfo"/> structure initialized with data from a compiler command line.
         /// </summary>
-        public static ProjectInfo CreateProjectInfo(Workspace workspace, string projectName, string language, string commandLine, string baseDirectory)
+        public static ProjectInfo CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Workspace workspace = null)
         {
             var args = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: true);
-            return CreateProjectInfo(workspace, projectName, language, args, baseDirectory);
+            return CreateProjectInfo(projectName, language, args, baseDirectory, workspace);
         }
 
         private static readonly char[] folderSplitters = new char[] { Path.DirectorySeparatorChar };

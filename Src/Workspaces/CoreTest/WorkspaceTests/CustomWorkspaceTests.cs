@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string commandLine = @"CSharpClass.cs /out:foo.dll /target:library";
             var baseDirectory = Path.Combine(this.SolutionDirectory.Path, "CSharpProject");
 
-            using (var ws = new CustomWorkspace(MSBuild.MSBuildWorkspace.CreateMefHostServices()))
+            using (var ws = new CustomWorkspace())
             {
-                var info = CommandLineProject.CreateProjectInfo(ws, "TestProject", LanguageNames.CSharp, commandLine, baseDirectory);
+                var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDirectory);
                 ws.AddProject(info);
                 var project = ws.CurrentSolution.GetProject(info.Id);
 

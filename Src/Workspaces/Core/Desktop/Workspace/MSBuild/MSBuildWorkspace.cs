@@ -66,22 +66,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public static MSBuildWorkspace Create(IDictionary<string, string> properties)
         {
-            MefHostServices mefHostServices = CreateMefHostServices();
-            return Create(properties, mefHostServices);
-        }
-
-        internal static MefHostServices CreateMefHostServices()
-        {
-            var assemblyNames = new string[]
-            {
-                "Microsoft.CodeAnalysis.Workspaces.Desktop",
-                "Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop",
-                "Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop",
-            };
-
-            var assemblies = MefHostServices.DefaultAssemblies.Concat(MefHostServices.LoadNearbyAssemblies(assemblyNames));
-            var mefHostServices = MefHostServices.Create(assemblies);
-            return mefHostServices;
+            return Create(properties, DesktopMefHostServices.DefaultServices);
         }
 
         /// <summary>
@@ -962,6 +947,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
+#if false
         protected override void ChangedAdditionalDocumentText(DocumentId documentId, SourceText text)
         {
             var document = this.CurrentSolution.GetAdditionalDocument(documentId);
@@ -971,55 +957,42 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 this.OnAdditionalDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
         }
+#endif
 
-        private void AddDocumentCore(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, bool isAdditionalDocument = false)
+        protected override void AddDocument(DocumentInfo info, SourceText text)
         {
             System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
 
-            var project = this.CurrentSolution.GetProject(documentId.ProjectId);
+            var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
 
             IProjectFileLoader loader;
             if (this.TryGetLoaderFromProjectPath(project.FilePath, ReportMode.Ignore, out loader))
             {
-                var extension = isAdditionalDocument ? Path.GetExtension(name) : this.applyChangesProjectFile.GetDocumentExtension(sourceCodeKind);
-                var fileName = Path.ChangeExtension(name, extension);
+                var extension = this.applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
+                var fileName = Path.ChangeExtension(info.Name, extension);
 
-                var relativePath = folders != null ? Path.Combine(Path.Combine(folders.ToArray()), fileName) : fileName;
+                var relativePath = (info.Folders != null && info.Folders.Count > 0) 
+                    ? Path.Combine(Path.Combine(info.Folders.ToArray()), fileName) 
+                    : fileName;
 
                 var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath));
-                var encoding = (text != null) ? text.Encoding : null;
 
-                var documentInfo = DocumentInfo.Create(documentId, fileName, folders, sourceCodeKind, new FileTextLoader(fullPath, encoding), fullPath, encoding, isGenerated: false);
+                var newDocumentInfo = info.WithName(fileName)
+                    .WithFilePath(fullPath)
+                    .WithTextLoader(new FileTextLoader(fullPath, text.Encoding));
 
                 // add document to project file
                 this.applyChangesProjectFile.AddDocument(relativePath);
 
                 // add to solution
-                if (isAdditionalDocument)
-                {
-                    this.OnAdditionalDocumentAdded(documentInfo);
-                }
-                else
-                {
-                    this.OnDocumentAdded(documentInfo);
-                }
+                this.OnDocumentAdded(newDocumentInfo);
 
                 // save text to disk
                 if (text != null)
                 {
-                    this.SaveDocumentText(documentId, fullPath, text);
+                    this.SaveDocumentText(info.Id, fullPath, text);
                 }
             }
-        }
-
-        protected override void AddDocument(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            AddDocumentCore(documentId, folders, name, text, sourceCodeKind, isAdditionalDocument: false);
-        }
-
-        protected override void AddAdditionalDocument(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null)
-        {
-            AddDocumentCore(documentId, folders, name, text, SourceCodeKind.Regular, isAdditionalDocument: true);
         }
 
         private void SaveDocumentText(DocumentId id, string fullPath, SourceText newText)

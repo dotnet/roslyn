@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -22,6 +23,21 @@ namespace Microsoft.CodeAnalysis.Host
         /// If the host does not provide the service, this method returns null.
         /// </summary>
         public abstract TLanguageService GetService<TLanguageService>() where TLanguageService : ILanguageService;
+
+        /// <summary>
+        /// Gets a language specific service provided by the host identified by the service type. 
+        /// If the host does not provide the service, this method returns throws <see cref="InvalidOperationException"/>.
+        /// </summary>
+        public TLanguageService GetRequiredService<TLanguageService>() where TLanguageService : ILanguageService
+        {
+            var service = GetService<TLanguageService>();
+            if (service == null)
+            {
+                throw new InvalidOperationException(WorkspacesResources.WorkspaceServicesUnavailable);
+            }
+
+            return service;
+        }
 
         // common services
 
