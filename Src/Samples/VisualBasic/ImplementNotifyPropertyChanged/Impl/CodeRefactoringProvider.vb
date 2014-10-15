@@ -53,11 +53,11 @@ Friend Class ImplementNotifyPropertyChangedCodeRefactoringProvider
 
         Dim properties = ExpansionChecker.GetExpandableProperties(textSpan, root, model)
 
-#Disable Warning RS005
+#Disable Warning RS0005
         Return If(properties.Any(),
             {CodeAction.Create("Apply INotifyPropertyChanged pattern", Function(c) ImplementNotifyPropertyChangedAsync(document, root, model, properties, c))},
             Nothing)
-#Enable Warning RS005
+#Enable Warning RS0005
     End Function
 
     Private Async Function ImplementNotifyPropertyChangedAsync(document As Document, root As CompilationUnitSyntax, model As SemanticModel, properties As IEnumerable(Of ExpandablePropertyInfo), cancellationToken As CancellationToken) As Task(Of Document)
