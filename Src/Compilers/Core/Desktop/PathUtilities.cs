@@ -8,7 +8,7 @@ namespace Roslyn.Utilities
 {
     internal static class PathUtilities
     {
-        private const string DirectorySeparatorStr = "\\";
+        internal const string DirectorySeparatorStr = "\\";
         internal const char DirectorySeparatorChar = '\\';
         internal const char AltDirectorySeparatorChar = '/';
         internal const char VolumeSeparatorChar = ':';
@@ -117,7 +117,7 @@ namespace Roslyn.Utilities
 
         internal static bool IsAbsolute(string path)
         {
-            if (path == null)
+            if (String.IsNullOrEmpty(path))
             {
                 return false;
             }
@@ -129,10 +129,9 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            // "\\machine\share"
-            if (path.Length >= 2 && IsDirectorySeparator(path[0]) && IsDirectorySeparator(path[1]))
+            // "\\machine\share", "\X"
+            if (IsDirectorySeparator(path[0]))
             {
-                // Including invalid/incomplete UNC paths (e.g. "\\foo")
                 return true;
             }
 
@@ -156,10 +155,16 @@ namespace Roslyn.Utilities
         /// </returns>
         internal static string GetPathRoot(string path)
         {
-            if (path == null)
+            if (String.IsNullOrWhiteSpace(path))
             {
                 return null;
             }
+
+            if (IsDirectorySeparator(path[0]) && (path.Length == 1 || !IsDirectorySeparator(path[1])))
+            {
+                return DirectorySeparatorStr;
+            }
+
 
             int length = GetPathRootLength(path);
             return (length != -1) ? path.Substring(0, length) : null;

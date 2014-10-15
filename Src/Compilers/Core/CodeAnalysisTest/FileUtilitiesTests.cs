@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(PathUtilities.IsAbsolute(@"C:/"));
             Assert.True(PathUtilities.IsAbsolute(@"C:\\"));
             Assert.False(PathUtilities.IsAbsolute(@"C\"));
-            Assert.False(PathUtilities.IsAbsolute(@"\C"));
-            Assert.False(PathUtilities.IsAbsolute(@"/C"));
+            Assert.True(PathUtilities.IsAbsolute(@"\C"));
+            Assert.True(PathUtilities.IsAbsolute(@"/C"));
             Assert.True(PathUtilities.IsAbsolute(@"\\"));                // incomplete UNC 
             Assert.True(PathUtilities.IsAbsolute(@"\\S"));               // incomplete UNC 
             Assert.True(PathUtilities.IsAbsolute(@"\/C"));               // incomplete UNC 
@@ -36,36 +36,38 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void GetPathRoot()
         {
-            Assert.Equal(null, PathUtilities.GetPathRoot(null));
-            Assert.Equal(null, PathUtilities.GetPathRoot(""));
-            Assert.Equal(null, PathUtilities.GetPathRoot("C"));
-            Assert.Equal(null, PathUtilities.GetPathRoot("abc.txt"));
-            Assert.Equal(null, PathUtilities.GetPathRoot("C:"));
-            Assert.Equal(@"C:\", PathUtilities.GetPathRoot(@"C:\"));
-            Assert.Equal(@"C:/", PathUtilities.GetPathRoot(@"C:/"));
-            Assert.Equal(@"C:\", PathUtilities.GetPathRoot(@"C:\\"));
-            Assert.Equal(@"C:/", PathUtilities.GetPathRoot(@"C:/\"));
-            Assert.Equal(@"*:/", PathUtilities.GetPathRoot(@"*:/"));
-            Assert.Equal(@"0:/", PathUtilities.GetPathRoot(@"0:/"));
-            Assert.Equal(@"::/", PathUtilities.GetPathRoot(@"::/"));
-            
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\"));
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\x"));
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\"));
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\x"));
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\x\"));
-            Assert.Equal(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y"));
-            Assert.Equal(@"\\\x\y", PathUtilities.GetPathRoot(@"\\\x\y"));
-            Assert.Equal(@"\\\\x\y", PathUtilities.GetPathRoot(@"\\\\x\y"));
-            Assert.Equal(@"\\x\\y", PathUtilities.GetPathRoot(@"\\x\\y"));
-            Assert.Equal(@"\\/x\\/y", PathUtilities.GetPathRoot(@"\\/x\\/y"));
-            Assert.Equal(@"\\/x\\/y", PathUtilities.GetPathRoot(@"\\/x\\/y/"));
-            Assert.Equal(@"\\/x\\/y", PathUtilities.GetPathRoot(@"\\/x\\/y\/"));
-            Assert.Equal(@"\\/x\\/y", PathUtilities.GetPathRoot(@"\\/x\\/y\/zzz"));
-            Assert.Equal(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y"));
-            Assert.Equal(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y\\"));
-            Assert.Equal(@"\\abc\xyz", PathUtilities.GetPathRoot(@"\\abc\xyz"));
-            Assert.Equal(@"\\server\$c", PathUtilities.GetPathRoot(@"\\server\$c\Public"));
+            Assert.AreEqual(null, PathUtilities.GetPathRoot(null));
+            Assert.AreEqual(null, PathUtilities.GetPathRoot(""));
+            Assert.AreEqual(null, PathUtilities.GetPathRoot("C"));
+            Assert.AreEqual(null, PathUtilities.GetPathRoot("abc.txt"));
+            Assert.AreEqual(null, PathUtilities.GetPathRoot("C:"));
+            Assert.AreEqual(@"C:\", PathUtilities.GetPathRoot(@"C:\"));
+            Assert.AreEqual(@"C:/", PathUtilities.GetPathRoot(@"C:/"));
+            Assert.AreEqual(@"C:\", PathUtilities.GetPathRoot(@"C:\\"));
+            Assert.AreEqual(@"C:/", PathUtilities.GetPathRoot(@"C:/\"));
+            Assert.AreEqual(@"*:/", PathUtilities.GetPathRoot(@"*:/"));
+            Assert.AreEqual(@"0:/", PathUtilities.GetPathRoot(@"0:/"));
+            Assert.AreEqual(@"::/", PathUtilities.GetPathRoot(@"::/"));
+
+            Assert.AreEqual(PathUtilities.DirectorySeparatorStr, PathUtilities.GetPathRoot(@"\"));
+            Assert.AreEqual(PathUtilities.DirectorySeparatorStr, PathUtilities.GetPathRoot(@"\x"));
+            Assert.AreEqual(PathUtilities.DirectorySeparatorStr, PathUtilities.GetPathRoot(@"/"));
+            Assert.AreEqual(PathUtilities.DirectorySeparatorStr, PathUtilities.GetPathRoot(@"/x"));
+            Assert.AreEqual(null, PathUtilities.GetPathRoot(@"\\"));
+            Assert.AreEqual(null, PathUtilities.GetPathRoot(@"\\x"));
+            Assert.AreEqual(null, PathUtilities.GetPathRoot(@"\\x\"));
+            Assert.AreEqual(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y"));
+            Assert.AreEqual(@"\\\x\y", PathUtilities.GetPathRoot(@"\\\x\y"));
+            Assert.AreEqual(@"\\\\x\y", PathUtilities.GetPathRoot(@"\\\\x\y"));
+            Assert.AreEqual(@"\\x\\y", PathUtilities.GetPathRoot(@"\\x\\y"));
+            Assert.AreEqual(@"\\/x\\/y", PathUtilities.GetPathRoot(@"\\/x\\/y"));
+            Assert.AreEqual(@"\\/x\\/y", PathUtilities.GetPathRoot(@"\\/x\\/y/"));
+            Assert.AreEqual(@"\\/x\\/y", PathUtilities.GetPathRoot(@"\\/x\\/y\/"));
+            Assert.AreEqual(@"\\/x\\/y", PathUtilities.GetPathRoot(@"\\/x\\/y\/zzz"));
+            Assert.AreEqual(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y"));
+            Assert.AreEqual(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y\\"));
+            Assert.AreEqual(@"\\abc\xyz", PathUtilities.GetPathRoot(@"\\abc\xyz"));
+            Assert.AreEqual(@"\\server\$c", PathUtilities.GetPathRoot(@"\\server\$c\Public"));
 
             // TODO (tomat): long UNC paths
             // Assert.Equal(@"\\?\C:\", PathUtilities.GetPathRoot(@"\\?\C:\abc\def"));
