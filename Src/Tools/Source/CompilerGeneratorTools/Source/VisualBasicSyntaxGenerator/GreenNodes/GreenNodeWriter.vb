@@ -398,6 +398,11 @@ Class GreenNodeWriter
             _writer.WriteLine("          Me.{0} = CType(reader.{1}(), {2})", FieldVarName(field), ReaderMethod(FieldTypeRef(field)), FieldTypeRef(field))
         Next
 
+        'TODO: BLUE
+        If StructureTypeName(nodeStructure) = "DirectiveTriviaSyntax" Then
+            _writer.WriteLine("          SetFlags(NodeFlags.ContainsDirectives)")
+        End If
+
         _writer.WriteLine("        End Sub")
 
         If Not nodeStructure.Abstract Then

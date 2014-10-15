@@ -267,7 +267,25 @@ class C { }");
             RoundTrip(@"public class C { string c = ""\U0002A6A5𪚥""; }");
         }
 
-#if false
+        [Fact, WorkItem(1038237)]
+        public void RoundTripPragmaDirective()
+        {
+            var text = @"#pragma disable warning CS0618";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var root = tree.GetCompilationUnitRoot();
+            Assert.True(root.ContainsDirectives);
+
+            var stream = new MemoryStream();
+            root.SerializeTo(stream);
+
+            stream.Position = 0;
+
+            var newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
+            Assert.True(newRoot.ContainsDirectives);
+        }
+
+        #if false
         [Fact]
         public void RoundTripBigSyntaxNode()
         {

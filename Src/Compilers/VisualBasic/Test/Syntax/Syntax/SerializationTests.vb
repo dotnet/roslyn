@@ -437,5 +437,26 @@ End Module
                        </Foo>.Value
             RoundTrip(text)
         End Sub
+
+        <Fact>
+        <WorkItem(1038237)>
+        Public Sub RoundTripPragmaDirective()
+            Dim text = <Foo><![CDATA[
+#Disable Warning BC40000
+]]>
+                       </Foo>.Value
+
+            Dim tree = VBSyntaxTree.ParseText(text)
+            Dim root = tree.GetRoot()
+            Assert.True(root.ContainsDirectives)
+
+            Dim stream = New MemoryStream()
+            root.SerializeTo(stream)
+
+            stream.Position = 0
+
+            Dim newRoot = VBSyntaxNode.DeserializeFrom(stream)
+            Assert.True(newRoot.ContainsDirectives)
+        End Sub
     End Class
 End Namespace

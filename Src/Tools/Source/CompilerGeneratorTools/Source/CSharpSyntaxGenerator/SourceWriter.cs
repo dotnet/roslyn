@@ -106,6 +106,10 @@ namespace CSharpSyntaxGenerator
                 WriteLine("    protected {0}(ObjectReader reader)", node.Name);
                 WriteLine("       : base(reader)");
                 WriteLine("    {");
+                if (node.Name == "DirectiveTriviaSyntax")
+                {
+                    WriteLine("      this.flags |= NodeFlags.ContainsDirectives;");
+                }
                 WriteLine("    }");
 
                 var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
