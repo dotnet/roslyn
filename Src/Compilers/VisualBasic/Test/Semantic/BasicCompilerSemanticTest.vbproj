@@ -191,6 +191,7 @@
     <Compile Include="Semantics\MultiDimensionalTest.vb" />
     <Compile Include="Semantics\MyBaseMyClassTests.vb" />
     <Compile Include="Semantics\NameLengthTests.vb" />
+    <Compile Include="Semantics\NameOfTests.vb" />
     <Compile Include="Semantics\NewOnInterfaceTests.vb" />
     <Compile Include="Semantics\NoncompliantOverloadingInMetadata.vb" />
     <Compile Include="Semantics\OptionalArgumentTests.vb" />

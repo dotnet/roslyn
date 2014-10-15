@@ -1908,7 +1908,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATUREID_SubLambdas = 55005
         FEATUREID_ArrayLiterals = 55006
         FEATUREID_NullPropagatingOperator = 55007
-        FEATUREID_Last = 55007
+        FEATUREID_NameOfOperator = 55008
+        FEATUREID_Last = 55008
 
         ' Adding diagnostic arguments from resx file
         IDS_ProjectSettingsLocationName = 56000

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function IsReservedKeyword(kind As SyntaxKind) As Boolean
             Return kind - SyntaxKind.AddHandlerKeyword <=
-                    SyntaxKind.WendKeyword - SyntaxKind.AddHandlerKeyword
+                    SyntaxKind.WendKeyword - SyntaxKind.AddHandlerKeyword OrElse kind = SyntaxKind.NameOfKeyword
         End Function
 
         ''' <summary>
@@ -180,6 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             SyntaxKind.MustOverrideKeyword,
             SyntaxKind.MyBaseKeyword,
             SyntaxKind.MyClassKeyword,
+            SyntaxKind.NameOfKeyword,
             SyntaxKind.NamespaceKeyword,
             SyntaxKind.NarrowingKeyword,
             SyntaxKind.NextKeyword,
@@ -500,6 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.CUShortKeyword,
                     SyntaxKind.DirectCastKeyword,
                     SyntaxKind.GetTypeKeyword,
+                    SyntaxKind.NameOfKeyword,
                     SyntaxKind.IsKeyword,
                     SyntaxKind.IsFalseKeyword,
                     SyntaxKind.IsNotKeyword,

@@ -1020,6 +1020,7 @@ CaseLabel2:
             Dim query = From c In customers Let d = c Where d IsNot Nothing Join c1 In customers On c1.GetHashCode() Equals c.GetHashCode() Group Join c1 In customers On c1.GetHashCode() Equals c.GetHashCode() Into e() Order By g.Count() Ascending Order By g.Key Descending Select New With {.Country = g.Key, .CustCount = g.Count()}
             'XML Literals
             Dim x = &lt;xmlliteral&gt;&lt;test name="test"/&gt; &lt;test name="test2"&gt;&lt;/test&gt;&lt;/xmlliteral&gt;
+            Console.WriteLine(NameOf(Finalize))
         End Sub
 
         Protected Overrides Sub Finalize()
@@ -2063,7 +2064,7 @@ CaseLabel2:
                         &lt;test name="test"/&gt;
                         &lt;test name="test2"&gt;&lt;/test&gt;
                     &lt;/xmlliteral&gt;
-
+            Console.WriteLine(NameOf(Finalize))
         End Sub
 
         Protected Overrides Sub Finalize()

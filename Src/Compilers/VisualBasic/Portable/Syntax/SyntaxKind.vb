@@ -3123,6 +3123,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         UntilClause = 777                       ' WhileOrUntilClause : VBSyntaxNode
 
+        ''' <summary>
+        ''' Represents a single keyword in a VB program. Which keyword can be determined
+        ''' from the Kind property.
+        ''' </summary>
+        NameOfKeyword = 778                     ' KeywordSyntax : SyntaxToken
+
+        ''' <summary>
+        ''' Represents a NameOf expression.
+        ''' </summary>
+        NameOfExpression = 779                  ' NameOfExpressionSyntax : ExpressionSyntax
+
     End Enum
 
 End Namespace

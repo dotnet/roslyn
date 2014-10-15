@@ -1734,4 +1734,11 @@
     <Field Name="WhenNotNull" Type="BoundExpression"/>
     <Field Name="WhenNullOpt" Type="BoundExpression" Null="allow"/>
   </Node>
+
+  <Node Name="BoundNameOfOperator" Base="BoundExpression" HasValidate="true">
+    <!-- Type is required for this node type; may not be null -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ConstantValueOpt" PropertyOverrides="true" Type="ConstantValue" Null="allow"/>
+  </Node>
+
 </Tree>

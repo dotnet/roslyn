@@ -334,6 +334,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.GetTypeKeyword
                     term = ParseGetType()
 
+                Case SyntaxKind.NameOfKeyword
+                    term = ParseNameOf()
+
                 Case SyntaxKind.GetXmlNamespaceKeyword
                     term = ParseGetXmlNamespace()
 
@@ -641,6 +644,82 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
 
             Return SyntaxFactory.GetTypeExpression([getType], openParen, getTypeTypeName, closeParen)
+        End Function
+
+        ''' <summary>
+        ''' Parse NameOf, 
+        ''' NameOfExpression -> NameOf OpenParenthesis Name CloseParenthesis 
+        ''' </summary>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        Private Function ParseNameOf() As NameOfExpressionSyntax
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.NameOfKeyword, "should be at NameOf.")
+
+            Dim [nameOf] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
+            [nameOf] = AssertLanguageFeature(ERRID.FEATUREID_NameOfOperator, [nameOf])
+
+            GetNextToken()
+
+            Dim openParen As PunctuationSyntax = Nothing
+            TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen, createIfMissing:=True)
+
+            Dim nameOfName = ParseNameOfArgument()
+
+            Dim closeParen As PunctuationSyntax = Nothing
+            TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
+
+            Return SyntaxFactory.NameOfExpression([nameOf], openParen, nameOfName, closeParen)
+        End Function
+
+        Friend Function ParseNameOfArgument() As NameSyntax
+            Dim name As NameSyntax = Nothing
+
+            Dim requireQualification As Boolean = False
+
+            If CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
+                name = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
+                GetNextToken()
+                requireQualification = True
+            Else
+                name = ParseNameOfSimpleName(allowKeyword:=False)
+            End If
+
+            ' Parse tail: A sequence of zero or more [dot SimpleName].
+            Dim dotToken As PunctuationSyntax = Nothing
+
+            Do While TryGetTokenAndEatNewLine(SyntaxKind.DotToken, dotToken)
+                Debug.Assert(dotToken IsNot Nothing)
+                name = SyntaxFactory.QualifiedName(name, dotToken, ParseNameOfSimpleName(allowKeyword:=True))
+            Loop
+
+            If requireQualification AndAlso dotToken Is Nothing Then
+                name = SyntaxFactory.QualifiedName(name,
+                                                   ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.DotToken), ERRID.ERR_ExpectedDot),
+                                                   SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier()))
+            End If
+
+            Return name
+        End Function
+
+        Private Function ParseNameOfSimpleName(allowKeyword As Boolean) As SimpleNameSyntax
+            Dim name As SimpleNameSyntax
+            Dim allowEmptyGenericArguments As Boolean = True
+            Dim allowNonEmptyGenericArguments As Boolean = False
+
+            name = ParseSimpleName(allowGenericArguments:=True,
+                                   allowGenericsWithoutOf:=True,
+                                   disallowGenericArgumentsOnLastQualifiedName:=False,
+                                   allowKeyword:=allowKeyword,
+                                   nonArrayName:=True,
+                                   allowEmptyGenericArguments:=allowEmptyGenericArguments,
+                                   allowNonEmptyGenericArguments:=allowNonEmptyGenericArguments)
+
+            If CurrentToken.Kind <> SyntaxKind.DotToken AndAlso name.Kind = SyntaxKind.GenericName Then
+                Dim genericName = DirectCast(name, GenericNameSyntax)
+                name = SyntaxFactory.IdentifierName(genericName.Identifier.AddTrailingSyntax(genericName.TypeArgumentList, ERRID.ERR_TypeArgsUnexpected))
+            End If
+
+            Return name
         End Function
 
         ' File: Parser.cpp

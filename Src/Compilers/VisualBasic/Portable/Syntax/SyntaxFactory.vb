@@ -73,15 +73,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return expr
         End Function
 
-        Friend Shared Sub VerifySyntaxKind(kind As SyntaxKind)
+        Friend Shared Sub VerifySyntaxKindOfToken(kind As SyntaxKind)
             If CInt(kind) < SyntaxKind.AddHandlerKeyword OrElse
-                CInt(kind) > SyntaxKind.EndOfXmlToken Then
+                (CInt(kind) > SyntaxKind.EndOfXmlToken AndAlso kind <> SyntaxKind.NameOfKeyword) Then
                 Throw New ArgumentOutOfRangeException("kind")
             End If
         End Sub
 
         Public Shared Function Token(kind As SyntaxKind, Optional text As String = Nothing) As SyntaxToken
-            VerifySyntaxKind(kind)
+            VerifySyntaxKindOfToken(kind)
             Return CType(InternalSyntax.SyntaxFactory.Token(DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VBSyntaxNode), kind, DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VBSyntaxNode), text), SyntaxToken)
         End Function
 
@@ -90,12 +90,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function Token(kind As SyntaxKind, trailing As SyntaxTriviaList, Optional text As String = Nothing) As SyntaxToken
-            VerifySyntaxKind(kind)
+            VerifySyntaxKindOfToken(kind)
             Return CType(InternalSyntax.SyntaxFactory.Token(DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VBSyntaxNode), kind, DirectCast(trailing.Node, InternalSyntax.VBSyntaxNode), text), SyntaxToken)
         End Function
 
         Public Shared Function Token(leading As SyntaxTriviaList, kind As SyntaxKind, Optional text As String = Nothing) As SyntaxToken
-            VerifySyntaxKind(kind)
+            VerifySyntaxKindOfToken(kind)
             Return CType(InternalSyntax.SyntaxFactory.Token(DirectCast(leading.Node, InternalSyntax.VBSyntaxNode), kind, DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VBSyntaxNode), text), SyntaxToken)
         End Function
 
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function Token(leading As SyntaxTriviaList, kind As SyntaxKind, trailing As SyntaxTriviaList, Optional text As String = Nothing) As SyntaxToken
-            VerifySyntaxKind(kind)
+            VerifySyntaxKindOfToken(kind)
             Return CType(InternalSyntax.SyntaxFactory.Token(DirectCast(leading.Node, InternalSyntax.VBSyntaxNode), kind, DirectCast(trailing.Node, InternalSyntax.VBSyntaxNode), text), SyntaxToken)
         End Function
 

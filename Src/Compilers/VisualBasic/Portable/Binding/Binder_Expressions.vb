@@ -147,6 +147,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GetTypeExpression
                     Return BindGetTypeExpression(DirectCast(node, GetTypeExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.NameOfExpression
+                    Return BindNameOfExpression(DirectCast(node, NameOfExpressionSyntax), diagnostics)
+
                 Case SyntaxKind.AddressOfExpression
                     Return BindAddressOfExpression(node, diagnostics)
 
@@ -396,6 +399,116 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New BoundGetType(node, typeExpression, GetWellKnownType(WellKnownType.System_Type, node, diagnostics))
         End Function
+
+        Private Function BindNameOfExpression(node As NameOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+
+            Dim namespaceOrType As NameSyntax
+            Dim member As SimpleNameSyntax
+
+            ' Suppress diagnostocs if argument has syntax errors
+            If node.Argument.HasErrors Then
+                diagnostics = New DiagnosticBag()
+            End If
+
+            Select Case node.Argument.Kind
+                Case SyntaxKind.QualifiedName
+                    Dim qualified = DirectCast(node.Argument, QualifiedNameSyntax)
+                    namespaceOrType = qualified.Left
+                    member = qualified.Right
+                Case Else
+
+                    namespaceOrType = Nothing
+                    member = TryCast(node.Argument, SimpleNameSyntax)
+                    Debug.Assert(member IsNot Nothing OrElse node.Argument.HasErrors)
+            End Select
+
+            Dim lookupResult As LookupResult = LookupResult.GetInstance()
+            Const options As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.AllTypesOfAnyArity
+            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+
+            If namespaceOrType IsNot Nothing Then
+                ' Create a special binder that allows unbound types
+                Dim nameOfBinder As New GetTypeBinder(namespaceOrType, Me)
+
+                Dim boundLeft As BoundExpression
+                boundLeft = NameOfBinder.BindNamespaceOrTypeExpression(namespaceOrType, diagnostics)
+
+                If member Is Nothing OrElse String.IsNullOrEmpty(member.Identifier.ValueText) Then
+                    ' Must have been a syntax error.
+                    Debug.Assert(node.Argument.HasErrors)
+
+                ElseIf boundLeft.Kind = BoundKind.NamespaceExpression Then
+
+                    Dim ns As NamespaceSymbol = DirectCast(boundLeft, BoundNamespaceExpression).NamespaceSymbol
+
+                    LookupMember(lookupResult, ns, member.Identifier.ValueText, 0, options, useSiteDiagnostics)
+                    VerifyNameOfLookupResult(ns, member, lookupResult, diagnostics)
+                ElseIf boundLeft.Kind = BoundKind.TypeExpression Then
+                    Dim type As TypeSymbol = DirectCast(boundLeft, BoundTypeExpression).Type.OriginalDefinition ' Member lookup doesn't quite work with unbound generic types, hence OriginalDefinition
+
+                    If Not type.IsErrorType() Then
+                        LookupMember(lookupResult, type, member.Identifier.ValueText, 0, options, useSiteDiagnostics)
+                        VerifyNameOfLookupResult(type, member, lookupResult, diagnostics)
+                    End If
+                Else
+                    Throw ExceptionUtilities.Unreachable
+                End If
+
+            ElseIf member IsNot Nothing AndAlso Not String.IsNullOrEmpty(member.Identifier.ValueText)
+                Lookup(lookupResult, member.Identifier.ValueText, 0, options, useSiteDiagnostics)
+
+                If lookupResult.HasSingleSymbol AndAlso lookupResult.SingleSymbol.Kind = SymbolKind.Local Then
+                    Dim localSymbol = DirectCast(lookupResult.SingleSymbol, LocalSymbol)
+
+                    If member.Identifier.SpanStart < localSymbol.IdentifierToken.SpanStart Then
+
+                        Dim declarationLocation As Location = localSymbol.IdentifierLocation
+                        Dim referenceLocation As Location = member.Identifier.GetLocation()
+
+                        If Not localSymbol.IsImplicitlyDeclared AndAlso
+                           declarationLocation.IsInSource AndAlso
+                           referenceLocation IsNot Nothing AndAlso referenceLocation.IsInSource AndAlso
+                           declarationLocation.SourceTree Is referenceLocation.SourceTree Then
+
+                            ReportDiagnostic(diagnostics, member.Identifier, ERRID.ERR_UseOfLocalBeforeDeclaration1, localSymbol)
+                        End If
+                    End If
+                End If
+
+                VerifyNameOfLookupResult(Nothing, member, lookupResult, diagnostics)
+            End If
+
+            Dim value As String = Nothing
+
+            If member IsNot Nothing Then
+                value = member.Identifier.ValueText
+                diagnostics.Add(member, useSiteDiagnostics)
+            Else
+                Debug.Assert(useSiteDiagnostics Is Nothing)
+            End If
+
+            lookupResult.Free()
+
+            Return New BoundNameOfOperator(node, ConstantValue.Create(If(value, "")), GetSpecialType(SpecialType.System_String, node, diagnostics))
+        End Function
+
+        Private Sub VerifyNameOfLookupResult(container As NamespaceOrTypeSymbol, member As SimpleNameSyntax, lookupResult As LookupResult, diagnostics As DiagnosticBag)
+            If lookupResult.HasDiagnostic Then
+
+                ' Ambiguous result is Ok
+                If Not lookupResult.IsAmbiguous Then
+                    ReportDiagnostic(diagnostics, member, lookupResult.Diagnostic)
+                End If
+
+            ElseIf lookupResult.HasSymbol Then
+                Debug.Assert(lookupResult.IsGood)
+
+            ElseIf container IsNot Nothing
+                ReportDiagnostic(diagnostics, member, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, member.Identifier.ValueText, container))
+            Else
+                ReportDiagnostic(diagnostics, member, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotDeclared1, member.Identifier.ValueText))
+            End If
+        End Sub
 
         Private Function BindTypeOfExpression(node As TypeOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 

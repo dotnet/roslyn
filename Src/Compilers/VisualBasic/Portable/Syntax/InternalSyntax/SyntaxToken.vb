@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If CInt(kind) >= SyntaxKind.AddHandlerKeyword Then
 
-                If CInt(kind) <= SyntaxKind.YieldKeyword Then
+                If CInt(kind) <= SyntaxKind.YieldKeyword OrElse kind = SyntaxKind.NameOfKeyword Then
                     Return New KeywordSyntax(kind, tokenText, leading, trailing)
                 ElseIf CInt(kind) <= SyntaxKind.EndOfXmlToken Then
                     Return New PunctuationSyntax(kind, tokenText, leading, trailing)

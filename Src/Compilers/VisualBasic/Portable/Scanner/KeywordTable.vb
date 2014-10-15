@@ -97,6 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             AddKeyword(SyntaxKind.MustOverrideKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.MyBaseKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.MyClassKeyword, 0, 0, 0, 0)
+            AddKeyword(SyntaxKind.NameOfKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.NamespaceKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.NarrowingKeyword, 1, 0, 0, 0)
             AddKeyword(SyntaxKind.NextKeyword, 0, 0, 0, 0)

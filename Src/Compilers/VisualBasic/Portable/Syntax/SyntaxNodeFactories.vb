@@ -489,6 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SyntaxKind.MustOverrideKeyword,
                 SyntaxKind.MyBaseKeyword,
                 SyntaxKind.MyClassKeyword,
+                SyntaxKind.NameOfKeyword,
                 SyntaxKind.NamespaceKeyword,
                 SyntaxKind.NarrowingKeyword,
                 SyntaxKind.NextKeyword,
