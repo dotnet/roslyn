@@ -63,9 +63,6 @@
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Core\Desktop\FailFast.cs">
-      <Link>Utilities\FailFast.cs</Link>
-    </Compile>
     <Compile Include="Binder\AliasAndExternAliasDirective.cs" />
     <Compile Include="Binder\AliasAndUsingDirective.cs" />
     <Compile Include="Binder\Binder.cs" />

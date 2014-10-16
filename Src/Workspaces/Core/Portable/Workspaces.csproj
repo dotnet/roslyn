@@ -86,6 +86,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs">
       <Link>InternalUtilities\EnumUtilties.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
+      <Link>InternalUtilities\FailFast.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
       <Link>InternalUtilities\FatalError.cs</Link>
     </Compile>
@@ -194,9 +197,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ObjectPool`1.cs">
       <Link>InternalUtilities\ObjectPool`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\FailFast.cs">
-      <Link>NonPortable\FailFast.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\FixedObjectBinder.cs">
       <Link>Serialization\FixedObjectBinder.cs</Link>

@@ -104,6 +104,7 @@
     <Compile Include="Emit\EditAndContinueMethodDebugInformation.cs" />
     <Compile Include="InternalUtilities\DocumentationCommentId.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcher.cs" />
+    <Compile Include="InternalUtilities\FailFast.cs" />
     <Compile Include="InternalUtilities\FileStreamLightUp.cs" />
     <Compile Include="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="Collections\KeyedStack.cs" />

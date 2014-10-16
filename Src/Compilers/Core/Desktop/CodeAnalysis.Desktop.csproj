@@ -75,7 +75,6 @@
     <Compile Include="DesktopStrongNameProvider.cs" />
     <Compile Include="CommandLineAnalyzerReference.cs" />
     <Compile Include="EncodedStringText.cs" />
-    <Compile Include="FailFast.cs" />
     <Compile Include="FileKey.cs" />
     <Compile Include="FileUtilities.cs" />
     <Compile Include="AnalyzerAssemblyLoadEventArgs.cs" />

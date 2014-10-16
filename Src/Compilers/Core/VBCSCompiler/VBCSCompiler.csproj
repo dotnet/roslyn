@@ -49,7 +49,6 @@
     <ProjectReference Include="..\Desktop\CodeAnalysis.Desktop.csproj">
       <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
       <Name>CodeAnalysis.Desktop</Name>
-      <Aliases>global,Microsoft_CodeAnalysis_Desktop</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
