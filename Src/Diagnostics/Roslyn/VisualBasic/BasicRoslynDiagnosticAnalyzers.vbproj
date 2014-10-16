@@ -102,6 +102,7 @@
     <Compile Include="Performance\BasicSpecializedEnumerableCreationAnalyzer.vb" />
     <Compile Include="Reliability\BasicDirectlyAwaitingTaskAnalyzer.vb" />
     <Compile Include="Reliability\BasicDirectlyAwaitingTaskFix.vb" />
+    <Compile Include="Usage\BasicUseSiteDiagnosticsCheckEnforcerAnalyzer.vb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

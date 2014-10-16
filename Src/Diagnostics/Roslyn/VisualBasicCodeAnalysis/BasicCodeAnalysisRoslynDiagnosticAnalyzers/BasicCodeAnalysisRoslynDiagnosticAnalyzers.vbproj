@@ -81,10 +81,8 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Usage\BasicUseSiteDiagnosticsCheckEnforcerAnalyzer.vb" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="My Project\" />
+    <Folder Include="Usage\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

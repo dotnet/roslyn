@@ -18,7 +18,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
                                                                              RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerMessage,
                                                                              "Usage",
                                                                              DiagnosticSeverity.Error,
-                                                                             True,
+                                                                             False,
                                                                              WellKnownDiagnosticTags.Telemetry)
 
         Protected Overrides ReadOnly Property Descriptor As DiagnosticDescriptor
