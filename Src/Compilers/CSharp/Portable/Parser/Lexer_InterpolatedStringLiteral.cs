@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var text = interpolatedString.ToString();
             // TODO: scan the contents to reconstruct any lexical errors such as // inside an expression hole
             return SyntaxFactory.Literal(
-                interpolatedString.GetLastToken().GetLeadingTrivia(),
+                interpolatedString.GetFirstToken().GetLeadingTrivia(),
                 text,
                 SyntaxKind.InterpolatedStringToken,
                 text,
