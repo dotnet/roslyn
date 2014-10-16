@@ -69,7 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var text = interpolatedString.ToString();
             // TODO: scan the contents to reconstruct any lexical errors such as // inside an expression hole
-            return SyntaxFactory.Literal(interpolatedString.GetLeadingTrivia(), text, SyntaxKind.InterpolatedStringToken, text, interpolatedString.GetTrailingTrivia());
+            return SyntaxFactory.Literal(
+                interpolatedString.GetLastToken().GetLeadingTrivia(),
+                text,
+                SyntaxKind.InterpolatedStringToken,
+                text,
+                interpolatedString.GetLastToken().GetTrailingTrivia());
         }
 
         private void ScanISLContents(ArrayBuilder<Interpolation> interpolations, ref SyntaxDiagnosticInfo error)
