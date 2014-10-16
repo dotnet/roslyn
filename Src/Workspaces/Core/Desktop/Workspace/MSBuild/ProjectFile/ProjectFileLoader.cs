@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             MemoryStream memoryStream = new MemoryStream();
             var buffer = new byte[1024];
-            using (var stream = FileUtilities.OpenRead(path))
+            using (var stream = FileUtilities.OpenAsyncRead(path))
             {
                 int bytesRead = 0;
                 do

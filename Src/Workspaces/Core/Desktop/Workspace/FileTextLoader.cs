@@ -70,8 +70,9 @@ namespace Microsoft.CodeAnalysis
             // Allowing other theads/processes to write or delete the file is essential for scenarios such as
             // Rename refactoring where File.Replace API is invoked for updating the modified file. 
             TextAndVersion textAndVersion;
-            using (var stream = FileUtilities.OpenRead(this.path))
+            using (var stream = FileUtilities.OpenAsyncRead(this.path))
             {
+                System.Diagnostics.Debug.Assert(stream.IsAsync);
                 var version = VersionStamp.Create(prevLastWriteTime);
                 var memoryStream = await this.ReadStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
 

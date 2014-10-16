@@ -296,6 +296,24 @@ namespace Roslyn.Utilities
             }
         }
 
+        internal static FileStream OpenAsyncRead(string fullPath)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+
+            try
+            {
+                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+            }
+            catch (IOException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message, e);
+            }
+        }
+
         /// <summary>
         /// Used to create a file given a path specified by the user.
         /// paramName - Provided by the Public surface APIs to have a clearer message. Internal API just rethrow the exception
