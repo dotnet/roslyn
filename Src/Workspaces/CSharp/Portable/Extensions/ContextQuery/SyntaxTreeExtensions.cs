@@ -2182,6 +2182,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // is/as are valid after expressions.
             if (token.IsLastTokenOfNode<ExpressionSyntax>())
             {
+                // InterpolatedStringSyntax is an ExpressionSyntax, but
+                // we shouldn't suggest is/as after a string hole.
+                if (token.IsKind(SyntaxKind.InterpolatedStringEndToken))
+                {
+                    return false;
+                }
+
                 // However, many names look like expressions.  For example:
                 //    foreach (var |
                 // ('var' is a TypeSyntax which is an expression syntax.
