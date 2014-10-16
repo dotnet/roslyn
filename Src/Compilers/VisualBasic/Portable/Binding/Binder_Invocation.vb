@@ -2974,7 +2974,7 @@ ProduceBoundNode:
                         Dim callerInfoValue As ConstantValue = Nothing
 
                         If isCallerLineNumber Then
-                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayLineNumber(callerInfoOpt.Span))
+                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayLineNumber(GetCallerLocation(callerInfoOpt)))
                         ElseIf isCallerMemberName Then
                             Dim container As Symbol = ContainingMember
 
@@ -3118,6 +3118,16 @@ ProduceBoundNode:
             Return defaultArgument
         End Function
 
+        Private Shared Function GetCallerLocation(syntax As VBSyntaxNode) As TextSpan
+            Select Case syntax.Kind
+                Case SyntaxKind.SimpleMemberAccessExpression
+                    Return DirectCast(syntax, MemberAccessExpressionSyntax).Name.Span
+                Case SyntaxKind.DictionaryAccessExpression
+                    Return DirectCast(syntax, MemberAccessExpressionSyntax).OperatorToken.Span
+                Case Else
+                    Return syntax.Span
+            End Select
+        End Function
 
         ''' <summary>
         ''' Return true if the node is an immediate child of a call statement.

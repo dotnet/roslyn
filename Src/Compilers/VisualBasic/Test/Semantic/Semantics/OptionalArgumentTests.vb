@@ -1814,6 +1814,141 @@ Void Main() - 10, Main, a.vb
             CompileAndVerify(compilation, expectedOutput)
         End Sub
 
+        <WorkItem(1040287)>
+        <Fact()>
+        Public Sub CallerInfo5()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    ReadOnly Property P As C
+        Get
+            Return Me
+        End Get
+    End Property
+    Default ReadOnly Property Q(index As Integer, <CallerLineNumber> Optional line As Integer = 0) As C
+        Get
+            Console.WriteLine("{0}: {1}", index, line)
+            Return Me
+        End Get
+    End Property
+    Function F(Optional id As Integer = 0, <CallerLineNumber> Optional line As Integer = 0) As C
+        Console.WriteLine("{0}: {1}", id, line)
+        Return Me
+    End Function
+    Shared Sub Main()
+        Dim c = New C()
+        c.F(1).
+          F
+        c = c(
+           2
+          )(3)
+        c = c.
+          F(
+           4
+          ).
+          P(5)
+        Dim o As Object = c
+        o =
+          DirectCast(o, C)(
+           6
+          )
+    End Sub
+End Class
+	]]>
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation,
+            <![CDATA[
+1: 21
+0: 22
+2: 23
+3: 23
+4: 27
+5: 30
+6: 33
+]]>)
+        End Sub
+
+        <WorkItem(1040287)>
+        <Fact()>
+        Public Sub CallerInfo6()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    Function F() As C
+        Return Me
+    End Function
+    Default ReadOnly Property P(s As String, <CallerLineNumber> Optional line As Integer = 0) As C
+        Get
+            Console.WriteLine("{0}: {1}", s, line)
+            Return Me
+        End Get
+    End Property
+    Shared Sub Main()
+        Dim c = (New C())!x.
+            F()!y
+    End Sub
+End Class
+	]]>
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation,
+            <![CDATA[
+x: 14
+y: 15
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub CallerInfo7()
+            Dim compilation1 = CreateCSharpCompilation(<![CDATA[
+using System.Runtime.CompilerServices;
+public delegate void D(object o = null, [CallerLineNumber]int line = 0);
+]]>.Value,
+                assemblyName:="1",
+                referencedAssemblies:=New MetadataReference() {MscorlibRef_v4_0_30316_17626})
+            compilation1.VerifyDiagnostics()
+            Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
+            Dim compilation2 = CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    Shared Sub M(Optional o As Object = Nothing, <CallerLineNumber> Optional line As Integer = 0)
+        Console.WriteLine(line)
+    End Sub
+    Shared Sub Main()
+        Dim d As New D(AddressOf M)
+        d(
+            1
+          )
+        d
+    End Sub
+End Class
+	]]>
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe,
+                additionalRefs:={reference1})
+            CompileAndVerify(compilation2,
+            <![CDATA[
+9
+12
+]]>)
+        End Sub
+
         <Fact>
         Public Sub TestCallerFilePath1()
             Dim source1 = "
