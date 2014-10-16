@@ -31,10 +31,12 @@ namespace Microsoft.CodeAnalysis
         private readonly BranchId primaryBranchId;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
-        private readonly NonReentrantLock serializationLock = new NonReentrantLock();
+        private readonly NonReentrantLock serializationLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
-        private readonly ReaderWriterLockSlim stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly NonReentrantLock stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
+
+        // Current solution.
         private Solution latestSolution;
 
         private readonly IWorkspaceTaskScheduler taskQueue;
@@ -120,33 +122,39 @@ namespace Microsoft.CodeAnalysis
         /// The solution is an immutable model of the current set of projects and source documents.
         /// It provides access to source text, syntax trees and semantics.
         /// 
-        /// This property may change as the workspace reacts to changes in the environment or 
+        /// This property may change as the workspace reacts to changes in the environment or
         /// after <see cref="TryApplyChanges"/> is called.
         /// </summary>
         public virtual Solution CurrentSolution
         {
             get
             {
-                using (this.stateLock.DisposableRead())
-                {
-                    return this.latestSolution;
-                }
+                return Volatile.Read(ref this.latestSolution);
             }
         }
 
         /// <summary>
-        /// Set's the <see cref="CurrentSolution"/> of this workspace. This method does not raise a workspace change event.
+        /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
         /// </summary>
         protected Solution SetCurrentSolution(Solution solution)
         {
-            using (this.stateLock.DisposableWrite())
+            var currentSolution = Volatile.Read(ref this.latestSolution);
+            if (solution == currentSolution)
             {
-                if (solution != this.latestSolution)
+                // No change
+                return solution;
+            }
+
+            while (true)
+            {
+                var newSolution = solution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
+                var replacedSolution = Interlocked.CompareExchange(ref this.latestSolution, newSolution, currentSolution);
+                if (replacedSolution == currentSolution)
                 {
-                    this.latestSolution = solution.WithNewWorkspace(this, this.latestSolution.WorkspaceVersion + 1);
+                    return newSolution;
                 }
 
-                return this.latestSolution;
+                currentSolution = replacedSolution;
             }
         }
 
@@ -825,28 +833,21 @@ namespace Microsoft.CodeAnalysis
         {
             using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
             {
-                Solution oldSolution;
+                // If solution did not originate from this workspace then fail
+                if (newSolution.Workspace != this)
+                {
+                    return false;
+                }
+
+                Solution oldSolution = this.CurrentSolution;
+
+                // If the workspace has already accepted an update, then fail
+                if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
+                {
+                    return false;
+                }
 
                 // make sure that newSolution is a branch of the current solution
-                using (this.stateLock.DisposableRead())
-                {
-                    var curSol = this.latestSolution;
-                    var newSol = newSolution;
-
-                    // if solution did not original from this workspace then fail
-                    if (newSolution.Workspace != this)
-                    {
-                        return false;
-                    }
-
-                    // if the workspace has already accepted an update, then fail
-                    if (newSol.WorkspaceVersion != curSol.WorkspaceVersion)
-                    {
-                        return false;
-                    }
-
-                    oldSolution = this.latestSolution;
-                }
 
                 // the given solution must be a branched one.
                 // otherwise, there should be no change to apply.

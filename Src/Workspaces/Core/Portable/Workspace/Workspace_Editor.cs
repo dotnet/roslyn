@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         private void ClearOpenDocuments()
         {
             List<DocumentId> docIds;
-            using (this.stateLock.DisposableRead())
+            using (this.stateLock.DisposableWait())
             {
                 docIds = this.projectToOpenDocumentsMap.Values.SelectMany(x => x).ToList();
             }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         private void ClearOpenDocuments(ProjectId projectId)
         {
             ISet<DocumentId> openDocs;
-            using (this.stateLock.DisposableRead())
+            using (this.stateLock.DisposableWait())
             {
                 this.projectToOpenDocumentsMap.TryGetValue(projectId, out openDocs);
             }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing = false)
         {
             DocumentId currentContextDocumentId;
-            using (this.stateLock.DisposableWrite())
+            using (this.stateLock.DisposableWait())
             {
                 currentContextDocumentId = this.ClearOpenDocument_NoLock(documentId);
             }
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         /// previously attached to the given documentId, if any</returns>
         private DocumentId ClearOpenDocument_NoLock(DocumentId documentId)
         {
-            this.stateLock.AssertCanWrite();
+            this.stateLock.AssertHasLock();
 
             ISet<DocumentId> openDocIds;
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
 
         private bool ProjectHasOpenDocuments(ProjectId projectId)
         {
-            using (this.stateLock.DisposableRead())
+            using (this.stateLock.DisposableWait())
             {
                 return this.projectToOpenDocumentsMap.ContainsKey(projectId);
             }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual bool IsDocumentOpen(DocumentId documentId)
         {
-            using (this.stateLock.DisposableRead())
+            using (this.stateLock.DisposableWait())
             {
                 var openDocuments = this.GetProjectOpenDocuments_NoLock(documentId.ProjectId);
                 return openDocuments != null && openDocuments.Contains(documentId);
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual IEnumerable<DocumentId> GetOpenDocumentIds(ProjectId projectId = null)
         {
-            using (this.stateLock.DisposableRead())
+            using (this.stateLock.DisposableWait())
             {
                 if (this.projectToOpenDocumentsMap.Count == 0)
                 {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("container");
             }
 
-            using (this.stateLock.DisposableRead())
+            using (this.stateLock.DisposableWait())
             {
                 return GetRelatedDocumentIds_NoLock(container);
             }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(container));
             }
 
-            using (this.stateLock.DisposableRead())
+            using (this.stateLock.DisposableWait())
             {
                 DocumentId docId;
                 bool foundValue = this.bufferToDocumentInCurrentContextMap.TryGetValue(container, out docId);
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis
             // TODO: remove linear search
 
             SourceTextContainer container = null;
-            using (this.stateLock.DisposableRead())
+            using (this.stateLock.DisposableWait())
             {
                 container = bufferToDocumentIdMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
             }
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (this.serializationLock.DisposableWait())
             {
-                using (this.stateLock.DisposableWrite())
+                using (this.stateLock.DisposableWait())
                 {
                     bufferToDocumentInCurrentContextMap[container] = documentId;
                 }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis
 
         private ISet<DocumentId> GetProjectOpenDocuments_NoLock(ProjectId project)
         {
-            this.stateLock.AssertCanRead();
+            this.stateLock.AssertHasLock();
 
             ISet<DocumentId> openDocs;
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis
 
         private void AddToOpenDocumentMap(DocumentId documentId)
         {
-            using (this.stateLock.DisposableWrite())
+            using (this.stateLock.DisposableWait())
             {
                 var openDocuments = GetProjectOpenDocuments_NoLock(documentId.ProjectId);
                 if (openDocuments != null)
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis
 
         private DocumentId ForgetAnyOpenDocumentInfo(DocumentId documentId)
         {
-            using (this.stateLock.DisposableWrite())
+            using (this.stateLock.DisposableWait())
             {
                 return this.ClearOpenDocument_NoLock(documentId);
             }
