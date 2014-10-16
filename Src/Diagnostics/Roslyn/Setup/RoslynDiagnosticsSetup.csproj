@@ -68,10 +68,6 @@
       <Project>{b82f1c54-2d3e-497b-8c31-4ab16d6508fa}</Project>
       <Name>CSharpRoslynDiagnosticAnalyzers</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasicCodeAnalysis\BasicCodeAnalysisRoslynDiagnosticAnalyzers\BasicCodeAnalysisRoslynDiagnosticAnalyzers.vbproj">
-      <Project>{f4408506-462d-45b1-b801-fe760b92610f}</Project>
-      <Name>BasicCodeAnalysisRoslynDiagnosticAnalyzers</Name>
-    </ProjectReference>
     <ProjectReference Include="..\VisualBasic\BasicRoslynDiagnosticAnalyzers.vbproj">
       <Project>{640b92e8-ed8a-44ac-85c6-50b53837db91}</Project>
       <Name>BasicRoslynDiagnosticAnalyzers</Name>
