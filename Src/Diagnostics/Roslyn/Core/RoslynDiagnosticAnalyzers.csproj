@@ -60,7 +60,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.CSharp" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic.BasicCodeAnalysis" />
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
