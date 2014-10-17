@@ -85,14 +85,20 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 return service;
             }
 
-            // host layer overrides editor or default
+            // host layer overrides editor, desktop or default
             if (TryGetServiceByLayer(ServiceLayer.Host, services, out service))
             {
                 return service;
             }
 
-            // editor layer overrides default
+            // editor layer overrides desktop or default
             if (TryGetServiceByLayer(ServiceLayer.Editor, services, out service))
+            {
+                return service;
+            }
+
+            // desktop layer overrides default
+            if (TryGetServiceByLayer(ServiceLayer.Desktop, services, out service))
             {
                 return service;
             }

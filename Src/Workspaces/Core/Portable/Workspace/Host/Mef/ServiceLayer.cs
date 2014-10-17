@@ -7,13 +7,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// 
     /// If there are multiple definitions of a service, the <see cref="ServiceLayer"/> is used to determine which is used.
     /// 
-    /// Editor overrides Default
-    /// Host overrides Editor and Default
+    /// Deskktop overrides Default
+    /// Editor overrides Desktop and Default
+    /// Host overrides Editor, Desktop and Default
     /// </summary>
     public static class ServiceLayer
     {
         public const string Host = "Host";
         public const string Editor = "Editor";
+        public const string Desktop = "Desktop";
         public const string Default = "Default";
     }
 }
