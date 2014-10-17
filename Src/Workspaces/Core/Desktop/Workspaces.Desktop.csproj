@@ -87,6 +87,8 @@
       <Link>InternalUtilities\GacFileResolver.cs</Link>
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
+    <Compile Include="Log\EtwLogger.cs" />
+    <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Options\ExportOptionsAttribute.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
@@ -133,12 +135,16 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
     <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
