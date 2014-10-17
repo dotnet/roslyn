@@ -34,7 +34,7 @@ namespace Roslyn.Test.MetadataUtilities
                         break;
                     }
 
-                    var reader = new BlobReader((IntPtr)ilPtr + offset, ilArray.Length - offset);
+                    var reader = new BlobReader(ilPtr + offset, ilArray.Length - offset);
                     var methodIL = MethodBodyBlock.Create(reader);
 
                     if (methodIL == null)

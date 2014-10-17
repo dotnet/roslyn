@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 14420 - 14420
 
         ' bool .Parser::CheckForEndOfExpression( [ Token* Start ] [ bool& ErrorInConstruct ] )
-        Private Function CheckForEndOfExpression(Of T As VBSyntaxNode)(ByRef syntax As T) As Boolean
+        Private Function CheckForEndOfExpression(Of T As VisualBasicSyntaxNode)(ByRef syntax As T) As Boolean
             Debug.Assert(syntax IsNot Nothing)
 
             'TODO: this is very different from original implementation.

@@ -54,7 +54,7 @@ namespace Roslyn.Test.PdbUtilities
                 deltaPdb, 
                 metadataReaderOpt: null,
                 options: PdbToXmlOptions.IncludeTokens, 
-                methodHandles: methodTokens.Select(token => (MethodHandle)MetadataTokens.Handle((int)token)));
+                methodHandles: methodTokens.Select(token => (MethodDefinitionHandle)MetadataTokens.Handle((int)token)));
 
             return writer.ToString();
         }
@@ -75,7 +75,7 @@ namespace Roslyn.Test.PdbUtilities
 
         public unsafe static void ToXml(TextWriter xmlWriter, Stream pdbStream, Stream peStream, PdbToXmlOptions options = PdbToXmlOptions.Default, string methodName = null)
         {
-            IEnumerable<MethodHandle> methodHandles;
+            IEnumerable<MethodDefinitionHandle> methodHandles;
             var headers = new PEHeaders(peStream);
             byte[] metadata = new byte[headers.MetadataSize];
             peStream.Seek(headers.MetadataStartOffset, SeekOrigin.Begin);
@@ -83,7 +83,7 @@ namespace Roslyn.Test.PdbUtilities
 
             fixed (byte* metadataPtr = metadata)
             {
-                var metadataReader = new MetadataReader((IntPtr)metadataPtr, metadata.Length);
+                var metadataReader = new MetadataReader(metadataPtr, metadata.Length);
 
                 if (string.IsNullOrEmpty(methodName))
                 {
@@ -125,7 +125,7 @@ namespace Roslyn.Test.PdbUtilities
         /// Load the PDB given the parameters at the ctor and spew it out to the XmlWriter specified
         /// at the ctor.
         /// </summary>
-        private static void ToXml(TextWriter xmlWriter, Stream pdbStream, MetadataReader metadataReaderOpt, PdbToXmlOptions options, IEnumerable<MethodHandle> methodHandles)
+        private static void ToXml(TextWriter xmlWriter, Stream pdbStream, MetadataReader metadataReaderOpt, PdbToXmlOptions options, IEnumerable<MethodDefinitionHandle> methodHandles)
         {
             Debug.Assert(pdbStream != null);
             Debug.Assert((options & PdbToXmlOptions.ResolveTokens) == 0 || metadataReaderOpt != null);
@@ -164,7 +164,7 @@ namespace Roslyn.Test.PdbUtilities
             return memoryStream.GetBuffer();
         }
 
-        private void WriteRoot(IEnumerable<MethodHandle> methodHandles)
+        private void WriteRoot(IEnumerable<MethodDefinitionHandle> methodHandles)
         {
             writer.WriteStartDocument();
 
@@ -183,7 +183,7 @@ namespace Roslyn.Test.PdbUtilities
         }
 
         // Dump all of the methods in the given ISymbolReader to the XmlWriter provided in the ctor.
-        private void WriteAllMethods(IEnumerable<MethodHandle> methodHandles)
+        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles)
         {
             writer.WriteStartElement("methods");
 
@@ -195,7 +195,7 @@ namespace Roslyn.Test.PdbUtilities
             writer.WriteEndElement();
         }
 
-        private void WriteMethod(MethodHandle methodHandle)
+        private void WriteMethod(MethodDefinitionHandle methodHandle)
         {
             int token = metadataReader.GetToken(methodHandle);
             var symbolToken = new SymbolToken(token);
@@ -541,7 +541,7 @@ namespace Roslyn.Test.PdbUtilities
 
             fixed (byte* compressedSlotMapPtr = &bytes[offset])
             {
-                var blobReader = new BlobReader((IntPtr)compressedSlotMapPtr, bodySize);
+                var blobReader = new BlobReader(compressedSlotMapPtr, bodySize);
 
                 while (blobReader.RemainingBytes > 0)
                 {
@@ -576,15 +576,15 @@ namespace Roslyn.Test.PdbUtilities
                         }
 
                         // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
-                        uint syntaxOffsetUnsigned;
-                        bool badSyntaxOffset = !blobReader.TryReadCompressedUInt32(out syntaxOffsetUnsigned);
-                        int syntaxOffset = (int)syntaxOffsetUnsigned - 1;
+                        int syntaxOffset;
+                        bool badSyntaxOffset = !blobReader.TryReadCompressedInteger(out syntaxOffset);
+                        syntaxOffset--;
 
-                        uint ordinal = 0;
-                        bool badOrdinal = ordinalCount >= 1 && !blobReader.TryReadCompressedUInt32(out ordinal);
+                        int ordinal = 0;
+                        bool badOrdinal = ordinalCount >= 1 && !blobReader.TryReadCompressedInteger(out ordinal);
 
-                        uint subordinal = 0;
-                        bool badSubordinal = ordinalCount >= 2 && !blobReader.TryReadCompressedUInt32(out subordinal);
+                        int subordinal = 0;
+                        bool badSubordinal = ordinalCount >= 2 && !blobReader.TryReadCompressedInteger(out subordinal);
 
                         writer.WriteAttributeString("kind", synthesizedKind.ToString());
                         writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
@@ -1181,19 +1181,19 @@ namespace Roslyn.Test.PdbUtilities
 
                 try
                 {
-                    switch (handle.HandleType)
+                    switch (handle.Kind)
                     {
-                        case HandleType.Method:
-                            WriteResolvedToken((MethodHandle)handle, isReference);
+                        case HandleKind.MethodDefinition:
+                            WriteResolvedToken((MethodDefinitionHandle)handle, isReference);
                             break;
 
-                        case HandleType.MemberReference:
+                        case HandleKind.MemberReference:
                             WriteResolvedToken((MemberReferenceHandle)handle);
                             break;
 
                         default:
                             WriteToken(token);
-                            writer.WriteAttributeString("error", string.Format("Unexpected token type: {0}", handle.HandleType));
+                            writer.WriteAttributeString("error", string.Format("Unexpected token type: {0}", handle.Kind));
                             break;
                     }
                 }
@@ -1215,10 +1215,10 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private static string GetQualifiedMethodName(MetadataReader metadataReader, MethodHandle methodHandle)
+        private static string GetQualifiedMethodName(MetadataReader metadataReader, MethodDefinitionHandle methodHandle)
         {
-            var method = metadataReader.GetMethod(methodHandle);
-            var containingTypeHandle = metadataReader.GetDeclaringType(methodHandle);
+            var method = metadataReader.GetMethodDefinition(methodHandle);
+            var containingTypeHandle = method.GetDeclaringType();
 
             string fullTypeName = GetFullTypeName(metadataReader, containingTypeHandle);
             string methodName = metadataReader.GetString(method.Name);
@@ -1226,12 +1226,12 @@ namespace Roslyn.Test.PdbUtilities
             return fullTypeName != null ? fullTypeName + "." + methodName : methodName;
         }
 
-        private void WriteResolvedToken(MethodHandle methodHandle, bool isReference)
+        private void WriteResolvedToken(MethodDefinitionHandle methodHandle, bool isReference)
         {
-            var method = metadataReader.GetMethod(methodHandle);
+            var method = metadataReader.GetMethodDefinition(methodHandle);
 
             // type name
-            var containingTypeHandle = metadataReader.GetDeclaringType(methodHandle);
+            var containingTypeHandle = method.GetDeclaringType();
             var fullName = GetFullTypeName(metadataReader, containingTypeHandle);
             if (fullName != null)
             {
@@ -1277,9 +1277,9 @@ namespace Roslyn.Test.PdbUtilities
                 return null;
             }
 
-            if (handle.HandleType == HandleType.Type)
+            if (handle.Kind == HandleKind.TypeDefinition)
             {
-                var type = metadataReader.GetTypeDefinition((TypeHandle)handle);
+                var type = metadataReader.GetTypeDefinition((TypeDefinitionHandle)handle);
                 string name = metadataReader.GetString(type.Name);
 
                 while (IsNested(type.Attributes))
@@ -1297,7 +1297,7 @@ namespace Roslyn.Test.PdbUtilities
                 return metadataReader.GetString(type.Namespace) + "." + name;
             }
 
-            if (handle.HandleType == HandleType.TypeReference)
+            if (handle.Kind == HandleKind.TypeReference)
             {
                 var typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)handle);
                 string name = metadataReader.GetString(typeRef.Name);

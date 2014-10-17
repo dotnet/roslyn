@@ -8,7 +8,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Public Class VBCompilation
+    Partial Public Class VisualBasicCompilation
         Friend Class EntryPointCandidateFinder
             Inherits VisualBasicSymbolVisitor(Of Predicate(Of Symbol), Boolean)
 

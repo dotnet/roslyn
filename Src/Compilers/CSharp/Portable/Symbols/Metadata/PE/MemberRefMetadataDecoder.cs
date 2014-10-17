@@ -138,19 +138,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 string memberName = Module.GetMemberRefNameOrThrow(memberRef);
                 BlobHandle signatureHandle = Module.GetSignatureOrThrow(memberRef);
 
-                byte callingConvention;
-                BlobReader signaturePointer = this.DecodeSignatureHeaderOrThrow(signatureHandle, out callingConvention);
+                SignatureHeader signatureHeader;
+                BlobReader signaturePointer = this.DecodeSignatureHeaderOrThrow(signatureHandle, out signatureHeader);
 
-                switch (callingConvention & SignatureHeader.CallingConventionMask)
+                switch (signatureHeader.RawValue & SignatureHeader.CallingConventionOrKindMask)
                 {
-                    case SignatureHeader.DefaultCall:
-                    case SignatureHeader.VarArgCall:
-                    case SignatureHeader.Generic:
+                    case (byte)SignatureCallingConvention.Default:
+                    case (byte)SignatureCallingConvention.VarArgs:
                         int typeParamCount;
-                        ParamInfo[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, callingConvention, out typeParamCount);
-                        return FindMethodBySignature(targetTypeSymbol, memberName, callingConvention, typeParamCount, targetParamInfo);
+                        ParamInfo[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, signatureHeader, out typeParamCount);
+                        return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo);
 
-                    case SignatureHeader.Field:
+                    case (byte)SignatureKind.Field:
                         if (methodsOnly)
                         {
                             // skip:
@@ -191,13 +190,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return null;
         }
 
-        private static MethodSymbol FindMethodBySignature(TypeSymbol targetTypeSymbol, string targetMemberName, byte targetMemberCallingConvention, int targetMemberTypeParamCount, ParamInfo[] targetParamInfo)
+        private static MethodSymbol FindMethodBySignature(TypeSymbol targetTypeSymbol, string targetMemberName, SignatureHeader targetMemberSignatureHeader, int targetMemberTypeParamCount, ParamInfo[] targetParamInfo)
         {
             foreach (Symbol member in targetTypeSymbol.GetMembers(targetMemberName))
             {
                 var method = member as MethodSymbol;
                 if ((object)method != null &&
-                    ((byte)method.CallingConvention == targetMemberCallingConvention) &&
+                    ((byte)method.CallingConvention == targetMemberSignatureHeader.RawValue) &&
                     (targetMemberTypeParamCount == method.Arity) &&
                     MethodSymbolMatchesParamInfo(method, targetParamInfo))
                 {

@@ -2109,7 +2109,7 @@ Module M
 End Module
 ]]>.Value
         Dim text = SourceText.From(source)
-        Dim tree = VBSyntaxTree.ParseText(text)
+        Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
         Dim varNameEquals = nodes.First(Function(n) n.VBKind = SyntaxKind.VariableNameEquals)
         Assert.Equal(varNameEquals.ToFullString(), "a = ")
@@ -2126,7 +2126,7 @@ Module M
 End Module
 ]]>.Value
         Dim text = SourceText.From(source)
-        Dim tree = VBSyntaxTree.ParseText(text)
+        Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
         Dim varNameEquals = nodes.First(Function(n) n.VBKind = SyntaxKind.VariableNameEquals)
         Assert.Equal(varNameEquals.ToFullString(), "a As Class C")
@@ -2143,7 +2143,7 @@ Module M
 End Module
 ]]>.Value
         Dim text = SourceText.From(source)
-        Dim tree = VBSyntaxTree.ParseText(text)
+        Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
         Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.VBKind = SyntaxKind.CollectionRangeVariable), CollectionRangeVariableSyntax)
         Dim varName = collectionRangeVar.Identifier
@@ -2161,7 +2161,7 @@ Module M
 End Module
 ]]>.Value
         Dim text = SourceText.From(source)
-        Dim tree = VBSyntaxTree.ParseText(text)
+        Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
         Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.VBKind = SyntaxKind.CollectionRangeVariable), CollectionRangeVariableSyntax)
         Dim asClause = collectionRangeVar.AsClause

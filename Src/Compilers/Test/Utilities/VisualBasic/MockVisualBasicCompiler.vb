@@ -11,7 +11,7 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VBCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
     End Sub
 
     Protected Overrides Function GetSqmAppID() As UInteger

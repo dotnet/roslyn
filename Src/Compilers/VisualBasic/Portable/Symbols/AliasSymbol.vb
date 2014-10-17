@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly aliasLocations As ImmutableArray(Of Location)
         Private ReadOnly aliasContainer As Symbol
 
-        Friend Sub New(compilation As VBCompilation,
+        Friend Sub New(compilation As VisualBasicCompilation,
                        aliasContainer As Symbol,
                        aliasName As String,
                        aliasTarget As NamespaceOrTypeSymbol,

@@ -131,8 +131,8 @@ End Class
 </text>
 
             Dim compilation = CreateCompilationWithMscorlib(
-                {VBSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VBSyntaxTree.ParseText(vb.Value, options:=VBParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
         End Sub
@@ -546,7 +546,7 @@ End Class
 System.Console.WriteLine(1)
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
-                {VBSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, compOptions:=TestOptions.ReleaseExe)
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, compOptions:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
@@ -565,8 +565,8 @@ Public Class C
 End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
-                {VBSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VBSyntaxTree.ParseText(vb.Value, options:=VBParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -592,8 +592,8 @@ Public Class D
 End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
-                {VBSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VBSyntaxTree.ParseText(vb.Value, options:=VBParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("D.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -744,8 +744,8 @@ Class C
 End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
-                {VBSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VBSyntaxTree.ParseText(vb.Value, options:=TestOptions.Regular)}, compOptions:=TestOptions.ReleaseExe.WithMainTypeName("C"))
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=TestOptions.Regular)}, compOptions:=TestOptions.ReleaseExe.WithMainTypeName("C"))
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored).WithArguments("C"))
         End Sub
@@ -1351,7 +1351,7 @@ End Class
         End Class
     </file>
 </compilation>
-            Dim compilation As VBCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
+            Dim compilation As VisualBasicCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
             compilation.VerifyDiagnostics()
             Assert.Equal(compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("A").GetMember(Of MethodSymbol)("Main"),
                          compilation.GetEntryPoint(Nothing))
@@ -1373,7 +1373,7 @@ End Class
         End Class
     </file>
 </compilation>
-            Dim compilation As VBCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
+            Dim compilation As VisualBasicCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
             compilation.VerifyDiagnostics()
             Assert.Equal(compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("A").GetMember(Of MethodSymbol)("Main"),
                          compilation.GetEntryPoint(Nothing))
@@ -1395,7 +1395,7 @@ End Class
         End Class
     </file>
 </compilation>
-            Dim compilation As VBCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
+            Dim compilation As VisualBasicCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("B"))
             Assert.Null(compilation.GetEntryPoint(Nothing))
@@ -1417,7 +1417,7 @@ End Class
         End Class
     </file>
 </compilation>
-            Dim compilation As VBCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
+            Dim compilation As VisualBasicCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_GenericSubMainsFound1).WithArguments("B"))
             Assert.Null(compilation.GetEntryPoint(Nothing))
@@ -1441,7 +1441,7 @@ End Class
         End Class
     </file>
 </compilation>
-            Dim compilation As VBCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
+            Dim compilation As VisualBasicCompilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("B"))
             Assert.Null(compilation.GetEntryPoint(Nothing))
@@ -1467,8 +1467,8 @@ End Class
         End Class
     </file>
 </compilation>
-            Dim compilation1 As VBCompilation = CreateCompilationWithMscorlib(source1)
-            Dim compilation2 As VBCompilation = CreateCompilationWithMscorlibAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
+            Dim compilation1 As VisualBasicCompilation = CreateCompilationWithMscorlib(source1)
+            Dim compilation2 As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
             compilation2.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("B"))
             Assert.Null(compilation2.GetEntryPoint(Nothing))
@@ -1508,7 +1508,7 @@ BC30420: 'Sub Main' was not found in 'Bug630763'.
         <WorkItem(753028, "DevDiv")>
         <Fact>
         Public Sub RootMemberNamedScript()
-            Dim comp As VBCompilation
+            Dim comp As VisualBasicCompilation
 
             comp = CompilationUtils.CreateCompilationWithMscorlib(options:=TestOptions.ReleaseExe, sources:=
 <compilation name="20781949-2709-424e-b174-dec81a202016">

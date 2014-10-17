@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     args.Add("/sdkpath:" + compilerInputs.SdkPath)
                 End If
 
-                Dim commandLineParser = VBCommandLineParser.Default
+                Dim commandLineParser = VisualBasicCommandLineParser.Default
                 Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory)
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
@@ -261,8 +261,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
                 Private _projectFile As VisualBasicProjectFile
                 Private _initialized As Boolean
-                Private _parseOptions As VBParseOptions
-                Private _compilationOptions As VBCompilationOptions
+                Private _parseOptions As VisualBasicParseOptions
+                Private _compilationOptions As VisualBasicCompilationOptions
                 Private _codePage As Integer
                 Private _sources As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _additionalFiles As IEnumerable(Of MSB.Framework.ITaskItem)
@@ -278,10 +278,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Sub New(projectFile As VisualBasicProjectFile)
                     Me._projectFile = projectFile
-                    Me._parseOptions = VBParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse)
+                    Me._parseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse)
                     Dim projectDirectory = Path.GetDirectoryName(projectFile.FilePath)
                     Dim outputDirectory = projectFile.GetOutputDirectory()
-                    Me._compilationOptions = New VBCompilationOptions(OutputKind.ConsoleApplication,
+                    Me._compilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
                         xmlReferenceResolver:=New XmlFileResolver(projectDirectory),
                         sourceReferenceResolver:=New SourceFileResolver(ImmutableArray(Of String).Empty, projectDirectory),
                         metadataReferenceResolver:=New AssemblyReferenceResolver(
@@ -301,13 +301,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public ReadOnly Property CompilationOptions As VBCompilationOptions
+                Public ReadOnly Property CompilationOptions As VisualBasicCompilationOptions
                     Get
                         Return Me._compilationOptions
                     End Get
                 End Property
 
-                Public ReadOnly Property ParseOptions As VBParseOptions
+                Public ReadOnly Property ParseOptions As VisualBasicParseOptions
                     Get
                         Return Me._parseOptions
                     End Get
@@ -431,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Function SetDefineConstants(defineConstants As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetDefineConstants
                     If Not String.IsNullOrEmpty(defineConstants) Then
                         Dim errors As IEnumerable(Of Diagnostic) = Nothing
-                        Me._parseOptions = Me._parseOptions.WithPreprocessorSymbols(VBCommandLineParser.ParseConditionalCompilationSymbols(defineConstants, errors))
+                        Me._parseOptions = Me._parseOptions.WithPreprocessorSymbols(VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(defineConstants, errors))
                         Return True
                     End If
                     Return False

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Structure RegionAnalysisContext
 
         ''' <summary> Current compilation </summary>
-        Private ReadOnly compilation As VBCompilation
+        Private ReadOnly compilation As VisualBasicCompilation
 
         ''' <summary> Method, field or property symbol </summary>
         Private ReadOnly symbol As Symbol
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' region boundaries; we avoid this additional cost by passing the original text span as 
         ''' a separate parameter because we do have it anyways)
         ''' </summary>
-        Friend Sub New(compilation As VBCompilation, member As Symbol, boundNode As BoundNode, firstInRegion As BoundNode, lastInRegion As BoundNode, region As textspan)
+        Friend Sub New(compilation As VisualBasicCompilation, member As Symbol, boundNode As BoundNode, firstInRegion As BoundNode, lastInRegion As BoundNode, region As textspan)
             Me.compilation = compilation
             Me.symbol = member
             Me.boundNode = boundNode
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Construct context wiht Failed flag
         ''' </summary>
-        Friend Sub New(compilation As VBCompilation)
+        Friend Sub New(compilation As VisualBasicCompilation)
             Me.compilation = compilation
             Me.symbol = Nothing
             Me.boundNode = Nothing

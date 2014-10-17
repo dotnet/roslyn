@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
     Partial Class VisualBasicCaseCorrectionService
         Private Class Rewriter
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly createAliasSet As Func(Of ImmutableHashSet(Of String)) =
                 Function()

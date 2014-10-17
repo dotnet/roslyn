@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _typesNeedingClearingCache As New Dictionary(Of TypeSymbol, Boolean)
 
-            Private _enclosingSequencePointSyntax As VBSyntaxNode = Nothing
+            Private _enclosingSequencePointSyntax As VisualBasicSyntaxNode = Nothing
 
             Friend Sub New(method As MethodSymbol,
                            F As SyntheticBoundNodeFactory,

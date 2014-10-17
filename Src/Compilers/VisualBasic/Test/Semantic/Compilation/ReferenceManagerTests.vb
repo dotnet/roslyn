@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ReferenceManagerTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly SignedDll As VBCompilationOptions =
-            New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
+        Private Shared ReadOnly SignedDll As VisualBasicCompilationOptions =
+            New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
                                               optimizationLevel:=OptimizationLevel.Release,
                                               cryptoKeyFile:=SigningTestHelpers.KeyPairFile,
                                               strongNameProvider:=New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create(Of String)()))
@@ -660,9 +660,9 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
         Public Sub CS1703ERR_DuplicateImport()
             Dim text = "Namespace N" & vbCrLf & "End Namespace"
 
-            Dim comp = VBCompilation.Create(
+            Dim comp = VisualBasicCompilation.Create(
                 "DupSignedRefs",
-                {VBSyntaxTree.ParseText(text)},
+                {VisualBasicSyntaxTree.ParseText(text)},
                 {TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v2_0_50727.System},
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
@@ -673,7 +673,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
         <WorkItem(545062, "DevDiv")>
         <Fact()>
         Public Sub DuplicateReferences()
-            Dim c As VBCompilation
+            Dim c As VisualBasicCompilation
             Dim source As String
             Dim r1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath:="c:\temp\a.dll", display:="R1")
             Dim r2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath:="c:\temp\a.dll", display:="R2")
@@ -1398,14 +1398,14 @@ End Namespace
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
             <![CDATA[Public Class VB1
 End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
             vb1Verifier.VerifyDiagnostics()
 
             Dim vb2Compilation = CreateVisualBasicCompilation("VB2",
             <![CDATA[Public Class VB2(Of T)
 End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation})
             Dim vb2Verifier = CompileAndVerify(vb2Compilation)
             vb2Verifier.VerifyDiagnostics()
@@ -1413,7 +1413,7 @@ End Class]]>,
             Dim vb3Compilation = CreateVisualBasicCompilation("VB3",
             <![CDATA[Public Class VB3 : Inherits VB2(Of VB1)
 End Class]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation, vb2Compilation})
             Dim vb3Verifier = CompileAndVerify(vb3Compilation)
             vb3Verifier.VerifyDiagnostics()
@@ -1424,7 +1424,7 @@ End Class]]>,
         System.Console.WriteLine(GetType(VB3))
     End Sub
 End Module]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={vb2Compilation, vb3Compilation})
             vb4Compilation.VerifyDiagnostics()
         End Sub
@@ -1637,7 +1637,7 @@ End Class
 
         <Fact, WorkItem(43)>
         Public Sub ReusingCorLibManager()
-            Dim corlib1 = VBCompilation.Create("Comp")
+            Dim corlib1 = VisualBasicCompilation.Create("Comp")
             Dim assembly1 = corlib1.Assembly
 
             Dim corlib2 = corlib1.Clone()

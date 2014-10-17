@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary> Asserts that the node is NOT from With statement expression </summary>
         <Conditional("DEBUG")>
-        Private Sub AssertExpressionIsNotFromStatementExpression(node As VBSyntaxNode)
+        Private Sub AssertExpressionIsNotFromStatementExpression(node As VisualBasicSyntaxNode)
             While node IsNot Nothing
                 Debug.Assert(node IsNot Me.Expression)
                 node = node.Parent
@@ -327,14 +327,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.BindStatement(node, diagnostics)
         End Function
 
-        Public Overrides Function GetBinder(node As VBSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
             AssertExpressionIsNotFromStatementExpression(node)
             Return MyBase.GetBinder(node)
         End Function
 
 #End If
 
-        Private Sub PrepareBindingOfOmittedLeft(node As VBSyntaxNode, diagnostics As DiagnosticBag, accessingBinder As Binder)
+        Private Sub PrepareBindingOfOmittedLeft(node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, accessingBinder As Binder)
             AssertExpressionIsNotFromStatementExpression(node)
             Debug.Assert((node.Kind = SyntaxKind.SimpleMemberAccessExpression) OrElse
                          (node.Kind = SyntaxKind.DictionaryAccessExpression) OrElse

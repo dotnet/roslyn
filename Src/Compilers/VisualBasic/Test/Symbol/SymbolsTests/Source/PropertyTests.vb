@@ -1463,7 +1463,7 @@ expectedOutput:="55True51530")
         <Fact>
         Public Sub WriteOnlyAutoProperties()
 
-            Dim verifier = CompileAndVerify(
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="c.vb">
 Imports System.Console
@@ -1504,54 +1504,22 @@ Class MyCollection
     End Sub
 End Class
     </file>
-</compilation>,
-sourceSymbolValidator:=Sub(m As ModuleSymbol)
-                           Dim myCollectionType = m.GlobalNamespace.GetTypeMember("MyCollection")
-                           Dim defaultCapacityProperty = CType(myCollectionType.GetMember("DefaultCapacity"), PropertySymbol)
-                           Assert.False(defaultCapacityProperty.IsReadOnly)
-                           Assert.True(defaultCapacityProperty.IsWriteOnly)
-                           Assert.True(defaultCapacityProperty.IsShared)
-                           Assert.Null(defaultCapacityProperty.GetMethod)
-                           Assert.NotNull(defaultCapacityProperty.SetMethod)
+</compilation>)
 
-                           Dim backingField = CType(myCollectionType.GetMember("_DefaultCapacity"), FieldSymbol)
-                           Assert.NotNull(defaultCapacityProperty.AssociatedField)
-                           Assert.Same(defaultCapacityProperty.AssociatedField, backingField)
-                       End Sub,
-expectedOutput:="5_5_10_15_")
-
-            verifier.VerifyIL("MyCollection..cctor()",
-            <![CDATA[
-{
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  ldc.i4.5
-  IL_0001:  call       "Sub MyCollection.set_DefaultCapacity(Integer)"
-  IL_0006:  call       "Sub MyCollection.WriteDefaultCapacity()"
-  IL_000b:  ret
-}
-]]>)
-
-            verifier.VerifyIL("MyCollection..ctor()",
-            <![CDATA[
-{
-  // Code size       24 (0x18)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  call       "Sub Object..ctor()"
-  IL_0006:  ldarg.0
-  IL_0007:  ldsfld     "MyCollection._DefaultCapacity As Integer"
-  IL_000c:  call       "Sub MyCollection.set_Capacity(Integer)"
-  IL_0011:  ldarg.0
-  IL_0012:  call       "Sub MyCollection.WriteCapacity()"
-  IL_0017:  ret
-}
-]]>)
+            CompilationUtils.AssertTheseDiagnostics(Compilation,
+    <expected>
+BC37243: Auto-implemented properties cannot be WriteOnly.
+    Public Shared WriteOnly Property DefaultCapacity As Integer = 5
+                                     ~~~~~~~~~~~~~~~
+BC37243: Auto-implemented properties cannot be WriteOnly.
+    Public WriteOnly Property Capacity As Integer = _DefaultCapacity
+                              ~~~~~~~~
+    </expected>)
 
         End Sub
 
         <Fact>
-        Public Sub ReadOnlyWriteOnlyAutoPropertiesAndImplements()
+        Public Sub ReadOnlyAutoPropertiesAndImplements()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -1565,14 +1533,11 @@ Module Program
 
         Write(i.P1)
         Write("_")
-        i.P2 = 10
-        Write(test.GetP2())
     End Sub
 End Module
 
 Interface I1
     ReadOnly Property P1 As Integer
-    WriteOnly Property P2 As Integer
 End Interface
 
 Class Test
@@ -1583,16 +1548,10 @@ Class Test
     End Sub
 
     Public ReadOnly Property P1 As Integer Implements I1.P1
-
-    Public WriteOnly Property P2 As Integer Implements I1.P2
-
-    Function GetP2() As Integer
-        return _P2
-    End Function
 End Class
     </file>
 </compilation>,
-expectedOutput:="5_10")
+expectedOutput:="5_")
 
         End Sub
 
@@ -1630,12 +1589,18 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
+BC37243: Auto-implemented properties cannot be WriteOnly.
+    Public WriteOnly Property P1 As Integer Implements I1.P1
+                              ~~
 BC31444: 'ReadOnly Property P1 As Integer' cannot be implemented by a WriteOnly property.
     Public WriteOnly Property P1 As Integer Implements I1.P1
                                                        ~~~~~
 BC31444: 'WriteOnly Property P2 As Integer' cannot be implemented by a ReadOnly property.
     Public ReadOnly Property P2 As Integer Implements I1.P2
                                                       ~~~~~
+BC37243: Auto-implemented properties cannot be WriteOnly.
+    Public WriteOnly Property P3 As Integer Implements I1.P3
+                              ~~
 BC31444: 'Property P3 As Integer' cannot be implemented by a WriteOnly property.
     Public WriteOnly Property P3 As Integer Implements I1.P3
                                                        ~~~~~
@@ -1646,7 +1611,7 @@ BC31444: 'Property P4 As Integer' cannot be implemented by a ReadOnly property.
         End Sub
 
         <Fact>
-        Public Sub ReadOnlyWriteOnlyAutoPropertiesAndOverrides()
+        Public Sub ReadOnlyAutoPropertiesAndOverrides()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -1660,14 +1625,11 @@ Module Program
 
         Write(i.P1)
         Write("_")
-        i.P2 = 10
-        Write(test.GetP2())
     End Sub
 End Module
 
 Class I1
     Overridable ReadOnly Property P1 As Integer
-    Overridable WriteOnly Property P2 As Integer
 End Class
 
 Class Test
@@ -1678,16 +1640,10 @@ Class Test
     End Sub
 
     Public Overrides ReadOnly Property P1 As Integer
-
-    Public Overrides WriteOnly Property P2 As Integer
-
-    Function GetP2() As Integer
-        return _P2
-    End Function
 End Class
     </file>
 </compilation>,
-expectedOutput:="5_10")
+expectedOutput:="5_")
 
         End Sub
 
@@ -1703,18 +1659,17 @@ Module Program
 End Module
 
 Class I1
-    Overridable ReadOnly Property P1 As Integer
     Overridable WriteOnly Property P2 As Integer
-    Overridable Property P3 As Integer
+        Set
+        end set
+    end property
     Overridable Property P4 As Integer
 End Class
 
 Class Test
     Inherits I1
 
-    Public Overrides WriteOnly Property P1 As Integer
     Public Overrides ReadOnly Property P2 As Integer
-    Public Overrides WriteOnly Property P3 As Integer
     Public Overrides ReadOnly Property P4 As Integer
 End Class
     </file>
@@ -1722,15 +1677,9 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC30362: 'Public Overrides WriteOnly Property P1 As Integer' cannot override 'Public Overridable ReadOnly Property P1 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides WriteOnly Property P1 As Integer
-                                        ~~
 BC30362: 'Public Overrides ReadOnly Property P2 As Integer' cannot override 'Public Overridable WriteOnly Property P2 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
     Public Overrides ReadOnly Property P2 As Integer
                                        ~~
-BC30362: 'Public Overrides WriteOnly Property P3 As Integer' cannot override 'Public Overridable Property P3 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides WriteOnly Property P3 As Integer
-                                        ~~
 BC30362: 'Public Overrides ReadOnly Property P4 As Integer' cannot override 'Public Overridable Property P4 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
     Public Overrides ReadOnly Property P4 As Integer
                                        ~~
@@ -2712,7 +2661,7 @@ Interface IE
             CheckDefaultMemberAttribute(compilation, type, "P", synthesized:=False)
         End Sub
 
-        Private Sub CheckDefaultMemberAttribute(compilation As VBCompilation, type As NamedTypeSymbol, name As String, synthesized As Boolean)
+        Private Sub CheckDefaultMemberAttribute(compilation As VisualBasicCompilation, type As NamedTypeSymbol, name As String, synthesized As Boolean)
             Dim attributes = type.GetAttributes()
             Dim synthesizedAttributes = type.GetSynthesizedAttributes()
             Dim attribute As VisualBasicAttributeData
@@ -8232,7 +8181,7 @@ End Class
             End If
         End Sub
 
-        Private Function CompileWithCustomPropertiesAssembly(source As XElement, Optional options As VBCompilationOptions = Nothing) As VBCompilation
+        Private Function CompileWithCustomPropertiesAssembly(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
             Return CreateCompilationWithMscorlibAndReferences(source, {PropertiesDll}, options)
         End Function
 

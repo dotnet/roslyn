@@ -1894,7 +1894,7 @@ BC30451: 'name9' is not declared. It may be inaccessible due to its protection l
         ~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionExplicit(False))
+            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionExplicit(False))
 
             Assert.False(compilation.Options.OptionExplicit)
 
@@ -2339,7 +2339,7 @@ BC36532: Nested function does not have the same signature as delegate 'Func(Of I
                                                ~~~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -3108,7 +3108,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom),
                                 expectedOutput:=
             <![CDATA[
 Where System.Func`2[System.Int32,System.String]

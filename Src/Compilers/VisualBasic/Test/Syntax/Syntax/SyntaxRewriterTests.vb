@@ -496,7 +496,7 @@ Class C
 End Class
 ]]>
 
-            Dim oldTree = VBSyntaxTree.ParseText(oldSource.Value, options:=New VBParseOptions(documentationMode:=DocumentationMode.Diagnose))
+            Dim oldTree = VisualBasicSyntaxTree.ParseText(oldSource.Value, options:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
             Dim oldRoot = oldTree.GetRoot()
             Dim xmlNode = oldRoot.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlEmptyElementSyntax)().Single()
             Dim newRoot = oldRoot.RemoveNode(xmlNode, SyntaxRemoveOptions.KeepDirectives)
@@ -509,7 +509,7 @@ End Class
 #Region "Helper Types"
 
         Private Sub TestGreen(input As String, output As String, rewriter As GreenRewriter, isStmt As Boolean)
-            Dim red As VBSyntaxNode
+            Dim red As VisualBasicSyntaxNode
             If isStmt Then
                 red = SyntaxFactory.ParseExecutableStatement(input)
             Else
@@ -520,14 +520,14 @@ End Class
 
             Assert.False(green.ContainsDiagnostics)
 
-            Dim result As InternalSyntax.VBSyntaxNode = rewriter.Visit(green)
+            Dim result As InternalSyntax.VisualBasicSyntaxNode = rewriter.Visit(green)
 
             Assert.Equal(input = output, green Is result)
             Assert.Equal(output.Trim(), result.ToFullString().Trim())
         End Sub
 
         Private Sub TestRed(input As String, output As String, rewriter As RedRewriter, isStmt As Boolean)
-            Dim red As VBSyntaxNode
+            Dim red As VisualBasicSyntaxNode
             If isStmt Then
                 red = SyntaxFactory.ParseExecutableStatement(input)
             Else
@@ -550,14 +550,14 @@ End Class
         ''' This Rewriter exposes delegates for the methods that would normally be overridden.
         ''' </summary>
         Friend Class GreenRewriter
-            Inherits InternalSyntax.VBSyntaxRewriter
+            Inherits InternalSyntax.VisualBasicSyntaxRewriter
 
-            Private ReadOnly rewriteNode As Func(Of InternalSyntax.VBSyntaxNode, InternalSyntax.VBSyntaxNode)
+            Private ReadOnly rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode)
             Private ReadOnly rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken)
             Private ReadOnly rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia)
 
             Friend Sub New(
-                    Optional rewriteNode As Func(Of InternalSyntax.VBSyntaxNode, InternalSyntax.VBSyntaxNode) = Nothing,
+                    Optional rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode) = Nothing,
                     Optional rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken) = Nothing,
                     Optional rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia) = Nothing)
                 Me.rewriteNode = rewriteNode
@@ -565,8 +565,8 @@ End Class
                 Me.rewriteTrivia = rewriteTrivia
             End Sub
 
-            Public Overrides Function Visit(node As InternalSyntax.VBSyntaxNode) As InternalSyntax.VBSyntaxNode
-                Dim visited As InternalSyntax.VBSyntaxNode = MyBase.Visit(node)
+            Public Overrides Function Visit(node As InternalSyntax.VisualBasicSyntaxNode) As InternalSyntax.VisualBasicSyntaxNode
+                Dim visited As InternalSyntax.VisualBasicSyntaxNode = MyBase.Visit(node)
                 If rewriteNode Is Nothing OrElse visited Is Nothing Then
                     Return visited
                 Else
@@ -598,7 +598,7 @@ End Class
         ''' This Rewriter exposes delegates for the methods that would normally be overridden.
         ''' </summary>
         Friend Class RedRewriter
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly rewriteNode As Func(Of SyntaxNode, SyntaxNode)
             Private ReadOnly rewriteToken As Func(Of SyntaxToken, SyntaxToken)

@@ -78,8 +78,8 @@ class A { }
             var reference = new MetadataFileReference(refFile.Path, MetadataImageKind.Module);
 
             CreateCompilationWithMscorlib(text, new[] { reference }).VerifyDiagnostics(
-                 // error CS0009: Metadata file '...' could not be opened -- Image too small to contain DOS header.
-                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(refFile.Path, "Image too small to contain DOS header."));
+                 // error CS0009: Metadata file '...' could not be opened -- Image is too small.
+                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(refFile.Path, "Image is too small."));
         }
 
         [Fact]
@@ -98,8 +98,8 @@ class A { }
             var reference = new MetadataFileReference(refFile.Path);
 
             CreateCompilationWithMscorlib(text, new[] { reference }).VerifyDiagnostics(
-                // error CS0009: Metadata file '...' could not be opened -- Image too small to contain DOS header.
-                Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(refFile.Path, "Image too small to contain DOS header."));
+                // error CS0009: Metadata file '...' could not be opened -- Image is too small.
+                Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(refFile.Path, "Image is too small."));
         }
 
         /// <summary>

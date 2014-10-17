@@ -707,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False ' Only nodes deriving from TypeSyntax could possible be in type context.
             End If
 
-            Dim parent As VBSyntaxNode = node.Parent
+            Dim parent As VisualBasicSyntaxNode = node.Parent
             If parent IsNot Nothing Then
                 Select Case parent.Kind
                     Case SyntaxKind.SimpleAsClause, SyntaxKind.AsNewClause
@@ -1931,7 +1931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Allow a leading line continuation only if this is a QueryClause and it is not the first clause
                     ' in a query expression.
 
-                    Dim p As VBSyntaxNode = TryCast(token.Parent, QueryClauseSyntax)
+                    Dim p As VisualBasicSyntaxNode = TryCast(token.Parent, QueryClauseSyntax)
                     If p Is Nothing Then
                         Return False
                     End If

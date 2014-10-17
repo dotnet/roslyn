@@ -15,10 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(kind, statement, prevContext)
         End Sub
 
-        Friend Overrides Function CreateBlockSyntax(statement As StatementSyntax) As VBSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(statement As StatementSyntax) As VisualBasicSyntaxNode
 
             Dim endStmt As EndBlockStatementSyntax = DirectCast(statement, EndBlockStatementSyntax)
-            Dim result As VBSyntaxNode
+            Dim result As VisualBasicSyntaxNode
             Select Case BlockKind
                 Case SyntaxKind.WhileBlock
                     Dim beginStmt As WhileStatementSyntax = Nothing

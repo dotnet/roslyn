@@ -428,7 +428,7 @@ Done:
             Return MarkStatementWithSequencePoint(New BoundStatementList(node.Syntax, statements.ToImmutableAndFree()))
         End Function
 
-        Private Function AddResumeTargetLabel(syntax As VBSyntaxNode) As BoundLabelStatement
+        Private Function AddResumeTargetLabel(syntax As VisualBasicSyntaxNode) As BoundLabelStatement
             Debug.Assert(InsideValidUnstructuredExceptionHandlingResumeContext())
             Dim targetResumeLabel = New GeneratedUnstructuredExceptionHandlingResumeLabel(unstructuredExceptionHandling.Context.ResumeWithoutLabelOpt)
 
@@ -436,7 +436,7 @@ Done:
             Return New BoundLabelStatement(syntax, targetResumeLabel)
         End Function
 
-        Private Sub AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax As VBSyntaxNode, canThrow As Boolean, statements As ArrayBuilder(Of BoundStatement))
+        Private Sub AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax As VisualBasicSyntaxNode, canThrow As Boolean, statements As ArrayBuilder(Of BoundStatement))
             Debug.Assert(InsideValidUnstructuredExceptionHandlingResumeContext())
             statements.Add(AddResumeTargetLabel(syntax))
 
@@ -577,22 +577,22 @@ Done:
             Return currentMethodOrLambda Is topMethod AndAlso unstructuredExceptionHandling.Context IsNot Nothing AndAlso unstructuredExceptionHandling.Context.ContainsOnError
         End Function
 
-        Private Sub RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VBSyntaxNode, canThrow As Boolean, statements As ArrayBuilder(Of BoundStatement))
+        Private Sub RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VisualBasicSyntaxNode, canThrow As Boolean, statements As ArrayBuilder(Of BoundStatement))
             AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax, canThrow, statements)
         End Sub
 
-        Private Function RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VBSyntaxNode, node As BoundStatement, canThrow As Boolean) As BoundStatement
+        Private Function RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VisualBasicSyntaxNode, node As BoundStatement, canThrow As Boolean) As BoundStatement
             Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
             AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax, canThrow, statements)
             statements.Add(node)
             Return New BoundStatementList(syntax, statements.ToImmutableAndFree())
         End Function
 
-        Private Function RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(syntax As VBSyntaxNode) As BoundLabelStatement
+        Private Function RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(syntax As VisualBasicSyntaxNode) As BoundLabelStatement
             Return AddResumeTargetLabel(syntax)
         End Function
 
-        Private Function RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VBSyntaxNode, canThrow As Boolean) As ImmutableArray(Of BoundStatement)
+        Private Function RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VisualBasicSyntaxNode, canThrow As Boolean) As ImmutableArray(Of BoundStatement)
             Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
             AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax, canThrow, statements)
             Return statements.ToImmutableAndFree()

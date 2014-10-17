@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     ' constructs as we expect. We just use LookupNames as the test API, since all these APIs use the
     ' same underlying helpers to find the Binder object used to answer the questions.
     Public Class BindingScopeTests
-        Private Sub CheckScopeOfSymbol(comp As VBCompilation,
+        Private Sub CheckScopeOfSymbol(comp As VisualBasicCompilation,
                                        treeName As String,
                                        symbolName As String,
                                        expectedScope As XElement)
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestScopes1()
-            Dim comp As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
         <file name="a.vb">
             Option Strict On
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestScopes2()
-            Dim comp As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
         <file name="a.vb">
             Option Strict On
@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestScopes3()
-            Dim comp As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
         <file name="a.vb">
 Public Class Apple(Of TBravo)
@@ -226,7 +226,7 @@ End Class 'hello
 
         <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestScopes4()
-            Dim comp As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
         <file name="a.vb">
 Public Class Apple(Of TBravo)
@@ -252,7 +252,7 @@ End Class 'hello
 
         <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestPropertyScopes()
-            Dim comp As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
         <file name="c.vb">
 Class C

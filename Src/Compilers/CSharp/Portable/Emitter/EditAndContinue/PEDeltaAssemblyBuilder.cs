@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     continue;
                 }
-                if (!reader.StringStartsWith(def.Name, GeneratedNames.AnonymousNamePrefix))
+                if (!reader.StringComparer.StartsWith(def.Name, GeneratedNames.AnonymousNamePrefix))
                 {
                     continue;
                 }

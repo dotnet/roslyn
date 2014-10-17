@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Analyze(compilation, method, block, diagnostics)
         End Sub
 
-        Private Shared Sub Analyze(compilation As VBCompilation, method As MethodSymbol, block As BoundBlock, diagnostics As DiagnosticBag)
+        Private Shared Sub Analyze(compilation As VisualBasicCompilation, method As MethodSymbol, block As BoundBlock, diagnostics As DiagnosticBag)
             ControlFlowPass.Analyze(New FlowAnalysisInfo(compilation, method, block), diagnostics, True)
             DataFlowPass.Analyze(New FlowAnalysisInfo(compilation, method, block), diagnostics, True)
         End Sub

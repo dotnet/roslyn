@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly m_declarationTable As DeclarationTable
 
         ' Options that control compilation
-        Private ReadOnly m_options As VBCompilationOptions
+        Private ReadOnly m_options As VisualBasicCompilationOptions
 
         ' Module attributes
         Private m_lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         'Private m_diagnosticBagCompile As New DiagnosticBag()
         'Private m_diagnosticBagEmit As New DiagnosticBag()
 
-        Friend ReadOnly Property Options As VBCompilationOptions
+        Friend ReadOnly Property Options As VisualBasicCompilationOptions
             Get
                 Return m_options
             End Get
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Sub New(assemblySymbol As SourceAssemblySymbol,
                        declarationTable As DeclarationTable,
-                       options As VBCompilationOptions,
+                       options As VisualBasicCompilationOptions,
                        nameAndExtension As String)
             Debug.Assert(assemblySymbol IsNot Nothing)
 
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' This override is essential - it's a base case of the recursive definition.
         ''' </summary>
-        Friend Overrides ReadOnly Property DeclaringCompilation As VBCompilation
+        Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return m_AssemblySymbol.DeclaringCompilation
             End Get
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim data = New ModuleImportData(globalImport, membersMap, aliasesMap, membersBuilder, membersInfoBuilder, aliasesBuilder, aliasesInfoBuilder, xmlNamespaces)
                     Dim diagBagForThisImport = DiagnosticBag.GetInstance()
-                    Dim binder As binder = BinderBuilder.CreateBinderForProjectImports(Me, VBSyntaxTree.Dummy)
+                    Dim binder As binder = BinderBuilder.CreateBinderForProjectImports(Me, VisualBasicSyntaxTree.Dummy)
                     binder.BindImportClause(globalImport.Clause, data, diagBagForThisImport)
 
                     ' Map diagnostics to new ones.
@@ -947,7 +947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each d As Diagnostic In diagBag.AsEnumerableWithoutResolution()
                     Dim loc = d.Location
                     If loc.IsInSource Then
-                        Dim tree = DirectCast(loc.SourceTree, VBSyntaxTree)
+                        Dim tree = DirectCast(loc.SourceTree, VisualBasicSyntaxTree)
                         Dim sourceFile = GetSourceFile(tree)
                         sourceFile.AddDiagnostic(d, stage)
                     Else

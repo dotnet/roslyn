@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
         Inherits VisualBasicCompiler
 
         Friend Sub New(responseFile As String, baseDirectory As String, args As String())
-            MyBase.New(VBCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
+            MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         End Sub
 
         Overloads Shared Function Run(args As String()) As Integer

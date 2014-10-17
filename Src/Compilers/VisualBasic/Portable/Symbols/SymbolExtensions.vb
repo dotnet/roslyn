@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension>
-        Friend Function GetDeclaringSyntaxNode(Of T As VBSyntaxNode)(this As Symbol) As T
+        Friend Function GetDeclaringSyntaxNode(Of T As VisualBasicSyntaxNode)(this As Symbol) As T
 
             For Each node In this.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax())
                 Dim node_T = TryCast(node, T)

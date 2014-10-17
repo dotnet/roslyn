@@ -1777,7 +1777,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AnalyzerChangesOnDisk()
         {
-            var timeout = TimeSpan.FromMinutes(1);
+            var timeout = TimeSpan.FromMinutes(5);
             const string sourceText = @"using System;
 
 class Hello
@@ -1793,7 +1793,7 @@ class Hello
             // First, build the analyzer assembly
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 MyAnalyzer.csproj");
             var resultTask = Task.Run(() => RunCommandLineCompiler(MSBuildExecutable, arguments, directory, GetAnalyzerProjectFiles()));
-            Assert.True(resultTask.Wait(timeout), string.Format("Compiler server {0} timed out after {1} seconds", MSBuildExecutable, timeout.TotalSeconds));
+            WaitForProcess(resultTask, timeout, string.Format("Compiler server {0} timed out after {1} seconds", MSBuildExecutable, timeout.TotalSeconds), MSBuildExecutable);
             var result = resultTask.Result;
 
             Assert.True(directory.CreateFile("hello.cs").WriteAllTextAsync(sourceText).Wait(timeout),
@@ -1807,7 +1807,7 @@ class Hello
 
             // Run a build using the analyzer
             var firstBuildResultTask = Task.Run(() => RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars));
-            Assert.True(firstBuildResultTask.Wait(timeout), string.Format("Compiler server {0} timed out after {1} seconds", CSharpCompilerClientExecutable, timeout.TotalSeconds));
+            WaitForProcess(firstBuildResultTask, timeout, string.Format("Compiler server {0} timed out after {1} seconds", CSharpCompilerClientExecutable, timeout.TotalSeconds), CSharpCompilerClientExecutable);
             var firstBuildResult = firstBuildResultTask.Result;
 
             // Change the analyzer to cause it to be reloaded
@@ -1820,7 +1820,7 @@ class Hello
 
             // Run another build using the analyzer
             var secondBuildResultTask = Task.Run(() => RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars));
-            Assert.True(secondBuildResultTask.Wait(timeout), string.Format("Compiler server {0} timed out after {1} seconds", CSharpCompilerClientExecutable, timeout.TotalSeconds));
+            WaitForProcess(secondBuildResultTask, timeout, string.Format("Compiler server {0} timed out after {1} seconds", CSharpCompilerClientExecutable, timeout.TotalSeconds), CSharpCompilerClientExecutable);
             var secondBuildResult = secondBuildResultTask.Result;
 
             var firstBuildOutput = firstBuildResult.Output;
@@ -1830,6 +1830,60 @@ class Hello
             // The output message of the analyzer includes a time stamp for when the analyzer was loaded. So if the analyzer was 
             // reloaded (which is what we want) then the output messages of the first and second builds will be different.
             Assert.False(firstBuildOutput.Equals(secondBuildOutput), assertMessage);
+        }
+
+        private void WaitForProcess(Task<ProcessResult> resultTask, TimeSpan timeout, string message, string processPath)
+        {
+            bool hasCompleted = resultTask.Wait(timeout);
+            if (!hasCompleted)
+            {
+                Task.WhenAll(GetProcessesByFullPath(processPath).Select(x => DumpProcess(x.Id))).Wait();
+                Assert.True(false, message + Environment.NewLine + "See dump for more info.");
+            }
+        }
+
+        private Task<int> DumpProcess(int pid)
+        {
+            string pathToProcDump;
+            if (!TryFindProcDumpPath(out pathToProcDump))
+            {
+                return Task.FromResult(0);
+            }
+
+            var source = new TaskCompletionSource<int>();
+            ProcessStartInfo processStartInfo = new ProcessStartInfo();
+            processStartInfo.CreateNoWindow = true;
+            processStartInfo.FileName = pathToProcDump;
+            processStartInfo.WorkingDirectory = Environment.CurrentDirectory;
+            processStartInfo.UseShellExecute = false;
+
+            processStartInfo.Arguments = " -accepteula -c 0 -ma " + pid.ToString();
+            var process = new Process();
+            process.StartInfo = processStartInfo;
+            process.Exited += (s, e) => source.TrySetResult(process.ExitCode);
+            process.ErrorDataReceived += (s, e) => source.TrySetException(new Exception("Unable to create dump: " + e.Data));
+            process.Start();
+            return source.Task;
+        }
+
+        private static bool TryFindProcDumpPath(out string path)
+        {
+            string executableDirectory = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
+            path = Path.Combine(executableDirectory, "ProcDump.exe");
+
+            if (File.Exists(path))
+            {
+                return true;
+            }
+
+            path = Path.Combine(executableDirectory, @"..\ProcDump\ProcDump.exe");
+
+            if (File.Exists(path))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         [WorkItem(979588)]

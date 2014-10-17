@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         <Fact, WorkItem(547015, "DevDiv")>
         Public Sub IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
             Dim source = TestResources.MetadataTests.Invalid.ManyMethodSpecs
-            CompileAndVerify(VBCompilation.Create("Foo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
+            CompileAndVerify(VisualBasicCompilation.Create("Foo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
         End Sub
 
         <Fact>
@@ -86,8 +86,8 @@ Public Class N
 End Class 
 </text>.Value
 
-            Dim c1 = VBCompilation.Create("VB_EmitTest1",
-                                        {VBSyntaxTree.ParseText(source)},
+            Dim c1 = VisualBasicCompilation.Create("VB_EmitTest1",
+                                        {VisualBasicSyntaxTree.ParseText(source)},
                                         {mscorlibRef},
                                         TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
@@ -208,8 +208,8 @@ Public Class Test
 End Class
 </text>.Value
 
-            Dim c1 = VBCompilation.Create("VB_EmitAssemblyRefs",
-                                        {VBSyntaxTree.ParseText(source)},
+            Dim c1 = VisualBasicCompilation.Create("VB_EmitAssemblyRefs",
+                                        {VisualBasicSyntaxTree.ParseText(source)},
                                         {mscorlibRef, metadataTestLib1, metadataTestLib2},
                                         TestOptions.ReleaseDll)
 
@@ -233,8 +233,8 @@ Public Class Test
 End Class 
 </text>.Value
 
-            Dim c2 = VBCompilation.Create("VB_EmitAssemblyRefs2",
-                                        {VBSyntaxTree.ParseText(source2)},
+            Dim c2 = VisualBasicCompilation.Create("VB_EmitAssemblyRefs2",
+                                        {VisualBasicSyntaxTree.ParseText(source2)},
                                         {mscorlibRef, multiModule},
                                         TestOptions.ReleaseDll)
 
@@ -267,8 +267,8 @@ Public Class Test
 End Class
 </text>.Value
 
-            Dim c1 = VBCompilation.Create("VB_EmitAddModule",
-                                        {VBSyntaxTree.ParseText(source)},
+            Dim c1 = VisualBasicCompilation.Create("VB_EmitAddModule",
+                                        {VisualBasicSyntaxTree.ParseText(source)},
                                         {mscorlibRef, netModule1.GetReference(), netModule2.GetReference()},
                                         TestOptions.ReleaseDll)
 
@@ -294,7 +294,7 @@ End Class
                 Assert.False(file1.HashValue.IsNil)
                 Assert.False(file2.HashValue.IsNil)
 
-                Dim moduleRefName = reader.GetModuleReferenceName(reader.GetModuleReferences().Single())
+                Dim moduleRefName = reader.GetModuleReference(reader.GetModuleReferences().Single()).Name
                 Assert.Equal("netModule1.netmodule", reader.GetString(moduleRefName))
                 Assert.Equal(5, reader.GetTableRowCount(TableIndex.ExportedType))
             End Using
@@ -328,8 +328,8 @@ Public MustInherit Class B
 End Class 
 </text>.Value
 
-            Dim c1 = VBCompilation.Create("VB_ImplementingAnInterface",
-                                                   {VBSyntaxTree.ParseText(source)},
+            Dim c1 = VisualBasicCompilation.Create("VB_ImplementingAnInterface",
+                                                   {VisualBasicSyntaxTree.ParseText(source)},
                                                    {mscorlibRef},
                                                    TestOptions.ReleaseDll)
 
@@ -405,8 +405,8 @@ Class C
 End Class 
 </text>.Value
 
-            Dim c1 = VBCompilation.Create("VB_Types",
-                                                   {VBSyntaxTree.ParseText(source)},
+            Dim c1 = VisualBasicCompilation.Create("VB_Types",
+                                                   {VisualBasicSyntaxTree.ParseText(source)},
                                                    {mscorlibRef},
                                                    TestOptions.ReleaseDll)
 
@@ -513,8 +513,8 @@ Public Class A
 End Class 
 </text>.Value
 
-            Dim c1 = VBCompilation.Create("VB_Fields",
-                                                   {VBSyntaxTree.ParseText(source)},
+            Dim c1 = VisualBasicCompilation.Create("VB_Fields",
+                                                   {VisualBasicSyntaxTree.ParseText(source)},
                                                    {mscorlibRef},
                                                    TestOptions.ReleaseDll)
 
@@ -542,7 +542,7 @@ End Class
         Private Sub EmittedModuleRecordValidator(assembly As PEAssembly, _omitted As TestEmitters)
             Dim reader = assembly.GetMetadataReader()
 
-            Dim typeDefs As TypeHandle() = reader.TypeDefinitions.AsEnumerable().ToArray()
+            Dim typeDefs As TypeDefinitionHandle() = reader.TypeDefinitions.AsEnumerable().ToArray()
             Assert.Equal(2, typeDefs.Length)
 
             Assert.Equal("<Module>", reader.GetString(reader.GetTypeDefinition(typeDefs(0)).Name))
@@ -923,7 +923,7 @@ End Class
             VerifyEmitWithNoResources(comp, Platform.X86)
         End Sub
 
-        Private Shared Sub VerifyEmitWithNoResources(comp As VBCompilation, platform As Platform)
+        Private Shared Sub VerifyEmitWithNoResources(comp As VisualBasicCompilation, platform As Platform)
             Dim options = TestOptions.ReleaseExe.WithPlatform(platform)
 
             Using outputStream As New MemoryStream()

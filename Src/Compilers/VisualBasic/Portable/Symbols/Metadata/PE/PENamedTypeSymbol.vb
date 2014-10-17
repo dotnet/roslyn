@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private ReadOnly m_Container As NamespaceOrTypeSymbol
 
 #Region "Metadata"
-        Private ReadOnly m_Handle As TypeHandle
+        Private ReadOnly m_Handle As TypeDefinitionHandle
         Private ReadOnly m_GenericParameterHandles As GenericParameterHandleCollection
         Private ReadOnly m_Name As String
         Private ReadOnly m_Flags As TypeAttributes
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
             containingNamespace As PENamespaceSymbol,
-            handle As TypeHandle
+            handle As TypeDefinitionHandle
         )
             Me.New(moduleSymbol, containingNamespace, 0, handle)
         End Sub
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
             containingType As PENamedTypeSymbol,
-            handle As TypeHandle
+            handle As TypeDefinitionHandle
         )
             Me.New(moduleSymbol, containingType, CUShort(containingType.MetadataArity), handle)
         End Sub
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             moduleSymbol As PEModuleSymbol,
             container As NamespaceOrTypeSymbol,
             containerMetadataArity As UShort,
-            handle As TypeHandle
+            handle As TypeDefinitionHandle
         )
             Debug.Assert(Not handle.IsNil)
             Debug.Assert(container IsNot Nothing)
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend ReadOnly Property Handle As TypeHandle
+        Friend ReadOnly Property Handle As TypeDefinitionHandle
             Get
                 Return m_Handle
             End Get
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Try
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
-                Dim interfaceImpls = moduleSymbol.Module.GetImplementedInterfacesOrThrow(Me.m_Handle)
+                Dim interfaceImpls = moduleSymbol.Module.GetInterfaceImplementationsOrThrow(Me.m_Handle)
 
                 If interfaceImpls.Count = 0 Then
                     Return ImmutableArray(Of NamedTypeSymbol).Empty
@@ -268,8 +268,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim tokenDecoder As New MetadataDecoder(moduleSymbol, Me)
                 Dim i = 0
                 For Each interfaceImpl In interfaceImpls
-
-                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(tokenDecoder.GetTypeOfToken(interfaceImpl), NamedTypeSymbol)
+                    Dim interfaceHandle As Handle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface
+                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(tokenDecoder.GetTypeOfToken(interfaceHandle), NamedTypeSymbol)
                     'TODO: how to pass reason to unsupported
                     symbols(i) = If(namedTypeSymbol IsNot Nothing, namedTypeSymbol, New UnsupportedMetadataTypeSymbol()) ' "interface tmpList contains a bad type"
                     i = i + 1
@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 Dim method = DirectCast(members(index), PEMethodSymbol)
                 Dim [module] = ContainingPEModule.Module
-                Dim methodDefs = ArrayBuilder(Of MethodHandle).GetInstance()
+                Dim methodDefs = ArrayBuilder(Of MethodDefinitionHandle).GetInstance()
 
                 Try
                     For Each methodDef In [module].GetMethodsOfTypeOrThrow(m_Handle)
@@ -632,7 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' then the method is created as a normal method rather than an accessor.
                 ' Create a dictionary of method symbols indexed by metadata row id
                 ' (to allow efficient lookup when matching property accessors).
-                Dim methodHandleToSymbol As Dictionary(Of MethodHandle, PEMethodSymbol) = CreateMethods()
+                Dim methodHandleToSymbol As Dictionary(Of MethodDefinitionHandle, PEMethodSymbol) = CreateMethods()
                 Dim members = ArrayBuilder(Of Symbol).GetInstance()
 
                 Dim ensureParameterlessConstructor As Boolean = (TypeKind = TypeKind.Structure OrElse TypeKind = TypeKind.Enum) AndAlso Not IsShared
@@ -658,11 +658,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 CreateEvents(methodHandleToSymbol, members)
 
                 Dim membersDict As New Dictionary(Of String, ImmutableArray(Of Symbol))(CaseInsensitiveComparison.Comparer)
-                Dim groupedMembers = members.
-                                     GroupBy(Function(m) m.Name, CaseInsensitiveComparison.Comparer)
+                Dim groupedMembers = members.GroupBy(Function(m) m.Name, CaseInsensitiveComparison.Comparer)
 
                 For Each g In groupedMembers
-                    membersDict.Add(g.Key, g.ToArray().AsImmutableOrNull())
+                    membersDict.Add(g.Key, ImmutableArray.CreateRange(g))
                 Next
 
                 members.Free()
@@ -1133,8 +1132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Try
         End Sub
 
-        Private Function CreateMethods() As Dictionary(Of MethodHandle, PEMethodSymbol)
-            Dim methods = New Dictionary(Of MethodHandle, PEMethodSymbol)()
+        Private Function CreateMethods() As Dictionary(Of MethodDefinitionHandle, PEMethodSymbol)
+            Dim methods = New Dictionary(Of MethodDefinitionHandle, PEMethodSymbol)()
             Dim moduleSymbol = Me.ContainingPEModule
             Dim [module] = moduleSymbol.Module
 
@@ -1150,7 +1149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return methods
         End Function
 
-        Private Sub CreateProperties(methodHandleToSymbol As Dictionary(Of MethodHandle, PEMethodSymbol), members As ArrayBuilder(Of Symbol))
+        Private Sub CreateProperties(methodHandleToSymbol As Dictionary(Of MethodDefinitionHandle, PEMethodSymbol), members As ArrayBuilder(Of Symbol))
             Dim moduleSymbol = Me.ContainingPEModule
             Dim [module] = moduleSymbol.Module
 
@@ -1173,7 +1172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Try
         End Sub
 
-        Private Sub CreateEvents(methodHandleToSymbol As Dictionary(Of MethodHandle, PEMethodSymbol), members As ArrayBuilder(Of Symbol))
+        Private Sub CreateEvents(methodHandleToSymbol As Dictionary(Of MethodDefinitionHandle, PEMethodSymbol), members As ArrayBuilder(Of Symbol))
             Dim moduleSymbol = Me.ContainingPEModule
             Dim [module] = moduleSymbol.Module
 
@@ -1183,9 +1182,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Dim methods = [module].GetEventMethodsOrThrow(eventRid)
 
                         ' NOTE: C# ignores all other accessors (most notably, raise/fire).
-                        Dim addMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.AddOn)
-                        Dim removeMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.RemoveOn)
-                        Dim raiseMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Fire)
+                        Dim addMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Adder)
+                        Dim removeMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Remover)
+                        Dim raiseMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Raiser)
 
                         ' VB ignores events that do not have both Add and Remove.
                         If (addMethod IsNot Nothing) AndAlso (removeMethod IsNot Nothing) Then
@@ -1198,7 +1197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Try
         End Sub
 
-        Private Shared Function GetAccessorMethod(moduleSymbol As PEModuleSymbol, methodHandleToSymbol As Dictionary(Of MethodHandle, PEMethodSymbol), methodDef As MethodHandle) As PEMethodSymbol
+        Private Shared Function GetAccessorMethod(moduleSymbol As PEModuleSymbol, methodHandleToSymbol As Dictionary(Of MethodDefinitionHandle, PEMethodSymbol), methodDef As MethodDefinitionHandle) As PEMethodSymbol
             If methodDef.IsNil Then
                 Return Nothing
             End If
@@ -1399,7 +1398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
-        Friend NotOverridable Overrides ReadOnly Property DeclaringCompilation As VBCompilation
+        Friend NotOverridable Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
             End Get

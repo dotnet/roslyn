@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend NotOverridable Overrides ReadOnly Property DeclarationSyntax As VBSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property DeclarationSyntax As VisualBasicSyntaxNode
             Get
                 Return Syntax
             End Get

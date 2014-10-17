@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' parameters aren't). To be able to cache a few different binders for each syntax node, we use
         ' a NodeUsage to sub-distinguish binders associated with nodes. Each kind of syntax node must have its
         ' associated usage value(s), because the usage is used when creating the binder (if not found in the cache).
-        Private ReadOnly _cache As ConcurrentDictionary(Of ValueTuple(Of VBSyntaxNode, Byte), Binder)
+        Private ReadOnly _cache As ConcurrentDictionary(Of ValueTuple(Of VisualBasicSyntaxNode, Byte), Binder)
         Private ReadOnly _binderFactoryVisitorPool As ObjectPool(Of BinderFactoryVisitor)
 
         Private ReadOnly Property InScript As Boolean
@@ -39,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(sourceModule As SourceModuleSymbol, tree As SyntaxTree)
             Me._sourceModule = sourceModule
             Me._tree = tree
-            Me._cache = New ConcurrentDictionary(Of ValueTuple(Of VBSyntaxNode, Byte), Binder)
+            Me._cache = New ConcurrentDictionary(Of ValueTuple(Of VisualBasicSyntaxNode, Byte), Binder)
 
             Me._binderFactoryVisitorPool = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor(Me))
         End Sub
 
-        Private Function MakeBinder(node As VBSyntaxNode, position As Integer) As Binder
+        Private Function MakeBinder(node As VisualBasicSyntaxNode, position As Integer) As Binder
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse node.Kind = SyntaxKind.CompilationUnit Then
                 Dim visitor = _binderFactoryVisitorPool.Allocate()
                 visitor.Position = position
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Get binder for a type
         Public Function GetNamedTypeBinder(node As TypeStatementSyntax) As Binder
             Dim possibleParentBlock = TryCast(node.Parent, TypeBlockSyntax)
-            Dim parentForEnclosingBinder As VBSyntaxNode = If(possibleParentBlock IsNot Nothing, possibleParentBlock.Parent, node.Parent)
+            Dim parentForEnclosingBinder As VisualBasicSyntaxNode = If(possibleParentBlock IsNot Nothing, possibleParentBlock.Parent, node.Parent)
 
             Return GetBinderForNodeAndUsage(node, NodeUsage.TypeBlockFull, parentForEnclosingBinder, node.SpanStart)
         End Function
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Get binder for an enum
         Public Function GetNamedTypeBinder(node As EnumStatementSyntax) As Binder
             Dim possibleParentBlock = TryCast(node.Parent, EnumBlockSyntax)
-            Dim parentForEnclosingBinder As VBSyntaxNode = If(possibleParentBlock IsNot Nothing, possibleParentBlock.Parent, node.Parent)
+            Dim parentForEnclosingBinder As VisualBasicSyntaxNode = If(possibleParentBlock IsNot Nothing, possibleParentBlock.Parent, node.Parent)
 
             Return GetBinderForNodeAndUsage(node, NodeUsage.EnumBlockFull, parentForEnclosingBinder, node.SpanStart)
         End Function
@@ -84,12 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Find the binder to use for a position in the tree. The position should have been adjusted
         ' already to be at the start of a token.
-        Public Function GetBinderForPosition(node As VBSyntaxNode, position As Integer) As Binder
+        Public Function GetBinderForPosition(node As VisualBasicSyntaxNode, position As Integer) As Binder
             Return GetBinderAtOrAbove(node, position)
         End Function
 
         ' Find the binder for a node or above at a given position
-        Private Function GetBinderAtOrAbove(node As VBSyntaxNode, position As Integer) As Binder
+        Private Function GetBinderAtOrAbove(node As VisualBasicSyntaxNode, position As Integer) As Binder
             ' Go up the tree until we find a node that has a corresponding binder.
             Do
                 Dim binder As Binder = MakeBinder(node, position)
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If node.Kind = SyntaxKind.DocumentationCommentTrivia Then
-                    node = DirectCast(DirectCast(node, StructuredTriviaSyntax).ParentTrivia.Token.Parent, VBSyntaxNode)
+                    node = DirectCast(DirectCast(node, StructuredTriviaSyntax).ParentTrivia.Token.Parent, VisualBasicSyntaxNode)
                 Else
                     node = node.Parent
                 End If
@@ -111,9 +111,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Given a node and usage, find the correct binder to use. Use the cache first, if not in the cache, then
         ' create a new binder. The parent node and position are used if we need to find an enclosing binder unless specified explicitly.
-        Private Function GetBinderForNodeAndUsage(node As VBSyntaxNode,
+        Private Function GetBinderForNodeAndUsage(node As VisualBasicSyntaxNode,
                                                   usage As NodeUsage,
-                                                  Optional parentNode As VBSyntaxNode = Nothing,
+                                                  Optional parentNode As VisualBasicSyntaxNode = Nothing,
                                                   Optional position As Integer = -1,
                                                   Optional containingBinder As Binder = Nothing) As Binder
 
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Given a node, usage, and containing binder, create the binder for this node and usage. This is called
         ' only when we've found the given node & usage are not cached (and the caller will cache the result).
-        Private Function CreateBinderForNodeAndUsage(node As VBSyntaxNode,
+        Private Function CreateBinderForNodeAndUsage(node As VisualBasicSyntaxNode,
                                                      usage As NodeUsage,
                                                      containingBinder As Binder) As Binder
             Select Case usage
@@ -408,11 +408,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' do not have type parameters or parameters
             Dim trivia As SyntaxTrivia = node.ParentTrivia
             Dim token As SyntaxToken = CType(trivia.Token, SyntaxToken)
-            Dim parent = DirectCast(token.Parent, VBSyntaxNode)
+            Dim parent = DirectCast(token.Parent, VisualBasicSyntaxNode)
             Debug.Assert(parent IsNot Nothing)
 
             ' This is a binder for commented symbol's containing type or namespace 
-            Dim nodeForOuterBinder As VBSyntaxNode = Nothing
+            Dim nodeForOuterBinder As VisualBasicSyntaxNode = Nothing
 lAgain:
             Select Case parent.Kind
                 Case SyntaxKind.ClassStatement,
@@ -525,7 +525,7 @@ lAgain:
             Return BinderBuilder.CreateBinderForDocumentationComment(containingBinder, symbol, binderType)
         End Function
 
-        Private Function GetContainingNamedTypeBinderForMemberNode(node As VBSyntaxNode, containingBinder As Binder) As NamedTypeBinder
+        Private Function GetContainingNamedTypeBinderForMemberNode(node As VisualBasicSyntaxNode, containingBinder As Binder) As NamedTypeBinder
             Dim containingNamedTypeBinder = TryCast(containingBinder, NamedTypeBinder)
             If containingNamedTypeBinder IsNot Nothing Then
                 Return containingNamedTypeBinder
@@ -623,7 +623,7 @@ lAgain:
             Return BinderBuilder.CreateBinderForInitializer(containingBinder, fieldOrProperty)
         End Function
 
-        Private Function BuildAttributeBinder(containingBinder As Binder, node As VBSyntaxNode) As Binder
+        Private Function BuildAttributeBinder(containingBinder As Binder, node As VisualBasicSyntaxNode) As Binder
             Debug.Assert(node.Kind = SyntaxKind.Attribute)
 
             If containingBinder IsNot Nothing AndAlso node.Parent IsNot Nothing Then

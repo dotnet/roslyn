@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' or is part of upper-level qualified name should be searched. All other
             ' names will be bound using regular BindType calls
 
-            Dim name As VBSyntaxNode = nameFromCref.Parent
+            Dim name As VisualBasicSyntaxNode = nameFromCref.Parent
             While name IsNot Nothing And name.Kind <> SyntaxKind.CrefReference
                 If name.Kind <> SyntaxKind.QualifiedName Then
                     ' Not a top-level name or a top-level qualified name part

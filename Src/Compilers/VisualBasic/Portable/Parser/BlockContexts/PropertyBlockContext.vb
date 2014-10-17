@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VBSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VisualBasicSyntaxNode
 
             Dim beginBlockStmt As PropertyStatementSyntax = Nothing
             Dim endBlockStmt As EndBlockStatementSyntax = DirectCast(endStmt, EndBlockStatementSyntax)
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.PropertyBlock(beginBlockStmt, accessors, endBlockStmt)
         End Function
 
-        Friend Overrides Function ProcessSyntax(node As VBSyntaxNode) As BlockContext
+        Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
 
             Select Case node.Kind
                 Case SyntaxKind.GetAccessorStatement
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Me
         End Function
 
-        Friend Overrides Function TryLinkSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Overrides Function TryLinkSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
             newContext = Nothing
 
             If KindEndsBlock(node.Kind) Then

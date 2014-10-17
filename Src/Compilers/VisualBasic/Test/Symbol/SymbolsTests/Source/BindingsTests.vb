@@ -13,7 +13,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class BindingsTests
-        Private Function GetBinderFromNode(compilation As VBCompilation,
+        Private Function GetBinderFromNode(compilation As VisualBasicCompilation,
                                              semanticModel As SemanticModel,
                                              treeName As String,
                                              textToFind As String) As Binder
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Test case where method isn't enclosed in a class.
         <Fact>
         Public Sub GetEnclosingBinderForMembersInsideNamespace()
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestGetTypeFromDeclaration()
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
       <compilation name="Compilation">
@@ -405,7 +405,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
 
         <Fact>
         Public Sub TestTypeBinding()
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
       <compilation name="Compilation">

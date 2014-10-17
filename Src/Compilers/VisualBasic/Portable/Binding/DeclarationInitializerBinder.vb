@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly m_symbol As Symbol
 
         ''' <summary> Root syntax node </summary>
-        Private _root As VBSyntaxNode
+        Private _root As VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Initializes a new instance of the <see cref="DeclarationInitializerBinder"/> class.
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="symbol">The field, property or parameter symbol with an initializer or default value.</param>
         ''' <param name="next">The next binder.</param>
         ''' <param name="root">Root syntax node</param>
-        Public Sub New(symbol As Symbol, [next] As Binder, root As VBSyntaxNode)
+        Public Sub New(symbol As Symbol, [next] As Binder, root As VisualBasicSyntaxNode)
             MyBase.New([next])
             Debug.Assert((symbol.Kind = SymbolKind.Field) OrElse (symbol.Kind = SymbolKind.Property) OrElse (symbol.Kind = SymbolKind.Parameter))
             Me.m_symbol = symbol
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary> Field or property declaration statement syntax node </summary>
-        Friend ReadOnly Property Root As VBSyntaxNode
+        Friend ReadOnly Property Root As VisualBasicSyntaxNode
             Get
                 Return _root
             End Get
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Initializers are expressions and so contain no descendant binders, except for lambda bodies, which are handled
         ' elsewhere (in MemberSemanticModel).
-        Public Overrides Function GetBinder(node As VBSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
             Return Nothing
         End Function
 

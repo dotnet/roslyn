@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Friend Class SyntaxFormatter
-        Inherits VBSyntaxRewriter
+        Inherits VisualBasicSyntaxRewriter
 
         Private ReadOnly indentWhitespace As String
         Private ReadOnly useElasticTrivia As Boolean
@@ -829,7 +829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            Dim previousNode As VBSyntaxNode
+            Dim previousNode As VisualBasicSyntaxNode
 
             If node.Statements.Any() Then
                 previousNode = node.Statements.Last()

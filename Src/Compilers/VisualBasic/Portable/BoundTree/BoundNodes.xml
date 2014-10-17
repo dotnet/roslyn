@@ -1459,7 +1459,7 @@
 
       <Field Name="Binder" Type="Binder" Null="disallow"/>
       <Field Name="Parameters" Type="ImmutableArray(Of ParameterSymbol)" Null="disallow"/>
-      <Field Name="Compilation" Type="VBCompilation" Null="disallow"/>
+      <Field Name="Compilation" Type="VisualBasicCompilation" Null="disallow"/>
     </Node>
 
     <!-- Corresponds to AggregateClauseSyntax. -->

@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     PdbReader.Dispose();
                 }
 
-                public EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(MethodHandle handle)
+                public EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(MethodDefinitionHandle handle)
                 {
                     return PdbReader.RawSymbolReader.GetEncMethodDebugInfo(handle);
                 }

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ICommandLineArgumentsFactoryService
 
         Public Function CreateCommandLineArguments(arguments As IEnumerable(Of String), baseDirectory As String, isInteractive As Boolean) As CommandLineArguments Implements ICommandLineArgumentsFactoryService.CreateCommandLineArguments
-            Dim parser = If(isInteractive, VBCommandLineParser.Interactive, VBCommandLineParser.Default)
+            Dim parser = If(isInteractive, VisualBasicCommandLineParser.Interactive, VisualBasicCommandLineParser.Default)
             Return parser.Parse(arguments, baseDirectory)
         End Function
     End Class

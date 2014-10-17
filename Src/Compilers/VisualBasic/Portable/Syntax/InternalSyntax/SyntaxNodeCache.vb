@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Function GetFlags(context As ISyntaxFactoryContext) As GreenNode.NodeFlags
             Dim flags = GetFlags()
-            flags = VBSyntaxNode.SetFactoryContext(flags, context)
+            flags = VisualBasicSyntaxNode.SetFactoryContext(flags, context)
             Return flags
         End Function
 

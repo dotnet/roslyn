@@ -43,6 +43,41 @@ class C
 }").VerifyDiagnostics();
         }
 
+
+        [Fact]
+        public void GetOnlyAutoPropBadOverride()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+
+class Base
+{
+    public virtual int P { get; set; }
+
+    public virtual int P1 { get { return 1; } set { } }
+}
+
+class C : Base
+{
+    public override int P { get; }
+    public override int P1 { get; }
+
+    public C()
+    {
+        P = 10;
+        P1 = 10;
+    }
+
+}").VerifyDiagnostics(
+    // (12,25): error CS8080: “Auto-implemented properties must override all accessors of the overridden property.”
+    //     public override int P { get; }
+    Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P").WithArguments("C.P").WithLocation(12, 25),
+    // (13,25): error CS8080: “Auto-implemented properties must override all accessors of the overridden property.”
+    //     public override int P1 { get; }
+    Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithArguments("C.P1").WithLocation(13, 25)
+
+                );
+        }
+
         [Fact]
         public void SetGetOnlyAutoPropOutOfConstructor()
         {

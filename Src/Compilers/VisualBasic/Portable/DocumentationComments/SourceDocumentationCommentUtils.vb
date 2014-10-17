@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          expandIncludes As Boolean,
                                                          cancellationToken As CancellationToken) As String
 
-            Return VBCompilation.DocumentationCommentCompiler.
+            Return VisualBasicCompilation.DocumentationCommentCompiler.
                         GetDocumentationCommentXml(symbol, expandIncludes, preferredCulture, cancellationToken)
         End Function
 

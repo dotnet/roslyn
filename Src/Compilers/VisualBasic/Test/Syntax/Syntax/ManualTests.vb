@@ -39,13 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestCastExpression()
-            Dim objUnderTest As VBSyntaxNode = SyntaxFactory.CTypeExpression(SyntaxFactory.Token(SyntaxKind.CTypeKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateRedCharacterLiteralExpression(), SyntaxFactory.Token(SyntaxKind.CommaToken), GenerateRedArrayType(), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+            Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.CTypeExpression(SyntaxFactory.Token(SyntaxKind.CTypeKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateRedCharacterLiteralExpression(), SyntaxFactory.Token(SyntaxKind.CommaToken), GenerateRedArrayType(), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
             Assert.True(Not objUnderTest Is Nothing, "obj can't be Nothing")
         End Sub
 
         <Fact()>
         Public Sub TestOnErrorGoToStatement()
-            Dim objUnderTest As VBSyntaxNode = SyntaxFactory.OnErrorGoToStatement(SyntaxKind.OnErrorGoToLabelStatement, SyntaxFactory.Token(SyntaxKind.OnKeyword), SyntaxFactory.Token(SyntaxKind.ErrorKeyword), SyntaxFactory.Token(SyntaxKind.GoToKeyword), Nothing, SyntaxFactory.IdentifierLabel(GenerateRedIdentifierToken()))
+            Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.OnErrorGoToStatement(SyntaxKind.OnErrorGoToLabelStatement, SyntaxFactory.Token(SyntaxKind.OnKeyword), SyntaxFactory.Token(SyntaxKind.ErrorKeyword), SyntaxFactory.Token(SyntaxKind.GoToKeyword), Nothing, SyntaxFactory.IdentifierLabel(GenerateRedIdentifierToken()))
             Assert.True(Not objUnderTest Is Nothing, "obj can't be Nothing")
         End Sub
 
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         "End              Sub" + vbCrLf + _
                         "End       Module                     "
 
-            Dim node = VBSyntaxTree.ParseText(input)
+            Dim node = VisualBasicSyntaxTree.ParseText(input)
             Assert.Equal(input, node.ToString())
         End Sub
 
@@ -85,13 +85,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub Bug_10283()
             Dim input = "Dim foo()"
-            Dim node = VBSyntaxTree.ParseText(input)
+            Dim node = VisualBasicSyntaxTree.ParseText(input)
             Dim arrayRankSpecifier = DirectCast(node.GetCompilationUnitRoot().Members(0), FieldDeclarationSyntax).Declarators(0).Names(0).ArrayRankSpecifiers(0)
             Assert.Equal(1, arrayRankSpecifier.Rank)
             Assert.Equal(0, arrayRankSpecifier.CommaTokens.Count)
 
             input = "Dim foo(,,,)"
-            node = VBSyntaxTree.ParseText(input)
+            node = VisualBasicSyntaxTree.ParseText(input)
             arrayRankSpecifier = DirectCast(node.GetCompilationUnitRoot().Members(0), FieldDeclarationSyntax).Declarators(0).Names(0).ArrayRankSpecifiers(0)
             Assert.Equal(4, arrayRankSpecifier.Rank)
             Assert.Equal(3, arrayRankSpecifier.CommaTokens.Count)
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(543310, "DevDiv")>
         <Fact()>
         Public Sub SyntaxTreeDotParseCompilationUnitContainingOnlyWhitespace()
-            Dim node = VBSyntaxTree.ParseText("  ").GetRoot()
+            Dim node = VisualBasicSyntaxTree.ParseText("  ").GetRoot()
             Assert.True(node.HasLeadingTrivia)
             Assert.Equal(1, node.GetLeadingTrivia().Count)
             Assert.Equal(1, node.DescendantTrivia().Count())
@@ -136,7 +136,7 @@ End Sub
 End Module
 ]]>.Value
 
-            Dim tree = VBSyntaxTree.ParseText(source)
+            Dim tree = VisualBasicSyntaxTree.ParseText(source)
 
             Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(0))
             Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.Length - 2))
@@ -221,7 +221,7 @@ End Module
                 End Namespace
             </code>.Value
             Dim text = SourceText.From(code)
-            Dim tree = VBSyntaxTree.ParseText(text)
+            Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim token = tree.GetRoot().FindToken(text.Lines.Item(3).Start)
             Assert.Equal(">", token.ToString())
         End Sub

@@ -1035,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Shared Function ReturnsEventSource(prop As PropertySymbol, compilation As VBCompilation) As Boolean
+        Private Shared Function ReturnsEventSource(prop As PropertySymbol, compilation As VisualBasicCompilation) As Boolean
             Dim attrs = prop.GetAttributes()
             For Each attr In attrs
                 If attr.AttributeClass Is compilation.GetWellKnownType(WellKnownType.System_ComponentModel_DesignerSerializationVisibilityAttribute) Then

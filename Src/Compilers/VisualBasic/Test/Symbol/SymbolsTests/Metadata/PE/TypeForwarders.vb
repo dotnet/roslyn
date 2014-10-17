@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub TypeInNamespace()
-            Dim comp = VBCompilation.Create("Dummy", references:={MscorlibRef, SystemCoreRef})
+            Dim comp = VisualBasicCompilation.Create("Dummy", references:={MscorlibRef, SystemCoreRef})
 
             Dim corlibAssembly = comp.GetReferencedAssemblySymbol(MscorlibRef)
             Assert.NotNull(corlibAssembly)
@@ -901,7 +901,7 @@ End Namespace
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer(Of String).Default))
         End Sub
 
-        Private Shared Function EnumerateNamespaces(comp As VBCompilation) As IEnumerable(Of String)
+        Private Shared Function EnumerateNamespaces(comp As VisualBasicCompilation) As IEnumerable(Of String)
             Return EnumerateNamespaces(comp.GlobalNamespace, "")
         End Function
 
@@ -1038,7 +1038,7 @@ End class
 
             metadataReader = metadata.GetMetadataReader()
             Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ExportedType))
-            ValidateExportedTypeRow(metadataReader.GetExportedTypes().First(), metadataReader, "CF1")
+            ValidateExportedTypeRow(metadataReader.ExportedTypes.First(), metadataReader, "CF1")
 
             token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
             Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
@@ -1048,7 +1048,7 @@ End class
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(1, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
-                                     ValidateExportedTypeRow(metadataReader1.GetExportedTypes().First(), metadataReader1, "CF1")
+                                     ValidateExportedTypeRow(metadataReader1.ExportedTypes.First(), metadataReader1, "CF1")
 
                                      ' Attributes should not actually be emitted.
                                      Assert.Equal(0, m.ContainingAssembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count())
@@ -1129,7 +1129,8 @@ BC30652: Reference required to assembly 'ForwarderTargetAssembly, Version=0.0.0.
 </expected>)
         End Sub
 
-        Private Shared Sub ValidateExportedTypeRow(exportedTypeRow As ExportedTypeRow, reader As MetadataReader, expectedFullName As String)
+        Private Shared Sub ValidateExportedTypeRow(exportedTypeHandle As ExportedTypeHandle, reader As MetadataReader, expectedFullName As String)
+            Dim exportedTypeRow As ExportedType = reader.GetExportedType(exportedTypeHandle)
             Dim split = expectedFullName.Split("."c)
             Dim numParts As Integer = split.Length
             Assert.InRange(numParts, 1, Integer.MaxValue)
@@ -1138,16 +1139,16 @@ BC30652: Reference required to assembly 'ForwarderTargetAssembly, Version=0.0.0.
 
             If expectedFullName.Contains("+"c) Then
                 Assert.Equal(0, exportedTypeRow.Attributes And TypeAttributesMissing.Forwarder)
-                Assert.Equal(0UI, exportedTypeRow.TypeDefId)
-                Assert.Equal(expectedType.Split("+"c).Last(), reader.GetString(exportedTypeRow.TypeName)) 'Only the actual type name.
-                Assert.Equal("", reader.GetString(exportedTypeRow.TypeNamespace)) 'Empty - presumably there's enough info on the containing type.
-                Assert.Equal(HandleType.TypeForwarder, exportedTypeRow.Implementation.HandleType)
+                Assert.Equal(0, exportedTypeRow.GetTypeDefinitionId())
+                Assert.Equal(expectedType.Split("+"c).Last(), reader.GetString(exportedTypeRow.Name)) 'Only the actual type name.
+                Assert.Equal("", reader.GetString(exportedTypeRow.Namespace)) 'Empty - presumably there's enough info on the containing type.
+                Assert.Equal(HandleKind.ExportedType, exportedTypeRow.Implementation.Kind)
             Else
-                Assert.Equal(System.Reflection.TypeAttributes.NotPublic Or TypeAttributesMissing.Forwarder, exportedTypeRow.Attributes)
-                Assert.Equal(0UI, exportedTypeRow.TypeDefId)
-                Assert.Equal(expectedType, reader.GetString(exportedTypeRow.TypeName))
-                Assert.Equal(expectedNamespace, reader.GetString(exportedTypeRow.TypeNamespace))
-                Assert.Equal(HandleType.AssemblyReference, exportedTypeRow.Implementation.HandleType)
+                Assert.Equal(System.Reflection.TypeAttributes.NotPublic Or TypeAttributesMissing.Forwarder, ExportedTypeRow.Attributes)
+                Assert.Equal(0, exportedTypeRow.GetTypeDefinitionId())
+                Assert.Equal(expectedType, reader.GetString(exportedTypeRow.Name))
+                Assert.Equal(expectedNamespace, reader.GetString(exportedTypeRow.Namespace))
+                Assert.Equal(HandleKind.AssemblyReference, ExportedTypeRow.Implementation.Kind)
             End If
         End Sub
 
@@ -1215,8 +1216,8 @@ End class
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(2, peReader1.GetTableRowCount(TableIndex.ExportedType))
-                                     ValidateExportedTypeRow(peReader1.GetExportedTypes().First(), peReader1, "CF1")
-                                     ValidateExportedTypeRow(peReader1.GetExportedTypes()(1), peReader1, "CF1+CF2")
+                                     ValidateExportedTypeRow(peReader1.ExportedTypes.First(), peReader1, "CF1")
+                                     ValidateExportedTypeRow(peReader1.ExportedTypes(1), peReader1, "CF1+CF2")
                                  End Sub
             ).VerifyDiagnostics()
 

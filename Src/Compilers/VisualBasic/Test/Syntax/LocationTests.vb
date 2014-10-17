@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestGetSourceLocationInFile()
             Dim sampleProgram = "Class X" + vbCrLf + "Public x As Integer" + vbCrLf + "End Class" + vbCrLf
-            Dim tree = VBSyntaxTree.ParseText(sampleProgram, path:="c:\\foo.vb")
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\\foo.vb")
 
             Dim xSpan As New TextSpan(sampleProgram.IndexOf("x As"), 1)
             Dim xToEndClassSpan As New TextSpan(xSpan.Start, sampleProgram.IndexOf("End Class") - xSpan.Start + 3)
@@ -105,7 +105,7 @@ public a as integer
 #End If
 End Class
 "
-            Dim tree = VBSyntaxTree.ParseText(sampleProgram, path:="c:\foo.vb")
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\foo.vb")
 
             AssertMappedSpanEqual(tree, "ports Sy", "c:\foo.vb", 0, 2, 0, 10, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "x as", "banana.vb", 19, 7, 19, 11, hasMappedPath:=True)
@@ -125,7 +125,7 @@ public x as integer
 public y as integer
 End Class
 </value>.Value
-            Dim tree = VBSyntaxTree.ParseText(sampleProgram, path:="c:\foo.vb")
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\foo.vb")
 
             AssertMappedSpanEqual(tree, "ports Sy", "c:\foo.vb", 0, 2, 0, 10, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "x as", "c:\foo.vb", 2, 7, 2, 11, hasMappedPath:=False)
@@ -148,8 +148,8 @@ End Class
         Public Sub TestEqualSourceLocations()
             Dim sampleProgram As String = <text> class
 end class </text>.Value
-            Dim tree = VBSyntaxTree.ParseText(sampleProgram)
-            Dim tree2 = VBSyntaxTree.ParseText(sampleProgram)
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram)
+            Dim tree2 = VisualBasicSyntaxTree.ParseText(sampleProgram)
             Dim loc1 As SourceLocation = New SourceLocation(tree, New TextSpan(3, 4))
             Dim loc2 As SourceLocation = New SourceLocation(tree, New TextSpan(3, 4))
             Dim loc3 As SourceLocation = New SourceLocation(tree, New TextSpan(3, 7))
@@ -170,7 +170,7 @@ Class Test
     public y As String
 End Class</text>.Value
 
-            Dim tree = VBSyntaxTree.ParseText(sampleProgram)
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram)
             Dim span1 As New TextSpan(sampleProgram.IndexOf("x As"), 1)
             Dim span2 As New TextSpan(sampleProgram.IndexOf("y As"), 1)
 

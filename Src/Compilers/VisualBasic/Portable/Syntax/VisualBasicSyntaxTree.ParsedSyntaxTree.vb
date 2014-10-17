@@ -8,18 +8,18 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class VBSyntaxTree
+    Partial Class VisualBasicSyntaxTree
 
         ''' <summary>
         ''' A SyntaxTree is a tree of nodes that represents an entire file of VB
         ''' code, and is parsed by the parser.
         ''' </summary>
         Partial Private Class ParsedSyntaxTree
-            Inherits VBSyntaxTree
+            Inherits VisualBasicSyntaxTree
 
-            Private ReadOnly _options As VBParseOptions
+            Private ReadOnly _options As VisualBasicParseOptions
             Private ReadOnly _path As String
-            Private ReadOnly _root As VBSyntaxNode
+            Private ReadOnly _root As VisualBasicSyntaxNode
             Private ReadOnly _hasCompilationUnitRoot As Boolean
             Private ReadOnly _isMyTemplate As Boolean
             Private ReadOnly _encodingOpt As Encoding
@@ -34,8 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            encodingOpt As Encoding,
                            checksumAlgorithm As SourceHashAlgorithm,
                            path As String,
-                           options As VBParseOptions,
-                           syntaxRoot As VBSyntaxNode,
+                           options As VisualBasicParseOptions,
+                           syntaxRoot As VisualBasicSyntaxNode,
                            isMyTemplate As Boolean,
                            Optional cloneRoot As Boolean = True)
 
@@ -88,15 +88,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
+            Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
                 Return _root
             End Function
 
-            Public Overrides Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VBSyntaxNode)
+            Public Overrides Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicSyntaxNode)
                 Return Task.FromResult(_root)
             End Function
 
-            Public Overrides Function TryGetRoot(ByRef root As VBSyntaxNode) As Boolean
+            Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
                 root = _root
                 Return True
             End Function
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property Options As VBParseOptions
+            Public Overrides ReadOnly Property Options As VisualBasicParseOptions
                 Get
                     Return _options
                 End Get
@@ -137,8 +137,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me._encodingOpt,
                     Me._checksumAlgorithm,
                     Me._path,
-                    DirectCast(options, VBParseOptions),
-                    DirectCast(root, VBSyntaxNode),
+                    DirectCast(options, VisualBasicParseOptions),
+                    DirectCast(root, VisualBasicSyntaxNode),
                     Me._isMyTemplate)
             End Function
 

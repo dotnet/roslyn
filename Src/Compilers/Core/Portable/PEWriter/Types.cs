@@ -593,7 +593,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// TypeDefs defined in modules linked to the assembly being emitted are listed in the ExportedTypes table.
         /// </summary>
-        TypeHandle TypeDef { get; }
+        TypeDefinitionHandle TypeDef { get; }
 
         IGenericMethodParameterReference AsGenericMethodParameterReference { get; }
         IGenericTypeInstanceReference AsGenericTypeInstanceReference { get; }

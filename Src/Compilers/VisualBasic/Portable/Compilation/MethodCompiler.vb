@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MethodCompiler
         Inherits VisualBasicSymbolVisitor
 
-        Private ReadOnly _compilation As VBCompilation
+        Private ReadOnly _compilation As VisualBasicCompilation
         Private ReadOnly _cancellationToken As CancellationToken
         Private ReadOnly _generateDebugInfo As Boolean
         Private ReadOnly _diagnostics As DiagnosticBag
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ' moduleBeingBuilt can be Nothing in order to just analyze methods for errors.
-        Private Sub New(compilation As VBCompilation,
+        Private Sub New(compilation As VisualBasicCompilation,
                        moduleBeingBuiltOpt As PEModuleBuilder,
                        generateDebugInfo As Boolean,
                        doEmitPhase As Boolean,
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''       and immediately lost after diagnostics of a particular tree is done.
         '''       
         ''' </summary>
-        Public Shared Sub GetCompileDiagnostics(compilation As VBCompilation,
+        Public Shared Sub GetCompileDiagnostics(compilation As VisualBasicCompilation,
                                                 root As NamespaceSymbol,
                                                 tree As SyntaxTree,
                                                 filterSpanWithinTree As TextSpan?,
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''       immediately lost after obtaining method bodies and diagnostics for a particular
         '''       tree.
         ''' </summary>
-        Friend Shared Sub CompileMethodBodies(compilation As VBCompilation,
+        Friend Shared Sub CompileMethodBodies(compilation As VisualBasicCompilation,
                                               moduleBeingBuiltOpt As PEModuleBuilder,
                                               generateDebugInfo As Boolean,
                                               hasDeclarationErrors As Boolean,
@@ -252,12 +252,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
         End Sub
 
-        Friend Shared Function GetEntryPoint(compilation As VBCompilation,
+        Friend Shared Function GetEntryPoint(compilation As VisualBasicCompilation,
                                              moduleBeingBuilt As PEModuleBuilder,
                                              diagnostics As DiagnosticBag,
                                              cancellationToken As CancellationToken) As MethodSymbol
 
-            Dim options As VBCompilationOptions = compilation.Options
+            Dim options As VisualBasicCompilationOptions = compilation.Options
             If Not options.OutputKind.IsApplication() Then
                 Debug.Assert(compilation.GetEntryPointAndDiagnostics(Nothing) Is Nothing)
 
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return entryPointAndDiagnostics.MethodSymbol
         End Function
 
-        Friend Shared Function DefineScriptEntryPoint(compilation As VBCompilation, moduleBeingBuilt As PEModuleBuilder, returnType As TypeSymbol, diagnostics As DiagnosticBag) As MethodSymbol
+        Friend Shared Function DefineScriptEntryPoint(compilation As VisualBasicCompilation, moduleBeingBuilt As PEModuleBuilder, returnType As TypeSymbol, diagnostics As DiagnosticBag) As MethodSymbol
             Dim scriptEntryPoint = New SynthesizedEntryPointSymbol(compilation.ScriptClass, returnType)
             If moduleBeingBuilt IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
                 Dim compilationState = New TypeCompilationState(compilation, moduleBeingBuilt, initializeComponentOpt:=Nothing)
@@ -1687,7 +1687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: we can ignore use site errors in this place because they should have already be reported 
             '       either in real or synthesized constructor
 
-            Dim syntaxNode As VBSyntaxNode = constructor.Syntax
+            Dim syntaxNode As VisualBasicSyntaxNode = constructor.Syntax
 
             Dim thisRef As New BoundMeReference(syntaxNode, constructor.ContainingType)
             thisRef.SetWasCompilerGenerated()

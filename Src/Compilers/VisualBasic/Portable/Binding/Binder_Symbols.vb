@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The constructed generic type.</returns>
         Public Function ConstructAndValidateConstraints(genericType As NamedTypeSymbol,
                                                        typeArguments As ImmutableArray(Of TypeSymbol),
-                                                       syntaxWhole As VBSyntaxNode,
+                                                       syntaxWhole As VisualBasicSyntaxNode,
                                                        syntaxArguments As SeparatedSyntaxList(Of TypeSyntax),
                                                        diagnostics As DiagnosticBag) As NamedTypeSymbol
 
@@ -208,14 +208,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim boundMemberGroup As BoundMethodOrPropertyGroup
 
                 If isMethods Then
-                    boundMemberGroup = New BoundMethodGroup(VBSyntaxTree.Dummy.GetRoot(Nothing),
+                    boundMemberGroup = New BoundMethodGroup(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing),
                                                            If(typeArguments.IsEmpty,
                                                               Nothing,
-                                                              New BoundTypeArguments(VBSyntaxTree.Dummy.GetRoot(Nothing), typeArguments)),
+                                                              New BoundTypeArguments(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing), typeArguments)),
                                                               ImmutableArray.Create(Of MethodSymbol)(DirectCast(DirectCast(members.ToArray(), Symbol()), MethodSymbol())),
                                                               LookupResultKind.Good, Nothing, QualificationKind.Unqualified)
                 Else
-                    boundMemberGroup = New BoundPropertyGroup(VBSyntaxTree.Dummy.GetRoot(Nothing),
+                    boundMemberGroup = New BoundPropertyGroup(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing),
                                                               ImmutableArray.Create(Of PropertySymbol)(DirectCast(DirectCast(members.ToArray(), Symbol()), PropertySymbol())),
                                                               LookupResultKind.Good, Nothing, QualificationKind.Unqualified)
                 End If
@@ -743,7 +743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' and return an error symbol.
             ''' </summary>
             Private Shared Function CheckSymbolIsType(sym As NamespaceOrTypeSymbol,
-                                                      syntax As VBSyntaxNode,
+                                                      syntax As VisualBasicSyntaxNode,
                                                       binder As Binder,
                                                       diagBag As DiagnosticBag) As TypeSymbol
                 If sym.IsNamespace Then
@@ -766,7 +766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return LookupPredefinedTypeName(predefinedTypeSyntax, predefinedTypeSyntax.Keyword.VBKind, binder, diagBag, reportedAnError, suppressUseSiteError)
             End Function
 
-            Public Shared Function LookupPredefinedTypeName(node As VBSyntaxNode,
+            Public Shared Function LookupPredefinedTypeName(node As VisualBasicSyntaxNode,
                                                             predefinedType As SyntaxKind,
                                                             binder As Binder,
                                                             diagBag As DiagnosticBag,

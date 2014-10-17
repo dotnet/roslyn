@@ -3970,6 +3970,11 @@ Module Module1
     Sub Main()
         Dim x = New G()
         Dim q = x ? . t ? ( 0 )
+        Dim me = Me ? . ToString()
+        Dim mb = MyBase ? . ToString()
+        Dim mc = MyClas ? . ToString()
+        Dim i = New With {.a = 3} ? . ToString()
+        Dim s = "Test" ? . ToString()
     End Sub
 End Module
 
@@ -3984,6 +3989,11 @@ Module Module1
     Sub Main()
         Dim x = New G()
         Dim q = x?.t?(0)
+        Dim me = Me?.ToString()
+        Dim mb = MyBase?.ToString()
+        Dim mc = MyClas?.ToString()
+        Dim i = New With {.a = 3}?.ToString()
+        Dim s = "Test"?.ToString()
     End Sub
 End Module
 

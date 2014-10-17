@@ -69,8 +69,7 @@ End Class
                     For Each typeHandle In reader.TypeDefinitions
                         Dim type = reader.GetTypeDefinition(typeHandle)
 
-                        Dim classSize As UInteger = 0, packingSize As UInteger = 0
-                        If Not type.GetTypeLayout(classSize, packingSize) Then
+                        If type.GetLayout().IsDefault Then
                             Continue For
                         End If
 
@@ -78,8 +77,8 @@ End Class
                         Dim typeName As String = reader.GetString(type.Name)
 
                         Dim expectedAlignment As Integer = Integer.Parse(typeName.Substring("Pack".Length))
-                        Assert.Equal(CUInt(expectedAlignment), packingSize)
-                        Assert.Equal(CUInt(1), classSize)
+                        Assert.Equal(expectedAlignment, type.GetLayout().PackingSize)
+                        Assert.Equal(1, type.GetLayout().Size)
                     Next
                 End Sub)
         End Sub
@@ -347,8 +346,8 @@ End Class
                     For Each typeHandle In reader.TypeDefinitions
                         Dim type = reader.GetTypeDefinition(typeHandle)
 
-                        Dim classSize As UInteger = 0, packingSize As UInteger = 0
-                        If Not type.GetTypeLayout(classSize, packingSize) Then
+                        Dim layout = type.GetLayout()
+                        If layout.IsDefault Then
                             Continue For
                         End If
 
@@ -381,8 +380,8 @@ End Class
                         End If
 
                         Assert.False(expectedPack = 0 AndAlso expectedSize = 0, "Either expectedPack or expectedSize should be non-zero")
-                        Assert.Equal(expectedPack, packingSize)
-                        Assert.Equal(expectedSize, classSize)
+                        Assert.Equal(CInt(expectedPack), layout.PackingSize)
+                        Assert.Equal(CInt(expectedSize), layout.Size)
                         Assert.Equal(expectedKind, type.Attributes And TypeAttributes.LayoutMask)
                     Next
                 End Sub
@@ -596,7 +595,7 @@ End Class
                     Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout))
 
                     For Each fieldHandle In reader.FieldDefinitions
-                        Dim field = reader.GetField(fieldHandle)
+                        Dim field = reader.GetFieldDefinition(fieldHandle)
                         Dim name = reader.GetString(field.Name)
 
                         Dim expectedOffset As Integer
@@ -700,7 +699,8 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
                     Dim name = reader.GetString(type.Name)
 
                     Dim classSize As UInteger = 0, packingSize As UInteger = 0
-                    Dim hasClassLayout = type.GetTypeLayout(classSize, packingSize)
+                    Dim mdLayout = type.GetLayout()
+                    Dim hasClassLayout = Not mdLayout.IsDefault
 
                     Dim layout As TypeLayout = [module].Module.GetTypeLayout(typeHandle)
 
@@ -711,26 +711,26 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
 
                         Case "S1"
                             Assert.True(hasClassLayout)
-                            Assert.Equal(&HAAAAAAAAUI, classSize)
-                            Assert.Equal(&HFFFFUS, packingSize)
+                            Assert.Equal(&HAAAAAAAA, mdLayout.Size)
+                            Assert.Equal(&HFFFF, mdLayout.PackingSize)
                             Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), layout)
 
                         Case "S2"
                             Assert.True(hasClassLayout)
-                            Assert.Equal(&HFFFFFFFFUI, classSize)
-                            Assert.Equal(2US, packingSize)
+                            Assert.Equal(&HFFFFFFFF, mdLayout.Size)
+                            Assert.Equal(2S, mdLayout.PackingSize)
                             Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 2), layout)
 
                         Case "S3"
                             Assert.True(hasClassLayout)
-                            Assert.Equal(1UI, classSize)
-                            Assert.Equal(2US, packingSize)
+                            Assert.Equal(1, mdLayout.Size)
+                            Assert.Equal(2, mdLayout.PackingSize)
                             Assert.Equal(New TypeLayout(LayoutKind.Sequential, size:=1, alignment:=2), layout)
 
                         Case "S4"
                             Assert.True(hasClassLayout)
-                            Assert.Equal(&H12345678UI, classSize)
-                            Assert.Equal(0US, packingSize)
+                            Assert.Equal(&H12345678, mdLayout.Size)
+                            Assert.Equal(0, mdLayout.PackingSize)
                             Assert.Equal(New TypeLayout(LayoutKind.Sequential, size:=&H12345678, alignment:=0), layout)
 
                         Case "S5"

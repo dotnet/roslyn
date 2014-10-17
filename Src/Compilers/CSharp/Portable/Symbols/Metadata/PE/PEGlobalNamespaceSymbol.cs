@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (lazyTypes == null || lazyNamespaces == null)
             {
-                IEnumerable<IGrouping<string, TypeHandle>> groups;
+                IEnumerable<IGrouping<string, TypeDefinitionHandle>> groups;
 
                 try
                 {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 catch (BadImageFormatException)
                 {
-                    groups = SpecializedCollections.EmptyEnumerable<IGrouping<string, TypeHandle>>();
+                    groups = SpecializedCollections.EmptyEnumerable<IGrouping<string, TypeDefinitionHandle>>();
                 }
 
                 LoadAllMembers(groups);

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         ' Very simple test, just to make sure access checking works.
         <Fact>
         Public Sub SimpleAccess()
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="SimpleAccess">
     <file name="a.vb">
 Imports System.Collections.Generic
@@ -47,7 +47,7 @@ BC30389: 'A.prot' is not accessible in this context because it is 'Protected'.
 
         <Fact>
         Public Sub AccessCheckOutsideToInner()
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="OutsideToInner">
     <file name="a.vb">
 
@@ -141,7 +141,7 @@ BC30389: 'C.N1.N4' is not accessible in this context because it is 'Protected'.
 
         <Fact>
         Public Sub AccessCheckInnerToOuter()
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="AccessCheckInnerToOuter">
     <file name="a.vb">
 Class C
@@ -212,7 +212,7 @@ End Class    </file>
 
         <Fact>
         Public Sub AccessCheckDerived()
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="AccessCheckDerived">
     <file name="a.vb">
 Class C
@@ -314,7 +314,7 @@ BC30389: 'C.N4' is not accessible in this context because it is 'Private'.
 
         <Fact>
         Public Sub AccessCheckProtected()
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="AccessCheckProtected">
     <file name="a.vb">
 Public Class A
@@ -448,7 +448,7 @@ End Module
 
         <Fact>
         Public Sub AccessCheckCrossAssembly()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="AccessCheckCrossAssembly1">
     <file name="a.vb">
 Public Class C
@@ -468,7 +468,7 @@ End Class
             CompilationUtils.AssertNoErrors(other)
 
 
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="AccessCheckCrossAssembly2">
     <file name="a.vb">
 Public Class A
@@ -508,7 +508,7 @@ BC30389: 'D' is not accessible in this context because it is 'Friend'.
         <WorkItem(540036, "DevDiv")>
         <Fact>
         Public Sub AccessCheckCrossAssemblyParameterProtectedMethodP2P()
-            Dim other As VBCompilation = CreateCompilationWithMscorlibAndReferences(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AccessCheckCrossAssemblyParameterProtectedMethod2")>
@@ -520,7 +520,7 @@ End Class
 
             other.VerifyDiagnostics()
 
-            Dim c As VBCompilation = CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod2">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -539,7 +539,7 @@ End Class
 
         <Fact>
         Public Sub EnsureAccessCheckWithBadIVTDenies()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AccessCheckCrossAssemblyParameterProtectedMethod200000")>
@@ -550,7 +550,7 @@ End Class
 </compilation>, {SystemCoreRef})
             CompilationUtils.AssertNoErrors(other)
 
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod2">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -573,7 +573,7 @@ BC30389: 'C' is not accessible in this context because it is 'Friend'.
 
         <Fact>
         Public Sub AccessCheckCrossAssemblyParameterProtectedMethodMD()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AccessCheckCrossAssemblyParameterProtectedMethod2")>
@@ -583,7 +583,7 @@ End Class
     </file>
 </compilation>, {SystemCoreRef})
 
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod2">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -602,7 +602,7 @@ End Class
         <WorkItem(542206, "DevDiv")>
         <Fact>
         Public Sub AccessCheckInternalVisibleToAttributeVBModule()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="FriendAsmNightly01-Class1">
     <file name="a1.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -617,7 +617,7 @@ End Module
 
             Dim otherImage = other.EmitToArray()
 
-            Dim comp As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="FriendAsmNightly01a.1141284.1">
     <file name="a2.vb"><![CDATA[
     Friend Module FriendAsmNightly01amod
@@ -638,7 +638,7 @@ End Module
 
         <Fact>
         Public Sub AccessCheckApi1()
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="AccessCheckApi1">
     <file name="a.vb">
 Imports System.Collections.Generic
@@ -1875,7 +1875,7 @@ BC30508: 'D' cannot expose type 'A.B(Of T).C' in class 'A' through class 'B'.
 
         <Fact(), WorkItem(545722, "DevDiv")>
         Public Sub AccessCheckInaccessibleReturnType()
-            Dim assem1 As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim assem1 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Assem1">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1902,7 +1902,7 @@ Friend Delegate Sub Deleg1()
 </compilation>)
             Dim assem1Bytes = assem1.EmitToArray()
 
-            Dim assem2 As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim assem2 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="Assem2">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1937,7 +1937,7 @@ End Module
 </compilation>, {MetadataReference.CreateFromImage(assem1Bytes)})
             Dim assem2Bytes = assem2.EmitToArray()
 
-            Dim assem3 As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim assem3 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="Assem3">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -2085,7 +2085,7 @@ End Module
 
         <Fact, WorkItem(531415, "DevDiv")>
         Public Sub Bug18091()
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
 Class C1

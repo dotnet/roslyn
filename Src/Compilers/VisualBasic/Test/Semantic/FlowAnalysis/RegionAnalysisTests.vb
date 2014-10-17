@@ -766,8 +766,8 @@ end class
     </file>
 </compilation>
 
-            Dim startNodes As New List(Of VBSyntaxNode)
-            Dim endNodes As New List(Of VBSyntaxNode)
+            Dim startNodes As New List(Of VisualBasicSyntaxNode)
+            Dim endNodes As New List(Of VisualBasicSyntaxNode)
             Dim comp = CompileAndGetModelAndSpan(program, startNodes, endNodes, Nothing, Nothing)
 
             Assert.Equal(3, startNodes.Count)
@@ -918,11 +918,11 @@ End Namespace
     </file>
 </compilation>
 
-            Dim startNodes As New List(Of VBSyntaxNode)
-            Dim endNodes As New List(Of VBSyntaxNode)
+            Dim startNodes As New List(Of VisualBasicSyntaxNode)
+            Dim endNodes As New List(Of VisualBasicSyntaxNode)
             Dim comp = CompileAndGetModelAndSpan(program, startNodes, endNodes, Nothing, Nothing,
                                                  parseOptions:=
-                                                    VBParseOptions.Default.WithPreprocessorSymbols(
+                                                    VisualBasicParseOptions.Default.WithPreprocessorSymbols(
                                                         KeyValuePair.Create("SQLITE_DEBUG", CObj(True))))
 
             Assert.Equal(4, startNodes.Count)
@@ -951,8 +951,8 @@ End Class
     </file>
 </compilation>
 
-            Dim startNodes As New List(Of VBSyntaxNode)
-            Dim endNodes As New List(Of VBSyntaxNode)
+            Dim startNodes As New List(Of VisualBasicSyntaxNode)
+            Dim endNodes As New List(Of VisualBasicSyntaxNode)
             Dim comp = CompileAndGetModelAndSpan(program, startNodes, endNodes, Nothing, Nothing)
 
             Assert.Equal(2, startNodes.Count)
@@ -979,8 +979,8 @@ End Class
     </file>
 </compilation>
 
-            Dim startNodes As New List(Of VBSyntaxNode)
-            Dim endNodes As New List(Of VBSyntaxNode)
+            Dim startNodes As New List(Of VisualBasicSyntaxNode)
+            Dim endNodes As New List(Of VisualBasicSyntaxNode)
             Dim comp = CompileAndGetModelAndSpan(program, startNodes, endNodes, Nothing, Nothing)
 
             Assert.Equal(2, startNodes.Count)

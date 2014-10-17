@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         private readonly string name;
         private readonly PENamedTypeSymbol containingType;
-        private readonly PropertyHandle handle;
+        private readonly PropertyDefinitionHandle handle;
         private readonly ImmutableArray<ParameterSymbol> parameters;
         private readonly TypeSymbol propertyType;
         private readonly PEMethodSymbol getMethod;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal PEPropertySymbol(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
-            PropertyHandle handle,
+            PropertyDefinitionHandle handle,
             PEMethodSymbol getMethod,
             PEMethodSymbol setMethod)
         {
@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             this.handle = handle;
 
             var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
-            byte callingConvention;
+            SignatureHeader callingConvention;
             BadImageFormatException propEx;
             var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
             Debug.Assert(propertyParams.Length > 0);
 
-            byte unusedCallingConvention;
+            SignatureHeader unusedCallingConvention;
             BadImageFormatException getEx = null;
             var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx);
             BadImageFormatException setEx = null;
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return this.name;
             }
         }
-        internal PropertyHandle Handle
+        internal PropertyDefinitionHandle Handle
         {
             get
             {
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 var metadataDecoder = new MetadataDecoder(containingType.ContainingPEModule, containingType);
-                return (Microsoft.Cci.CallingConvention)metadataDecoder.GetCallingConventionForProperty(handle);
+                return (Microsoft.Cci.CallingConvention)(metadataDecoder.GetSignatureHeaderForProperty(handle).RawValue);
             }
         }
 

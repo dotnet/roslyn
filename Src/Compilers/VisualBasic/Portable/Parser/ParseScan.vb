@@ -315,17 +315,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ResyncAt(ScannerState.VB, resyncTokens)
         End Function
 
-        Private Function ResyncAt(Of T As VBSyntaxNode)(syntax As T, state As ScannerState, ParamArray resyncTokens As SyntaxKind()) As T
+        Private Function ResyncAt(Of T As VisualBasicSyntaxNode)(syntax As T, state As ScannerState, ParamArray resyncTokens As SyntaxKind()) As T
             Debug.Assert(resyncTokens IsNot Nothing)
 
             Return syntax.AddTrailingSyntax(ResyncAt(state, resyncTokens))
         End Function
 
-        Private Function ResyncAt(Of T As VBSyntaxNode)(syntax As T) As T
+        Private Function ResyncAt(Of T As VisualBasicSyntaxNode)(syntax As T) As T
             Return syntax.AddTrailingSyntax(ResyncAt())
         End Function
 
-        Private Function ResyncAt(Of T As VBSyntaxNode)(syntax As T, ParamArray resyncTokens As SyntaxKind()) As T
+        Private Function ResyncAt(Of T As VisualBasicSyntaxNode)(syntax As T, ParamArray resyncTokens As SyntaxKind()) As T
             Debug.Assert(resyncTokens IsNot Nothing)
 
             Return syntax.AddTrailingSyntax(ResyncAt(resyncTokens))

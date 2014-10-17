@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindIsExpression(
              left As BoundExpression,
              right As BoundExpression,
-             node As VBSyntaxNode,
+             node As VisualBasicSyntaxNode,
              [isNot] As Boolean,
              diagnostics As DiagnosticBag
         ) As BoundExpression
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindBinaryOperator(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             left As BoundExpression,
             right As BoundExpression,
             operatorTokenKind As SyntaxKind,
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindUserDefinedNonShortCircuitingBinaryOperator(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             opKind As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -599,7 +599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     !T.IsTrue(temp = x) ? T.Or(temp, y) : temp
         ''' </summary>
         Private Function BindUserDefinedShortCircuitingOperator(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             opKind As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -788,7 +788,7 @@ Done:
         ''' lookups and construction of new instances of symbols.
         ''' </summary>
         Private Function GetSpecialTypeForBinaryOperator(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             leftType As TypeSymbol,
             rightType As TypeSymbol,
             specialType As SpecialType,
@@ -912,7 +912,7 @@ Done:
         End Function
 
         Private Sub ReportUndefinedOperatorError(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             left As BoundExpression,
             right As BoundExpression,
             operatorTokenKind As SyntaxKind,
@@ -1190,7 +1190,7 @@ Done:
         End Function
 
         Private Function BindUserDefinedUnaryOperator(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             opKind As UnaryOperatorKind,
             operand As BoundExpression,
             <[In]> ByRef userDefinedOperator As OverloadResolution.OverloadResolutionResult,

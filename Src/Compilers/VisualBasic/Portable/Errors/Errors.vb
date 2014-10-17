@@ -1664,7 +1664,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NullPropagatingOpInExpressionTree = 37240
         ERR_InsufficientStack = 37241
 
-        ERR_StructParameterlessInstanceCtorMustBePublic = 37241
+        ERR_StructParameterlessInstanceCtorMustBePublic = 37242
+        ERR_AutoPropertyCantBeWriteOnly = 37243
 
         ERR_LastPlusOne
 

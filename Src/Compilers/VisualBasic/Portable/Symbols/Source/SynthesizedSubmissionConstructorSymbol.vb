@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="container">The containing type for the synthesized constructor.</param>
         ''' <param name="isShared">if set to <c>true</c> if this is a shared constructor.</param>
         Friend Sub New(
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             container As NamedTypeSymbol,
             isShared As Boolean,
             binder As Binder,
@@ -60,10 +60,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Shared Function MakeSubmissionInitialization(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             constructor As MethodSymbol,
             synthesizedFields As SynthesizedSubmissionFields,
-            compilation As VBCompilation,
+            compilation As VisualBasicCompilation,
             diagnostics As DiagnosticBag) As ImmutableArray(Of BoundStatement)
 
             Debug.Assert(constructor.ParameterCount = 2)

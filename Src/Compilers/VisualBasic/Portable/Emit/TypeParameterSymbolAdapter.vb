@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return PrimitiveTypeCode.NotPrimitive
         End Function
 
-        Private ReadOnly Property ITypeReferenceTypeDef As TypeHandle Implements ITypeReference.TypeDef
+        Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements ITypeReference.TypeDef
             Get
                 Return Nothing
             End Get
@@ -189,12 +189,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If t.SpecialType = SpecialType.System_ValueType Then
                     seenValueType = True
                 End If
-                Yield _module.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
+                Yield _module.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             Next
             If Me.HasValueTypeConstraint AndAlso Not seenValueType Then
                 ' Add System.ValueType constraint to comply with Dev11 C# output
                 Yield _module.GetSpecialType(CodeAnalysis.SpecialType.System_ValueType,
-                                             DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), context.Diagnostics)
+                                             DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
             End If
         End Function
 

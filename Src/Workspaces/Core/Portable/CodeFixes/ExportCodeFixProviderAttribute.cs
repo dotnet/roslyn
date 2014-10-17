@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     public class ExportCodeFixProviderAttribute : ExportAttribute
     {
         /// <summary>
-        /// The name of the <see cref="CodeFixProvider"/>.  
+        /// Optional name of the <see cref="CodeFixProvider"/>.  
         /// </summary>
         public string Name { get; private set; }
 
@@ -37,12 +37,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException("languages");
             }
 
-            if (languages.Length == 0)
+            this.Name = name;
+            this.Languages = languages;
+        }
+
+        public ExportCodeFixProviderAttribute(
+            params string[] languages)
+            : base(typeof(CodeFixProvider))
+        {
+            if (languages == null)
             {
-                throw new ArgumentException("languages");
+                throw new ArgumentNullException("languages");
             }
 
-            this.Name = name;
+            this.Name = null;
             this.Languages = languages;
         }
     }

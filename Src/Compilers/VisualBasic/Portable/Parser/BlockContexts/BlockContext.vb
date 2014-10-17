@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Friend Sub Add(node As VBSyntaxNode)
+        Friend Sub Add(node As VisualBasicSyntaxNode)
             Debug.Assert(node IsNot Nothing)
 
             _statements.Add(DirectCast(node, StatementSyntax))
@@ -284,9 +284,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend MustOverride Function Parse() As StatementSyntax
 
-        Friend MustOverride Function ProcessSyntax(syntax As VBSyntaxNode) As BlockContext
+        Friend MustOverride Function ProcessSyntax(syntax As VisualBasicSyntaxNode) As BlockContext
 
-        Friend MustOverride Function CreateBlockSyntax(statement As StatementSyntax) As VBSyntaxNode
+        Friend MustOverride Function CreateBlockSyntax(statement As StatementSyntax) As VisualBasicSyntaxNode
 
         Friend MustOverride Function EndBlock(statement As StatementSyntax) As BlockContext
 
@@ -361,9 +361,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Crumble = 8             ' Crumble the syntax and try to reuse the parts.
         End Enum
 
-        Friend MustOverride Function TryLinkSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend MustOverride Function TryLinkSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
 
-        Friend Function LinkSyntax(node As VBSyntaxNode) As BlockContext
+        Friend Function LinkSyntax(node As VisualBasicSyntaxNode) As BlockContext
             Debug.Assert(node IsNot Nothing)
 
             Dim kind As SyntaxKind = node.Kind
@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return RecoverFromMismatchedEnd(DirectCast(node, StatementSyntax))
         End Function
 
-        Friend Function UseSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext, Optional AddMissingTerminator As Boolean = False) As LinkResult
+        Friend Function UseSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext, Optional AddMissingTerminator As Boolean = False) As LinkResult
             ' get off the current node as we are definitely using it and LinkStatement may need to look at next token
             Parser.GetNextSyntaxNode()
 
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return LinkResult.Used
         End Function
 
-        Friend Function TryUseStatement(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Function TryUseStatement(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
             Dim statement = TryCast(node, StatementSyntax)
             If statement IsNot Nothing Then
                 ' get off the current node as we are definitely using it and LinkStatement may need to look at next token
@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Returns Nothing if the statement isn't processed
-        Friend Function TryProcessExecutableStatement(node As VBSyntaxNode) As BlockContext
+        Friend Function TryProcessExecutableStatement(node As VisualBasicSyntaxNode) As BlockContext
             ' top-level statements
             Select Case node.Kind
                 Case SyntaxKind.SingleLineIfStatement
@@ -545,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Me
         End Function
 
-        Friend Function TryLinkStatement(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Function TryLinkStatement(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
             newContext = Nothing
             Select Case node.Kind
                 Case SyntaxKind.SelectBlock

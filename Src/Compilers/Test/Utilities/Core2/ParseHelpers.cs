@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private const string CS_PARSER_DLL = "Microsoft.CodeAnalysis.CSharp.dll";
         private const string VB_PARSER_DLL = "Microsoft.CodeAnalysis.VisualBasic.dll";
         private const string CS_SYNTAX_TREE_TYPE = "Roslyn.Compilers.CSharp.CSharpSyntaxTree";
-        private const string VB_SYNTAX_TREE_TYPE = "Roslyn.Compilers.VisualBasic.VBSyntaxTree";
+        private const string VB_SYNTAX_TREE_TYPE = "Roslyn.Compilers.VisualBasic.VisualBasicSyntaxTree";
         private const string CS_OPTIONS_TYPE = "Roslyn.Compilers.CSharp.ParseOptions";
         private const string VB_OPTIONS_TYPE = "Roslyn.Compilers.VisualBasic.ParseOptions";
         private const string SYNTAX_TREE_PARSE_METHOD = "ParseCompilationUnit";
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private Type m_VBParserType = null;
 #endif
         private Type m_CSSyntaxTreeType = null;
-        private Type m_VBSyntaxTreeType = null;
+        private Type m_VisualBasicSyntaxTreeType = null;
         private object m_CSOptions = null;
         private object m_VBOptions = null;
         private readonly string m_CSFileName = "Default.cs";
@@ -51,15 +51,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public SyntaxTree ParseVBTree(string code, string folder)
         {
-            if (m_VBSyntaxTreeType == null)
+            if (m_VisualBasicSyntaxTreeType == null)
             {
                 var asm = Assembly.LoadFrom(Path.Combine(folder, VB_PARSER_DLL));
-                m_VBSyntaxTreeType = asm.GetType(VB_SYNTAX_TREE_TYPE);
+                m_VisualBasicSyntaxTreeType = asm.GetType(VB_SYNTAX_TREE_TYPE);
                 m_CodeKind = Enum.Parse(asm.GetType(CODE_KIND_OPTION), "Regular");
                 m_VBOptions = Activator.CreateInstance(asm.GetType(VB_OPTIONS_TYPE), null, false, m_CodeKind);
             }
 
-            SyntaxTree syntaxTree = (SyntaxTree)m_VBSyntaxTreeType.InvokeMember(SYNTAX_TREE_PARSE_METHOD, BindingFlags.InvokeMethod, null, null, new[]
+            SyntaxTree syntaxTree = (SyntaxTree)m_VisualBasicSyntaxTreeType.InvokeMember(SYNTAX_TREE_PARSE_METHOD, BindingFlags.InvokeMethod, null, null, new[]
         {
         code, m_VBFileName, m_VBOptions
         }

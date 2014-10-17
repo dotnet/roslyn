@@ -40,9 +40,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\..\packages\Microsoft.Bcl.Immutable.1.1.20-beta\lib\portable-net45+win8\System.Collections.Immutable.dll</HintPath>
-    </Reference>
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.32-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <PropertyGroup>
     <NonShipping>true</NonShipping>

@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' 
         ''' Note: can return null if no override member with an actual overridden member was found.
         ''' </summary>
-        Private Function SetMetadataNamesOfOverrides(overloadedMembers As ArrayBuilder(Of Symbol), compilation As VBCompilation) As String
+        Private Function SetMetadataNamesOfOverrides(overloadedMembers As ArrayBuilder(Of Symbol), compilation As VisualBasicCompilation) As String
             Dim locationOfFirstOverride As Location = Nothing
             Dim firstOverrideName As String = Nothing
 
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Return the name of the lexically first symbol in "overloadedMembers".
         ''' </summary>
-        Private Function NameOfFirstMember(overloadedMembers As ArrayBuilder(Of Symbol), compilation As VBCompilation) As String
+        Private Function NameOfFirstMember(overloadedMembers As ArrayBuilder(Of Symbol), compilation As VisualBasicCompilation) As String
             Dim firstName As String = Nothing
             Dim locationOfFirstName As Location = Nothing
             For Each member In overloadedMembers

@@ -774,7 +774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 5717 - 5717
         ' Expression* .Parser::ParseForLoopControlVariable( [ ParseTree::BlockStatement* ForBlock ] [ _In_ Token* ForStart ] [ _Out_ ParseTree::VariableDeclarationStatement** Decl ] [ _Inout_ bool& ErrorInConstruct ] )
-        Private Function ParseForLoopControlVariable() As VBSyntaxNode
+        Private Function ParseForLoopControlVariable() As VisualBasicSyntaxNode
 
             'TODO - davidsch - I have kept this code as-is but it seems that it would be better to parse the common prefix of 
             ' ParseVariable and ParseForLoopVariableDeclaration instead of peeking for 'AS', 'IN', '='
@@ -1132,7 +1132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' A non-parenthesized argument list cannot contain
                     ' a newline.
 
-                    Dim unexpected As VBSyntaxNode = Nothing
+                    Dim unexpected As VisualBasicSyntaxNode = Nothing
                     Dim arguments = ParseArguments(unexpected)
                     Dim closeParen = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.CloseParenToken)
                     If unexpected IsNot Nothing Then
@@ -1588,7 +1588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return ReportSyntaxError(SyntaxFactory.LabelStatement(labelName, InternalSyntaxFactory.MissingPunctuation(SyntaxKind.ColonToken)), ERRID.ERR_ObsoleteLineNumbersAreLabels)
             End If
 
-            Dim trivia = New SyntaxList(Of VBSyntaxNode)(labelName.GetTrailingTrivia())
+            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(labelName.GetTrailingTrivia())
             Debug.Assert(trivia.Count > 0)
             Dim index = -1
             For i = 0 To trivia.Count - 1

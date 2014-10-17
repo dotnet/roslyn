@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodHandle> updatedMethods,
+            ICollection<MethodDefinitionHandle> updatedMethods,
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {

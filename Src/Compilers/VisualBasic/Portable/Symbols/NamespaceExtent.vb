@@ -57,10 +57,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If the Kind is ExtendKind.Compilation, returns the compilation symbol that this namespace
         ''' encompasses. Otherwise throws InvalidOperationException.
         ''' </summary>
-        Public ReadOnly Property Compilation As VBCompilation
+        Public ReadOnly Property Compilation As VisualBasicCompilation
             Get
                 If Kind = NamespaceKind.Compilation Then
-                    Return DirectCast(_symbolOrCompilation, VBCompilation)
+                    Return DirectCast(_symbolOrCompilation, VisualBasicCompilation)
                 Else
                     Throw New InvalidOperationException()
                 End If
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Create a NamespaceExtent that represents a given Compilation.
         ''' </summary>
-        Friend Sub New(compilation As VBCompilation)
+        Friend Sub New(compilation As VisualBasicCompilation)
             _kind = NamespaceKind.Compilation
             _symbolOrCompilation = compilation
         End Sub

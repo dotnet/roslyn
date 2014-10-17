@@ -2125,11 +2125,11 @@ namespace Microsoft.Cci
 
             fixed (byte* ptr = this.blobWriter.BaseStream.Buffer)
             {
-                var reader = new BlobReader((IntPtr)ptr + signatureOffset, (int)this.blobWriter.BaseStream.Length + (int)this.GetBlobStreamOffset() - signatureOffset);
-                uint size;
-                bool isValid = reader.TryReadCompressedUInt32(out size);
+                var reader = new BlobReader(ptr + signatureOffset, (int)this.blobWriter.BaseStream.Length + (int)this.GetBlobStreamOffset() - signatureOffset);
+                int size;
+                bool isValid = reader.TryReadCompressedInteger(out size);
                 Debug.Assert(isValid);
-                return reader.ReadBytes((int)size);
+                return reader.ReadBytes(size);
             }
         }
 

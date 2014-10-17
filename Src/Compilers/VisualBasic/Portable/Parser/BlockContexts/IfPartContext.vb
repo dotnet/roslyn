@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(kind = SyntaxKind.ElseIfBlock OrElse kind = SyntaxKind.ElseBlock)
         End Sub
 
-        Friend Overrides Function ProcessSyntax(node As VBSyntaxNode) As BlockContext
+        Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
 
             Select Case node.Kind
                 Case SyntaxKind.ElseIfStatement, SyntaxKind.ElseStatement
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MyBase.ProcessSyntax(node)
         End Function
 
-        Friend Overrides Function TryLinkSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Overrides Function TryLinkSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
             newContext = Nothing
             Select Case node.Kind
 
@@ -46,12 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
         End Function
 
-        Friend Overrides Function CreateBlockSyntax(statement As StatementSyntax) As VBSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(statement As StatementSyntax) As VisualBasicSyntaxNode
             Debug.Assert(statement Is Nothing)
 
             Debug.Assert(BeginStatement IsNot Nothing)
 
-            Dim result As VBSyntaxNode
+            Dim result As VisualBasicSyntaxNode
             If BeginStatement.Kind = SyntaxKind.ElseStatement Then
                 result = SyntaxFactory.ElseBlock(DirectCast(BeginStatement, ElseStatementSyntax), Body())
             Else

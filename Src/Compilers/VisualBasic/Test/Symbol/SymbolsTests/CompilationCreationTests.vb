@@ -23,7 +23,7 @@ Namespace CompilationCreationTestHelpers
         End Function
 
         <Extension()>
-        Friend Function SourceAssembly(this As VBCompilation) As SourceAssemblySymbol
+        Friend Function SourceAssembly(this As VisualBasicCompilation) As SourceAssemblySymbol
             Return DirectCast(this.Assembly, SourceAssemblySymbol)
         End Function
 
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub CorLibTypes()
             Dim mdTestLib1 = TestReferences.SymbolsTests.MDTestLib1
 
-            Dim c1 = VBCompilation.Create("Test", references:={MscorlibRef_v4_0_30316_17626, mdTestLib1})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={MscorlibRef_v4_0_30316_17626, mdTestLib1})
 
             Dim c107 As TypeSymbol = c1.GlobalNamespace.GetTypeMembers("C107").Single()
 
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.Equal(SpecialType.None, arrayOfc107.SpecialType)
 
-            Dim c2 = VBCompilation.Create("Test", references:={mdTestLib1})
+            Dim c2 = VisualBasicCompilation.Create("Test", references:={mdTestLib1})
 
             Assert.Equal(SpecialType.None, c2.GlobalNamespace.GetTypeMembers("C107").Single().SpecialType)
         End Sub
@@ -115,7 +115,7 @@ Namespace XYZ
 End Namespace
 </text>.Value)
 
-            Dim c1 = VBCompilation.Create("Test", {sourceTree}, DefaultReferences, TestOptions.ReleaseDll.WithRootNamespace("A.B.C"))
+            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, DefaultReferences, TestOptions.ReleaseDll.WithRootNamespace("A.B.C"))
 
             Dim root As NamespaceSymbol = c1.RootNamespace
             Assert.NotNull(root)
@@ -135,7 +135,7 @@ Namespace XYZ
 End Namespace
 </text>.Value)
 
-            Dim c1 = VBCompilation.Create("Test", {sourceTree}, DefaultReferences, TestOptions.ReleaseDll)
+            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, DefaultReferences, TestOptions.ReleaseDll)
 
             Dim root As NamespaceSymbol = c1.RootNamespace
             Assert.NotNull(root)
@@ -160,7 +160,7 @@ End Namespace
 
         <Fact()>
         Public Sub RootNamespace_NoFiles_UpdateCompilation()
-            Dim c1 = VBCompilation.Create("Test", references:=DefaultReferences, options:=TestOptions.ReleaseDll)
+            Dim c1 = VisualBasicCompilation.Create("Test", references:=DefaultReferences, options:=TestOptions.ReleaseDll)
 
             Dim root As NamespaceSymbol = c1.RootNamespace
             Assert.NotNull(root)
@@ -183,7 +183,7 @@ End Namespace
             Assert.True(root.IsGlobalNamespace)
         End Sub
 
-        Private Sub VerifyNamespaceShape(c1 As VBCompilation)
+        Private Sub VerifyNamespaceShape(c1 As VisualBasicCompilation)
 
             Dim globalNs = c1.GlobalNamespace
 
@@ -205,9 +205,9 @@ Namespace InSource
 End Namespace
 </text>.Value)
 
-            Dim c1 = VBCompilation.Create("Test", {sourceTree}, options:=TestOptions.ReleaseDll.WithRootNamespace("FromOptions"))
+            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, options:=TestOptions.ReleaseDll.WithRootNamespace("FromOptions"))
             VerifyNamespaceShape(c1)
-            c1 = VBCompilation.Create("Test", {sourceTree}, options:=TestOptions.ReleaseDll)
+            c1 = VisualBasicCompilation.Create("Test", {sourceTree}, options:=TestOptions.ReleaseDll)
             c1 = c1.WithOptions(c1.Options.WithRootNamespace("FromOptions"))
             VerifyNamespaceShape(c1)
         End Sub
@@ -217,7 +217,7 @@ End Namespace
             Dim mscorlibRef = TestReferences.NetFx.v4_0_30319.mscorlib
             Dim cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll
 
-            Dim tc1 = VBCompilation.Create("Cyclic1", references:={mscorlibRef, cyclic2Ref})
+            Dim tc1 = VisualBasicCompilation.Create("Cyclic1", references:={mscorlibRef, cyclic2Ref})
             Assert.NotNull(tc1.Assembly) ' force creation of SourceAssemblySymbol
 
             Dim cyclic1Asm = DirectCast(tc1.Assembly, SourceAssemblySymbol)
@@ -634,7 +634,7 @@ End Namespace
             identity As AssemblyIdentity,
             sources() As String,
             refs() As MetadataReference
-        ) As VBCompilation
+        ) As VisualBasicCompilation
             If identity.Name Is Nothing OrElse identity.Name.Length = 0 Then
                 identity = New AssemblyIdentity("Dummy")
             End If
@@ -642,14 +642,14 @@ End Namespace
             Dim trees As SyntaxTree() = Nothing
 
             If sources IsNot Nothing Then
-                trees = New VBSyntaxTree(sources.Length - 1) {}
+                trees = New VisualBasicSyntaxTree(sources.Length - 1) {}
 
                 For i As Integer = 0 To sources.Length - 1 Step 1
-                    trees(i) = VBSyntaxTree.ParseText(sources(i))
+                    trees(i) = VisualBasicSyntaxTree.ParseText(sources(i))
                 Next
             End If
 
-            Dim tc1 = VBCompilation.Create(identity.Name, trees, refs)
+            Dim tc1 = VisualBasicCompilation.Create(identity.Name, trees, refs)
             Assert.NotNull(tc1.Assembly) ' force creation of SourceAssemblySymbol
 
             DirectCast(tc1.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
@@ -1644,7 +1644,7 @@ End Class
 </s1>
             Dim c1_V1_Name = New AssemblyIdentity("c1", New Version("1.0.0.0"))
 
-            Dim c1_V1 As VBCompilation = CreateCompilation(c1_V1_Name,
+            Dim c1_V1 As VisualBasicCompilation = CreateCompilation(c1_V1_Name,
                                {source1.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
@@ -1652,7 +1652,7 @@ End Class
 
             Dim c1_V2_Name = New AssemblyIdentity("c1", New Version("2.0.0.0"))
 
-            Dim c1_V2 As VBCompilation = CreateCompilation(c1_V2_Name,
+            Dim c1_V2 As VisualBasicCompilation = CreateCompilation(c1_V2_Name,
                                {source1.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
@@ -1667,7 +1667,7 @@ End Class
 
             Dim c4_V1_Name = New AssemblyIdentity("c4", New Version("1.0.0.0"))
 
-            Dim c4_V1 As VBCompilation = CreateCompilation(c4_V1_Name,
+            Dim c4_V1 As VisualBasicCompilation = CreateCompilation(c4_V1_Name,
                                {source4.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
@@ -1675,7 +1675,7 @@ End Class
 
             Dim c4_V2_Name = New AssemblyIdentity("c4", New Version("2.0.0.0"))
 
-            Dim c4_V2 As VBCompilation = CreateCompilation(c4_V2_Name,
+            Dim c4_V2 As VisualBasicCompilation = CreateCompilation(c4_V2_Name,
                                {source4.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
@@ -1690,7 +1690,7 @@ Public Class C8(Of T)
 End Class
 </s3>
 
-            Dim c7 As VBCompilation = CreateCompilation(New AssemblyIdentity("C7"),
+            Dim c7 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C7"),
                                {source7.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
@@ -1765,7 +1765,7 @@ Namespace ns1
 End Namespace
 </s3>
 
-            Dim c3 As VBCompilation = CreateCompilation(New AssemblyIdentity("C3"),
+            Dim c3 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C3"),
                                {source3.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib,
                                 New VisualBasicCompilationReference(c1_V1),
@@ -1784,7 +1784,7 @@ Public Class C5
 End Class
 </s5>
 
-            Dim c5 As VBCompilation = CreateCompilation(New AssemblyIdentity("C5"),
+            Dim c5 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C5"),
                                {source5.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib,
                                New VisualBasicCompilationReference(c3),
@@ -2028,7 +2028,7 @@ End Class
         End Sub
 
         ' Very simplistic test if a compilation has a single type with the given full name. Does NOT handle generics.
-        Private Function HasSingleTypeOfKind(c As VBCompilation, kind As TypeKind, fullName As String) As Boolean
+        Private Function HasSingleTypeOfKind(c As VisualBasicCompilation, kind As TypeKind, fullName As String) As Boolean
             Dim names As String() = fullName.Split("."c)
 
             Dim current As NamespaceOrTypeSymbol = c.GlobalNamespace
@@ -2049,7 +2049,7 @@ End Class
             Dim systemCoreRef = TestReferences.NetFx.v4_0_30319.System_Core
             Dim systemRef = TestReferences.NetFx.v4_0_30319.System
 
-            Dim c = VBCompilation.Create("Test")
+            Dim c = VisualBasicCompilation.Create("Test")
             Assert.False(HasSingleTypeOfKind(c, TypeKind.Structure, "System.Int32"))
             c = c.AddReferences(mscorlibRef)
             Assert.True(HasSingleTypeOfKind(c, TypeKind.Structure, "System.Int32"))
@@ -2075,11 +2075,11 @@ End Class
             Dim tree2 = CreateSyntaxTree("B")
 
             Dim treeOrder1 = {tree1, tree2}
-            Dim compilation1 = VBCompilation.Create("Compilation1", syntaxTrees:=treeOrder1)
+            Dim compilation1 = VisualBasicCompilation.Create("Compilation1", syntaxTrees:=treeOrder1)
             CheckCompilationSyntaxTrees(compilation1, treeOrder1)
 
             Dim treeOrder2 = {tree2, tree1}
-            Dim compilation2 = VBCompilation.Create("Compilation2", syntaxTrees:=treeOrder2)
+            Dim compilation2 = VisualBasicCompilation.Create("Compilation2", syntaxTrees:=treeOrder2)
             CheckCompilationSyntaxTrees(compilation2, treeOrder2)
         End Sub
 
@@ -2091,7 +2091,7 @@ End Class
             Dim tree4 = CreateSyntaxTree("D")
 
             Dim treeList1 = {tree1, tree2}
-            Dim compilation1 = VBCompilation.Create("Compilation1", syntaxTrees:=treeList1)
+            Dim compilation1 = VisualBasicCompilation.Create("Compilation1", syntaxTrees:=treeList1)
             CheckCompilationSyntaxTrees(compilation1, treeList1)
 
             Dim treeList2 = {tree3, tree4}
@@ -2100,7 +2100,7 @@ End Class
             CheckCompilationSyntaxTrees(compilation2, treeList1.Concat(treeList2).ToArray())
 
             Dim treeList3 = {tree4, tree3}
-            Dim compilation3 = VBCompilation.Create("Compilation3", syntaxTrees:=treeList3)
+            Dim compilation3 = VisualBasicCompilation.Create("Compilation3", syntaxTrees:=treeList3)
             CheckCompilationSyntaxTrees(compilation3, treeList3)
 
             Dim treeList4 = {tree2, tree1}
@@ -2117,7 +2117,7 @@ End Class
             Dim tree4 = CreateSyntaxTree("D")
 
             Dim treeList1 = {tree1, tree2, tree3, tree4}
-            Dim compilation1 = VBCompilation.Create("Compilation1", syntaxTrees:=treeList1)
+            Dim compilation1 = VisualBasicCompilation.Create("Compilation1", syntaxTrees:=treeList1)
             CheckCompilationSyntaxTrees(compilation1, treeList1)
 
             Dim treeList2 = {tree3, tree1}
@@ -2126,7 +2126,7 @@ End Class
             CheckCompilationSyntaxTrees(compilation2, tree2, tree4)
 
             Dim treeList3 = {tree4, tree3, tree2, tree1}
-            Dim compilation3 = VBCompilation.Create("Compilation3", syntaxTrees:=treeList3)
+            Dim compilation3 = VisualBasicCompilation.Create("Compilation3", syntaxTrees:=treeList3)
             CheckCompilationSyntaxTrees(compilation3, treeList3)
 
             Dim treeList4 = {tree3, tree1}
@@ -2142,7 +2142,7 @@ End Class
             Dim tree3 = CreateSyntaxTree("C")
 
             Dim treeList1 = {tree1, tree2}
-            Dim compilation1 = VBCompilation.Create("Compilation1", syntaxTrees:=treeList1)
+            Dim compilation1 = VisualBasicCompilation.Create("Compilation1", syntaxTrees:=treeList1)
             CheckCompilationSyntaxTrees(compilation1, treeList1)
 
             Dim compilation2 = compilation1.ReplaceSyntaxTree(tree1, tree3)
@@ -2150,7 +2150,7 @@ End Class
             CheckCompilationSyntaxTrees(compilation2, tree3, tree2)
 
             Dim treeList3 = {tree2, tree1}
-            Dim compilation3 = VBCompilation.Create("Compilation3", syntaxTrees:=treeList3)
+            Dim compilation3 = VisualBasicCompilation.Create("Compilation3", syntaxTrees:=treeList3)
             CheckCompilationSyntaxTrees(compilation3, treeList3)
 
             Dim compilation4 = compilation3.ReplaceSyntaxTree(tree1, tree3)
@@ -2214,10 +2214,10 @@ End Class
         Private Shared Function CreateSyntaxTree(className As String) As SyntaxTree
             Dim text = String.Format("Public Partial Class {0}{1}End Class", className, Environment.NewLine)
             Dim path = String.Format("{0}.vb", className)
-            Return VBSyntaxTree.ParseText(text, path:=path)
+            Return VisualBasicSyntaxTree.ParseText(text, path:=path)
         End Function
 
-        Private Shared Sub CheckCompilationSyntaxTrees(compilation As VBCompilation, ParamArray expectedSyntaxTrees As SyntaxTree())
+        Private Shared Sub CheckCompilationSyntaxTrees(compilation As VisualBasicCompilation, ParamArray expectedSyntaxTrees As SyntaxTree())
             Dim actualSyntaxTrees = compilation.SyntaxTrees
 
             Dim numTrees = expectedSyntaxTrees.Length

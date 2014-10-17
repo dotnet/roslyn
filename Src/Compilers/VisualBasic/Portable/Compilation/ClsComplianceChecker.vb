@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly _defaultParallelOptions As New ParallelOptions
 
-        Private ReadOnly _compilation As VBCompilation
+        Private ReadOnly _compilation As VisualBasicCompilation
 
         ' if not null, limit analysis to types residing in this tree.
         Private ReadOnly _filterTree As SyntaxTree
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _declaredOrInheritedCompliance As ConcurrentDictionary(Of Symbol, Compliance)
 
-        Private Sub New(compilation As VBCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As ConcurrentQueue(Of Diagnostic), cancellationToken As CancellationToken)
+        Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As ConcurrentQueue(Of Diagnostic), cancellationToken As CancellationToken)
             Me._compilation = compilation
             Me._filterTree = filterTree
             Me._filterSpanWithinTree = filterSpanWithinTree
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="cancellationToken">To stop traversing the symbol table early.</param>
         ''' <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         ''' <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        Public Shared Sub CheckCompliance(compilation As VBCompilation, diagnostics As DiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
+        Public Shared Sub CheckCompliance(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
             Dim queue = New ConcurrentQueue(Of Diagnostic)()
             Dim checker = New ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken)
             checker.Visit(compilation.Assembly)

@@ -69,7 +69,7 @@ BC32042: Too few type arguments to 'vbCls5(Of UInteger()()).vbStrA(Of X, Y)'.
                 foo(x)
             End Sub
         End Module]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             CompileAndVerify(vbCompilation, expectedOutput:=<![CDATA[System.Int32
 System.Int64]]>).VerifyDiagnostics()
@@ -391,7 +391,7 @@ End Module
             End Sub
         End Module
         ]]>,
-                compilationOptions:=New VBCompilationOptions(OutputKind.ConsoleApplication, globalImports:=GlobalImport.Parse({"System"})))
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, globalImports:=GlobalImport.Parse({"System"})))
 
             CompileAndVerify(vbCompilation).VerifyDiagnostics(
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports Tuple = System.Tuple"))

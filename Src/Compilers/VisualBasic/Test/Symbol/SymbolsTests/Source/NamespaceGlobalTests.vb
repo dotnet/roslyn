@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         End Class
                     </file>
                 </compilation>)
-            Dim opt = New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("RootNS")
+            Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("RootNS")
             Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib(
                 <compilation name="comp2">
                     <file name="a.vb">
@@ -116,7 +116,7 @@ Class A
                              </file>
                          </compilation>
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(source)
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib(source, New VBCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Global"))
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Global"))
             Dim globalNS1 = compilation1.SourceModule.GlobalNamespace.GetMembers().Single()
             Dim globalNS2 = compilation2.SourceModule.GlobalNamespace.GetMembers().Single()
             Assert.Equal("Global", globalNS1.Name)

@@ -15,20 +15,20 @@ Imports Xunit
 
 Friend Module CompilationUtils
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String), Optional references As IEnumerable(Of MetadataReference) = Nothing, Optional compOptions As VBCompilationOptions = Nothing, Optional assemblyName As String = Nothing) As VBCompilation
-        Return VBCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VBSyntaxTree.ParseText(s)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String), Optional references As IEnumerable(Of MetadataReference) = Nothing, Optional compOptions As VisualBasicCompilationOptions = Nothing, Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), compOptions)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree), Optional compOptions As VBCompilationOptions = Nothing) As VBCompilation
-        Return VBCompilation.Create(GetUniqueName(), sourceTrees, {MscorlibRef}, compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree), Optional compOptions As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, {MscorlibRef}, compOptions)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As SyntaxTree, Optional compOptions As VBCompilationOptions = Nothing) As VBCompilation
-        Return VBCompilation.Create(GetUniqueName(), {sourceTrees}, {MscorlibRef}, compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As SyntaxTree, Optional compOptions As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(GetUniqueName(), {sourceTrees}, {MscorlibRef}, compOptions)
     End Function
 
 
-    Public Function CreateWinRtCompilation(text As XElement) As VBCompilation
+    Public Function CreateWinRtCompilation(text As XElement) As VisualBasicCompilation
         Return CreateCompilationWithReferences(text, WinRtRefs)
 
     End Function
@@ -44,18 +44,18 @@ Friend Module CompilationUtils
     ''' &lt;/compilation&gt;
     ''' </param>
     Public Function CreateCompilationWithMscorlib(sources As XElement,
-                                                  Optional options As VBCompilationOptions = Nothing,
+                                                  Optional options As VisualBasicCompilationOptions = Nothing,
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                   Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
-                                                  Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
+                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
         Return CreateCompilationWithReferences(sources, If(references IsNot Nothing, {MscorlibRef}.Concat(references), {MscorlibRef}), options, spans, parseOptions:=parseOptions)
     End Function
 
     Public Function CreateCompilationWithMscorlibAndReferences(sources As XElement,
                                                                references As IEnumerable(Of MetadataReference),
-                                                               Optional options As VBCompilationOptions = Nothing,
+                                                               Optional options As VisualBasicCompilationOptions = Nothing,
                                                                Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
-                                                               Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
+                                                               Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
         Return CreateCompilationWithReferences(sources, {MscorlibRef}.Concat(references), options, spans, parseOptions:=parseOptions)
     End Function
 
@@ -71,8 +71,8 @@ Friend Module CompilationUtils
     ''' </param>
     Public Function CreateCompilationWithMscorlib(sources As XElement,
                                                   outputKind As OutputKind,
-                                                  Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
-        Return CreateCompilationWithReferences(sources, {MscorlibRef}, New VBCompilationOptions(outputKind), parseOptions:=parseOptions)
+                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+        Return CreateCompilationWithReferences(sources, {MscorlibRef}, New VisualBasicCompilationOptions(outputKind), parseOptions:=parseOptions)
     End Function
 
     ''' <summary>
@@ -88,8 +88,8 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithMscorlibAndVBRuntime(
         sources As XElement,
         Optional additionalRefs As MetadataReference() = Nothing,
-        Optional options As VBCompilationOptions = Nothing,
-        Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
         If additionalRefs Is Nothing Then additionalRefs = {}
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
@@ -98,7 +98,7 @@ Friend Module CompilationUtils
     End Function
 
     Public Function CreateCompilationWithMscorlibAndVBRuntime(sources As XElement,
-                                                              options As VBCompilationOptions) As VBCompilation
+                                                              options As VisualBasicCompilationOptions) As VisualBasicCompilation
         Return CreateCompilationWithMscorlibAndVBRuntime(sources, Nothing, options, parseOptions:=If(options Is Nothing, Nothing, options.ParseOptions))
     End Function
 
@@ -120,8 +120,8 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         sources As XElement,
         Optional additionalRefs As IEnumerable(Of MetadataReference) = Nothing,
-        Optional options As VBCompilationOptions = Nothing,
-        Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
         If additionalRefs Is Nothing Then additionalRefs = {}
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
@@ -148,8 +148,8 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(
         sources As XElement,
         Optional additionalRefs As IEnumerable(Of MetadataReference) = Nothing,
-        Optional options As VBCompilationOptions = Nothing,
-        Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
         If additionalRefs Is Nothing Then additionalRefs = {}
         Dim references = {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929}.Concat(additionalRefs)
@@ -169,9 +169,9 @@ Friend Module CompilationUtils
     ''' </param>
     Public Function CreateCompilationWithReferences(sources As XElement,
                                                     references As IEnumerable(Of MetadataReference),
-                                                    Optional options As VBCompilationOptions = Nothing,
+                                                    Optional options As VisualBasicCompilationOptions = Nothing,
                                                     Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
-                                                    Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
+                                                    Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
         Dim assemblyName As String = sources.@name
         If assemblyName Is Nothing Then
             assemblyName = GetUniqueName()
@@ -186,8 +186,8 @@ Friend Module CompilationUtils
 
     Public Function CreateCompilationWithReferences(sourceTrees As IEnumerable(Of SyntaxTree),
                                                     references As IEnumerable(Of MetadataReference),
-                                                    Optional options As VBCompilationOptions = Nothing,
-                                                    Optional assemblyName As String = Nothing) As VBCompilation
+                                                    Optional options As VisualBasicCompilationOptions = Nothing,
+                                                    Optional assemblyName As String = Nothing) As VisualBasicCompilation
         If options Is Nothing Then
             options = TestOptions.ReleaseDll
 
@@ -197,7 +197,7 @@ Friend Module CompilationUtils
             End If
         End If
 
-        Return VBCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
+        Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
     End Function
 
     ''' <summary>
@@ -214,9 +214,9 @@ Friend Module CompilationUtils
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Function CreateCompilationWithoutReferences(sources As XElement,
-                                                           Optional options As VBCompilationOptions = Nothing,
+                                                           Optional options As VisualBasicCompilationOptions = Nothing,
                                                            Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
-                                                           Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
+                                                           Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
         Return CreateCompilationWithReferences(sources, DirectCast({}, IEnumerable(Of MetadataReference)), options, spans, parseOptions)
     End Function
 
@@ -233,7 +233,7 @@ Friend Module CompilationUtils
     ''' <param name="ilSource"></param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Function CreateCompilationWithCustomILSource(sources As XElement, ilSource As XCData) As VBCompilation
+    Public Function CreateCompilationWithCustomILSource(sources As XElement, ilSource As XCData) As VisualBasicCompilation
         Return CreateCompilationWithCustomILSource(sources, ilSource.Value)
     End Function
 
@@ -252,15 +252,15 @@ Friend Module CompilationUtils
     ''' <remarks></remarks>
     Public Function CreateCompilationWithCustomILSource(sources As XElement,
                                                         ilSource As String,
-                                                        Optional options As VBCompilationOptions = Nothing,
+                                                        Optional options As VisualBasicCompilationOptions = Nothing,
                                                         Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
                                                         Optional includeVbRuntime As Boolean = False,
                                                         Optional includeSystemCore As Boolean = False,
                                                         Optional appendDefaultHeader As Boolean = True,
-                                                        Optional parseOptions As VBParseOptions = Nothing,
+                                                        Optional parseOptions As VisualBasicParseOptions = Nothing,
                                                         <Out> Optional ByRef ilReference As MetadataReference = Nothing,
                                                         <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
-    ) As VBCompilation
+    ) As VisualBasicCompilation
         Dim references As New List(Of MetadataReference)
         If includeVbRuntime Then
             references.Add(MsvbRef)
@@ -507,7 +507,7 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' </param>
     Public Function CreateParseTree(programElement As XElement) As SyntaxTree
-        Return VBSyntaxTree.ParseText(FilterString(programElement.Value), path:=If(programElement.@name, ""), encoding:=Encoding.UTF8)
+        Return VisualBasicSyntaxTree.ParseText(FilterString(programElement.Value), path:=If(programElement.@name, ""), encoding:=Encoding.UTF8)
     End Function
 
     ''' <summary>
@@ -520,14 +520,14 @@ Friend Module CompilationUtils
     ''' </param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Function CreateParseTreeAndSpans(programElement As XElement, Optional parseOptions As VBParseOptions = Nothing) As Tuple(Of SyntaxTree, IList(Of TextSpan))
+    Public Function CreateParseTreeAndSpans(programElement As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As Tuple(Of SyntaxTree, IList(Of TextSpan))
         Dim codeWithMarker As String = FilterString(programElement.Value)
         Dim codeWithoutMarker As String = Nothing
         Dim spans As IList(Of TextSpan) = Nothing
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
         Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)
-        Return New Tuple(Of SyntaxTree, IList(Of TextSpan))(VBSyntaxTree.ParseText(text, parseOptions, If(programElement.@name, "")), spans)
+        Return New Tuple(Of SyntaxTree, IList(Of TextSpan))(VisualBasicSyntaxTree.ParseText(text, parseOptions, If(programElement.@name, "")), spans)
     End Function
 
     ' Find a node inside a tree.
@@ -565,7 +565,7 @@ Friend Module CompilationUtils
     End Function
 
     ' Get the symbol with a given full name. It must be unambiguous.
-    Public Function GetSymbolByFullName(compilation As VBCompilation, methodName As String) As Symbol
+    Public Function GetSymbolByFullName(compilation As VisualBasicCompilation, methodName As String) As Symbol
 
         Dim names = New List(Of String)()
         Dim offset = 0
@@ -597,7 +597,7 @@ Friend Module CompilationUtils
     End Function
 
     ' Check that the compilation has no parse or declaration errors.
-    Public Sub AssertNoDeclarationDiagnostics(compilation As VBCompilation, Optional suppressInfos As Boolean = True)
+    Public Sub AssertNoDeclarationDiagnostics(compilation As VisualBasicCompilation, Optional suppressInfos As Boolean = True)
         AssertNoDiagnostics(compilation.GetDeclarationDiagnostics(), suppressInfos)
     End Sub
 
@@ -605,7 +605,7 @@ Friend Module CompilationUtils
     ''' Does not consider INFO diagnostics.
     ''' </remarks>
     <Extension()>
-    Public Sub AssertNoDiagnostics(compilation As VBCompilation, Optional suppressInfos As Boolean = True)
+    Public Sub AssertNoDiagnostics(compilation As VisualBasicCompilation, Optional suppressInfos As Boolean = True)
         AssertNoDiagnostics(compilation.GetDiagnostics(), suppressInfos)
     End Sub
 
@@ -656,12 +656,12 @@ Friend Module CompilationUtils
     ''' <param name="suppressInfos">True to ignore info-severity diagnostics.</param>
     ''' <remarks></remarks>
     <Extension()>
-    Public Sub AssertTheseDeclarationDiagnostics(compilation As VBCompilation, errs As XElement, Optional suppressInfos As Boolean = True)
+    Public Sub AssertTheseDeclarationDiagnostics(compilation As VisualBasicCompilation, errs As XElement, Optional suppressInfos As Boolean = True)
         AssertTheseDiagnostics(compilation.GetDeclarationDiagnostics(), errs, suppressInfos)
     End Sub
 
     <Extension()>
-    Public Sub AssertTheseParseDiagnostics(compilation As VBCompilation, errs As XElement, Optional suppressInfos As Boolean = True)
+    Public Sub AssertTheseParseDiagnostics(compilation As VisualBasicCompilation, errs As XElement, Optional suppressInfos As Boolean = True)
         AssertTheseDiagnostics(compilation.GetParseDiagnostics(), errs, suppressInfos)
     End Sub
 
@@ -678,7 +678,7 @@ Friend Module CompilationUtils
         If errs Is Nothing Then
             errs = <errors/>
         End If
-        AssertTheseDiagnostics(DirectCast(compilation, VBCompilation).GetDiagnostics(CompilationStage.Compile), errs, suppressInfos)
+        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Compile), errs, suppressInfos)
     End Sub
 
     ''' <summary>
@@ -720,18 +720,18 @@ Friend Module CompilationUtils
         If errs Is Nothing Then
             errs = <errors/>
         End If
-        AssertTheseDiagnostics(DirectCast(compilation, VBCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
+        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
     End Sub
 
     <Extension()>
     Public Sub AssertTheseDiagnostics(compilation As Compilation, errs As XCData, Optional suppressInfos As Boolean = True)
-        AssertTheseDiagnostics(DirectCast(compilation, VBCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
+        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
     End Sub
 
     ' Check that a compilation has these declaration or compilation errors.
     <Extension()>
     Public Sub AssertTheseDiagnostics(compilation As Compilation, errs As String, Optional suppressInfos As Boolean = True)
-        AssertTheseDiagnostics(DirectCast(compilation, VBCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
+        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
     End Sub
 
     ''' <param name="errors"></param>
@@ -1046,7 +1046,7 @@ Friend Module CompilationUtils
         Return symbols
     End Function
 
-    Public Function VerifyGlobalNamespace(compilation As VBCompilation,
+    Public Function VerifyGlobalNamespace(compilation As VisualBasicCompilation,
                                  treeName As String,
                                  symbolName As String,
                                   ParamArray expectedDisplayNames() As String) As List(Of INamedTypeSymbol)

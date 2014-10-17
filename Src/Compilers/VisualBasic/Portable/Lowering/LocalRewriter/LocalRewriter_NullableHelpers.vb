@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           Me.Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
         End Function
 
-        Private Shared Function NullableNull(syntax As VBSyntaxNode, nullableType As TypeSymbol) As BoundExpression
+        Private Shared Function NullableNull(syntax As VisualBasicSyntaxNode, nullableType As TypeSymbol) As BoundExpression
             Debug.Assert(nullableType.IsNullableType)
 
             Return New BoundObjectCreationExpression(syntax,
@@ -260,19 +260,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return candidateNullExpression
         End Function
 
-        Private Function NullableFalse(syntax As VBSyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableFalse(syntax As VisualBasicSyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
             Debug.Assert(nullableOfBoolean.IsNullableOfBoolean)
             Dim booleanType = nullableOfBoolean.GetNullableUnderlyingType
             Return WrapInNullable(New BoundLiteral(syntax, ConstantValue.False, booleanType), nullableOfBoolean)
         End Function
 
-        Private Function NullableTrue(syntax As VBSyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableTrue(syntax As VisualBasicSyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
             Debug.Assert(nullableOfBoolean.IsNullableOfBoolean)
             Dim booleanType = nullableOfBoolean.GetNullableUnderlyingType
             Return WrapInNullable(New BoundLiteral(syntax, ConstantValue.True, booleanType), nullableOfBoolean)
         End Function
 
-        Private Function GetNullableMethod(syntax As VBSyntaxNode, nullableType As TypeSymbol, member As SpecialMember) As MethodSymbol
+        Private Function GetNullableMethod(syntax As VisualBasicSyntaxNode, nullableType As TypeSymbol, member As SpecialMember) As MethodSymbol
             Dim method As MethodSymbol = Nothing
 
             If TryGetSpecialMember(method, member, syntax) Then
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Function NullableOfBooleanValue(syntax As VBSyntaxNode, isTrue As Boolean, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableOfBooleanValue(syntax As VisualBasicSyntaxNode, isTrue As Boolean, nullableOfBoolean As TypeSymbol) As BoundExpression
             If isTrue Then
                 Return NullableTrue(syntax, nullableOfBoolean)
             Else
@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Performs some trivial constant folding.
         ''' TODO: Perhaps belong to a different file
         ''' </summary>
-        Private Function MakeBinaryExpression(syntax As VBSyntaxNode,
+        Private Function MakeBinaryExpression(syntax As VisualBasicSyntaxNode,
                                             binaryOpKind As BinaryOperatorKind,
                                             left As BoundExpression,
                                             right As BoundExpression,
@@ -423,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' When operand are boolean, the result type is same as operand's and is never checked 
         ''' so do not need to pass that in.
         ''' </summary>
-        Private Function MakeBooleanBinaryExpression(syntax As VBSyntaxNode,
+        Private Function MakeBooleanBinaryExpression(syntax As VisualBasicSyntaxNode,
                                     binaryOpKind As BinaryOperatorKind,
                                     left As BoundExpression,
                                     right As BoundExpression) As BoundExpression
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MakeBinaryExpression(syntax, binaryOpKind, left, right, False, left.Type)
         End Function
 
-        Private Function MakeNullLiteral(syntax As VBSyntaxNode, type As TypeSymbol) As BoundLiteral
+        Private Function MakeNullLiteral(syntax As VisualBasicSyntaxNode, type As TypeSymbol) As BoundLiteral
             Return New BoundLiteral(syntax, ConstantValue.Nothing, type)
         End Function
 
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Takes two expressions and makes sequence.
         ''' </summary>
-        Private Shared Function MakeSequence(syntax As VBSyntaxNode,
+        Private Shared Function MakeSequence(syntax As VisualBasicSyntaxNode,
                                              first As BoundExpression,
                                              second As BoundExpression) As BoundExpression
 
@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Takes two expressions and makes sequence.
         ''' </summary>
-        Private Function MakeTernaryConditionalExpression(syntax As VBSyntaxNode,
+        Private Function MakeTernaryConditionalExpression(syntax As VisualBasicSyntaxNode,
                                                           condition As BoundExpression,
                                                           whenTrue As BoundExpression,
                                                           whenFalse As BoundExpression) As BoundExpression

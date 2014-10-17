@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private ReadOnly m_name As String
         Private ReadOnly m_flags As EventAttributes
         Private ReadOnly m_containingType As PENamedTypeSymbol
-        Private ReadOnly m_handle As EventHandle
+        Private ReadOnly m_handle As EventDefinitionHandle
         Private ReadOnly m_eventType As TypeSymbol
         Private ReadOnly m_addMethod As PEMethodSymbol
         Private ReadOnly m_removeMethod As PEMethodSymbol
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Sub New(moduleSymbol As PEModuleSymbol,
                        containingType As PENamedTypeSymbol,
-                       handle As EventHandle,
+                       handle As EventDefinitionHandle,
                        addMethod As PEMethodSymbol,
                        removeMethod As PEMethodSymbol,
                        raiseMethod As PEMethodSymbol)
@@ -76,8 +76,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Me.m_handle = handle
 
             If m_eventType Is Nothing Then
-                Dim metadataDecoder = New metadataDecoder(moduleSymbol, containingType)
-                Me.m_eventType = metadataDecoder.GetTypeOfToken(eventType)
+                Dim metadataDecoder = New MetadataDecoder(moduleSymbol, containingType)
+                Me.m_eventType = MetadataDecoder.GetTypeOfToken(eventType)
             End If
 
             If Me.m_addMethod IsNot Nothing Then
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend ReadOnly Property Handle As EventHandle
+        Friend ReadOnly Property Handle As EventDefinitionHandle
             Get
                 Return m_handle
             End Get
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
-        Friend Overrides ReadOnly Property DeclaringCompilation As VBCompilation
+        Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
             End Get

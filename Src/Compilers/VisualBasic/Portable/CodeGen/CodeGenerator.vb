@@ -193,15 +193,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.EmitLocalStore(slot)
         End Sub
 
-        Private Sub EmitSymbolToken(symbol As FieldSymbol, syntaxNode As VBSyntaxNode)
+        Private Sub EmitSymbolToken(symbol As FieldSymbol, syntaxNode As VisualBasicSyntaxNode)
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
         End Sub
 
-        Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As VBSyntaxNode)
+        Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As VisualBasicSyntaxNode)
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
         End Sub
 
-        Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As VBSyntaxNode)
+        Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
         End Sub
 
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.DefineHiddenSequencePoint()
         End Sub
 
-        Private Sub EmitSequencePoint(syntax As VBSyntaxNode)
+        Private Sub EmitSequencePoint(syntax As VisualBasicSyntaxNode)
             EmitSequencePoint(syntax.SyntaxTree, syntax.Span)
         End Sub
 

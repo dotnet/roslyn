@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub MissingTypes()
-            VBCompilation.Create("test", syntaxTrees:={Parse("Delegate Sub A()")}, options:=TestOptions.ReleaseDll).VerifyDiagnostics(
+            VisualBasicCompilation.Create("test", syntaxTrees:={Parse("Delegate Sub A()")}, options:=TestOptions.ReleaseDll).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_UndefinedType1, "Delegate Sub A()").WithArguments("System.Void"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "Delegate Sub A()").WithArguments("System.Void"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "Delegate Sub A()").WithArguments("System.IAsyncResult"),

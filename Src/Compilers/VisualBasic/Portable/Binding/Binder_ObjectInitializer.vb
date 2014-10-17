@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindObjectCreationExpression(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             type As TypeSymbol,
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As DiagnosticBag) As BoundExpression
@@ -178,15 +178,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindObjectCreationExpression(
-            typeNode As VBSyntaxNode,
+            typeNode As VisualBasicSyntaxNode,
             argumentListOpt As ArgumentListSyntax,
             type0 As TypeSymbol,
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             objectInitializerExpressionOpt As BoundObjectInitializerExpressionBase,
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VBSyntaxNode
+            callerInfoOpt As VisualBasicSyntaxNode
         ) As BoundExpression
 
             Dim resultKind As LookupResultKind = LookupResultKind.Good
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindNoPiaObjectCreationExpression(
-            node As VBSyntaxNode,
+            node As VisualBasicSyntaxNode,
             [interface] As TypeSymbol,
             coClass As NamedTypeSymbol,
             boundArguments As ImmutableArray(Of BoundExpression),

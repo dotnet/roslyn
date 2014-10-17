@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
     Partial Friend MustInherit Class PEModuleBuilder
-        Inherits PEModuleBuilder(Of VBCompilation, Symbol, SourceModuleSymbol, ModuleSymbol, AssemblySymbol, NamespaceSymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, VBSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState)
+        Inherits PEModuleBuilder(Of VisualBasicCompilation, Symbol, SourceModuleSymbol, ModuleSymbol, AssemblySymbol, NamespaceSymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, VisualBasicSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState)
 
         ' Not many methods should end up here.
         Private ReadOnly m_DisableJITOptimization As ConcurrentDictionary(Of MethodSymbol, Boolean) = New ConcurrentDictionary(Of MethodSymbol, Boolean)(ReferenceEqualityComparer.Instance)
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Private Function GetSmallestSourceLocationOrNull(symbol As Symbol) As Location
-            Dim compilation As VBCompilation = symbol.DeclaringCompilation
+            Dim compilation As VisualBasicCompilation = symbol.DeclaringCompilation
             Debug.Assert(Me.Compilation Is compilation, "How did we get symbol from different compilation?")
 
             Dim result As Location = Nothing
@@ -535,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VBSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Dim systemTypeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
 
             Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(systemTypeSymbol)
@@ -548,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
         End Function
 
-        Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VBSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+        Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Dim typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType)
 
             Dim info = Binder.GetUseSiteErrorForSpecialType(typeSymbol)

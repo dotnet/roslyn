@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' as soon as symbols for children are created.
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_TypesByNS As IEnumerable(Of IGrouping(Of String, TypeHandle))
+        Private m_TypesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
 
         ''' <summary>
         ''' Constructor.
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Sub New(
             name As String,
             containingNamespace As PENamespaceSymbol,
-            typesByNS As IEnumerable(Of IGrouping(Of String, TypeHandle))
+            typesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
         )
             Debug.Assert(name IsNot Nothing AndAlso name.Length > 0)
             Debug.Assert(containingNamespace IsNot Nothing)
@@ -135,15 +135,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         '''     NotApplicable - if there are no types.
         ''' </summary>
         Protected Overrides Function GetDeclaredAccessibilityOfMostAccessibleDescendantType() As Accessibility
-            Dim typesByNS As IEnumerable(Of IGrouping(Of String, TypeHandle)) = m_TypesByNS
+            Dim typesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)) = m_TypesByNS
 
             If typesByNS IsNot Nothing AndAlso m_lazyTypes Is Nothing Then
                 ' Calculate this without creating symbols for children
                 Dim [module] = ContainingPEModule.Module
                 Dim result As Accessibility = Accessibility.NotApplicable
 
-                For Each group As IGrouping(Of String, TypeHandle) In typesByNS
-                    For Each typeDef As TypeHandle In group
+                For Each group As IGrouping(Of String, TypeDefinitionHandle) In typesByNS
+                    For Each typeDef As TypeDefinitionHandle In group
                         Dim flags As TypeAttributes
 
                         Try
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
-        Friend Overrides ReadOnly Property DeclaringCompilation As VBCompilation
+        Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
             End Get

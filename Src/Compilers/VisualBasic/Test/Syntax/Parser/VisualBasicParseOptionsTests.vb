@@ -6,8 +6,8 @@ Imports Roslyn.Test.Utilities
 Public Class VisualBasicParseOptionsTests
     Inherits BasicTestBase
 
-    Private Sub TestProperty(Of T)(factory As Func(Of VBParseOptions, T, VBParseOptions), getter As Func(Of VBParseOptions, T), validValue As T)
-        Dim oldOpt1 = VBParseOptions.Default
+    Private Sub TestProperty(Of T)(factory As Func(Of VisualBasicParseOptions, T, VisualBasicParseOptions), getter As Func(Of VisualBasicParseOptions, T), validValue As T)
+        Dim oldOpt1 = VisualBasicParseOptions.Default
         Dim newOpt1 = factory(oldOpt1, validValue)
         Dim newOpt2 = factory(newOpt1, validValue)
         Assert.Equal(validValue, getter(newOpt1))
@@ -20,8 +20,8 @@ Public Class VisualBasicParseOptionsTests
         TestProperty(Function(old, value) old.WithLanguageVersion(value), Function(opt) opt.LanguageVersion, LanguageVersion.VisualBasic9)
         TestProperty(Function(old, value) old.WithDocumentationMode(value), Function(opt) opt.DocumentationMode, DocumentationMode.None)
 
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VBParseOptions.Default.WithKind(DirectCast(Integer.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VBParseOptions.Default.WithLanguageVersion(DirectCast(1000, LanguageVersion)))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithKind(DirectCast(Integer.MaxValue, SourceCodeKind)))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithLanguageVersion(DirectCast(1000, LanguageVersion)))
     End Sub
 
     <Fact>
@@ -32,22 +32,22 @@ Public Class VisualBasicParseOptionsTests
 
         TestProperty(Function(old, value) old.WithPreprocessorSymbols(value), Function(opt) opt.PreprocessorSymbols, syms)
 
-        Assert.Equal(0, VBParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
-        Assert.Equal(0, VBParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
-        Assert.Equal(0, VBParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
+        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
+        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
+        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
 
         Dim syms2 = {New KeyValuePair(Of String, Object)("A", 1),
                      New KeyValuePair(Of String, Object)("B", New List(Of String)()),
                      New KeyValuePair(Of String, Object)("C", 3)}
 
-        Assert.Throws(Of ArgumentException)(Function() New VBParseOptions(preprocessorSymbols:=syms2))
-        Assert.Throws(Of ArgumentException)(Function() VBParseOptions.Default.WithPreprocessorSymbols(syms2))
+        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms2))
+        Assert.Throws(Of ArgumentException)(Function() VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms2))
     End Sub
 
     <Fact>
     Public Sub ConstructorValidation()
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VBParseOptions(kind:=DirectCast(Int32.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VBParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(kind:=DirectCast(Int32.MaxValue, SourceCodeKind)))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
     End Sub
 
     <Fact, WorkItem(546206, "DevDiv")>
@@ -56,28 +56,28 @@ Public Class VisualBasicParseOptionsTests
         ' Command line: error BC31030: Project-level conditional compilation constant 'xxx' is not valid: Identifier expected
 
         Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("", 1))
-        Assert.Throws(Of ArgumentException)(Function() New VBParseOptions(preprocessorSymbols:=syms))
+        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
         syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)(" ", 1))
-        Assert.Throws(Of ArgumentException)(Function() New VBParseOptions(preprocessorSymbols:=syms))
+        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
         syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
                                      New KeyValuePair(Of String, Object)(Nothing, 2))
-        Assert.Throws(Of ArgumentException)(Function() New VBParseOptions(preprocessorSymbols:=syms))
+        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
         syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
                                      New KeyValuePair(Of String, Object)("Bad.Symbol", 2))
-        Assert.Throws(Of ArgumentException)(Function() New VBParseOptions(preprocessorSymbols:=syms))
+        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
         syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("123", 1),
                                      New KeyValuePair(Of String, Object)("Bad/Symbol", 2),
                                      New KeyValuePair(Of String, Object)("Good", 3))
-        Assert.Throws(Of ArgumentException)(Function() New VBParseOptions(preprocessorSymbols:=syms))
+        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
     End Sub
 
     <Fact>
     Public Sub PredefinedPreprocessorSymbols()
-        Dim options = VBParseOptions.Default
+        Dim options = VisualBasicParseOptions.Default
         Dim empty = ImmutableArray.Create(Of KeyValuePair(Of String, Object))()
 
         Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.NetModule)
@@ -104,7 +104,7 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact(Skip:="Win8 targets")>
     Public Sub PredefinedPreprocessorSymbols_Win8()
-        Dim options = VBParseOptions.Default
+        Dim options = VisualBasicParseOptions.Default
 
         ' TODO: Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.WinMD)
         ' AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
@@ -228,7 +228,7 @@ Public Class VisualBasicParseOptionsTests
     <Fact>
     Public Sub TestFieldsForEqualsAndGetHashCode()
         ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
-                (GetType(VBParseOptions)),
+                (GetType(VisualBasicParseOptions)),
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols")
@@ -236,7 +236,7 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact>
     Public Sub Serializability()
-        VerifySerializability(New VBSerializableParseOptions(New VBParseOptions(
+        VerifySerializability(New VisualBasicSerializableParseOptions(New VisualBasicParseOptions(
                     languageVersion:=LanguageVersion.Experimental,
                     documentationMode:=DocumentationMode.Diagnose)))
     End Sub

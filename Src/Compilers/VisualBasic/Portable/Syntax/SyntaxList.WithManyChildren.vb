@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Function
 
             Friend Overrides Function GetCachedSlot(i As Integer) As SyntaxNode
-                Return TryCast(Me._children(i).Value, VBSyntaxNode)
+                Return TryCast(Me._children(i).Value, VisualBasicSyntaxNode)
             End Function
         End Class
     End Class

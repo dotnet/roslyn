@@ -761,7 +761,7 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VBSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
                 If m_syntaxReferenceOpt Is Nothing Then
                     Return Nothing
@@ -870,7 +870,7 @@ lReportErrorOnTwoTokens:
 
         ' Get the location of a method given the syntax for its declaration. We use the location of the name
         ' of the method, or similar keywords.
-        Private Shared Function GetMethodLocationFromSyntax(node As VBSyntaxNode) As TextSpan
+        Private Shared Function GetMethodLocationFromSyntax(node As VisualBasicSyntaxNode) As TextSpan
             Select Case node.Kind
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression,

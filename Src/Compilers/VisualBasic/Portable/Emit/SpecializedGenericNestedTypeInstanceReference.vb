@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim builder = ArrayBuilder(Of Cci.ITypeReference).GetInstance()
             For Each t In m_UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics
-                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics))
+                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics))
             Next
 
             Return builder.ToImmutableAndFree()

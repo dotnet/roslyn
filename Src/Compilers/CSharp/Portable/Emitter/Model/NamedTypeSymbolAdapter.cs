@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Cci.PrimitiveTypeCode.NotPrimitive;
         }
 
-        TypeHandle Cci.ITypeReference.TypeDef
+        TypeDefinitionHandle Cci.ITypeReference.TypeDef
         {
             get
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return peNamedType.Handle;
                 }
 
-                return default(TypeHandle);
+                return default(TypeDefinitionHandle);
             }
         }
 

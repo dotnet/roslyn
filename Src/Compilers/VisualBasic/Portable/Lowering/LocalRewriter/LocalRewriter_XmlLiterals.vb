@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The resulting local is treated as an rvalue, and the
         ''' initialization assignment is added to 'sideEffects'.
         ''' </summary>
-        Private Function CreateTempLocal(syntax As VBSyntaxNode, type As TypeSymbol, expr As BoundExpression, sideEffects As ArrayBuilder(Of BoundExpression)) As BoundLocal
+        Private Function CreateTempLocal(syntax As VisualBasicSyntaxNode, type As TypeSymbol, expr As BoundExpression, sideEffects As ArrayBuilder(Of BoundExpression)) As BoundLocal
             Dim local = New BoundLocal(syntax, New SynthesizedLocal(Me.currentMethodOrLambda, type, SynthesizedLocalKind.LoweringTemp), type)
             sideEffects.Add(New BoundAssignmentOperator(syntax, local, expr, suppressObjectClone:=True, type:=type))
             Return local.MakeRValue()
@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       objCreation.Type)
         End Function
 
-        Private Function CreateTempLocalInExpressionLambda(syntax As VBSyntaxNode, type As TypeSymbol, expr As BoundExpression) As BoundLocal
+        Private Function CreateTempLocalInExpressionLambda(syntax As VisualBasicSyntaxNode, type As TypeSymbol, expr As BoundExpression) As BoundLocal
             Dim local As New SynthesizedLocal(Me.topMethod, type, SynthesizedLocalKind.XmlInExpressionLambda, Me.currentMethodOrLambda.Syntax)
             Dim boundLocal = New BoundLocal(syntax, local, type)
             Me.xmlFixupData.AddLocal(local, New BoundAssignmentOperator(syntax, boundLocal, expr, suppressObjectClone:=True, type:=type))
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CreatePrefixesAndNamespacesArrays(
                                                          rewriterInfo As BoundXmlContainerRewriterInfo,
-                                                         syntax As VBSyntaxNode,
+                                                         syntax As VisualBasicSyntaxNode,
                                                          <Out()> ByRef prefixes As BoundExpression,
                                                          <Out()> ByRef namespaces As BoundExpression)
 
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             namespaces = VisitExpressionNode(CreateCompilerGeneratedArray(syntax, rewriterInfo.NamespacesPlaceholder.Type, namespacesBuilder.ToImmutableAndFree()))
         End Sub
 
-        Private Function BindXmlNamespace(syntax As VBSyntaxNode, [namespace] As BoundExpression) As BoundExpression
+        Private Function BindXmlNamespace(syntax As VisualBasicSyntaxNode, [namespace] As BoundExpression) As BoundExpression
             ' XNamespace.Get must exist since we only add XNamespaces in
             ' lowering if corresponding XNamespaces were created when binding
             ' the containing XElement. (See Binder.BindXmlContainerRewriterInfo
@@ -318,15 +318,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      type:=method.ReturnType).MakeCompilerGenerated()
         End Function
 
-        Private Function CreateStringLiteral(syntax As VBSyntaxNode, str As String) As BoundLiteral
+        Private Function CreateStringLiteral(syntax As VisualBasicSyntaxNode, str As String) As BoundLiteral
             Return New BoundLiteral(syntax, ConstantValue.Create(str), GetSpecialType(SpecialType.System_String)).MakeCompilerGenerated()
         End Function
 
-        Private Function CreateCompilerGeneratedXmlnsPrefix(syntax As VBSyntaxNode, prefix As String) As BoundExpression
+        Private Function CreateCompilerGeneratedXmlnsPrefix(syntax As VisualBasicSyntaxNode, prefix As String) As BoundExpression
             Return CreateStringLiteral(syntax, If(prefix = StringConstants.DefaultXmlnsPrefix, StringConstants.XmlnsPrefix, prefix))
         End Function
 
-        Private Function CreateCompilerGeneratedXmlNamespace(syntax As VBSyntaxNode, [namespace] As String) As BoundExpression
+        Private Function CreateCompilerGeneratedXmlNamespace(syntax As VisualBasicSyntaxNode, [namespace] As String) As BoundExpression
             Return BindXmlNamespace(syntax, CreateStringLiteral(syntax, [namespace]))
         End Function
 
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If there are zero items, the result is a BoundLiteral Nothing, otherwise, a BoundArrayCreation.
         ''' </summary>
         Private Function CreateCompilerGeneratedArray(
-                                                     syntax As VBSyntaxNode,
+                                                     syntax As VisualBasicSyntaxNode,
                                                      arrayType As TypeSymbol,
                                                      items As ImmutableArray(Of BoundExpression)) As BoundExpression
             Dim result As BoundExpression

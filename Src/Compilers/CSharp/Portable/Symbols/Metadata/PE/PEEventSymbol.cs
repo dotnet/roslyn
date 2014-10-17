@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         private readonly string name;
         private readonly PENamedTypeSymbol containingType;
-        private readonly EventHandle handle;
+        private readonly EventDefinitionHandle handle;
         private readonly TypeSymbol eventType;
         private readonly PEMethodSymbol addMethod;
         private readonly PEMethodSymbol removeMethod;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal PEEventSymbol(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
-            EventHandle handle,
+            EventDefinitionHandle handle,
             PEMethodSymbol addMethod,
             PEMethodSymbol removeMethod)
         {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return (flags & Flags.IsRuntimeSpecialName) != 0; }
         }
 
-        internal EventHandle Handle
+        internal EventDefinitionHandle Handle
         {
             get
             {
@@ -359,9 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // CONSIDER: It would be nice if we could reuse this signature information in the PEMethodSymbol.
             var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
-            byte callingConvention;
+            SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out callingConvention, out mrEx, setParamHandles: false);
+            var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
 
             if (mrEx != null)
             {

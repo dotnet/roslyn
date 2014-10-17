@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compilation = semanticModelOpt.Compilation
 
             Dim sourceModule = DirectCast(compilation.SourceModule, SourceModuleSymbol)
-            Dim sourceFile = sourceModule.GetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VBSyntaxTree))
+            Dim sourceFile = sourceModule.GetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VisualBasicSyntaxTree))
 
             If Not sourceFile.AliasImports Is Nothing Then
                 For Each [alias] In sourceFile.AliasImports.Values
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function IsDerivedFromAttributeType(ByVal derivedType As INamedTypeSymbol) As Boolean
             Return semanticModelOpt IsNot Nothing AndAlso
                 DirectCast(derivedType, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute,
-                                                                                       DirectCast(semanticModelOpt.Compilation, VBCompilation),
+                                                                                       DirectCast(semanticModelOpt.Compilation, VisualBasicCompilation),
                                                                                        useSiteDiagnostics:=Nothing)
         End Function
     End Class

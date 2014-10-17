@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="copyConstructor">Specifies whether the Frame needs a copy-constructor.</param>
         Friend Sub New(compilationState As TypeCompilationState,
                        topLevelMethod As MethodSymbol,
-                       scopeSyntax As VBSyntaxNode,
+                       scopeSyntax As VisualBasicSyntaxNode,
                        copyConstructor As Boolean)
 
             MyBase.New(topLevelMethod, GeneratedNames.MakeLambdaDisplayClassName(compilationState.GenerateTempNumber()), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
@@ -58,11 +58,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         <Conditional("DEBUG")>
-        Private Shared Sub AssertIsLambdaScopeSyntax(syntax As VBSyntaxNode)
+        Private Shared Sub AssertIsLambdaScopeSyntax(syntax As VisualBasicSyntaxNode)
 
         End Sub
 
-        Public ReadOnly Property ScopeSyntax As VBSyntaxNode
+        Public ReadOnly Property ScopeSyntax As VisualBasicSyntaxNode
             Get
                 Return m_constructor.Syntax
             End Get

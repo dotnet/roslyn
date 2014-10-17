@@ -548,7 +548,7 @@ End Module
             Assert.Equal(SymbolKind.Parameter, e.Kind)
             Assert.Equal("e", e.Name)
 
-            Assert.Same(e, semanticModel.GetDeclaredSymbol(DirectCast(node1, VBSyntaxNode)))
+            Assert.Same(e, semanticModel.GetDeclaredSymbol(DirectCast(node1, VisualBasicSyntaxNode)))
             Assert.Same(e, semanticModel.GetDeclaredSymbol(node1.Parent))
             Assert.Same(e, semanticModel.GetDeclaredSymbol(DirectCast(node1.Parent, ParameterSyntax)))
 

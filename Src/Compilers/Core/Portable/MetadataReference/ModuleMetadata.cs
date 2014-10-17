@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="size">The size of the image pointed to by <paramref name="peImage"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
-        public static ModuleMetadata CreateFromImage(IntPtr peImage, int size)
+        public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
         {
             if (peImage == IntPtr.Zero)
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader(peImage, size));
+            return new ModuleMetadata(new PEReader((byte*)peImage, size));
         }
 
         /// <summary>

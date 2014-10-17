@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return Cci.PrimitiveTypeCode.NotPrimitive;
         }
 
-        public TypeHandle TypeDef
+        public TypeDefinitionHandle TypeDef
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

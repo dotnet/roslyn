@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we can skip nullable wrapping/unwrapping
 
             BoundConditionalAccess conditionalAccess;
-            if (TryGetOptimizableNullableConditionalAccess(node.LeftOperand, out conditionalAccess))
+            var leftConversion = node.LeftConversion;
+
+            if ((leftConversion.IsIdentity || leftConversion.Kind == ConversionKind.ExplicitNullable) &&
+                TryGetOptimizableNullableConditionalAccess(node.LeftOperand, out conditionalAccess))
             {
                 return FuseNodes(conditionalAccess, node);
             }

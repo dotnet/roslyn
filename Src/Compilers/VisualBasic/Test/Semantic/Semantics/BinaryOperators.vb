@@ -727,7 +727,7 @@ BC42019: Operands of type Object used for operator '&gt;'; runtime errors could 
                   ~~
 </expected>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
             CompilationUtils.AssertTheseDiagnostics(compilation, expected)
 
@@ -978,7 +978,7 @@ End Class
             op As BinaryOperatorKind,
             leftType As TypeSymbol,
             rightType As TypeSymbol,
-            compilation As VBCompilation,
+            compilation As VisualBasicCompilation,
             semanticModel As SemanticModel,
             node1 As BinaryExpressionSyntax,
             node2 As BinaryExpressionSyntax,

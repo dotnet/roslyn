@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Public Class VBSyntaxNode
+    Partial Public Class VisualBasicSyntaxNode
 
         Friend Function FindTokenInternal(position As Integer) As SyntaxToken
             ' While maintaining invariant   curNode.FullSpan.Start <= position < curNode.FullSpan.End
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If trivia.HasStructure AndAlso stepInto(trivia) Then
-                tk = DirectCast(trivia.GetStructure(), VBSyntaxNode).FindTokenInternal(position)
+                tk = DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode).FindTokenInternal(position)
             End If
 
             Return tk

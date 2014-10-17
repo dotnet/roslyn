@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Extension>
         Friend Function GetLocation(syntaxReference As SyntaxReference) As Location
-            Dim tree = TryCast(syntaxReference.SyntaxTree, VBSyntaxTree)
+            Dim tree = TryCast(syntaxReference.SyntaxTree, VisualBasicSyntaxTree)
             If syntaxReference.SyntaxTree IsNot Nothing Then
                 If tree.IsEmbeddedSyntaxTree Then
                     Return New EmbeddedTreeLocation(tree.GetEmbeddedKind, syntaxReference.Span)
@@ -184,56 +184,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Extension>
         Friend Function IsMyTemplate(syntaxTree As SyntaxTree) As Boolean
-            Dim vbTree = TryCast(syntaxTree, VBSyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, VisualBasicSyntaxTree)
             Return vbTree IsNot Nothing AndAlso vbTree.IsMyTemplate
         End Function
 
         <Extension>
         Friend Function HasReferenceDirectives(syntaxTree As SyntaxTree) As Boolean
-            Dim vbTree = TryCast(syntaxTree, VBSyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, VisualBasicSyntaxTree)
             Return vbTree IsNot Nothing AndAlso vbTree.HasReferenceDirectives
         End Function
 
         <Extension>
         Friend Function IsAnyPreprocessorSymbolDefined(syntaxTree As SyntaxTree, conditionalSymbolNames As IEnumerable(Of String), atNode As SyntaxNodeOrToken) As Boolean
-            Dim vbTree = TryCast(syntaxTree, VBSyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, VisualBasicSyntaxTree)
             Return vbTree IsNot Nothing AndAlso vbTree.IsAnyPreprocessorSymbolDefined(conditionalSymbolNames, atNode)
         End Function
 
         <Extension>
-        Friend Function GetVisualBasicSyntax(syntaxReference As SyntaxReference, Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
-            Return DirectCast(syntaxReference.GetSyntax(cancellationToken), VBSyntaxNode)
+        Friend Function GetVisualBasicSyntax(syntaxReference As SyntaxReference, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
+            Return DirectCast(syntaxReference.GetSyntax(cancellationToken), VisualBasicSyntaxNode)
         End Function
 
         <Extension>
-        Friend Function GetVisualBasicRoot(syntaxTree As SyntaxTree, Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
-            Return DirectCast(syntaxTree.GetRoot(cancellationToken), VBSyntaxNode)
+        Friend Function GetVisualBasicRoot(syntaxTree As SyntaxTree, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
+            Return DirectCast(syntaxTree.GetRoot(cancellationToken), VisualBasicSyntaxNode)
         End Function
 
         <Extension>
         Friend Function GetPreprocessingSymbolInfo(syntaxTree As SyntaxTree, identifierNode As IdentifierNameSyntax) As VisualBasicPreprocessingSymbolInfo
-            Dim vbTree = DirectCast(syntaxTree, VBSyntaxTree)
+            Dim vbTree = DirectCast(syntaxTree, VisualBasicSyntaxTree)
             Return vbTree.GetPreprocessingSymbolInfo(identifierNode)
         End Function
 
         <Extension>
         Friend Function Errors(trivia As SyntaxTrivia) As InternalSyntax.SyntaxDiagnosticInfoList
-            Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(trivia.UnderlyingNode, InternalSyntax.VBSyntaxNode))
+            Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(trivia.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode))
         End Function
 
         <Extension>
         Friend Function Errors(token As SyntaxToken) As InternalSyntax.SyntaxDiagnosticInfoList
-            Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(token.Node, InternalSyntax.VBSyntaxNode))
+            Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(token.Node, InternalSyntax.VisualBasicSyntaxNode))
         End Function
 
         <Extension>
         Friend Function GetSyntaxErrors(token As SyntaxToken, tree As SyntaxTree) As ReadOnlyCollection(Of Diagnostic)
-            Return VBSyntaxNode.DoGetSyntaxErrors(tree, token)
+            Return VisualBasicSyntaxNode.DoGetSyntaxErrors(tree, token)
         End Function
 
         <Extension>
         Friend Function AddError(node As GreenNode, diagnostic As DiagnosticInfo) As GreenNode
-            Dim green = TryCast(node, InternalSyntax.VBSyntaxNode)
+            Dim green = TryCast(node, InternalSyntax.VisualBasicSyntaxNode)
             Return green.AddError(diagnostic)
         End Function
 
@@ -427,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A list of DirectiveTriviaSyntax items</returns>
         <Extension>
         Public Function GetDirectives(node As SyntaxNode, Optional filter As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As IList(Of DirectiveTriviaSyntax)
-            Return DirectCast(node, VBSyntaxNode).GetDirectives(filter)
+            Return DirectCast(node, VisualBasicSyntaxNode).GetDirectives(filter)
         End Function
 
 
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="predicate">The optional DirectiveTriviaSyntax filter predicate.</param>
         ''' <returns>The first DirectiveSyntaxTrivia item.</returns>
         <Extension> Public Function GetFirstDirective(node As SyntaxNode, Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
-            Return DirectCast(node, VBSyntaxNode).GetFirstDirective(predicate)
+            Return DirectCast(node, VisualBasicSyntaxNode).GetFirstDirective(predicate)
         End Function
 
         ''' <summary>
@@ -449,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The last DirectiveSyntaxTrivia item.</returns>
         <Extension>
         Public Function GetLastDirective(node As SyntaxNode, Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
-            Return DirectCast(node, VBSyntaxNode).GetLastDirective(predicate)
+            Return DirectCast(node, VisualBasicSyntaxNode).GetLastDirective(predicate)
         End Function
 
         ''' <summary>
@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Friend Function GetWarningState(tree As SyntaxTree, id As String, position As Integer) As ReportDiagnostic
-            Return DirectCast(tree, VBSyntaxTree).GetWarningState(id, position)
+            Return DirectCast(tree, VisualBasicSyntaxTree).GetWarningState(id, position)
         End Function
 
 #Region "Symbols"
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A NamespaceSymbol instance, for the compilation instance RootNamespace property. otherwise Null if compilation instance is Null. </returns>
         <Extension>
         Public Function RootNamespace(compilation As Compilation) As INamespaceSymbol
-            Dim vbcomp = TryCast(compilation, VBCompilation)
+            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
             If vbcomp IsNot Nothing Then
                 Return vbcomp.RootNamespace
             Else
@@ -691,7 +691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>An ImmutableArray of AliasSymbol, from the compilation instance AliasImports property; otherwise an empty ImmutableArray if compilation instance is Null.</returns>
         <Extension>
         Public Function AliasImports(compilation As Compilation) As ImmutableArray(Of IAliasSymbol)
-            Dim vbcomp = TryCast(compilation, VBCompilation)
+            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
             If vbcomp IsNot Nothing Then
                 Return StaticCast(Of IAliasSymbol).From(vbcomp.AliasImports)
             Else
@@ -706,7 +706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>An ImmutableArray of NamespaceOrTypeSymbol, from the compilation instance MemberImports property; otherwise an empty ImmutableArray if compilation instance is Null.</returns>
         <Extension>
         Public Function MemberImports(compilation As Compilation) As ImmutableArray(Of INamespaceOrTypeSymbol)
-            Dim vbcomp = TryCast(compilation, VBCompilation)
+            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
             If vbcomp IsNot Nothing Then
                 Return StaticCast(Of INamespaceOrTypeSymbol).From(vbcomp.MemberImports)
             Else
@@ -723,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A Conversion instance, representing the kind of conversion between the two type symbols; otherwise Null if compilation instance is Null.</returns>
         <Extension>
         Public Function ClassifyConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Conversion
-            Dim vbcomp = TryCast(compilation, VBCompilation)
+            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
             If vbcomp IsNot Nothing Then
                 Return vbcomp.ClassifyConversion(DirectCast(source, TypeSymbol), DirectCast(destination, TypeSymbol))
             Else
@@ -739,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A NamedTypeSymbol for the specified type in compilation; Null if compilation is Null.</returns>
         <Extension>
         Public Function GetSpecialType(compilation As Compilation, typeId As SpecialType) As INamedTypeSymbol
-            Dim vbcomp = TryCast(compilation, VBCompilation)
+            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
             If vbcomp IsNot Nothing Then
                 Return vbcomp.GetSpecialType(typeId)
             Else

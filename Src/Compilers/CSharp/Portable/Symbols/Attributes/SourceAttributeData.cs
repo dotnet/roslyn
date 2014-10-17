@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < description.Signatures.Length; i++)
             {
                 byte[] targetSignature = description.Signatures[i];
-                if (targetSignature[0] != SignatureHeader.HasThis)
+                if (targetSignature[0] != (byte)SignatureAttributes.Instance)
                 {
                     continue;
                 }

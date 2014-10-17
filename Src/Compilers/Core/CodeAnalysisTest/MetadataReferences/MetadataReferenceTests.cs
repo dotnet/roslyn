@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CompilationReference_VB_WithXxx()
         {
-            var c = VBCompilation.Create("vb");
+            var c = VisualBasicCompilation.Create("vb");
 
             var r = c.ToMetadataReference();
             Assert.False(r.Properties.EmbedInteropTypes);
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             r = CS.CSharpCompilation.Create("compilation name").ToMetadataReference();
             Assert.Equal(@"compilation name", r.Display);
 
-            r = VisualBasic.VBCompilation.Create("compilation name").ToMetadataReference();
+            r = VisualBasic.VisualBasicCompilation.Create("compilation name").ToMetadataReference();
             Assert.Equal(@"compilation name", r.Display);
         }
 

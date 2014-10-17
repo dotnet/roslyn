@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         [Fact]
         public void CreateInitialBaseline()
         {
-            var provider = new Func<MethodHandle, EditAndContinueMethodDebugInformation>(_ => default(EditAndContinueMethodDebugInformation));
+            var provider = new Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation>(_ => default(EditAndContinueMethodDebugInformation));
             var peModule = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Basic.Members);
             var peReader = peModule.Module.PEReaderOpt;
 
             var mdBytes = peReader.GetMetadata().GetContent();
-            var mdBytesHandle = PinnedImmutableArray.Create(mdBytes);
-            var mdModule = ModuleMetadata.CreateFromMetadata(mdBytesHandle.Pointer, mdBytes.Length);
+            var mdBytesHandle = GCHandle.Alloc(ImmutableArrayInterop.DangerousGetUnderlyingArray(mdBytes), GCHandleType.Pinned);
+            var mdModule = ModuleMetadata.CreateFromMetadata(mdBytesHandle.AddrOfPinnedObject(), mdBytes.Length);
 
             Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(null, provider));
             Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(peModule, null));

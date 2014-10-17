@@ -209,11 +209,11 @@ namespace Microsoft.Cci
 
         #region ITypeReference Members
 
-        public TypeHandle TypeDef
+        public TypeDefinitionHandle TypeDef
         {
             get
             {
-                return default(TypeHandle);
+                return default(TypeDefinitionHandle);
             }
         }
 

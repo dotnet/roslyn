@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LookupTests
         Inherits BasicTestBase
 
-        Private Function GetContext(compilation As VBCompilation,
+        Private Function GetContext(compilation As VisualBasicCompilation,
                                    treeName As String,
                                    textToFind As String) As Binder
             Dim tree As SyntaxTree = CompilationUtils.GetTree(compilation, treeName)
@@ -952,7 +952,7 @@ P.Q.R.S
             ' If we used a shared Mscorlib reference then other tests might have already initialized it's shared AssemblySymbol.
             Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
 
-            Dim c = VBCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
+            Dim c = VisualBasicCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
                                                      syntaxTrees:={Parse(<text>
                                                                             Namespace P
                                                                             End Namespace

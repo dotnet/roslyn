@@ -2210,7 +2210,7 @@ symbolValidator:=Sub([module])
 
         <Fact>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
     <compilation name="HasIVTToCompilationVbCore">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2233,7 +2233,7 @@ End Class
 
             CompilationUtils.AssertNoErrors(other)
 
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
     <compilation name="WantsIVTAccessVbCoreButCantHave">
         <file name="a.vb"><![CDATA[
 Public Class A
@@ -2259,7 +2259,7 @@ BC30002: Type 'Microsoft.VisualBasic.Strings' is not defined.
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </error>)
 
-            Dim c2 As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c2 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
     <compilation name="WantsIVTAccessVbCoreAndStillCannot">
         <file name="a.vb"><![CDATA[
 Public Class A
@@ -2286,7 +2286,7 @@ BC30002: Type 'Microsoft.VisualBasic.Strings' is not defined.
 
         <Fact>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo2()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
     <compilation name="VbCore_InvisibleViaInternalsVisibleTo2">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2311,7 +2311,7 @@ End Class
 
             CompilationUtils.AssertNoErrors(other)
 
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
     <compilation name="WantsIVTAccessVbCoreAndStillCannot2">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2340,7 +2340,7 @@ BC30456: 'CopyArray' is not a member of 'Utils'.
 
         <Fact>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo3()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
     <compilation name="VbCore_InvisibleViaInternalsVisibleTo3">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2362,7 +2362,7 @@ End Class
 
             CompilationUtils.AssertNoErrors(other)
 
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
     <compilation name="WantsIVTAccessVbCoreAndStillCannot3">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2391,7 +2391,7 @@ BC30451: 'ChrW' is not declared. It may be inaccessible due to its protection le
 
         <Fact>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo3_ViaBinary()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
     <compilation name="VbCore_InvisibleViaInternalsVisibleTo3">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2416,7 +2416,7 @@ End Class
             Dim memory As New MemoryStream()
             other.Emit(memory)
 
-            Dim c As VBCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
     (<compilation name="WantsIVTAccessVbCoreAndStillCannot3">
          <file name="a.vb"><![CDATA[
 Imports System
@@ -2444,7 +2444,7 @@ BC30451: 'ChrW' is not declared. It may be inaccessible due to its protection le
 
         <Fact>
         Public Sub VbCore_EmbeddedVbCoreWithIVToAndRuntime()
-            Dim other As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
     <compilation name="VbCore_EmbeddedVbCoreWithIVToAndRuntime">
         <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccessVbCoreAndStillCannot3")>
@@ -2494,7 +2494,7 @@ End Class
 
         <Fact()>
         Sub VbCore_CompilationOptions()
-            Dim withoutVbCore As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim withoutVbCore As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
     <compilation name="VbCore_CompilationOptions1">
         <file name="a.vb"><![CDATA[
 Imports System
@@ -2518,10 +2518,10 @@ BC30451: 'ChrW' is not declared. It may be inaccessible due to its protection le
                       ~~~~
 </error>)
 
-            Dim withVbCore As VBCompilation = withoutVbCore.WithOptions(withoutVbCore.Options.WithEmbedVbCoreRuntime(True))
+            Dim withVbCore As VisualBasicCompilation = withoutVbCore.WithOptions(withoutVbCore.Options.WithEmbedVbCoreRuntime(True))
             CompilationUtils.AssertNoErrors(withVbCore)
 
-            Dim withoutVbCore2 As VBCompilation = withVbCore.WithOptions(withVbCore.Options.WithEmbedVbCoreRuntime(False))
+            Dim withoutVbCore2 As VisualBasicCompilation = withVbCore.WithOptions(withVbCore.Options.WithEmbedVbCoreRuntime(False))
             CompilationUtils.AssertTheseDiagnostics(withoutVbCore2,
 <error>
 BC30451: 'ChrW' is not declared. It may be inaccessible due to its protection level.
@@ -2529,7 +2529,7 @@ BC30451: 'ChrW' is not declared. It may be inaccessible due to its protection le
                       ~~~~
 </error>)
 
-            Dim withVbCore2 As VBCompilation = withoutVbCore.WithOptions(withoutVbCore2.Options.WithEmbedVbCoreRuntime(True))
+            Dim withVbCore2 As VisualBasicCompilation = withoutVbCore.WithOptions(withoutVbCore2.Options.WithEmbedVbCoreRuntime(True))
             CompilationUtils.AssertNoErrors(withVbCore2)
 
         End Sub
@@ -2895,7 +2895,7 @@ End Module
         Public Sub VbCoreWithStaticLocals_UsingEmbedVBCore()
             'Static Locals use types contained within VB Runtime so verify with VBCore option to ensure the feature works
             'usign VBCore which would be the case with platforms such as Phone.
-            Dim compilation As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
           <file name="a.vb">
               Imports System
@@ -2924,7 +2924,7 @@ End Module
         Public Sub VbCoreWithStaticLocals_NoRequiredTypes()
             'Static Locals use types in VB Runtime so verify with no VBRuntime we generate applicable errors about missing types.  
             'This will include types for Module as well as static locals
-            Dim compilation As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
           <file name="a.vb">
         Module Module1
@@ -2951,7 +2951,7 @@ End Module
         Public Sub VbCoreWithStaticLocals_CorrectDefinedTypes()
             'Static Locals use types in VB Runtime so verify with no VBRuntime but appropriate types specified in Source the static
             'local scenarios should work correctly.
-            Dim compilation As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
           <file name="a.vb">
         Imports System
@@ -2994,7 +2994,7 @@ End Namespace
             'Static Locals use types in VB Runtime so verify with no VBRuntime but appropriate types specified in Source the static
             'local scenarios should work correctly buyt if we define the types incorrectly we should generate errors although we 
             'should not crash.
-            Dim compilation As VBCompilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
           <file name="a.vb">
         Public Class Module1

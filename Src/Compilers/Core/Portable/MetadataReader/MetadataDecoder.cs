@@ -42,18 +42,18 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!token.IsNil);
 
             TypeSymbol type = null;
-            HandleType tokenType = token.HandleType;
+            HandleKind tokenType = token.Kind;
 
-            if (tokenType == HandleType.Type)
+            if (tokenType == HandleKind.TypeDefinition)
             {
-                type = GetTypeOfTypeDef((TypeHandle)token, out isNoPiaLocalType, isContainingType: false);
+                type = GetTypeOfTypeDef((TypeDefinitionHandle)token, out isNoPiaLocalType, isContainingType: false);
             }
-            else if (tokenType == HandleType.TypeSpecification)
+            else if (tokenType == HandleKind.TypeSpecification)
             {
                 isNoPiaLocalType = false;
                 type = GetTypeOfTypeSpec((TypeSpecificationHandle)token);
             }
-            else if (tokenType == HandleType.TypeReference)
+            else if (tokenType == HandleKind.TypeReference)
             {
                 type = GetTypeOfTypeRef((TypeReferenceHandle)token, out isNoPiaLocalType);
             }
@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis
                     int countOfLowerBounds;
 
                     typeSymbol = DecodeTypeOrThrow(ref ppSig, out refersToNoPiaLocalType);
-                    if (!TryReadCompressedInteger(ref ppSig, out countOfDimensions) ||
-                        !TryReadCompressedInteger(ref ppSig, out countOfBounds))
+                    if (!ppSig.TryReadCompressedInteger(out countOfDimensions) ||
+                        !ppSig.TryReadCompressedInteger(out countOfBounds))
                     {
                         throw new UnsupportedSignatureContent();
                     }
@@ -152,10 +152,10 @@ namespace Microsoft.CodeAnalysis
                     for (int i = 0; i < countOfBounds; i++)
                     {
                         int _;
-                        TryReadCompressedInteger(ref ppSig, out _);
+                        ppSig.TryReadCompressedInteger(out _);
                     }
 
-                    if (!TryReadCompressedInteger(ref ppSig, out countOfLowerBounds))
+                    if (!ppSig.TryReadCompressedInteger(out countOfLowerBounds))
                     {
                         throw new UnsupportedSignatureContent();
                     }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
                     for (int i = 0; i < countOfLowerBounds; i++)
                     {
                         int _;
-                        TryReadCompressedInteger(ref ppSig, out _);
+                        ppSig.TryReadCompressedInteger(out _);
                     }
 
                     typeSymbol = GetArrayTypeSymbol((int)countOfDimensions, typeSymbol);
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 case SignatureTypeCode.GenericTypeParameter:
-                    if (!TryReadCompressedInteger(ref ppSig, out paramPosition))
+                    if (!ppSig.TryReadCompressedInteger(out paramPosition))
                     {
                         throw new UnsupportedSignatureContent();
                     }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 case SignatureTypeCode.GenericMethodParameter:
-                    if (!TryReadCompressedInteger(ref ppSig, out paramPosition))
+                    if (!ppSig.TryReadCompressedInteger(out paramPosition))
                     {
                         throw new UnsupportedSignatureContent();
                     }
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
 
                     Handle tokenGeneric = ppSig.ReadTypeHandle();
                     int argumentCount;
-                    if (!TryReadCompressedInteger(ref ppSig, out argumentCount))
+                    if (!ppSig.TryReadCompressedInteger(out argumentCount))
                     {
                         throw new UnsupportedSignatureContent();
                     }
@@ -255,13 +255,13 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol typeSymbol;
 
             Handle token = ppSig.ReadTypeHandle();
-            HandleType tokenType = token.HandleType;
+            HandleKind tokenType = token.Kind;
 
-            if (tokenType == HandleType.Type)
+            if (tokenType == HandleKind.TypeDefinition)
             {
-                typeSymbol = GetTypeOfTypeDef((TypeHandle)token, out isNoPiaLocalType, isContainingType: false);
+                typeSymbol = GetTypeOfTypeDef((TypeDefinitionHandle)token, out isNoPiaLocalType, isContainingType: false);
             }
-            else if (tokenType == HandleType.TypeReference)
+            else if (tokenType == HandleKind.TypeReference)
             {
                 typeSymbol = GetTypeOfTypeRef((TypeReferenceHandle)token, out isNoPiaLocalType);
             }
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis
                 TypeSymbol result1 = cache.GetOrAdd(typeRef, result);
                 Debug.Assert(result1.Equals(result));
             }
-
+                
             return result;
         }
 
@@ -358,13 +358,13 @@ namespace Microsoft.CodeAnalysis
             Handle tokenResolutionScope,
             out bool isNoPiaLocalType)
         {
-            HandleType tokenType = tokenResolutionScope.HandleType;
+            HandleKind tokenType = tokenResolutionScope.Kind;
 
             // TODO: I believe refs can be parented by a def tokens too, not common, but.
             //       Should also do NoPia related checks.
 
             // The resolution scope should be either a type ref, an assembly or a module.
-            if (tokenType == HandleType.TypeReference)
+            if (tokenType == HandleKind.TypeReference)
             {
                 TypeSymbol psymContainer = null;
 
@@ -374,13 +374,13 @@ namespace Microsoft.CodeAnalysis
                 isNoPiaLocalType = false;
                 return LookupNestedTypeDefSymbol(psymContainer, ref fullName);
             }
-            else if (tokenType == HandleType.AssemblyReference)
+            else if (tokenType == HandleKind.AssemblyReference)
             {
                 // TODO: Can refer to the containing assembly?
                 isNoPiaLocalType = false;
                 return LookupTopLevelTypeDefSymbol(Module.GetAssemblyReferenceIndexOrThrow((AssemblyReferenceHandle)tokenResolutionScope), ref fullName);
             }
-            else if (tokenType == HandleType.ModuleReference)
+            else if (tokenType == HandleKind.ModuleReference)
             {
                 return LookupTopLevelTypeDefSymbol(Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)tokenResolutionScope),
                                                    ref fullName,
@@ -400,13 +400,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private TypeSymbol GetTypeOfTypeDef(TypeHandle typeDef)
+        private TypeSymbol GetTypeOfTypeDef(TypeDefinitionHandle typeDef)
         {
             bool isNoPiaLocalType;
             return GetTypeOfTypeDef(typeDef, out isNoPiaLocalType, isContainingType: false);
         }
 
-        private TypeSymbol GetTypeOfTypeDef(TypeHandle typeDef, out bool isNoPiaLocalType, bool isContainingType)
+        private TypeSymbol GetTypeOfTypeDef(TypeDefinitionHandle typeDef, out bool isNoPiaLocalType, bool isContainingType)
         {
             isNoPiaLocalType = false;
 
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis
                 // EmittedNameToTypeMap in LookupTopLevelType doesn't contain the name. 
                 // It is likely that gain for nested types will be bigger because we don’t cache names of nested types.
 
-                ConcurrentDictionary<TypeHandle, TypeSymbol> cache = GetTypeHandleToTypeMap();
+                ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> cache = GetTypeHandleToTypeMap();
 
                 TypeSymbol result;
 
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis
                 if (Module.IsNestedTypeDefOrThrow(typeDef))
                 {
                     // first resolve nesting type 
-                    TypeHandle containerTypeDef = Module.GetContainingTypeOrThrow(typeDef);
+                    TypeDefinitionHandle containerTypeDef = Module.GetContainingTypeOrThrow(typeDef);
 
                     // invalid metadata?
                     if (containerTypeDef.IsNil)
@@ -649,12 +649,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static bool IsAcceptableModOptModifier(Handle token, TypeSymbol modifier)
         {
-            switch (token.HandleType)
+            switch (token.Kind)
             {
-                case HandleType.Type:
-                case HandleType.TypeReference:
+                case HandleKind.TypeDefinition:
+                case HandleKind.TypeReference:
                     return true;
-                case HandleType.TypeSpecification:
+                case HandleKind.TypeSpecification:
                     // Section 23.2.7 of the CLI spec specifically says that this is not allowed (see comment on method),
                     // but, apparently, ilasm turns modopt(int32) into a TypeSpec.
                     if (modifier != null)
@@ -689,16 +689,16 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal ImmutableArray<LocalInfo> DecodeLocalSignatureOrThrow(ref BlobReader signatureReader)
         {
-            var callingConvention = signatureReader.ReadByte();
+            SignatureHeader signatureHeader = signatureReader.ReadSignatureHeader();
 
-            if (!SignatureHeader.IsLocalVarSignature(callingConvention))
+            if (signatureHeader.Kind != SignatureKind.LocalVariables)
             {
                 throw new UnsupportedSignatureContent();
             }
 
             int localCount;
             int typeParameterCount;
-            GetSignatureCountsOrThrow(ref signatureReader, callingConvention, out localCount, out typeParameterCount);
+            GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out localCount, out typeParameterCount);
             Debug.Assert(typeParameterCount == 0);
 
             var locals = ArrayBuilder<LocalInfo>.GetInstance(localCount);
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis
             return new LocalInfo(typeSymbol, customModifiers, constraints, signatureOpt: null);
         }
 
-        internal bool TryGetLocals(MethodHandle handle, out ImmutableArray<LocalInfo> localInfo)
+        internal bool TryGetLocals(MethodDefinitionHandle handle, out ImmutableArray<LocalInfo> localInfo)
         {
             try
             {
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (!methodBody.LocalSignature.IsNil)
                 {
-                    var signatureHandle = Module.MetadataReader.GetLocalSignature(methodBody.LocalSignature);
+                    var signatureHandle = Module.MetadataReader.GetStandaloneSignature(methodBody.LocalSignature).Signature;
                     var signatureReader = Module.GetMemoryReaderOrThrow(signatureHandle);
                     localInfo = DecodeLocalSignatureOrThrow(ref signatureReader);
                 }
@@ -845,18 +845,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         // MetaImport::DecodeMethodSignature
-        internal ParamInfo[] GetSignatureForMethod(MethodHandle methodDef, out byte callingConvention, out BadImageFormatException metadataException, bool setParamHandles = true)
+        internal ParamInfo[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool setParamHandles = true)
         {
             ParamInfo[] paramInfo = null;
-            callingConvention = 0;
+            signatureHeader = default(SignatureHeader);
 
             try
             {
                 BlobHandle signature = Module.GetMethodSignatureOrThrow(methodDef);
-                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out callingConvention);
+                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
-                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, callingConvention, out typeParameterCount);
+                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount);
 
                 if (setParamHandles)
                 {
@@ -894,27 +894,27 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal void GetSignatureCountsOrThrow(MethodHandle methodDef, out int parameterCount, out int typeParameterCount)
+        internal void GetSignatureCountsOrThrow(MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
         {
             BlobHandle signature = Module.GetMethodSignatureOrThrow(methodDef);
-            byte callingConvention;
-            BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out callingConvention);
+            SignatureHeader signatureHeader;
+            BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
-            GetSignatureCountsOrThrow(ref signatureReader, callingConvention, out parameterCount, out typeParameterCount);
+            GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out parameterCount, out typeParameterCount);
         }
 
-        internal ParamInfo[] GetSignatureForProperty(PropertyHandle handle, out byte callingConvention, out BadImageFormatException BadImageFormatException)
+        internal ParamInfo[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException)
         {
             ParamInfo[] paramInfo = null;
-            callingConvention = 0;
+            signatureHeader = default(SignatureHeader);
 
             try
             {
                 var signature = Module.GetPropertySignatureOrThrow(handle);
-                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out callingConvention);
+                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
-                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, callingConvention, out typeParameterCount);
+                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount);
                 BadImageFormatException = null;
             }
             catch (BadImageFormatException mrEx)
@@ -933,18 +933,18 @@ namespace Microsoft.CodeAnalysis
             return paramInfo;
         }
 
-        internal byte GetCallingConventionForProperty(PropertyHandle handle)
+        internal SignatureHeader GetSignatureHeaderForProperty(PropertyDefinitionHandle handle)
         {
             try
             {
                 var signature = Module.GetPropertySignatureOrThrow(handle);
-                byte callingConvention;
-                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out callingConvention);
-                return callingConvention;
+                SignatureHeader signatureHeader;
+                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
+                return signatureHeader;
             }
             catch (BadImageFormatException)
             {
-                return 0;
+                return default(SignatureHeader);
             }
         }
 
@@ -981,6 +981,10 @@ namespace Microsoft.CodeAnalysis
             switch (paramTypeCode)
             {
                 case SignatureTypeCode.Object:
+                    type = GetSpecialType(SpecialType.System_Object);
+                    typeCode = SerializationTypeCode.TaggedObject;
+                    return;
+
                 case SignatureTypeCode.String:
                 case SignatureTypeCode.Boolean:
                 case SignatureTypeCode.Char:
@@ -1070,9 +1074,6 @@ namespace Microsoft.CodeAnalysis
             switch (typeCode)
             {
                 case SerializationTypeCode.TaggedObject:
-                    // The spec isn't entirely clear in definition of TAGGED_OBJECT.
-                    // The value decoding is the same as for OBJECT.
-                    typeCode = SerializationTypeCode.Object;
                     type = GetSpecialType(SpecialType.System_Object);
                     return;
 
@@ -1139,7 +1140,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private TypedConstant DecodeCustomAttributeElementOrThrow(ref BlobReader argReader, SerializationTypeCode typeCode, TypeSymbol type)
         {
-            if (typeCode == SerializationTypeCode.Object)
+            if (typeCode == SerializationTypeCode.TaggedObject)
             {
                 // Spec: If the parameter kind is System.Object, the value stored represents the "boxed" instance of that value-type.
                 SerializationTypeCode elementTypeCode;
@@ -1261,7 +1262,7 @@ namespace Microsoft.CodeAnalysis
             // we require a means to disambiguate such situations. end note] FIELD is the single byte 0x53. PROPERTY is
             // the single byte 0x54.
 
-            var kind = (CustomAttributeNamedArgumentKind)ReadCompressedInteger(ref argReader);
+            var kind = (CustomAttributeNamedArgumentKind)argReader.ReadCompressedInteger();
             if (kind != CustomAttributeNamedArgumentKind.Field && kind != CustomAttributeNamedArgumentKind.Property)
             {
                 throw new UnsupportedSignatureContent();
@@ -1351,17 +1352,17 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    // Read the calling convention.
-                    byte callConv = sigReader.ReadByte();
+                    // Read the signature header.
+                    SignatureHeader signatureHeader = sigReader.ReadSignatureHeader();
 
                     // Get the type parameter count.
-                    if (SignatureHeader.IsGeneric(callConv) && ReadCompressedInteger(ref sigReader) != 0)
+                    if (signatureHeader.IsGeneric && sigReader.ReadCompressedInteger() != 0)
                     {
                         return false;
                     }
 
                     // Get the parameter count
-                    int paramCount = ReadCompressedInteger(ref sigReader);
+                    int paramCount = sigReader.ReadCompressedInteger();
 
                     // Get the type return type.
                     var returnTypeCode = sigReader.ReadSignatureTypeCode();
@@ -1466,14 +1467,14 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private TypeSymbol[] DecodeMethodSpecTypeArgumentsOrThrow(BlobHandle signature)
         {
-            byte callingConvention;
-            var signatureReader = DecodeSignatureHeaderOrThrow(signature, out callingConvention);
-            if (!SignatureHeader.IsGenericInstanceSignature(callingConvention))
+            SignatureHeader signatureHeader;
+            var signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
+            if (signatureHeader.Kind != SignatureKind.MethodSpecification)
             {
                 throw new BadImageFormatException();
             }
 
-            int argumentCount = ReadCompressedInteger(ref signatureReader);
+            int argumentCount = signatureReader.ReadCompressedInteger();
             if (argumentCount == 0)
             {
                 throw new BadImageFormatException();
@@ -1490,18 +1491,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal BlobReader DecodeSignatureHeaderOrThrow(BlobHandle signature, out byte callingConvention)
+        internal BlobReader DecodeSignatureHeaderOrThrow(BlobHandle signature, out SignatureHeader signatureHeader)
         {
             BlobReader reader = Module.GetMemoryReaderOrThrow(signature);
-            callingConvention = reader.ReadByte();
+            signatureHeader = reader.ReadSignatureHeader();
             return reader;
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        protected ParamInfo[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, byte callingConvention, out int typeParameterCount)
+        protected ParamInfo[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount)
         {
             int paramCount;
-            GetSignatureCountsOrThrow(ref signatureReader, callingConvention, out paramCount, out typeParameterCount);
+            GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out paramCount, out typeParameterCount);
 
             ParamInfo[] paramInfo = new ParamInfo[paramCount + 1];
 
@@ -1548,25 +1549,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private static void GetSignatureCountsOrThrow(ref BlobReader signatureReader, byte callingConvention, out int parameterCount, out int typeParameterCount)
+        private static void GetSignatureCountsOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int parameterCount, out int typeParameterCount)
         {
             // Get the type parameter count.
-            typeParameterCount = SignatureHeader.IsGeneric(callingConvention) ? ReadCompressedInteger(ref signatureReader) : 0;
+            typeParameterCount = signatureHeader.IsGeneric ? signatureReader.ReadCompressedInteger() : 0;
 
             // Get the parameter count
-            parameterCount = ReadCompressedInteger(ref signatureReader);
+            parameterCount = signatureReader.ReadCompressedInteger();
         }
 
-        internal TypeSymbol DecodeFieldSignature(FieldHandle fieldHandle, out bool isVolatile, out ImmutableArray<ModifierInfo> customModifiers)
+        internal TypeSymbol DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out bool isVolatile, out ImmutableArray<ModifierInfo> customModifiers)
         {
             try
             {
                 BlobHandle signature = Module.GetFieldSignatureOrThrow(fieldHandle);
 
-                byte callingConvention;
-                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out callingConvention);
+                SignatureHeader signatureHeader;
+                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
-                if (!SignatureHeader.IsFieldSignature(callingConvention))
+                if (signatureHeader.Kind != SignatureKind.Field)
                 {
                     isVolatile = false;
                     customModifiers = default(ImmutableArray<ModifierInfo>);
@@ -1663,7 +1664,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="implementingMethodDef">MethodDef handle of the implementing method.</param>
         /// <param name="implementingTypeSymbol">The type symbol for the implementing type.</param>
         /// <returns>Array of implemented methods.</returns>
-        internal ImmutableArray<MethodSymbol> GetExplicitlyOverriddenMethods(TypeHandle implementingTypeDef, MethodHandle implementingMethodDef, TypeSymbol implementingTypeSymbol)
+        internal ImmutableArray<MethodSymbol> GetExplicitlyOverriddenMethods(TypeDefinitionHandle implementingTypeDef, MethodDefinitionHandle implementingMethodDef, TypeSymbol implementingTypeSymbol)
         {
             ArrayBuilder<MethodSymbol> resultBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
 
@@ -1677,7 +1678,7 @@ namespace Microsoft.CodeAnalysis
 
                     // Though it is rare in practice, the spec allows the MethodImpl table to represent
                     // methods defined in the current module as MemberRefs rather than MethodDefs.
-                    if (methodBodyHandle.HandleType == HandleType.MemberReference)
+                    if (methodBodyHandle.Kind == HandleKind.MemberReference)
                     {
                         MethodSymbol methodBodySymbol = GetMethodSymbolForMemberRef((MemberReferenceHandle)methodBodyHandle, implementingTypeSymbol);
                         if (methodBodySymbol != null)
@@ -1692,15 +1693,15 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (!implementedMethodHandle.IsNil)
                         {
-                            HandleType implementedMethodTokenType = implementedMethodHandle.HandleType;
+                            HandleKind implementedMethodTokenType = implementedMethodHandle.Kind;
 
                             MethodSymbol methodSymbol = null;
 
-                            if (implementedMethodTokenType == HandleType.Method)
+                            if (implementedMethodTokenType == HandleKind.MethodDefinition)
                             {
-                                methodSymbol = FindMethodSymbolInSuperType(implementingTypeDef, (MethodHandle)implementedMethodHandle);
+                                methodSymbol = FindMethodSymbolInSuperType(implementingTypeDef, (MethodDefinitionHandle)implementedMethodHandle);
                             }
-                            else if (implementedMethodTokenType == HandleType.MemberReference)
+                            else if (implementedMethodTokenType == HandleKind.MemberReference)
                             {
                                 methodSymbol = GetMethodSymbolForMemberRef((MemberReferenceHandle)implementedMethodHandle, implementingTypeSymbol);
                             }
@@ -1730,7 +1731,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="searchTypeDef">TypeDef token of the type from which the search should begin.</param>
         /// <param name="targetMethodDef">MethodDef token of the target method.</param>
         /// <returns>Corresponding <typeparamref name="MethodSymbol"/> or null, if none is found.</returns>
-        private MethodSymbol FindMethodSymbolInSuperType(TypeHandle searchTypeDef, MethodHandle targetMethodDef)
+        private MethodSymbol FindMethodSymbolInSuperType(TypeDefinitionHandle searchTypeDef, MethodDefinitionHandle targetMethodDef)
         {
             try
             {
@@ -1740,7 +1741,7 @@ namespace Microsoft.CodeAnalysis
                 // metadata tables and we'd prefer not to manipulate the corresponding symbol objects; 2) we bump TypeDefs
                 // to the front of the search order (i.e. ahead of symbols) because a MethodDef can correspond to a TypeDef
                 // but not to a type ref (i.e. symbol).
-                Queue<TypeHandle> typeDefsToSearch = new Queue<TypeHandle>();
+                Queue<TypeDefinitionHandle> typeDefsToSearch = new Queue<TypeDefinitionHandle>();
                 Queue<TypeSymbol> typeSymbolsToSearch = new Queue<TypeSymbol>();
 
                 // A method def represents a method defined in this module, so we can
@@ -1748,7 +1749,7 @@ namespace Microsoft.CodeAnalysis
                 EnqueueTypeDefInterfacesAndBaseTypeOrThrow(typeDefsToSearch, typeSymbolsToSearch, searchTypeDef);
 
                 //catch both cycles and duplicate interfaces
-                HashSet<TypeHandle> visitedTypeDefTokens = new HashSet<TypeHandle>();
+                HashSet<TypeDefinitionHandle> visitedTypeDefTokens = new HashSet<TypeDefinitionHandle>();
                 HashSet<TypeSymbol> visitedTypeSymbols = new HashSet<TypeSymbol>();
 
                 bool hasMoreTypeDefs;
@@ -1756,14 +1757,14 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (hasMoreTypeDefs)
                     {
-                        TypeHandle typeDef = typeDefsToSearch.Dequeue();
+                        TypeDefinitionHandle typeDef = typeDefsToSearch.Dequeue();
                         Debug.Assert(!typeDef.IsNil);
 
                         if (!visitedTypeDefTokens.Contains(typeDef))
                         {
                             visitedTypeDefTokens.Add(typeDef);
 
-                            foreach (MethodHandle methodDef in Module.GetMethodsOfTypeOrThrow(typeDef))
+                            foreach (MethodDefinitionHandle methodDef in Module.GetMethodsOfTypeOrThrow(typeDef))
                             {
                                 if (methodDef == targetMethodDef)
                                 {
@@ -1804,11 +1805,12 @@ namespace Microsoft.CodeAnalysis
         /// <param name="typeSymbolsToSearch">Queue of TypeSymbols (representing typeRefs to search).</param>
         /// <param name="searchTypeDef">Handle of the TypeDef for which we want to enqueue supertypes.</param>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private void EnqueueTypeDefInterfacesAndBaseTypeOrThrow(Queue<TypeHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeHandle searchTypeDef)
+        private void EnqueueTypeDefInterfacesAndBaseTypeOrThrow(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeDefinitionHandle searchTypeDef)
         {
-            foreach (var interfaceImpl in Module.GetImplementedInterfacesOrThrow(searchTypeDef))
+            foreach (var interfaceImplHandle in Module.GetInterfaceImplementationsOrThrow(searchTypeDef))
             {
-                EnqueueTypeToken(typeDefsToSearch, typeSymbolsToSearch, interfaceImpl);
+                var interfaceImpl = Module.MetadataReader.GetInterfaceImplementation(interfaceImplHandle);
+                EnqueueTypeToken(typeDefsToSearch, typeSymbolsToSearch, interfaceImpl.Interface);
             }
 
             EnqueueTypeToken(typeDefsToSearch, typeSymbolsToSearch, Module.GetBaseTypeOfTypeOrThrow(searchTypeDef));
@@ -1820,13 +1822,13 @@ namespace Microsoft.CodeAnalysis
         /// Ref -> typeSymbolsToSearch
         /// null -> neither
         /// </summary>
-        private void EnqueueTypeToken(Queue<TypeHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, Handle typeToken)
+        private void EnqueueTypeToken(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, Handle typeToken)
         {
             if (!typeToken.IsNil)
             {
-                if (typeToken.HandleType == HandleType.Type)
+                if (typeToken.Kind == HandleKind.TypeDefinition)
                 {
-                    typeDefsToSearch.Enqueue((TypeHandle)typeToken);
+                    typeDefsToSearch.Enqueue((TypeDefinitionHandle)typeToken);
                 }
                 else
                 {
@@ -1841,7 +1843,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="typeDefsToSearch">Queue of TypeDefs to search.</param>
         /// <param name="typeSymbolsToSearch">Queue of TypeSymbols (representing typeRefs to search).</param>
         /// <param name="typeSymbol">Symbol for which we want to enqueue supertypes.</param>
-        protected abstract void EnqueueTypeSymbolInterfacesAndBaseTypes(Queue<TypeHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol);
+        protected abstract void EnqueueTypeSymbolInterfacesAndBaseTypes(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol);
 
         /// <summary>
         /// Enqueue the given type as either a def or a ref.
@@ -1849,7 +1851,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="typeDefsToSearch">Queue of TypeDefs to search.</param>
         /// <param name="typeSymbolsToSearch">Queue of TypeSymbols (representing typeRefs to search).</param>
         /// <param name="typeSymbol">Symbol to enqueue.</param>
-        protected abstract void EnqueueTypeSymbol(Queue<TypeHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol);
+        protected abstract void EnqueueTypeSymbol(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol);
 
         /// <summary>
         /// Search the members of a TypeSymbol to find the one that matches a given MethodDef token.
@@ -1857,7 +1859,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="type">Type to search for method.</param>
         /// <param name="methodDef">MethodDef handle of the method to find.</param>
         /// <returns>The corresponding MethodSymbol or null.</returns>
-        protected abstract MethodSymbol FindMethodSymbolInType(TypeSymbol type, MethodHandle methodDef);
+        protected abstract MethodSymbol FindMethodSymbolInType(TypeSymbol type, MethodDefinitionHandle methodDef);
 
         /// <summary>
         /// Search the members of a TypeSymbol to find the one that matches a given FieldDef token.
@@ -1865,7 +1867,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="type">Type to search for field.</param>
         /// <param name="fieldDef">FieldDef handle of the field to find.</param>
         /// <returns>The corresponding FieldSymbol or null.</returns>
-        protected abstract FieldSymbol FindFieldSymbolInType(TypeSymbol type, FieldHandle fieldDef);
+        protected abstract FieldSymbol FindFieldSymbolInType(TypeSymbol type, FieldDefinitionHandle fieldDef);
 
         /// <summary>
         /// Given a MemberRef token for a method, we can find a corresponding MethodSymbol by
@@ -1893,9 +1895,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="method">The method symbol for which to return a MethodDef token.</param>
         /// <returns>A MethodDef token or nil.</returns>
-        protected abstract MethodHandle GetMethodHandle(MethodSymbol method);
+        protected abstract MethodDefinitionHandle GetMethodHandle(MethodSymbol method);
 
-        protected abstract ConcurrentDictionary<TypeHandle, TypeSymbol> GetTypeHandleToTypeMap();
+        protected abstract ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> GetTypeHandleToTypeMap();
         protected abstract ConcurrentDictionary<TypeReferenceHandle, TypeSymbol> GetTypeRefHandleToTypeMap();
 
         /// <summary>
@@ -1903,7 +1905,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType);
 
-        protected abstract TypeSymbol SubstituteNoPiaLocalType(TypeHandle typeDef, ref MetadataTypeName name, string interfaceGuid, string scope, string identifier);
+        protected abstract TypeSymbol SubstituteNoPiaLocalType(TypeDefinitionHandle typeDef, ref MetadataTypeName name, string interfaceGuid, string scope, string identifier);
 
         /// <summary>
         /// Lookup a type defined in referenced assembly.
@@ -1987,16 +1989,16 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                switch (token.HandleType)
+                switch (token.Kind)
                 {
-                    case HandleType.Type:
-                    case HandleType.TypeSpecification:
-                    case HandleType.TypeReference:
+                    case HandleKind.TypeDefinition:
+                    case HandleKind.TypeSpecification:
+                    case HandleKind.TypeReference:
                         return GetTypeOfToken(token);
 
-                    case HandleType.Method:
+                    case HandleKind.MethodDefinition:
                         {
-                            TypeHandle typeDef = Module.FindContainingTypeOrThrow((MethodHandle)token);
+                            TypeDefinitionHandle typeDef = Module.FindContainingTypeOrThrow((MethodDefinitionHandle)token);
 
                             if (typeDef.IsNil)
                             {
@@ -2014,9 +2016,9 @@ namespace Microsoft.CodeAnalysis
                             return GetMethodSymbolForMethodDefOrMemberRef(token, type);
                         }
 
-                    case HandleType.Field:
+                    case HandleKind.FieldDefinition:
                         {
-                            TypeHandle typeDef = Module.FindContainingTypeOrThrow((FieldHandle)token);
+                            TypeDefinitionHandle typeDef = Module.FindContainingTypeOrThrow((FieldDefinitionHandle)token);
                             if (typeDef.IsNil)
                             {
                                 // error
@@ -2033,7 +2035,7 @@ namespace Microsoft.CodeAnalysis
                             return GetFieldSymbolForFieldDefOrMemberRef(token, type);
                         }
 
-                    case HandleType.MethodSpecification:
+                    case HandleKind.MethodSpecification:
                         Handle method;
                         BlobHandle instantiation;
                         this.Module.GetMethodSpecificationOrThrow((MethodSpecificationHandle)token, out method, out instantiation);
@@ -2048,7 +2050,7 @@ namespace Microsoft.CodeAnalysis
                         var genericArguments = DecodeMethodSpecTypeArgumentsOrThrow(instantiation);
                         return (MethodSymbol)genericDefinition.Construct(genericArguments);
 
-                    case HandleType.MemberReference:
+                    case HandleKind.MemberReference:
                         return GetSymbolForMemberRef((MemberReferenceHandle)token);
                 }
             }
@@ -2068,17 +2070,17 @@ namespace Microsoft.CodeAnalysis
             {
                 Handle container = Module.GetContainingTypeOrThrow(memberRef);
 
-                HandleType containerType = container.HandleType;
+                HandleKind containerType = container.Kind;
                 Debug.Assert(
-                    containerType == HandleType.Method ||
-                    containerType == HandleType.ModuleReference ||
-                    containerType == HandleType.Type ||
-                    containerType == HandleType.TypeReference ||
-                    containerType == HandleType.TypeSpecification);
+                    containerType == HandleKind.MethodDefinition ||
+                    containerType == HandleKind.ModuleReference ||
+                    containerType == HandleKind.TypeDefinition ||
+                    containerType == HandleKind.TypeReference ||
+                    containerType == HandleKind.TypeSpecification);
 
-                if (containerType != HandleType.Type &&
-                    containerType != HandleType.TypeReference &&
-                    containerType != HandleType.TypeSpecification)
+                if (containerType != HandleKind.TypeDefinition &&
+                    containerType != HandleKind.TypeReference &&
+                    containerType != HandleKind.TypeSpecification)
                 {
                     // C# symbols don't support global methods
                     return null;
@@ -2094,13 +2096,13 @@ namespace Microsoft.CodeAnalysis
 
         internal MethodSymbol GetMethodSymbolForMethodDefOrMemberRef(Handle memberToken, TypeSymbol container)
         {
-            HandleType type = memberToken.HandleType;
-            Debug.Assert(type == HandleType.Method ||
-                            type == HandleType.MemberReference);
+            HandleKind type = memberToken.Kind;
+            Debug.Assert(type == HandleKind.MethodDefinition ||
+                            type == HandleKind.MemberReference);
 
-            if (type == HandleType.Method)
+            if (type == HandleKind.MethodDefinition)
             {
-                return FindMethodSymbolInType(container, (MethodHandle)memberToken);
+                return FindMethodSymbolInType(container, (MethodDefinitionHandle)memberToken);
             }
             else
             {
@@ -2110,13 +2112,13 @@ namespace Microsoft.CodeAnalysis
 
         internal FieldSymbol GetFieldSymbolForFieldDefOrMemberRef(Handle memberToken, TypeSymbol container)
         {
-            HandleType type = memberToken.HandleType;
-            Debug.Assert(type == HandleType.Field ||
-                            type == HandleType.MemberReference);
+            HandleKind type = memberToken.Kind;
+            Debug.Assert(type == HandleKind.FieldDefinition ||
+                            type == HandleKind.MemberReference);
 
-            if (type == HandleType.Field)
+            if (type == HandleKind.FieldDefinition)
             {
-                return FindFieldSymbolInType(container, (FieldHandle)memberToken);
+                return FindFieldSymbolInType(container, (FieldDefinitionHandle)memberToken);
             }
             else
             {
@@ -2355,27 +2357,6 @@ namespace Microsoft.CodeAnalysis
 
             var methodParam = methodParams[1];
             return !methodParam.IsByRef && methodParam.Type.Equals(eventType);
-        }
-
-        // TODO: remove, API should be provided by MetadataReader
-        private static int ReadCompressedInteger(ref BlobReader reader)
-        {
-            uint value;
-            if (!reader.TryReadCompressedUInt32(out value))
-            {
-                throw new BadImageFormatException("Invalid signature");
-            }
-
-            return (int)value;
-        }
-
-        // TODO: remove, API should be provided by MetadataReader
-        private static bool TryReadCompressedInteger(ref BlobReader reader, out int value)
-        {
-            uint unsigned;
-            bool result = reader.TryReadCompressedUInt32(out unsigned);
-            value = (int)unsigned;
-            return result;
         }
     }
 }

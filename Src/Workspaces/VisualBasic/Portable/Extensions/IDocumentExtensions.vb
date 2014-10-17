@@ -37,9 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Async Function GetVisualBasicCompilationAsync(document As Document, Optional cancellationToken As CancellationToken = Nothing) As Task(Of VBCompilation)
+        Public Async Function GetVisualBasicCompilationAsync(document As Document, Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicCompilation)
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-            Return CType(compilation, VBCompilation)
+            Return CType(compilation, VisualBasicCompilation)
         End Function
 
         <Extension()>

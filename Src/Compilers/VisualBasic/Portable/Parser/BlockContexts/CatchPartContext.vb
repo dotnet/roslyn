@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(statement.Kind = SyntaxKind.CatchStatement)
         End Sub
 
-        Friend Overrides Function ProcessSyntax(node As VBSyntaxNode) As BlockContext
+        Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
             Debug.Assert(node IsNot Nothing)
 
             Select Case node.Kind
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MyBase.ProcessSyntax(node)
         End Function
 
-        Friend Overrides Function TryLinkSyntax(node As VBSyntaxNode, ByRef newContext As BlockContext) As LinkResult
+        Friend Overrides Function TryLinkSyntax(node As VisualBasicSyntaxNode, ByRef newContext As BlockContext) As LinkResult
             newContext = Nothing
             Select Case node.Kind
 
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
         End Function
 
-        Friend Overrides Function CreateBlockSyntax(statement As StatementSyntax) As VBSyntaxNode
+        Friend Overrides Function CreateBlockSyntax(statement As StatementSyntax) As VisualBasicSyntaxNode
             Debug.Assert(statement Is Nothing)
             Debug.Assert(BeginStatement IsNot Nothing)
 

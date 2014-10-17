@@ -2646,7 +2646,7 @@ True
 False
 False");
 
-            }
+        }
 
         [Fact]
         public void ConditionalMemberAccessUnConstrainedDynVal()
@@ -4559,8 +4559,8 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options:  TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput:"").
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "").
                 VerifyIL("Program.Test0(ref System.WeakReference<string>)", @"
 {
   // Code size       26 (0x1a)
@@ -4651,5 +4651,64 @@ class Program
 }
 ");
         }
+
+        [WorkItem(1042288)]
+        [Fact]
+        public void Bug1042288()
+        {
+            var source = @"
+using System;
+
+class Test
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        System.Console.WriteLine(c1?.M1() ?? (long)1000);
+        return;
+    }
+}
+class C1
+{
+    public int M1()
+    {
+        return 1;
+    }
+}
+
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"1");
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  2
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0014
+  IL_0008:  pop
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""int?""
+  IL_0011:  ldloc.1
+  IL_0012:  br.s       IL_001e
+  IL_0014:  call       ""int C1.M1()""
+  IL_0019:  newobj     ""int?..ctor(int)""
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""bool int?.HasValue.get""
+  IL_0026:  brtrue.s   IL_0030
+  IL_0028:  ldc.i4     0x3e8
+  IL_002d:  conv.i8
+  IL_002e:  br.s       IL_0038
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  call       ""int int?.GetValueOrDefault()""
+  IL_0037:  conv.i8
+  IL_0038:  call       ""void System.Console.WriteLine(long)""
+  IL_003d:  ret
+}
+");
+        }
+
     }
 }

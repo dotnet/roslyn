@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Const UninitializedMethodKind As Integer = -1
 
-        Private ReadOnly m_Handle As MethodHandle
+        Private ReadOnly m_Handle As MethodDefinitionHandle
         Private ReadOnly m_Name As String
         Private ReadOnly m_ImplFlags As MethodImplAttributes
         Private ReadOnly m_Flags As MethodAttributes
@@ -53,12 +53,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private m_lazySignature As SignatureData
 
         Private Class SignatureData
-            Public ReadOnly CallingConvention As Byte
+            Public ReadOnly Header As SignatureHeader
             Public ReadOnly Parameters As ImmutableArray(Of ParameterSymbol)
             Public ReadOnly ReturnParam As PEParameterSymbol
 
-            Public Sub New(callingConvention As Byte, parameters As ImmutableArray(Of ParameterSymbol), returnParam As PEParameterSymbol)
-                Me.CallingConvention = callingConvention
+            Public Sub New(signatureHeader As SignatureHeader, parameters As ImmutableArray(Of ParameterSymbol), returnParam As PEParameterSymbol)
+                Me.Header = signatureHeader
                 Me.Parameters = parameters
                 Me.ReturnParam = returnParam
             End Sub
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
             containingType As PENamedTypeSymbol,
-            handle As MethodHandle
+            handle As MethodDefinitionHandle
         )
             Debug.Assert(moduleSymbol IsNot Nothing)
             Debug.Assert(containingType IsNot Nothing)
@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
                 EnsureSignatureIsLoaded()
-                Return SignatureHeader.IsVarArgCallSignature(m_lazySignature.CallingConvention)
+                Return m_lazySignature.Header.CallingConvention = SignatureCallingConvention.VarArgs
             End Get
         End Property
 
@@ -562,7 +562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend ReadOnly Property Handle As MethodHandle
+        Friend ReadOnly Property Handle As MethodDefinitionHandle
             Get
                 Return m_Handle
             End Get
@@ -752,13 +752,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 Dim moduleSymbol = m_ContainingType.ContainingPEModule
 
-                Dim callingConventions As Byte
+                Dim signatureHeader As SignatureHeader
                 Dim mrEx As BadImageFormatException = Nothing
                 Dim paramInfo() As MetadataDecoder.ParamInfo =
-                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(m_Handle, callingConventions, mrEx)
+                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(m_Handle, signatureHeader, mrEx)
 
                 ' If method is not generic, let's assign empty list for type parameters
-                If Not SignatureHeader.IsGeneric(callingConventions) AndAlso
+                If Not signatureHeader.IsGeneric() AndAlso
                     m_lazyTypeParameters.IsDefault Then
                     ImmutableInterlocked.InterlockedCompareExchange(m_lazyTypeParameters,
                                                 ImmutableArray(Of TypeParameterSymbol).Empty, Nothing)
@@ -797,7 +797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                  (old IsNot Nothing AndAlso old.Code = ERRID.ERR_UnsupportedMethod1))
                 End If
 
-                Dim signature As New SignatureData(callingConventions, params, returnParam)
+                Dim signature As New SignatureData(signatureHeader, params, returnParam)
                 Interlocked.CompareExchange(m_lazySignature, signature, Nothing)
             End If
         End Sub
@@ -859,7 +859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
             Get
                 EnsureSignatureIsLoaded()
-                Return CType(m_lazySignature.CallingConvention, Microsoft.Cci.CallingConvention)
+                Return CType(m_lazySignature.Header.RawValue, Microsoft.Cci.CallingConvention)
             End Get
         End Property
 
@@ -914,7 +914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Me, m_ContainingType.ContainingPEModule, preferredCulture, cancellationToken, m_lazyDocComment)
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VBSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
                 Return Nothing
             End Get
@@ -957,7 +957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
-        Friend Overrides ReadOnly Property DeclaringCompilation As VBCompilation
+        Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
             End Get

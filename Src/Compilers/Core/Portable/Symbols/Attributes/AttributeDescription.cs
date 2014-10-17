@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
             var signature = this.Signatures[signatureIndex];
 
             // only instance ctors are allowed:
-            Debug.Assert(signature[0] == SignatureHeader.HasThis);
+            Debug.Assert(signature[0] == (byte)SignatureAttributes.Instance);
 
             // parameter count is the second element of the signature:
             return signature[1];
@@ -136,58 +136,58 @@ namespace Microsoft.CodeAnalysis
             }).AsImmutable();
         }
 
-        private static readonly byte[] Signature_HasThis_Void = new byte[] { SignatureHeader.HasThis, 0, Void };
-        private static readonly byte[] Signature_HasThis_Void_Int16 = new byte[] { SignatureHeader.HasThis, 1, Void, Int16 };
-        private static readonly byte[] Signature_HasThis_Void_Int32 = new byte[] { SignatureHeader.HasThis, 1, Void, Int32 };
-        private static readonly byte[] Signature_HasThis_Void_Int32_Int32_Int32 = new byte[] { SignatureHeader.HasThis, 3, Void, Int32, Int32, Int32 };
-        private static readonly byte[] Signature_HasThis_Void_UInt32 = new byte[] { SignatureHeader.HasThis, 1, Void, UInt32 };
-        private static readonly byte[] Signature_HasThis_Void_Int32_Int32 = new byte[] { SignatureHeader.HasThis, 2, Void, Int32, Int32 };
-        private static readonly byte[] Signature_HasThis_Void_Int32_Int32_Int32_Int32 = new byte[] { SignatureHeader.HasThis, 4, Void, Int32, Int32, Int32, Int32 };
-        private static readonly byte[] Signature_HasThis_Void_String = new byte[] { SignatureHeader.HasThis, 1, Void, String };
-        private static readonly byte[] Signature_HasThis_Void_Object = new byte[] { SignatureHeader.HasThis, 1, Void, Object };
-        private static readonly byte[] Signature_HasThis_Void_String_String = new byte[] { SignatureHeader.HasThis, 2, Void, String, String };
-        private static readonly byte[] Signature_HasThis_Void_String_Boolean = new byte[] { SignatureHeader.HasThis, 2, Void, String, Boolean };
-        private static readonly byte[] Signature_HasThis_Void_String_String_String = new byte[] { SignatureHeader.HasThis, 3, Void, String, String, String };
-        private static readonly byte[] Signature_HasThis_Void_String_String_String_String = new byte[] { SignatureHeader.HasThis, 4, Void, String, String, String, String };
-        private static readonly byte[] Signature_HasThis_Void_AttributeTargets = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.AttributeTargets };
-        private static readonly byte[] Signature_HasThis_Void_AssemblyNameFlags = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.AssemblyNameFlags };
-        private static readonly byte[] Signature_HasThis_Void_MethodImplOptions = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.MethodImplOptions };
-        private static readonly byte[] Signature_HasThis_Void_CharSet = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.CharSet };
-        private static readonly byte[] Signature_HasThis_Void_LayoutKind = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.LayoutKind };
-        private static readonly byte[] Signature_HasThis_Void_UnmanagedType = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.UnmanagedType };
-        private static readonly byte[] Signature_HasThis_Void_TypeLibTypeFlags = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.TypeLibTypeFlags };
-        private static readonly byte[] Signature_HasThis_Void_ClassInterfaceType = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.ClassInterfaceType };
-        private static readonly byte[] Signature_HasThis_Void_ComInterfaceType = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.ComInterfaceType };
-        private static readonly byte[] Signature_HasThis_Void_CompilationRelaxations = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.CompilationRelaxations };
-        private static readonly byte[] Signature_HasThis_Void_DebuggingModes = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.DebuggingModes };
-        private static readonly byte[] Signature_HasThis_Void_SecurityCriticalScope = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.SecurityCriticalScope };
-        private static readonly byte[] Signature_HasThis_Void_CallingConvention = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.CallingConvention };
-        private static readonly byte[] Signature_HasThis_Void_AssemblyHashAlgorithm = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.AssemblyHashAlgorithm };
-        private static readonly byte[] Signature_HasThis_Void_Int64 = new byte[] { SignatureHeader.HasThis, 1, Void, Int64 };
+        private static readonly byte[] Signature_HasThis_Void = new byte[] { (byte)SignatureAttributes.Instance, 0, Void };
+        private static readonly byte[] Signature_HasThis_Void_Int16 = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, Int16 };
+        private static readonly byte[] Signature_HasThis_Void_Int32 = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, Int32 };
+        private static readonly byte[] Signature_HasThis_Void_Int32_Int32_Int32 = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, Int32, Int32, Int32 };
+        private static readonly byte[] Signature_HasThis_Void_UInt32 = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, UInt32 };
+        private static readonly byte[] Signature_HasThis_Void_Int32_Int32 = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Int32, Int32 };
+        private static readonly byte[] Signature_HasThis_Void_Int32_Int32_Int32_Int32 = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, Int32, Int32, Int32, Int32 };
+        private static readonly byte[] Signature_HasThis_Void_String = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, String };
+        private static readonly byte[] Signature_HasThis_Void_Object = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, Object };
+        private static readonly byte[] Signature_HasThis_Void_String_String = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, String, String };
+        private static readonly byte[] Signature_HasThis_Void_String_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, String, Boolean };
+        private static readonly byte[] Signature_HasThis_Void_String_String_String = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, String, String, String };
+        private static readonly byte[] Signature_HasThis_Void_String_String_String_String = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, String, String, String };
+        private static readonly byte[] Signature_HasThis_Void_AttributeTargets = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.AttributeTargets };
+        private static readonly byte[] Signature_HasThis_Void_AssemblyNameFlags = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.AssemblyNameFlags };
+        private static readonly byte[] Signature_HasThis_Void_MethodImplOptions = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.MethodImplOptions };
+        private static readonly byte[] Signature_HasThis_Void_CharSet = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.CharSet };
+        private static readonly byte[] Signature_HasThis_Void_LayoutKind = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.LayoutKind };
+        private static readonly byte[] Signature_HasThis_Void_UnmanagedType = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.UnmanagedType };
+        private static readonly byte[] Signature_HasThis_Void_TypeLibTypeFlags = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.TypeLibTypeFlags };
+        private static readonly byte[] Signature_HasThis_Void_ClassInterfaceType = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.ClassInterfaceType };
+        private static readonly byte[] Signature_HasThis_Void_ComInterfaceType = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.ComInterfaceType };
+        private static readonly byte[] Signature_HasThis_Void_CompilationRelaxations = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.CompilationRelaxations };
+        private static readonly byte[] Signature_HasThis_Void_DebuggingModes = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.DebuggingModes };
+        private static readonly byte[] Signature_HasThis_Void_SecurityCriticalScope = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.SecurityCriticalScope };
+        private static readonly byte[] Signature_HasThis_Void_CallingConvention = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.CallingConvention };
+        private static readonly byte[] Signature_HasThis_Void_AssemblyHashAlgorithm = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.AssemblyHashAlgorithm };
+        private static readonly byte[] Signature_HasThis_Void_Int64 = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, Int64 };
         private static readonly byte[] Signature_HasThis_Void_UInt8_UInt8_UInt32_UInt32_UInt32 = new byte[] {
-            SignatureHeader.HasThis, 5, Void, Byte, Byte, UInt32, UInt32, UInt32 };
+            (byte)SignatureAttributes.Instance, 5, Void, Byte, Byte, UInt32, UInt32, UInt32 };
         private static readonly byte[] Signature_HasThis_Void_UIn8_UInt8_Int32_Int32_Int32 = new byte[] {
-            SignatureHeader.HasThis, 5, Void, Byte, Byte, Int32, Int32, Int32 };
+            (byte)SignatureAttributes.Instance, 5, Void, Byte, Byte, Int32, Int32, Int32 };
 
 
-        private static readonly byte[] Signature_HasThis_Void_Boolean = new byte[] { SignatureHeader.HasThis, 1, Void, Boolean };
-        private static readonly byte[] Signature_HasThis_Void_Boolean_Boolean = new byte[] { SignatureHeader.HasThis, 2, Void, Boolean, Boolean };
+        private static readonly byte[] Signature_HasThis_Void_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, Boolean };
+        private static readonly byte[] Signature_HasThis_Void_Boolean_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Boolean, Boolean };
 
-        private static readonly byte[] Signature_HasThis_Void_Boolean_TransactionOption = new byte[] { SignatureHeader.HasThis, 2, Void, Boolean, TypeHandle, (byte)TypeHandleTarget.TransactionOption };
-        private static readonly byte[] Signature_HasThis_Void_Boolean_TransactionOption_Int32 = new byte[] { SignatureHeader.HasThis, 3, Void, Boolean, TypeHandle, (byte)TypeHandleTarget.TransactionOption, Int32 };
-        private static readonly byte[] Signature_HasThis_Void_Boolean_TransactionOption_Int32_Boolean = new byte[] { SignatureHeader.HasThis, 4, Void, Boolean, TypeHandle, (byte)TypeHandleTarget.TransactionOption, Int32, Boolean };
+        private static readonly byte[] Signature_HasThis_Void_Boolean_TransactionOption = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Boolean, TypeHandle, (byte)TypeHandleTarget.TransactionOption };
+        private static readonly byte[] Signature_HasThis_Void_Boolean_TransactionOption_Int32 = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, Boolean, TypeHandle, (byte)TypeHandleTarget.TransactionOption, Int32 };
+        private static readonly byte[] Signature_HasThis_Void_Boolean_TransactionOption_Int32_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, Boolean, TypeHandle, (byte)TypeHandleTarget.TransactionOption, Int32, Boolean };
 
-        private static readonly byte[] Signature_HasThis_Void_SecurityAction = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.SecurityAction };
-        private static readonly byte[] Signature_HasThis_Void_Type = new byte[] { SignatureHeader.HasThis, 1, Void, TypeHandle, (byte)TypeHandleTarget.SystemType };
-        private static readonly byte[] Signature_HasThis_Void_Type_Type = new byte[] { SignatureHeader.HasThis, 2, Void, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType };
-        private static readonly byte[] Signature_HasThis_Void_Type_Type_Type = new byte[] { SignatureHeader.HasThis, 3, Void, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType };
-        private static readonly byte[] Signature_HasThis_Void_Type_Type_Type_Type = new byte[] { SignatureHeader.HasThis, 4, Void, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType };
-        private static readonly byte[] Signature_HasThis_Void_Type_Int32 = new byte[] { SignatureHeader.HasThis, 2, Void, TypeHandle, (byte)TypeHandleTarget.SystemType, Int32 };
+        private static readonly byte[] Signature_HasThis_Void_SecurityAction = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.SecurityAction };
+        private static readonly byte[] Signature_HasThis_Void_Type = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.SystemType };
+        private static readonly byte[] Signature_HasThis_Void_Type_Type = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType };
+        private static readonly byte[] Signature_HasThis_Void_Type_Type_Type = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType };
+        private static readonly byte[] Signature_HasThis_Void_Type_Type_Type_Type = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType, TypeHandle, (byte)TypeHandleTarget.SystemType };
+        private static readonly byte[] Signature_HasThis_Void_Type_Int32 = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, TypeHandle, (byte)TypeHandleTarget.SystemType, Int32 };
 
-        private static readonly byte[] Signature_HasThis_Void_SzArray_Boolean = new byte[] { SignatureHeader.HasThis, 1, Void, SzArray, Boolean };
+        private static readonly byte[] Signature_HasThis_Void_SzArray_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, Boolean };
 
-        private static readonly byte[] Signature_HasThis_Void_String_DeprecationType_UInt32 = new byte[] { SignatureHeader.HasThis, 3, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32 };
-        private static readonly byte[] Signature_HasThis_Void_String_DeprecationType_UInt32_Platform = new byte[] { SignatureHeader.HasThis, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.Platform };
+        private static readonly byte[] Signature_HasThis_Void_String_DeprecationType_UInt32 = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32 };
+        private static readonly byte[] Signature_HasThis_Void_String_DeprecationType_UInt32_Platform = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.Platform };
 
         // TODO: We should reuse the byte arrays for well-known attributes with same signatures.
 

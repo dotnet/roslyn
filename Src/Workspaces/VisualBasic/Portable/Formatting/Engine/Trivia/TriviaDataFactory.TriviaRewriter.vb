@@ -19,7 +19,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class TriviaDataFactory
         Friend Class TriviaRewriter
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _node As SyntaxNode
             Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan)

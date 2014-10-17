@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundUnaryOperator
 
         Public Sub New(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             operatorKind As UnaryOperatorKind,
             operand As BoundExpression,
             checked As Boolean,

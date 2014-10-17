@@ -171,7 +171,7 @@ End Module
         <WorkItem(538834, "DevDiv")>
         <Fact>
         Public Sub AssertPassMultipleArgumentsWithByRef()
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
@@ -216,7 +216,7 @@ End Namespace
         <WorkItem(538870, "DevDiv")>
         <Fact>
         Public Sub AssertInvalidArrayInitnializer()
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
@@ -257,7 +257,7 @@ BC30987: '{' expected.
         <WorkItem(538967, "DevDiv")>
         <Fact>
         Public Sub Bug4745()
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Bug4745">
@@ -283,7 +283,7 @@ Shared x As Integer = 10
         <WorkItem(538491, "DevDiv")>
         <Fact>
         Public Sub Bug4118()
-            Dim options = New VBCompilationOptions(OutputKind.ConsoleApplication)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Bug4118">

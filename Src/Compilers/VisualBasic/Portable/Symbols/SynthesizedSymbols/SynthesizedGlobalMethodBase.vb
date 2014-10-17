@@ -185,9 +185,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property Syntax As VBSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
-                Return VisualBasic.VBSyntaxTree.Dummy.GetRoot()
+                Return VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot()
             End Get
         End Property
 

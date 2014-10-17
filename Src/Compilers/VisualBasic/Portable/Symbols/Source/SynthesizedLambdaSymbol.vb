@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Initializes a new instance of the <see cref="SynthesizedLambdaSymbol" /> class.
         ''' </summary>
         Public Sub New(
-            syntaxNode As VBSyntaxNode,
+            syntaxNode As VisualBasicSyntaxNode,
             parameters As ImmutableArray(Of BoundLambdaParameterSymbol),
             returnType As TypeSymbol,
             binder As Binder,

@@ -12,12 +12,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Public Class VBCompilation
+    Partial Public Class VisualBasicCompilation
         Partial Friend Class DocumentationCommentCompiler
             Inherits VisualBasicSymbolVisitor
 
             Private Class MislocatedDocumentationCommentFinder
-                Inherits VBSyntaxWalker
+                Inherits VisualBasicSyntaxWalker
 
                 Private ReadOnly _diagnostics As DiagnosticBag
                 Private ReadOnly _filterSpanWithinTree As TextSpan?
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Me._diagnostics.Add(ERRID.WRN_XMLDocInsideMethod, trivia.GetLocation())
 
                         Else
-                            Dim parent As VBSyntaxNode = DirectCast(trivia.Token.Parent, VBSyntaxNode)
+                            Dim parent As VisualBasicSyntaxNode = DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode)
 lAgain:
                             Debug.Assert(parent IsNot Nothing)
                             Select Case parent.Kind

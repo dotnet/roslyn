@@ -264,7 +264,7 @@ End Structure
 
 #Region "Utils"
 
-        Private Function Compile(text As XElement, ByRef tree As SyntaxTree, nodes As List(Of SyntaxNode), Optional errors As XElement = Nothing) As VBCompilation
+        Private Function Compile(text As XElement, ByRef tree As SyntaxTree, nodes As List(Of SyntaxNode), Optional errors As XElement = Nothing) As VisualBasicCompilation
             Dim spans As New List(Of TextSpan)
             ExtractTextIntervals(text, spans)
 
@@ -325,7 +325,7 @@ End Structure
             Loop
         End Sub
 
-        Private Shared Function GetNamedTypeSymbol(c As VBCompilation, namedTypeName As String, Optional fromCorLib As Boolean = False) As NamedTypeSymbol
+        Private Shared Function GetNamedTypeSymbol(c As VisualBasicCompilation, namedTypeName As String, Optional fromCorLib As Boolean = False) As NamedTypeSymbol
             Dim nameParts = namedTypeName.Split("."c)
 
             Dim srcAssembly = DirectCast(c.Assembly, SourceAssemblySymbol)

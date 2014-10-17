@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ' // Read PI's and comments
 
-                Dim node As VBSyntaxNode = prologue
+                Dim node As VisualBasicSyntaxNode = prologue
                 Dim precedingMisc = ParseXmlMisc(True, whitespaceChecker, node)
                 prologue = DirectCast(node, XmlDeclarationSyntax)
                 Dim body As XmlNodeSyntax
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim foundVersion = False
             Dim foundEncoding = False
             Dim foundStandalone = False
-            Dim nodes(3) As VBSyntaxNode
+            Dim nodes(3) As VisualBasicSyntaxNode
             Dim i As Integer = 0
 
             nodes(i) = _scanner.MakeKeyword(nameToken)
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 13452 - 13452
         ' ExpressionList** .Parser::ParseXmlMisc( [ _Inout_ ParseTree::ExpressionList** Prev ] [ bool IsProlog ] [ _Inout_ bool& ErrorInConstruct ] )
-        Private Function ParseXmlMisc(IsProlog As Boolean, whitespaceChecker As XmlWhitespaceChecker, ByRef outerNode As VBSyntaxNode) As SyntaxList(Of XmlNodeSyntax)
+        Private Function ParseXmlMisc(IsProlog As Boolean, whitespaceChecker As XmlWhitespaceChecker, ByRef outerNode As VisualBasicSyntaxNode) As SyntaxList(Of XmlNodeSyntax)
             Dim Content = Me._pool.Allocate(Of XmlNodeSyntax)()
 
             While True
@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Case SyntaxKind.BadToken
                         Dim badToken = DirectCast(CurrentToken, BadTokenSyntax)
-                        Dim skipped As VBSyntaxNode
+                        Dim skipped As VisualBasicSyntaxNode
                         If badToken.SubKind = SyntaxSubKind.BeginDocTypeToken Then
                             skipped = ParseXmlDocType(ScannerState.Misc)
                         Else
@@ -359,12 +359,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ContentList
         End Function
 
-        Private Function ParseXmlDocType(enclosingState As ScannerState) As VBSyntaxNode
+        Private Function ParseXmlDocType(enclosingState As ScannerState) As VisualBasicSyntaxNode
             Debug.Assert(CurrentToken.Kind = SyntaxKind.BadToken AndAlso
                          DirectCast(CurrentToken, BadTokenSyntax).SubKind = SyntaxSubKind.BeginDocTypeToken, "ParseDTD called on wrong token.")
 
 
-            Dim builder = SyntaxListBuilder(Of VBSyntaxNode).Create()
+            Dim builder = SyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
 
             Dim beginDocType = DirectCast(CurrentToken, BadTokenSyntax)
             builder.Add(beginDocType)
@@ -387,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Sub ParseExternalID(builder As SyntaxListBuilder(Of VBSyntaxNode))
+        Private Sub ParseExternalID(builder As SyntaxListBuilder(Of VisualBasicSyntaxNode))
 
             If CurrentToken.Kind = SyntaxKind.XmlNameToken Then
 
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Private Sub ParseInternalSubSet(builder As SyntaxListBuilder(Of VBSyntaxNode))
+        Private Sub ParseInternalSubSet(builder As SyntaxListBuilder(Of VisualBasicSyntaxNode))
             Dim unexpected As SyntaxList(Of SyntaxToken) = Nothing
             If CurrentToken.Kind <> SyntaxKind.BadToken OrElse DirectCast(CurrentToken, BadTokenSyntax).SubKind <> SyntaxSubKind.OpenBracketToken Then
                 unexpected = ResyncAt(ScannerState.DocType, {SyntaxKind.BadToken,
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Private Sub ParseXmlMarkupDecl(builder As SyntaxListBuilder(Of VBSyntaxNode))
+        Private Sub ParseXmlMarkupDecl(builder As SyntaxListBuilder(Of VisualBasicSyntaxNode))
 
             Do
                 Select Case CurrentToken.Kind
@@ -1584,7 +1584,7 @@ lFailed:
         ''' See also: http://fileformat.info/info/unicode/char/FF1A
         ''' </summary>
         ''' <param name="node">A VB syntax node to check.</param>
-        Private Shared Function IsAsciiColonTrivia(node As VBSyntaxNode) As Boolean
+        Private Shared Function IsAsciiColonTrivia(node As VisualBasicSyntaxNode) As Boolean
             Return node.Kind = SyntaxKind.ColonTrivia AndAlso node.ToString() = ":"
         End Function
 
@@ -1607,7 +1607,7 @@ lFailed:
             ' Note that only the COLON (U+003A) character, but not the FULLWIDTH COLON (U+FF1A), may be a part of an XML name, 
             ' although they both may be represented by a node with kind SyntaxKind.ColonTrivia.
 
-            Dim trailingTrivia = New SyntaxList(Of VBSyntaxNode)(localName.GetTrailingTrivia())
+            Dim trailingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(localName.GetTrailingTrivia())
             If trailingTrivia.Count > 0 AndAlso IsAsciiColonTrivia(trailingTrivia(0)) Then
 
                 Debug.Assert(trailingTrivia.Last.Kind = SyntaxKind.ColonTrivia)
@@ -1693,7 +1693,7 @@ lFailed:
             Return tk
         End Function
 
-        Friend Function ParseRestOfDocCommentContent(nodesSoFar As SyntaxList(Of VBSyntaxNode)) As SyntaxList(Of VBSyntaxNode)
+        Friend Function ParseRestOfDocCommentContent(nodesSoFar As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxList(Of VisualBasicSyntaxNode)
             Dim content = Me._pool.Allocate(Of XmlNodeSyntax)()
 
             For Each node In nodesSoFar.Nodes
@@ -1722,7 +1722,7 @@ lFailed:
         ' File: Parser.cpp
         ' Lines: 14004 - 14004
         ' ExpressionList* .Parser::ParseXmlContent( [ _Inout_ ParseTree::XmlElementExpression* Parent ] [ _Inout_ bool& ErrorInConstruct ] )
-        Friend Function ParseXmlContent(state As ScannerState) As SyntaxList(Of VBSyntaxNode)
+        Friend Function ParseXmlContent(state As ScannerState) As SyntaxList(Of VisualBasicSyntaxNode)
             Debug.Assert(IsToken(CurrentToken,
                                  SyntaxKind.XmlTextLiteralToken,
                                  SyntaxKind.DocumentationCommentLineBreakToken,
@@ -2048,7 +2048,7 @@ TryResync:
     End Class
 
     Friend Class XmlWhitespaceChecker
-        Inherits VBSyntaxRewriter
+        Inherits VisualBasicSyntaxRewriter
 
         <Flags()>
         Friend Enum TriviaCheck
@@ -2067,7 +2067,7 @@ TryResync:
         Sub New()
         End Sub
 
-        Public Overrides Function VisitXmlDeclaration(node As XmlDeclarationSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlDeclaration(node As XmlDeclarationSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
             Dim saveOptions = _options
 
@@ -2088,7 +2088,7 @@ TryResync:
             End If
         End Function
 
-        Public Overrides Function VisitXmlElementStartTag(node As XmlElementStartTagSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlElementStartTag(node As XmlElementStartTagSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
 
             Dim saveOptions = _options
@@ -2117,7 +2117,7 @@ TryResync:
             Return node
         End Function
 
-        Public Overrides Function VisitXmlEmptyElement(node As XmlEmptyElementSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlEmptyElement(node As XmlEmptyElementSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
 
             Dim saveOptions = _options
@@ -2147,7 +2147,7 @@ TryResync:
             Return node
         End Function
 
-        Public Overrides Function VisitXmlElementEndTag(node As XmlElementEndTagSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlElementEndTag(node As XmlElementEndTagSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
 
             Dim saveOptions = _options
@@ -2170,7 +2170,7 @@ TryResync:
             Return node
         End Function
 
-        Public Overrides Function VisitXmlProcessingInstruction(node As XmlProcessingInstructionSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlProcessingInstruction(node As XmlProcessingInstructionSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
 
             Dim saveOptions = _options
@@ -2197,7 +2197,7 @@ TryResync:
             End If
         End Function
 
-        Public Overrides Function VisitXmlNameAttribute(node As XmlNameAttributeSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlNameAttribute(node As XmlNameAttributeSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
             ' Only check the name for trivia.
 
@@ -2216,7 +2216,7 @@ TryResync:
             Return node
         End Function
 
-        Public Overrides Function VisitXmlCrefAttribute(node As XmlCrefAttributeSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlCrefAttribute(node As XmlCrefAttributeSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
             ' Only check the name for trivia.
 
@@ -2235,7 +2235,7 @@ TryResync:
             Return node
         End Function
 
-        Public Overrides Function VisitXmlAttribute(node As XmlAttributeSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlAttribute(node As XmlAttributeSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
             ' Only check the name for trivia.
 
@@ -2254,7 +2254,7 @@ TryResync:
             Return node
         End Function
 
-        Public Overrides Function VisitXmlBracketedName(node As XmlBracketedNameSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlBracketedName(node As XmlBracketedNameSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
 
             Dim saveOptions = _options
@@ -2282,7 +2282,7 @@ TryResync:
             Return node
         End Function
 
-        Public Overrides Function VisitXmlName(node As XmlNameSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlName(node As XmlNameSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
 
             Dim prefix As XmlPrefixSyntax = DirectCast(Visit(node.Prefix), XmlPrefixSyntax)
@@ -2325,7 +2325,7 @@ TryResync:
             End If
         End Function
 
-        Public Overrides Function VisitXmlPrefix(node As XmlPrefixSyntax) As VBSyntaxNode
+        Public Overrides Function VisitXmlPrefix(node As XmlPrefixSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
 
             ' Prohibit trailing trivia if prefix is an attribute name and both leading and trailing trivia if prefix is an element name
@@ -2352,8 +2352,8 @@ TryResync:
             End If
 
             Dim anyChanges As Boolean = False
-            Dim leadingTrivia As VBSyntaxNode = Nothing
-            Dim trailingTrivia As VBSyntaxNode = Nothing
+            Dim leadingTrivia As VisualBasicSyntaxNode = Nothing
+            Dim trailingTrivia As VisualBasicSyntaxNode = Nothing
 
             ' For whitespace checking, only look at '<', '</', <%= and ':' tokens.
             ' i.e.
@@ -2374,7 +2374,7 @@ TryResync:
 
                     leadingTrivia = token.GetLeadingTrivia
                     If (_options._triviaCheck And TriviaCheck.ProhibitLeadingTrivia) = TriviaCheck.ProhibitLeadingTrivia Then
-                        Dim newleadingTrivia = VisitList(New SyntaxList(Of VBSyntaxNode)(leadingTrivia)).Node
+                        Dim newleadingTrivia = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)).Node
                         If newleadingTrivia IsNot leadingTrivia Then
                             anyChanges = True
                             leadingTrivia = newleadingTrivia
@@ -2383,7 +2383,7 @@ TryResync:
 
                     trailingTrivia = token.GetTrailingTrivia
                     If (_options._triviaCheck And TriviaCheck.ProhibitTrailingTrivia) = TriviaCheck.ProhibitTrailingTrivia Then
-                        Dim newTrailingTrivia = VisitList(New SyntaxList(Of VBSyntaxNode)(trailingTrivia)).Node
+                        Dim newTrailingTrivia = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)).Node
                         If newTrailingTrivia IsNot trailingTrivia Then
                             anyChanges = True
                             trailingTrivia = newTrailingTrivia

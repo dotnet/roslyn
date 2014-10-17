@@ -1471,7 +1471,7 @@ True";
 }";
 
             var vbCompilation = CreateVisualBasicCompilation("VB", vb,
-                compilationOptions: new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vbCompilation.VerifyDiagnostics();
 
             var csharpCompilation = CreateCSharpCompilation("CS", csharp, 

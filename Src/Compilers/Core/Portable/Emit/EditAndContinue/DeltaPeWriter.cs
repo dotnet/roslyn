@@ -209,13 +209,13 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Return tokens for all modified methods.
         /// </summary>
-        public void GetMethodTokens(ICollection<MethodHandle> methods)
+        public void GetMethodTokens(ICollection<MethodDefinitionHandle> methods)
         {
             foreach (var def in this.methodDefs.GetRows())
             {
                 if (!this.methodDefs.IsAddedNotChanged(def))
                 {
-                    methods.Add(MetadataTokens.MethodHandle((int)this.methodDefs[def]));
+                    methods.Add(MetadataTokens.MethodDefinitionHandle((int)this.methodDefs[def]));
                 }
             }
         }
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            TypeHandle handle;
+            TypeDefinitionHandle handle;
             if (this.definitionMap.TryGetTypeHandle(item, out handle))
             {
                 index = (uint)MetadataTokens.GetRowNumber(handle);
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            EventHandle handle;
+            EventDefinitionHandle handle;
             if (this.definitionMap.TryGetEventHandle(item, out handle))
             {
                 index = (uint)MetadataTokens.GetRowNumber(handle);
@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            FieldHandle handle;
+            FieldDefinitionHandle handle;
             if (this.definitionMap.TryGetFieldHandle(item, out handle))
             {
                 index = (uint)MetadataTokens.GetRowNumber(handle);
@@ -1180,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            MethodHandle handle;
+            MethodDefinitionHandle handle;
             if (this.definitionMap.TryGetMethodHandle(item, out handle))
             {
                 index = (uint)MetadataTokens.GetRowNumber(handle);
@@ -1199,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            PropertyHandle handle;
+            PropertyDefinitionHandle handle;
             if (this.definitionMap.TryGetPropertyHandle(item, out handle))
             {
                 index = (uint)MetadataTokens.GetRowNumber(handle);
@@ -1414,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 base.Visit(method);
             }
 
-            public override void Visit(MethodImplementation methodImplementation)
+            public override void Visit(Cci.MethodImplementation methodImplementation)
             {
                 // Unless the implementing method was added,
                 // the method implementation already exists.

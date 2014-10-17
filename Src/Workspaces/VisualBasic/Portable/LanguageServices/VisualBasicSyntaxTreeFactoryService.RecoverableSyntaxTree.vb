@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' key that can be used to identify a tree rather than the tree itself.
             ''' </summary>
             Friend NotInheritable Class RecoverableSyntaxTree
-                Inherits VBSyntaxTree
+                Inherits VisualBasicSyntaxTree
                 Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax)
 
                 Private ReadOnly _recoverableRoot As RecoverableSyntaxRoot(Of CompilationUnitSyntax)
@@ -41,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public Overrides ReadOnly Property Options As VBParseOptions
+                Public Overrides ReadOnly Property Options As VisualBasicParseOptions
                     Get
-                        Return DirectCast(_recoverableRoot.Options, VBParseOptions)
+                        Return DirectCast(_recoverableRoot.Options, VisualBasicParseOptions)
                     End Get
                 End Property
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return _recoverableRoot.GetTextAsync(cancellationToken)
                 End Function
 
-                Public Overrides Function TryGetRoot(ByRef root As VBSyntaxNode) As Boolean
+                Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
                     Dim compilationRoot As CompilationUnitSyntax = Nothing
                     Dim status = TryGetRoot(compilationRoot)
                     root = compilationRoot
@@ -76,11 +76,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return _recoverableRoot.TryGetRoot(root)
                 End Function
 
-                Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
+                Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
                     Return _recoverableRoot.GetRoot(cancellationToken)
                 End Function
 
-                Public Overrides Async Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VBSyntaxNode)
+                Public Overrides Async Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicSyntaxNode)
                     Return Await _recoverableRoot.GetRootAsync(cancellationToken).ConfigureAwait(False)
                 End Function
 

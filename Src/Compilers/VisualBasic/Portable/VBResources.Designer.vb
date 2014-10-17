@@ -721,6 +721,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Auto-implemented properties cannot be WriteOnly..
+        '''</summary>
+        Friend ReadOnly Property ERR_AutoPropertyCantBeWriteOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_AutoPropertyCantBeWriteOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Auto-implemented properties cannot have parameters..
         '''</summary>
         Friend ReadOnly Property ERR_AutoPropertyCantHaveParams() As String

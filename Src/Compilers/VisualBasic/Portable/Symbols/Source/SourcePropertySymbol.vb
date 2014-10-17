@@ -170,10 +170,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If blockSyntaxOpt Is Nothing Then
                 ' Generate backing field for auto property.
                 If Not prop.IsMustOverride Then
+                    If isWriteOnly Then
+                        diagnostics.Add(ERRID.ERR_AutoPropertyCantBeWriteOnly, location)
+                    End If
+
                     Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
                     Dim fieldName = "_" + prop.m_name
-                    prop.m_backingField = New SynthesizedPropertyBackingFieldSymbol(prop, fieldName, IsShared:=prop.IsShared)
+                    prop.m_backingField = New SynthesizedPropertyBackingFieldSymbol(prop, fieldName, isShared:=prop.IsShared)
                 End If
 
                 Dim flags = prop.m_flags And Not SourceMemberFlags.MethodKindMask
@@ -221,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' we will require AccessedThroughPropertyAttribute
             bodyBinder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
-                                                    DirectCast(identifier.Parent, VBSyntaxNode),
+                                                    DirectCast(identifier.Parent, VisualBasicSyntaxNode),
                                                     diagnostics)
 
             Dim omitFurtherDiagnostics As Boolean = String.IsNullOrEmpty(name)
@@ -916,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Property declaration syntax node. 
         ''' It is either PropertyStatement for normal properties or ModifiedIdentifier for WithEvents ones.
         ''' </summary>
-        Friend ReadOnly Property Syntax As VBSyntaxNode
+        Friend ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
                 Return If(m_syntaxRef IsNot Nothing, m_syntaxRef.GetVisualBasicSyntax(), Nothing)
             End Get

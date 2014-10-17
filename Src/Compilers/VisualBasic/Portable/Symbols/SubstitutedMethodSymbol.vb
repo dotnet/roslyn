@@ -444,7 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VBSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
                 Return Nothing
             End Get

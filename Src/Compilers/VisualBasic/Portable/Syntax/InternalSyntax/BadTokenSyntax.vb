@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private ReadOnly _subKind As SyntaxSubKind
 
-        Friend Sub New(kind As SyntaxKind, subKind As SyntaxSubKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VBSyntaxNode, trailingTrivia As VBSyntaxNode)
+        Friend Sub New(kind As SyntaxKind, subKind As SyntaxSubKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
 
             _subKind = subKind
@@ -43,11 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         Public Overrides Function WithLeadingTrivia(trivia As GreenNode) As GreenNode
-            Return New BadTokenSyntax(Kind, SubKind, GetDiagnostics, GetAnnotations, Text, DirectCast(trivia, VBSyntaxNode), GetTrailingTrivia)
+            Return New BadTokenSyntax(Kind, SubKind, GetDiagnostics, GetAnnotations, Text, DirectCast(trivia, VisualBasicSyntaxNode), GetTrailingTrivia)
         End Function
 
         Public Overrides Function WithTrailingTrivia(trivia As GreenNode) As GreenNode
-            Return New BadTokenSyntax(Kind, SubKind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, DirectCast(trivia, VBSyntaxNode))
+            Return New BadTokenSyntax(Kind, SubKind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, DirectCast(trivia, VisualBasicSyntaxNode))
         End Function
 
         Friend Overrides Function SetDiagnostics(newErrors As DiagnosticInfo()) As GreenNode

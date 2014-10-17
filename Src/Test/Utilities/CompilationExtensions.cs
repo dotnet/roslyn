@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream())
             {
-                var updatedMethods = new List<MethodHandle>();
+                var updatedMethods = new List<MethodDefinitionHandle>();
 
                 var result = compilation.EmitDifference(
                     baseline,

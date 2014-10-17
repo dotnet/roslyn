@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     var actual = metadataReader.GetDeclarativeSecurityAttribute(actualHandle);
                     var expected = expectedEntries[i];
 
-                    var actualPermissionSetBytes = metadataReader.GetBytes(actual.PermissionSet);
+                    var actualPermissionSetBytes = metadataReader.GetBlobBytes(actual.PermissionSet);
                     var actualPermissionSet = new string(actualPermissionSetBytes.Select(b => (char)b).ToArray());
                     string actualParentName;
                     SymbolKind actualParentKind;
@@ -133,30 +133,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void GetAttributeParentNameAndKind(MetadataReader metadataReader, Handle token, out string name, out SymbolKind kind)
         {
-            switch (token.HandleType)
+            switch (token.Kind)
             {
-                case HandleType.Assembly:
+                case HandleKind.AssemblyDefinition:
                     name = null;
                     kind = SymbolKind.Assembly;
                     return;
 
-                case HandleType.Type:
-                    name = metadataReader.GetString(metadataReader.GetTypeDefinition((TypeHandle)token).Name);
+                case HandleKind.TypeDefinition:
+                    name = metadataReader.GetString(metadataReader.GetTypeDefinition((TypeDefinitionHandle)token).Name);
                     kind = SymbolKind.NamedType;
                     return;
 
-                case HandleType.Method:
-                    name = metadataReader.GetString(metadataReader.GetMethod((MethodHandle)token).Name);
+                case HandleKind.MethodDefinition:
+                    name = metadataReader.GetString(metadataReader.GetMethodDefinition((MethodDefinitionHandle)token).Name);
                     kind = SymbolKind.Method;
                     return;
 
                 default:
-                    throw TestExceptionUtilities.UnexpectedValue(token.HandleType);
+                    throw TestExceptionUtilities.UnexpectedValue(token.Kind);
 
             }
         }
 
-        private static TypeHandle GetTokenForType(MetadataReader metadataReader, string typeName)
+        private static TypeDefinitionHandle GetTokenForType(MetadataReader metadataReader, string typeName)
         {
             Assert.NotNull(typeName);
             Assert.NotEmpty(typeName);
@@ -172,17 +172,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             AssertEx.Fail("Unable to find type:" + typeName);
-            return default(TypeHandle);
+            return default(TypeDefinitionHandle);
         }
 
-        private static MethodHandle GetTokenForMethod(MetadataReader metadataReader, string methodName)
+        private static MethodDefinitionHandle GetTokenForMethod(MetadataReader metadataReader, string methodName)
         {
             Assert.NotNull(methodName);
             Assert.NotEmpty(methodName);
 
             foreach (var methodDef in metadataReader.MethodDefinitions)
             {
-                string name = metadataReader.GetString(metadataReader.GetMethod(methodDef).Name);
+                string name = metadataReader.GetString(metadataReader.GetMethodDefinition(methodDef).Name);
 
                 if (methodName.Equals(name))
                 {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             AssertEx.Fail("Unable to find method:" + methodName);
-            return default(MethodHandle);
+            return default(MethodDefinitionHandle);
         }
 
         internal struct DeclSecurityEntry

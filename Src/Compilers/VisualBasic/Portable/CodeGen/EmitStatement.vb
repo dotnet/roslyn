@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If localOpt IsNot Nothing Then
                     ' TODO: this local can be released when we can release named locals.
                     Dim declNodes = localOpt.DeclaringSyntaxReferences
-                    DefineLocal(localOpt, If(Not declNodes.IsEmpty, DirectCast(declNodes(0).GetSyntax(), VBSyntaxNode), catchBlock.Syntax))
+                    DefineLocal(localOpt, If(Not declNodes.IsEmpty, DirectCast(declNodes(0).GetSyntax(), VisualBasicSyntaxNode), catchBlock.Syntax))
                 End If
 
                 ' assign the exception variable if we have one
@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return Not Me._module.SourceModule.ContainingSourceAssembly.IsVbRuntime
         End Function
 
-        Private Sub EmitSetProjectError(syntaxNode As VBSyntaxNode, errorLineNumberOpt As BoundExpression)
+        Private Sub EmitSetProjectError(syntaxNode As VisualBasicSyntaxNode, errorLineNumberOpt As BoundExpression)
             Dim setProjectErrorMethod As MethodSymbol
 
             If errorLineNumberOpt Is Nothing Then
@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Me.EmitSymbolToken(setProjectErrorMethod, syntaxNode)
         End Sub
 
-        Private Sub EmitClearProjectError(syntaxNode As VBSyntaxNode)
+        Private Sub EmitClearProjectError(syntaxNode As VisualBasicSyntaxNode)
             Const clearProjectError As WellKnownMember = WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError
             Dim clearProjectErrorMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(clearProjectError), MethodSymbol)
 
@@ -1073,7 +1073,7 @@ OtherExpressions:
             End If
         End Sub
 
-        Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As VBSyntaxNode)
+        Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As VisualBasicSyntaxNode)
             Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, caseLabels.Length)
             Dim keyHash As LocalDefinition = Nothing
 
@@ -1149,7 +1149,7 @@ OtherExpressions:
                                                         If(TypeOf Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators) Is MissingMetadataTypeSymbol,
                                                            Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean),
                                                            Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)), MethodSymbol), needDeclaration:=False,
-                                                           syntaxNodeOpt:=DirectCast(syntaxNode, VBSyntaxNode), diagnostics:=assertDiagnostics))
+                                                           syntaxNodeOpt:=DirectCast(syntaxNode, VisualBasicSyntaxNode), diagnostics:=assertDiagnostics))
             assertDiagnostics.Free()
 #End If
 
@@ -1228,7 +1228,7 @@ OtherExpressions:
             End If
         End Sub
 
-        Private Function DefineLocal(local As LocalSymbol, syntaxNode As VBSyntaxNode) As LocalDefinition
+        Private Function DefineLocal(local As LocalSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
             Dim specType = local.Type.SpecialType
 
             ' We're treating constants of type Decimal and DateTime as local here to not create a new instance for each time
@@ -1374,7 +1374,7 @@ OtherExpressions:
         ''' <summary>
         ''' Allocates a temp without identity.
         ''' </summary>
-        Private Function AllocateTemp(type As TypeSymbol, syntaxNode As VBSyntaxNode) As LocalDefinition
+        Private Function AllocateTemp(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
             Return _builder.LocalSlotManager.AllocateSlot(
                 Me._module.Translate(type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics),
                 LocalSlotConstraints.None)

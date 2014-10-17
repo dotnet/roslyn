@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function IArrayTypeReferenceGetElementType(context As EmitContext) As Cci.ITypeReference Implements Cci.IArrayTypeReference.GetElementType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim customModifiers As ImmutableArray(Of CustomModifier) = Me.CustomModifiers
-            Dim type = moduleBeingBuilt.Translate(Me.ElementType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VBSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim type = moduleBeingBuilt.Translate(Me.ElementType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
             If customModifiers.Length = 0 Then
                 Return type
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Cci.PrimitiveTypeCode.NotPrimitive
         End Function
 
-        Private ReadOnly Property ITypeReferenceTypeDef As TypeHandle Implements Cci.ITypeReference.TypeDef
+        Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements Cci.ITypeReference.TypeDef
             Get
                 Return Nothing
             End Get

@@ -805,7 +805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitSequencePoint(node As BoundSequencePoint) As BoundNode
-                Dim _storedSyntax As VBSyntaxNode = Me._enclosingSequencePointSyntax
+                Dim _storedSyntax As VisualBasicSyntaxNode = Me._enclosingSequencePointSyntax
                 Me._enclosingSequencePointSyntax = node.Syntax
                 Dim rewritten = MyBase.VisitSequencePoint(node)
                 Me._enclosingSequencePointSyntax = _storedSyntax
@@ -813,7 +813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitSequencePointExpression(node As BoundSequencePointExpression) As BoundNode
-                Dim _storedSyntax As VBSyntaxNode = Me._enclosingSequencePointSyntax
+                Dim _storedSyntax As VisualBasicSyntaxNode = Me._enclosingSequencePointSyntax
                 Me._enclosingSequencePointSyntax = node.Syntax
                 Dim rewritten = DirectCast(MyBase.VisitSequencePointExpression(node), BoundSequencePointExpression)
                 Me._enclosingSequencePointSyntax = _storedSyntax

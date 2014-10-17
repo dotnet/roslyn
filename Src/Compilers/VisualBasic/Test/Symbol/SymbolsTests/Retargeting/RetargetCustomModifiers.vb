@@ -24,11 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
         <Fact>
         Public Sub Test1()
             Dim oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib
-            Dim c1 = VBCompilation.Create("C1", references:={oldMsCorLib, TestReferences.SymbolsTests.CustomModifiers.Modifiers.netmodule})
+            Dim c1 = VisualBasicCompilation.Create("C1", references:={oldMsCorLib, TestReferences.SymbolsTests.CustomModifiers.Modifiers.netmodule})
 
             Dim c1Assembly = c1.Assembly
             Dim newMsCorLib = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim c2 = VBCompilation.Create("C2", references:=New MetadataReference() {newMsCorLib, New VisualBasicCompilationReference(c1)})
+            Dim c2 = VisualBasicCompilation.Create("C2", references:=New MetadataReference() {newMsCorLib, New VisualBasicCompilationReference(c1)})
             Dim mscorlibAssembly = c2.GetReferencedAssemblySymbol(newMsCorLib)
             Assert.NotSame(mscorlibAssembly, c1.GetReferencedAssemblySymbol(oldMsCorLib))
             Dim modifiers = c2.GlobalNamespace.GetTypeMembers("Modifiers").Single()
@@ -96,13 +96,13 @@ public class Modifiers
     End Sub
 End Class"
 
-            Dim c1 = VBCompilation.Create("C1", {Parse(source)}, {oldMsCorLib})
+            Dim c1 = VisualBasicCompilation.Create("C1", {Parse(source)}, {oldMsCorLib})
 
             Dim c1Assembly = c1.Assembly
             Dim newMsCorLib = TestReferences.NetFx.v4_0_30319.mscorlib
 
             Dim r1 = New VisualBasicCompilationReference(c1)
-            Dim c2 As VBCompilation = VBCompilation.Create("C2", references:={newMsCorLib, r1})
+            Dim c2 As VisualBasicCompilation = VisualBasicCompilation.Create("C2", references:={newMsCorLib, r1})
             Dim c1AsmRef = c2.GetReferencedAssemblySymbol(r1)
             Assert.NotSame(c1Assembly, c1AsmRef)
 

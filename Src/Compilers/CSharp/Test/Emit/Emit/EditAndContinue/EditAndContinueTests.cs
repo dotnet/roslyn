@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+#pragma warning disable 618
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     Assert.Equal(reader1.GetString(s), "");
 
                     var b = MetadataTokens.BlobHandle(0);
-                    Assert.Equal(0, reader1.GetBytes(b).Length);
+                    Assert.Equal(0, reader1.GetBlobBytes(b).Length);
 
                     var us = MetadataTokens.UserStringHandle(0);
                     Assert.Equal(reader1.GetUserString(us), "");
@@ -4055,7 +4055,7 @@ class B
                     md0,
                     m =>
                     {
-                        switch (md0.MetadataReader.GetString(md0.MetadataReader.GetMethod(m).Name))
+                        switch (md0.MetadataReader.GetString(md0.MetadataReader.GetMethodDefinition(m).Name))
                         {
                             case "F": return testData0.GetMethodData("B.F").GetEncDebugInfo();
                             case "G": return testData0.GetMethodData("B.G").GetEncDebugInfo();
@@ -4245,7 +4245,7 @@ class B
                     md0,
                     m =>
                     {
-                        switch (md0.MetadataReader.GetString(md0.MetadataReader.GetMethod(m).Name))
+                        switch (md0.MetadataReader.GetString(md0.MetadataReader.GetMethodDefinition(m).Name))
                         {
                             case "F": return testData0.GetMethodData("C.F").GetEncDebugInfo();
                             case "G": return testData0.GetMethodData("C.G").GetEncDebugInfo();

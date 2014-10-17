@@ -848,7 +848,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -857,7 +857,7 @@ BC36642: Option Strict On requires each lambda expression parameter to be declar
                                      ~
 </expected>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1031,9 +1031,9 @@ End Module
     </file>
 </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             CompilationUtils.AssertNoErrors(comp1)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, New VBCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 

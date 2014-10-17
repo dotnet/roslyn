@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' A map from SyntaxNode to corresponding visited BoundStatement.
         ''' Used to ensure correct generation of resumable code for Unstructured Exception Handling.
         ''' </summary>
-        Private unstructuredExceptionHandlingResumableStatements As New Dictionary(Of VBSyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
+        Private unstructuredExceptionHandlingResumableStatements As New Dictionary(Of VisualBasicSyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
 
         Private leaveRestoreUnstructuredExceptionHandlingContextTracker As New Stack(Of BoundNode)()
 #End If
@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private ReadOnly Property Compilation As VBCompilation
+        Private ReadOnly Property Compilation As VisualBasicCompilation
             Get
                 Return Me.topMethod.DeclaringCompilation
             End Get
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' sequence point goes inside the block
         ' This ensures that when we stopped on EndXXX, we are still in the block's scope
         ' and can examine locals declared in the block.
-        Private Function InsertEndBlockSequencePoint(statement As BoundStatement, spSyntax As VBSyntaxNode) As BoundStatement
+        Private Function InsertEndBlockSequencePoint(statement As BoundStatement, spSyntax As VisualBasicSyntaxNode) As BoundStatement
             If Not GenerateDebugInfo Then
                 Return statement
             End If
@@ -393,13 +393,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return block.Update(block.StatementListSyntax, block.Locals, consequenceWithEnd.AsImmutableOrNull)
         End Function
 
-        Private Function InsertBlockEpilogue(statement As BoundStatement, endBlockResumeTargetOpt As BoundStatement, sequencePointSyntax As VBSyntaxNode) As BoundStatement
+        Private Function InsertBlockEpilogue(statement As BoundStatement, endBlockResumeTargetOpt As BoundStatement, sequencePointSyntax As VisualBasicSyntaxNode) As BoundStatement
             Return Concat(statement, If(GenerateDebugInfo, New BoundSequencePoint(sequencePointSyntax, endBlockResumeTargetOpt), endBlockResumeTargetOpt))
         End Function
 
         ' adds a sequence point before stepping on the statement
         ' NOTE: if the statement is a block the sequence point will be outside of the scope
-        Private Function PrependWithSequencePoint(statement As BoundStatement, spSyntax As VBSyntaxNode) As BoundStatement
+        Private Function PrependWithSequencePoint(statement As BoundStatement, spSyntax As VisualBasicSyntaxNode) As BoundStatement
             If Not GenerateDebugInfo Then
                 Return statement
             End If
@@ -417,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>
         ''' If the statement is a block the sequence point will be outside of the scope.
         ''' </remarks>
-        Private Function PrependWithSequencePoint(statement As BoundStatement, syntax As VBSyntaxNode, span As Text.TextSpan) As BoundStatement
+        Private Function PrependWithSequencePoint(statement As BoundStatement, syntax As VisualBasicSyntaxNode, span As Text.TextSpan) As BoundStatement
             If Not GenerateDebugInfo Then
                 Return statement
             End If
@@ -428,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       statement))
         End Function
 
-        Private Function PrependWithSequencePoint(statement As BoundBlock, syntax As VBSyntaxNode) As BoundBlock
+        Private Function PrependWithSequencePoint(statement As BoundBlock, syntax As VisualBasicSyntaxNode) As BoundBlock
             If Not GenerateDebugInfo Then
                 Return statement
             End If
@@ -485,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteReceiverArgumentsAndGenerateAccessorCall(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             methodSymbol As MethodSymbol,
             receiverOpt As BoundExpression,
             arguments As ImmutableArray(Of BoundExpression),

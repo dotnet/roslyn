@@ -19,12 +19,12 @@ Module ParserTestUtilities
     End Function
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
-    Public Function ParseAndVerify(code As XCData, options As VBParseOptions, Optional expectedErrors As XElement = Nothing) As SyntaxTree
+    Public Function ParseAndVerify(code As XCData, options As VisualBasicParseOptions, Optional expectedErrors As XElement = Nothing) As SyntaxTree
         Return ParseAndVerify(code.Value, options, expectedErrors)
     End Function
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
-    Public Function ParseAndVerify(source As String, options As VBParseOptions, Optional expectedErrors As XElement = Nothing) As SyntaxTree
+    Public Function ParseAndVerify(source As String, options As VisualBasicParseOptions, Optional expectedErrors As XElement = Nothing) As SyntaxTree
         Dim expectedDiagnostics() As DiagnosticDescription = Nothing
         If expectedErrors IsNot Nothing Then
             Dim expectedXml = expectedErrors.<error>
@@ -42,26 +42,26 @@ Module ParserTestUtilities
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(source As String, Optional expectedErrors As XElement = Nothing) As SyntaxTree
-        Return ParseAndVerify(source, VBParseOptions.Default, expectedErrors)
+        Return ParseAndVerify(source, VisualBasicParseOptions.Default, expectedErrors)
     End Function
 
     Public Function ParseAndVerify(code As XCData, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(code.Value, VBParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(code.Value, VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
-    Public Function ParseAndVerify(code As XCData, options As VBParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
+    Public Function ParseAndVerify(code As XCData, options As VisualBasicParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
         Return ParseAndVerify(code.Value, options, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
     Public Function ParseAndVerify(source As String, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(source, VBParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(source, VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
-    Public Function ParseAndVerify(source As String, options As VBParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
+    Public Function ParseAndVerify(source As String, options As VisualBasicParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
         Return ParseAndVerify(source, options, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
-    Private Function ParseAndVerify(source As String, options As VBParseOptions, expectedDiagnostics() As DiagnosticDescription, errorCodesOnly As Boolean) As SyntaxTree
+    Private Function ParseAndVerify(source As String, options As VisualBasicParseOptions, expectedDiagnostics() As DiagnosticDescription, errorCodesOnly As Boolean) As SyntaxTree
         Dim tree = Parse(source, options:=options)
         Dim root = tree.GetRoot()
 
@@ -83,16 +83,16 @@ Module ParserTestUtilities
         Return tree
     End Function
 
-    Public Function Parse(code As XCData, Optional options As VBParseOptions = Nothing) As SyntaxTree
+    Public Function Parse(code As XCData, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
         Return Parse(code.Value, fileName:="", options:=options)
     End Function
 
-    Public Function Parse(code As String, Optional options As VBParseOptions = Nothing) As SyntaxTree
+    Public Function Parse(code As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
         Return Parse(code, fileName:="", options:=options)
     End Function
 
-    Public Function Parse(source As String, fileName As String, Optional options As VBParseOptions = Nothing) As SyntaxTree
-        Dim tree = VBSyntaxTree.ParseText(SourceText.From(source), options:=If(options, VBParseOptions.Default), path:=fileName)
+    Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)
@@ -113,7 +113,7 @@ Module ParserTestUtilities
                 Dim parentToken = trivia.Token
                 Assert.Equal(token, parentToken)
                 If trivia.HasStructure Then
-                    Dim triviaStructure = DirectCast(trivia.GetStructure, VBSyntaxNode)
+                    Dim triviaStructure = DirectCast(trivia.GetStructure, VisualBasicSyntaxNode)
                     Dim parent = triviaStructure.Parent
                     Assert.Equal(Nothing, parent)
 
@@ -203,9 +203,9 @@ Module ParserTestUtilities
         Dim newText = newIText.ToString
         Dim oldText = oldIText.ToString
 
-        Dim oldTree = VBSyntaxTree.ParseText(oldIText)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldIText)
         Dim incTreeRoot = oldTree.GetRoot()
-        Dim newTree = VBSyntaxTree.ParseText(newIText)
+        Dim newTree = VisualBasicSyntaxTree.ParseText(newIText)
         Dim newTreeRoot = newTree.GetRoot()
         Dim incTree = oldTree.WithChangedText(newIText)
         incTreeRoot = incTree.GetRoot()
@@ -458,7 +458,7 @@ Public Module VerificationHelpers
 
     <Extension()>
     Public Function GetSyntaxErrorsNoTree(n As SyntaxNode) As IEnumerable(Of Diagnostic)
-        Return DirectCast(n, VBSyntaxNode).GetSyntaxErrors(GetMockTree())
+        Return DirectCast(n, VisualBasicSyntaxNode).GetSyntaxErrors(GetMockTree())
     End Function
 
     Public Function GetMockTree() As SyntaxTree
@@ -466,7 +466,7 @@ Public Module VerificationHelpers
     End Function
 
     Private Class MockSyntaxTree
-        Inherits VBSyntaxTree
+        Inherits VisualBasicSyntaxTree
 
         Public Overrides Function GetReference(node As SyntaxNode) As SyntaxReference
             Throw New NotImplementedException()
@@ -478,17 +478,17 @@ Public Module VerificationHelpers
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Options As VBParseOptions
+        Public Overrides ReadOnly Property Options As VisualBasicParseOptions
             Get
                 Throw New NotImplementedException()
             End Get
         End Property
 
-        Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VBSyntaxNode
+        Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function TryGetRoot(ByRef root As VBSyntaxNode) As Boolean
+        Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
             Throw New NotImplementedException()
         End Function
 
@@ -827,7 +827,7 @@ Public Module VerificationHelpers
 #End Region
 
     Public Class SyntaxWalkerVerifier
-        Inherits VBSyntaxWalker
+        Inherits VisualBasicSyntaxWalker
 
         Public Sub New()
             MyBase.New()
@@ -839,7 +839,7 @@ Public Module VerificationHelpers
         End Sub
 
         Public _Dict As New Dictionary(Of String, Integer)
-        Public ReadOnly _Items As New List(Of VBSyntaxNode)
+        Public ReadOnly _Items As New List(Of VisualBasicSyntaxNode)
 
         Public Overrides Sub VisitForBlock(node As ForBlockSyntax)
             IncrementTypeCounter(node, node.Kind.ToString)
@@ -985,7 +985,7 @@ Public Module VerificationHelpers
             MyBase.VisitXmlBracketedName(node)
         End Sub
 
-        Sub IncrementTypeCounter(Node As VBSyntaxNode, NodeKey As String)
+        Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
             _Items.Add(Node)
             If _Dict.ContainsKey(NodeKey) Then
                 _Dict(NodeKey) = _Dict(NodeKey) + 1 'Increment Count
@@ -1002,7 +1002,7 @@ Public Module VerificationHelpers
             End If
         End Function
 
-        Public Function GetItem() As List(Of VBSyntaxNode)
+        Public Function GetItem() As List(Of VisualBasicSyntaxNode)
             Return _Items
         End Function
     End Class

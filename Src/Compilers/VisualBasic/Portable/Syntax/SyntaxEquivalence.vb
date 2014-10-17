@@ -118,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
 
             If ignoreChildNode IsNot Nothing Then
-                Dim e1 = DirectCast(before, Green.VBSyntaxNode).ChildNodesAndTokens().GetEnumerator()
-                Dim e2 = DirectCast(after, Green.VBSyntaxNode).ChildNodesAndTokens().GetEnumerator()
+                Dim e1 = DirectCast(before, Green.VisualBasicSyntaxNode).ChildNodesAndTokens().GetEnumerator()
+                Dim e2 = DirectCast(after, Green.VisualBasicSyntaxNode).ChildNodesAndTokens().GetEnumerator()
 
                 While True
                     Dim child1 As GreenNode = Nothing

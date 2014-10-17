@@ -7,9 +7,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' A class representing Visual Basic compilation Options.
     ''' </summary>
-    Public NotInheritable Class VBCompilationOptions
+    Public NotInheritable Class VisualBasicCompilationOptions
         Inherits CompilationOptions
-        Implements IEquatable(Of VBCompilationOptions)
+        Implements IEquatable(Of VisualBasicCompilationOptions)
 
         Private Const GlobalImportsString = "GlobalImports"
         Private Const RootNamespaceString = "RootNamespace"
@@ -27,10 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _optionExplicit As Boolean
         Private _optionCompareText As Boolean
         Private _embedVbCoreRuntime As Boolean
-        Private _parseOptions As VBParseOptions
+        Private _parseOptions As VisualBasicParseOptions
 
         ''' <summary>
-        ''' Initializes a new instance of the VBCompilationOptions type with various options.
+        ''' Initializes a new instance of the VisualBasicCompilationOptions type with various options.
         ''' </summary>
         ''' <param name="outputKind">The compilation output kind. <see cref="CodeAnalysis.OutputKind"/></param>
         ''' <param name="moduleName">An optional parameter to specify the name of the assembly that this module will be a part of.</param>
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="generalDiagnosticOption">An optional parameter to specify the general warning level.</param>
         ''' <param name="specificDiagnosticOptions">An optional collection representing specific warnings that differ from general warning behavior.</param>
         ''' <param name="optimizationLevel">An optional parameter to enabled/disable optimizations. </param>
-        ''' <param name="parseOptions">An optional parameter to specify the parse options. <see cref="VBParseOptions"/></param>
+        ''' <param name="parseOptions">An optional parameter to specify the parse options. <see cref="VisualBasicParseOptions"/></param>
         ''' <param name="xmlReferenceResolver">An optional parameter to specify the XML file resolver.</param>
         ''' <param name="sourceReferenceResolver">An optional parameter to specify the source file resolver.</param>
         ''' <param name="metadataReferenceResolver">An optional parameter to specify <see cref="CodeAnalysis.MetadataReferenceResolver"/>.</param>
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional optionInfer As Boolean = True,
             Optional optionExplicit As Boolean = True,
             Optional optionCompareText As Boolean = False,
-            Optional parseOptions As VBParseOptions = Nothing,
+            Optional parseOptions As VisualBasicParseOptions = Nothing,
             Optional embedVbCoreRuntime As Boolean = False,
             Optional optimizationLevel As OptimizationLevel = OptimizationLevel.Debug,
             Optional checkOverflow As Boolean = True,
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             optionInfer As Boolean,
             optionExplicit As Boolean,
             optionCompareText As Boolean,
-            parseOptions As VBParseOptions,
+            parseOptions As VisualBasicParseOptions,
             embedVbCoreRuntime As Boolean,
             optimizationLevel As OptimizationLevel,
             checkOverflow As Boolean,
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _parseOptions = parseOptions
         End Sub
 
-        Private Sub New(other As VBCompilationOptions)
+        Private Sub New(other As VisualBasicCompilationOptions)
             MyClass.New(
                 outputKind:=other.OutputKind,
                 moduleName:=other.ModuleName,
@@ -302,257 +302,257 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Compilation level parse options.  Used when compiling synthetic embedded code such as My template
         ''' </summary>
         ''' <returns>The Parse Options Setting.</returns>
-        Friend ReadOnly Property ParseOptions As VBParseOptions
+        Friend ReadOnly Property ParseOptions As VisualBasicParseOptions
             Get
                 Return _parseOptions
             End Get
         End Property
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different OutputKind specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different OutputKind specified.
         ''' </summary>
         ''' <param name="kind">The Output Kind.</param>
-        ''' <returns>A new instance of VBCompilationOptions, if the output kind is different; otherwise current instance.</returns>        
-        Public Shadows Function WithOutputKind(kind As OutputKind) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the output kind is different; otherwise current instance.</returns>        
+        Public Shadows Function WithOutputKind(kind As OutputKind) As VisualBasicCompilationOptions
             If kind = Me.OutputKind Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.OutputKind = kind}
+            Return New VisualBasicCompilationOptions(Me) With {.OutputKind = kind}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance With a different ModuleName specified.
+        ''' Creates a new VisualBasicCompilationOptions instance With a different ModuleName specified.
         ''' </summary>
         ''' <param name="moduleName">The moduleName.</param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the module name is different; otherwise current instance.</returns>        
-        Public Function WithModuleName(moduleName As String) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the module name is different; otherwise current instance.</returns>        
+        Public Function WithModuleName(moduleName As String) As VisualBasicCompilationOptions
             If String.Equals(moduleName, Me.ModuleName, StringComparison.Ordinal) Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.ModuleName = moduleName}
+            Return New VisualBasicCompilationOptions(Me) With {.ModuleName = moduleName}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a Script Class Name specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a Script Class Name specified.
         ''' </summary>
         ''' <param name="name">The name for the ScriptClassName.</param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the script class name is different; otherwise current instance.</returns>        
-        Public Shadows Function WithScriptClassName(name As String) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the script class name is different; otherwise current instance.</returns>        
+        Public Shadows Function WithScriptClassName(name As String) As VisualBasicCompilationOptions
             If String.Equals(name, Me.ScriptClassName, StringComparison.Ordinal) Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.ScriptClassName = name}
+            Return New VisualBasicCompilationOptions(Me) With {.ScriptClassName = name}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different Main Type name specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different Main Type name specified.
         ''' </summary>
         ''' <param name="name">The name for the MainType .</param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the main type name is different; otherwise current instance.</returns>        
-        Public Shadows Function WithMainTypeName(name As String) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the main type name is different; otherwise current instance.</returns>        
+        Public Shadows Function WithMainTypeName(name As String) As VisualBasicCompilationOptions
             If String.Equals(name, Me.MainTypeName, StringComparison.Ordinal) Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.MainTypeName = name}
+            Return New VisualBasicCompilationOptions(Me) With {.MainTypeName = name}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different global imports specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different global imports specified.
         ''' </summary>
         ''' <param name="globalImports">A collection of Global Imports <see cref="GlobalImport"/>.</param>        
-        ''' <returns>A new instance of VBCompilationOptions.</returns>        
-        Public Function WithGlobalImports(globalImports As ImmutableArray(Of GlobalImport)) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions.</returns>        
+        Public Function WithGlobalImports(globalImports As ImmutableArray(Of GlobalImport)) As VisualBasicCompilationOptions
             If Me.GlobalImports.Equals(globalImports) Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {._globalImports = globalImports}
+            Return New VisualBasicCompilationOptions(Me) With {._globalImports = globalImports}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different global imports specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different global imports specified.
         ''' </summary>
         ''' <param name="globalImports">A collection of Global Imports <see cref="GlobalImport"/>.</param>        
-        ''' <returns>A new instance of VBCompilationOptions.</returns>        
-        Public Function WithGlobalImports(globalImports As IEnumerable(Of GlobalImport)) As VBCompilationOptions
-            Return New VBCompilationOptions(Me) With {._globalImports = globalImports.AsImmutableOrEmpty()}
+        ''' <returns>A new instance of VisualBasicCompilationOptions.</returns>        
+        Public Function WithGlobalImports(globalImports As IEnumerable(Of GlobalImport)) As VisualBasicCompilationOptions
+            Return New VisualBasicCompilationOptions(Me) With {._globalImports = globalImports.AsImmutableOrEmpty()}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different global imports specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different global imports specified.
         ''' </summary>
         ''' <param name="globalImports">A collection of Global Imports <see cref="GlobalImport"/>.</param>        
-        ''' <returns>A new instance of VBCompilationOptions.</returns>
-        Public Function WithGlobalImports(ParamArray globalImports As GlobalImport()) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions.</returns>
+        Public Function WithGlobalImports(ParamArray globalImports As GlobalImport()) As VisualBasicCompilationOptions
             Return WithGlobalImports(DirectCast(globalImports, IEnumerable(Of GlobalImport)))
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different root namespace specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different root namespace specified.
         ''' </summary>
         ''' <param name="rootNamespace">The root namespace.</param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the root namespace is different; otherwise current instance.</returns>        
-        Public Function WithRootNamespace(rootNamespace As String) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the root namespace is different; otherwise current instance.</returns>        
+        Public Function WithRootNamespace(rootNamespace As String) As VisualBasicCompilationOptions
             If String.Equals(rootNamespace, Me.RootNamespace, StringComparison.Ordinal) Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {._rootNamespace = rootNamespace}
+            Return New VisualBasicCompilationOptions(Me) With {._rootNamespace = rootNamespace}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different option strict specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different option strict specified.
         ''' </summary>
         ''' <param name="value">The Option Strict setting.  <see cref="Microsoft.CodeAnalysis.VisualBasic.OptionStrict"/></param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the option strict is different; otherwise current instance.</returns>        
-        Public Shadows Function WithOptionStrict(value As OptionStrict) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the option strict is different; otherwise current instance.</returns>        
+        Public Shadows Function WithOptionStrict(value As OptionStrict) As VisualBasicCompilationOptions
             If value = Me.OptionStrict Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {._optionStrict = value}
+            Return New VisualBasicCompilationOptions(Me) With {._optionStrict = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different option infer specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different option infer specified.
         ''' </summary>
         ''' <param name="value">The Option infer setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the option infer is different; otherwise current instance.</returns>        
-        Public Shadows Function WithOptionInfer(value As Boolean) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the option infer is different; otherwise current instance.</returns>        
+        Public Shadows Function WithOptionInfer(value As Boolean) As VisualBasicCompilationOptions
             If value = Me.OptionInfer Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {._optionInfer = value}
+            Return New VisualBasicCompilationOptions(Me) With {._optionInfer = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different option explicit specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different option explicit specified.
         ''' </summary>
         ''' <param name="value">The Option Explicit setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the option explicit is different; otherwise current instance.</returns>        
-        Public Shadows Function WithOptionExplicit(value As Boolean) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the option explicit is different; otherwise current instance.</returns>        
+        Public Shadows Function WithOptionExplicit(value As Boolean) As VisualBasicCompilationOptions
             If value = Me.OptionExplicit Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {._optionExplicit = value}
+            Return New VisualBasicCompilationOptions(Me) With {._optionExplicit = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different Option Compare Text specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different Option Compare Text specified.
         ''' </summary>
         ''' <param name="value">The Option Compare Text setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the option compare text is different; otherwise current instance.</returns>        
-        Public Shadows Function WithOptionCompareText(value As Boolean) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the option compare text is different; otherwise current instance.</returns>        
+        Public Shadows Function WithOptionCompareText(value As Boolean) As VisualBasicCompilationOptions
             If value = Me.OptionCompareText Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {._optionCompareText = value}
+            Return New VisualBasicCompilationOptions(Me) With {._optionCompareText = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different Embed VB Core Runtime specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different Embed VB Core Runtime specified.
         ''' </summary>
         ''' <param name="value">The Embed VB Core Runtime setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the embed vb core runtime is different; otherwise current instance.</returns>        
-        Public Shadows Function WithEmbedVbCoreRuntime(value As Boolean) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the embed vb core runtime is different; otherwise current instance.</returns>        
+        Public Shadows Function WithEmbedVbCoreRuntime(value As Boolean) As VisualBasicCompilationOptions
             If value = Me.EmbedVbCoreRuntime Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {._embedVbCoreRuntime = value}
+            Return New VisualBasicCompilationOptions(Me) With {._embedVbCoreRuntime = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different Overflow checks specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different Overflow checks specified.
         ''' </summary>
         ''' <param name="enabled">The overflow check setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the overflow check is different; otherwise current instance.</returns>        
-        Public Shadows Function WithOverflowChecks(enabled As Boolean) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the overflow check is different; otherwise current instance.</returns>        
+        Public Shadows Function WithOverflowChecks(enabled As Boolean) As VisualBasicCompilationOptions
             If enabled = Me.CheckOverflow Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.CheckOverflow = enabled}
+            Return New VisualBasicCompilationOptions(Me) With {.CheckOverflow = enabled}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different concurrent build specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different concurrent build specified.
         ''' </summary>
         ''' <param name="concurrentBuild">The concurrent build setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the concurrent build is different; otherwise current instance.</returns>        
-        Public Shadows Function WithConcurrentBuild(concurrentBuild As Boolean) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the concurrent build is different; otherwise current instance.</returns>        
+        Public Shadows Function WithConcurrentBuild(concurrentBuild As Boolean) As VisualBasicCompilationOptions
             If concurrentBuild = Me.ConcurrentBuild Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.ConcurrentBuild = concurrentBuild}
+            Return New VisualBasicCompilationOptions(Me) With {.ConcurrentBuild = concurrentBuild}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different cryptography key container specified
+        ''' Creates a new VisualBasicCompilationOptions instance with a different cryptography key container specified
         ''' </summary>
         ''' <param name="name">The name of the cryptography key container. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the cryptography key container name is different; otherwise current instance.</returns>        
-        Public Shadows Function WithCryptoKeyContainer(name As String) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the cryptography key container name is different; otherwise current instance.</returns>        
+        Public Shadows Function WithCryptoKeyContainer(name As String) As VisualBasicCompilationOptions
             If String.Equals(name, Me.CryptoKeyContainer, StringComparison.Ordinal) Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.CryptoKeyContainer = name}
+            Return New VisualBasicCompilationOptions(Me) With {.CryptoKeyContainer = name}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different cryptography key file path specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different cryptography key file path specified.
         ''' </summary>
         ''' <param name="path">The cryptography key file path. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the cryptography key path is different; otherwise current instance.</returns>        
-        Public Shadows Function WithCryptoKeyFile(path As String) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the cryptography key path is different; otherwise current instance.</returns>        
+        Public Shadows Function WithCryptoKeyFile(path As String) As VisualBasicCompilationOptions
             If String.Equals(path, Me.CryptoKeyFile, StringComparison.Ordinal) Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.CryptoKeyFile = path}
+            Return New VisualBasicCompilationOptions(Me) With {.CryptoKeyFile = path}
         End Function
 
         ''' <summary>
-        ''' Creates a new VBCompilationOptions instance with a different delay signing specified.
+        ''' Creates a new VisualBasicCompilationOptions instance with a different delay signing specified.
         ''' </summary>
         ''' <param name="value">The delay signing setting. </param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the delay sign is different; otherwise current instance.</returns>        
-        Public Shadows Function WithDelaySign(value As Boolean?) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the delay sign is different; otherwise current instance.</returns>        
+        Public Shadows Function WithDelaySign(value As Boolean?) As VisualBasicCompilationOptions
             If value = Me.DelaySign Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.DelaySign = value}
+            Return New VisualBasicCompilationOptions(Me) With {.DelaySign = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new <see cref="VBCompilationOptions"/> instance with a different platform specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different platform specified.
         ''' </summary>
         ''' <param name="value">The platform setting. <see cref="Microsoft.CodeAnalysis.Platform"/></param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the platform is different; otherwise current instance.</returns>        
-        Public Shadows Function WithPlatform(value As Platform) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the platform is different; otherwise current instance.</returns>        
+        Public Shadows Function WithPlatform(value As Platform) As VisualBasicCompilationOptions
             If value = Me.Platform Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.Platform = value}
+            Return New VisualBasicCompilationOptions(Me) With {.Platform = value}
         End Function
 
-        Friend Shadows Function WithFeatures(features As ImmutableArray(Of String)) As VBCompilationOptions
+        Friend Shadows Function WithFeatures(features As ImmutableArray(Of String)) As VisualBasicCompilationOptions
             If features = Me.Features Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.Features = features}
+            Return New VisualBasicCompilationOptions(Me) With {.Features = features}
         End Function
 
         Protected Overrides Function CommonWithGeneralDiagnosticOption(value As ReportDiagnostic) As CompilationOptions
@@ -572,24 +572,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a new <see cref="VBCompilationOptions"/> instance with a different report warning specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different report warning specified.
         ''' </summary>
         ''' <param name="value">The Report Warning setting. <see cref="Microsoft.CodeAnalysis.ReportDiagnostic"/></param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the report warning is different; otherwise current instance.</returns>        
-        Public Shadows Function WithGeneralDiagnosticOption(value As ReportDiagnostic) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the report warning is different; otherwise current instance.</returns>        
+        Public Shadows Function WithGeneralDiagnosticOption(value As ReportDiagnostic) As VisualBasicCompilationOptions
             If value = Me.GeneralDiagnosticOption Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.GeneralDiagnosticOption = value}
+            Return New VisualBasicCompilationOptions(Me) With {.GeneralDiagnosticOption = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new <see cref="VBCompilationOptions"/> instance with different specific warnings specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with different specific warnings specified.
         ''' </summary>
         ''' <param name="value">Specific report warnings. <see cref="Microsoft.CodeAnalysis.ReportDiagnostic"/></param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
-        Public Shadows Function WithSpecificDiagnosticOptions(value As ImmutableDictionary(Of String, ReportDiagnostic)) As VBCompilationOptions
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
+        Public Shadows Function WithSpecificDiagnosticOptions(value As ImmutableDictionary(Of String, ReportDiagnostic)) As VisualBasicCompilationOptions
             If value Is Nothing Then
                 value = ImmutableDictionary(Of String, ReportDiagnostic).Empty
             End If
@@ -598,91 +598,91 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.SpecificDiagnosticOptions = value}
+            Return New VisualBasicCompilationOptions(Me) With {.SpecificDiagnosticOptions = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new <see cref="VBCompilationOptions"/> instance with different specific warnings specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with different specific warnings specified.
         ''' </summary>
         ''' <param name="value">Specific report warnings. <see cref="Microsoft.CodeAnalysis.ReportDiagnostic"/></param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
-        Public Shadows Function WithSpecificDiagnosticOptions(value As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As VBCompilationOptions
-            Return New VBCompilationOptions(Me) With {.SpecificDiagnosticOptions = value.ToImmutableDictionaryOrEmpty()}
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
+        Public Shadows Function WithSpecificDiagnosticOptions(value As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As VisualBasicCompilationOptions
+            Return New VisualBasicCompilationOptions(Me) With {.SpecificDiagnosticOptions = value.ToImmutableDictionaryOrEmpty()}
         End Function
 
         ''' <summary>
-        ''' Creates a new <see cref="VBCompilationOptions"/> instance with a specified <see cref="VBCompilationOptions.OptimizationLevel"/>.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a specified <see cref="VisualBasicCompilationOptions.OptimizationLevel"/>.
         ''' </summary>
-        ''' <returns>A new instance of <see cref="VBCompilationOptions"/>, if the value is different; otherwise the current instance.</returns>        
-        Public Shadows Function WithOptimizationLevel(value As OptimizationLevel) As VBCompilationOptions
+        ''' <returns>A new instance of <see cref="VisualBasicCompilationOptions"/>, if the value is different; otherwise the current instance.</returns>        
+        Public Shadows Function WithOptimizationLevel(value As OptimizationLevel) As VisualBasicCompilationOptions
             If value = Me.OptimizationLevel Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.OptimizationLevel = value}
+            Return New VisualBasicCompilationOptions(Me) With {.OptimizationLevel = value}
         End Function
 
-        Friend Function WithMetadataImportOptions(value As MetadataImportOptions) As VBCompilationOptions
+        Friend Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
             If value = Me.MetadataImportOptions Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.MetadataImportOptions_internal_protected_set = value}
+            Return New VisualBasicCompilationOptions(Me) With {.MetadataImportOptions_internal_protected_set = value}
         End Function
 
         ''' <summary>
-        ''' Creates a new <see cref="VBCompilationOptions"/> instance with a different parse option specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different parse option specified.
         ''' </summary>
-        ''' <param name="options">The parse option setting. <see cref="Microsoft.CodeAnalysis.VisualBasic.VBParseOptions"/></param>        
-        ''' <returns>A new instance of VBCompilationOptions, if the parse options is different; otherwise current instance.</returns>        
-        Public Function WithParseOptions(options As VBParseOptions) As VBCompilationOptions
+        ''' <param name="options">The parse option setting. <see cref="Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions"/></param>        
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the parse options is different; otherwise current instance.</returns>        
+        Public Function WithParseOptions(options As VisualBasicParseOptions) As VisualBasicCompilationOptions
             If options Is Me.ParseOptions Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {._parseOptions = options}
+            Return New VisualBasicCompilationOptions(Me) With {._parseOptions = options}
         End Function
 
-        Public Shadows Function WithXmlReferenceResolver(resolver As XmlReferenceResolver) As VBCompilationOptions
+        Public Shadows Function WithXmlReferenceResolver(resolver As XmlReferenceResolver) As VisualBasicCompilationOptions
             If resolver Is Me.XmlReferenceResolver Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.XmlReferenceResolver = resolver}
+            Return New VisualBasicCompilationOptions(Me) With {.XmlReferenceResolver = resolver}
         End Function
 
-        Public Shadows Function WithSourceReferenceResolver(resolver As SourceReferenceResolver) As VBCompilationOptions
+        Public Shadows Function WithSourceReferenceResolver(resolver As SourceReferenceResolver) As VisualBasicCompilationOptions
             If resolver Is Me.SourceReferenceResolver Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.SourceReferenceResolver = resolver}
+            Return New VisualBasicCompilationOptions(Me) With {.SourceReferenceResolver = resolver}
         End Function
 
-        Public Shadows Function WithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As VBCompilationOptions
+        Public Shadows Function WithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As VisualBasicCompilationOptions
             If resolver Is Me.MetadataReferenceResolver Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.MetadataReferenceResolver = resolver}
+            Return New VisualBasicCompilationOptions(Me) With {.MetadataReferenceResolver = resolver}
         End Function
 
-        Public Shadows Function WithAssemblyIdentityComparer(comparer As AssemblyIdentityComparer) As VBCompilationOptions
+        Public Shadows Function WithAssemblyIdentityComparer(comparer As AssemblyIdentityComparer) As VisualBasicCompilationOptions
             comparer = If(comparer, AssemblyIdentityComparer.Default)
 
             If comparer Is Me.AssemblyIdentityComparer Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.AssemblyIdentityComparer = comparer}
+            Return New VisualBasicCompilationOptions(Me) With {.AssemblyIdentityComparer = comparer}
         End Function
 
-        Public Shadows Function WithStrongNameProvider(provider As StrongNameProvider) As VBCompilationOptions
+        Public Shadows Function WithStrongNameProvider(provider As StrongNameProvider) As VisualBasicCompilationOptions
             If provider Is Me.StrongNameProvider Then
                 Return Me
             End If
 
-            Return New VBCompilationOptions(Me) With {.StrongNameProvider = provider}
+            Return New VisualBasicCompilationOptions(Me) With {.StrongNameProvider = provider}
         End Function
 
         Protected Overrides Function CommonWithOutputKind(kind As OutputKind) As CompilationOptions
@@ -770,9 +770,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Determines whether the current object is equal to another object of the same type.
         ''' </summary>
-        ''' <param name="other">A VBCompilationOptions to compare with this object</param>
+        ''' <param name="other">A VisualBasicCompilationOptions to compare with this object</param>
         ''' <returns>A boolean value.  True if the current object is equal to the other parameter; otherwise, False.</returns>
-        Public Overloads Function Equals(other As VBCompilationOptions) As Boolean Implements IEquatable(Of VBCompilationOptions).Equals
+        Public Overloads Function Equals(other As VisualBasicCompilationOptions) As Boolean Implements IEquatable(Of VisualBasicCompilationOptions).Equals
             If Me Is other Then
                 Return True
             End If
@@ -797,7 +797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="obj">A object to compare with this object</param>
         ''' <returns>A boolean value.  True if the current object is equal to the other parameter; otherwise, False.</returns>
         Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me.Equals(TryCast(obj, VBCompilationOptions))
+            Return Me.Equals(TryCast(obj, VisualBasicCompilationOptions))
         End Function
 
 

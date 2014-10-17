@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Root As VBSyntaxNode
+        Friend Overrides ReadOnly Property Root As VisualBasicSyntaxNode
             Get
                 Return m_Root
             End Get
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function Bind(binder As Binder, node As VBSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Return m_parentSemanticModel.Bind(binder, node, diagnostics)
         End Function
 

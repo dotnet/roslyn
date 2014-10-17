@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _parameterMap As Dictionary(Of ParameterSymbol, BoundExpression) = New Dictionary(Of ParameterSymbol, BoundExpression)()
 
-        Private Sub New(currentMethod As MethodSymbol, compilationState As TypeCompilationState, typeMap As TypeSubstitution, binder As Binder, node As VBSyntaxNode, diagnostics As DiagnosticBag)
+        Private Sub New(currentMethod As MethodSymbol, compilationState As TypeCompilationState, typeMap As TypeSubstitution, binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
             _binder = binder
             _typeMap = typeMap
             _factory = New SyntheticBoundNodeFactory(Nothing, currentMethod, node, compilationState, diagnostics)
@@ -181,7 +181,7 @@ lSelect:
             End If
 
             ' Set the syntax node for bound nodes we are generating.
-            Dim old As VBSyntaxNode = _factory.Syntax
+            Dim old As VisualBasicSyntaxNode = _factory.Syntax
             _factory.Syntax = node.Syntax
             Dim result = VisitInternal(node)
             _factory.Syntax = old

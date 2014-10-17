@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
         Public Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
-                                                                  syntax As VBSyntaxNode,
+                                                                  syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As BoundExpression
             Return ReportDiagnosticAndProduceBadExpression(diagBag, syntax, ErrorFactory.ErrorInfo(id, args))
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
         Public Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
-                                                                  syntax As VBSyntaxNode,
+                                                                  syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo,
                                                                   ParamArray nodes As BoundNode()) As BoundExpression
             Return BadExpression(syntax,
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
         Public Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
-                                                                  syntax As VBSyntaxNode,
+                                                                  syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As ErrorTypeSymbol
             Return ReportDiagnosticAndProduceErrorTypeSymbol(diagBag, syntax, ErrorFactory.ErrorInfo(id, args))
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
         Public Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
-                                                                  syntax As VBSyntaxNode,
+                                                                  syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo) As ErrorTypeSymbol
             ReportDiagnostic(diagBag, syntax, info)
             Return ErrorTypeSymbol.UnknownResultType

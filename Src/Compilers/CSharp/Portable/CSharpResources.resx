@@ -3925,6 +3925,9 @@
   <data name="ERR_AutoPropertyMustHaveGetAccessor" xml:space="preserve">
     <value>Auto-implemented properties must have get accessors.</value>
   </data>
+  <data name="ERR_AutoPropertyMustOverrideSet" xml:space="preserve">
+    <value>“Auto-implemented properties must override all accessors of the overridden property.”</value>
+  </data>
   <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
     <value>Auto-implemented properties inside interfaces cannot have initializers.</value>
   </data>

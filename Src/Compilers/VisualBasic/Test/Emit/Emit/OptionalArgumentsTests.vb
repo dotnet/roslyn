@@ -157,8 +157,8 @@ End Module
         Dim classLibrary As MetadataReference = CreateHelperLibrary(librarySource.Value)
 
         Function CreateHelperLibrary(source As String) As MetadataReference
-            Dim libraryCompilation = VBCompilation.Create("library",
-                                                        {VBSyntaxTree.ParseText(source)},
+            Dim libraryCompilation = VisualBasicCompilation.Create("library",
+                                                        {VisualBasicSyntaxTree.ParseText(source)},
                                                         {MsvbRef, MscorlibRef, SystemCoreRef},
                                                         TestOptions.ReleaseDll)
 

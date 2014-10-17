@@ -163,7 +163,7 @@ End Class
 </text>.GetCode()
 
 
-        Dim comp = VBCompilation.Create(
+        Dim comp = VisualBasicCompilation.Create(
             "test",
             syntaxTrees:={SyntaxFactory.ParseSyntaxTree(file1), SyntaxFactory.ParseSyntaxTree(file2)},
             references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly)})

@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If node is returned its start will be aligned with the start of current token. 
         ''' NOTE: Line offset may not match start of current token because of lookahead. 
         ''' </summary>
-        Friend Overridable Function GetCurrentSyntaxNode() As VBSyntaxNode
+        Friend Overridable Function GetCurrentSyntaxNode() As VisualBasicSyntaxNode
             Return Nothing
         End Function
 
@@ -228,14 +228,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             currentToken = tk
         End Sub
 
-        Friend Sub TransitionFromXmlToVB(toCompare As SyntaxList(Of VBSyntaxNode), ByRef toRemove As SyntaxList(Of VBSyntaxNode), ByRef toAdd As SyntaxList(Of VBSyntaxNode))
+        Friend Sub TransitionFromXmlToVB(toCompare As SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As SyntaxList(Of VisualBasicSyntaxNode))
             Dim tk = _prevToken.InnerTokenObject
             Debug.Assert(tk IsNot Nothing)
 
             AbandonAllTokens()
             RevertState(_prevToken)
 
-            Dim trivia = New SyntaxList(Of VBSyntaxNode)(tk.GetTrailingTrivia())
+            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia())
             Dim index = trivia.Count - GetLengthOfCommonEnd(trivia, toCompare)
             toRemove = trivia.GetEndOfTrivia(index)
 
@@ -252,14 +252,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _currentToken = New ScannerToken(_scannerPreprocessorState, _lineBufferOffset, _endOfTerminatorTrivia, Nothing, state)
         End Sub
 
-        Friend Sub TransitionFromVBToXml(state As ScannerState, toCompare As SyntaxList(Of VBSyntaxNode), ByRef toRemove As SyntaxList(Of VBSyntaxNode), ByRef toAdd As SyntaxList(Of VBSyntaxNode))
+        Friend Sub TransitionFromVBToXml(state As ScannerState, toCompare As SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As SyntaxList(Of VisualBasicSyntaxNode))
             Dim tk = _prevToken.InnerTokenObject
             Debug.Assert(tk IsNot Nothing)
 
             AbandonAllTokens()
             RevertState(_prevToken)
 
-            Dim trivia = New SyntaxList(Of VBSyntaxNode)(tk.GetTrailingTrivia())
+            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia())
             Dim index = trivia.Count - GetLengthOfCommonEnd(trivia, toCompare)
             toRemove = trivia.GetEndOfTrivia(index)
 

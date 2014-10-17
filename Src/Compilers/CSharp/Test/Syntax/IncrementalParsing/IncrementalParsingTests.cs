@@ -27,6 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
 
+        private SyntaxTree Parse6(string text)
+        {
+            var options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6);
+            var itext = SourceText.From(text);
+            return SyntaxFactory.ParseSyntaxTree(itext, options);
+        }
+
         [Fact]
         public void TestChangeClassNameWithNonMatchingMethod()
         {
@@ -2592,6 +2599,19 @@ class D { }
                 incrTree.GetDiagnostics().Select(d => d.ToString()));
 
             WalkTreeAndVerify(incrTree.GetRoot(), fullTree.GetRoot());
+        }
+
+
+        [Fact]
+        public void TestRescanInterpolatedString()
+        {
+            var interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
+
+            var text = @"class foo { public void m() { string s = ""\{1} world"" ; } }";
+            var oldTree = this.Parse6(text);
+            var newTree = oldTree.WithReplaceFirst(@"world"" ", @"world""  ");
+            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
         }
 
         private void WalkTreeAndVerify(SyntaxNodeOrToken incNode, SyntaxNodeOrToken fullNode)

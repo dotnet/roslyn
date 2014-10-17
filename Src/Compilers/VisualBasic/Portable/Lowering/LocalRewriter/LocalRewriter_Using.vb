@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' the passed body.</returns>
         Private Function RewriteSingleUsingToTryFinally(
             syntaxNode As UsingBlockSyntax,
-            syntaxForSequencePoint As VBSyntaxNode,
+            syntaxForSequencePoint As VisualBasicSyntaxNode,
             localSymbol As LocalSymbol,
             initializationExpression As BoundExpression,
             ByRef placeholderInfo As ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression),

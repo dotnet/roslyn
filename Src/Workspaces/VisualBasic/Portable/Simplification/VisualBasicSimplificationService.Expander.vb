@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend Class VisualBasicSimplificationService
         Private Class Expander
-            Inherits VBSyntaxRewriter
+            Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _semanticModel As SemanticModel
             Private ReadOnly _expandInsideNode As Func(Of SyntaxNode, Boolean)

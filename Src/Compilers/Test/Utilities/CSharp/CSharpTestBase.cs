@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             ImmutableArray<ILVisualizer.LocalInfo> localDefinitions;
             if (!bodyBlock.LocalSignature.IsNil)
             {
-                var signature = peModule.Module.MetadataReader.GetLocalSignature(bodyBlock.LocalSignature);
+                var signature = peModule.Module.MetadataReader.GetStandaloneSignature(bodyBlock.LocalSignature).Signature;
                 var signatureReader = peModule.Module.GetMemoryReaderOrThrow(signature);
                 var localInfos = methodDecoder.DecodeLocalSignatureOrThrow(ref signatureReader);
                 localDefinitions = ToLocalDefinitions(localInfos, methodData.ILBuilder);

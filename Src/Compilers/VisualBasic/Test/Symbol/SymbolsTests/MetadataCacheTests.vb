@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Roslyn.Test.Utilities
-Imports VBReferenceManager = Microsoft.CodeAnalysis.VisualBasic.VBCompilation.ReferenceManager
+Imports VBReferenceManager = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ReferenceManager
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <MethodImpl(MethodImplOptions.NoInlining Or MethodImplOptions.NoOptimization)>
-        Private Function CreateCompilation(name As String, ParamArray dependencies As Object()) As VBCompilation
-            Dim result = VBCompilation.Create(name, references:=MetadataCacheTestHelpers.CreateMetadataReferences(dependencies))
+        Private Function CreateCompilation(name As String, ParamArray dependencies As Object()) As VisualBasicCompilation
+            Dim result = VisualBasicCompilation.Create(name, references:=MetadataCacheTestHelpers.CreateMetadataReferences(dependencies))
             Dim asm = result.Assembly
             GC.KeepAlive(asm)
             Return result
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <MethodImpl(MethodImplOptions.NoInlining Or MethodImplOptions.NoOptimization)>
         Private Function CreateWeakCompilation(name As String, ParamArray dependencies As Object()) As ObjectReference
             ' this compilation should only be reachable via the WeakReference we return
-            Dim result = VBCompilation.Create(name, references:=MetadataCacheTestHelpers.CreateMetadataReferences(dependencies))
+            Dim result = VisualBasicCompilation.Create(name, references:=MetadataCacheTestHelpers.CreateMetadataReferences(dependencies))
             Dim asm = result.Assembly
             GC.KeepAlive(asm)
             Return New ObjectReference(result)
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub CompilationWithEmptyInput()
             Using MetadataCache.LockAndClean()
 
-                Dim c1 = VBCompilation.Create("Test", Nothing)
+                Dim c1 = VisualBasicCompilation.Create("Test", Nothing)
 
                 Assert.Equal(0, MetadataCache.AssembliesFromFiles.Count)
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count)
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Using MetadataCache.LockAndClean()
 
-                Dim c1 = VBCompilation.Create("Test", references:={mscorlibRef})
+                Dim c1 = VisualBasicCompilation.Create("Test", references:={mscorlibRef})
 
                 Assert.NotNull(c1.Assembly) ' force creation of SourceAssemblySymbol
                 Assert.Equal(1, MetadataCache.AssembliesFromFiles.Count)
@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Assert.Same(m1.GetReferencedAssemblySymbols()(0), mscorlibAsm)
                 Assert.Same(m1.CorLibrary, mscorlibAsm)
 
-                Dim c2 = VBCompilation.Create("Test2", references:={New MetadataFileReference(mscorlibPath)})
+                Dim c2 = VisualBasicCompilation.Create("Test2", references:={New MetadataFileReference(mscorlibPath)})
 
                 Assert.NotNull(c2.Assembly) ' force creation of SourceAssemblySymbol
                 Assert.Equal(1, MetadataCache.AssembliesFromFiles.Count)
@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 #End If
             Using MetadataCache.LockAndClean()
 
-                Dim tc1 = VBCompilation.Create("Test1", Nothing)
+                Dim tc1 = VisualBasicCompilation.Create("Test1", Nothing)
                 Assert.NotNull(tc1.Assembly) ' force creation of SourceAssemblySymbol
 
                 Dim c1Ref As New VisualBasicCompilationReference(tc1)
@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Assert.Same(c1Ref.Compilation, tc1)
                 Assert.Same(tc1.Assembly, tc1.Assembly.CorLibrary)
 
-                Dim tc2 = VBCompilation.Create("Test2", references:={c1Ref})
+                Dim tc2 = VisualBasicCompilation.Create("Test2", references:={c1Ref})
                 Assert.NotNull(tc2.Assembly) ' force creation of SourceAssemblySymbol
 
                 Assert.Equal(0, MetadataCache.AssembliesFromFiles.Count)
@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                 Dim mscorlibRef As New MetadataFileReference(Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path)
 
-                Dim tc3 = VBCompilation.Create("Test3", references:={mscorlibRef})
+                Dim tc3 = VisualBasicCompilation.Create("Test3", references:={mscorlibRef})
 
                 Assert.NotNull(tc3.Assembly) ' force creation of SourceAssemblySymbol
                 Assert.Equal(1, MetadataCache.AssembliesFromFiles.Count)
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                 Dim c3Ref As New VisualBasicCompilationReference(tc3)
 
-                Dim tc4 = VBCompilation.Create("Test4", references:={mscorlibRef, c3Ref})
+                Dim tc4 = VisualBasicCompilation.Create("Test4", references:={mscorlibRef, c3Ref})
                 Assert.NotNull(tc4.Assembly) ' force creation of SourceAssemblySymbol
 
                 Assert.Equal(1, MetadataCache.AssembliesFromFiles.Count)
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Assert.Same(m4.CorLibrary, mscorlibAsm)
 
 
-                Dim tc5 = VBCompilation.Create("Test5", references:={c3Ref, mscorlibRef})
+                Dim tc5 = VisualBasicCompilation.Create("Test5", references:={c3Ref, mscorlibRef})
                 Assert.NotNull(tc5.Assembly) ' force creation of SourceAssemblySymbol
 
                 Assert.Equal(1, MetadataCache.AssembliesFromFiles.Count)
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Assert.Equal(False, module1Ref.Properties.EmbedInteropTypes)
                 Assert.Equal(MetadataImageKind.Module, module1Ref.Properties.Kind)
 
-                Dim tc1 = VBCompilation.Create("Test1", references:={module1Ref, mscorlibRef})
+                Dim tc1 = VisualBasicCompilation.Create("Test1", references:={module1Ref, mscorlibRef})
 
                 Assert.NotNull(tc1.Assembly) ' force creation of SourceAssemblySymbol
                 Assert.Equal(1, MetadataCache.AssembliesFromFiles.Count)
@@ -504,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                 Dim tc1Ref As New VisualBasicCompilationReference(tc1)
 
-                Dim tc2 = VBCompilation.Create("Test2", references:={tc1Ref, module2Ref, MTTestLib1Ref, mscorlibRef, module1Ref})
+                Dim tc2 = VisualBasicCompilation.Create("Test2", references:={tc1Ref, module2Ref, MTTestLib1Ref, mscorlibRef, module1Ref})
 
                 Assert.NotNull(tc2.Assembly) ' force creation of SourceAssemblySymbol
                 Assert.Equal(2, MetadataCache.AssembliesFromFiles.Count)
@@ -633,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                 Dim tc2Ref As New VisualBasicCompilationReference(tc2)
 
-                Dim tc3 = VBCompilation.Create("Test3", references:={MTTestLib1V2Ref, tc2Ref})
+                Dim tc3 = VisualBasicCompilation.Create("Test3", references:={MTTestLib1V2Ref, tc2Ref})
                 Assert.NotNull(tc3.Assembly) ' force creation of SourceAssemblySymbol
 
                 Assert.Equal(3, MetadataCache.AssembliesFromFiles.Count)
@@ -688,7 +688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Assert.Equal(1, a3m3tc2.GetReferencedAssemblySymbols().Length)
                 Assert.True(a3m3tc2.GetReferencedAssemblySymbols()(0).IsMissing)
 
-                Dim tc4 = VBCompilation.Create("Test4", references:={MTTestLib1V2Ref, tc2Ref, mscorlibRef})
+                Dim tc4 = VisualBasicCompilation.Create("Test4", references:={MTTestLib1V2Ref, tc2Ref, mscorlibRef})
                 Assert.NotNull(tc4.Assembly) ' force creation of SourceAssemblySymbol
 
                 Assert.Equal(3, MetadataCache.AssembliesFromFiles.Count)
@@ -767,7 +767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3)
                 Dim multimoduleRef = New MetadataFileReference(mm)
 
-                Dim tc1 = VBCompilation.Create("Test1", references:={MscorlibRef, SystemCoreRef, multimoduleRef})
+                Dim tc1 = VisualBasicCompilation.Create("Test1", references:={MscorlibRef, SystemCoreRef, multimoduleRef})
 
                 Assert.NotNull(tc1.Assembly) ' force creation of SourceAssemblySymbol
                 Assert.Equal(3, MetadataCache.AssembliesFromFiles.Count)
@@ -843,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count)
 
                 ' Test Assembly property
-                Dim c1 = VBCompilation.Create("Test", references:={mscorlibRef, module1Ref})
+                Dim c1 = VisualBasicCompilation.Create("Test", references:={mscorlibRef, module1Ref})
 
                 Assert.Equal(0, MetadataCache.AssembliesFromFiles.Count)
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count)
@@ -872,7 +872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim module1Ref = New MetadataFileReference(module1Path, MetadataImageKind.Module)
 
             Using lock = MetadataCache.LockAndClean()
-                Dim c1 = VBCompilation.Create("Test", references:={mscorlibRef, module1Ref})
+                Dim c1 = VisualBasicCompilation.Create("Test", references:={mscorlibRef, module1Ref})
 
                 Assert.Equal(0, MetadataCache.AssembliesFromFiles.Count)
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count)
@@ -902,7 +902,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim module1Ref = New MetadataFileReference(module1Path, MetadataImageKind.Module)
 
             Using lock = MetadataCache.LockAndClean()
-                Dim c1 = VBCompilation.Create("Test", references:={mscorlibRef, module1Ref})
+                Dim c1 = VisualBasicCompilation.Create("Test", references:={mscorlibRef, module1Ref})
 
                 Assert.Equal(0, MetadataCache.AssembliesFromFiles.Count)
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count)
@@ -936,8 +936,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim module1Ref = New MetadataFileReference(module1Path, MetadataImageKind.Module)
 
             Using lock = MetadataCache.LockAndClean()
-                Dim c1 = VBCompilation.Create("Test1", references:={mscorlibRef, module1Ref})
-                Dim c2 = VBCompilation.Create("Test2", references:={mscorlibRef, module1Ref, New VisualBasicCompilationReference(c1)})
+                Dim c1 = VisualBasicCompilation.Create("Test1", references:={mscorlibRef, module1Ref})
+                Dim c2 = VisualBasicCompilation.Create("Test2", references:={mscorlibRef, module1Ref, New VisualBasicCompilationReference(c1)})
 
                 Assert.Equal(0, MetadataCache.AssembliesFromFiles.Count)
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count)
@@ -990,8 +990,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim module1Ref = New MetadataFileReference(module1Path, MetadataImageKind.Module)
 
             Using lock = MetadataCache.LockAndClean()
-                Dim c1 = VBCompilation.Create("Test1", references:={mscorlibRef, module1Ref})
-                Dim c2 = VBCompilation.Create("Test2", references:={mscorlibRef, module1Ref, c1.ToMetadataReference()})
+                Dim c1 = VisualBasicCompilation.Create("Test1", references:={mscorlibRef, module1Ref})
+                Dim c2 = VisualBasicCompilation.Create("Test2", references:={mscorlibRef, module1Ref, c1.ToMetadataReference()})
 
                 Assert.Equal(0, MetadataCache.AssembliesFromFiles.Count)
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count)
@@ -1031,14 +1031,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim MTTestLib1V1Ref = TestReferences.SymbolsTests.V1.MTTestLib1.dll
             Dim MTTestLib1V2Ref = TestReferences.SymbolsTests.V2.MTTestLib1.dll
 
-            Dim c1 As VBCompilation
-            Dim c2 As VBCompilation
+            Dim c1 As VisualBasicCompilation
+            Dim c2 As VisualBasicCompilation
 
-            c1 = VBCompilation.Create("Test1", references:={mscorlibRef, MTTestLib1V1Ref})
+            c1 = VisualBasicCompilation.Create("Test1", references:={mscorlibRef, MTTestLib1V1Ref})
 
             Dim c1Ref = c1.ToMetadataReference()
 
-            c2 = VBCompilation.Create("Test2", references:={mscorlibRef, MTTestLib1V2Ref, c1Ref})
+            c2 = VisualBasicCompilation.Create("Test2", references:={mscorlibRef, MTTestLib1V2Ref, c1Ref})
 
 
             Dim asm2 = c2.GetReferencedAssemblySymbol(mscorlibRef)
@@ -1066,7 +1066,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Dim V2MTTestLib1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.V2.MTTestLib1).Path
 
                 ' Note that metadata references have to be created outside of this method body to ensure that the objects are not kept alive by method temp variables:
-                Dim c1 = VBCompilation.Create("Test1", references:=MetadataCacheTestHelpers.CreateMetadataReferences(
+                Dim c1 = VisualBasicCompilation.Create("Test1", references:=MetadataCacheTestHelpers.CreateMetadataReferences(
                     mscorlib2,
                     V1MTTestLib1))
 
@@ -1126,7 +1126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Dim libV2 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.V2.MTTestLib1).Path
 
                 ' Note that metadata references have to be created outside of this method body to ensure that the objects are not kept alive by method temp variables:
-                Dim c1 = VBCompilation.Create("Test1", references:=MetadataCacheTestHelpers.CreateMetadataReferences(
+                Dim c1 = VisualBasicCompilation.Create("Test1", references:=MetadataCacheTestHelpers.CreateMetadataReferences(
                     mscorlib2,
                     libV1))
 

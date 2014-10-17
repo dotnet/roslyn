@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public MustInherit Class FlowTestBase
         Inherits BasicTestBase
 
-        Friend Function FlowDiagnostics(compilation As VBCompilation) As ImmutableArray(Of Diagnostic)
+        Friend Function FlowDiagnostics(compilation As VisualBasicCompilation) As ImmutableArray(Of Diagnostic)
             Dim diagnostics = DiagnosticBag.GetInstance()
             For Each method In AllMethods(compilation.SourceModule.GlobalNamespace)
                 Dim sourceSymbol = TryCast(method, SourceMethodSymbol)
@@ -65,14 +65,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) Tuple.Create(AnalyseControlFlow(binding, startNodes, endNodes), AnalyseDataFlow(binding, startNodes, endNodes)), ilSource, errors)
         End Function
 
-        Private Function CompileAndGetModelAndSpan(Of T)(program As XElement, analysisDelegate As Func(Of SemanticModel, List(Of VBSyntaxNode), List(Of VBSyntaxNode), T), ilSource As XCData, errors As XElement) As T
-            Dim startNodes As New List(Of VBSyntaxNode)
-            Dim endNodes As New List(Of VBSyntaxNode)
+        Private Function CompileAndGetModelAndSpan(Of T)(program As XElement, analysisDelegate As Func(Of SemanticModel, List(Of VisualBasicSyntaxNode), List(Of VisualBasicSyntaxNode), T), ilSource As XCData, errors As XElement) As T
+            Dim startNodes As New List(Of VisualBasicSyntaxNode)
+            Dim endNodes As New List(Of VisualBasicSyntaxNode)
             Dim comp = CompileAndGetModelAndSpan(program, startNodes, endNodes, ilSource, errors)
             Return analysisDelegate(comp.GetSemanticModel(comp.SyntaxTrees(0)), startNodes, endNodes)
         End Function
 
-        Protected Function CompileAndGetModelAndSpan(program As XElement, startNodes As List(Of VBSyntaxNode), endNodes As List(Of VBSyntaxNode), ilSource As XCData, errors As XElement, Optional parseOptions As VBParseOptions = Nothing) As VBCompilation
+        Protected Function CompileAndGetModelAndSpan(program As XElement, startNodes As List(Of VisualBasicSyntaxNode), endNodes As List(Of VisualBasicSyntaxNode), ilSource As XCData, errors As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
             Debug.Assert(program.<file>.Count = 1, "Only one file can be in the compilation.")
             Dim spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing
             Dim comp = CompilationUtils.CreateCompilationWithCustomILSource(program,
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         Protected Function AnalyseControlFlow(model As SemanticModel,
-                                              startNodes As List(Of VBSyntaxNode), endNodes As List(Of VBSyntaxNode)) As ControlFlowAnalysis
+                                              startNodes As List(Of VisualBasicSyntaxNode), endNodes As List(Of VisualBasicSyntaxNode)) As ControlFlowAnalysis
 
             Dim pair = (From s In startNodes From e In endNodes
                         Where s.Parent Is e.Parent AndAlso TypeOf s Is ExecutableStatementSyntax AndAlso TypeOf e Is ExecutableStatementSyntax
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         Protected Function AnalyseDataFlow(model As SemanticModel,
-                                           startNodes As List(Of VBSyntaxNode), endNodes As List(Of VBSyntaxNode)) As DataFlowAnalysis
+                                           startNodes As List(Of VisualBasicSyntaxNode), endNodes As List(Of VisualBasicSyntaxNode)) As DataFlowAnalysis
 
             Dim pair = (From s In startNodes From e In endNodes
                         Where s.Parent Is e.Parent AndAlso TypeOf s Is ExecutableStatementSyntax AndAlso TypeOf e Is ExecutableStatementSyntax
@@ -157,7 +157,7 @@ tryAgain :
         End Sub
 
         Private Sub FindRegionNodes(tree As SyntaxTree, region As TextSpan,
-                                   startNodes As List(Of VBSyntaxNode), endNodes As List(Of VBSyntaxNode))
+                                   startNodes As List(Of VisualBasicSyntaxNode), endNodes As List(Of VisualBasicSyntaxNode))
 
             Dim startToken As SyntaxToken = tree.GetCompilationUnitRoot().FindToken(region.Start, True)
             AdjustToken(startToken)
@@ -169,7 +169,7 @@ tryAgain :
             Dim startNode = startToken.Parent
             If startPosition <= startNode.SpanStart Then startPosition = startNode.SpanStart
             While startNode IsNot Nothing AndAlso startNode.SpanStart = startPosition
-                startNodes.Add(DirectCast(startNode, VBSyntaxNode))
+                startNodes.Add(DirectCast(startNode, VisualBasicSyntaxNode))
                 startNode = startNode.Parent
             End While
 
@@ -187,7 +187,7 @@ tryAgain :
             Dim endNode = endToken.Parent
             If endPosition >= endNode.Span.End Then endPosition = endNode.Span.End
             While endNode IsNot Nothing AndAlso endNode.Span.End = endPosition
-                endNodes.Add(DirectCast(endNode, VBSyntaxNode))
+                endNodes.Add(DirectCast(endNode, VisualBasicSyntaxNode))
                 endNode = endNode.Parent
             End While
         End Sub

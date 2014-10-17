@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim syntaxRef = initializer.Syntax
                     Dim syntaxTree = syntaxRef.SyntaxTree
-                    Dim initializerNode = DirectCast(syntaxRef.GetSyntax(), VBSyntaxNode)
+                    Dim initializerNode = DirectCast(syntaxRef.GetSyntax(), VisualBasicSyntaxNode)
 
                     If parentBinder Is Nothing Then
                         ' use binder for type, not ctor - no access to ctor parameters
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">The diagnostics.</param>
         Friend Sub BindFieldInitializer(
             fieldSymbols As ImmutableArray(Of Symbol),
-            equalsValueOrAsNewSyntax As VBSyntaxNode,
+            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag,
             Optional bindingForSemanticModel As Boolean = False
@@ -321,11 +321,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub BindPropertyInitializer(
             propertySymbol As PropertySymbol,
-            initValueOrAsNewNode As VBSyntaxNode,
+            initValueOrAsNewNode As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag
         )
-            Dim syntaxNode As VBSyntaxNode = initValueOrAsNewNode
+            Dim syntaxNode As VisualBasicSyntaxNode = initValueOrAsNewNode
 
             Dim boundReceiver = If(propertySymbol.IsShared, Nothing, CreateMeReference(syntaxNode, isSynthetic:=True))
 
@@ -373,14 +373,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function BindFieldOrPropertyInitializerExpression(
-            equalsValueOrAsNewSyntax As VBSyntaxNode,
+            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             targetType As TypeSymbol,
             asNewVariablePlaceholderOpt As BoundWithLValueExpressionPlaceholder,
             diagnostics As DiagnosticBag
         ) As BoundExpression
             Dim boundInitExpression As BoundExpression = Nothing
 
-            Dim fieldInitializerSyntax As VBSyntaxNode
+            Dim fieldInitializerSyntax As VisualBasicSyntaxNode
 
             If equalsValueOrAsNewSyntax.Kind = SyntaxKind.AsNewClause Then
                 Dim asNew = DirectCast(equalsValueOrAsNewSyntax, AsNewClauseSyntax)
@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="boundInitializers">The array of bound initializers to add the newly bound ones to.</param>
         Private Sub BindConstFieldInitializer(
             fieldSymbol As SourceFieldSymbol,
-            equalsValueOrAsNewSyntax As VBSyntaxNode,
+            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer))
             Debug.Assert(fieldSymbol.IsConst)
 
@@ -471,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">The diagnostics.</param><returns></returns>
         Friend Function BindFieldAndEnumConstantInitializer(
             fieldSymbol As FieldSymbol,
-            equalsValueOrAsNewSyntax As VBSyntaxNode,
+            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             isEnum As Boolean,
             diagnostics As DiagnosticBag,
             <Out> ByRef constValue As ConstantValue

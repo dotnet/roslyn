@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Emit
             
             fixed (byte* compressedSlotMapPtr = &compressedSlotMap.ToArray()[0])
             {
-                var blobReader = new BlobReader((IntPtr)compressedSlotMapPtr, compressedSlotMap.Length);
+                var blobReader = new BlobReader(compressedSlotMapPtr, compressedSlotMap.Length);
 
                 while (blobReader.RemainingBytes > 0)
                 {
@@ -86,22 +86,22 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
 
                     // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
-                    uint syntaxOffsetUnsigned;
-                    if (!blobReader.TryReadCompressedUInt32(out syntaxOffsetUnsigned)) 
+                    int syntaxOffset;
+                    if (!blobReader.TryReadCompressedInteger(out syntaxOffset)) 
                     {
                         return default(ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>>);
                     }
 
-                    int syntaxOffset = (int)syntaxOffsetUnsigned - 1;
+                    syntaxOffset--;
 
-                    uint ordinal = 0;
-                    if (ordinalCount >= 1 && (!blobReader.TryReadCompressedUInt32(out ordinal) || ordinal > int.MaxValue))
+                    int ordinal = 0;
+                    if (ordinalCount >= 1 && (!blobReader.TryReadCompressedInteger(out ordinal) || ordinal > int.MaxValue))
                     {
                         return default(ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>>);
                     }
 
-                    uint subordinal = 0;
-                    if (ordinalCount >= 2 && (!blobReader.TryReadCompressedUInt32(out subordinal) || subordinal > int.MaxValue))
+                    int subordinal = 0;
+                    if (ordinalCount >= 2 && (!blobReader.TryReadCompressedInteger(out subordinal) || subordinal > int.MaxValue))
                     {
                         return default(ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>>);
                     }

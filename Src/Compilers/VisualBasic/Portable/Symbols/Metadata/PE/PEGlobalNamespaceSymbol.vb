@@ -60,12 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Protected Overrides Sub EnsureAllMembersLoaded()
             If m_lazyTypes Is Nothing OrElse m_lazyMembers Is Nothing Then
-                Dim groups As IEnumerable(Of IGrouping(Of String, TypeHandle))
+                Dim groups As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
 
                 Try
                     groups = m_ModuleSymbol.Module.GroupTypesByNamespaceOrThrow(IdentifierComparison.Comparer)
                 Catch mrEx As BadImageFormatException
-                    groups = SpecializedCollections.EmptyEnumerable(Of IGrouping(Of String, TypeHandle))()
+                    groups = SpecializedCollections.EmptyEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))()
                 End Try
 
                 LoadAllMembers(groups)
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
-        Friend Overrides ReadOnly Property DeclaringCompilation As VBCompilation
+        Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
             End Get

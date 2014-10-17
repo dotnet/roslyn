@@ -4,12 +4,12 @@ Imports System.Runtime.Serialization
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <Serializable>
-    Public Class VBSerializableParseOptions
+    Public Class VisualBasicSerializableParseOptions
         Inherits SerializableParseOptions
 
-        Private ReadOnly _options As VBParseOptions
+        Private ReadOnly _options As VisualBasicParseOptions
 
-        Sub New(options As VBParseOptions)
+        Sub New(options As VisualBasicParseOptions)
             If options Is Nothing Then
                 Throw New ArgumentNullException("options")
             End If
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _options = options
         End Sub
 
-        Public Shadows ReadOnly Property Options As VBParseOptions
+        Public Shadows ReadOnly Property Options As VisualBasicParseOptions
             Get
                 Return _options
             End Get
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.Add(New KeyValuePair(Of String, Object)(keys(i), values(i)))
             Next
 
-            _options = New VBParseOptions(
+            _options = New VisualBasicParseOptions(
                 languageVersion:=DirectCast(info.GetValue("LanguageVersion", GetType(LanguageVersion)), LanguageVersion),
                 documentationMode:=DirectCast(info.GetValue("DocumentationMode", GetType(DocumentationMode)), DocumentationMode),
                 kind:=DirectCast(info.GetValue("Kind", GetType(SourceCodeKind)), SourceCodeKind),

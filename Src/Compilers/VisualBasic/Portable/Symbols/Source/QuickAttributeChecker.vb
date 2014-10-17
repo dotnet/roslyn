@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Return the last name in a TypeSyntax, or Nothing if there isn't one.
         Private Function GetFinalName(typeSyntax As TypeSyntax) As String
-            Dim node As VBSyntaxNode = typeSyntax
+            Dim node As VisualBasicSyntaxNode = typeSyntax
             Do
                 Select Case node.Kind
                     Case SyntaxKind.IdentifierName

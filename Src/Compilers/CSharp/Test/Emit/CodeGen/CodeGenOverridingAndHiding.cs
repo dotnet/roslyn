@@ -3998,7 +3998,7 @@ public class Test
 @"Public MustInherit Class C1
     MustOverride Sub foo()
 End Class",
-                compilationOptions: new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vb1Compilation.VerifyDiagnostics();
 
             var cs1Compilation = CreateCSharpCompilation("CS1",
@@ -4022,7 +4022,7 @@ Public Class C3 : Inherits C2
         Console.WriteLine(""C3"")
     End Sub
 End Class",
-                compilationOptions: new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation });
             vb2Compilation.VerifyDiagnostics();
 
@@ -4067,7 +4067,7 @@ public class Program
 @"Public MustInherit Class C1
     MustOverride Sub foo()
 End Class",
-                compilationOptions: new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vb1Compilation.VerifyDiagnostics();
 
             var cs1Compilation = CreateCSharpCompilation("CS1",
@@ -4092,7 +4092,7 @@ Public Class C3 : Inherits C2
         Console.WriteLine(""C3"")
     End Sub
 End Class",
-                compilationOptions: new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation });
             vb2Compilation.VerifyDiagnostics();
 
@@ -4218,7 +4218,7 @@ Derived.M(y:2)");
 @"Public MustInherit Class C1
     MustOverride Sub foo()
 End Class",
-                compilationOptions: new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vb1Compilation.VerifyDiagnostics();
 
             var cs1Compilation = CreateCSharpCompilation("CS1",
@@ -4239,7 +4239,7 @@ public abstract class C2 : C1
     Public Overrides Sub foo
     End Sub
 End Class",
-                compilationOptions: new VisualBasic.VBCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation });
             vb2Compilation.VerifyDiagnostics();
 

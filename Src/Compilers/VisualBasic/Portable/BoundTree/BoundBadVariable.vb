@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundBadVariable
         Inherits BoundExpression
 
-        Public Sub New(syntax As VBSyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As VisualBasicSyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, expression, True, type, hasErrors)
         End Sub
 

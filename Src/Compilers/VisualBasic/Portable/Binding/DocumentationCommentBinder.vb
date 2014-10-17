@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function GetParentXmlElementName(attr As BaseXmlAttributeSyntax) As String
-            Dim parent As VBSyntaxNode = attr.Parent
+            Dim parent As VisualBasicSyntaxNode = attr.Parent
             If parent Is Nothing Then
                 Return Nothing
             End If

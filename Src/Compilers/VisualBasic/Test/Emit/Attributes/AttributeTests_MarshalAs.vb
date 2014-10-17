@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Private Sub VerifyFieldMetadataDecoding(verifier As CompilationVerifier, blobs As Dictionary(Of String, Byte()))
             Dim count = 0
             Using assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData)
-                Dim c = VBCompilation.Create("c", syntaxTrees:=New VBSyntaxTree() {}, references:={assembly.GetReference()})
+                Dim c = VisualBasicCompilation.Create("c", syntaxTrees:=New VisualBasicSyntaxTree() {}, references:={assembly.GetReference()})
                 For Each typeSym As NamedTypeSymbol In c.GlobalNamespace.GetMembers().Where(Function(s) s.Kind = SymbolKind.NamedType)
                     Dim fields = typeSym.GetMembers().Where(Function(s) s.Kind = SymbolKind.Field)
                     For Each field As FieldSymbol In fields
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Private Sub VerifyParameterMetadataDecoding(verifier As CompilationVerifier, blobs As Dictionary(Of String, Byte()))
             Dim count = 0
             Using assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData)
-                Dim c = VBCompilation.Create("c", syntaxTrees:=New VBSyntaxTree() {}, references:={assembly.GetReference()})
+                Dim c = VisualBasicCompilation.Create("c", syntaxTrees:=New VisualBasicSyntaxTree() {}, references:={assembly.GetReference()})
                 For Each typeSym As NamedTypeSymbol In c.GlobalNamespace.GetMembers().Where(Function(s) s.Kind = SymbolKind.NamedType)
                     Dim methods = typeSym.GetMembers().Where(Function(s) s.Kind = SymbolKind.Method)
                     For Each method As MethodSymbol In methods

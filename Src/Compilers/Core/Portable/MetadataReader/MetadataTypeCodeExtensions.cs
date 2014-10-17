@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
                     return SerializationTypeCode.String;
 
                 case SpecialType.System_Object:
-                    return SerializationTypeCode.Object;
+                    return SerializationTypeCode.TaggedObject;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(specialType);

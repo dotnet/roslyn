@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundCall
 
         Public Sub New(
-            syntax As VBSyntaxNode,
+            syntax As VisualBasicSyntaxNode,
             method As MethodSymbol,
             methodGroup As BoundMethodGroup,
             receiver As BoundExpression,

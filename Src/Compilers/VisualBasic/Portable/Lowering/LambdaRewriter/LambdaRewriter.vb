@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntax">The syntax to attach to the bound nodes produced</param>
         ''' <param name="frameType">The type of frame to be returned</param>
         ''' <returns>A bound node that computes the pointer to the required frame</returns>
-        Private Function FrameOfType(syntax As VBSyntaxNode, frameType As NamedTypeSymbol) As BoundExpression
+        Private Function FrameOfType(syntax As VisualBasicSyntaxNode, frameType As NamedTypeSymbol) As BoundExpression
             Dim result As BoundExpression = FramePointer(syntax, frameType.OriginalDefinition)
             Debug.Assert(result.Type = frameType)
             Return result
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntax">The syntax to attach to the bound nodes produced</param>
         ''' <param name="frameClass">The class type of frame to be returned</param>
         ''' <returns>A bound node that computes the pointer to the required frame</returns>
-        Friend Overrides Function FramePointer(syntax As VBSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
+        Friend Overrides Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
             Debug.Assert(frameClass.IsDefinition)
             If currentFrameThis IsNot Nothing AndAlso currentFrameThis.Type = frameClass Then
                 Return New BoundMeReference(syntax, frameClass)
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As DiagnosticBag) As BoundBlock
             Dim constructor = frame.Constructor
-            Dim syntaxNode As VBSyntaxNode = constructor.Syntax
+            Dim syntaxNode As VisualBasicSyntaxNode = constructor.Syntax
 
             Dim builder = ArrayBuilder(Of BoundStatement).GetInstance
             builder.Add(MethodCompiler.BindDefaultConstructorInitializer(constructor, diagnostics))
@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constructor As MethodSymbol = frame.Constructor.AsMember(frameType)
             Debug.Assert(frameType = constructor.ContainingType)
 
-            Dim syntaxNode As VBSyntaxNode = node.Syntax
+            Dim syntaxNode As VisualBasicSyntaxNode = node.Syntax
 
             Dim frameAccess = New BoundLocal(syntaxNode, framePointer, frameType)
 
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' If parameter is lifted, initializes its proxy
         ''' </summary>
-        Private Sub InitParameterProxy(syntaxNode As VBSyntaxNode,
+        Private Sub InitParameterProxy(syntaxNode As VisualBasicSyntaxNode,
                                        origParameter As ParameterSymbol,
                                        framePointer As LocalSymbol,
                                        frameType As NamedTypeSymbol,

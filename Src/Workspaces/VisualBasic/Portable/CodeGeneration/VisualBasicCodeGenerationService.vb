@@ -637,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function UpdateDeclarationType(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newType As ITypeSymbol, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
-            Dim syntaxNode = TryCast(declaration, VBSyntaxNode)
+            Dim syntaxNode = TryCast(declaration, VisualBasicSyntaxNode)
             If syntaxNode Is Nothing Then
                 Return declaration
             End If
@@ -699,7 +699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function UpdateDeclarationMembers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newMembers As IList(Of ISymbol), Optional options As CodeGenerationOptions = Nothing, Optional cancellationToken As CancellationToken = Nothing) As TDeclarationNode
-            Dim syntaxNode = TryCast(declaration, VBSyntaxNode)
+            Dim syntaxNode = TryCast(declaration, VisualBasicSyntaxNode)
             If syntaxNode IsNot Nothing Then
                 Select Case syntaxNode.VBKind
                     Case SyntaxKind.EnumBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock

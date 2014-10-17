@@ -6,10 +6,10 @@ Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <Serializable>
-    Public NotInheritable Class VBSerializableCompilationOptions
+    Public NotInheritable Class VisualBasicSerializableCompilationOptions
         Inherits SerializableCompilationOptions
 
-        Private _options As VBCompilationOptions
+        Private _options As VisualBasicCompilationOptions
 
         Private Const GlobalImportsString = "GlobalImports"
         Private Const RootNamespaceString = "RootNamespace"
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Const EmbedVbCoreRuntimeString = "EmbedVbCoreRuntime"
         Private Const ParseOptionsString = "ParseOptions"
 
-        Sub New(options As VBCompilationOptions)
+        Sub New(options As VisualBasicCompilationOptions)
             If options Is Nothing Then
                 Throw New ArgumentNullException("options")
             End If
@@ -29,9 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub New(info As SerializationInfo, context As StreamingContext)
-            Dim serializableOptions = DirectCast(info.GetValue(ParseOptionsString, GetType(VBSerializableParseOptions)), VBSerializableParseOptions)
+            Dim serializableOptions = DirectCast(info.GetValue(ParseOptionsString, GetType(VisualBasicSerializableParseOptions)), VisualBasicSerializableParseOptions)
 
-            _options = New VBCompilationOptions(
+            _options = New VisualBasicCompilationOptions(
                 outputKind:=DirectCast(info.GetInt32(OutputKindString), OutputKind),
                 moduleName:=info.GetString(ModuleNameString),
                 mainTypeName:=info.GetString(MainTypeNameString),
@@ -72,10 +72,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             info.AddValue(OptionExplicitString, _options.OptionExplicit)
             info.AddValue(OptionCompareTextString, _options.OptionCompareText)
             info.AddValue(EmbedVbCoreRuntimeString, _options.EmbedVbCoreRuntime)
-            info.AddValue(ParseOptionsString, If(_options.ParseOptions IsNot Nothing, New VBSerializableParseOptions(_options.ParseOptions), Nothing))
+            info.AddValue(ParseOptionsString, If(_options.ParseOptions IsNot Nothing, New VisualBasicSerializableParseOptions(_options.ParseOptions), Nothing))
         End Sub
 
-        Public Shadows ReadOnly Property Options As VBCompilationOptions
+        Public Shadows ReadOnly Property Options As VisualBasicCompilationOptions
             Get
                 Return _options
             End Get

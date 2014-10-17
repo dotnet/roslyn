@@ -10148,7 +10148,7 @@ Module M
 End Module
     ]]></file>
 </compilation>)
-            semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of VBSyntaxNode)(compilation, "a.vb")
+            semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of VisualBasicSyntaxNode)(compilation, "a.vb")
             CheckSymbol(semanticSummary.Symbol, "Function M.F1() As Object")
         End Sub
 

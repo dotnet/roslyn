@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
             Private Shared ReadOnly attribute As AttributeDescription = New AttributeDescription(
                 "System.Diagnostics",
                 "DebuggerTypeProxyAttribute",
-                {New Byte() {SignatureHeader.HasThis, 1, CByte(SignatureTypeCode.Void), CByte(SignatureTypeCode.TypeHandle), CByte(AttributeDescription.TypeHandleTarget.SystemType)}})
+                {New Byte() {CByte(SignatureAttributes.Instance), 1, CByte(SignatureTypeCode.Void), CByte(SignatureTypeCode.TypeHandle), CByte(AttributeDescription.TypeHandleTarget.SystemType)}})
 
             Public Sub New()
                 Dim source =
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
                 c1 = New VisualBasicCompilationReference(compilation1)
                 Dim c1Assembly = compilation1.Assembly
 
-                Dim compilation2 = VBCompilation.Create("C2", references:={NewMsCorLib, c1})
+                Dim compilation2 = VisualBasicCompilation.Create("C2", references:={NewMsCorLib, c1})
                 c2 = New VisualBasicCompilationReference(compilation2)
                 Dim c1AsmRef = compilation2.GetReferencedAssemblySymbol(c1)
                 Assert.NotSame(c1Assembly, c1AsmRef)
