@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + methodName + ">d__" + uniqueId;
         }
 
-        private static string EnsureNoDotsInTypeName(string name)
+        internal static string EnsureNoDotsInTypeName(string name)
         {
             // CLR generally allows names with dots, however some APIs like IMetaDataImport
             // can only return full type names combined with namespaces. 
