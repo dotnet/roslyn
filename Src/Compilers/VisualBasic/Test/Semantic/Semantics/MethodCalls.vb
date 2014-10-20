@@ -5484,6 +5484,435 @@ End Class
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(1040093, "DevDiv"), WorkItem(1026678, "DevDiv")>
+        Public Sub ParenthesizedVariableAsAReceiver_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+
+Module Module1
+    Sub Main()
+        System.Console.WriteLine("Non-Async")
+        System.Console.WriteLine()
+
+        TestLocal()
+        TestParameter()
+        TestSharedField()
+        TestInstanceField()
+        TestArrayElement()
+
+        System.Console.WriteLine()
+        System.Console.WriteLine("Async")
+        System.Console.WriteLine()
+
+        Task.WaitAll(TestLocalAsync())
+        Task.WaitAll(TestParameterAsync())
+        Task.WaitAll(TestSharedFieldAsync())
+        Task.WaitAll(TestInstanceFieldAsync())
+        Task.WaitAll(TestArrayElementAsync())
+    End Sub
+
+    Sub TestLocal()
+        Dim l = TestStruct1.Create()
+        Call (l).Change()
+        System.Console.WriteLine("Local         : {0}", l.State())
+    End Sub
+
+    Sub TestParameter(Optional p As TestStruct1 = Nothing)
+        p = TestStruct1.Create()
+        Call (p).Change()
+        System.Console.WriteLine("Parameter     : {0}", p.State())
+    End Sub
+
+    Private f As TestStruct1
+    Sub TestSharedField()
+        f = TestStruct1.Create()
+        Call (f).Change()
+        System.Console.WriteLine("Shared Field  : {0}", f.State())
+    End Sub
+
+    Sub TestInstanceField()
+        Dim i = New TestClass()
+        Call (i.fld2).Change()
+        System.Console.WriteLine("Instance Field: {0}", i.fld2.State())
+    End Sub
+
+    Sub TestArrayElement()
+        Dim a = {TestStruct1.Create()}
+        Call (a(0)).Change()
+        System.Console.WriteLine("Array element : {0}", a(0).State())
+    End Sub
+
+    Async Function DummyAsync() As Task(Of Object)
+        Return Nothing
+    End Function
+
+    Async Function TestLocalAsync() As Task
+        Dim l = TestStruct1.Create()
+        Call (l).Change(Await DummyAsync())
+        System.Console.WriteLine("Local         : {0}", l.State())
+    End Function
+
+    Async Function TestParameterAsync(Optional p As TestStruct1 = Nothing) As Task
+        p = TestStruct1.Create()
+        Call (p).Change(Await DummyAsync())
+        System.Console.WriteLine("Parameter     : {0}", p.State())
+    End Function
+
+    Async Function TestSharedFieldAsync() As Task
+        f = TestStruct1.Create()
+        Call (f).Change(Await DummyAsync())
+        System.Console.WriteLine("Shared Field  : {0}", f.State())
+    End Function
+
+    Async Function TestInstanceFieldAsync() As Task
+        Dim i = New TestClass()
+        Call (i.fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Instance Field: {0}", i.fld2.State())
+    End Function
+
+    Async Function TestArrayElementAsync() As Task
+        Dim a = {TestStruct1.Create()}
+        Call (a(0)).Change(Await DummyAsync())
+        System.Console.WriteLine("Array element : {0}", a(0).State())
+    End Function
+
+End Module
+
+Structure TestStruct1
+    Private fld1 As String
+
+    Shared Function Create() As TestStruct1
+        Return New TestStruct1() With {.fld1 = "Unchanged"}
+    End Function
+
+    Sub Change(Optional x As Object = Nothing)
+        fld1 = "Changed"
+    End Sub
+
+    Function State() As String
+        Return fld1
+    End Function
+End Structure
+
+Class TestClass
+    Public fld2 As TestStruct1 = TestStruct1.Create()
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Non-Async
+
+Local         : Changed
+Parameter     : Changed
+Shared Field  : Changed
+Instance Field: Changed
+Array element : Changed
+
+Async
+
+Local         : Changed
+Parameter     : Changed
+Shared Field  : Changed
+Instance Field: Changed
+Array element : Changed
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1040093, "DevDiv"), WorkItem(1026678, "DevDiv")>
+        Public Sub ParenthesizedVariableAsAReceiver_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+
+Module Module1
+    Sub Main()
+        System.Console.WriteLine("Non-Async")
+        System.Console.WriteLine()
+
+        TestLocal()
+        TestParameter()
+        TestSharedField()
+        TestInstanceField()
+        TestArrayElement()
+
+        System.Console.WriteLine()
+        System.Console.WriteLine("Async")
+        System.Console.WriteLine()
+
+        Task.WaitAll(TestLocalAsync())
+        Task.WaitAll(TestParameterAsync())
+        Task.WaitAll(TestSharedFieldAsync())
+        Task.WaitAll(TestInstanceFieldAsync())
+        Task.WaitAll(TestArrayElementAsync())
+    End Sub
+
+    Sub TestLocal()
+        Dim l As TestStruct2
+        l = TestStruct2.Create()
+        Call (l).fld2.Change()
+        System.Console.WriteLine("Local         : {0}", l.fld2.State())
+
+        l = TestStruct2.Create()
+        Call ((l).fld2).Change()
+        System.Console.WriteLine("Local         : {0}", l.fld2.State())
+
+        l = TestStruct2.Create()
+        Call (l.fld2).Change()
+        System.Console.WriteLine("Local         : {0}", l.fld2.State())
+    End Sub
+
+    Sub TestParameter(Optional p As TestStruct2 = Nothing)
+        p = TestStruct2.Create()
+        Call (p).fld2.Change()
+        System.Console.WriteLine("Parameter     : {0}", p.fld2.State())
+
+        p = TestStruct2.Create()
+        Call ((p).fld2).Change()
+        System.Console.WriteLine("Parameter     : {0}", p.fld2.State())
+
+        p = TestStruct2.Create()
+        Call (p.fld2).Change()
+        System.Console.WriteLine("Parameter     : {0}", p.fld2.State())
+    End Sub
+
+    Private f As TestStruct2
+    Sub TestSharedField()
+        f = TestStruct2.Create()
+        Call (f).fld2.Change()
+        System.Console.WriteLine("Shared Field  : {0}", f.fld2.State())
+
+        f = TestStruct2.Create()
+        Call ((f).fld2).Change()
+        System.Console.WriteLine("Shared Field  : {0}", f.fld2.State())
+
+        f = TestStruct2.Create()
+        Call (f.fld2).Change()
+        System.Console.WriteLine("Shared Field  : {0}", f.fld2.State())
+    End Sub
+
+    Sub TestInstanceField()
+        Dim i As TestClass
+        i = New TestClass()
+        Call (i).fld3.fld2.Change()
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call ((i).fld3).fld2.Change()
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call (((i).fld3).fld2).Change()
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call (i.fld3).fld2.Change()
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call ((i.fld3).fld2).Change()
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call (i.fld3.fld2).Change()
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+    End Sub
+
+    Sub TestArrayElement()
+        Dim a = {TestStruct2.Create()}
+        Call (a(0)).fld2.Change()
+        System.Console.WriteLine("Array element : {0}", a(0).fld2.State())
+
+        a = {TestStruct2.Create()}
+        Call ((a(0)).fld2).Change()
+        System.Console.WriteLine("Array element : {0}", a(0).fld2.State())
+
+        a = {TestStruct2.Create()}
+        Call (a(0).fld2).Change()
+        System.Console.WriteLine("Array element : {0}", a(0).fld2.State())
+    End Sub
+
+    Async Function DummyAsync() As Task(Of Object)
+        Return Nothing
+    End Function
+
+    Async Function TestLocalAsync() As Task
+        Dim l As TestStruct2
+        l = TestStruct2.Create()
+        Call (l).fld2.Change(Await DummyAsync())
+        System.Console.WriteLine("Local         : {0}", l.fld2.State())
+
+        l = TestStruct2.Create()
+        Call ((l).fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Local         : {0}", l.fld2.State())
+
+        l = TestStruct2.Create()
+        Call (l.fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Local         : {0}", l.fld2.State())
+    End Function
+
+    Async Function TestParameterAsync(Optional p As TestStruct2 = Nothing) As Task
+        p = TestStruct2.Create()
+        Call (p).fld2.Change(Await DummyAsync())
+        System.Console.WriteLine("Parameter     : {0}", p.fld2.State())
+
+        p = TestStruct2.Create()
+        Call ((p).fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Parameter     : {0}", p.fld2.State())
+
+        p = TestStruct2.Create()
+        Call (p.fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Parameter     : {0}", p.fld2.State())
+    End Function
+
+    Async Function TestSharedFieldAsync() As Task
+        f = TestStruct2.Create()
+        Call (f).fld2.Change(Await DummyAsync())
+        System.Console.WriteLine("Shared Field  : {0}", f.fld2.State())
+
+        f = TestStruct2.Create()
+        Call ((f).fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Shared Field  : {0}", f.fld2.State())
+
+        f = TestStruct2.Create()
+        Call (f.fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Shared Field  : {0}", f.fld2.State())
+    End Function
+
+    Async Function TestInstanceFieldAsync() As Task
+        Dim i As TestClass
+        i = New TestClass()
+        Call (i).fld3.fld2.Change(Await DummyAsync())
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call ((i).fld3).fld2.Change(Await DummyAsync())
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call (((i).fld3).fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call (i.fld3).fld2.Change(Await DummyAsync())
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call ((i.fld3).fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+
+        i = New TestClass()
+        Call (i.fld3.fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Instance Field: {0}", i.fld3.fld2.State())
+    End Function
+
+    Async Function TestArrayElementAsync() As Task
+        Dim a = {TestStruct2.Create()}
+        Call (a(0)).fld2.Change(Await DummyAsync())
+        System.Console.WriteLine("Array element : {0}", a(0).fld2.State())
+
+        a = {TestStruct2.Create()}
+        Call ((a(0)).fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Array element : {0}", a(0).fld2.State())
+
+        a = {TestStruct2.Create()}
+        Call (a(0).fld2).Change(Await DummyAsync())
+        System.Console.WriteLine("Array element : {0}", a(0).fld2.State())
+    End Function
+
+End Module
+
+Structure TestStruct1
+    Private fld1 As String
+
+    Shared Function Create() As TestStruct1
+        Return New TestStruct1() With {.fld1 = "Unchanged"}
+    End Function
+
+    Sub Change(Optional x As Object = Nothing)
+        fld1 = "Changed"
+    End Sub
+
+    Function State() As String
+        Return fld1
+    End Function
+End Structure
+
+Structure TestStruct2
+    Public fld2 As TestStruct1
+
+    Shared Function Create() As TestStruct2
+        Return New TestStruct2() With {.fld2 = TestStruct1.Create()}
+    End Function
+
+End Structure
+
+Class TestClass
+    Public fld3 As TestStruct2 = TestStruct2.Create()
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Non-Async
+
+Local         : Changed
+Local         : Changed
+Local         : Changed
+Parameter     : Changed
+Parameter     : Changed
+Parameter     : Changed
+Shared Field  : Changed
+Shared Field  : Changed
+Shared Field  : Changed
+Instance Field: Changed
+Instance Field: Changed
+Instance Field: Changed
+Instance Field: Changed
+Instance Field: Changed
+Instance Field: Changed
+Array element : Changed
+Array element : Changed
+Array element : Changed
+
+Async
+
+Local         : Changed
+Local         : Changed
+Local         : Changed
+Parameter     : Changed
+Parameter     : Changed
+Parameter     : Changed
+Shared Field  : Changed
+Shared Field  : Changed
+Shared Field  : Changed
+Instance Field: Changed
+Instance Field: Changed
+Instance Field: Changed
+Instance Field: Changed
+Instance Field: Changed
+Instance Field: Changed
+Array element : Changed
+Array element : Changed
+Array element : Changed
+]]>)
+        End Sub
+
     End Class
 
 End Namespace

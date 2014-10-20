@@ -77,11 +77,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' where at least one of the receiver or the arguments contains an await expression.
             ''' </summary>
             Private Function SpillExpressionsWithReceiver(receiverOpt As BoundExpression,
+                                                          isReceiverOfAMethodCall As Boolean,
                                                           expressions As ImmutableArray(Of BoundExpression),
                                                           <[In], Out> ByRef spillBuilder As SpillBuilder) As ExpressionsWithReceiver
 
                 If receiverOpt Is Nothing Then
-                    Return New ExpressionsWithReceiver(Nothing, SpillExpressionList(spillBuilder, expressions))
+                    Return New ExpressionsWithReceiver(Nothing, SpillExpressionList(spillBuilder, expressions, firstArgumentIsAReceiverOfAMethodCall:=False))
                 End If
 
                 ' We have a non-null receiver, and an expression of the form:
@@ -93,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim allExpressions = ImmutableArray.Create(Of BoundExpression)(receiverOpt).Concat(expressions)
 
                 ' Spill the expressions (and possibly the receiver):
-                Dim allSpilledExpressions = SpillExpressionList(spillBuilder, allExpressions)
+                Dim allSpilledExpressions = SpillExpressionList(spillBuilder, allExpressions, isReceiverOfAMethodCall)
 
                 Return New ExpressionsWithReceiver(allSpilledExpressions.First(), allSpilledExpressions.RemoveAt(0))
             End Function
@@ -151,10 +152,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' 
             ''' </summary>
             Private Function SpillExpressionList(<[In], Out> ByRef builder As SpillBuilder,
-                                                 expressions As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of BoundExpression)
+                                                 expressions As ImmutableArray(Of BoundExpression),
+                                                 firstArgumentIsAReceiverOfAMethodCall As Boolean
+            ) As ImmutableArray(Of BoundExpression)
                 Dim spillBuilders = ArrayBuilder(Of SpillBuilder).GetInstance()
 
-                Dim newArgs As ImmutableArray(Of BoundExpression) = SpillArgumentListInner(expressions, spillBuilders, False)
+                Dim newArgs As ImmutableArray(Of BoundExpression) = SpillArgumentListInner(expressions, spillBuilders, firstArgumentIsAReceiverOfAMethodCall, False)
 
                 For index = spillBuilders.Count - 1 To 0 Step -1
                     builder.AddSpill(spillBuilders(index))
@@ -168,11 +171,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function SpillExpressionList(<[In], Out> ByRef builder As SpillBuilder,
                                                  ParamArray expressions() As BoundExpression) As ImmutableArray(Of BoundExpression)
-                Return SpillExpressionList(builder, expressions.AsImmutableOrNull)
+                Return SpillExpressionList(builder, expressions.AsImmutableOrNull, firstArgumentIsAReceiverOfAMethodCall:=False)
             End Function
 
             Private Function SpillArgumentListInner(arguments As ImmutableArray(Of BoundExpression),
                                                     spillBuilders As ArrayBuilder(Of SpillBuilder),
+                                                    firstArgumentIsAReceiverOfAMethodCall As Boolean,
                                                     <[In], Out> ByRef spilledFirstArg As Boolean) As ImmutableArray(Of BoundExpression)
 
                 Dim newArgs(arguments.Length - 1) As BoundExpression
@@ -183,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Descend into a nested array initializer:
                         Dim nestedInitializer = DirectCast(arg, BoundArrayInitialization)
                         Dim newInitializers As ImmutableArray(Of BoundExpression) =
-                            SpillArgumentListInner(nestedInitializer.Initializers, spillBuilders, spilledFirstArg)
+                            SpillArgumentListInner(nestedInitializer.Initializers, spillBuilders, False, spilledFirstArg)
                         newArgs(index) = nestedInitializer.Update(newInitializers, nestedInitializer.Type)
                         Continue For
                     End If
@@ -211,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Else
                         ' We are to the left of an await-containing expression. Spill the arg.
-                        newExpression = SpillValue(arg, builder)
+                        newExpression = SpillValue(arg, isReceiver:=(index = 0 AndAlso firstArgumentIsAReceiverOfAMethodCall), builder:=builder)
                     End If
 
                     newArgs(index) = newExpression
@@ -225,19 +229,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function SpillValue(expr As BoundExpression, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
+                Return SpillValue(expr, isReceiver:=False, builder:=builder)
+            End Function
+
+            Private Function SpillValue(expr As BoundExpression, isReceiver As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
                 If Unspillable(expr) OrElse expr.Kind = BoundKind.FieldAccess AndAlso Unspillable(DirectCast(expr, BoundFieldAccess).ReceiverOpt) Then
                     Return expr
 
-                ElseIf expr.IsLValue Then
-                    Return SpillLValue(expr, builder)
+                ElseIf isReceiver OrElse expr.IsLValue Then
+                    Return SpillLValue(expr, isReceiver, builder)
 
                 Else
                     Return SpillRValue(expr, builder)
                 End If
             End Function
 
-            Private Function SpillLValue(expr As BoundExpression, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
+            Private Function SpillLValue(expr As BoundExpression, isReceiver As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
                 Debug.Assert(expr IsNot Nothing)
+                Debug.Assert(isReceiver OrElse expr.IsLValue)
+
+                If isReceiver AndAlso expr.Type.IsReferenceType Then
+                    Return SpillRValue(expr.MakeRValue(), builder)
+                End If
+
                 Select Case expr.Kind
 
                     Case BoundKind.Sequence
@@ -259,14 +273,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Next
                         End If
 
-                        Debug.Assert(sequence.ValueOpt.IsLValue)
-                        Return SpillLValue(sequence.ValueOpt, builder)
+                        Return SpillLValue(sequence.ValueOpt, isReceiver, builder)
 
                     Case BoundKind.SpillSequence
                         Dim spill = DirectCast(expr, BoundSpillSequence)
                         builder.AddSpill(spill)
                         Debug.Assert(spill.ValueOpt IsNot Nothing)
-                        Return SpillLValue(spill.ValueOpt, builder)
+                        Return SpillLValue(spill.ValueOpt, isReceiver, builder)
 
                     Case BoundKind.ArrayAccess
                         Dim array = DirectCast(expr, BoundArrayAccess)
@@ -286,9 +299,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Return array
 
-                    Case BoundKind.ConditionalAccessReceiverPlaceholder
-                        Throw ExceptionUtilities.Unreachable
-
                     Case BoundKind.FieldAccess
                         Dim fieldAccess = DirectCast(expr, BoundFieldAccess)
 
@@ -296,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return fieldAccess
                         End If
 
-                        Dim newReceiver As BoundExpression = SpillValue(fieldAccess.ReceiverOpt, builder)
+                        Dim newReceiver As BoundExpression = SpillValue(fieldAccess.ReceiverOpt, isReceiver:=True, builder:=builder)
 
                         fieldAccess = fieldAccess.Update(newReceiver,
                                                          fieldAccess.FieldSymbol,
@@ -320,8 +330,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return expr
 
                     Case Else
-                        Debug.Assert(False, "stack spilling for lvalue: " + expr.Kind.ToString())
-                        Return expr
+                        Debug.Assert(Not expr.IsLValue, "stack spilling for lvalue: " + expr.Kind.ToString())
+                        Return SpillRValue(expr, builder)
                 End Select
             End Function
 
@@ -341,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case BoundKind.ArrayInitialization
                         Dim arrayInit = DirectCast(expr, BoundArrayInitialization)
-                        Return arrayInit.Update(SpillExpressionList(builder, arrayInit.Initializers), arrayInit.Type)
+                        Return arrayInit.Update(SpillExpressionList(builder, arrayInit.Initializers, firstArgumentIsAReceiverOfAMethodCall:=False), arrayInit.Type)
 
                     Case BoundKind.ConditionalAccessReceiverPlaceholder
                         If m_ConditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse

@@ -68,7 +68,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If valueRequiresSpill Then
-                    valueOpt = SpillValue(valueOpt, builder)
+                    Dim spill = DirectCast(valueOpt, BoundSpillSequence)
+                    builder.AddSpill(spill)
+                    valueOpt = spill.ValueOpt
                 End If
 
                 Return builder.BuildSequenceAndFree(Me.F, valueOpt)
@@ -96,16 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim builder As New SpillBuilder()
 
-                ' NOTE: call receiver of reference type may still be an l-value, this will prevent 
-                ' NOTE: it from being captured correctly by SpillExpressionsWithReceiver call,
-                ' NOTE: ideally, we should fix it in BoundCall node -- enforce the rule that 
-                ' NOTE: receiver may only be an l-value if its type is a value type or type parameter;
-                ' NOTE: the code below is actually a temporary fix for that
-                If receiverOpt IsNot Nothing AndAlso receiverOpt.IsLValue AndAlso receiverOpt.Type.IsVerifierReference Then
-                    receiverOpt = receiverOpt.MakeRValue
-                End If
-
-                Dim result = SpillExpressionsWithReceiver(receiverOpt, arguments, builder)
+                Dim result = SpillExpressionsWithReceiver(receiverOpt, isReceiverOfAMethodCall:=True, expressions:=arguments, spillBuilder:=builder)
 
                 Return builder.BuildSequenceAndFree(Me.F,
                                                     rewritten.Update(rewritten.Method,
@@ -127,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim builder As New SpillBuilder()
-                arguments = SpillExpressionList(builder, arguments)
+                arguments = SpillExpressionList(builder, arguments, firstArgumentIsAReceiverOfAMethodCall:=False)
 
                 Return builder.BuildSequenceAndFree(Me.F,
                                                     rewritten.Update(rewritten.ConstructorOpt,
@@ -234,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim builder As New SpillBuilder()
 
                 Debug.Assert(left.IsLValue)
-                Dim spilledLeft As BoundExpression = SpillLValue(left, builder)
+                Dim spilledLeft As BoundExpression = SpillLValue(left, isReceiver:=False, builder:=builder)
 
                 Dim rightAsSpillSequence = DirectCast(right, BoundSpillSequence)
                 builder.AddSpill(rightAsSpillSequence)
@@ -548,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If node.CaptureReceiver OrElse conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled Then
                         ' Let's use stack spilling to capture it.
-                        receiverOrCondition = SpillValue(receiverOrCondition, builder)
+                        receiverOrCondition = SpillValue(receiverOrCondition, isReceiver:=True, builder:=builder)
                     End If
 
                     Dim rewriter As New ConditionalAccessReceiverPlaceholderReplacement(node.PlaceholderId, receiverOrCondition)
@@ -664,11 +657,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim builder As New SpillBuilder()
-                bounds = SpillExpressionList(builder, bounds)
+                bounds = SpillExpressionList(builder, bounds, firstArgumentIsAReceiverOfAMethodCall:=False)
 
                 If rewrittenInitializer IsNot Nothing Then
                     rewrittenInitializer = rewrittenInitializer.Update(
-                                                SpillExpressionList(builder, rewrittenInitializer.Initializers),
+                                                SpillExpressionList(builder, rewrittenInitializer.Initializers, firstArgumentIsAReceiverOfAMethodCall:=False),
                                                 rewrittenInitializer.Type)
                 End If
 
@@ -719,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim builder As New SpillBuilder()
-                Dim result = SpillExpressionsWithReceiver(expression, indices, builder)
+                Dim result = SpillExpressionsWithReceiver(expression, isReceiverOfAMethodCall:=False, expressions:=indices, spillBuilder:=builder)
                 Return builder.BuildSequenceAndFree(Me.F,
                                                     rewritten.Update(result.ReceiverOpt,
                                                                      result.Arguments,

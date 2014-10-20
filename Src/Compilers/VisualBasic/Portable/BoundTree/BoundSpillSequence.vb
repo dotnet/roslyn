@@ -11,7 +11,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function MakeRValueImpl() As BoundExpression
-            Throw ExceptionUtilities.Unreachable
+            Return MakeRValue()
+        End Function
+
+        Public Shadows Function MakeRValue() As BoundSpillSequence
+            If Me.IsLValue Then
+                Debug.Assert(Me.ValueOpt IsNot Nothing)
+                Return Update(Locals, SpillFields, Statements, ValueOpt.MakeRValue(), Type)
+            End If
+
+            Return Me
         End Function
 
 #If DEBUG Then

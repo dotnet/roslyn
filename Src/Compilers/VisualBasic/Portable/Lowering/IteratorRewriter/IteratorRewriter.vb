@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             initializers.Add(
                 Me.F.AssignmentExpression(
                     Me.F.Field(
-                        Me.F.Local(stateMachineVariable, False),
+                        Me.F.Local(stateMachineVariable, True),
                         proxy.AsMember(frameType),
                         True),
                     expression))

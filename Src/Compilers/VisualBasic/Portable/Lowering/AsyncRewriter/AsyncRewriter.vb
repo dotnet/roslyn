@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' STAT:   localStateMachine.$stateField = NotStartedStateMachine
             Dim stateFieldAsLValue As BoundExpression =
                 Me.F.Field(
-                    Me.F.Local(stateMachineVariable, False),
+                    Me.F.Local(stateMachineVariable, True),
                     Me.StateField.AsMember(frameType), True)
 
             bodyBuilder.Add(
@@ -471,7 +471,7 @@ lCaptureRValue:
             initializers.Add(
                 Me.F.AssignmentExpression(
                     Me.F.Field(
-                        Me.F.Local(stateMachineVariable, False),
+                        Me.F.Local(stateMachineVariable, True),
                         field.AsMember(frameType),
                         True),
                     expression))

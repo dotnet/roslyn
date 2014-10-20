@@ -4995,6 +4995,145 @@ End Module
         End Sub
 
         <Fact()>
+        Public Sub CodeGen_22()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim s1 = {New S1 With {.F1 = 1}}
+        System.Console.WriteLine(s1(0).F1)
+        Dim x = Test1(Of S1)(s1)
+        Task.WaitAll(x)
+        System.Console.WriteLine(If(x.Result, "Null"))
+        System.Console.WriteLine("{0}", s1(0).F1)
+
+        System.Console.WriteLine("---")
+        Dim y = Test1(Of C1)({Nothing})
+        Task.WaitAll(y)
+        System.Console.WriteLine(If(y.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        y = Test1(Of C1)({New C1()})
+        Task.WaitAll(y)
+        System.Console.WriteLine(If(y.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        s1(0) = New S1 With {.F1 = 3}
+        System.Console.WriteLine(s1(0).F1)
+        Dim z = Test2(Of S1)(s1)
+        Task.WaitAll(z)
+        System.Console.WriteLine(If(z.Result, "Null"))
+        System.Console.WriteLine(s1(0).F1)
+
+        System.Console.WriteLine("---")
+        z = Test3(Of C1)({Nothing})
+        Task.WaitAll(z)
+        System.Console.WriteLine(If(z.Result, "Null"))
+
+        System.Console.WriteLine("---")
+        Dim c1 = {new C1()}
+        System.Console.WriteLine(c1(0))
+        z = Test3(Of C1)(c1)
+        Task.WaitAll(z)
+        System.Console.WriteLine(If(z.Result, "Null"))
+        System.Console.WriteLine(c1(0))
+    End Sub
+
+    Async Function Test1(Of T As I1)(x() As T) As Task(Of Object)
+        Return (x(0))?.CallAsync(Await PassAsync())
+    End Function
+
+    Async Function Test2(Of T As I1)(x() As T) As Task(Of Integer?)
+        Return (x(0))?.CallAsyncExt1(Await PassAsync())
+    End Function
+
+    Async Function Test3(Of T As I1)(x() As T) As Task(Of Integer?)
+        Return (x(0))?.CallAsyncExt2(Await PassAsync())
+    End Function
+
+    Async Function PassAsync() As Task(Of Integer)
+        Return 1
+    End Function
+
+    <Extension>    
+    Function CallAsyncExt1(Of T)(ByRef x As T, y as Integer) As Integer
+        System.Console.WriteLine("CallAsyncExt1")
+        x = Nothing
+        return 100
+    End Function
+
+    <Extension>    
+    Function CallAsyncExt2(Of T)(ByRef x As T, y as Integer) As Integer?
+        System.Console.WriteLine("CallAsyncExt2")
+        x = Nothing
+        return 101
+    End Function
+End Module
+
+Interface I1
+    Function CallAsync(x As Integer) As Object
+End Interface
+
+Structure S1
+    Implements I1
+
+    Public F1 As Integer
+
+    Public Function CallAsync(x As Integer) As Object Implements I1.CallAsync
+        System.Console.WriteLine("S1.CallAsync")
+        F1+=1
+        Return 1
+    End Function
+End Structure
+
+Class C1
+    Implements I1
+
+    Public Function CallAsync(x As Integer) As Object Implements I1.CallAsync
+        System.Console.WriteLine("C1.CallAsync")
+        Return 2
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+1
+S1.CallAsync
+1
+2
+---
+Null
+---
+C1.CallAsync
+2
+---
+3
+CallAsyncExt1
+100
+3
+---
+Null
+---
+C1
+CallAsyncExt2
+101
+C1
+]]>)
+        End Sub
+
+        <Fact()>
         Public Sub InlineNullableIsTrue_01()
 
             Dim compilationDef =
