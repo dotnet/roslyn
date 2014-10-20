@@ -2,6 +2,7 @@
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GetDiagnosticsTests
@@ -82,6 +83,29 @@ End Class
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "Abracadabra[\r\n]+", ErrorId)
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "bracadabra[\r\n]+")
         End Sub
+
+        <Fact, WorkItem(1066483)>
+        Public Sub TestDiagnosticWithSeverity()
+            Dim source = <project><file>
+Class C
+    Sub Foo()
+        Dim x
+    End Sub
+End Class
+</file></project>
+            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim diag = compilation.GetDiagnostics().Single()
+
+            Assert.Equal(DiagnosticSeverity.Warning, diag.Severity)
+            Assert.Equal(1, diag.WarningLevel)
+
+            Dim [error] = diag.WithSeverity(DiagnosticSeverity.Error)
+            Assert.Equal(DiagnosticSeverity.Error, [error].Severity)
+            Assert.Equal(0, [error].WarningLevel)
+
+            Dim warning = [error].WithSeverity(DiagnosticSeverity.Warning)
+            Assert.Equal(DiagnosticSeverity.Warning, warning.Severity)
+            Assert.Equal(1, warning.WarningLevel)
+        End Sub
     End Class
 End Namespace
-

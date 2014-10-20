@@ -195,6 +195,11 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
+                if (this.effectiveSeverity != DiagnosticSeverity.Warning)
+                {
+                    return 0;
+                }
+
                 return messageProvider.GetWarningLevel(errorCode);
             }
         }
