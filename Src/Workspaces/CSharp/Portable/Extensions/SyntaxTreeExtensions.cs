@@ -464,6 +464,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     || AtEndOfIncompleteStringOrCharLiteral(token, position, '"');
             }
 
+            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedStringMidToken, SyntaxKind.InterpolatedStringEndToken))
+            {
+                return token.SpanStart < position && token.Span.End > position;
+            }
+
             return false;
         }
 
