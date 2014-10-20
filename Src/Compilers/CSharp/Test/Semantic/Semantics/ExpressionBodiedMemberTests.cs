@@ -285,5 +285,24 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
+        [WorkItem(1065375, "DevDiv"), WorkItem(313, "CodePlex")]
+        [Fact]
+        public void Bug1065375_1()
+        {
+            string source = @"
+using System;
+public static class TestExtension 
+{
+    static void Main()
+    {
+        GetAction(1)();
+    } 
+   
+    public static Action GetAction(int x) => () => Console.WriteLine(""GetAction {0}"", x);
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "GetAction 1");
+        }
     }
 }

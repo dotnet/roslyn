@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // expression-bodied member:
-            if (syntax.Parent.IsKind(SyntaxKind.ArrowExpressionClause))
+            if (syntax.IsKind(SyntaxKind.ArrowExpressionClause))
             {
                 return;
             }
