@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // CS7048: First argument to a security attribute must be a valid SecurityAction
-            diagnostics.Add(ErrorCode.ERR_SecurityAttributeMissingAction, (object)nodeOpt != null ? nodeOpt.Name.Location : NoLocation.Singleton);
+            diagnostics.Add(ErrorCode.ERR_SecurityAttributeMissingAction, nodeOpt != null ? nodeOpt.Name.Location : NoLocation.Singleton);
             hasErrors = true;
             return default(Cci.SecurityAction);
         }
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // CS7049: Security attribute '{0}' has an invalid SecurityAction value '{1}'
                         string displayString;
                         Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, securityAction, out displayString);
-                        diagnostics.Add(ErrorCode.ERR_SecurityAttributeInvalidAction, syntaxLocation, (object)nodeOpt != null ? nodeOpt.GetErrorDisplayName() : "", displayString);
+                        diagnostics.Add(ErrorCode.ERR_SecurityAttributeInvalidAction, syntaxLocation, nodeOpt != null ? nodeOpt.GetErrorDisplayName() : "", displayString);
                         return false;
                     }
             }
@@ -359,20 +359,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static Location GetSecurityAttributeActionSyntaxLocation(AttributeSyntax nodeOpt, Cci.SecurityAction value, out string displayString)
         {
-            if ((object)nodeOpt == null)
+            if (nodeOpt == null)
             {
                 displayString = "";
                 return NoLocation.Singleton;
             }
 
-            if (nodeOpt.ArgumentList.Arguments.IsEmpty())
+            var argList = nodeOpt.ArgumentList;
+            if ((argList == null) || argList.Arguments.IsEmpty())
             {
                 // Optional SecurityAction parameter with default value.
                 displayString = value.ToString();
                 return nodeOpt.Location;
             }
 
-            AttributeArgumentSyntax argSyntax = nodeOpt.ArgumentList.Arguments[0];
+            AttributeArgumentSyntax argSyntax = argList.Arguments[0];
             displayString = argSyntax.ToString();
             return argSyntax.Location;
         }
@@ -420,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (resolvedFilePath == null)
                     {
                         // CS7053: Unable to resolve file path '{0}' specified for the named argument '{1}' for PermissionSet attribute
-                        Location argSyntaxLocation = (object)nodeOpt != null ? nodeOpt.GetNamedArgumentSyntax(filePropName).Location : NoLocation.Singleton;
+                        Location argSyntaxLocation = nodeOpt != null ? nodeOpt.GetNamedArgumentSyntax(filePropName).Location : NoLocation.Singleton;
                         diagnostics.Add(ErrorCode.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, fileName ?? "<null>", filePropName);
                     }
                     else if (!PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName))
@@ -478,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     // CS0591: Invalid value for argument to '{0}' attribute
                     Location attributeArgumentSyntaxLocation = this.GetAttributeArgumentSyntaxLocation(0, nodeOpt);
-                    diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntaxLocation, (object)nodeOpt != null ? nodeOpt.GetErrorDisplayName() : "");
+                    diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntaxLocation, nodeOpt != null ? nodeOpt.GetErrorDisplayName() : "");
                     break;
             }
         }
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CS0591: Invalid value for argument to '{0}' attribute
                 Location attributeArgumentSyntaxLocation = this.GetAttributeArgumentSyntaxLocation(0, nodeOpt);
-                diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntaxLocation, (object)nodeOpt != null ? nodeOpt.GetErrorDisplayName() : "");
+                diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntaxLocation, nodeOpt != null ? nodeOpt.GetErrorDisplayName() : "");
                 guidString = String.Empty;
             }
 
@@ -672,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static Location GetAttributeArgumentSyntaxLocation(this AttributeData attribute, int parameterIndex, AttributeSyntax attributeSyntaxOpt)
         {
-            if ((object)attributeSyntaxOpt == null)
+            if (attributeSyntaxOpt == null)
             {
                 return NoLocation.Singleton;
             }

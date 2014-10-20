@@ -1535,7 +1535,7 @@ public class A : CodeAccessSecurityAttribute
             CreateCompilationWithMscorlib(source).GetDiagnostics();
         }
 
-        [Fact(Skip = "Bug 1036339")]
+        [Fact]
         [WorkItem(1036339)]
         public void CrashOnOptionalParameterInSecurityAttribute()
         {
@@ -1543,13 +1543,23 @@ public class A : CodeAccessSecurityAttribute
 using System.Security.Permissions;
 
 [A]
+[A()]
 class A : CodeAccessSecurityAttribute
 {
     public A(SecurityAction a = 0) : base(a)
     {
     }
 }";
-            CreateCompilationWithMscorlib(source).GetDiagnostics();
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,2): error CS7049: Security attribute 'A' has an invalid SecurityAction value '0'
+                // [A]
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "A").WithArguments("A", "0").WithLocation(4, 2),
+                // (5,2): error CS7049: Security attribute 'A' has an invalid SecurityAction value '0'
+                // [A()]
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "A()").WithArguments("A", "0").WithLocation(5, 2),
+                // (6,7): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
+                // class A : CodeAccessSecurityAttribute
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(6, 7));
         }
     }
 }
