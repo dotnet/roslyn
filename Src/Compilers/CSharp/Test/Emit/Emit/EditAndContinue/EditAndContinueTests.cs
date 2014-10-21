@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -3366,9 +3367,9 @@ class B : A<B>
 @"{
   // Code size       10 (0xa)
   .maxstack  1
-  .locals init ([unchanged] V_0,
-  string V_1, //b
-  int V_2) //a
+  .locals init ([object] V_0,
+                string V_1, //b
+                int V_2) //a
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.2
@@ -4108,9 +4109,9 @@ class B
 {
   // Code size       33 (0x21)
   .maxstack  1
-  .locals init ([unchanged] V_0,
+  .locals init ([int] V_0,
            [object] V_1,
-           [unchanged] V_2,
+           [object] V_2,
            <>f__AnonymousType0<A> V_3, //x
            <>f__AnonymousType1<int> V_4, //y
            object V_5)
@@ -4141,9 +4142,9 @@ class B
     @"{
   // Code size       39 (0x27)
   .maxstack  1
-  .locals init ([unchanged] V_0,
+  .locals init ([int] V_0,
            [object] V_1,
-           [unchanged] V_2,
+           [object] V_2,
            <>f__AnonymousType0<A> V_3, //x
            <>f__AnonymousType1<int> V_4, //y
            object V_5)
@@ -5588,6 +5589,74 @@ class C
                     Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("The method or operation is not implemented."));
 
                 Assert.False(diff1.EmitResult.Success);
+            }
+        }
+
+        [WorkItem(1058058)]
+        [Fact]
+        public void BlobContainsInvalidValues()
+        {
+            var source0 =
+@"class C
+{
+    static void F()
+    {
+        string foo = ""abc"";
+    }
+}";
+            var source1 =
+@"class C
+{
+    static void F()
+    {
+        float foo = 10;
+    }
+}";
+            var source2 =
+@"class C
+{
+    static void F()
+    {
+        bool foo = true;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+            var bytes0 = compilation0.EmitToArray();
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+                CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib");
+                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)));
+
+                var handle = MetadataTokens.BlobHandle(1);
+                byte[] value0 = reader0.GetBlobBytes(handle);
+                Assert.Equal("20-01-01-08", BitConverter.ToString(value0));
+
+                using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+                    var method2F = compilation2.GetMember<MethodSymbol>("C.F");
+                    var diff2F = compilation2.EmitDifference(
+                        diff1.NextGeneration,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1F, method2F, syntaxMap: s => null, preserveLocalVariables: true)));
+
+                    byte[] value1 = reader1.GetBlobBytes(handle);
+                    Assert.Equal("07-02-0E-0C", BitConverter.ToString(value1));
+
+                    using (var md2 = diff2F.GetMetadata())
+                    {
+                        var reader2 = md2.Reader;
+                        byte[] value2 = reader2.GetBlobBytes(handle);
+                        Assert.Equal("07-03-0E-0C-02", BitConverter.ToString(value2));
+                    }
+                }
             }
         }
     }

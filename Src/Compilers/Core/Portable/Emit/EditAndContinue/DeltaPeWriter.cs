@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     {
                         uint start = stream.Position;
                         this.SerializeLocalVariableSignature(writer, local);
-                        uint length = stream.Position - start + 1;
+                        uint length = stream.Position - start;
                         signature = new byte[length];
                         for (int i = 0; i < length; i++)
                         {
