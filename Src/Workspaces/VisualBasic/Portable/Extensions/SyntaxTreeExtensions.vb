@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return _
                 position = token.Span.End AndAlso
                  (token.Span.Length = startLength OrElse
-                  (token.Span.Length > startLength AndAlso token.ToString().EndsWith(lastChar)))
+                  (token.Span.Length > startLength AndAlso Not token.ToString().EndsWith(lastChar)))
         End Function
 
         <Extension()>
