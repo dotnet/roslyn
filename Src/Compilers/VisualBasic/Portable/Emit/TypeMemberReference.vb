@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Property
 
         Public Overrides Function ToString() As String
-            Return UnderlyingSymbol.ToString()
+            Return UnderlyingSymbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat)
         End Function
 
         Private Function IReferenceAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes

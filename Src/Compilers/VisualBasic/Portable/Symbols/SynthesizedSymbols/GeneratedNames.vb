@@ -26,6 +26,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return String.Format(StringConstants.StateMachineTypeNameMask, index, topMethodMetadataName)
         End Function
 
+        Public Shared Function TryParseStateMachineTypeName(stateMachineTypeName As String, <Out> ByRef index As Integer, <Out> ByRef methodName As String) As Boolean
+            If Not stateMachineTypeName.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal) Then
+                Return False
+            End If
+
+            Dim prefixLength As Integer = StringConstants.StateMachineTypeNamePrefix.Length
+            Dim separatorPos = stateMachineTypeName.IndexOf("_"c, prefixLength)
+            If separatorPos < 0 OrElse separatorPos = stateMachineTypeName.Length - 1 Then
+                Return False
+            End If
+
+            If Not Integer.TryParse(stateMachineTypeName.Substring(prefixLength, separatorPos - prefixLength), NumberStyles.None, CultureInfo.InvariantCulture, index) Then
+                Return False
+            End If
+
+            methodName = stateMachineTypeName.Substring(separatorPos + 1)
+            Return True
+        End Function
+
         Public Shared Function EnsureNoDotsInTypeName(Name As String) As String
             ' CLR generally allows names with dots, however some APIs like IMetaDataImport
             ' can only return full type names combined with namespaces. 

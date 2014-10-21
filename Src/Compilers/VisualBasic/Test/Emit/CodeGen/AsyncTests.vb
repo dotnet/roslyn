@@ -1812,7 +1812,7 @@ End Class
                 System.Runtime.CompilerServices.TaskAwaiter(Of String) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Friend $State As Integer"
+  IL_0001:  ldfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$State As Integer"
   IL_0006:  stloc.1
   .try
   {
@@ -1821,11 +1821,11 @@ End Class
     IL_000a:  newobj     "Sub BASE(Of T).CLAZZ(Of U)._Closure$__1(Of SM$V)..ctor()"
     IL_000f:  dup
     IL_0010:  ldarg.0
-    IL_0011:  ldfld      "Friend $VB$Me As BASE(Of T).CLAZZ(Of U)"
+    IL_0011:  ldfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$VB$Me As BASE(Of T).CLAZZ(Of U)"
     IL_0016:  stfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of SM$V).$VB$Me As BASE(Of T).CLAZZ(Of U)"
     IL_001b:  dup
     IL_001c:  ldarg.0
-    IL_001d:  ldfld      "Friend $VB$Local_p As SM$V"
+    IL_001d:  ldfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$VB$Local_p As SM$V"
     IL_0022:  stfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of SM$V).$VB$Local_p As SM$V"
     IL_0027:  dup
     IL_0028:  ldflda     "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of SM$V).$VB$Local_outer As U"
@@ -1846,12 +1846,12 @@ End Class
     IL_0067:  ldc.i4.0
     IL_0068:  dup
     IL_0069:  stloc.1
-    IL_006a:  stfld      "Friend $State As Integer"
+    IL_006a:  stfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$State As Integer"
     IL_006f:  ldarg.0
     IL_0070:  ldloc.2
-    IL_0071:  stfld      "Friend $awaiter_4 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_0071:  stfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$awaiter_4 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
     IL_0076:  ldarg.0
-    IL_0077:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+    IL_0077:  ldflda     "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
     IL_007c:  ldloca.s   V_2
     IL_007e:  ldarg.0
     IL_007f:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of String), BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of String), ByRef BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V))"
@@ -1860,12 +1860,12 @@ End Class
     IL_0087:  ldc.i4.m1
     IL_0088:  dup
     IL_0089:  stloc.1
-    IL_008a:  stfld      "Friend $State As Integer"
+    IL_008a:  stfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$State As Integer"
     IL_008f:  ldarg.0
-    IL_0090:  ldfld      "Friend $awaiter_4 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_0090:  ldfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$awaiter_4 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
     IL_0095:  stloc.2
     IL_0096:  ldarg.0
-    IL_0097:  ldflda     "Friend $awaiter_4 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_0097:  ldflda     "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$awaiter_4 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
     IL_009c:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of String)"
     IL_00a2:  ldloca.s   V_2
     IL_00a4:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of String).GetResult() As String"
@@ -1882,9 +1882,9 @@ End Class
     IL_00bf:  stloc.3
     IL_00c0:  ldarg.0
     IL_00c1:  ldc.i4.s   -2
-    IL_00c3:  stfld      "Friend $State As Integer"
+    IL_00c3:  stfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$State As Integer"
     IL_00c8:  ldarg.0
-    IL_00c9:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+    IL_00c9:  ldflda     "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
     IL_00ce:  ldloc.3
     IL_00cf:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
     IL_00d4:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -1894,9 +1894,9 @@ End Class
   IL_00dc:  ldc.i4.s   -2
   IL_00de:  dup
   IL_00df:  stloc.1
-  IL_00e0:  stfld      "Friend $State As Integer"
+  IL_00e0:  stfld      "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$State As Integer"
   IL_00e5:  ldarg.0
-  IL_00e6:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_00e6:  ldflda     "BASE(Of T).CLAZZ(Of U).VB$StateMachine_0_F(Of SM$V).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
   IL_00eb:  ldloc.0
   IL_00ec:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
   IL_00f1:  ret
@@ -1912,7 +1912,7 @@ End Class
                 System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Friend $State As Integer"
+  IL_0001:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$State As Integer"
   IL_0006:  stloc.1
   .try
   {
@@ -1920,22 +1920,22 @@ End Class
     IL_0008:  brfalse.s  IL_0088
     IL_000a:  ldarg.0
     IL_000b:  ldarg.0
-    IL_000c:  ldfld      "Friend $VB$NonLocal__Closure$__1 As BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0)"
-    IL_0011:  ldflda     "Public $VB$Local_outer As U"
+    IL_000c:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$VB$NonLocal__Closure$__1 As BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0)"
+    IL_0011:  ldflda     "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).$VB$Local_outer As U"
     IL_0016:  constrained. "U"
     IL_001c:  callvirt   "Function Object.ToString() As String"
     IL_0021:  ldarg.0
-    IL_0022:  ldfld      "Friend $VB$NonLocal__Closure$__1 As BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0)"
-    IL_0027:  ldfld      "Public $VB$Me As BASE(Of T).CLAZZ(Of U)"
-    IL_002c:  ldflda     "Public FX As T"
+    IL_0022:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$VB$NonLocal__Closure$__1 As BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0)"
+    IL_0027:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).$VB$Me As BASE(Of T).CLAZZ(Of U)"
+    IL_002c:  ldflda     "BASE(Of T).CLAZZ(Of U).FX As T"
     IL_0031:  constrained. "T"
     IL_0037:  callvirt   "Function Object.ToString() As String"
     IL_003c:  call       "Function String.Concat(String, String) As String"
-    IL_0041:  stfld      "Friend $VB$ResumableLocal_result$1 As String"
+    IL_0041:  stfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$VB$ResumableLocal_result$1 As String"
     IL_0046:  ldarg.0
-    IL_0047:  ldfld      "Friend $VB$NonLocal__Closure$__1 As BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0)"
-    IL_004c:  ldfld      "Public $VB$Me As BASE(Of T).CLAZZ(Of U)"
-    IL_0051:  call       "Public Function f2() As System.Threading.Tasks.Task(Of Integer)"
+    IL_0047:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$VB$NonLocal__Closure$__1 As BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0)"
+    IL_004c:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).$VB$Me As BASE(Of T).CLAZZ(Of U)"
+    IL_0051:  call       "Function BASE(Of T).CLAZZ(Of U).f2() As System.Threading.Tasks.Task(Of Integer)"
     IL_0056:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
     IL_005b:  stloc.2
     IL_005c:  ldloca.s   V_2
@@ -1945,12 +1945,12 @@ End Class
     IL_0066:  ldc.i4.0
     IL_0067:  dup
     IL_0068:  stloc.1
-    IL_0069:  stfld      "Friend $State As Integer"
+    IL_0069:  stfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$State As Integer"
     IL_006e:  ldarg.0
     IL_006f:  ldloc.2
-    IL_0070:  stfld      "Friend $awaiter_3 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0070:  stfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$awaiter_3 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
     IL_0075:  ldarg.0
-    IL_0076:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+    IL_0076:  ldflda     "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
     IL_007b:  ldloca.s   V_2
     IL_007d:  ldarg.0
     IL_007e:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2)"
@@ -1959,12 +1959,12 @@ End Class
     IL_0089:  ldc.i4.m1
     IL_008a:  dup
     IL_008b:  stloc.1
-    IL_008c:  stfld      "Friend $State As Integer"
+    IL_008c:  stfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$State As Integer"
     IL_0091:  ldarg.0
-    IL_0092:  ldfld      "Friend $awaiter_3 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0092:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$awaiter_3 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
     IL_0097:  stloc.2
     IL_0098:  ldarg.0
-    IL_0099:  ldflda     "Friend $awaiter_3 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0099:  ldflda     "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$awaiter_3 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
     IL_009e:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
     IL_00a4:  ldloca.s   V_2
     IL_00a6:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
@@ -1972,10 +1972,10 @@ End Class
     IL_00ad:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
     IL_00b3:  pop
     IL_00b4:  ldarg.0
-    IL_00b5:  ldfld      "Friend $VB$ResumableLocal_result$1 As String"
+    IL_00b5:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$VB$ResumableLocal_result$1 As String"
     IL_00ba:  ldarg.0
-    IL_00bb:  ldfld      "Friend $VB$NonLocal__Closure$__1 As BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0)"
-    IL_00c0:  ldflda     "Public $VB$Local_p As $CLS0"
+    IL_00bb:  ldfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$VB$NonLocal__Closure$__1 As BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0)"
+    IL_00c0:  ldflda     "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).$VB$Local_p As $CLS0"
     IL_00c5:  constrained. "$CLS0"
     IL_00cb:  callvirt   "Function System.ValueType.ToString() As String"
     IL_00d0:  call       "Function String.Concat(String, String) As String"
@@ -1989,9 +1989,9 @@ End Class
     IL_00de:  stloc.3
     IL_00df:  ldarg.0
     IL_00e0:  ldc.i4.s   -2
-    IL_00e2:  stfld      "Friend $State As Integer"
+    IL_00e2:  stfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$State As Integer"
     IL_00e7:  ldarg.0
-    IL_00e8:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+    IL_00e8:  ldflda     "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
     IL_00ed:  ldloc.3
     IL_00ee:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).SetException(System.Exception)"
     IL_00f3:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -2001,9 +2001,9 @@ End Class
   IL_00fb:  ldc.i4.s   -2
   IL_00fd:  dup
   IL_00fe:  stloc.1
-  IL_00ff:  stfld      "Friend $State As Integer"
+  IL_00ff:  stfld      "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$State As Integer"
   IL_0104:  ldarg.0
-  IL_0105:  ldflda     "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+  IL_0105:  ldflda     "BASE(Of T).CLAZZ(Of U)._Closure$__1(Of $CLS0).VB$StateMachine_0__Lambda$__2.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
   IL_010a:  ldloc.0
   IL_010b:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).SetResult(String)"
   IL_0110:  ret

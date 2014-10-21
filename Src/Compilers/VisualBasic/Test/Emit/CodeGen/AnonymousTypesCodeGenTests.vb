@@ -38,7 +38,7 @@ expectedOutput:=<![CDATA[
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Private $a As T0"
+  IL_0001:  ldfld      "VB$AnonymousType_0(Of T0, T1).$a As T0"
   IL_0006:  ret
 }
 ]]>).
@@ -49,7 +49,7 @@ expectedOutput:=<![CDATA[
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      "Private $a As T0"
+  IL_0002:  stfld      "VB$AnonymousType_0(Of T0, T1).$a As T0"
   IL_0007:  ret
 }
 ]]>).
@@ -59,7 +59,7 @@ expectedOutput:=<![CDATA[
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Private $b As T1"
+  IL_0001:  ldfld      "VB$AnonymousType_0(Of T0, T1).$b As T1"
   IL_0006:  ret
 }
 ]]>).
@@ -70,7 +70,7 @@ expectedOutput:=<![CDATA[
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      "Private $b As T1"
+  IL_0002:  stfld      "VB$AnonymousType_0(Of T0, T1).$b As T1"
   IL_0007:  ret
 }
 ]]>).
@@ -83,10 +83,10 @@ expectedOutput:=<![CDATA[
   IL_0001:  call       "Sub Object..ctor()"
   IL_0006:  ldarg.0
   IL_0007:  ldarg.1
-  IL_0008:  stfld      "Private $a As T0"
+  IL_0008:  stfld      "VB$AnonymousType_0(Of T0, T1).$a As T0"
   IL_000d:  ldarg.0
   IL_000e:  ldarg.2
-  IL_000f:  stfld      "Private $b As T1"
+  IL_000f:  stfld      "VB$AnonymousType_0(Of T0, T1).$b As T1"
   IL_0014:  ret
 }
 ]]>)
@@ -396,19 +396,19 @@ expectedOutput:=<![CDATA[
   IL_000b:  dup
   IL_000c:  ldc.i4.0
   IL_000d:  ldarg.0
-  IL_000e:  ldfld      "Private ReadOnly $a As T0"
+  IL_000e:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
   IL_0013:  box        "T0"
   IL_0018:  stelem.ref
   IL_0019:  dup
   IL_001a:  ldc.i4.1
   IL_001b:  ldarg.0
-  IL_001c:  ldfld      "Private $b As T1"
+  IL_001c:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$b As T1"
   IL_0021:  box        "T1"
   IL_0026:  stelem.ref
   IL_0027:  dup
   IL_0028:  ldc.i4.2
   IL_0029:  ldarg.0
-  IL_002a:  ldfld      "Private ReadOnly $c As T2"
+  IL_002a:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
   IL_002f:  box        "T2"
   IL_0034:  stelem.ref
   IL_0035:  call       "Function String.Format(String, ParamArray Object()) As String"
@@ -462,15 +462,15 @@ False
   // Code size      105 (0x69)
   .maxstack  2
   .locals init (Object V_0,
-  Object V_1)
+                Object V_1)
   IL_0000:  ldarg.1
   IL_0001:  brfalse.s  IL_0067
   IL_0003:  ldarg.0
-  IL_0004:  ldfld      "Private ReadOnly $a As T0"
+  IL_0004:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
   IL_0009:  box        "T0"
   IL_000e:  stloc.0
   IL_000f:  ldarg.1
-  IL_0010:  ldfld      "Private ReadOnly $a As T0"
+  IL_0010:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
   IL_0015:  box        "T0"
   IL_001a:  stloc.1
   IL_001b:  ldloc.0
@@ -487,11 +487,11 @@ False
   IL_002e:  callvirt   "Function Object.Equals(Object) As Boolean"
   IL_0033:  brfalse.s  IL_0065
   IL_0035:  ldarg.0
-  IL_0036:  ldfld      "Private ReadOnly $c As T2"
+  IL_0036:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
   IL_003b:  box        "T2"
   IL_0040:  stloc.0
   IL_0041:  ldarg.1
-  IL_0042:  ldfld      "Private ReadOnly $c As T2"
+  IL_0042:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
   IL_0047:  box        "T2"
   IL_004c:  stloc.1
   IL_004d:  ldloc.0
@@ -590,7 +590,7 @@ True
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  isinst     "VB$AnonymousType_0(Of T0, T1, T2)"
-  IL_0007:  call       "Public Overloads Function Equals(val As VB$AnonymousType_0(Of T0, T1, T2)) As Boolean"
+  IL_0007:  call       "Function VB$AnonymousType_0(Of T0, T1, T2).Equals(VB$AnonymousType_0(Of T0, T1, T2)) As Boolean"
   IL_000c:  ret
 }
 ]]>)
@@ -615,16 +615,16 @@ New XCData(<![CDATA[
   // Code size       92 (0x5c)
   .maxstack  2
   .locals init (T0 V_0,
-  T2 V_1)
+                T2 V_1)
   IL_0000:  ldc.i4     0x526a854f
   IL_0005:  ldc.i4     0xa5555529
   IL_000a:  mul
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      "Private ReadOnly $a As T0"
+  IL_000c:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
   IL_0011:  box        "T0"
   IL_0016:  brfalse.s  IL_002e
   IL_0018:  ldarg.0
-  IL_0019:  ldfld      "Private ReadOnly $a As T0"
+  IL_0019:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
   IL_001e:  stloc.0
   IL_001f:  ldloca.s   V_0
   IL_0021:  constrained. "T0"
@@ -635,11 +635,11 @@ New XCData(<![CDATA[
   IL_0030:  ldc.i4     0xa5555529
   IL_0035:  mul
   IL_0036:  ldarg.0
-  IL_0037:  ldfld      "Private ReadOnly $C As T2"
+  IL_0037:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$C As T2"
   IL_003c:  box        "T2"
   IL_0041:  brfalse.s  IL_0059
   IL_0043:  ldarg.0
-  IL_0044:  ldfld      "Private ReadOnly $C As T2"
+  IL_0044:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$C As T2"
   IL_0049:  stloc.1
   IL_004a:  ldloca.s   V_1
   IL_004c:  constrained. "T2"

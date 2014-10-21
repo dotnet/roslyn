@@ -1229,7 +1229,7 @@ expectedOutput:="System.DateTime").
   // Code size       38 (0x26)
   .maxstack  1
   .locals init (T V_0) //VB$With_0
-  IL_0000:  call       "Public Shared Property Get TProp() As T"
+  IL_0000:  call       "Function C(Of T).get_TProp() As T"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  constrained. "T"

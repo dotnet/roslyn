@@ -1216,7 +1216,7 @@ End Class
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Private Sub _Lambda$__1()"
+  IL_0001:  ldftn      "Sub GenParent(Of t)._Lambda$__1()"
   IL_0007:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_0011:  ret

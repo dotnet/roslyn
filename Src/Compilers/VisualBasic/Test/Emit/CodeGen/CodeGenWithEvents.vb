@@ -965,13 +965,13 @@ End Interface
   // Code size       75 (0x4b)
   .maxstack  2
   .locals init (iTest.Event2EventHandler V_0,
-  T V_1)
+                T V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Public Sub EventHandler2()"
+  IL_0001:  ldftn      "Sub C1(Of T).EventHandler2()"
   IL_0007:  newobj     "Sub iTest.Event2EventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
-  IL_000e:  ldfld      "Private _o As T"
+  IL_000e:  ldfld      "C1(Of T)._o As T"
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
   IL_0015:  box        "T"
@@ -982,9 +982,9 @@ End Interface
   IL_0023:  callvirt   "Sub iTest.remove_Event2(iTest.Event2EventHandler)"
   IL_0028:  ldarg.0
   IL_0029:  ldarg.1
-  IL_002a:  stfld      "Private _o As T"
+  IL_002a:  stfld      "C1(Of T)._o As T"
   IL_002f:  ldarg.0
-  IL_0030:  ldfld      "Private _o As T"
+  IL_0030:  ldfld      "C1(Of T)._o As T"
   IL_0035:  stloc.1
   IL_0036:  ldloc.1
   IL_0037:  box        "T"
@@ -1054,11 +1054,11 @@ End Interface
   .locals init (iTest.Event2EventHandler V_0,
                 T V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Public Sub EventHandler2()"
+  IL_0001:  ldftn      "Sub C1(Of T).EventHandler2()"
   IL_0007:  newobj     "Sub iTest.Event2EventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
-  IL_000e:  ldfld      "Private _o As T"
+  IL_000e:  ldfld      "C1(Of T)._o As T"
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
   IL_0015:  box        "T"
@@ -1069,9 +1069,9 @@ End Interface
   IL_0023:  callvirt   "Sub iTest.remove_Event2(iTest.Event2EventHandler)"
   IL_0028:  ldarg.0
   IL_0029:  ldarg.1
-  IL_002a:  stfld      "Private _o As T"
+  IL_002a:  stfld      "C1(Of T)._o As T"
   IL_002f:  ldarg.0
-  IL_0030:  ldfld      "Private _o As T"
+  IL_0030:  ldfld      "C1(Of T)._o As T"
   IL_0035:  stloc.1
   IL_0036:  ldloc.1
   IL_0037:  box        "T"

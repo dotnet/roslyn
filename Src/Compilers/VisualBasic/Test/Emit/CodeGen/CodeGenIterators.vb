@@ -1379,7 +1379,7 @@ End Module
   .maxstack  3
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Friend $State As Integer"
+  IL_0001:  ldfld      "Module1.VB$StateMachine_1_Foo(Of SM$T).$State As Integer"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0010
@@ -1392,23 +1392,23 @@ End Module
   IL_0011:  ldc.i4.m1
   IL_0012:  dup
   IL_0013:  stloc.0
-  IL_0014:  stfld      "Friend $State As Integer"
+  IL_0014:  stfld      "Module1.VB$StateMachine_1_Foo(Of SM$T).$State As Integer"
   IL_0019:  ldarg.0
   IL_001a:  ldarg.0
-  IL_001b:  ldfld      "Friend $VB$Local_x As SM$T"
-  IL_0020:  stfld      "Friend $Current As SM$T"
+  IL_001b:  ldfld      "Module1.VB$StateMachine_1_Foo(Of SM$T).$VB$Local_x As SM$T"
+  IL_0020:  stfld      "Module1.VB$StateMachine_1_Foo(Of SM$T).$Current As SM$T"
   IL_0025:  ldarg.0
   IL_0026:  ldc.i4.1
   IL_0027:  dup
   IL_0028:  stloc.0
-  IL_0029:  stfld      "Friend $State As Integer"
+  IL_0029:  stfld      "Module1.VB$StateMachine_1_Foo(Of SM$T).$State As Integer"
   IL_002e:  ldc.i4.1
   IL_002f:  ret
   IL_0030:  ldarg.0
   IL_0031:  ldc.i4.m1
   IL_0032:  dup
   IL_0033:  stloc.0
-  IL_0034:  stfld      "Friend $State As Integer"
+  IL_0034:  stfld      "Module1.VB$StateMachine_1_Foo(Of SM$T).$State As Integer"
   IL_0039:  ldc.i4.0
   IL_003a:  ret
 }

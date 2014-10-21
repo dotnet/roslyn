@@ -897,7 +897,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
   [unchanged] V_1)
   IL_0000:  nop
   IL_0001:  ldnull
-  IL_0002:  call       "Public Shared Sub M2(o As Object)"
+  IL_0002:  call       "Sub C(Of T).M2(Object)"
   IL_0007:  nop
   IL_0008:  ret
 }
@@ -968,11 +968,11 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
   IL_0000:  nop
   IL_0001:  ldc.i4.0
   IL_0002:  box        "C(Of N.IA).E"
-  IL_0007:  call       "Public Shared Sub M(o As Object)"
+  IL_0007:  call       "Sub C(Of T).M(Object)"
   IL_000c:  nop
   IL_000d:  ldc.i4.0
   IL_000e:  box        "C(Of IB).E"
-  IL_0013:  call       "Public Shared Sub M(o As Object)"
+  IL_0013:  call       "Sub C(Of T).M(Object)"
   IL_0018:  nop
   IL_0019:  ret
 }

@@ -1272,7 +1272,7 @@ End Module
   .maxstack  2
   .locals init ($CLS0() V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Public $VB$Local_p As $CLS0()"
+  IL_0001:  ldfld      "M1.C1._Closure$__1(Of $CLS0).$VB$Local_p As $CLS0()"
   IL_0006:  dup
   IL_0007:  call       "Function M1.C1.C2(Of $CLS0).get_M($CLS0()) As $CLS0()"
   IL_000c:  stloc.0
@@ -1331,7 +1331,7 @@ End Module
   IL_0000:  newobj     "Sub M1.C1._Closure$__2(Of $CLS0)..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "Public $VB$Local_p As $CLS0"
+  IL_0007:  ldfld      "M1.C1._Closure$__1(Of $CLS0).$VB$Local_p As $CLS0"
   IL_000c:  stfld      "M1.C1._Closure$__2(Of $CLS0).$VB$Local_X As $CLS0"
   IL_0011:  dup
   IL_0012:  ldftn      "Sub M1.C1._Closure$__2(Of $CLS0)._Lambda$__4()"
@@ -1458,28 +1458,28 @@ End Module
   .maxstack  3
   .locals init (System.Action(Of $CLS0) V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Public _ClosureCache$__4 As System.Action(Of $CLS0)"
+  IL_0001:  ldfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1)._ClosureCache$__4 As System.Action(Of $CLS0)"
   IL_0006:  brfalse.s  IL_0010
   IL_0008:  ldarg.0
-  IL_0009:  ldfld      "Public _ClosureCache$__4 As System.Action(Of $CLS0)"
+  IL_0009:  ldfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1)._ClosureCache$__4 As System.Action(Of $CLS0)"
   IL_000e:  br.s       IL_0025
   IL_0010:  ldarg.0
   IL_0011:  ldarg.0
-  IL_0012:  ldftn      "Friend Sub _Lambda$__3(X As $CLS0)"
+  IL_0012:  ldftn      "Sub M1.C1._Closure$__1(Of $CLS0, $CLS1)._Lambda$__3($CLS0)"
   IL_0018:  newobj     "Sub System.Action(Of $CLS0)..ctor(Object, System.IntPtr)"
   IL_001d:  dup
   IL_001e:  stloc.0
-  IL_001f:  stfld      "Public _ClosureCache$__4 As System.Action(Of $CLS0)"
+  IL_001f:  stfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1)._ClosureCache$__4 As System.Action(Of $CLS0)"
   IL_0024:  ldloc.0
   IL_0025:  dup
   IL_0026:  ldarg.0
-  IL_0027:  ldfld      "Public $VB$Local_p As $CLS0"
+  IL_0027:  ldfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1).$VB$Local_p As $CLS0"
   IL_002c:  callvirt   "Sub System.Action(Of $CLS0).Invoke($CLS0)"
   IL_0031:  ldarg.0
-  IL_0032:  ldflda     "Public $VB$Local_p1 As $CLS1"
+  IL_0032:  ldflda     "M1.C1._Closure$__1(Of $CLS0, $CLS1).$VB$Local_p1 As $CLS1"
   IL_0037:  initobj    "$CLS1"
   IL_003d:  ldarg.0
-  IL_003e:  ldfld      "Public $VB$Local_p As $CLS0"
+  IL_003e:  ldfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1).$VB$Local_p As $CLS0"
   IL_0043:  callvirt   "Sub System.Action(Of $CLS0).Invoke($CLS0)"
   IL_0048:  ret
 }
@@ -1539,12 +1539,12 @@ End Module
   // Code size       25 (0x19)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Public $VB$Me As M1.C1(Of G)"
+  IL_0001:  ldfld      "M1.C1(Of G)._Closure$__1(Of $CLS0, $CLS1).$VB$Me As M1.C1(Of G)"
   IL_0006:  ldarg.1
   IL_0007:  call       "Sub M1.C1(Of G).Print(Of $CLS0)($CLS0)"
   IL_000c:  ldarg.1
   IL_000d:  ldarg.0
-  IL_000e:  ldfld      "Public $VB$Local_p1 As $CLS1"
+  IL_000e:  ldfld      "M1.C1(Of G)._Closure$__1(Of $CLS0, $CLS1).$VB$Local_p1 As $CLS1"
   IL_0013:  call       "Sub M1.C1(Of $CLS1).PrintShared(Of $CLS0)($CLS0, $CLS1)"
   IL_0018:  ret
 }

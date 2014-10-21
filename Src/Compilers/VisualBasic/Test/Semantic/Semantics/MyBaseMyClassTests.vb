@@ -3530,14 +3530,14 @@ B1::F
   // Code size       36 (0x24)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Public $VB$Me As M1.OuterClass(Of V).B2"
+  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__1.$VB$Me As M1.OuterClass(Of V).B2"
   IL_0006:  dup
   IL_0007:  ldvirtftn  "Function M1.OuterClass(Of V).B2.F(Of V)(V, V) As String"
   IL_000d:  newobj     "Sub System.Func(Of V, V, String)..ctor(Object, System.IntPtr)"
   IL_0012:  ldarg.0
-  IL_0013:  ldfld      "Public $VB$Local_p As V"
+  IL_0013:  ldfld      "M1.OuterClass(Of V).B2._Closure$__1.$VB$Local_p As V"
   IL_0018:  ldarg.0
-  IL_0019:  ldfld      "Public $VB$Local_p As V"
+  IL_0019:  ldfld      "M1.OuterClass(Of V).B2._Closure$__1.$VB$Local_p As V"
   IL_001e:  callvirt   "Function System.Func(Of V, V, String).Invoke(V, V) As String"
   IL_0023:  ret
 }
@@ -3547,13 +3547,13 @@ B1::F
   // Code size       35 (0x23)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Public $VB$Me As M1.OuterClass(Of V).B2"
+  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3.$VB$Me As M1.OuterClass(Of V).B2"
   IL_0006:  ldftn      "Function M1.OuterClass(Of V).B2.$VB$ClosureStub_F_MyClass(Of V)(V, V) As String"
   IL_000c:  newobj     "Sub System.Func(Of V, V, String)..ctor(Object, System.IntPtr)"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "Public $VB$Local_p As V"
+  IL_0012:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3.$VB$Local_p As V"
   IL_0017:  ldarg.0
-  IL_0018:  ldfld      "Public $VB$Local_p As V"
+  IL_0018:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3.$VB$Local_p As V"
   IL_001d:  callvirt   "Function System.Func(Of V, V, String).Invoke(V, V) As String"
   IL_0022:  ret
 }
@@ -3574,13 +3574,13 @@ B1::F
   // Code size       35 (0x23)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Public $VB$Me As M1.OuterClass(Of V).B2"
+  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__5.$VB$Me As M1.OuterClass(Of V).B2"
   IL_0006:  ldftn      "Function M1.OuterClass(Of V).B2.$VB$ClosureStub_F_MyBase(Of V)(V, V) As String"
   IL_000c:  newobj     "Sub System.Func(Of V, V, String)..ctor(Object, System.IntPtr)"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "Public $VB$Local_p As V"
+  IL_0012:  ldfld      "M1.OuterClass(Of V).B2._Closure$__5.$VB$Local_p As V"
   IL_0017:  ldarg.0
-  IL_0018:  ldfld      "Public $VB$Local_p As V"
+  IL_0018:  ldfld      "M1.OuterClass(Of V).B2._Closure$__5.$VB$Local_p As V"
   IL_001d:  callvirt   "Function System.Func(Of V, V, String).Invoke(V, V) As String"
   IL_0022:  ret
 }
