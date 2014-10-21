@@ -3904,7 +3904,7 @@
         <summary>SyntaxToken representing open parenthesis.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Argument" Type="TypeSyntax">
+    <Field Name="Argument" Type="ExpressionSyntax">
       <PropertyComment>
         <summary>The argument.</summary>
       </PropertyComment>

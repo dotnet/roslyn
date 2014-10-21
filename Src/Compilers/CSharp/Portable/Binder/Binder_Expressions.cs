@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (InvocableNameofInScope())
             {
                 // If there is an invocable nameof symbol, bind the NameOfExpressionSyntax as a regular method invocation.
-                return BindNameOfAsInvocation(node, diagnostics, argument);
+                return BindNameOfAsInvocation(node, diagnostics);
             }
             // We now bind it as a built-in nameof operator.
 
@@ -850,8 +850,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindNameOfAsInvocation(NameOfExpressionSyntax node, DiagnosticBag diagnostics, TypeSyntax argument)
+        private BoundExpression BindNameOfAsInvocation(NameOfExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            var argument = node.Argument;
             var nameOfIdentifier = node.NameOfIdentifier;
             string nameofString = nameOfIdentifier.Identifier.ValueText;
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
