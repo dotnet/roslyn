@@ -1,21 +1,15 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+
     Public Class BaseClassTests
         Inherits BasicTestBase
-
 
         <Fact>
         Public Sub DirectCircularInheritance()
@@ -332,8 +326,6 @@ BC30907: This inheritance causes circular dependencies between class 'A(Of T)' a
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
-
-
 
         <Fact>
         Public Sub DirectCircularInheritanceInInterface1()
@@ -2416,6 +2408,29 @@ Interface B : Inherits C(Of Integer).NotFound
             Dim model = comp.GetSemanticModel(comp.SyntaxTrees.Single())
             Dim typeC = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").Construct(comp.GetSpecialType(SpecialType.System_Int32))
             Assert.Equal(0, model.LookupSymbols(0, typeC, "NotFound").Length)
+        End Sub
+
+        <WorkItem(1036374)>
+        <Fact(Skip:="1036374")>
+        Public Sub InterfaceCircularInheritance()
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+Interface A(Of T)
+    Inherits A(Of A(Of T))
+    Interface B
+        Inherits A(Of B)
+    End Interface
+End Interface
+    </file>
+                </compilation>
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30296: Interface 'A(Of T)' cannot inherit from itself: 
+    'A(Of T)' inherits from 'A(Of T)'.
+    Inherits A(Of A(Of T))
+             ~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
     End Class
