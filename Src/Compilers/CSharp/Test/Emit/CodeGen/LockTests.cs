@@ -478,46 +478,46 @@ class Test
             var compilation = CreateCompilationWithMscorlibAndSystemCore(text);
             CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
-  // Code size       91 (0x5b)
+  // Code size       95 (0x5f)
   .maxstack  3
   .locals init (System.Collections.Generic.IEnumerable<char> V_0,
-  bool V_1)
+                bool V_1)
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  ldc.i4.0
   IL_000b:  stloc.1
   .try
-{
-  IL_000c:  ldstr      ""ABC""
-  IL_0011:  ldsfld     ""System.Func<char, char> Test.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0016:  dup
-  IL_0017:  brtrue.s   IL_002c
-  IL_0019:  pop
-  IL_001a:  ldnull
-  IL_001b:  ldftn      ""char Test.<Main>b__0(object, char)""
-  IL_0021:  newobj     ""System.Func<char, char>..ctor(object, System.IntPtr)""
-  IL_0026:  dup
-  IL_0027:  stsfld     ""System.Func<char, char> Test.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_002c:  call       ""System.Collections.Generic.IEnumerable<char> System.Linq.Enumerable.Select<char, char>(System.Collections.Generic.IEnumerable<char>, System.Func<char, char>)""
-  IL_0031:  stloc.0
-  IL_0032:  ldloc.0
-  IL_0033:  ldloca.s   V_1
-  IL_0035:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_003a:  ldstr      ""In""
-  IL_003f:  call       ""void System.Console.WriteLine(string)""
-  IL_0044:  leave.s    IL_0050
-}
+  {
+    IL_000c:  ldstr      ""ABC""
+    IL_0011:  ldsfld     ""System.Func<char, char> Test.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+    IL_0016:  dup
+    IL_0017:  brtrue.s   IL_0030
+    IL_0019:  pop
+    IL_001a:  ldsfld     ""Test.<>c__DisplayClass0 Test.<>c__DisplayClass0.CS$<>9__inst""
+    IL_001f:  ldftn      ""char Test.<>c__DisplayClass0.<Main>b__1(char)""
+    IL_0025:  newobj     ""System.Func<char, char>..ctor(object, System.IntPtr)""
+    IL_002a:  dup
+    IL_002b:  stsfld     ""System.Func<char, char> Test.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+    IL_0030:  call       ""System.Collections.Generic.IEnumerable<char> System.Linq.Enumerable.Select<char, char>(System.Collections.Generic.IEnumerable<char>, System.Func<char, char>)""
+    IL_0035:  stloc.0
+    IL_0036:  ldloc.0
+    IL_0037:  ldloca.s   V_1
+    IL_0039:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_003e:  ldstr      ""In""
+    IL_0043:  call       ""void System.Console.WriteLine(string)""
+    IL_0048:  leave.s    IL_0054
+  }
   finally
-{
-  IL_0046:  ldloc.1
-  IL_0047:  brfalse.s  IL_004f
-  IL_0049:  ldloc.0
-  IL_004a:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_004f:  endfinally
-}
-  IL_0050:  ldstr      ""After""
-  IL_0055:  call       ""void System.Console.WriteLine(string)""
-  IL_005a:  ret
+  {
+    IL_004a:  ldloc.1
+    IL_004b:  brfalse.s  IL_0053
+    IL_004d:  ldloc.0
+    IL_004e:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0053:  endfinally
+  }
+  IL_0054:  ldstr      ""After""
+  IL_0059:  call       ""void System.Console.WriteLine(string)""
+  IL_005e:  ret
 }
 ");
         }

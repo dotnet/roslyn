@@ -83,48 +83,48 @@ class C
             string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
-  <methods>
-    <method containingType=""C"" name=""M"" parameterNames=""a"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
-          <namespace usingCount=""1"" />
-        </using>
-      </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""15"" end_column=""12"" file_ref=""0"" />
-        <entry il_offset=""0x23"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
-      <locals>
-        <constant name=""x"" value=""1"" type=""Int32"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x24"">
-        <namespace name=""System"" />
-        <constant name=""x"" value=""1"" type=""Int32"" />
-      </scope>
-    </method>
-    <method containingType=""C"" name=""&lt;M&gt;b__0"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""M"" parameterNames=""a"" />
-      </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x2"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""10"" file_ref=""0"" />
-      </sequencepoints>
-      <locals>
-        <constant name=""y"" value=""2"" type=""Int32"" />
-        <constant name=""z"" value=""3"" type=""Int32"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x6"">
-        <constant name=""y"" value=""2"" type=""Int32"" />
-        <scope startOffset=""0x1"" endOffset=""0x3"">
-          <constant name=""z"" value=""3"" type=""Int32"" />
-        </scope>
-      </scope>
-    </method>
-  </methods>
+    <methods>
+        <method containingType=""C"" name=""M"" parameterNames=""a"">
+            <customDebugInfo version=""4"" count=""1"">
+                <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+                    <namespace usingCount=""1""/>
+                </using>
+            </customDebugInfo>
+            <sequencepoints total=""3"">
+                <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0""/>
+                <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""15"" end_column=""12"" file_ref=""0""/>
+                <entry il_offset=""0x27"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0""/>
+            </sequencepoints>
+            <locals>
+                <constant name=""x"" value=""1"" type=""Int32""/>
+            </locals>
+            <scope startOffset=""0x0"" endOffset=""0x28"">
+                <namespace name=""System""/>
+                <constant name=""x"" value=""1"" type=""Int32""/>
+            </scope>
+        </method>
+        <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;M&gt;b__1"" parameterNames="""">
+            <customDebugInfo version=""4"" count=""1"">
+                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""M"" parameterNames=""a""/>
+            </customDebugInfo>
+            <sequencepoints total=""4"">
+                <entry il_offset=""0x0"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0""/>
+                <entry il_offset=""0x1"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""14"" file_ref=""0""/>
+                <entry il_offset=""0x2"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""14"" file_ref=""0""/>
+                <entry il_offset=""0x5"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""10"" file_ref=""0""/>
+            </sequencepoints>
+            <locals>
+                <constant name=""y"" value=""2"" type=""Int32""/>
+                <constant name=""z"" value=""3"" type=""Int32""/>
+            </locals>
+            <scope startOffset=""0x0"" endOffset=""0x6"">
+                <constant name=""y"" value=""2"" type=""Int32""/>
+                <scope startOffset=""0x1"" endOffset=""0x3"">
+                    <constant name=""z"" value=""3"" type=""Int32""/>
+                </scope>
+            </scope>
+        </method>
+    </methods>
 </symbols>";
             AssertXmlEqual(expected, actual);
         }

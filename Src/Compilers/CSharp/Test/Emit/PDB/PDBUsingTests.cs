@@ -1271,53 +1271,53 @@ class C
             string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
-  <methods>
-    <method containingType=""C"" name=""&lt;.cctor&gt;b__0"" parameterNames=""x"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
-      </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
-      <locals />
-    </method>
-    <method containingType=""C"" name=""&lt;.ctor&gt;b__1"" parameterNames=""x"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
-      </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""35"" end_row=""6"" end_column=""36"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""6"" start_column=""37"" end_row=""6"" end_column=""55"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""6"" start_column=""56"" end_row=""6"" end_column=""57"" file_ref=""0"" />
-      </sequencepoints>
-      <locals />
-    </method>
-    <method containingType=""C"" name="".cctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
-          <namespace usingCount=""1"" />
-        </using>
-      </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""10"" end_column=""8"" file_ref=""0"" />
-      </sequencepoints>
-      <locals />
-      <scope startOffset=""0x0"" endOffset=""0x1d"">
-        <namespace name=""System.Linq"" />
-      </scope>
-    </method>
-    <method containingType=""C"" name="".ctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
-      </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""59"" file_ref=""0"" />
-      </sequencepoints>
-      <locals />
-    </method>
-  </methods>
+    <methods>
+        <method containingType=""C"" name="".cctor"" parameterNames="""">
+            <customDebugInfo version=""4"" count=""1"">
+                <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+                    <namespace usingCount=""1""/>
+                </using>
+            </customDebugInfo>
+            <sequencepoints total=""1"">
+                <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""10"" end_column=""8"" file_ref=""0""/>
+            </sequencepoints>
+            <locals/>
+            <scope startOffset=""0x0"" endOffset=""0x21"">
+                <namespace name=""System.Linq""/>
+            </scope>
+        </method>
+        <method containingType=""C"" name="".ctor"" parameterNames="""">
+            <customDebugInfo version=""4"" count=""1"">
+                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames=""""/>
+            </customDebugInfo>
+            <sequencepoints total=""1"">
+                <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""59"" file_ref=""0""/>
+            </sequencepoints>
+            <locals/>
+        </method>
+        <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.cctor&gt;b__1"" parameterNames=""x"">
+            <customDebugInfo version=""4"" count=""1"">
+                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames=""""/>
+            </customDebugInfo>
+            <sequencepoints total=""3"">
+                <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0""/>
+                <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""27"" file_ref=""0""/>
+                <entry il_offset=""0xa"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0""/>
+            </sequencepoints>
+            <locals/>
+        </method>
+        <method containingType=""C+&lt;&gt;c__DisplayClass2"" name=""&lt;.ctor&gt;b__3"" parameterNames=""x"">
+            <customDebugInfo version=""4"" count=""1"">
+                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames=""""/>
+            </customDebugInfo>
+            <sequencepoints total=""3"">
+                <entry il_offset=""0x0"" start_row=""6"" start_column=""35"" end_row=""6"" end_column=""36"" file_ref=""0""/>
+                <entry il_offset=""0x1"" start_row=""6"" start_column=""37"" end_row=""6"" end_column=""55"" file_ref=""0""/>
+                <entry il_offset=""0xa"" start_row=""6"" start_column=""56"" end_row=""6"" end_column=""57"" file_ref=""0""/>
+            </sequencepoints>
+            <locals/>
+        </method>
+    </methods>
 </symbols>";
             AssertXmlEqual(expected, actual);
         }

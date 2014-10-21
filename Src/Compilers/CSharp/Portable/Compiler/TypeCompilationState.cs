@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly CSharpCompilation Compilation;
 
+        public LambdaFrame staticLambdaFrame;
+
         public TypeCompilationState(NamedTypeSymbol type, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {
             this.Compilation = compilation;

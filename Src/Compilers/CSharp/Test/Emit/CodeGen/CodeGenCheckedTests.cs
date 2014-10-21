@@ -1344,7 +1344,7 @@ class C
         }
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1372,7 +1372,7 @@ class C
         }
     }
 }
-", new[] { SystemCoreRef }).VerifyIL("C.<F>b__0", @"
+", new[] { SystemCoreRef }).VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1397,7 +1397,7 @@ class C
         var a = checked(from x in new[] { 1 } select x * 2);  // mul_ovf
     }
 }
-", new[] { SystemCoreRef }).VerifyIL("C.<F>b__0", @"
+", new[] { SystemCoreRef }).VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1424,7 +1424,7 @@ class C
         });
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1450,7 +1450,7 @@ class C
         });
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1476,7 +1476,7 @@ class C
         });
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1503,7 +1503,7 @@ class C
         });
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1531,7 +1531,7 @@ class C
         }));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1559,7 +1559,7 @@ class C
         })));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1587,7 +1587,7 @@ class C
         })));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1616,7 +1616,7 @@ class C
         }))));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1644,7 +1644,7 @@ class C
         })));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1672,7 +1672,7 @@ class C
         })));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1700,7 +1700,7 @@ class C
         }))));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1728,7 +1728,7 @@ class C
         }))));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1751,7 +1751,7 @@ class C
         System.Func<int, int> d1 = checked(delegate(int i) { return i + 1; });  // Dev10: add, Roslyn: add_ovf
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1775,7 +1775,7 @@ class C
         System.Func<int, int> d1 = checked(i => { return i + 1; }); // Dev10: add, Roslyn: add_ovf
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1798,7 +1798,7 @@ class C
         System.Func<int, int> d1 = checked(i => i + 1); // Dev10: add, Roslyn: add_ovf
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1823,7 +1823,7 @@ class C
         Id(new System.Func<int, int>(i => i + 1));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1848,7 +1848,7 @@ class C
         Id(checked(new System.Func<int, int>(i => i + 1)));
     }
 }
-").VerifyIL("C.<F>b__0", @"
+").VerifyIL("C.<>c__DisplayClass0.<F>b__1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2

@@ -2923,7 +2923,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<Test>b__0", @"
+                VerifyIL("C.<>c__DisplayClass0.<Test>b__1()", @"
 {
   // Code size       27 (0x1b)
   .maxstack  2
@@ -2987,7 +2987,7 @@ unsafe class C
 ";
             // Cleanup not in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<Test>b__0", @"
+                VerifyIL("C.<>c__DisplayClass0.<Test>b__1()", @"
 {
   // Code size       23 (0x17)
   .maxstack  2
@@ -3032,7 +3032,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<Test>b__0", @"
+                VerifyIL("C.<>c__DisplayClass0.<Test>b__1()", @"
 {
   // Code size       26 (0x1a)
   .maxstack  2
@@ -3086,7 +3086,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<.ctor>b__0", @"
+                VerifyIL("C.<>c__DisplayClass0.<.ctor>b__1()", @"
 {
   // Code size       27 (0x1b)
   .maxstack  2
@@ -3143,7 +3143,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<.ctor>b__0", @"
+                VerifyIL("C.<>c__DisplayClass0.<.ctor>b__1()", @"
 {
   // Code size       26 (0x1a)
   .maxstack  2

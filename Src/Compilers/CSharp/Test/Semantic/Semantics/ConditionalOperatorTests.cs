@@ -236,79 +236,83 @@ D
 B
 D";
 
-            // Note the castclass instructions:
+            // Note no castclass instructions
+            // to be completely sure that stack states merge with expected types
+            // we use "stloc;ldloc" as a surrogate "static cast" for values
+            // in different branches
             string expectedIL = @"
 {
-  // Code size      128 (0x80)
+  // Code size      136 (0x88)
   .maxstack  2
   .locals init (bool V_0, //testFlag
-  D<Base> V_1, //baseDelegate
-  D<Derived> V_2, //derivedDelegate
-  System.Collections.Generic.IEnumerable<Base> V_3, //baseSequence
-  System.Collections.Generic.List<Derived> V_4, //derivedList
-  D<Base> V_5)
+                D<Base> V_1, //baseDelegate
+                D<Derived> V_2, //derivedDelegate
+                System.Collections.Generic.IEnumerable<Base> V_3, //baseSequence
+                System.Collections.Generic.List<Derived> V_4, //derivedList
+                D<Base> V_5)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""D<Base> Program.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_0002:  ldsfld     ""D<Base> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0007:  dup
-  IL_0008:  brtrue.s   IL_001d
+  IL_0008:  brtrue.s   IL_0021
   IL_000a:  pop
-  IL_000b:  ldnull
-  IL_000c:  ldftn      ""void Program.<Main>b__0(object)""
-  IL_0012:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
-  IL_0017:  dup
-  IL_0018:  stsfld     ""D<Base> Program.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_001d:  stloc.1
-  IL_001e:  ldsfld     ""D<Derived> Program.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0023:  dup
-  IL_0024:  brtrue.s   IL_0039
-  IL_0026:  pop
-  IL_0027:  ldnull
-  IL_0028:  ldftn      ""void Program.<Main>b__2(object)""
-  IL_002e:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
-  IL_0033:  dup
-  IL_0034:  stsfld     ""D<Derived> Program.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0039:  stloc.2
-  IL_003a:  ldloc.0
-  IL_003b:  brtrue.s   IL_0044
-  IL_003d:  ldloc.2
-  IL_003e:  stloc.s    V_5
-  IL_0040:  ldloc.s    V_5
-  IL_0042:  br.s       IL_0045
-  IL_0044:  ldloc.1
-  IL_0045:  callvirt   ""void D<Base>.Invoke()""
-  IL_004a:  ldloc.0
-  IL_004b:  brtrue.s   IL_0050
-  IL_004d:  ldloc.1
-  IL_004e:  br.s       IL_0055
-  IL_0050:  ldloc.2
-  IL_0051:  stloc.s    V_5
-  IL_0053:  ldloc.s    V_5
-  IL_0055:  callvirt   ""void D<Base>.Invoke()""
-  IL_005a:  ldloc.1
-  IL_005b:  dup
-  IL_005c:  brtrue.s   IL_0064
-  IL_005e:  pop
-  IL_005f:  ldloc.2
-  IL_0060:  stloc.s    V_5
-  IL_0062:  ldloc.s    V_5
-  IL_0064:  callvirt   ""void D<Base>.Invoke()""
-  IL_0069:  ldloc.2
-  IL_006a:  stloc.s    V_5
-  IL_006c:  ldloc.s    V_5
-  IL_006e:  dup
-  IL_006f:  brtrue.s   IL_0073
-  IL_0071:  pop
-  IL_0072:  ldloc.1
-  IL_0073:  callvirt   ""void D<Base>.Invoke()""
-  IL_0078:  ldnull
-  IL_0079:  stloc.3
-  IL_007a:  ldnull
-  IL_007b:  stloc.s    V_4
-  IL_007d:  ldloc.0
-  IL_007e:  pop
-  IL_007f:  ret
+  IL_000b:  ldsfld     ""Program.<>c__DisplayClass0 Program.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0010:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
+  IL_0016:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
+  IL_001b:  dup
+  IL_001c:  stsfld     ""D<Base> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0021:  stloc.1
+  IL_0022:  ldsfld     ""D<Derived> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0027:  dup
+  IL_0028:  brtrue.s   IL_0041
+  IL_002a:  pop
+  IL_002b:  ldsfld     ""Program.<>c__DisplayClass0 Program.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0030:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__3()""
+  IL_0036:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
+  IL_003b:  dup
+  IL_003c:  stsfld     ""D<Derived> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0041:  stloc.2
+  IL_0042:  ldloc.0
+  IL_0043:  brtrue.s   IL_004c
+  IL_0045:  ldloc.2
+  IL_0046:  stloc.s    V_5
+  IL_0048:  ldloc.s    V_5
+  IL_004a:  br.s       IL_004d
+  IL_004c:  ldloc.1
+  IL_004d:  callvirt   ""void D<Base>.Invoke()""
+  IL_0052:  ldloc.0
+  IL_0053:  brtrue.s   IL_0058
+  IL_0055:  ldloc.1
+  IL_0056:  br.s       IL_005d
+  IL_0058:  ldloc.2
+  IL_0059:  stloc.s    V_5
+  IL_005b:  ldloc.s    V_5
+  IL_005d:  callvirt   ""void D<Base>.Invoke()""
+  IL_0062:  ldloc.1
+  IL_0063:  dup
+  IL_0064:  brtrue.s   IL_006c
+  IL_0066:  pop
+  IL_0067:  ldloc.2
+  IL_0068:  stloc.s    V_5
+  IL_006a:  ldloc.s    V_5
+  IL_006c:  callvirt   ""void D<Base>.Invoke()""
+  IL_0071:  ldloc.2
+  IL_0072:  stloc.s    V_5
+  IL_0074:  ldloc.s    V_5
+  IL_0076:  dup
+  IL_0077:  brtrue.s   IL_007b
+  IL_0079:  pop
+  IL_007a:  ldloc.1
+  IL_007b:  callvirt   ""void D<Base>.Invoke()""
+  IL_0080:  ldnull
+  IL_0081:  stloc.3
+  IL_0082:  ldnull
+  IL_0083:  stloc.s    V_4
+  IL_0085:  ldloc.0
+  IL_0086:  pop
+  IL_0087:  ret
 }
+
 ";
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput );
             verifier.VerifyIL("Program.Main", expectedIL);
@@ -353,68 +357,69 @@ class Program
 ";
             string expectedIL = @"
 {
-  // Code size      113 (0x71)
+  // Code size      121 (0x79)
   .maxstack  2
   .locals init (bool V_0, //testFlag
-  D<Base> V_1, //baseDelegate
-  D<Derived> V_2, //derivedDelegate
-  D<Derived> V_3)
+                D<Base> V_1, //baseDelegate
+                D<Derived> V_2, //derivedDelegate
+                D<Derived> V_3)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""D<Base> Program.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_0002:  ldsfld     ""D<Base> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0007:  dup
-  IL_0008:  brtrue.s   IL_001d
+  IL_0008:  brtrue.s   IL_0021
   IL_000a:  pop
-  IL_000b:  ldnull
-  IL_000c:  ldftn      ""void Program.<Main>b__0(object)""
-  IL_0012:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
-  IL_0017:  dup
-  IL_0018:  stsfld     ""D<Base> Program.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_001d:  stloc.1
-  IL_001e:  ldsfld     ""D<Derived> Program.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0023:  dup
-  IL_0024:  brtrue.s   IL_0039
-  IL_0026:  pop
-  IL_0027:  ldnull
-  IL_0028:  ldftn      ""void Program.<Main>b__2(object)""
-  IL_002e:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
-  IL_0033:  dup
-  IL_0034:  stsfld     ""D<Derived> Program.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0039:  stloc.2
-  IL_003a:  ldloc.0
-  IL_003b:  brtrue.s   IL_0040
-  IL_003d:  ldloc.2
-  IL_003e:  br.s       IL_0043
-  IL_0040:  ldloc.1
-  IL_0041:  stloc.3
-  IL_0042:  ldloc.3
-  IL_0043:  callvirt   ""void D<Derived>.Invoke()""
-  IL_0048:  ldloc.0
-  IL_0049:  brtrue.s   IL_0050
-  IL_004b:  ldloc.1
-  IL_004c:  stloc.3
-  IL_004d:  ldloc.3
-  IL_004e:  br.s       IL_0051
-  IL_0050:  ldloc.2
-  IL_0051:  callvirt   ""void D<Derived>.Invoke()""
-  IL_0056:  ldloc.1
-  IL_0057:  stloc.3
-  IL_0058:  ldloc.3
-  IL_0059:  dup
-  IL_005a:  brtrue.s   IL_005e
-  IL_005c:  pop
-  IL_005d:  ldloc.2
-  IL_005e:  callvirt   ""void D<Derived>.Invoke()""
-  IL_0063:  ldloc.2
-  IL_0064:  dup
-  IL_0065:  brtrue.s   IL_006b
-  IL_0067:  pop
-  IL_0068:  ldloc.1
-  IL_0069:  stloc.3
-  IL_006a:  ldloc.3
-  IL_006b:  callvirt   ""void D<Derived>.Invoke()""
-  IL_0070:  ret
+  IL_000b:  ldsfld     ""Program.<>c__DisplayClass0 Program.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0010:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
+  IL_0016:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
+  IL_001b:  dup
+  IL_001c:  stsfld     ""D<Base> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0021:  stloc.1
+  IL_0022:  ldsfld     ""D<Derived> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0027:  dup
+  IL_0028:  brtrue.s   IL_0041
+  IL_002a:  pop
+  IL_002b:  ldsfld     ""Program.<>c__DisplayClass0 Program.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0030:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__3()""
+  IL_0036:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
+  IL_003b:  dup
+  IL_003c:  stsfld     ""D<Derived> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0041:  stloc.2
+  IL_0042:  ldloc.0
+  IL_0043:  brtrue.s   IL_0048
+  IL_0045:  ldloc.2
+  IL_0046:  br.s       IL_004b
+  IL_0048:  ldloc.1
+  IL_0049:  stloc.3
+  IL_004a:  ldloc.3
+  IL_004b:  callvirt   ""void D<Derived>.Invoke()""
+  IL_0050:  ldloc.0
+  IL_0051:  brtrue.s   IL_0058
+  IL_0053:  ldloc.1
+  IL_0054:  stloc.3
+  IL_0055:  ldloc.3
+  IL_0056:  br.s       IL_0059
+  IL_0058:  ldloc.2
+  IL_0059:  callvirt   ""void D<Derived>.Invoke()""
+  IL_005e:  ldloc.1
+  IL_005f:  stloc.3
+  IL_0060:  ldloc.3
+  IL_0061:  dup
+  IL_0062:  brtrue.s   IL_0066
+  IL_0064:  pop
+  IL_0065:  ldloc.2
+  IL_0066:  callvirt   ""void D<Derived>.Invoke()""
+  IL_006b:  ldloc.2
+  IL_006c:  dup
+  IL_006d:  brtrue.s   IL_0073
+  IL_006f:  pop
+  IL_0070:  ldloc.1
+  IL_0071:  stloc.3
+  IL_0072:  ldloc.3
+  IL_0073:  callvirt   ""void D<Derived>.Invoke()""
+  IL_0078:  ret
 }
+
 ";
 
             var verifier = CompileAndVerify(source, expectedOutput: @"BDBD");

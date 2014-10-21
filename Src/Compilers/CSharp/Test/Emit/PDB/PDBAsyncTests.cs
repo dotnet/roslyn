@@ -56,8 +56,7 @@ class Driver
 }";
             var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
             
-            compilation.VerifyPdb(@"
-<symbols>
+            compilation.VerifyPdb(@"<symbols>
   <methods>
     <method containingType=""DynamicMembers"" name=""get_Prop"" parameterNames="""">
       <sequencepoints total=""1"">
@@ -90,13 +89,6 @@ class Driver
     <method containingType=""TestCase"" name=""Run"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;Run&gt;d__1"" />
-      </customDebugInfo>
-      <sequencepoints total=""0"" />
-      <locals />
-    </method>
-    <method containingType=""TestCase"" name=""&lt;Run&gt;b__0"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""40"" name=""&lt;&lt;Run&gt;b__0&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -155,32 +147,32 @@ class Driver
         <entry il_offset=""0xe"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0xf"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""51"" file_ref=""0"" />
         <entry il_offset=""0x15"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""71"" file_ref=""0"" />
-        <entry il_offset=""0x37"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""37"" file_ref=""0"" />
-        <entry il_offset=""0xae"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0xb4"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xb8"" start_row=""18"" start_column=""24"" end_row=""18"" end_column=""32"" file_ref=""0"" />
-        <entry il_offset=""0xc8"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""44"" file_ref=""0"" />
-        <entry il_offset=""0xd4"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0xe1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xfb"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x103"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x3b"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""37"" file_ref=""0"" />
+        <entry il_offset=""0xb2"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0xb8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xbc"" start_row=""18"" start_column=""24"" end_row=""18"" end_column=""32"" file_ref=""0"" />
+        <entry il_offset=""0xcc"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""44"" file_ref=""0"" />
+        <entry il_offset=""0xd8"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""38"" file_ref=""0"" />
+        <entry il_offset=""0xe5"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xff"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x107"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""dc2"" il_index=""1"" il_start=""0xe"" il_end=""0xe1"" attributes=""0"" />
-        <local name=""rez2"" il_index=""2"" il_start=""0xe"" il_end=""0xe1"" attributes=""0"" />
+        <local name=""dc2"" il_index=""1"" il_start=""0xe"" il_end=""0xe5"" attributes=""0"" />
+        <local name=""rez2"" il_index=""2"" il_start=""0xe"" il_end=""0xe5"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x110"">
-        <scope startOffset=""0xe"" endOffset=""0xe1"">
-          <local name=""dc2"" il_index=""1"" il_start=""0xe"" il_end=""0xe1"" attributes=""0"" />
-          <local name=""rez2"" il_index=""2"" il_start=""0xe"" il_end=""0xe1"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x114"">
+        <scope startOffset=""0xe"" endOffset=""0xe5"">
+          <local name=""dc2"" il_index=""1"" il_start=""0xe"" il_end=""0xe5"" attributes=""0"" />
+          <local name=""rez2"" il_index=""2"" il_start=""0xe"" il_end=""0xe5"" attributes=""0"" />
         </scope>
       </scope>
-      <async-info catch-IL-offset=""0xe3"">
+      <async-info catch-IL-offset=""0xe7"">
         <kickoff-method declaringType=""TestCase"" methodName=""Run"" parameterNames="""" />
-        <await yield=""0x5b"" resume=""0x7b"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x5f"" resume=""0x7f"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
-    <method containingType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""TestCase+&lt;&gt;c__DisplayClass0+&lt;&lt;Run&gt;b__1&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
@@ -202,8 +194,8 @@ class Driver
       </sequencepoints>
       <locals />
       <async-info>
-        <kickoff-method declaringType=""TestCase"" methodName=""&lt;Run&gt;b__0"" parameterNames="""" />
-        <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
+        <kickoff-method declaringType=""TestCase+&lt;&gt;c__DisplayClass0"" methodName=""&lt;Run&gt;b__1"" parameterNames="""" />
+        <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&gt;c__DisplayClass0+&lt;&lt;Run&gt;b__1&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>

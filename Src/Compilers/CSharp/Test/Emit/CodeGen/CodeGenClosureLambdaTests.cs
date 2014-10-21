@@ -29,29 +29,29 @@ class C
             compilation.VerifyIL("C.Main",
 @"
 {
-  // Code size       65 (0x41)
+  // Code size       73 (0x49)
   .maxstack  2
-  IL_0000:  ldsfld     ""D C.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_0000:  ldsfld     ""D C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
+  IL_0006:  brtrue.s   IL_001f
   IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void C.<Main>b__0(object)""
-  IL_0010:  newobj     ""D..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""D C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_001b:  callvirt   ""void D.Invoke()""
-  IL_0020:  ldsfld     ""D C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0025:  dup
-  IL_0026:  brtrue.s   IL_003b
-  IL_0028:  pop
-  IL_0029:  ldnull
-  IL_002a:  ldftn      ""void C.<Main>b__2(object)""
-  IL_0030:  newobj     ""D..ctor(object, System.IntPtr)""
-  IL_0035:  dup
-  IL_0036:  stsfld     ""D C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_003b:  callvirt   ""void D.Invoke()""
-  IL_0040:  ret
+  IL_0009:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_000e:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__1()""
+  IL_0014:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""D C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001f:  callvirt   ""void D.Invoke()""
+  IL_0024:  ldsfld     ""D C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0032:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__3()""
+  IL_0038:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""D C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0043:  callvirt   ""void D.Invoke()""
+  IL_0048:  ret
 }
 ");
         }
@@ -937,7 +937,7 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "pass");
-            verifier.VerifyIL("Program.<F>b__0<T>", @"
+            verifier.VerifyIL("Program.<>c__DisplayClass0<T>.<F>b__1()", @"
 {
   // Code size       67 (0x43)
   .maxstack  2
@@ -4137,8 +4137,6 @@ class Test
             {
                 Signature("Test+<>c__DisplayClass0", "<Foo>b__1", 
                           ".method assembly hidebysig instance System.String <Foo>b__1(System.String a) cil managed"),
-                Signature("Test", "<.ctor>b__2", 
-                          ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <.ctor>b__2(System.Object, System.Int32 x) cil managed")
             });
         }
 
@@ -4195,21 +4193,17 @@ class Test
 }
 ";
             //IMPORTANT!!! we should not be caching static lambda in static initializer.
-            CompileAndVerify(source, expectedOutput: "(1,-1)", expectedSignatures: new[]
-            {
-                Signature("Test", "<.cctor>b__0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <.cctor>b__0(System.Object) cil managed"),
-                Signature("Test", "<Main>b__1", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <Main>b__1(System.Object) cil managed"),
-            }).VerifyIL("Test..cctor", @"
+            CompileAndVerify(source, expectedOutput: "(1,-1)").VerifyIL("Test..cctor", @"
 {
-  // Code size       24 (0x18)
+  // Code size       28 (0x1c)
   .maxstack  2
-  IL_0000:  ldnull
-  IL_0001:  ldftn      ""int Test.<.cctor>b__0(object)""
-  IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
-  IL_000c:  stsfld     ""D Test.field""
-  IL_0011:  ldc.i4.m1
-  IL_0012:  stsfld     ""short Test.field2""
-  IL_0017:  ret
+  IL_0000:  ldsfld     ""Test.<>c__DisplayClass0 Test.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0005:  ldftn      ""int Test.<>c__DisplayClass0.<.cctor>b__1()""
+  IL_000b:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0010:  stsfld     ""D Test.field""
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stsfld     ""short Test.field2""
+  IL_001b:  ret
 }
 ");
         }
@@ -4576,7 +4570,7 @@ class D
 
             verifier.VerifyIL("Program.Test", @"
 {
-  // Code size       66 (0x42)
+  // Code size       70 (0x46)
   .maxstack  3
   IL_0000:  newobj     ""Program.<>c__DisplayClass0..ctor()""
   IL_0005:  dup
@@ -4587,21 +4581,21 @@ class D
   IL_0018:  ldc.i4.1
   IL_0019:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
   IL_001e:  pop
-  IL_001f:  ldsfld     ""System.Func<int, System.Func<int>> Program.CS$<>9__CachedAnonymousMethodDelegate7""
+  IL_001f:  ldsfld     ""System.Func<int, System.Func<int>> Program.<>c__DisplayClass5.CS$<>9__CachedAnonymousMethodDelegate8""
   IL_0024:  dup
-  IL_0025:  brtrue.s   IL_003a
+  IL_0025:  brtrue.s   IL_003e
   IL_0027:  pop
-  IL_0028:  ldnull
-  IL_0029:  ldftn      ""System.Func<int> Program.<Test>b__5(object, int)""
-  IL_002f:  newobj     ""System.Func<int, System.Func<int>>..ctor(object, System.IntPtr)""
-  IL_0034:  dup
-  IL_0035:  stsfld     ""System.Func<int, System.Func<int>> Program.CS$<>9__CachedAnonymousMethodDelegate7""
-  IL_003a:  ldc.i4.1
-  IL_003b:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
-  IL_0040:  pop
-  IL_0041:  ret
+  IL_0028:  ldsfld     ""Program.<>c__DisplayClass5 Program.<>c__DisplayClass5.CS$<>9__inst""
+  IL_002d:  ldftn      ""System.Func<int> Program.<>c__DisplayClass5.<Test>b__6(int)""
+  IL_0033:  newobj     ""System.Func<int, System.Func<int>>..ctor(object, System.IntPtr)""
+  IL_0038:  dup
+  IL_0039:  stsfld     ""System.Func<int, System.Func<int>> Program.<>c__DisplayClass5.CS$<>9__CachedAnonymousMethodDelegate8""
+  IL_003e:  ldc.i4.1
+  IL_003f:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
+  IL_0044:  pop
+  IL_0045:  ret
 }
-").VerifyIL("Program.<Test>b__5(object, int)",
+").VerifyIL("Program.<>c__DisplayClass5.<Test>b__6(int)",
 @"
 {
   // Code size       44 (0x2c)
@@ -4619,7 +4613,7 @@ class D
   IL_0016:  ldc.i4.s   123
   IL_0018:  call       ""void System.Console.WriteLine(int)""
   IL_001d:  ldloc.0
-  IL_001e:  ldftn      ""int Program.<>c__DisplayClass1.<Test>b__6()""
+  IL_001e:  ldftn      ""int Program.<>c__DisplayClass1.<Test>b__7()""
   IL_0024:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0029:  ret
   IL_002a:  ldnull

@@ -201,35 +201,35 @@ class C
 ";
             var expectedIL = @"
 {
-  // Code size       73 (0x49)
+  // Code size       77 (0x4d)
   .maxstack  3
   .locals init (System.Delegate[] V_0) //del
   IL_0000:  ldnull
-  IL_0001:  ldsfld     ""boo C.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_0001:  ldsfld     ""boo C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0006:  dup
-  IL_0007:  brtrue.s   IL_001c
+  IL_0007:  brtrue.s   IL_0020
   IL_0009:  pop
-  IL_000a:  ldnull
-  IL_000b:  ldftn      ""void C.<Main>b__0(object, int)""
-  IL_0011:  newobj     ""boo..ctor(object, System.IntPtr)""
-  IL_0016:  dup
-  IL_0017:  stsfld     ""boo C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_001c:  call       ""System.Delegate System.Delegate.Combine(System.Delegate, System.Delegate)""
-  IL_0021:  castclass  ""boo""
-  IL_0026:  dup
-  IL_0027:  ldc.i4.s   10
-  IL_0029:  callvirt   ""void boo.Invoke(int)""
-  IL_002e:  dup
-  IL_002f:  callvirt   ""System.Delegate[] System.Delegate.GetInvocationList()""
-  IL_0034:  stloc.0
-  IL_0035:  ldloc.0
-  IL_0036:  ldc.i4.0
-  IL_0037:  ldelem.ref
-  IL_0038:  castclass  ""boo""
-  IL_003d:  call       ""System.Delegate System.Delegate.Remove(System.Delegate, System.Delegate)""
-  IL_0042:  castclass  ""boo""
-  IL_0047:  pop
-  IL_0048:  ret
+  IL_000a:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_000f:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__1(int)""
+  IL_0015:  newobj     ""boo..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""boo C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0020:  call       ""System.Delegate System.Delegate.Combine(System.Delegate, System.Delegate)""
+  IL_0025:  castclass  ""boo""
+  IL_002a:  dup
+  IL_002b:  ldc.i4.s   10
+  IL_002d:  callvirt   ""void boo.Invoke(int)""
+  IL_0032:  dup
+  IL_0033:  callvirt   ""System.Delegate[] System.Delegate.GetInvocationList()""
+  IL_0038:  stloc.0
+  IL_0039:  ldloc.0
+  IL_003a:  ldc.i4.0
+  IL_003b:  ldelem.ref
+  IL_003c:  castclass  ""boo""
+  IL_0041:  call       ""System.Delegate System.Delegate.Remove(System.Delegate, System.Delegate)""
+  IL_0046:  castclass  ""boo""
+  IL_004b:  pop
+  IL_004c:  ret
 }
 ";
             CompileAndVerify(text, expectedOutput:"10").VerifyIL("C.Main", expectedIL);
@@ -258,35 +258,35 @@ class C
 ";
             var expectedIL = @"
 {
-  // Code size       76 (0x4c)
+  // Code size       80 (0x50)
   .maxstack  3
   .locals init (System.Delegate[] V_0) //del
   IL_0000:  ldnull
-  IL_0001:  ldsfld     ""boo C.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_0001:  ldsfld     ""boo C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0006:  dup
-  IL_0007:  brtrue.s   IL_001c
+  IL_0007:  brtrue.s   IL_0020
   IL_0009:  pop
-  IL_000a:  ldnull
-  IL_000b:  ldftn      ""void C.<Main>b__0(object, string)""
-  IL_0011:  newobj     ""boo..ctor(object, System.IntPtr)""
-  IL_0016:  dup
-  IL_0017:  stsfld     ""boo C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_001c:  call       ""System.Delegate System.Delegate.Combine(System.Delegate, System.Delegate)""
-  IL_0021:  castclass  ""boo""
-  IL_0026:  dup
-  IL_0027:  ldstr      ""Hello""
-  IL_002c:  callvirt   ""void boo.Invoke(string)""
-  IL_0031:  dup
-  IL_0032:  callvirt   ""System.Delegate[] System.Delegate.GetInvocationList()""
-  IL_0037:  stloc.0
-  IL_0038:  ldloc.0
-  IL_0039:  ldc.i4.0
-  IL_003a:  ldelem.ref
-  IL_003b:  castclass  ""boo""
-  IL_0040:  call       ""System.Delegate System.Delegate.Remove(System.Delegate, System.Delegate)""
-  IL_0045:  castclass  ""boo""
-  IL_004a:  pop
-  IL_004b:  ret
+  IL_000a:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_000f:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__1(string)""
+  IL_0015:  newobj     ""boo..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""boo C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0020:  call       ""System.Delegate System.Delegate.Combine(System.Delegate, System.Delegate)""
+  IL_0025:  castclass  ""boo""
+  IL_002a:  dup
+  IL_002b:  ldstr      ""Hello""
+  IL_0030:  callvirt   ""void boo.Invoke(string)""
+  IL_0035:  dup
+  IL_0036:  callvirt   ""System.Delegate[] System.Delegate.GetInvocationList()""
+  IL_003b:  stloc.0
+  IL_003c:  ldloc.0
+  IL_003d:  ldc.i4.0
+  IL_003e:  ldelem.ref
+  IL_003f:  castclass  ""boo""
+  IL_0044:  call       ""System.Delegate System.Delegate.Remove(System.Delegate, System.Delegate)""
+  IL_0049:  castclass  ""boo""
+  IL_004e:  pop
+  IL_004f:  ret
 }
 ";
             CompileAndVerify(text, expectedOutput:"Hello").VerifyIL("C.Main()", expectedIL);
