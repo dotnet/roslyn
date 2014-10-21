@@ -1610,9 +1610,9 @@ End Class
 {
   // Code size       10 (0xa)
   .maxstack  1
-  .locals init ([unchanged] V_0,
-  String V_1, //b
-  Integer V_2) //a
+  .locals init ([object] V_0,
+                String V_1, //b
+                Integer V_2) //a
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.2
@@ -3601,7 +3601,7 @@ End Class
   // Code size       30 (0x1e)
   .maxstack  1
   .locals init (Object V_0, //G
-                [unchanged] V_1,
+                [int] V_1,
                 VB$AnonymousType_0(Of A) V_2, //x
                 VB$AnonymousType_1(Of Integer) V_3) //y
   IL_0000:  nop
@@ -3632,7 +3632,7 @@ End Class
   // Code size       35 (0x23)
   .maxstack  1
   .locals init (Object V_0, //G
-                [unchanged] V_1,
+                [int] V_1,
                 VB$AnonymousType_0(Of A) V_2, //x
                 VB$AnonymousType_1(Of Integer) V_3) //y
   IL_0000:  nop
