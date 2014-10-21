@@ -52,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const LiftedLocalPrefix As String = "$VB$Local_"
         Friend Const ClosureClassPrefix As String = "_Closure$__"
         Friend Const ClosureVariablePrefix As String = "$VB$Closure_"
+        Friend Const CachedFrameInstanceName As String = "$Inst"
 
         Friend Const OnErrorActiveHandler As String = "VB$ActiveHandler"
         Friend Const OnErrorResumeTarget As String = "VB$ResumeTarget"

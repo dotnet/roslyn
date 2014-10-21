@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits SynthesizedMethod
 
         Private ReadOnly m_lambda As LambdaSymbol
-        Private ReadOnly m_isShared As Boolean
         Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
         Private ReadOnly m_locations As ImmutableArray(Of Location)
         Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
@@ -45,17 +44,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' - it is either Frame or enclosing class in a case if we do not lift anything.</param>
         ''' <param name="enclosingMethod">Method that contains lambda expression for which we do the rewrite.</param>
         ''' <param name="lambdaNode">Lambda expression which is represented by this method.</param>
-        ''' <param name="isShared">Specifies whether lambda method should be shared.</param>
         Friend Sub New(containingType As InstanceTypeSymbol,
                        enclosingMethod As MethodSymbol,
                        lambdaNode As BoundLambda,
-                       isShared As Boolean,
                        tempNumber As Integer,
                        diagnostics As DiagnosticBag)
 
-            MyBase.New(lambdaNode.Syntax, containingType, GeneratedNames.MakeLambdaMethodName(tempNumber), isShared)
+            MyBase.New(lambdaNode.Syntax, containingType, GeneratedNames.MakeLambdaMethodName(tempNumber), isShared:=False)
             Me.m_lambda = lambdaNode.LambdaSymbol
-            Me.m_isShared = isShared
             Me.m_locations = ImmutableArray.Create(Of Location)(lambdaNode.Syntax.GetLocation())
 
             If Not enclosingMethod.IsGenericMethod Then
@@ -73,21 +69,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim params = ArrayBuilder(Of ParameterSymbol).GetInstance
-
-            Dim ordinalAdjustment = 0
-            If isShared Then
-                ' add dummy "this"
-                params.Add(New SynthesizedParameterSymbol(Me, DeclaringCompilation.GetSpecialType(SpecialType.System_Object), 0, False))
-                ordinalAdjustment = 1
-            End If
-
             For Each curParam In m_lambda.Parameters
                 params.Add(
                     WithNewContainerAndType(
                     Me,
                     curParam.Type.InternalSubstituteTypeParameters(TypeMap),
-                    curParam,
-                    ordinalAdjustment:=ordinalAdjustment))
+                    curParam))
             Next
 
             Me.m_parameters = params.ToImmutableAndFree
@@ -145,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return m_isShared
+                Return False
             End Get
         End Property
 

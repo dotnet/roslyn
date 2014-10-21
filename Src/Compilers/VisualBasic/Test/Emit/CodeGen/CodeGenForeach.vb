@@ -919,7 +919,7 @@ End Class
 3
 ]]>).VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       99 (0x63)
+  // Code size      103 (0x67)
   .maxstack  3
   .locals init (System.Collections.Generic.IEnumerator(Of String) V_0)
   .try
@@ -929,37 +929,37 @@ End Class
     IL_0006:  dup
     IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E"
     IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-    IL_0011:  ldsfld     "C._ClosureCache$__2 As System.Func(Of Integer, String)"
+    IL_0011:  ldsfld     "C._Closure$__1._ClosureCache$__3 As System.Func(Of Integer, String)"
     IL_0016:  brfalse.s  IL_001f
-    IL_0018:  ldsfld     "C._ClosureCache$__2 As System.Func(Of Integer, String)"
-    IL_001d:  br.s       IL_0031
-    IL_001f:  ldnull
-    IL_0020:  ldftn      "Function C._Lambda$__1(Object, Integer) As String"
-    IL_0026:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
-    IL_002b:  dup
-    IL_002c:  stsfld     "C._ClosureCache$__2 As System.Func(Of Integer, String)"
-    IL_0031:  call       "Function System.Linq.Enumerable.Select(Of Integer, String)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, String)) As System.Collections.Generic.IEnumerable(Of String)"
-    IL_0036:  callvirt   "Function System.Collections.Generic.IEnumerable(Of String).GetEnumerator() As System.Collections.Generic.IEnumerator(Of String)"
-    IL_003b:  stloc.0
-    IL_003c:  br.s       IL_004e
-    IL_003e:  ldloc.0
-    IL_003f:  callvirt   "Function System.Collections.Generic.IEnumerator(Of String).get_Current() As String"
-    IL_0044:  callvirt   "Function String.ToLower() As String"
-    IL_0049:  call       "Sub System.Console.WriteLine(String)"
-    IL_004e:  ldloc.0
-    IL_004f:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-    IL_0054:  brtrue.s   IL_003e
-    IL_0056:  leave.s    IL_0062
+    IL_0018:  ldsfld     "C._Closure$__1._ClosureCache$__3 As System.Func(Of Integer, String)"
+    IL_001d:  br.s       IL_0035
+    IL_001f:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+    IL_0024:  ldftn      "Function C._Closure$__1._Lambda$__2(Integer) As String"
+    IL_002a:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
+    IL_002f:  dup
+    IL_0030:  stsfld     "C._Closure$__1._ClosureCache$__3 As System.Func(Of Integer, String)"
+    IL_0035:  call       "Function System.Linq.Enumerable.Select(Of Integer, String)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, String)) As System.Collections.Generic.IEnumerable(Of String)"
+    IL_003a:  callvirt   "Function System.Collections.Generic.IEnumerable(Of String).GetEnumerator() As System.Collections.Generic.IEnumerator(Of String)"
+    IL_003f:  stloc.0
+    IL_0040:  br.s       IL_0052
+    IL_0042:  ldloc.0
+    IL_0043:  callvirt   "Function System.Collections.Generic.IEnumerator(Of String).get_Current() As String"
+    IL_0048:  callvirt   "Function String.ToLower() As String"
+    IL_004d:  call       "Sub System.Console.WriteLine(String)"
+    IL_0052:  ldloc.0
+    IL_0053:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_0058:  brtrue.s   IL_0042
+    IL_005a:  leave.s    IL_0066
   }
   finally
   {
-    IL_0058:  ldloc.0
-    IL_0059:  brfalse.s  IL_0061
-    IL_005b:  ldloc.0
-    IL_005c:  callvirt   "Sub System.IDisposable.Dispose()"
-    IL_0061:  endfinally
+    IL_005c:  ldloc.0
+    IL_005d:  brfalse.s  IL_0065
+    IL_005f:  ldloc.0
+    IL_0060:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0065:  endfinally
   }
-  IL_0062:  ret
+  IL_0066:  ret
 }
 ]]>)
         End Sub
@@ -2796,7 +2796,7 @@ End Module
 
 ]]>).VerifyIL("m1.Main", <![CDATA[
 {
-  // Code size      166 (0xa6)
+  // Code size      170 (0xaa)
   .maxstack  4
   .locals init (System.Action() V_0, //x
                 Integer V_1, //j
@@ -2812,70 +2812,70 @@ End Module
   IL_000a:  nop
   .try
   {
-    IL_000b:  ldsfld     "m1._ClosureCache$__3 As <generated method>"
+    IL_000b:  ldsfld     "m1._Closure$__2._ClosureCache$__4 As <generated method>"
     IL_0010:  brfalse.s  IL_0019
-    IL_0012:  ldsfld     "m1._ClosureCache$__3 As <generated method>"
-    IL_0017:  br.s       IL_002b
-    IL_0019:  ldnull
-    IL_001a:  ldftn      "Function m1._Lambda$__2(Object, Object) As System.Collections.Generic.IEnumerable(Of Integer)"
-    IL_0020:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
-    IL_0025:  dup
-    IL_0026:  stsfld     "m1._ClosureCache$__3 As <generated method>"
-    IL_002b:  ldloc.2
-    IL_002c:  box        "Integer"
-    IL_0031:  callvirt   "Function VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer)).Invoke(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
-    IL_0036:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
-    IL_003b:  stloc.3
-    IL_003c:  br.s       IL_006a
-    IL_003e:  ldloc.s    V_4
-    IL_0040:  newobj     "Sub m1._Closure$__1..ctor(m1._Closure$__1)"
-    IL_0045:  stloc.s    V_4
-    IL_0047:  ldloc.s    V_4
-    IL_0049:  ldloc.3
-    IL_004a:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
-    IL_004f:  stfld      "m1._Closure$__1.$VB$Local_i As Integer"
-    IL_0054:  ldloc.0
-    IL_0055:  ldloc.s    V_4
-    IL_0057:  ldfld      "m1._Closure$__1.$VB$Local_i As Integer"
-    IL_005c:  ldloc.s    V_4
-    IL_005e:  ldftn      "Sub m1._Closure$__1._Lambda$__4()"
-    IL_0064:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-    IL_0069:  stelem.ref
-    IL_006a:  ldloc.3
-    IL_006b:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-    IL_0070:  brtrue.s   IL_003e
-    IL_0072:  leave.s    IL_007e
+    IL_0012:  ldsfld     "m1._Closure$__2._ClosureCache$__4 As <generated method>"
+    IL_0017:  br.s       IL_002f
+    IL_0019:  ldsfld     "m1._Closure$__2.$Inst As m1._Closure$__2"
+    IL_001e:  ldftn      "Function m1._Closure$__2._Lambda$__3(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_0024:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
+    IL_0029:  dup
+    IL_002a:  stsfld     "m1._Closure$__2._ClosureCache$__4 As <generated method>"
+    IL_002f:  ldloc.2
+    IL_0030:  box        "Integer"
+    IL_0035:  callvirt   "Function VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer)).Invoke(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_003a:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_003f:  stloc.3
+    IL_0040:  br.s       IL_006e
+    IL_0042:  ldloc.s    V_4
+    IL_0044:  newobj     "Sub m1._Closure$__1..ctor(m1._Closure$__1)"
+    IL_0049:  stloc.s    V_4
+    IL_004b:  ldloc.s    V_4
+    IL_004d:  ldloc.3
+    IL_004e:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
+    IL_0053:  stfld      "m1._Closure$__1.$VB$Local_i As Integer"
+    IL_0058:  ldloc.0
+    IL_0059:  ldloc.s    V_4
+    IL_005b:  ldfld      "m1._Closure$__1.$VB$Local_i As Integer"
+    IL_0060:  ldloc.s    V_4
+    IL_0062:  ldftn      "Sub m1._Closure$__1._Lambda$__5()"
+    IL_0068:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+    IL_006d:  stelem.ref
+    IL_006e:  ldloc.3
+    IL_006f:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_0074:  brtrue.s   IL_0042
+    IL_0076:  leave.s    IL_0082
   }
   finally
   {
-    IL_0074:  ldloc.3
-    IL_0075:  brfalse.s  IL_007d
-    IL_0077:  ldloc.3
-    IL_0078:  callvirt   "Sub System.IDisposable.Dispose()"
-    IL_007d:  endfinally
+    IL_0078:  ldloc.3
+    IL_0079:  brfalse.s  IL_0081
+    IL_007b:  ldloc.3
+    IL_007c:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0081:  endfinally
   }
-  IL_007e:  ldc.i4.1
-  IL_007f:  stloc.s    V_5
-  IL_0081:  ldloc.0
-  IL_0082:  ldloc.s    V_5
-  IL_0084:  ldelem.ref
-  IL_0085:  callvirt   "Sub System.Action.Invoke()"
-  IL_008a:  ldloc.s    V_5
-  IL_008c:  ldc.i4.1
-  IL_008d:  add.ovf
-  IL_008e:  stloc.s    V_5
-  IL_0090:  ldloc.s    V_5
-  IL_0092:  ldc.i4.3
-  IL_0093:  ble.s      IL_0081
-  IL_0095:  call       "Sub System.Console.WriteLine()"
-  IL_009a:  ldloc.1
-  IL_009b:  ldc.i4.1
-  IL_009c:  add.ovf
-  IL_009d:  stloc.1
+  IL_0082:  ldc.i4.1
+  IL_0083:  stloc.s    V_5
+  IL_0085:  ldloc.0
+  IL_0086:  ldloc.s    V_5
+  IL_0088:  ldelem.ref
+  IL_0089:  callvirt   "Sub System.Action.Invoke()"
+  IL_008e:  ldloc.s    V_5
+  IL_0090:  ldc.i4.1
+  IL_0091:  add.ovf
+  IL_0092:  stloc.s    V_5
+  IL_0094:  ldloc.s    V_5
+  IL_0096:  ldc.i4.3
+  IL_0097:  ble.s      IL_0085
+  IL_0099:  call       "Sub System.Console.WriteLine()"
   IL_009e:  ldloc.1
-  IL_009f:  ldc.i4.2
-  IL_00a0:  ble        IL_000a
-  IL_00a5:  ret
+  IL_009f:  ldc.i4.1
+  IL_00a0:  add.ovf
+  IL_00a1:  stloc.1
+  IL_00a2:  ldloc.1
+  IL_00a3:  ldc.i4.2
+  IL_00a4:  ble        IL_000a
+  IL_00a9:  ret
 }
 ]]>)
         End Sub
@@ -2921,7 +2921,7 @@ End Module
 0,1,2,
 ]]>).VerifyIL("m1.Main", <![CDATA[
 {
-  // Code size      188 (0xbc)
+  // Code size      195 (0xc3)
   .maxstack  3
   .locals init (System.Collections.Generic.List(Of System.Action) V_0, //lambdas
                 Integer V_1, //y
@@ -2968,46 +2968,46 @@ End Module
   IL_005a:  conv.i4
   IL_005b:  blt.s      IL_0028
   IL_005d:  ldloc.0
-  IL_005e:  ldsfld     "m1._ClosureCache$__6 As System.Action"
+  IL_005e:  ldsfld     "m1._Closure$__5._ClosureCache$__7 As System.Action"
   IL_0063:  brfalse.s  IL_006c
-  IL_0065:  ldsfld     "m1._ClosureCache$__6 As System.Action"
-  IL_006a:  br.s       IL_007e
-  IL_006c:  ldnull
-  IL_006d:  ldftn      "Sub m1._Lambda$__5(Object)"
-  IL_0073:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_0078:  dup
-  IL_0079:  stsfld     "m1._ClosureCache$__6 As System.Action"
-  IL_007e:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
-  IL_0083:  ldloc.1
-  IL_0084:  ldc.i4.1
-  IL_0085:  add.ovf
-  IL_0086:  stloc.1
+  IL_0065:  ldsfld     "m1._Closure$__5._ClosureCache$__7 As System.Action"
+  IL_006a:  br.s       IL_0082
+  IL_006c:  ldsfld     "m1._Closure$__5.$Inst As m1._Closure$__5"
+  IL_0071:  ldftn      "Sub m1._Closure$__5._Lambda$__6()"
+  IL_0077:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_007c:  dup
+  IL_007d:  stsfld     "m1._Closure$__5._ClosureCache$__7 As System.Action"
+  IL_0082:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0087:  ldloc.1
-  IL_0088:  ldc.i4.3
-  IL_0089:  ble.s      IL_000e
-  IL_008b:  nop
+  IL_0088:  ldc.i4.1
+  IL_0089:  add.ovf
+  IL_008a:  stloc.1
+  IL_008b:  ldloc.1
+  IL_008c:  ldc.i4.3
+  IL_008d:  ble        IL_000e
+  IL_0092:  nop
   .try
-{
-  IL_008c:  ldloc.0
-  IL_008d:  callvirt   "Function System.Collections.Generic.List(Of System.Action).GetEnumerator() As System.Collections.Generic.List(Of System.Action).Enumerator"
-  IL_0092:  stloc.s    V_5
-  IL_0094:  br.s       IL_00a2
-  IL_0096:  ldloca.s   V_5
-  IL_0098:  call       "Function System.Collections.Generic.List(Of System.Action).Enumerator.get_Current() As System.Action"
-  IL_009d:  callvirt   "Sub System.Action.Invoke()"
-  IL_00a2:  ldloca.s   V_5
-  IL_00a4:  call       "Function System.Collections.Generic.List(Of System.Action).Enumerator.MoveNext() As Boolean"
-  IL_00a9:  brtrue.s   IL_0096
-  IL_00ab:  leave.s    IL_00bb
-}
+  {
+    IL_0093:  ldloc.0
+    IL_0094:  callvirt   "Function System.Collections.Generic.List(Of System.Action).GetEnumerator() As System.Collections.Generic.List(Of System.Action).Enumerator"
+    IL_0099:  stloc.s    V_5
+    IL_009b:  br.s       IL_00a9
+    IL_009d:  ldloca.s   V_5
+    IL_009f:  call       "Function System.Collections.Generic.List(Of System.Action).Enumerator.get_Current() As System.Action"
+    IL_00a4:  callvirt   "Sub System.Action.Invoke()"
+    IL_00a9:  ldloca.s   V_5
+    IL_00ab:  call       "Function System.Collections.Generic.List(Of System.Action).Enumerator.MoveNext() As Boolean"
+    IL_00b0:  brtrue.s   IL_009d
+    IL_00b2:  leave.s    IL_00c2
+  }
   finally
-{
-  IL_00ad:  ldloca.s   V_5
-  IL_00af:  constrained. "System.Collections.Generic.List(Of System.Action).Enumerator"
-  IL_00b5:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_00ba:  endfinally
-}
-  IL_00bb:  ret
+  {
+    IL_00b4:  ldloca.s   V_5
+    IL_00b6:  constrained. "System.Collections.Generic.List(Of System.Action).Enumerator"
+    IL_00bc:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_00c1:  endfinally
+  }
+  IL_00c2:  ret
 }
 ]]>)
         End Sub

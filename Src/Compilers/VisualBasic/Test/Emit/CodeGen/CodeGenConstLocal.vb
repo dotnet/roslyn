@@ -499,23 +499,23 @@ End Module
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       38 (0x26)
+  // Code size       42 (0x2a)
   .maxstack  2
-  IL_0000:  ldsfld     "C._ClosureCache$__2 As <generated method>"
+  IL_0000:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub C._Lambda$__1(Object)"
-  IL_0015:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_0020:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0025:  ret
+  IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_0013:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
+  IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0024:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_0029:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("C._Lambda$__1", <![CDATA[
+            verifier.VerifyIL("C._Closure$__1._Lambda$__2", <![CDATA[
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -552,23 +552,23 @@ End Module
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       38 (0x26)
+  // Code size       42 (0x2a)
   .maxstack  2
-  IL_0000:  ldsfld     "C._ClosureCache$__2 As <generated method>"
+  IL_0000:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub C._Lambda$__1(Object)"
-  IL_0015:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_0020:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0025:  ret
+  IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_0013:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
+  IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0024:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_0029:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("C._Lambda$__1", <![CDATA[
+            verifier.VerifyIL("C._Closure$__1._Lambda$__2", <![CDATA[
 {
   // Code size       33 (0x21)
   .maxstack  5
@@ -617,23 +617,23 @@ End Module
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       38 (0x26)
+  // Code size       42 (0x2a)
   .maxstack  2
-  IL_0000:  ldsfld     "C._ClosureCache$__2 As <generated method>"
+  IL_0000:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub C._Lambda$__1(Object)"
-  IL_0015:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_0020:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0025:  ret
+  IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_0013:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
+  IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0024:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_0029:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("C._Lambda$__1", <![CDATA[
+            verifier.VerifyIL("C._Closure$__1._Lambda$__2", <![CDATA[
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -673,23 +673,23 @@ End Module
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       38 (0x26)
+  // Code size       42 (0x2a)
   .maxstack  2
-  IL_0000:  ldsfld     "C._ClosureCache$__2 As <generated method>"
+  IL_0000:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub C._Lambda$__1(Object)"
-  IL_0015:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_0020:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_0025:  ret
+  IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_0013:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
+  IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0024:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_0029:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("C._Lambda$__1", <![CDATA[
+            verifier.VerifyIL("C._Closure$__1._Lambda$__2", <![CDATA[
 {
   // Code size       65 (0x41)
   .maxstack  7

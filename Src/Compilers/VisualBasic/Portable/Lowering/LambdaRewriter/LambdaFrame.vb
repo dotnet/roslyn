@@ -15,11 +15,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
         Private ReadOnly m_topLevelMethod As MethodSymbol
+        Private ReadOnly m_sharedConstructor As MethodSymbol
+        Private ReadOnly m_singletonCache As FieldSymbol
 
         'NOTE: this does not include captured parent frame references 
         Friend ReadOnly m_captured_locals As New ArrayBuilder(Of LambdaCapturedVariable)
         Friend ReadOnly m_constructor As SynthesizedLambdaConstructor
         Friend ReadOnly TypeMap As TypeSubstitution
+
+        Private ReadOnly m_scopeSyntaxOpt As VisualBasicSyntaxNode
 
         Private Shared ReadOnly TypeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
             Function(container)
@@ -35,22 +39,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a Frame definition
         ''' </summary>
-        ''' <param name="topLevelMethod">Method that contains lambda expression for which we do the rewrite.</param>
-        ''' <param name="copyConstructor">Specifies whether the Frame needs a copy-constructor.</param>
         Friend Sub New(compilationState As TypeCompilationState,
                        topLevelMethod As MethodSymbol,
-                       scopeSyntax As VisualBasicSyntaxNode,
-                       copyConstructor As Boolean)
+                       syntax As VisualBasicSyntaxNode,
+                       copyConstructor As Boolean,
+                       isShared As Boolean)
 
             MyBase.New(topLevelMethod, GeneratedNames.MakeLambdaDisplayClassName(compilationState.GenerateTempNumber()), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
 
-            AssertIsLambdaScopeSyntax(scopeSyntax)
-
             If copyConstructor Then
-                Me.m_constructor = New SynthesizedLambdaCopyConstructor(scopeSyntax, Me)
+                Me.m_constructor = New SynthesizedLambdaCopyConstructor(syntax, Me)
             Else
-                Me.m_constructor = New SynthesizedLambdaConstructor(scopeSyntax, Me)
+                Me.m_constructor = New SynthesizedLambdaConstructor(syntax, Me)
             End If
+
+            ' static lambdas technically have the class scope so the scope syntax is Nothing 
+            If isShared Then
+                Me.m_sharedConstructor = New SynthesizedConstructorSymbol(Nothing, Me, isShared:=True, isDebuggable:=False, binder:=Nothing, diagnostics:=Nothing)
+                Dim cacheVariableName = GeneratedNames.MakeCachedFrameInstanceName()
+                Me.m_singletonCache = New SynthesizedFieldSymbol(Me, Me, Me, cacheVariableName, Accessibility.Public, isReadOnly:=True, isShared:=True)
+                m_scopeSyntaxOpt = Nothing
+            Else
+                m_scopeSyntaxOpt = syntax
+            End If
+
+            AssertIsLambdaScopeSyntax(m_scopeSyntaxOpt)
 
             Me.m_typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, CreateTypeParameter)
             Me.TypeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
@@ -80,7 +93,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            Return StaticCast(Of Symbol).From(m_captured_locals.AsImmutable())
+            Dim members = StaticCast(Of Symbol).From(m_captured_locals.AsImmutable())
+            If m_sharedConstructor IsNot Nothing Then
+                members = members.AddRange(ImmutableArray.Create(Of Symbol)(m_constructor, m_sharedConstructor, m_singletonCache))
+            Else
+                members = members.Add(m_constructor)
+            End If
+
+            Return members
         End Function
 
         Protected Friend Overrides ReadOnly Property Constructor As MethodSymbol
@@ -89,8 +109,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Protected Friend ReadOnly Property SharedConstructor As MethodSymbol
+            Get
+                Return m_sharedConstructor
+            End Get
+        End Property
+
+        Friend ReadOnly Property SingletonCache As FieldSymbol
+            Get
+                Return m_singletonCache
+            End Get
+        End Property
+
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
-            Return m_captured_locals
+            If m_singletonCache Is Nothing Then
+                Return m_captured_locals
+            Else
+                Return DirectCast(m_captured_locals, IEnumerable(Of FieldSymbol)).Concat(Me.m_singletonCache)
+            End If
         End Function
 
         Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol

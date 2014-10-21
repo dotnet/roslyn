@@ -3361,7 +3361,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="1067140")>
         Public Sub AnonymousDelegates()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[
@@ -3407,7 +3407,7 @@ End Class
 
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.N")
                 Dim reader0 = md0.MetadataReader
-                CheckNamesSorted({reader0}, reader0.GetTypeDefNames(), "<Module>", "C", "VB$AnonymousType_0`1", "VB$AnonymousDelegate_0", "VB$AnonymousDelegate_1`1", "VB$AnonymousDelegate_2`2", "VB$AnonymousDelegate_3`1")
+                CheckNamesSorted({reader0}, reader0.GetTypeDefNames(), "_Closure$__1", "_Closure$__6", "<Module>", "C", "VB$AnonymousType_0`1", "VB$AnonymousDelegate_0", "VB$AnonymousDelegate_1`1", "VB$AnonymousDelegate_2`2", "VB$AnonymousDelegate_3`1")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.N")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,

@@ -76,6 +76,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
+        ''' Generates the name of a static lambda display class instance cache
+        ''' </summary>
+        ''' <returns></returns>
+        Public Shared Function MakeCachedFrameInstanceName() As String
+            Return StringConstants.CachedFrameInstanceName
+        End Function
+
+        ''' <summary>
         ''' Generates the name of a field used to store stack-spilled value 
         ''' </summary>
         Public Shared Function MakeStateMachineStackSpillFieldName(index As Integer) As String

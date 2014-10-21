@@ -35,11 +35,11 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            compilation.VerifyPdb("Program+VB$StateMachine_2__Lambda$__1.MoveNext",
+            compilation.VerifyPdb("Program+_Closure$__1+VB$StateMachine_3__Lambda$__2.MoveNext",
 <symbols>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
-        <method containingType="Program+VB$StateMachine_2__Lambda$__1" name="MoveNext" parameterNames="">
+        <method containingType="Program+_Closure$__1+VB$StateMachine_3__Lambda$__2" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="20" offset="-1"/>

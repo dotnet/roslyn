@@ -595,7 +595,7 @@ End Class
 Hello World!
 ]]>).VerifyIL("C1.Main", <![CDATA[
 {
-  // Code size      102 (0x66)
+  // Code size      106 (0x6a)
   .maxstack  4
   .locals init (C1._Closure$__1 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub C1._Closure$__1..ctor()"
@@ -610,24 +610,24 @@ Hello World!
   IL_001e:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0023:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0028:  dup
-  IL_0029:  ldsfld     "C1._ClosureCache$__4 As System.Action"
+  IL_0029:  ldsfld     "C1._Closure$__3._ClosureCache$__5 As System.Action"
   IL_002e:  brfalse.s  IL_0037
-  IL_0030:  ldsfld     "C1._ClosureCache$__4 As System.Action"
-  IL_0035:  br.s       IL_0049
-  IL_0037:  ldnull
-  IL_0038:  ldftn      "Sub C1._Lambda$__3(Object)"
-  IL_003e:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_0043:  dup
-  IL_0044:  stsfld     "C1._ClosureCache$__4 As System.Action"
-  IL_0049:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
-  IL_004e:  dup
-  IL_004f:  ldc.i4.0
-  IL_0050:  callvirt   "Function System.Collections.Generic.List(Of System.Action).get_Item(Integer) As System.Action"
-  IL_0055:  callvirt   "Sub System.Action.Invoke()"
-  IL_005a:  ldc.i4.1
-  IL_005b:  callvirt   "Function System.Collections.Generic.List(Of System.Action).get_Item(Integer) As System.Action"
-  IL_0060:  callvirt   "Sub System.Action.Invoke()"
-  IL_0065:  ret
+  IL_0030:  ldsfld     "C1._Closure$__3._ClosureCache$__5 As System.Action"
+  IL_0035:  br.s       IL_004d
+  IL_0037:  ldsfld     "C1._Closure$__3.$Inst As C1._Closure$__3"
+  IL_003c:  ldftn      "Sub C1._Closure$__3._Lambda$__4()"
+  IL_0042:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_0047:  dup
+  IL_0048:  stsfld     "C1._Closure$__3._ClosureCache$__5 As System.Action"
+  IL_004d:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
+  IL_0052:  dup
+  IL_0053:  ldc.i4.0
+  IL_0054:  callvirt   "Function System.Collections.Generic.List(Of System.Action).get_Item(Integer) As System.Action"
+  IL_0059:  callvirt   "Sub System.Action.Invoke()"
+  IL_005e:  ldc.i4.1
+  IL_005f:  callvirt   "Function System.Collections.Generic.List(Of System.Action).get_Item(Integer) As System.Action"
+  IL_0064:  callvirt   "Sub System.Action.Invoke()"
+  IL_0069:  ret
 }
 ]]>)
         End Sub
