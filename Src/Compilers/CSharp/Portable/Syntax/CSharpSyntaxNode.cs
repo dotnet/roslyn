@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithTwoChildren)
                     }
                     .Concat(
-                        Syntax.InternalSyntax.SyntaxFactory.NodeTypes) // known types (generated)
+                        Syntax.InternalSyntax.SyntaxFactory.GetNodeTypes()) // known types (generated)
                     .Concat(
                         Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GetWellKnownTokens()) // known tokens
                     .Concat(

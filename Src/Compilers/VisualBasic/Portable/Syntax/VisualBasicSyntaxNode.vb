@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     GetType(Microsoft.CodeAnalysis.DiagnosticInfo),
                     GetType(Microsoft.CodeAnalysis.SyntaxAnnotation)
                 } _
-                .Concat(InternalSyntax.SyntaxFactory.NodeTypes) _
+                .Concat(InternalSyntax.SyntaxFactory.GetNodeTypes()) _
                 .Concat(InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) _
                 .ToImmutableArray()
 

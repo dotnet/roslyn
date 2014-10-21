@@ -73,19 +73,21 @@ Class GreenNodeFactoryWriter
     Private Sub GenerateNodeTypes()
 
         _writer.WriteLine()
-        _writer.WriteLine("        Friend Shared ReadOnly NodeTypes As ImmutableList(Of Object) = ImmutableList.Create(Of Object)(")
+        _writer.WriteLine("        Friend Shared Function GetNodeTypes() As IEnumerable(Of Object)")
+        _writer.WriteLine("            Return New Object() {")
 
         Dim structures = _parseTree.NodeStructures.Values.ToArray()
         For i As Integer = 0 To structures.Length - 1
             Dim node = structures(i)
-            _writer.Write("          GetType({0})", node.Name)
+            _writer.Write("              GetType({0})", node.Name)
             If i < structures.Length - 1 Then
                 _writer.Write(",")
             End If
             _writer.WriteLine()
         Next
+        _writer.WriteLine("            }")
 
-        _writer.WriteLine("        )")
+        _writer.WriteLine("        End Function")
 
     End Sub
 

@@ -672,19 +672,22 @@ namespace CSharpSyntaxGenerator
         private void WriteGreenTypeList()
         {
             WriteLine();
-            WriteLine("    internal static IEnumerable<Type> NodeTypes = new Type[] {");
+            WriteLine("    internal static IEnumerable<Type> GetNodeTypes()");
+            WriteLine("    {");
+            WriteLine("        return new Type[] {");
 
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
                 var node = nodes[i];
-                Write("       typeof({0})", node.Name);
-                if (i < n)
+                Write("           typeof({0})", node.Name);
+                if (i < n - 1)
                     Write(",");
                 WriteLine();
             }
 
-            WriteLine("    };");
+            WriteLine("        };");
+            WriteLine("    }");
         }
 
 
