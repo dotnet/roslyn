@@ -14,33 +14,41 @@ using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundLambda
+    internal sealed partial class BoundLambda
     {
         public MessageID MessageID { get { return Syntax.Kind == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
-        private volatile ThreeState inferredFromSingleType;
-        private TypeSymbol inferredReturnType;
-        private HashSet<DiagnosticInfo> inferredReturnTypeUseSiteDiagnostics;
+        private readonly bool inferredFromSingleType;
+        private readonly TypeSymbol inferredReturnType;
+        private readonly HashSet<DiagnosticInfo> inferredReturnTypeUseSiteDiagnostics;
+
+#if DEBUG
+        private readonly bool hasInferredReturnType;
+#endif
+
+        public bool InferredFromSingleType
+        {
+            get
+            {
+                return this.inferredFromSingleType;
+            }
+        }
+
+        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type, bool inferReturnTypeMarker)
+            : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, type)
+        {
+            this.inferredReturnType = InferReturnType(this.Body, this.Binder, this.Symbol.IsAsync, ref this.inferredReturnTypeUseSiteDiagnostics, out this.inferredFromSingleType);
+
+#if DEBUG
+            this.hasInferredReturnType = true;
+#endif
+        }
 
         public TypeSymbol InferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (inferredReturnType == null)
-            {
-                HashSet<DiagnosticInfo> inferenceUseSiteDiagnostics = null;
-                bool inferredFromSingleType;
-                var inferredType = InferReturnType(ref inferenceUseSiteDiagnostics, out inferredFromSingleType);
-
-                Debug.Assert(this.inferredFromSingleType == ThreeState.Unknown || this.inferredFromSingleType == inferredFromSingleType.ToThreeState(), "inferredFromSingleType cannot change");
-                this.inferredFromSingleType = inferredFromSingleType.ToThreeState();
-
-                Debug.Assert(inferredFromSingleType == false || inferenceUseSiteDiagnostics == null);
-
-                // inferredReturnTypeUseSiteDiagnostics does not need to be unique, so we can just assign it.
-                this.inferredReturnTypeUseSiteDiagnostics = inferenceUseSiteDiagnostics;
-
-                // inferredReturnType must be observably unique, only one assignment must succeed
-                Interlocked.CompareExchange(ref this.inferredReturnType, inferredType, null);
-            }
+#if DEBUG
+            Debug.Assert(this.hasInferredReturnType);
+#endif
 
             if (!this.inferredReturnTypeUseSiteDiagnostics.IsNullOrEmpty())
             {
@@ -58,20 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.inferredReturnType;
         }
 
-        public bool InferredFromSingleType
-        {
-            get
-            {
-                return inferredFromSingleType.Value();
-            }
-        }
-
-        private TypeSymbol InferReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool inferredFromSingeType)
+        private static TypeSymbol InferReturnType(BoundBlock block, Binder binder, bool isAsync, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool inferredFromSingleType)
         {
             int numberOfDistinctReturns;
-            var resultTypes = BlockReturns.GetReturnTypes(this.Body, out numberOfDistinctReturns);
+            var resultTypes = BlockReturns.GetReturnTypes(block, out numberOfDistinctReturns);
 
-            inferredFromSingeType = numberOfDistinctReturns < 2;
+            inferredFromSingleType = numberOfDistinctReturns < 2;
 
             TypeSymbol bestResultType;
             if (resultTypes.IsDefaultOrEmpty)
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bestResultType = BestTypeInferrer.InferBestType(resultTypes, this.Binder.Conversions, ref useSiteDiagnostics);
+                bestResultType = BestTypeInferrer.InferBestType(resultTypes, binder.Conversions, ref useSiteDiagnostics);
             }
 
-            if (!Symbol.IsAsync)
+            if (!isAsync)
             {
                 return bestResultType;
             }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (resultTypes.IsEmpty)
             {
                 // No return statements have expressions; inferred type Task:
-                return this.Binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
             }
 
             if ((object)bestResultType == null || bestResultType.SpecialType == SpecialType.System_Void)
@@ -108,10 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Some non-void best type T was found; infer type Task<T>:
-            return this.Binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
+            return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
         }
 
-        private class BlockReturns : BoundTreeWalker
+        private sealed class BlockReturns : BoundTreeWalker
         {
             private readonly ArrayBuilder<TypeSymbol> types;
             private bool hasReturnWithoutArgument;
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder lambdaBodyBinder = new ExecutableCodeBinder(this.unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             var block = BindLambdaBody(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
 
-            var result = new BoundLambda(this.unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType)
+            var result = new BoundLambda(this.unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnTypeMarker: true)
             { WasCompilerGenerated = this.unboundLambda.WasCompilerGenerated };
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null; // TODO: figure out if this should be somehow merged into BoundLambda.Diagnostics.

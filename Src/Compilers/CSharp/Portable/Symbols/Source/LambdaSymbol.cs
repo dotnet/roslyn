@@ -189,7 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetInferredReturnType(TypeSymbol inferredReturnType)
         {
             Debug.Assert((object)inferredReturnType != null);
-            System.Threading.Interlocked.CompareExchange(ref this.returnType, inferredReturnType, null);
+            Debug.Assert((object)this.returnType == null);
+            this.returnType = inferredReturnType;
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
