@@ -499,7 +499,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsParentKind(SyntaxKind.WhileStatement) ||
                 expression.IsParentKind(SyntaxKind.DoStatement) ||
                 expression.IsParentKind(SyntaxKind.ThrowStatement) ||
-                expression.IsParentKind(SyntaxKind.SwitchStatement))
+                expression.IsParentKind(SyntaxKind.SwitchStatement) ||
+                expression.IsParentKind(SyntaxKind.InterpolatedStringInsert))
             {
                 return true;
             }
