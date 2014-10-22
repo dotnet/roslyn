@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
         /// This property may change as the workspace reacts to changes in the environment or
         /// after <see cref="TryApplyChanges"/> is called.
         /// </summary>
-        public virtual Solution CurrentSolution
+        public Solution CurrentSolution
         {
             get
             {
