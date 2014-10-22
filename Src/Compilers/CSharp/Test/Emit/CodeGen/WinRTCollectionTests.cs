@@ -5215,7 +5215,7 @@ class AllMembers
             verifier.VerifyIL("AllMembers.TestLINQ",
 @"
 {
-  // Code size      356 (0x164)
+  // Code size      360 (0x168)
   .maxstack  4
   .locals init (AllMembers.<>c__DisplayClass0 V_0) //CS$<>8__locals0
   IL_0000:  newobj     ""AllMembers.<>c__DisplayClass0..ctor()""
@@ -5291,50 +5291,50 @@ class AllMembers
   IL_00db:  pop
   IL_00dc:  ldloc.0
   IL_00dd:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
-  IL_00e2:  ldsfld     ""System.Func<int, bool> AllMembers.CS$<>9__CachedAnonymousMethodDelegate3""
+  IL_00e2:  ldsfld     ""System.Func<int, bool> AllMembers.<>c__DisplayClass2.CS$<>9__CachedAnonymousMethodDelegate4""
   IL_00e7:  dup
-  IL_00e8:  brtrue.s   IL_00fd
+  IL_00e8:  brtrue.s   IL_0101
   IL_00ea:  pop
-  IL_00eb:  ldnull
-  IL_00ec:  ldftn      ""bool AllMembers.<TestLINQ>b__2(object, int)""
-  IL_00f2:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
-  IL_00f7:  dup
-  IL_00f8:  stsfld     ""System.Func<int, bool> AllMembers.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_00fd:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
-  IL_0102:  call       ""System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)""
-  IL_0107:  ldloc.0
-  IL_0108:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
-  IL_010d:  callvirt   ""Windows.Languages.WinRTTest.TestMethodCalled Windows.Languages.WinRTTest.IVectorInt.GetFlagState()""
-  IL_0112:  ldc.i4.1
-  IL_0113:  call       ""bool AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled)""
-  IL_0118:  pop
-  IL_0119:  call       ""int System.Linq.Enumerable.Count<int>(System.Collections.Generic.IEnumerable<int>)""
-  IL_011e:  box        ""int""
-  IL_0123:  ldc.i4.2
-  IL_0124:  box        ""int""
-  IL_0129:  call       ""bool AllMembers.ValidateValue(object, object)""
-  IL_012e:  pop
+  IL_00eb:  ldsfld     ""AllMembers.<>c__DisplayClass2 AllMembers.<>c__DisplayClass2.CS$<>9__inst""
+  IL_00f0:  ldftn      ""bool AllMembers.<>c__DisplayClass2.<TestLINQ>b__3(int)""
+  IL_00f6:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+  IL_00fb:  dup
+  IL_00fc:  stsfld     ""System.Func<int, bool> AllMembers.<>c__DisplayClass2.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0101:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+  IL_0106:  call       ""System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)""
+  IL_010b:  ldloc.0
+  IL_010c:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
+  IL_0111:  callvirt   ""Windows.Languages.WinRTTest.TestMethodCalled Windows.Languages.WinRTTest.IVectorInt.GetFlagState()""
+  IL_0116:  ldc.i4.1
+  IL_0117:  call       ""bool AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled)""
+  IL_011c:  pop
+  IL_011d:  call       ""int System.Linq.Enumerable.Count<int>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0122:  box        ""int""
+  IL_0127:  ldc.i4.2
+  IL_0128:  box        ""int""
+  IL_012d:  call       ""bool AllMembers.ValidateValue(object, object)""
+  IL_0132:  pop
   .try
   {
-    IL_012f:  ldstr      ""Dev11:205875""
-    IL_0134:  call       ""void System.Console.WriteLine(string)""
-    IL_0139:  ldc.i4.0
-    IL_013a:  box        ""bool""
-    IL_013f:  ldc.i4.0
-    IL_0140:  box        ""bool""
-    IL_0145:  call       ""bool AllMembers.ValidateValue(object, object)""
-    IL_014a:  pop
-    IL_014b:  leave.s    IL_0163
+    IL_0133:  ldstr      ""Dev11:205875""
+    IL_0138:  call       ""void System.Console.WriteLine(string)""
+    IL_013d:  ldc.i4.0
+    IL_013e:  box        ""bool""
+    IL_0143:  ldc.i4.0
+    IL_0144:  box        ""bool""
+    IL_0149:  call       ""bool AllMembers.ValidateValue(object, object)""
+    IL_014e:  pop
+    IL_014f:  leave.s    IL_0167
   }
   catch System.ArgumentException
   {
-    IL_014d:  ldstr      ""TestLINQ""
-    IL_0152:  call       ""void System.Console.WriteLine(string)""
-    IL_0157:  callvirt   ""string System.Exception.Message.get""
-    IL_015c:  call       ""void System.Console.WriteLine(string)""
-    IL_0161:  leave.s    IL_0163
+    IL_0151:  ldstr      ""TestLINQ""
+    IL_0156:  call       ""void System.Console.WriteLine(string)""
+    IL_015b:  callvirt   ""string System.Exception.Message.get""
+    IL_0160:  call       ""void System.Console.WriteLine(string)""
+    IL_0165:  leave.s    IL_0167
   }
-  IL_0163:  ret
+  IL_0167:  ret
 }
 ");
         }

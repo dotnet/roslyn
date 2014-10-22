@@ -1019,8 +1019,7 @@ class Test
     }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo version=""4"" count=""2"">
@@ -1036,23 +1035,23 @@ class Test
       <sequencepoints total=""5"">
         <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""28"" file_ref=""0"" />
-        <entry il_offset=""0x1d"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""58"" file_ref=""0"" />
-        <entry il_offset=""0x39"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""50"" file_ref=""0"" />
-        <entry il_offset=""0x55"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x21"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""58"" file_ref=""0"" />
+        <entry il_offset=""0x41"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""50"" file_ref=""0"" />
+        <entry il_offset=""0x61"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""obj1"" il_index=""0"" il_start=""0x0"" il_end=""0x56"" attributes=""0"" />
-        <local name=""obj2"" il_index=""1"" il_start=""0x0"" il_end=""0x56"" attributes=""0"" />
-        <local name=""obj3"" il_index=""2"" il_start=""0x0"" il_end=""0x56"" attributes=""0"" />
+        <local name=""obj1"" il_index=""0"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
+        <local name=""obj2"" il_index=""1"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
+        <local name=""obj3"" il_index=""2"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x56"">
+      <scope startOffset=""0x0"" endOffset=""0x62"">
         <namespace name=""System"" />
-        <local name=""obj1"" il_index=""0"" il_start=""0x0"" il_end=""0x56"" attributes=""0"" />
-        <local name=""obj2"" il_index=""1"" il_start=""0x0"" il_end=""0x56"" attributes=""0"" />
-        <local name=""obj3"" il_index=""2"" il_start=""0x0"" il_end=""0x56"" attributes=""0"" />
+        <local name=""obj1"" il_index=""0"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
+        <local name=""obj2"" il_index=""1"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
+        <local name=""obj3"" il_index=""2"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test"" name=""&lt;Main&gt;b__0"" parameterNames=""d3"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;Main&gt;b__1"" parameterNames=""d3"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
@@ -1061,7 +1060,7 @@ class Test
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Test"" name=""&lt;Main&gt;b__2"" parameterNames=""d4"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;Main&gt;b__3"" parameterNames=""d4"">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
         <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
@@ -1083,7 +1082,7 @@ class Test
         <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x6"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test"" name=""&lt;Main&gt;b__4"" parameterNames=""d6"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;Main&gt;b__5"" parameterNames=""d6"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
@@ -1165,8 +1164,7 @@ class Test
     }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo version=""4"" count=""3"">
@@ -1303,7 +1301,7 @@ class Test
         </scope>
       </scope>
     </method>
-    <method containingType=""Test"" name=""&lt;Main&gt;b__0"" parameterNames=""score"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;Main&gt;b__1"" parameterNames=""score"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
@@ -1312,7 +1310,7 @@ class Test
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Test"" name=""&lt;Main&gt;b__2"" parameterNames=""score"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;Main&gt;b__3"" parameterNames=""score"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>

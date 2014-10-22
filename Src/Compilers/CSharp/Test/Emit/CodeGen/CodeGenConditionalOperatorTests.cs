@@ -42,35 +42,35 @@ class C : I
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size       65 (0x41)
+  // Code size       73 (0x49)
   .maxstack  2
   .locals init (System.Func<I> V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  brtrue.s   IL_0021
-  IL_0004:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
+  IL_0002:  brtrue.s   IL_0025
+  IL_0004:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
   IL_0009:  dup
-  IL_000a:  brtrue.s   IL_001f
+  IL_000a:  brtrue.s   IL_0023
   IL_000c:  pop
-  IL_000d:  ldnull
-  IL_000e:  ldftn      ""I C.<Tester>b__2(object)""
-  IL_0014:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0019:  dup
-  IL_001a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_001f:  br.s       IL_003c
-  IL_0021:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0026:  dup
-  IL_0027:  brtrue.s   IL_003c
-  IL_0029:  pop
-  IL_002a:  ldnull
-  IL_002b:  ldftn      ""I C.<Tester>b__0(object)""
-  IL_0031:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0036:  dup
-  IL_0037:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_003c:  stloc.0
-  IL_003d:  br.s       IL_003f
-  IL_003f:  ldloc.0
-  IL_0040:  ret
+  IL_000d:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0012:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__3()""
+  IL_0018:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_001d:  dup
+  IL_001e:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0023:  br.s       IL_0044
+  IL_0025:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_002a:  dup
+  IL_002b:  brtrue.s   IL_0044
+  IL_002d:  pop
+  IL_002e:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0033:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__1()""
+  IL_0039:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_003e:  dup
+  IL_003f:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0044:  stloc.0
+  IL_0045:  br.s       IL_0047
+  IL_0047:  ldloc.0
+  IL_0048:  ret
 }
 ");
 
@@ -78,30 +78,30 @@ class C : I
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size       59 (0x3b)
+  // Code size       67 (0x43)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brtrue.s   IL_001f
-  IL_0003:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
+  IL_0001:  brtrue.s   IL_0023
+  IL_0003:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
   IL_0008:  dup
-  IL_0009:  brtrue.s   IL_003a
+  IL_0009:  brtrue.s   IL_0042
   IL_000b:  pop
-  IL_000c:  ldnull
-  IL_000d:  ldftn      ""I C.<Tester>b__2(object)""
-  IL_0013:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0018:  dup
-  IL_0019:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_001e:  ret
-  IL_001f:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0024:  dup
-  IL_0025:  brtrue.s   IL_003a
-  IL_0027:  pop
-  IL_0028:  ldnull
-  IL_0029:  ldftn      ""I C.<Tester>b__0(object)""
-  IL_002f:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0034:  dup
-  IL_0035:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_003a:  ret
+  IL_000c:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0011:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__3()""
+  IL_0017:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0022:  ret
+  IL_0023:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0028:  dup
+  IL_0029:  brtrue.s   IL_0042
+  IL_002b:  pop
+  IL_002c:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0031:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__1()""
+  IL_0037:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_003c:  dup
+  IL_003d:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0042:  ret
 }
 ");
         }
@@ -141,93 +141,93 @@ class C : I
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size       99 (0x63)
+  // Code size      111 (0x6f)
   .maxstack  2
   .locals init (System.Func<I> V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  bgt.s      IL_0022
-  IL_0005:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
+  IL_0003:  bgt.s      IL_0026
+  IL_0005:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
   IL_000a:  dup
-  IL_000b:  brtrue.s   IL_0020
+  IL_000b:  brtrue.s   IL_0024
   IL_000d:  pop
-  IL_000e:  ldnull
-  IL_000f:  ldftn      ""I C.<Tester>b__4(object)""
-  IL_0015:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_001a:  dup
-  IL_001b:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
-  IL_0020:  br.s       IL_005e
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.1
-  IL_0024:  beq.s      IL_0043
-  IL_0026:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_002b:  dup
-  IL_002c:  brtrue.s   IL_0041
-  IL_002e:  pop
-  IL_002f:  ldnull
-  IL_0030:  ldftn      ""I C.<Tester>b__2(object)""
-  IL_0036:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_003b:  dup
-  IL_003c:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0041:  br.s       IL_005e
-  IL_0043:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0048:  dup
-  IL_0049:  brtrue.s   IL_005e
-  IL_004b:  pop
-  IL_004c:  ldnull
-  IL_004d:  ldftn      ""I C.<Tester>b__0(object)""
-  IL_0053:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0058:  dup
-  IL_0059:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_005e:  stloc.0
-  IL_005f:  br.s       IL_0061
-  IL_0061:  ldloc.0
-  IL_0062:  ret
+  IL_000e:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0013:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__5()""
+  IL_0019:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_001e:  dup
+  IL_001f:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
+  IL_0024:  br.s       IL_006a
+  IL_0026:  ldarg.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  beq.s      IL_004b
+  IL_002a:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_002f:  dup
+  IL_0030:  brtrue.s   IL_0049
+  IL_0032:  pop
+  IL_0033:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0038:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__3()""
+  IL_003e:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0043:  dup
+  IL_0044:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0049:  br.s       IL_006a
+  IL_004b:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0050:  dup
+  IL_0051:  brtrue.s   IL_006a
+  IL_0053:  pop
+  IL_0054:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0059:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__1()""
+  IL_005f:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0064:  dup
+  IL_0065:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_006a:  stloc.0
+  IL_006b:  br.s       IL_006d
+  IL_006d:  ldloc.0
+  IL_006e:  ret
 }
 ");
             verify = CompileAndVerify(src,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size       92 (0x5c)
+  // Code size      104 (0x68)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  bgt.s      IL_0020
-  IL_0004:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
+  IL_0002:  bgt.s      IL_0024
+  IL_0004:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
   IL_0009:  dup
-  IL_000a:  brtrue.s   IL_005b
+  IL_000a:  brtrue.s   IL_0067
   IL_000c:  pop
-  IL_000d:  ldnull
-  IL_000e:  ldftn      ""I C.<Tester>b__4(object)""
-  IL_0014:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0019:  dup
-  IL_001a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
-  IL_001f:  ret
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  beq.s      IL_0040
-  IL_0024:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0029:  dup
-  IL_002a:  brtrue.s   IL_005b
-  IL_002c:  pop
-  IL_002d:  ldnull
-  IL_002e:  ldftn      ""I C.<Tester>b__2(object)""
-  IL_0034:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0039:  dup
-  IL_003a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_003f:  ret
-  IL_0040:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0045:  dup
-  IL_0046:  brtrue.s   IL_005b
-  IL_0048:  pop
-  IL_0049:  ldnull
-  IL_004a:  ldftn      ""I C.<Tester>b__0(object)""
-  IL_0050:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0055:  dup
-  IL_0056:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_005b:  ret
+  IL_000d:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0012:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__5()""
+  IL_0018:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_001d:  dup
+  IL_001e:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
+  IL_0023:  ret
+  IL_0024:  ldarg.0
+  IL_0025:  ldc.i4.1
+  IL_0026:  beq.s      IL_0048
+  IL_0028:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_002d:  dup
+  IL_002e:  brtrue.s   IL_0067
+  IL_0030:  pop
+  IL_0031:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0036:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__3()""
+  IL_003c:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0041:  dup
+  IL_0042:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0047:  ret
+  IL_0048:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0056:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__1()""
+  IL_005c:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0067:  ret
 }
 ");
         }
@@ -267,93 +267,93 @@ class C : I
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size       99 (0x63)
+  // Code size      111 (0x6f)
   .maxstack  2
   .locals init (System.Func<I> V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  bgt.s      IL_0043
+  IL_0003:  bgt.s      IL_004b
   IL_0005:  ldarg.0
   IL_0006:  ldc.i4.m1
-  IL_0007:  beq.s      IL_0026
-  IL_0009:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
+  IL_0007:  beq.s      IL_002a
+  IL_0009:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
   IL_000e:  dup
-  IL_000f:  brtrue.s   IL_0024
+  IL_000f:  brtrue.s   IL_0028
   IL_0011:  pop
-  IL_0012:  ldnull
-  IL_0013:  ldftn      ""I C.<Tester>b__4(object)""
-  IL_0019:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_001e:  dup
-  IL_001f:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
-  IL_0024:  br.s       IL_0041
-  IL_0026:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_002b:  dup
-  IL_002c:  brtrue.s   IL_0041
-  IL_002e:  pop
-  IL_002f:  ldnull
-  IL_0030:  ldftn      ""I C.<Tester>b__2(object)""
-  IL_0036:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_003b:  dup
-  IL_003c:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0041:  br.s       IL_005e
-  IL_0043:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0048:  dup
-  IL_0049:  brtrue.s   IL_005e
-  IL_004b:  pop
-  IL_004c:  ldnull
-  IL_004d:  ldftn      ""I C.<Tester>b__0(object)""
-  IL_0053:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0058:  dup
-  IL_0059:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_005e:  stloc.0
-  IL_005f:  br.s       IL_0061
-  IL_0061:  ldloc.0
-  IL_0062:  ret
+  IL_0012:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0017:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__5()""
+  IL_001d:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0022:  dup
+  IL_0023:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
+  IL_0028:  br.s       IL_0049
+  IL_002a:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_002f:  dup
+  IL_0030:  brtrue.s   IL_0049
+  IL_0032:  pop
+  IL_0033:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0038:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__3()""
+  IL_003e:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0043:  dup
+  IL_0044:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0049:  br.s       IL_006a
+  IL_004b:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0050:  dup
+  IL_0051:  brtrue.s   IL_006a
+  IL_0053:  pop
+  IL_0054:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0059:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__1()""
+  IL_005f:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0064:  dup
+  IL_0065:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_006a:  stloc.0
+  IL_006b:  br.s       IL_006d
+  IL_006d:  ldloc.0
+  IL_006e:  ret
 }
 ");
             verify = CompileAndVerify(src,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size       92 (0x5c)
+  // Code size      104 (0x68)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  bgt.s      IL_0040
+  IL_0002:  bgt.s      IL_0048
   IL_0004:  ldarg.0
   IL_0005:  ldc.i4.m1
-  IL_0006:  beq.s      IL_0024
-  IL_0008:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
+  IL_0006:  beq.s      IL_0028
+  IL_0008:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
   IL_000d:  dup
-  IL_000e:  brtrue.s   IL_005b
+  IL_000e:  brtrue.s   IL_0067
   IL_0010:  pop
-  IL_0011:  ldnull
-  IL_0012:  ldftn      ""I C.<Tester>b__4(object)""
-  IL_0018:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_001d:  dup
-  IL_001e:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
-  IL_0023:  ret
-  IL_0024:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0029:  dup
-  IL_002a:  brtrue.s   IL_005b
-  IL_002c:  pop
-  IL_002d:  ldnull
-  IL_002e:  ldftn      ""I C.<Tester>b__2(object)""
-  IL_0034:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0039:  dup
-  IL_003a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_003f:  ret
-  IL_0040:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0045:  dup
-  IL_0046:  brtrue.s   IL_005b
-  IL_0048:  pop
-  IL_0049:  ldnull
-  IL_004a:  ldftn      ""I C.<Tester>b__0(object)""
-  IL_0050:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0055:  dup
-  IL_0056:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_005b:  ret
+  IL_0011:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0016:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__5()""
+  IL_001c:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0021:  dup
+  IL_0022:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
+  IL_0027:  ret
+  IL_0028:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_002d:  dup
+  IL_002e:  brtrue.s   IL_0067
+  IL_0030:  pop
+  IL_0031:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0036:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__3()""
+  IL_003c:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0041:  dup
+  IL_0042:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0047:  ret
+  IL_0048:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0056:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__1()""
+  IL_005c:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0067:  ret
 }");
         }
 
@@ -396,119 +396,119 @@ class C : I
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size      132 (0x84)
+  // Code size      148 (0x94)
   .maxstack  2
   .locals init (System.Func<I> V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  bgt.s      IL_0043
+  IL_0003:  bgt.s      IL_004b
   IL_0005:  ldarg.0
   IL_0006:  ldc.i4.m1
-  IL_0007:  beq.s      IL_0026
-  IL_0009:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate7""
+  IL_0007:  beq.s      IL_002a
+  IL_0009:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate8""
   IL_000e:  dup
-  IL_000f:  brtrue.s   IL_0024
+  IL_000f:  brtrue.s   IL_0028
   IL_0011:  pop
-  IL_0012:  ldnull
-  IL_0013:  ldftn      ""I C.<Tester>b__6(object)""
-  IL_0019:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_001e:  dup
-  IL_001f:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate7""
-  IL_0024:  br.s       IL_0041
-  IL_0026:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
-  IL_002b:  dup
-  IL_002c:  brtrue.s   IL_0041
-  IL_002e:  pop
-  IL_002f:  ldnull
-  IL_0030:  ldftn      ""I C.<Tester>b__4(object)""
-  IL_0036:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_003b:  dup
-  IL_003c:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
-  IL_0041:  br.s       IL_007f
-  IL_0043:  ldarg.0
-  IL_0044:  ldc.i4.1
-  IL_0045:  beq.s      IL_0064
-  IL_0047:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_004c:  dup
-  IL_004d:  brtrue.s   IL_0062
-  IL_004f:  pop
-  IL_0050:  ldnull
-  IL_0051:  ldftn      ""I C.<Tester>b__2(object)""
-  IL_0057:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_005c:  dup
-  IL_005d:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0062:  br.s       IL_007f
-  IL_0064:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0069:  dup
-  IL_006a:  brtrue.s   IL_007f
-  IL_006c:  pop
-  IL_006d:  ldnull
-  IL_006e:  ldftn      ""I C.<Tester>b__0(object)""
-  IL_0074:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0079:  dup
-  IL_007a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_007f:  stloc.0
-  IL_0080:  br.s       IL_0082
-  IL_0082:  ldloc.0
-  IL_0083:  ret
+  IL_0012:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0017:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__7()""
+  IL_001d:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0022:  dup
+  IL_0023:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate8""
+  IL_0028:  br.s       IL_0049
+  IL_002a:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
+  IL_002f:  dup
+  IL_0030:  brtrue.s   IL_0049
+  IL_0032:  pop
+  IL_0033:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0038:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__5()""
+  IL_003e:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0043:  dup
+  IL_0044:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
+  IL_0049:  br.s       IL_008f
+  IL_004b:  ldarg.0
+  IL_004c:  ldc.i4.1
+  IL_004d:  beq.s      IL_0070
+  IL_004f:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0054:  dup
+  IL_0055:  brtrue.s   IL_006e
+  IL_0057:  pop
+  IL_0058:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_005d:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__3()""
+  IL_0063:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0068:  dup
+  IL_0069:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_006e:  br.s       IL_008f
+  IL_0070:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0075:  dup
+  IL_0076:  brtrue.s   IL_008f
+  IL_0078:  pop
+  IL_0079:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_007e:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__1()""
+  IL_0084:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0089:  dup
+  IL_008a:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_008f:  stloc.0
+  IL_0090:  br.s       IL_0092
+  IL_0092:  ldloc.0
+  IL_0093:  ret
 }
 ");
             verify = CompileAndVerify(src,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size      124 (0x7c)
+  // Code size      140 (0x8c)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  bgt.s      IL_0040
+  IL_0002:  bgt.s      IL_0048
   IL_0004:  ldarg.0
   IL_0005:  ldc.i4.m1
-  IL_0006:  beq.s      IL_0024
-  IL_0008:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate7""
+  IL_0006:  beq.s      IL_0028
+  IL_0008:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate8""
   IL_000d:  dup
-  IL_000e:  brtrue.s   IL_007b
+  IL_000e:  brtrue.s   IL_008b
   IL_0010:  pop
-  IL_0011:  ldnull
-  IL_0012:  ldftn      ""I C.<Tester>b__6(object)""
-  IL_0018:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_001d:  dup
-  IL_001e:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate7""
-  IL_0023:  ret
-  IL_0024:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
-  IL_0029:  dup
-  IL_002a:  brtrue.s   IL_007b
-  IL_002c:  pop
-  IL_002d:  ldnull
-  IL_002e:  ldftn      ""I C.<Tester>b__4(object)""
-  IL_0034:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0039:  dup
-  IL_003a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
-  IL_003f:  ret
-  IL_0040:  ldarg.0
-  IL_0041:  ldc.i4.1
-  IL_0042:  beq.s      IL_0060
-  IL_0044:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0049:  dup
-  IL_004a:  brtrue.s   IL_007b
-  IL_004c:  pop
-  IL_004d:  ldnull
-  IL_004e:  ldftn      ""I C.<Tester>b__2(object)""
-  IL_0054:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0059:  dup
-  IL_005a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_005f:  ret
-  IL_0060:  ldsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_0011:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0016:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__7()""
+  IL_001c:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0021:  dup
+  IL_0022:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate8""
+  IL_0027:  ret
+  IL_0028:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
+  IL_002d:  dup
+  IL_002e:  brtrue.s   IL_008b
+  IL_0030:  pop
+  IL_0031:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0036:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__5()""
+  IL_003c:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0041:  dup
+  IL_0042:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate6""
+  IL_0047:  ret
+  IL_0048:  ldarg.0
+  IL_0049:  ldc.i4.1
+  IL_004a:  beq.s      IL_006c
+  IL_004c:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0051:  dup
+  IL_0052:  brtrue.s   IL_008b
+  IL_0054:  pop
+  IL_0055:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_005a:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__3()""
+  IL_0060:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0065:  dup
-  IL_0066:  brtrue.s   IL_007b
-  IL_0068:  pop
-  IL_0069:  ldnull
-  IL_006a:  ldftn      ""I C.<Tester>b__0(object)""
-  IL_0070:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
-  IL_0075:  dup
-  IL_0076:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_007b:  ret
+  IL_0066:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_006b:  ret
+  IL_006c:  ldsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0071:  dup
+  IL_0072:  brtrue.s   IL_008b
+  IL_0074:  pop
+  IL_0075:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_007a:  ldftn      ""I C.<>c__DisplayClass0.<Tester>b__1()""
+  IL_0080:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
+  IL_0085:  dup
+  IL_0086:  stsfld     ""System.Func<I> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_008b:  ret
 }
 ");
         }
@@ -1009,7 +1009,7 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       85 (0x55)
+  // Code size       93 (0x5d)
   .maxstack  3
   .locals init (System.Func<int, int> V_0) //f
   IL_0000:  ldc.i4.1
@@ -1018,33 +1018,33 @@ class C
   IL_0003:  ldloc.0
   IL_0004:  call       ""void System.Console.WriteLine(object)""
   IL_0009:  dup
-  IL_000a:  brtrue.s   IL_0029
-  IL_000c:  ldsfld     ""System.Func<int, int> C.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_000a:  brtrue.s   IL_002d
+  IL_000c:  ldsfld     ""System.Func<int, int> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0011:  dup
-  IL_0012:  brtrue.s   IL_002a
+  IL_0012:  brtrue.s   IL_002e
   IL_0014:  pop
-  IL_0015:  ldnull
-  IL_0016:  ldftn      ""int C.<Main>b__0(object, int)""
-  IL_001c:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0021:  dup
-  IL_0022:  stsfld     ""System.Func<int, int> C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_0027:  br.s       IL_002a
-  IL_0029:  ldloc.0
-  IL_002a:  call       ""void System.Console.WriteLine(object)""
-  IL_002f:  brtrue.s   IL_0034
-  IL_0031:  ldloc.0
-  IL_0032:  br.s       IL_004f
-  IL_0034:  ldsfld     ""System.Func<int, int> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0039:  dup
-  IL_003a:  brtrue.s   IL_004f
-  IL_003c:  pop
-  IL_003d:  ldnull
-  IL_003e:  ldftn      ""int C.<Main>b__2(object, int)""
-  IL_0044:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0049:  dup
-  IL_004a:  stsfld     ""System.Func<int, int> C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_004f:  call       ""void System.Console.WriteLine(object)""
-  IL_0054:  ret
+  IL_0015:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_001a:  ldftn      ""int C.<>c__DisplayClass0.<Main>b__1(int)""
+  IL_0020:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0025:  dup
+  IL_0026:  stsfld     ""System.Func<int, int> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_002b:  br.s       IL_002e
+  IL_002d:  ldloc.0
+  IL_002e:  call       ""void System.Console.WriteLine(object)""
+  IL_0033:  brtrue.s   IL_0038
+  IL_0035:  ldloc.0
+  IL_0036:  br.s       IL_0057
+  IL_0038:  ldsfld     ""System.Func<int, int> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_003d:  dup
+  IL_003e:  brtrue.s   IL_0057
+  IL_0040:  pop
+  IL_0041:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0046:  ldftn      ""int C.<>c__DisplayClass0.<Main>b__3(int)""
+  IL_004c:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0051:  dup
+  IL_0052:  stsfld     ""System.Func<int, int> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0057:  call       ""void System.Console.WriteLine(object)""
+  IL_005c:  ret
 }
 ");
         }

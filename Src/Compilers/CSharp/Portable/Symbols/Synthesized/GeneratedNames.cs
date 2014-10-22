@@ -129,6 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "CS$<>9__CachedAnonymousMethodDelegate" + uniqueId;
         }
 
+        internal static string MakeCachedFrameInstanceName()
+        {
+            return "CS$<>9__inst";
+        }
+
         internal static string MakeSynthesizedLocalName(SynthesizedLocalKind kind, ref int uniqueId)
         {
             Debug.Assert(kind.IsLongLived());

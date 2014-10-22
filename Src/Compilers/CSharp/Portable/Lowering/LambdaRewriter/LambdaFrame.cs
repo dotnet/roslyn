@@ -16,21 +16,41 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly MethodSymbol topLevelMethod;
         private readonly MethodSymbol constructor;
-        internal readonly CSharpSyntaxNode ScopeSyntax;
+        private readonly MethodSymbol staticConstructor;
+        private readonly FieldSymbol singletonCache;
+        internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
 
-        internal LambdaFrame(TypeCompilationState compilationState, MethodSymbol topLevelMethod, CSharpSyntaxNode scopeSyntax)
+        internal LambdaFrame(TypeCompilationState compilationState, MethodSymbol topLevelMethod, CSharpSyntaxNode scopeSyntax, bool isStatic)
             : base(GeneratedNames.MakeLambdaDisplayClassName(compilationState.GenerateTempNumber()), topLevelMethod)
         {
-            AssertIsLambdaScopeSyntax(scopeSyntax);
-
             this.topLevelMethod = topLevelMethod;
             this.constructor = new LambdaFrameConstructor(this);
-            this.ScopeSyntax = scopeSyntax;
+
+            // static lambdas technically have the class scope so the scope syntax is null 
+            if (isStatic)
+            {
+                this.staticConstructor = new SynthesizedStaticConstructor(this);
+                var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceName();
+                singletonCache = new SynthesizedFieldSymbol(this, this, cacheVariableName, isPublic: true, isStatic: true, isReadOnly: true);
+                this.ScopeSyntaxOpt = null;
+            }
+            else
+            {
+                this.ScopeSyntaxOpt = scopeSyntax;
+            }
+
+            AssertIsLambdaScopeSyntax(this.ScopeSyntaxOpt);
         }
 
         [Conditional("DEBUG")]
         private static void AssertIsLambdaScopeSyntax(CSharpSyntaxNode syntax)
         {
+            // static lambdas technically have the class scope so the scope syntax is null 
+            if (syntax == null)
+            {
+                return;
+            }
+
             // block:
             if (syntax.IsKind(SyntaxKind.Block))
             {
@@ -135,6 +155,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override MethodSymbol Constructor
         {
             get { return this.constructor; }
+        }
+
+        internal MethodSymbol StaticConstructor
+        {
+            get { return this.staticConstructor; }
+        }
+
+        public override ImmutableArray<Symbol> GetMembers()
+        {
+            var members = base.GetMembers();
+            if ((object)this.staticConstructor != null)
+            {
+                members = ImmutableArray.Create<Symbol>(this.staticConstructor, this.singletonCache).AddRange(members);
+            }
+
+            return members;
+        }
+
+        internal FieldSymbol SingletonCache
+        {
+            get { return this.singletonCache; }
         }
 
         public override Symbol ContainingSymbol

@@ -535,19 +535,19 @@ class C
 ";
             string expectedIL = @"
 {
-  // Code size       33 (0x21)
+  // Code size       37 (0x25)
   .maxstack  2
-  IL_0000:  ldsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_0000:  ldsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
+  IL_0006:  brtrue.s   IL_001f
   IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""int C.<Main>b__0(object, int)""
-  IL_0010:  newobj     ""del..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_001b:  call       ""void System.Console.WriteLine(object)""
-  IL_0020:  ret
+  IL_0009:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_000e:  ldftn      ""int C.<>c__DisplayClass0.<Main>b__1(int)""
+  IL_0014:  newobj     ""del..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001f:  call       ""void System.Console.WriteLine(object)""
+  IL_0024:  ret
 }
 ";
             CompileAndVerify(text).
@@ -586,29 +586,29 @@ class C
 ";
             string expectedIL = @"
 {
-  // Code size       65 (0x41)
+  // Code size       73 (0x49)
   .maxstack  2
-  IL_0000:  ldsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate1""
+  IL_0000:  ldsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
+  IL_0006:  brtrue.s   IL_001f
   IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""int C.<Main>b__0(object, int)""
-  IL_0010:  newobj     ""del..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate1""
-  IL_001b:  call       ""void System.Console.WriteLine(object)""
-  IL_0020:  ldsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_0025:  dup
-  IL_0026:  brtrue.s   IL_003b
-  IL_0028:  pop
-  IL_0029:  ldnull
-  IL_002a:  ldftn      ""int C.<Main>b__2(object, int)""
-  IL_0030:  newobj     ""del..ctor(object, System.IntPtr)""
-  IL_0035:  dup
-  IL_0036:  stsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate3""
-  IL_003b:  call       ""void System.Console.WriteLine(object)""
-  IL_0040:  ret
+  IL_0009:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_000e:  ldftn      ""int C.<>c__DisplayClass0.<Main>b__1(int)""
+  IL_0014:  newobj     ""del..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001f:  call       ""void System.Console.WriteLine(object)""
+  IL_0024:  ldsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
+  IL_0032:  ldftn      ""int C.<>c__DisplayClass0.<Main>b__3(int)""
+  IL_0038:  newobj     ""del..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0043:  call       ""void System.Console.WriteLine(object)""
+  IL_0048:  ret
 }
 ";
             CompileAndVerify(text).

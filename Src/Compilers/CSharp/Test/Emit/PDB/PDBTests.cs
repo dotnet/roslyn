@@ -271,8 +271,7 @@ class C
     };
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <methods>
     <method containingType=""C"" name="".cctor"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
@@ -284,11 +283,20 @@ class C
         <entry il_offset=""0x0"" start_row=""4"" start_column=""5"" end_row=""9"" end_column=""7"" file_ref=""0"" />
       </sequencepoints>
       <locals />
-      <scope startOffset=""0x0"" endOffset=""0x12"">
+      <scope startOffset=""0x0"" endOffset=""0x16"">
         <namespace name=""System"" />
       </scope>
     </method>
-    <method containingType=""C"" name=""&lt;.cctor&gt;b__1"" parameterNames=""x"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.cctor&gt;b__6"" parameterNames=""y"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""66"" end_row=""7"" end_column=""70"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;.cctor&gt;b__2"" parameterNames=""x"">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
@@ -300,20 +308,20 @@ class C
       <sequencepoints total=""5"">
         <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0x1d"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""71"" file_ref=""0"" />
-        <entry il_offset=""0x39"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x49"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x21"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""71"" file_ref=""0"" />
+        <entry il_offset=""0x41"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x51"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""f"" il_index=""0"" il_start=""0x0"" il_end=""0x4b"" attributes=""0"" />
-        <local name=""g"" il_index=""1"" il_start=""0x0"" il_end=""0x4b"" attributes=""0"" />
+        <local name=""f"" il_index=""0"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
+        <local name=""g"" il_index=""1"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x4b"">
-        <local name=""f"" il_index=""0"" il_start=""0x0"" il_end=""0x4b"" attributes=""0"" />
-        <local name=""g"" il_index=""1"" il_start=""0x0"" il_end=""0x4b"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x53"">
+        <local name=""f"" il_index=""0"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
+        <local name=""g"" il_index=""1"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""C"" name=""&lt;.cctor&gt;b__2"" parameterNames=""o"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;.cctor&gt;b__3"" parameterNames=""o"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
@@ -322,7 +330,7 @@ class C
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""C"" name=""&lt;.cctor&gt;b__4"" parameterNames=""h"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;.cctor&gt;b__5"" parameterNames=""h"">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
@@ -340,15 +348,6 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x1e"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
       </scope>
-    </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.cctor&gt;b__5"" parameterNames=""y"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
-      </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""66"" end_row=""7"" end_column=""70"" file_ref=""0"" />
-      </sequencepoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1611,8 +1610,7 @@ class C
 ";
 
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <methods>
     <method containingType=""C"" name=""Main"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
@@ -1626,18 +1624,18 @@ class C
       <sequencepoints total=""4"">
         <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0x1d"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""13"" file_ref=""0"" />
-        <entry il_offset=""0x24"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x21"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""13"" file_ref=""0"" />
+        <entry il_offset=""0x28"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x25"" attributes=""0"" />
+        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x25"">
+      <scope startOffset=""0x0"" endOffset=""0x29"">
         <namespace name=""System"" />
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x25"" attributes=""0"" />
+        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""C"" name=""&lt;Main&gt;b__0"" parameterNames="""">
+    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;Main&gt;b__1"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -2115,18 +2113,8 @@ class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <methods>
-    <method containingType=""C"" name=""&lt;.ctor&gt;b__0"" parameterNames=""z"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
-      </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""4"" start_column=""43"" end_row=""4"" end_column=""44"" file_ref=""0"" />
-      </sequencepoints>
-      <locals />
-    </method>
     <method containingType=""C"" name="".ctor"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
@@ -2135,6 +2123,15 @@ class C
       </customDebugInfo>
       <sequencepoints total=""1"">
         <entry il_offset=""0x0"" start_row=""4"" start_column=""5"" end_row=""4"" end_column=""50"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.ctor&gt;b__1"" parameterNames=""z"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""43"" end_row=""4"" end_column=""44"" file_ref=""0"" />
       </sequencepoints>
       <locals />
     </method>

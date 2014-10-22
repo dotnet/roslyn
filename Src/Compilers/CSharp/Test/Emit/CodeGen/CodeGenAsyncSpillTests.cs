@@ -2839,7 +2839,7 @@ class C
                     "<x>5__1",
                     "<>7__wrap1",
                     "<>7__wrap2",
-                    "<>u__$awaiter4",
+                    "<>u__$awaiter5",
                     "<>7__wrap3",
                 }, module.GetFieldNames("C.<F2>d__1"));
             });

@@ -57,6 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Analysis analysis;
         private readonly MethodSymbol topLevelMethod;
 
+        // lambda frame for static lambdas. 
+        // initialized lazily and could be null if there are no static lambdas
+        private LambdaFrame lazyStaticLambdaFrame;
+
         // A mapping from every lambda parameter to its corresponding method's parameter.
         private readonly Dictionary<ParameterSymbol, ParameterSymbol> parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
 
@@ -240,17 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                LambdaFrame frame;
-                if (!frames.TryGetValue(node, out frame))
-                {
-                    frame = new LambdaFrame(CompilationState, topLevelMethod, node.Syntax);
-                    frames.Add(node, frame);
-
-                    if (CompilationState.Emitting)
-                    {
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, frame);
-                    }
-                }
+                LambdaFrame frame = GetFrameForScope(node);
 
                 var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref synthesizedFieldNameIdDispenser);
                 proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
@@ -268,6 +262,86 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private LambdaFrame GetFrameForScope(BoundNode scope)
+        {
+            LambdaFrame frame;
+            if (!frames.TryGetValue(scope, out frame))
+            {
+                frame = new LambdaFrame(CompilationState, topLevelMethod, scope.Syntax, isStatic: false);
+                frames.Add(scope, frame);
+
+                if (CompilationState.Emitting)
+                {
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
+                    CompilationState.AddSynthesizedMethod(
+                        frame.Constructor, 
+                        FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null), 
+                        frame.Constructor));
+                }
+            }
+
+            return frame;
+        }
+
+        private LambdaFrame GetStaticFrame(DiagnosticBag diagnostics, BoundNode lambda)
+        {
+            if (this.lazyStaticLambdaFrame == null)
+            {
+                var isNonGeneric = !topLevelMethod.IsGenericMethod;
+                if (isNonGeneric)
+                {
+                    this.lazyStaticLambdaFrame = CompilationState.staticLambdaFrame;
+                }
+
+                if(this.lazyStaticLambdaFrame == null)
+                {
+                    // associate the frame with the the first lambda that caused it to exist. 
+                    // we need to associate this with somme syntax.
+                    // unfortunately either containing method or containing class could be synthetic
+                    // therefore could have no syntax.
+                    CSharpSyntaxNode syntax = lambda.Syntax;
+
+                    this.lazyStaticLambdaFrame = new LambdaFrame(CompilationState, topLevelMethod, syntax, isStatic: true);
+
+                    // nongeneric static lambdas can share the frame
+                    // as long as we do not do EnC
+                    if (isNonGeneric && !CompilationState.Compilation.Options.EnableEditAndContinue)
+                    {
+                        CompilationState.staticLambdaFrame = this.lazyStaticLambdaFrame;
+                    }
+
+
+                    if (CompilationState.Emitting)
+                    {
+                        var frame = this.lazyStaticLambdaFrame;
+                        
+                        // add frame type
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
+
+                        // add its ctor
+                        CompilationState.AddSynthesizedMethod(
+                            frame.Constructor, 
+                            FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                            frame.Constructor));
+
+                        // add cctor
+                        // Frame.inst = new Frame()
+                        var F = new SyntheticBoundNodeFactory(frame.StaticConstructor, syntax, CompilationState, diagnostics);
+                        var body = F.Block(
+                                F.Assignment(
+                                    F.Field(null, frame.SingletonCache),
+                                    F.New(frame.Constructor)),
+                                F.Return()); 
+
+                        CompilationState.AddSynthesizedMethod(frame.StaticConstructor, body);
+                    }
+                }
+
+            }
+
+            return this.lazyStaticLambdaFrame;
         }
 
         /// <summary>
@@ -336,12 +410,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
         {
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(StaticCast<TypeSymbol>.From(currentTypeParameters));
-            LocalSymbol framePointer = new SynthesizedLocal(this.topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntax);
+            LocalSymbol framePointer = new SynthesizedLocal(this.topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntaxOpt);
 
             CSharpSyntaxNode syntax = node.Syntax;
 
             // assign new frame to the frame variable
-            CompilationState.AddSynthesizedMethod(frame.Constructor, FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null), frame.Constructor));
 
             var prologue = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -811,9 +884,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol translatedLambdaContainer;
             BoundNode lambdaScope = null;
+            bool lambdaIsStatic = analysis.capturedVariablesByLambda[node.Symbol].IsEmpty();
+
             if (analysis.lambdaScopes.TryGetValue(node.Symbol, out lambdaScope))
             {
                 translatedLambdaContainer = frames[lambdaScope];
+            }
+            else if (lambdaIsStatic)
+            {
+                translatedLambdaContainer = GetStaticFrame(Diagnostics, node);
             }
             else
             {
@@ -821,8 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.
-            bool lambdaIsStatic = analysis.capturedVariablesByLambda[node.Symbol].IsEmpty();
-            var synthesizedMethod = new SynthesizedLambdaMethod(translatedLambdaContainer, topLevelMethod, node, lambdaIsStatic, CompilationState);
+            var synthesizedMethod = new SynthesizedLambdaMethod(translatedLambdaContainer, topLevelMethod, node, CompilationState);
             if (CompilationState.Emitting)
             {
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
@@ -830,14 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameter in node.Symbol.Parameters)
             {
-                var ordinal = parameter.Ordinal;
-                if (lambdaIsStatic)
-                {
-                    // adjust for a dummy "this" parameter at the beginning of synthesized method signature
-                    ordinal++;
-                }
-
-                parameterMap.Add(parameter, synthesizedMethod.Parameters[ordinal]);
+                parameterMap.Add(parameter, synthesizedMethod.Parameters[parameter.Ordinal]);
             }
 
             // rewrite the lambda body as the generated method's body
@@ -892,27 +963,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             addedStatements = oldAddedStatements;
 
             // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
-            NamedTypeSymbol constructedFrame = (translatedLambdaContainer is LambdaFrame) ? translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(currentTypeParameters)) : translatedLambdaContainer;
+            var containerAsFrame = translatedLambdaContainer as LambdaFrame;
+            NamedTypeSymbol constructedFrame = (object)containerAsFrame != null ? 
+                translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(currentTypeParameters)) : 
+                translatedLambdaContainer;
 
             // for instance lambdas, receiver is the frame
-            // for static lambdas, just use null to match the first (dummy) parameter of the synthetic method
-            BoundExpression receiver = lambdaIsStatic ? 
-                new BoundLiteral(node.Syntax, ConstantValue.Null, synthesizedMethod.Parameters[0].Type) : 
-                FrameOfType(node.Syntax, constructedFrame);
+            // for static lambdas, get the singleton receiver 
+            BoundExpression receiver;
+            if (!lambdaIsStatic)
+            {
+                receiver = FrameOfType(node.Syntax, constructedFrame);
+            }
+            else
+            {
+                var field = containerAsFrame.SingletonCache.AsMember(constructedFrame);
+                receiver = new BoundFieldAccess(node.Syntax, null, field, constantValueOpt: null);
+            }
 
             MethodSymbol referencedMethod = synthesizedMethod.AsMember(constructedFrame);
             if (referencedMethod.IsGenericMethod) referencedMethod = referencedMethod.Construct(StaticCast<TypeSymbol>.From(currentTypeParameters));
             TypeSymbol type = this.VisitType(node.Type);
 
-            // static lambdas are emitted as extension methods off a "null" receiver
-            // receiver is not used by the lambda method, but since 
-            // invoke dispatch does not need to adgust the signature for the missing "this"
-            // the invocation is considerably cheaper to do.
+            // static lambdas are emitted as instance methods on a singleton receiver
+            // delegates invoke dispatch is optimized for instance delegates so 
+            // it is preferrable to emit lambdas as instance methods even when lambdas 
+            // do not capture anything
             BoundExpression result = new BoundDelegateCreationExpression(
                 node.Syntax,
                 receiver,
                 referencedMethod,
-                isExtensionMethod: lambdaIsStatic,
+                isExtensionMethod: false,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,
@@ -931,16 +1012,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (shouldCacheForStaticMethod || shouldCacheInLoop)
             {
 
-                // replace the expression "new Delegate(frame.M)" with "(frame.cache == null) ? (frame.cache = new Delegate(frame.M)) : frame.cache"
+                // replace the expression "new Delegate(frame.M)" with "frame.cache ?? (frame.cache = new Delegate(frame.M));
                 var F = new SyntheticBoundNodeFactory(currentMethod, node.Syntax, CompilationState, Diagnostics);
                 try
                 {
                     BoundExpression cacheVariable;
-                    if (shouldCacheForStaticMethod || shouldCacheInLoop && translatedLambdaContainer is LambdaFrame)
+                    if (shouldCacheForStaticMethod || shouldCacheInLoop && (object)containerAsFrame != null)
                     {
-                        var cacheVariableType = lambdaIsStatic ? type : (translatedLambdaContainer as LambdaFrame).TypeMap.SubstituteType(type);
+                        var cacheVariableType = containerAsFrame?
+                            .TypeMap.SubstituteType(type) ?? 
+                            translatedLambdaContainer;
+
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(CompilationState.GenerateTempNumber());
-                        var cacheField = new SynthesizedFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, isPublic: !lambdaIsStatic, isStatic: lambdaIsStatic);
+                        var cacheField = new SynthesizedFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, isPublic: true, isStatic: lambdaIsStatic);
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
                         cacheVariable = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
                     }

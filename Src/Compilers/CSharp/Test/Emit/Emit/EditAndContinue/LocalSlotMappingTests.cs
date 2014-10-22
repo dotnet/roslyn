@@ -2786,7 +2786,7 @@ class C(int x) : B(var b = 2)
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var v0 = CompileAndVerify(compilation0);
-            v0.VerifyIL("C.<M>b__0", @"
+            v0.VerifyIL("C.<>c__DisplayClass0.<M>b__1()", @"
 {
   // Code size       36 (0x24)
   .maxstack  2
