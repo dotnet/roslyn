@@ -88,9 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add a field: T current
             currentField = F.StateMachineField(elementType, GeneratedNames.MakeIteratorCurrentBackingFieldName(), isPublic: false);
 
-            // if it is an iterable, add a field: int initialThreadId
-            var threadType = F.Compilation.GetWellKnownType(WellKnownType.System_Threading_Thread);
-            initialThreadIdField = isEnumerable && (object)threadType != null && !threadType.IsErrorType()
+            // if it is an enumerable, and either Environment.CurrentManagedThreadId or System.Thread are available
+            // add a field: int initialThreadId
+            bool addInitialThreadId =
+                   isEnumerable &&
+                   ((object)F.WellKnownMember(WellKnownMember.System_Threading_Thread__ManagedThreadId, isOptional: true) != null ||
+                    (object)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true) != null);
+
+            initialThreadIdField = addInitialThreadId
                 ? F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeIteratorCurrentThreadIdName(), isPublic: false)
                 : null;
         }

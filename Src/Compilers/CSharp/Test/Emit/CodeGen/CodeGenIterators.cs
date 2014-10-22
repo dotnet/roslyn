@@ -2010,6 +2010,39 @@ class Program
         }
 
         [Fact]
+        [WorkItem(703361, "DevDiv")]
+        public void VerifyHelpers001()
+        {
+            var source =
+                @"
+using System.Collections.Generic;
+
+class Program
+{
+    public static IEnumerable<int> Foo()
+    {
+        yield return 1;
+    }
+}
+
+namespace System
+{
+    class Environment
+    {
+        public static int CurrentManagedThreadId{get{return 1;}}
+    }
+}
+
+";
+            var parsed = new[] { Parse(source) };
+            var comp = CreateCompilationWithMscorlib(parsed);
+            comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
+            var verifier = this.CompileAndVerify(comp);
+            var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
+            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il);
+        }
+
+        [Fact]
         public void UnreachableExit()
         {
             var source =
