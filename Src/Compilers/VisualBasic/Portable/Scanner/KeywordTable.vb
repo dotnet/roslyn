@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.OperatorPrecedence
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class KeywordTable
+
         Shared Sub New()
 
             '// Note: "CanFollowExpr" says whether this token can come after an expression.
@@ -11,246 +12,255 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             '// The complete list was discovered through the tool in vb\Language\Tools\VBGrammarAnalyzer\vbgrammar.html
             '// If you add keywords, then make sure that they're added to the official language grammar, and re-run the tool.
 
+            Const New7to8 As UShort = 1US << 8
+            Const QueryClause As UShort = 1US << 9
+            Const CanFollowExpr As UShort = 1US << 10
+            Const None As UShort = 0US
+
             '// Kind  New7to8 Precedence QueryClause CanFollowExpr
-            AddKeyword(SyntaxKind.AddHandlerKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.AddressOfKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.AliasKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.AndKeyword, 0, PrecedenceAnd, 0, 1)
-            AddKeyword(SyntaxKind.AndAlsoKeyword, 0, PrecedenceAnd, 0, 1)
-            AddKeyword(SyntaxKind.AsKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.BooleanKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ByRefKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ByteKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ByValKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CallKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CaseKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CatchKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CBoolKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CByteKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CCharKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CDateKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CDecKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CDblKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CharKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CIntKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ClassKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CLngKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CObjKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ConstKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ContinueKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.CSByteKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.CShortKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CSngKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CStrKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CTypeKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CUIntKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.CULngKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.CUShortKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.DateKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DecimalKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DeclareKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DefaultKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DelegateKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DimKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DirectCastKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DoKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DoubleKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.EachKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ElseKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.ElseIfKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.EndKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.EnumKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.EraseKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ErrorKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.EventKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ExitKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.FalseKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.FinallyKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ForKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.FriendKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.FunctionKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.GetKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.GetTypeKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.GetXmlNamespaceKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.GlobalKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.GoToKeyword, 0, 0, 0, 0)
+            Dim keywordInitData As UShort() = New UShort() {
+                SyntaxKind.AddHandlerKeyword, None,
+                SyntaxKind.AddressOfKeyword, None,
+                SyntaxKind.AliasKeyword, None,
+                SyntaxKind.AndKeyword, PrecedenceAnd Or CanFollowExpr,
+                SyntaxKind.AndAlsoKeyword, PrecedenceAnd Or CanFollowExpr,
+                SyntaxKind.AsKeyword, None,
+                SyntaxKind.BooleanKeyword, None,
+                SyntaxKind.ByRefKeyword, None,
+                SyntaxKind.ByteKeyword, None,
+                SyntaxKind.ByValKeyword, None,
+                SyntaxKind.CallKeyword, None,
+                SyntaxKind.CaseKeyword, None,
+                SyntaxKind.CatchKeyword, None,
+                SyntaxKind.CBoolKeyword, None,
+                SyntaxKind.CByteKeyword, None,
+                SyntaxKind.CCharKeyword, None,
+                SyntaxKind.CDateKeyword, None,
+                SyntaxKind.CDecKeyword, None,
+                SyntaxKind.CDblKeyword, None,
+                SyntaxKind.CharKeyword, None,
+                SyntaxKind.CIntKeyword, None,
+                SyntaxKind.ClassKeyword, None,
+                SyntaxKind.CLngKeyword, None,
+                SyntaxKind.CObjKeyword, None,
+                SyntaxKind.ConstKeyword, None,
+                SyntaxKind.ContinueKeyword, New7to8,
+                SyntaxKind.CSByteKeyword, New7to8,
+                SyntaxKind.CShortKeyword, None,
+                SyntaxKind.CSngKeyword, None,
+                SyntaxKind.CStrKeyword, None,
+                SyntaxKind.CTypeKeyword, None,
+                SyntaxKind.CUIntKeyword, New7to8,
+                SyntaxKind.CULngKeyword, New7to8,
+                SyntaxKind.CUShortKeyword, New7to8,
+                SyntaxKind.DateKeyword, None,
+                SyntaxKind.DecimalKeyword, None,
+                SyntaxKind.DeclareKeyword, None,
+                SyntaxKind.DefaultKeyword, None,
+                SyntaxKind.DelegateKeyword, None,
+                SyntaxKind.DimKeyword, None,
+                SyntaxKind.DirectCastKeyword, None,
+                SyntaxKind.DoKeyword, None,
+                SyntaxKind.DoubleKeyword, None,
+                SyntaxKind.EachKeyword, None,
+                SyntaxKind.ElseKeyword, CanFollowExpr,
+                SyntaxKind.ElseIfKeyword, None,
+                SyntaxKind.EndKeyword, None,
+                SyntaxKind.EnumKeyword, None,
+                SyntaxKind.EraseKeyword, None,
+                SyntaxKind.ErrorKeyword, None,
+                SyntaxKind.EventKeyword, None,
+                SyntaxKind.ExitKeyword, None,
+                SyntaxKind.FalseKeyword, None,
+                SyntaxKind.FinallyKeyword, None,
+                SyntaxKind.ForKeyword, None,
+                SyntaxKind.FriendKeyword, None,
+                SyntaxKind.FunctionKeyword, None,
+                SyntaxKind.GetKeyword, None,
+                SyntaxKind.GetTypeKeyword, None,
+                SyntaxKind.GetXmlNamespaceKeyword, None,
+                SyntaxKind.GlobalKeyword, New7to8,
+                SyntaxKind.GoToKeyword, None,
+                SyntaxKind.HandlesKeyword, None,
+                SyntaxKind.IfKeyword, None,
+                SyntaxKind.ImplementsKeyword, CanFollowExpr,
+                SyntaxKind.ImportsKeyword, None,
+                SyntaxKind.InKeyword, CanFollowExpr,
+                SyntaxKind.InheritsKeyword, None,
+                SyntaxKind.IntegerKeyword, None,
+                SyntaxKind.InterfaceKeyword, None,
+                SyntaxKind.IsKeyword, PrecedenceRelational Or CanFollowExpr,
+                SyntaxKind.IsNotKeyword, PrecedenceRelational Or New7to8 Or CanFollowExpr,
+                SyntaxKind.LetKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.LibKeyword, None,
+                SyntaxKind.LikeKeyword, PrecedenceRelational Or CanFollowExpr,
+                SyntaxKind.LongKeyword, None,
+                SyntaxKind.LoopKeyword, None,
+                SyntaxKind.MeKeyword, None,
+                SyntaxKind.ModKeyword, PrecedenceModulus Or CanFollowExpr,
+                SyntaxKind.ModuleKeyword, None,
+                SyntaxKind.MustInheritKeyword, None,
+                SyntaxKind.MustOverrideKeyword, None,
+                SyntaxKind.MyBaseKeyword, None,
+                SyntaxKind.MyClassKeyword, None,
+                SyntaxKind.NameOfKeyword, None,
+                SyntaxKind.NamespaceKeyword, None,
+                SyntaxKind.NarrowingKeyword, New7to8,
+                SyntaxKind.NextKeyword, None,
+                SyntaxKind.NewKeyword, None,
+                SyntaxKind.NotKeyword, PrecedenceNot,
+                SyntaxKind.NothingKeyword, None,
+                SyntaxKind.NotInheritableKeyword, None,
+                SyntaxKind.NotOverridableKeyword, None,
+                SyntaxKind.ObjectKeyword, None,
+                SyntaxKind.OfKeyword, New7to8,
+                SyntaxKind.OnKeyword, CanFollowExpr,
+                SyntaxKind.OperatorKeyword, New7to8,
+                SyntaxKind.OptionKeyword, None,
+                SyntaxKind.OptionalKeyword, None,
+                SyntaxKind.OrKeyword, PrecedenceOr Or CanFollowExpr,
+                SyntaxKind.OrElseKeyword, PrecedenceOr Or CanFollowExpr,
+                SyntaxKind.OverloadsKeyword, None,
+                SyntaxKind.OverridableKeyword, None,
+                SyntaxKind.OverridesKeyword, None,
+                SyntaxKind.ParamArrayKeyword, None,
+                SyntaxKind.PartialKeyword, New7to8,
+                SyntaxKind.PrivateKeyword, None,
+                SyntaxKind.PropertyKeyword, None,
+                SyntaxKind.ProtectedKeyword, None,
+                SyntaxKind.PublicKeyword, None,
+                SyntaxKind.RaiseEventKeyword, None,
+                SyntaxKind.ReadOnlyKeyword, None,
+                SyntaxKind.ReDimKeyword, None,
+                SyntaxKind.REMKeyword, CanFollowExpr,
+                SyntaxKind.RemoveHandlerKeyword, None,
+                SyntaxKind.ResumeKeyword, None,
+                SyntaxKind.ReturnKeyword, None,
+                SyntaxKind.SByteKeyword, New7to8,
+                SyntaxKind.SelectKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.SetKeyword, None,
+                SyntaxKind.ShadowsKeyword, None,
+                SyntaxKind.SharedKeyword, None,
+                SyntaxKind.ShortKeyword, None,
+                SyntaxKind.SingleKeyword, None,
+                SyntaxKind.StaticKeyword, None,
+                SyntaxKind.StepKeyword, CanFollowExpr,
+                SyntaxKind.StopKeyword, None,
+                SyntaxKind.StringKeyword, None,
+                SyntaxKind.StructureKeyword, None,
+                SyntaxKind.SubKeyword, None,
+                SyntaxKind.SyncLockKeyword, None,
+                SyntaxKind.ThenKeyword, CanFollowExpr,
+                SyntaxKind.ThrowKeyword, None,
+                SyntaxKind.ToKeyword, CanFollowExpr,
+                SyntaxKind.TrueKeyword, None,
+                SyntaxKind.TryKeyword, None,
+                SyntaxKind.TryCastKeyword, New7to8,
+                SyntaxKind.TypeOfKeyword, None,
+                SyntaxKind.UIntegerKeyword, New7to8,
+                SyntaxKind.ULongKeyword, New7to8,
+                SyntaxKind.UShortKeyword, New7to8,
+                SyntaxKind.UsingKeyword, New7to8,
+                SyntaxKind.WhenKeyword, None,
+                SyntaxKind.WhileKeyword, None,
+                SyntaxKind.WideningKeyword, New7to8,
+                SyntaxKind.WithKeyword, None,
+                SyntaxKind.WithEventsKeyword, None,
+                SyntaxKind.WriteOnlyKeyword, None,
+                SyntaxKind.XorKeyword, PrecedenceXor Or CanFollowExpr,
+                SyntaxKind.AggregateKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.AllKeyword, None,
+                SyntaxKind.AnsiKeyword, None,
+                SyntaxKind.AscendingKeyword, CanFollowExpr,
+                SyntaxKind.AssemblyKeyword, None,
+                SyntaxKind.AutoKeyword, None,
+                SyntaxKind.BinaryKeyword, None,
+                SyntaxKind.ByKeyword, CanFollowExpr,
+                SyntaxKind.CompareKeyword, None,
+                SyntaxKind.CustomKeyword, None,
+                SyntaxKind.DescendingKeyword, CanFollowExpr,
+                SyntaxKind.DisableKeyword, None,
+                SyntaxKind.DistinctKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.EnableKeyword, None,
+                SyntaxKind.EqualsKeyword, CanFollowExpr,
+                SyntaxKind.ExplicitKeyword, None,
+                SyntaxKind.ExternalSourceKeyword, None,
+                SyntaxKind.ExternalChecksumKeyword, None,
+                SyntaxKind.FromKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.GroupKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.InferKeyword, None,
+                SyntaxKind.IntoKeyword, CanFollowExpr,
+                SyntaxKind.IsFalseKeyword, None,
+                SyntaxKind.IsTrueKeyword, None,
+                SyntaxKind.JoinKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.KeyKeyword, None,
+                SyntaxKind.MidKeyword, None,
+                SyntaxKind.OffKeyword, None,
+                SyntaxKind.OrderKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.OutKeyword, None,
+                SyntaxKind.PreserveKeyword, None,
+                SyntaxKind.RegionKeyword, None,
+                SyntaxKind.SkipKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.StrictKeyword, None,
+                SyntaxKind.TextKeyword, None,
+                SyntaxKind.TakeKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.UnicodeKeyword, None,
+                SyntaxKind.UntilKeyword, None,
+                SyntaxKind.WarningKeyword, None,
+                SyntaxKind.WhereKeyword, QueryClause Or CanFollowExpr,
+                SyntaxKind.AsyncKeyword, None,
+                SyntaxKind.AwaitKeyword, PrecedenceAwait,
+                SyntaxKind.IteratorKeyword, None,
+                SyntaxKind.YieldKeyword, None,
+                SyntaxKind.EndIfKeyword, None,
+                SyntaxKind.GosubKeyword, None,
+                SyntaxKind.TypeKeyword, None,
+                SyntaxKind.VariantKeyword, None,
+                SyntaxKind.WendKeyword, None,
+                SyntaxKind.CommaToken, CanFollowExpr,
+                SyntaxKind.AmpersandToken, PrecedenceConcatenate Or CanFollowExpr,
+                SyntaxKind.SingleQuoteToken, None,
+                SyntaxKind.OpenParenToken, CanFollowExpr,
+                SyntaxKind.CloseParenToken, CanFollowExpr,
+                SyntaxKind.OpenBraceToken, None,
+                SyntaxKind.CloseBraceToken, CanFollowExpr,
+                SyntaxKind.AsteriskToken, PrecedenceMultiply Or CanFollowExpr,
+                SyntaxKind.PlusToken, PrecedenceAdd Or CanFollowExpr,
+                SyntaxKind.MinusToken, PrecedenceAdd Or CanFollowExpr,
+                SyntaxKind.SlashToken, PrecedenceMultiply Or CanFollowExpr,
+                SyntaxKind.LessThanToken, PrecedenceRelational Or CanFollowExpr,
+                SyntaxKind.LessThanEqualsToken, PrecedenceRelational Or CanFollowExpr,
+                SyntaxKind.LessThanGreaterThanToken, PrecedenceRelational Or CanFollowExpr,
+                SyntaxKind.EqualsToken, PrecedenceRelational Or CanFollowExpr,
+                SyntaxKind.GreaterThanToken, PrecedenceRelational Or CanFollowExpr,
+                SyntaxKind.GreaterThanEqualsToken, PrecedenceRelational,
+                SyntaxKind.BackslashToken, PrecedenceIntegerDivide Or CanFollowExpr,
+                SyntaxKind.CaretToken, PrecedenceExponentiate Or CanFollowExpr,
+                SyntaxKind.ColonEqualsToken, None,
+                SyntaxKind.AmpersandEqualsToken, PrecedenceConcatenate,
+                SyntaxKind.AsteriskEqualsToken, PrecedenceMultiply,
+                SyntaxKind.PlusEqualsToken, PrecedenceAdd,
+                SyntaxKind.MinusEqualsToken, PrecedenceAdd,
+                SyntaxKind.SlashEqualsToken, PrecedenceMultiply,
+                SyntaxKind.BackslashEqualsToken, PrecedenceIntegerDivide,
+                SyntaxKind.CaretEqualsToken, PrecedenceExponentiate,
+                SyntaxKind.LessThanLessThanToken, PrecedenceShift,
+                SyntaxKind.GreaterThanGreaterThanToken, PrecedenceShift,
+                SyntaxKind.LessThanLessThanEqualsToken, PrecedenceShift,
+                SyntaxKind.GreaterThanGreaterThanEqualsToken, PrecedenceShift,
+                SyntaxKind.PercentGreaterThanToken, CanFollowExpr
+                }
 
-            AddKeyword(SyntaxKind.HandlesKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.IfKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ImplementsKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.ImportsKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.InKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.InheritsKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.IntegerKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.InterfaceKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.IsKeyword, 0, PrecedenceRelational, 0, 1)
-            AddKeyword(SyntaxKind.IsNotKeyword, 1, PrecedenceRelational, 0, 1)
-            AddKeyword(SyntaxKind.LetKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.LibKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.LikeKeyword, 0, PrecedenceRelational, 0, 1)
-            AddKeyword(SyntaxKind.LongKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.LoopKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.MeKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ModKeyword, 0, PrecedenceModulus, 0, 1)
-            AddKeyword(SyntaxKind.ModuleKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.MustInheritKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.MustOverrideKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.MyBaseKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.MyClassKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.NameOfKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.NamespaceKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.NarrowingKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.NextKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.NewKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.NotKeyword, 0, PrecedenceNot, 0, 0)
-            AddKeyword(SyntaxKind.NothingKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.NotInheritableKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.NotOverridableKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ObjectKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.OfKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.OnKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.OperatorKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.OptionKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.OptionalKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.OrKeyword, 0, PrecedenceOr, 0, 1)
-            AddKeyword(SyntaxKind.OrElseKeyword, 0, PrecedenceOr, 0, 1)
-            AddKeyword(SyntaxKind.OverloadsKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.OverridableKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.OverridesKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ParamArrayKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.PartialKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.PrivateKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.PropertyKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ProtectedKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.PublicKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.RaiseEventKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ReadOnlyKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ReDimKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.REMKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.RemoveHandlerKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ResumeKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ReturnKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.SByteKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.SelectKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.SetKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ShadowsKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.SharedKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ShortKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.SingleKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.StaticKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.StepKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.StopKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.StringKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.StructureKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.SubKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.SyncLockKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ThenKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.ThrowKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ToKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.TrueKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.TryKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.TryCastKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.TypeOfKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.UIntegerKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.ULongKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.UShortKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.UsingKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.WhenKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.WhileKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.WideningKeyword, 1, 0, 0, 0)
-            AddKeyword(SyntaxKind.WithKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.WithEventsKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.WriteOnlyKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.XorKeyword, 0, PrecedenceXor, 0, 1)
-
-            ' Contextual keywords
-            AddKeyword(SyntaxKind.AggregateKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.AllKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.AnsiKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.AscendingKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.AssemblyKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.AutoKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.BinaryKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ByKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.CompareKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CustomKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DescendingKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.DisableKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.DistinctKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.EnableKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.EqualsKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.ExplicitKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ExternalSourceKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.ExternalChecksumKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.FromKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.GroupKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.InferKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.IntoKeyword, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.IsFalseKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.IsTrueKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.JoinKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.KeyKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.MidKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.OffKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.OrderKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.OutKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.PreserveKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.RegionKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.SkipKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.StrictKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.TextKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.TakeKeyword, 0, 0, 1, 1)
-            AddKeyword(SyntaxKind.UnicodeKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.UntilKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.WarningKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.WhereKeyword, 0, 0, 1, 1)
-
-            ' Visual Basic 11.0 keywords
-            AddKeyword(SyntaxKind.AsyncKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.AwaitKeyword, 0, PrecedenceAwait, 0, 0)
-            AddKeyword(SyntaxKind.IteratorKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.YieldKeyword, 0, 0, 0, 0)
-
-            'Obsolete keywords - They exist to give error messages.
-            AddKeyword(SyntaxKind.EndIfKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.GosubKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.TypeKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.VariantKeyword, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.WendKeyword, 0, 0, 0, 0)
-
-            AddKeyword(SyntaxKind.CommaToken, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.AmpersandToken, 0, PrecedenceConcatenate, 0, 1)
-            AddKeyword(SyntaxKind.SingleQuoteToken, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.OpenParenToken, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.CloseParenToken, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.OpenBraceToken, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.CloseBraceToken, 0, 0, 0, 1)
-            AddKeyword(SyntaxKind.AsteriskToken, 0, PrecedenceMultiply, 0, 1)
-            AddKeyword(SyntaxKind.PlusToken, 0, PrecedenceAdd, 0, 1)
-            AddKeyword(SyntaxKind.MinusToken, 0, PrecedenceAdd, 0, 1)
-            AddKeyword(SyntaxKind.SlashToken, 0, PrecedenceMultiply, 0, 1)
-            AddKeyword(SyntaxKind.LessThanToken, 0, PrecedenceRelational, 0, 1)
-            AddKeyword(SyntaxKind.LessThanEqualsToken, 0, PrecedenceRelational, 0, 0)
-            AddKeyword(SyntaxKind.LessThanGreaterThanToken, 0, PrecedenceRelational, 0, 0)
-            AddKeyword(SyntaxKind.EqualsToken, 0, PrecedenceRelational, 0, 1)
-            AddKeyword(SyntaxKind.GreaterThanToken, 0, PrecedenceRelational, 0, 1)
-            AddKeyword(SyntaxKind.GreaterThanEqualsToken, 0, PrecedenceRelational, 0, 0)
-            AddKeyword(SyntaxKind.BackslashToken, 0, PrecedenceIntegerDivide, 0, 1)
-            AddKeyword(SyntaxKind.CaretToken, 0, PrecedenceExponentiate, 0, 1)
-
-            AddKeyword(SyntaxKind.ColonEqualsToken, 0, 0, 0, 0)
-            AddKeyword(SyntaxKind.AmpersandEqualsToken, 0, PrecedenceConcatenate, 0, 0)
-            AddKeyword(SyntaxKind.AsteriskEqualsToken, 0, PrecedenceMultiply, 0, 0)
-            AddKeyword(SyntaxKind.PlusEqualsToken, 0, PrecedenceAdd, 0, 0)
-            AddKeyword(SyntaxKind.MinusEqualsToken, 0, PrecedenceAdd, 0, 0)
-            AddKeyword(SyntaxKind.SlashEqualsToken, 0, PrecedenceMultiply, 0, 0)
-            AddKeyword(SyntaxKind.BackslashEqualsToken, 0, PrecedenceIntegerDivide, 0, 0)
-            AddKeyword(SyntaxKind.CaretEqualsToken, 0, PrecedenceExponentiate, 0, 0)
-            AddKeyword(SyntaxKind.LessThanLessThanToken, 0, PrecedenceShift, 0, 0)
-            AddKeyword(SyntaxKind.GreaterThanGreaterThanToken, 0, PrecedenceShift, 0, 0)
-            AddKeyword(SyntaxKind.LessThanLessThanEqualsToken, 0, PrecedenceShift, 0, 0)
-            AddKeyword(SyntaxKind.GreaterThanGreaterThanEqualsToken, 0, PrecedenceShift, 0, 0)
-            AddKeyword(SyntaxKind.PercentGreaterThanToken, 0, 0, 0, 1)
+            For i As Integer = 0 To keywordInitData.Length - 1 Step 2
+                Dim bits = keywordInitData(i + 1)
+                AddKeyword(
+                    Token:=DirectCast(keywordInitData(i), SyntaxKind),
+                    New7To8:=(bits And New7to8) <> 0,
+                    Precedence:=CType(bits And &HFF, OperatorPrecedence),
+                    isQueryClause:=(bits And QueryClause) <> 0,
+                    canFollowExpr:=(bits And CanFollowExpr) <> 0
+                    )
+            Next
         End Sub
 
         Public Structure KeywordDescription
@@ -265,15 +275,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Public kdCanFollowExpr As Boolean
 
             Public Sub New(
-                New7To8 As Integer,
+                New7To8 As Boolean,
                 Precedence As OperatorPrecedence,
-                isQueryClause As Integer,
-                canFollowExpr As Integer)
+                isQueryClause As Boolean,
+                canFollowExpr As Boolean)
 
-                Me.kdNew7To8kwd = New7To8 <> 0
+                Me.kdNew7To8kwd = New7To8
                 Me.kdOperPrec = Precedence
-                Me.kdIsQueryClause = isQueryClause <> 0
-                Me.kdCanFollowExpr = canFollowExpr <> 0
+                Me.kdIsQueryClause = isQueryClause
+                Me.kdCanFollowExpr = canFollowExpr
             End Sub
         End Structure
 
@@ -352,10 +362,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Private Shared Sub AddKeyword(
             Token As SyntaxKind,
-            New7To8 As Integer,
+            New7To8 As Boolean,
             Precedence As OperatorPrecedence,
-            isQueryClause As Integer,
-            canFollowExpr As Integer)
+            isQueryClause As Boolean,
+            canFollowExpr As Boolean)
 
             Dim keyword As New KeywordDescription(New7To8, Precedence, isQueryClause, canFollowExpr)
             _KeywordProperties.Add(Token, keyword)
