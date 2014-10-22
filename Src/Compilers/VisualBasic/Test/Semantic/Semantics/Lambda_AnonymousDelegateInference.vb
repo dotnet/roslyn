@@ -485,42 +485,42 @@ End Module
             verifier.VerifyIL("Program.Main",
             <![CDATA[
 {
-  // Code size      119 (0x77)
+  // Code size      131 (0x83)
   .maxstack  2
-  IL_0000:  ldsfld     "Program._ClosureCache$__2 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._ClosureCache$__2 As <generated method>"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Integer)"
-  IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "Program._ClosureCache$__2 As <generated method>"
-  IL_0020:  ldc.i4.1
-  IL_0021:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
-  IL_0026:  ldsfld     "Program._ClosureCache$__4 As <generated method>"
-  IL_002b:  brfalse.s  IL_0034
-  IL_002d:  ldsfld     "Program._ClosureCache$__4 As <generated method>"
-  IL_0032:  br.s       IL_0046
-  IL_0034:  ldnull
-  IL_0035:  ldftn      "Sub Program._Lambda$__3(Object, Integer)"
-  IL_003b:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
-  IL_0040:  dup
-  IL_0041:  stsfld     "Program._ClosureCache$__4 As <generated method>"
-  IL_0046:  ldc.i4.2
-  IL_0047:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
-  IL_004c:  ldsfld     "Program._ClosureCache$__6 As <generated method>"
-  IL_0051:  brfalse.s  IL_005a
-  IL_0053:  ldsfld     "Program._ClosureCache$__6 As <generated method>"
-  IL_0058:  br.s       IL_006c
-  IL_005a:  ldnull
-  IL_005b:  ldftn      "Function Program._Lambda$__5(Object) As Integer"
-  IL_0061:  newobj     "Sub VB$AnonymousDelegate_1(Of Integer)..ctor(Object, System.IntPtr)"
-  IL_0066:  dup
-  IL_0067:  stsfld     "Program._ClosureCache$__6 As <generated method>"
-  IL_006c:  callvirt   "Function VB$AnonymousDelegate_1(Of Integer).Invoke() As Integer"
-  IL_0071:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0076:  ret
+  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0013:  ldftn      "Sub Program._Closure$__1._Lambda$__2(Integer)"
+  IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0024:  ldc.i4.1
+  IL_0025:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
+  IL_002a:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As <generated method>"
+  IL_002f:  brfalse.s  IL_0038
+  IL_0031:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As <generated method>"
+  IL_0036:  br.s       IL_004e
+  IL_0038:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_003d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Integer)"
+  IL_0043:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
+  IL_0048:  dup
+  IL_0049:  stsfld     "Program._Closure$__1._ClosureCache$__5 As <generated method>"
+  IL_004e:  ldc.i4.2
+  IL_004f:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
+  IL_0054:  ldsfld     "Program._Closure$__1._ClosureCache$__7 As <generated method>"
+  IL_0059:  brfalse.s  IL_0062
+  IL_005b:  ldsfld     "Program._Closure$__1._ClosureCache$__7 As <generated method>"
+  IL_0060:  br.s       IL_0078
+  IL_0062:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0067:  ldftn      "Function Program._Closure$__1._Lambda$__6() As Integer"
+  IL_006d:  newobj     "Sub VB$AnonymousDelegate_1(Of Integer)..ctor(Object, System.IntPtr)"
+  IL_0072:  dup
+  IL_0073:  stsfld     "Program._Closure$__1._ClosureCache$__7 As <generated method>"
+  IL_0078:  callvirt   "Function VB$AnonymousDelegate_1(Of Integer).Invoke() As Integer"
+  IL_007d:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0082:  ret
 }
 ]]>)
 

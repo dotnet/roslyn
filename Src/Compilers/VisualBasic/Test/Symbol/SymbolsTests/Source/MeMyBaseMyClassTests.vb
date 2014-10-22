@@ -1132,24 +1132,24 @@ End Module
     </file>
 </compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
 {
-  // Code size       46 (0x2e)
+  // Code size       50 (0x32)
   .maxstack  3
   .locals init (Object V_0) //TEST
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Module1.Class1.Bar() As String"
-  IL_0006:  ldsfld     "Module1.Class2._ClosureCache$__2 As System.Func(Of Char, Char)"
+  IL_0006:  ldsfld     "Module1.Class2._Closure$__1._ClosureCache$__3 As System.Func(Of Char, Char)"
   IL_000b:  brfalse.s  IL_0014
-  IL_000d:  ldsfld     "Module1.Class2._ClosureCache$__2 As System.Func(Of Char, Char)"
-  IL_0012:  br.s       IL_0026
-  IL_0014:  ldnull
-  IL_0015:  ldftn      "Function Module1.Class2._Lambda$__1(Object, Char) As Char"
-  IL_001b:  newobj     "Sub System.Func(Of Char, Char)..ctor(Object, System.IntPtr)"
-  IL_0020:  dup
-  IL_0021:  stsfld     "Module1.Class2._ClosureCache$__2 As System.Func(Of Char, Char)"
-  IL_0026:  call       "Function System.Linq.Enumerable.Select(Of Char, Char)(System.Collections.Generic.IEnumerable(Of Char), System.Func(Of Char, Char)) As System.Collections.Generic.IEnumerable(Of Char)"
-  IL_002b:  stloc.0
-  IL_002c:  ldloc.0
-  IL_002d:  ret
+  IL_000d:  ldsfld     "Module1.Class2._Closure$__1._ClosureCache$__3 As System.Func(Of Char, Char)"
+  IL_0012:  br.s       IL_002a
+  IL_0014:  ldsfld     "Module1.Class2._Closure$__1.$Inst As Module1.Class2._Closure$__1"
+  IL_0019:  ldftn      "Function Module1.Class2._Closure$__1._Lambda$__2(Char) As Char"
+  IL_001f:  newobj     "Sub System.Func(Of Char, Char)..ctor(Object, System.IntPtr)"
+  IL_0024:  dup
+  IL_0025:  stsfld     "Module1.Class2._Closure$__1._ClosureCache$__3 As System.Func(Of Char, Char)"
+  IL_002a:  call       "Function System.Linq.Enumerable.Select(Of Char, Char)(System.Collections.Generic.IEnumerable(Of Char), System.Func(Of Char, Char)) As System.Collections.Generic.IEnumerable(Of Char)"
+  IL_002f:  stloc.0
+  IL_0030:  ldloc.0
+  IL_0031:  ret
 }
 ]]>)
         End Sub

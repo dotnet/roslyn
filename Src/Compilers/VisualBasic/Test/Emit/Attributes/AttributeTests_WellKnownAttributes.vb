@@ -1766,7 +1766,7 @@ End Module
             Dim validator As Action(Of PEAssembly, TestEmitters) =
                 Sub(assembly, _omitted)
                     Const implFlags As MethodImplAttributes = MethodImplAttributes.IL Or MethodImplAttributes.Managed Or MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
-                    DisableJITOptimizationTestHelper(assembly, {"Main", "Main2", "_Lambda$__1"}, {implFlags, 0, implFlags})
+                    DisableJITOptimizationTestHelper(assembly, {"Main", "Main2"}, {implFlags, 0})
                 End Sub
 
             CompileAndVerify(source, validator:=validator)

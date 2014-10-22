@@ -1801,28 +1801,28 @@ End Module
                 VerifyIL("Module1.Test.DefaultColor",
             <![CDATA[
 {
-  // Code size       72 (0x48)
+  // Code size       76 (0x4c)
   .maxstack  3
-  IL_0000:  ldsfld     "Module1.Test._ClosureCache$__3 As System.Action(Of Integer)"
+  IL_0000:  ldsfld     "Module1.Test._Closure$__2._ClosureCache$__4 As System.Action(Of Integer)"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Module1.Test._ClosureCache$__3 As System.Action(Of Integer)"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Module1.Test._Lambda$__2(Object, Integer)"
-  IL_0015:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "Module1.Test._ClosureCache$__3 As System.Action(Of Integer)"
-  IL_0020:  ldc.i4.1
-  IL_0021:  callvirt   "Sub System.Action(Of Integer).Invoke(Integer)"
-  IL_0026:  newobj     "Sub Module1.Test._Closure$__1..ctor()"
-  IL_002b:  dup
-  IL_002c:  ldarg.0
-  IL_002d:  call       "Function Module1.Test.get_Color() As Module1.Color"
-  IL_0032:  stfld      "Module1.Test._Closure$__1.$VB$NonLocal_ As Module1.Color"
-  IL_0037:  ldftn      "Sub Module1.Test._Closure$__1._Lambda$__4()"
-  IL_003d:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_0042:  callvirt   "Sub System.Action.Invoke()"
-  IL_0047:  ret
+  IL_0007:  ldsfld     "Module1.Test._Closure$__2._ClosureCache$__4 As System.Action(Of Integer)"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "Module1.Test._Closure$__2.$Inst As Module1.Test._Closure$__2"
+  IL_0013:  ldftn      "Sub Module1.Test._Closure$__2._Lambda$__3(Integer)"
+  IL_0019:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "Module1.Test._Closure$__2._ClosureCache$__4 As System.Action(Of Integer)"
+  IL_0024:  ldc.i4.1
+  IL_0025:  callvirt   "Sub System.Action(Of Integer).Invoke(Integer)"
+  IL_002a:  newobj     "Sub Module1.Test._Closure$__1..ctor()"
+  IL_002f:  dup
+  IL_0030:  ldarg.0
+  IL_0031:  call       "Function Module1.Test.get_Color() As Module1.Color"
+  IL_0036:  stfld      "Module1.Test._Closure$__1.$VB$NonLocal_ As Module1.Color"
+  IL_003b:  ldftn      "Sub Module1.Test._Closure$__1._Lambda$__5()"
+  IL_0041:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_0046:  callvirt   "Sub System.Action.Invoke()"
+  IL_004b:  ret
 }
 ]]>)
         End Sub

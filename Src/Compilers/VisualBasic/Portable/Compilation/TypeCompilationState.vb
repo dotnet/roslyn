@@ -31,6 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Compilation As VisualBasicCompilation
 
+        Public staticLambdaFrame As LambdaFrame
+
         ' Can be Nothing if we're not emitting.
         Public ReadOnly ModuleBuilderOpt As PEModuleBuilder
 

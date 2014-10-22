@@ -51,6 +51,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _analysis As Analysis
         Private ReadOnly _topLevelMethod As MethodSymbol
 
+        ' lambda frame for static lambdas. 
+        ' initialized lazily and could be Nothing if there are no static lambdas
+        Private lazyStaticLambdaFrame As LambdaFrame
+
         ' for each block with lifted (captured) variables, the corresponding frame type
         Private ReadOnly frames As Dictionary(Of BoundNode, LambdaFrame) = New Dictionary(Of BoundNode, LambdaFrame)()
 
@@ -188,23 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Continue For
                 End If
 
-                Dim frame As LambdaFrame = Nothing
-                If Not frames.TryGetValue(node, frame) Then
-                    ' if the control variable of a for each is lifted, make sure it's using the copy constructor
-                    Debug.Assert(captured.Kind <> SymbolKind.Local OrElse
-                                 Not DirectCast(captured, LocalSymbol).IsForEach OrElse
-                                 copyConstructor)
-
-                    frame = New LambdaFrame(CompilationState,
-                                            _topLevelMethod,
-                                            node.Syntax,
-                                            copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured))
-                    frames(node) = frame
-                    If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, frame.Constructor)
-                    End If
-                End If
+                Dim frame As LambdaFrame = GetFrameForScope(copyConstructor, captured, node)
 
                 Dim proxy = LambdaCapturedVariable.Create(frame, captured, synthesizedFieldNameIdDispenser)
                 Proxies.Add(captured, proxy)
@@ -212,7 +200,88 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     frame.m_captured_locals.Add(proxy)
                 End If
             Next
+
+            If CompilationState.ModuleBuilderOpt IsNot Nothing Then
+                For Each frame In frames.Values
+                    CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
+                Next
+            End If
         End Sub
+
+        Private Function GetFrameForScope(copyConstructor As Boolean, captured As Symbol, node As BoundNode) As LambdaFrame
+            Dim frame As LambdaFrame = Nothing
+
+            If Not frames.TryGetValue(node, frame) Then
+                ' if the control variable of a for each is lifted, make sure it's using the copy constructor
+                Debug.Assert(captured.Kind <> SymbolKind.Local OrElse
+                             Not DirectCast(captured, LocalSymbol).IsForEach OrElse
+                             copyConstructor)
+
+                frame = New LambdaFrame(CompilationState,
+                                        _topLevelMethod,
+                                        node.Syntax,
+                                        copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured),
+                                        isShared:=False)
+                frames(node) = frame
+
+                If CompilationState.ModuleBuilderOpt IsNot Nothing Then
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
+                    ' NOTE: we will add this ctor to compilation state after we know all captured locals
+                    '       we need them to generate copy constructor, if needed
+                End If
+            End If
+
+            Return frame
+        End Function
+
+        Private Function GetStaticFrame(lambda As BoundNode, diagnostics As DiagnosticBag) As LambdaFrame
+            If Me.lazyStaticLambdaFrame Is Nothing Then
+                Dim isNonGeneric = Not TopLevelMethod.IsGenericMethod
+                If isNonGeneric Then
+                    Me.lazyStaticLambdaFrame = CompilationState.staticLambdaFrame
+                End If
+
+                If Me.lazyStaticLambdaFrame Is Nothing Then
+                    ' associate the frame with the the first lambda that caused it to exist. 
+                    ' we need to associate this with somme syntax.
+                    ' unfortunately either containing method or containing class could be synthetic
+                    ' therefore could have no syntax.
+                    Me.lazyStaticLambdaFrame = New LambdaFrame(CompilationState, TopLevelMethod, lambda.Syntax, copyConstructor:=False, isShared:=True)
+
+                    ' nongeneric static lambdas can share the frame
+                    ' as long as we do not do EnC
+                    If isNonGeneric AndAlso Not CompilationState.Compilation.Options.EnableEditAndContinue Then
+                        CompilationState.staticLambdaFrame = Me.lazyStaticLambdaFrame
+                    End If
+
+
+                    If CompilationState.ModuleBuilderOpt IsNot Nothing Then
+                        Dim frame = Me.lazyStaticLambdaFrame
+
+                        ' add frame type
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
+
+                        ' add its ctor
+                        Dim syntax = lambda.Syntax
+                        CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, diagnostics))
+
+                        ' add cctor
+                        ' Frame.inst = New Frame()
+                        Dim F = New SyntheticBoundNodeFactory(frame.SharedConstructor, frame.SharedConstructor, Syntax, CompilationState, diagnostics)
+                        Dim body = F.Block(
+                                F.Assignment(
+                                    F.Field(Nothing, frame.SingletonCache, isLValue:=True),
+                                    F.[New](frame.Constructor)),
+                                F.Return())
+
+                        CompilationState.AddSynthesizedMethod(frame.SharedConstructor, body)
+                    End If
+                End If
+            End If
+
+            Return Me.lazyStaticLambdaFrame
+        End Function
+
 
         ''' <summary>
         ''' Produces a bound expression representing a pointer to a frame of a particular frame type.
@@ -368,8 +437,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim frameType As NamedTypeSymbol = ConstructFrameType(frame, currentTypeParameters)
             Dim framePointer = New SynthesizedLocal(Me._topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntax)
-
-            CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
             Dim prologue = ArrayBuilder(Of BoundExpression).GetInstance()
             Dim constructor As MethodSymbol = frame.Constructor.AsMember(frameType)
             Debug.Assert(frameType = constructor.ContainingType)
@@ -818,27 +885,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim translatedLambdaContainer As InstanceTypeSymbol
             Dim lambdaScope As BoundNode = Nothing
+            Dim lambdaIsStatic As Boolean = _analysis.captures(node.LambdaSymbol).IsEmpty()
+
             If _analysis.lambdaScopes.TryGetValue(node.LambdaSymbol, lambdaScope) Then
                 translatedLambdaContainer = frames(lambdaScope)
+            ElseIf lambdaIsStatic
+                translatedLambdaContainer = GetStaticFrame(node, Diagnostics)
             Else
                 translatedLambdaContainer = DirectCast(_topLevelMethod.ContainingType, InstanceTypeSymbol)
             End If
 
             ' Move the body of the lambda to a freshly generated synthetic method on its frame.
-            Dim lambdaIsStatic As Boolean = _analysis.captures(node.LambdaSymbol).IsEmpty()
-            Dim generatedMethod = New SynthesizedLambdaMethod(translatedLambdaContainer, _topLevelMethod, node, lambdaIsStatic, CompilationState.GenerateTempNumber(), Me.Diagnostics)
+            Dim generatedMethod = New SynthesizedLambdaMethod(translatedLambdaContainer, _topLevelMethod, node, CompilationState.GenerateTempNumber(), Me.Diagnostics)
 
             If CompilationState.ModuleBuilderOpt IsNot Nothing Then
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, generatedMethod)
             End If
 
             For Each parameter In node.LambdaSymbol.Parameters
-                Dim ordinal = parameter.Ordinal
-                If lambdaIsStatic Then
-                    ' adjust for a dummy "this" parameter at the beginning of synthesized method signature
-                    ordinal += 1
-                End If
-                ParameterMap.Add(parameter, generatedMethod.Parameters(ordinal))
+                ParameterMap.Add(parameter, generatedMethod.Parameters(parameter.Ordinal))
             Next
 
             Dim oldMethod = _currentMethod
@@ -889,10 +954,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' for instance lambdas, receiver is the frame
-            ' for static lambdas, just use null to match the first (dummy) parameter of the synthetic method
-            Dim receiver As BoundExpression = If(lambdaIsStatic,
-                New BoundLiteral(node.Syntax, ConstantValue.Nothing, generatedMethod.Parameters(0).Type),
-                FrameOfType(node.Syntax, constructedFrame))
+            ' for static lambdas, get the singleton receiver 
+            Dim receiver As BoundExpression
+            If Not lambdaIsStatic Then
+                receiver = FrameOfType(node.Syntax, constructedFrame)
+            Else
+                Dim field = containerAsFrame.SingletonCache.AsMember(constructedFrame)
+                receiver = New BoundFieldAccess(node.Syntax, Nothing, field, isLValue:=False, type:=field.Type)
+            End If
 
             Dim referencedMethod As MethodSymbol = generatedMethod.AsMember(constructedFrame)
 
@@ -900,6 +969,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 referencedMethod = referencedMethod.Construct(StaticCast(Of TypeSymbol).From(currentTypeParameters))
             End If
 
+            ' static lambdas are emitted as instance methods on a singleton receiver
+            ' delegates invoke dispatch is optimized for instance delegates so 
+            ' it is preferrable to emit lambdas as instance methods enven when lambdas 
+            ' do Not capture anything
             Dim result As BoundExpression = New BoundDelegateCreationExpression(
                          node.Syntax,
                          receiver,
@@ -923,10 +996,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (shouldCacheStaticlambda OrElse shouldCacheInLoop) Then
                 ' replace the expression "new Delegate(frame.M)" with "(frame.cache == null) ? (frame.cache = new Delegate(frame.M)) : frame.cache"
                 Dim cacheFieldName As String = "_ClosureCache$__" & CompilationState.GenerateTempNumber()
-                Dim cachedFieldType As TypeSymbol = If(lambdaIsStatic, type, type.InternalSubstituteTypeParameters(CType(translatedLambdaContainer, LambdaFrame).TypeMap))
+                Dim cachedFieldType As TypeSymbol = If(containerAsFrame Is Nothing,
+                                                        type,
+                                                        type.InternalSubstituteTypeParameters(containerAsFrame.TypeMap))
+
                 Dim cacheField As FieldSymbol = New SynthesizedFieldSymbol(translatedLambdaContainer, implicitlyDefinedBy:=node.LambdaSymbol,
                                                             type:=cachedFieldType, name:=cacheFieldName,
-                                                            accessibility:=If(Not lambdaIsStatic, Accessibility.Public, Accessibility.Private),
+                                                            accessibility:=Accessibility.Public,
                                                             isShared:=lambdaIsStatic)
                 If CompilationState.ModuleBuilderOpt IsNot Nothing Then
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)

@@ -421,29 +421,29 @@ Module Form1
 End Module
     </file>
 </compilation>, useLatestFramework:=True, expectedOutput:="0 2 3 123 1").
-            VerifyIL("Form1._Lambda$__1(Object)",
+            VerifyIL("Form1._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       63 (0x3f)
   .maxstack  2
-  .locals init (Form1.VB$StateMachine_0__Lambda$__1 V_0)
+  .locals init (Form1._Closure$__1.VB$StateMachine_0__Lambda$__2 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "Form1.VB$StateMachine_0__Lambda$__1"
+  IL_0002:  initobj    "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2"
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldarg.0
-  IL_000b:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$VB$Local_ As Object"
+  IL_000b:  stfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$VB$NonLocal__Closure$__1 As Form1._Closure$__1"
   IL_0010:  ldloca.s   V_0
   IL_0012:  ldc.i4.m1
-  IL_0013:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$State As Integer"
+  IL_0013:  stfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$State As Integer"
   IL_0018:  ldloca.s   V_0
   IL_001a:  call       "Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).Create() As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_001f:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_001f:  stfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
   IL_0024:  ldloca.s   V_0
-  IL_0026:  ldflda     "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_0026:  ldflda     "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
   IL_002b:  ldloca.s   V_0
-  IL_002d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).Start(Of Form1.VB$StateMachine_0__Lambda$__1)(ByRef Form1.VB$StateMachine_0__Lambda$__1)"
+  IL_002d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).Start(Of Form1._Closure$__1.VB$StateMachine_0__Lambda$__2)(ByRef Form1._Closure$__1.VB$StateMachine_0__Lambda$__2)"
   IL_0032:  ldloca.s   V_0
-  IL_0034:  ldflda     "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_0034:  ldflda     "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
   IL_0039:  call       "Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).get_Task() As System.Threading.Tasks.Task(Of Integer)"
   IL_003e:  ret
 }
@@ -618,7 +618,7 @@ Module Form1
 End Module
     </file>
 </compilation>, useLatestFramework:=True, expectedOutput:="0 2 3 1 2 3 5").
-            VerifyIL("Form1.VB$StateMachine_0__Lambda$__1.MoveNext",
+            VerifyIL("Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.MoveNext",
             <![CDATA[
 {
   // Code size       81 (0x51)
@@ -626,82 +626,82 @@ End Module
   .locals init (Integer V_0,
                 System.Exception V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Form1.VB$StateMachine_0__Lambda$__1.$State As Integer"
+  IL_0001:  ldfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$State As Integer"
   IL_0006:  stloc.0
   .try
-{
-  IL_0007:  call       "Function Form1.f() As System.Threading.Tasks.Task"
-  IL_000c:  ldc.i4     0xea60
-  IL_0011:  callvirt   "Function System.Threading.Tasks.Task.Wait(Integer) As Boolean"
-  IL_0016:  pop
-  IL_0017:  leave.s    IL_003b
-}
+  {
+    IL_0007:  call       "Function Form1.f() As System.Threading.Tasks.Task"
+    IL_000c:  ldc.i4     0xea60
+    IL_0011:  callvirt   "Function System.Threading.Tasks.Task.Wait(Integer) As Boolean"
+    IL_0016:  pop
+    IL_0017:  leave.s    IL_003b
+  }
   catch System.Exception
-{
-  IL_0019:  dup
-  IL_001a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_001f:  stloc.1
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.s   -2
-  IL_0023:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$State As Integer"
-  IL_0028:  ldarg.0
-  IL_0029:  ldflda     "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder"
-  IL_002e:  ldloc.1
-  IL_002f:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)"
-  IL_0034:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0039:  leave.s    IL_0050
-}
+  {
+    IL_0019:  dup
+    IL_001a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_001f:  stloc.1
+    IL_0020:  ldarg.0
+    IL_0021:  ldc.i4.s   -2
+    IL_0023:  stfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$State As Integer"
+    IL_0028:  ldarg.0
+    IL_0029:  ldflda     "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder"
+    IL_002e:  ldloc.1
+    IL_002f:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)"
+    IL_0034:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0039:  leave.s    IL_0050
+  }
   IL_003b:  ldarg.0
   IL_003c:  ldc.i4.s   -2
   IL_003e:  dup
   IL_003f:  stloc.0
-  IL_0040:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$State As Integer"
+  IL_0040:  stfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$State As Integer"
   IL_0045:  ldarg.0
-  IL_0046:  ldflda     "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder"
+  IL_0046:  ldflda     "Form1._Closure$__1.VB$StateMachine_0__Lambda$__2.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder"
   IL_004b:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()"
   IL_0050:  ret
 }
 ]]>).
-            VerifyIL("Form1.VB$StateMachine_0__Lambda$__3.MoveNext",
+            VerifyIL("Form1._Closure$__1.VB$StateMachine_0__Lambda$__4.MoveNext",
             <![CDATA[
 {
   // Code size       81 (0x51)
   .maxstack  3
   .locals init (Integer V_0,
-  System.Exception V_1)
+                System.Exception V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Form1.VB$StateMachine_0__Lambda$__3.$State As Integer"
+  IL_0001:  ldfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__4.$State As Integer"
   IL_0006:  stloc.0
   .try
-{
-  IL_0007:  call       "Function Form1.f() As System.Threading.Tasks.Task"
-  IL_000c:  ldc.i4     0xea60
-  IL_0011:  callvirt   "Function System.Threading.Tasks.Task.Wait(Integer) As Boolean"
-  IL_0016:  pop
-  IL_0017:  leave.s    IL_003b
-}
+  {
+    IL_0007:  call       "Function Form1.f() As System.Threading.Tasks.Task"
+    IL_000c:  ldc.i4     0xea60
+    IL_0011:  callvirt   "Function System.Threading.Tasks.Task.Wait(Integer) As Boolean"
+    IL_0016:  pop
+    IL_0017:  leave.s    IL_003b
+  }
   catch System.Exception
-{
-  IL_0019:  dup
-  IL_001a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_001f:  stloc.1
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.s   -2
-  IL_0023:  stfld      "Form1.VB$StateMachine_0__Lambda$__3.$State As Integer"
-  IL_0028:  ldarg.0
-  IL_0029:  ldflda     "Form1.VB$StateMachine_0__Lambda$__3.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder"
-  IL_002e:  ldloc.1
-  IL_002f:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)"
-  IL_0034:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0039:  leave.s    IL_0050
-}
+  {
+    IL_0019:  dup
+    IL_001a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_001f:  stloc.1
+    IL_0020:  ldarg.0
+    IL_0021:  ldc.i4.s   -2
+    IL_0023:  stfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__4.$State As Integer"
+    IL_0028:  ldarg.0
+    IL_0029:  ldflda     "Form1._Closure$__1.VB$StateMachine_0__Lambda$__4.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder"
+    IL_002e:  ldloc.1
+    IL_002f:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)"
+    IL_0034:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0039:  leave.s    IL_0050
+  }
   IL_003b:  ldarg.0
   IL_003c:  ldc.i4.s   -2
   IL_003e:  dup
   IL_003f:  stloc.0
-  IL_0040:  stfld      "Form1.VB$StateMachine_0__Lambda$__3.$State As Integer"
+  IL_0040:  stfld      "Form1._Closure$__1.VB$StateMachine_0__Lambda$__4.$State As Integer"
   IL_0045:  ldarg.0
-  IL_0046:  ldflda     "Form1.VB$StateMachine_0__Lambda$__3.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder"
+  IL_0046:  ldflda     "Form1._Closure$__1.VB$StateMachine_0__Lambda$__4.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder"
   IL_004b:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()"
   IL_0050:  ret
 }
@@ -5013,8 +5013,8 @@ End Module
                             {
                                 "Friend $Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
                                 "Friend $State As Integer",
-                                "Friend $awaiter_4 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)",
-                                "Friend VB$StackSpill_$5 As Integer"
+                                "Friend $awaiter_5 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)",
+                                "Friend VB$StackSpill_$6 As Integer"
                             })
                      End Sub)
         End Sub

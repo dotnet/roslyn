@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly m_isShared As Boolean
         Private ReadOnly m_name As String
-        Private ReadOnly m_SyntaxNode As VisualBasicSyntaxNode
+        Private ReadOnly m_SyntaxNodeOpt As VisualBasicSyntaxNode
 
         Friend Sub New(
                 syntaxNode As VisualBasicSyntaxNode,
@@ -26,10 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 isShared As Boolean
             )
             MyBase.New(containingSymbol)
-
-            Debug.Assert(syntaxNode IsNot Nothing)
-
-            Me.m_SyntaxNode = syntaxNode
+            Me.m_SyntaxNodeOpt = syntaxNode
             Me.m_isShared = isShared
             Me.m_name = name
         End Sub
@@ -48,8 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Function WithNewContainerAndType(
                              newContainer As Symbol,
                              newType As TypeSymbol,
-                             origParameter As ParameterSymbol,
-                             Optional ordinalAdjustment As Integer = 0) As ParameterSymbol
+                             origParameter As ParameterSymbol) As ParameterSymbol
 
             Dim flags As SourceParameterFlags = Nothing
 
@@ -70,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SourceComplexParameterSymbol.Create(
                     newContainer,
                     origParameter.Name,
-                    origParameter.Ordinal + ordinalAdjustment,
+                    origParameter.Ordinal,
                     newType,
                     origParameter.Locations.FirstOrDefault,
                     syntaxRef:=Nothing,
@@ -202,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
-                Return m_SyntaxNode
+                Return m_SyntaxNodeOpt
             End Get
         End Property
 

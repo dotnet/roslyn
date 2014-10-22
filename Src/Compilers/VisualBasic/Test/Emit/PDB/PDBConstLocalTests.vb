@@ -86,18 +86,18 @@ end class
                                        <sequencepoints total="3">
                                            <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="30" file_ref="0"/>
                                            <entry il_offset="0x1" start_row="5" start_column="9" end_row="11" end_column="11" file_ref="0"/>
-                                           <entry il_offset="0x28" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
+                                           <entry il_offset="0x2c" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <constant name="x" value="1" type="Int32"/>
                                        </locals>
-                                       <scope startOffset="0x0" endOffset="0x29">
+                                       <scope startOffset="0x0" endOffset="0x2d">
                                            <namespace name="System" importlevel="file"/>
                                            <currentnamespace name=""/>
                                            <constant name="x" value="1" type="Int32"/>
                                        </scope>
                                    </method>
-                                   <method containingType="C" name="_Lambda$__1" parameterNames="">
+                                   <method containingType="C+_Closure$__1" name="_Lambda$__2" parameterNames="">
                                        <sequencepoints total="3">
                                            <entry il_offset="0x0" start_row="6" start_column="13" end_row="6" end_column="18" file_ref="0"/>
                                            <entry il_offset="0x1" start_row="9" start_column="17" end_row="9" end_column="45" file_ref="0"/>

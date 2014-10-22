@@ -253,36 +253,36 @@ End Class
                                                   additionalRefs:=LegacyRefs)
             comp.VerifyIL("A.Main", <![CDATA[
 {
-  // Code size      106 (0x6a)
+  // Code size      114 (0x72)
   .maxstack  3
   IL_0000:  newobj     "Sub Windows.Data.Json.JsonArray..ctor()"
   IL_0005:  dup
   IL_0006:  ldstr      "include"
   IL_000b:  call       "Function Windows.Data.Json.JsonValue.CreateStringValue(String) As Windows.Data.Json.JsonValue"
   IL_0010:  callvirt   "Sub System.Collections.Generic.ICollection(Of Windows.Data.Json.IJsonValue).Add(Windows.Data.Json.IJsonValue)"
-  IL_0015:  ldsfld     "A._ClosureCache$__2 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
+  IL_0015:  ldsfld     "A._Closure$__1._ClosureCache$__3 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
   IL_001a:  brfalse.s  IL_0023
-  IL_001c:  ldsfld     "A._ClosureCache$__2 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
-  IL_0021:  br.s       IL_0035
-  IL_0023:  ldnull
-  IL_0024:  ldftn      "Function A._Lambda$__1(Object, Windows.Data.Json.IJsonValue) As Boolean"
-  IL_002a:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Boolean)..ctor(Object, System.IntPtr)"
-  IL_002f:  dup
-  IL_0030:  stsfld     "A._ClosureCache$__2 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
-  IL_0035:  call       "Function System.Linq.Enumerable.Where(Of Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue), System.Func(Of Windows.Data.Json.IJsonValue, Boolean)) As System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)"
-  IL_003a:  ldsfld     "A._ClosureCache$__4 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
-  IL_003f:  brfalse.s  IL_0048
-  IL_0041:  ldsfld     "A._ClosureCache$__4 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
-  IL_0046:  br.s       IL_005a
-  IL_0048:  ldnull
-  IL_0049:  ldftn      "Function A._Lambda$__3(Object, Windows.Data.Json.IJsonValue) As Windows.Data.Json.IJsonValue"
-  IL_004f:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)..ctor(Object, System.IntPtr)"
-  IL_0054:  dup
-  IL_0055:  stsfld     "A._ClosureCache$__4 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
-  IL_005a:  call       "Function System.Linq.Enumerable.Select(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue), System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)) As System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)"
-  IL_005f:  call       "Function System.Linq.Enumerable.Count(Of Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)) As Integer"
-  IL_0064:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0069:  ret
+  IL_001c:  ldsfld     "A._Closure$__1._ClosureCache$__3 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
+  IL_0021:  br.s       IL_0039
+  IL_0023:  ldsfld     "A._Closure$__1.$Inst As A._Closure$__1"
+  IL_0028:  ldftn      "Function A._Closure$__1._Lambda$__2(Windows.Data.Json.IJsonValue) As Boolean"
+  IL_002e:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Boolean)..ctor(Object, System.IntPtr)"
+  IL_0033:  dup
+  IL_0034:  stsfld     "A._Closure$__1._ClosureCache$__3 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
+  IL_0039:  call       "Function System.Linq.Enumerable.Where(Of Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue), System.Func(Of Windows.Data.Json.IJsonValue, Boolean)) As System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)"
+  IL_003e:  ldsfld     "A._Closure$__1._ClosureCache$__5 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
+  IL_0043:  brfalse.s  IL_004c
+  IL_0045:  ldsfld     "A._Closure$__1._ClosureCache$__5 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
+  IL_004a:  br.s       IL_0062
+  IL_004c:  ldsfld     "A._Closure$__1.$Inst As A._Closure$__1"
+  IL_0051:  ldftn      "Function A._Closure$__1._Lambda$__4(Windows.Data.Json.IJsonValue) As Windows.Data.Json.IJsonValue"
+  IL_0057:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)..ctor(Object, System.IntPtr)"
+  IL_005c:  dup
+  IL_005d:  stsfld     "A._Closure$__1._ClosureCache$__5 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
+  IL_0062:  call       "Function System.Linq.Enumerable.Select(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue), System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)) As System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)"
+  IL_0067:  call       "Function System.Linq.Enumerable.Count(Of Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)) As Integer"
+  IL_006c:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0071:  ret
 }
 ]]>.Value)
         End Sub
@@ -4392,7 +4392,7 @@ End Class
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestLINQ", <![CDATA[
 {
-  // Code size      448 (0x1c0)
+  // Code size      460 (0x1cc)
   .maxstack  4
   .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_0
                 System.ArgumentException V_1) //e
@@ -4436,108 +4436,108 @@ End Class
   IL_006d:  ldftn      "Function AllMembers._Closure$__1._Lambda$__2(Integer) As Boolean"
   IL_0073:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
   IL_0078:  call       "Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_007d:  ldsfld     "AllMembers._ClosureCache$__4 As System.Func(Of Integer, Integer)"
+  IL_007d:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__5 As System.Func(Of Integer, Integer)"
   IL_0082:  brfalse.s  IL_008b
-  IL_0084:  ldsfld     "AllMembers._ClosureCache$__4 As System.Func(Of Integer, Integer)"
-  IL_0089:  br.s       IL_009d
-  IL_008b:  ldnull
-  IL_008c:  ldftn      "Function AllMembers._Lambda$__3(Object, Integer) As Integer"
-  IL_0092:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
-  IL_0097:  dup
-  IL_0098:  stsfld     "AllMembers._ClosureCache$__4 As System.Func(Of Integer, Integer)"
-  IL_009d:  call       "Function System.Linq.Enumerable.Select(Of Integer, Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Integer)) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_00a2:  call       "Function System.Linq.Enumerable.ToList(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As System.Collections.Generic.List(Of Integer)"
-  IL_00a7:  ldloc.0
-  IL_00a8:  ldfld      "AllMembers._Closure$__1.$VB$Local_v As Windows.Languages.WinRTTest.IVectorInt"
-  IL_00ad:  callvirt   "Function Windows.Languages.WinRTTest.IVectorInt.GetFlagState() As Windows.Languages.WinRTTest.TestMethodCalled"
-  IL_00b2:  ldc.i4.5
-  IL_00b3:  call       "Function AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled) As Boolean"
-  IL_00b8:  pop
-  IL_00b9:  dup
-  IL_00ba:  call       "Function System.Linq.Enumerable.Count(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As Integer"
-  IL_00bf:  box        "Integer"
-  IL_00c4:  ldc.i4.2
-  IL_00c5:  box        "Integer"
-  IL_00ca:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
-  IL_00cf:  pop
-  IL_00d0:  dup
-  IL_00d1:  call       "Function System.Linq.Enumerable.ToArray(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As Integer()"
-  IL_00d6:  ldc.i4.0
-  IL_00d7:  ldelem.i4
-  IL_00d8:  box        "Integer"
-  IL_00dd:  ldc.i4.2
-  IL_00de:  box        "Integer"
-  IL_00e3:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
-  IL_00e8:  pop
-  IL_00e9:  call       "Function System.Linq.Enumerable.ToArray(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As Integer()"
-  IL_00ee:  ldc.i4.1
-  IL_00ef:  ldelem.i4
-  IL_00f0:  box        "Integer"
-  IL_00f5:  ldc.i4.4
-  IL_00f6:  box        "Integer"
-  IL_00fb:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
-  IL_0100:  pop
-  IL_0101:  ldloc.0
-  IL_0102:  ldfld      "AllMembers._Closure$__1.$VB$Local_v As Windows.Languages.WinRTTest.IVectorInt"
-  IL_0107:  ldsfld     "AllMembers._ClosureCache$__6 As System.Func(Of Integer, Boolean)"
-  IL_010c:  brfalse.s  IL_0115
-  IL_010e:  ldsfld     "AllMembers._ClosureCache$__6 As System.Func(Of Integer, Boolean)"
-  IL_0113:  br.s       IL_0127
-  IL_0115:  ldnull
-  IL_0116:  ldftn      "Function AllMembers._Lambda$__5(Object, Integer) As Boolean"
-  IL_011c:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
-  IL_0121:  dup
-  IL_0122:  stsfld     "AllMembers._ClosureCache$__6 As System.Func(Of Integer, Boolean)"
-  IL_0127:  call       "Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_012c:  ldsfld     "AllMembers._ClosureCache$__8 As System.Func(Of Integer, Integer)"
-  IL_0131:  brfalse.s  IL_013a
-  IL_0133:  ldsfld     "AllMembers._ClosureCache$__8 As System.Func(Of Integer, Integer)"
-  IL_0138:  br.s       IL_014c
-  IL_013a:  ldnull
-  IL_013b:  ldftn      "Function AllMembers._Lambda$__7(Object, Integer) As Integer"
-  IL_0141:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
-  IL_0146:  dup
-  IL_0147:  stsfld     "AllMembers._ClosureCache$__8 As System.Func(Of Integer, Integer)"
-  IL_014c:  call       "Function System.Linq.Enumerable.Select(Of Integer, Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Integer)) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_0151:  call       "Function System.Linq.Enumerable.ToList(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As System.Collections.Generic.List(Of Integer)"
-  IL_0156:  ldloc.0
-  IL_0157:  ldfld      "AllMembers._Closure$__1.$VB$Local_v As Windows.Languages.WinRTTest.IVectorInt"
-  IL_015c:  callvirt   "Function Windows.Languages.WinRTTest.IVectorInt.GetFlagState() As Windows.Languages.WinRTTest.TestMethodCalled"
-  IL_0161:  ldc.i4.1
-  IL_0162:  call       "Function AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled) As Boolean"
-  IL_0167:  pop
-  IL_0168:  call       "Function System.Linq.Enumerable.Count(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As Integer"
-  IL_016d:  box        "Integer"
-  IL_0172:  ldc.i4.2
-  IL_0173:  box        "Integer"
-  IL_0178:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
-  IL_017d:  pop
+  IL_0084:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__5 As System.Func(Of Integer, Integer)"
+  IL_0089:  br.s       IL_00a1
+  IL_008b:  ldsfld     "AllMembers._Closure$__3.$Inst As AllMembers._Closure$__3"
+  IL_0090:  ldftn      "Function AllMembers._Closure$__3._Lambda$__4(Integer) As Integer"
+  IL_0096:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
+  IL_009b:  dup
+  IL_009c:  stsfld     "AllMembers._Closure$__3._ClosureCache$__5 As System.Func(Of Integer, Integer)"
+  IL_00a1:  call       "Function System.Linq.Enumerable.Select(Of Integer, Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Integer)) As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_00a6:  call       "Function System.Linq.Enumerable.ToList(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As System.Collections.Generic.List(Of Integer)"
+  IL_00ab:  ldloc.0
+  IL_00ac:  ldfld      "AllMembers._Closure$__1.$VB$Local_v As Windows.Languages.WinRTTest.IVectorInt"
+  IL_00b1:  callvirt   "Function Windows.Languages.WinRTTest.IVectorInt.GetFlagState() As Windows.Languages.WinRTTest.TestMethodCalled"
+  IL_00b6:  ldc.i4.5
+  IL_00b7:  call       "Function AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled) As Boolean"
+  IL_00bc:  pop
+  IL_00bd:  dup
+  IL_00be:  call       "Function System.Linq.Enumerable.Count(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As Integer"
+  IL_00c3:  box        "Integer"
+  IL_00c8:  ldc.i4.2
+  IL_00c9:  box        "Integer"
+  IL_00ce:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
+  IL_00d3:  pop
+  IL_00d4:  dup
+  IL_00d5:  call       "Function System.Linq.Enumerable.ToArray(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As Integer()"
+  IL_00da:  ldc.i4.0
+  IL_00db:  ldelem.i4
+  IL_00dc:  box        "Integer"
+  IL_00e1:  ldc.i4.2
+  IL_00e2:  box        "Integer"
+  IL_00e7:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
+  IL_00ec:  pop
+  IL_00ed:  call       "Function System.Linq.Enumerable.ToArray(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As Integer()"
+  IL_00f2:  ldc.i4.1
+  IL_00f3:  ldelem.i4
+  IL_00f4:  box        "Integer"
+  IL_00f9:  ldc.i4.4
+  IL_00fa:  box        "Integer"
+  IL_00ff:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
+  IL_0104:  pop
+  IL_0105:  ldloc.0
+  IL_0106:  ldfld      "AllMembers._Closure$__1.$VB$Local_v As Windows.Languages.WinRTTest.IVectorInt"
+  IL_010b:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
+  IL_0110:  brfalse.s  IL_0119
+  IL_0112:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
+  IL_0117:  br.s       IL_012f
+  IL_0119:  ldsfld     "AllMembers._Closure$__3.$Inst As AllMembers._Closure$__3"
+  IL_011e:  ldftn      "Function AllMembers._Closure$__3._Lambda$__6(Integer) As Boolean"
+  IL_0124:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
+  IL_0129:  dup
+  IL_012a:  stsfld     "AllMembers._Closure$__3._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
+  IL_012f:  call       "Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_0134:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__9 As System.Func(Of Integer, Integer)"
+  IL_0139:  brfalse.s  IL_0142
+  IL_013b:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__9 As System.Func(Of Integer, Integer)"
+  IL_0140:  br.s       IL_0158
+  IL_0142:  ldsfld     "AllMembers._Closure$__3.$Inst As AllMembers._Closure$__3"
+  IL_0147:  ldftn      "Function AllMembers._Closure$__3._Lambda$__8(Integer) As Integer"
+  IL_014d:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
+  IL_0152:  dup
+  IL_0153:  stsfld     "AllMembers._Closure$__3._ClosureCache$__9 As System.Func(Of Integer, Integer)"
+  IL_0158:  call       "Function System.Linq.Enumerable.Select(Of Integer, Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Integer)) As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_015d:  call       "Function System.Linq.Enumerable.ToList(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As System.Collections.Generic.List(Of Integer)"
+  IL_0162:  ldloc.0
+  IL_0163:  ldfld      "AllMembers._Closure$__1.$VB$Local_v As Windows.Languages.WinRTTest.IVectorInt"
+  IL_0168:  callvirt   "Function Windows.Languages.WinRTTest.IVectorInt.GetFlagState() As Windows.Languages.WinRTTest.TestMethodCalled"
+  IL_016d:  ldc.i4.1
+  IL_016e:  call       "Function AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled) As Boolean"
+  IL_0173:  pop
+  IL_0174:  call       "Function System.Linq.Enumerable.Count(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As Integer"
+  IL_0179:  box        "Integer"
+  IL_017e:  ldc.i4.2
+  IL_017f:  box        "Integer"
+  IL_0184:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
+  IL_0189:  pop
   .try
   {
-    IL_017e:  ldstr      "Dev11:205875"
-    IL_0183:  call       "Sub System.Console.WriteLine(String)"
-    IL_0188:  ldc.i4.0
-    IL_0189:  box        "Boolean"
-    IL_018e:  ldc.i4.0
-    IL_018f:  box        "Boolean"
-    IL_0194:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
-    IL_0199:  pop
-    IL_019a:  leave.s    IL_01bf
+    IL_018a:  ldstr      "Dev11:205875"
+    IL_018f:  call       "Sub System.Console.WriteLine(String)"
+    IL_0194:  ldc.i4.0
+    IL_0195:  box        "Boolean"
+    IL_019a:  ldc.i4.0
+    IL_019b:  box        "Boolean"
+    IL_01a0:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
+    IL_01a5:  pop
+    IL_01a6:  leave.s    IL_01cb
   }
   catch System.ArgumentException
   {
-    IL_019c:  dup
-    IL_019d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_01a2:  stloc.1
-    IL_01a3:  ldstr      "TestLINQ"
-    IL_01a8:  call       "Sub System.Console.WriteLine(String)"
-    IL_01ad:  ldloc.1
-    IL_01ae:  callvirt   "Function System.ArgumentException.get_Message() As String"
-    IL_01b3:  call       "Sub System.Console.WriteLine(String)"
-    IL_01b8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_01bd:  leave.s    IL_01bf
+    IL_01a8:  dup
+    IL_01a9:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_01ae:  stloc.1
+    IL_01af:  ldstr      "TestLINQ"
+    IL_01b4:  call       "Sub System.Console.WriteLine(String)"
+    IL_01b9:  ldloc.1
+    IL_01ba:  callvirt   "Function System.ArgumentException.get_Message() As String"
+    IL_01bf:  call       "Sub System.Console.WriteLine(String)"
+    IL_01c4:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_01c9:  leave.s    IL_01cb
   }
-  IL_01bf:  ret
+  IL_01cb:  ret
 }
 ]]>.Value)
         End Sub

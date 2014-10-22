@@ -148,29 +148,29 @@ End Module
 
             c.VerifyIL("M1.Main", <![CDATA[
 {
-  // Code size       75 (0x4b)
+  // Code size       83 (0x53)
   .maxstack  2
-  IL_0000:  ldsfld     "M1._ClosureCache$__2 As System.Action"
+  IL_0000:  ldsfld     "M1._Closure$__1._ClosureCache$__3 As System.Action"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "M1._ClosureCache$__2 As System.Action"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub M1._Lambda$__1(Object)"
-  IL_0015:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "M1._ClosureCache$__2 As System.Action"
-  IL_0020:  callvirt   "Sub System.Action.Invoke()"
-  IL_0025:  ldsfld     "M1._ClosureCache$__4 As System.Action"
-  IL_002a:  brfalse.s  IL_0033
-  IL_002c:  ldsfld     "M1._ClosureCache$__4 As System.Action"
-  IL_0031:  br.s       IL_0045
-  IL_0033:  ldnull
-  IL_0034:  ldftn      "Sub M1._Lambda$__3(Object)"
-  IL_003a:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_003f:  dup
-  IL_0040:  stsfld     "M1._ClosureCache$__4 As System.Action"
-  IL_0045:  callvirt   "Sub System.Action.Invoke()"
-  IL_004a:  ret
+  IL_0007:  ldsfld     "M1._Closure$__1._ClosureCache$__3 As System.Action"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "M1._Closure$__1.$Inst As M1._Closure$__1"
+  IL_0013:  ldftn      "Sub M1._Closure$__1._Lambda$__2()"
+  IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "M1._Closure$__1._ClosureCache$__3 As System.Action"
+  IL_0024:  callvirt   "Sub System.Action.Invoke()"
+  IL_0029:  ldsfld     "M1._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_002e:  brfalse.s  IL_0037
+  IL_0030:  ldsfld     "M1._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0035:  br.s       IL_004d
+  IL_0037:  ldsfld     "M1._Closure$__1.$Inst As M1._Closure$__1"
+  IL_003c:  ldftn      "Sub M1._Closure$__1._Lambda$__4()"
+  IL_0042:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_0047:  dup
+  IL_0048:  stsfld     "M1._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_004d:  callvirt   "Sub System.Action.Invoke()"
+  IL_0052:  ret
 }
 ]]>)
         End Sub
@@ -452,7 +452,7 @@ End Module
     </file>
 </compilation>, expectedOutput:="654321")
 
-            c.VerifyIL("M1._Closure$__1._Lambda$__4", <![CDATA[
+            c.VerifyIL("M1._Closure$__1._Lambda$__5", <![CDATA[
 {
   // Code size       38 (0x26)
   .maxstack  3
@@ -466,7 +466,7 @@ End Module
   IL_0013:  dup
   IL_0014:  ldarg.2
   IL_0015:  stfld      "M1._Closure$__2.$VB$Local_d As Integer"
-  IL_001a:  ldftn      "Function M1._Closure$__2._Lambda$__5(Integer, Integer) As M1.D"
+  IL_001a:  ldftn      "Function M1._Closure$__2._Lambda$__6(Integer, Integer) As M1.D"
   IL_0020:  newobj     "Sub M1.D..ctor(Object, System.IntPtr)"
   IL_0025:  ret
 }
@@ -1057,19 +1057,25 @@ End Module
     VerifyIL("M1.C1.Foo",
             <![CDATA[
 {
-  // Code size       36 (0x24)
+  // Code size       60 (0x3c)
   .maxstack  3
-  IL_0000:  ldnull
-  IL_0001:  ldftn      "Sub M1.C1._Lambda$__1(Of T)(Object)"
-  IL_0007:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_000c:  dup
-  IL_000d:  callvirt   "Sub System.Action.Invoke()"
-  IL_0012:  ldsfld     "M1.C1.X As Integer"
-  IL_0017:  ldc.i4.5
-  IL_0018:  add.ovf
-  IL_0019:  stsfld     "M1.C1.X As Integer"
-  IL_001e:  callvirt   "Sub System.Action.Invoke()"
-  IL_0023:  ret
+  IL_0000:  ldsfld     "M1.C1._Closure$__1(Of T)._ClosureCache$__3 As System.Action"
+  IL_0005:  brfalse.s  IL_000e
+  IL_0007:  ldsfld     "M1.C1._Closure$__1(Of T)._ClosureCache$__3 As System.Action"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "M1.C1._Closure$__1(Of T).$Inst As M1.C1._Closure$__1(Of T)"
+  IL_0013:  ldftn      "Sub M1.C1._Closure$__1(Of T)._Lambda$__2()"
+  IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "M1.C1._Closure$__1(Of T)._ClosureCache$__3 As System.Action"
+  IL_0024:  dup
+  IL_0025:  callvirt   "Sub System.Action.Invoke()"
+  IL_002a:  ldsfld     "M1.C1.X As Integer"
+  IL_002f:  ldc.i4.5
+  IL_0030:  add.ovf
+  IL_0031:  stsfld     "M1.C1.X As Integer"
+  IL_0036:  callvirt   "Sub System.Action.Invoke()"
+  IL_003b:  ret
 }
 ]]>)
         End Sub
@@ -2757,7 +2763,7 @@ End Class
     </file>
 </compilation>
             Dim verifier = CompileAndVerify(source, expectedOutput:="pass")
-            verifier.VerifyIL("Program._Lambda$__1(Of $CLS0)", <![CDATA[
+            verifier.VerifyIL("Program._Closure$__1(Of $CLS0)._Lambda$__2", <![CDATA[
 {
   // Code size       84 (0x54)
   .maxstack  3
@@ -2931,22 +2937,18 @@ End Class
                          </compilation>
 
 
-            CompileAndVerify(source, expectedSignatures:=
-            {
-                 Signature("Test", "_Lambda$__1", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__1(System.Object) cil managed"),
-                 Signature("Test", "_Lambda$__2", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__2(System.Object) cil managed")
-            }).VerifyIL("Test..cctor",
+            CompileAndVerify(source).VerifyIL("Test..cctor",
             <![CDATA[
 {
-  // Code size       24 (0x18)
+  // Code size       28 (0x1c)
   .maxstack  2
-  IL_0000:  ldnull
-  IL_0001:  ldftn      "Function Test._Lambda$__1(Object) As Integer"
-  IL_0007:  newobj     "Sub D..ctor(Object, System.IntPtr)"
-  IL_000c:  stsfld     "Test.field As D"
-  IL_0011:  ldc.i4.m1
-  IL_0012:  stsfld     "Test.field2 As Short"
-  IL_0017:  ret
+  IL_0000:  ldsfld     "Test._Closure$__1.$Inst As Test._Closure$__1"
+  IL_0005:  ldftn      "Function Test._Closure$__1._Lambda$__2() As Integer"
+  IL_000b:  newobj     "Sub D..ctor(Object, System.IntPtr)"
+  IL_0010:  stsfld     "Test.field As D"
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stsfld     "Test.field2 As Short"
+  IL_001b:  ret
 }
 ]]>)
         End Sub

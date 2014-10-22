@@ -151,31 +151,31 @@ End Module
     </file>
 </compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       73 (0x49)
+  // Code size       77 (0x4d)
   .maxstack  2
   .locals init (Object V_0) //Y
   IL_0000:  ldc.i4.2
   IL_0001:  box        "Integer"
   IL_0006:  stloc.0
-  IL_0007:  ldsfld     "C._ClosureCache$__2 As <generated method>"
+  IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_000c:  brfalse.s  IL_0015
-  IL_000e:  ldsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_0013:  br.s       IL_0027
-  IL_0015:  ldnull
-  IL_0016:  ldftn      "Function C._Lambda$__1(Object, Integer) As Integer"
-  IL_001c:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer, Integer)..ctor(Object, System.IntPtr)"
-  IL_0021:  dup
-  IL_0022:  stsfld     "C._ClosureCache$__2 As <generated method>"
-  IL_0027:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_002c:  pop
-  IL_002d:  ldloc.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  box        "Integer"
-  IL_0034:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
-  IL_0039:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_003e:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0043:  call       "Sub System.Console.WriteLine(Object)"
-  IL_0048:  ret
+  IL_000e:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0013:  br.s       IL_002b
+  IL_0015:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_001a:  ldftn      "Function C._Closure$__1._Lambda$__2(Integer) As Integer"
+  IL_0020:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer, Integer)..ctor(Object, System.IntPtr)"
+  IL_0025:  dup
+  IL_0026:  stsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_002b:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0030:  pop
+  IL_0031:  ldloc.0
+  IL_0032:  ldc.i4.1
+  IL_0033:  box        "Integer"
+  IL_0038:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
+  IL_003d:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0042:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0047:  call       "Sub System.Console.WriteLine(Object)"
+  IL_004c:  ret
 }
 ]]>).Compilation
 

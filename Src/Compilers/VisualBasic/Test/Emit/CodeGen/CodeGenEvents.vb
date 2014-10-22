@@ -37,26 +37,26 @@ End Module
                 VerifyIL("MyClass1.Main",
             <![CDATA[
 {
-  // Code size       56 (0x38)
+  // Code size       60 (0x3c)
   .maxstack  3
   .locals init (System.EventHandler V_0) //del
-  IL_0000:  ldsfld     "MyClass1._ClosureCache$__2 As System.EventHandler"
+  IL_0000:  ldsfld     "MyClass1._Closure$__1._ClosureCache$__3 As System.EventHandler"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "MyClass1._ClosureCache$__2 As System.EventHandler"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub MyClass1._Lambda$__1(Object, Object, System.EventArgs)"
-  IL_0015:  newobj     "Sub System.EventHandler..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "MyClass1._ClosureCache$__2 As System.EventHandler"
-  IL_0020:  stloc.0
-  IL_0021:  ldstr      "qq"
-  IL_0026:  call       "Function System.AppDomain.CreateDomain(String) As System.AppDomain"
-  IL_002b:  dup
-  IL_002c:  ldloc.0
-  IL_002d:  callvirt   "Sub System.AppDomain.add_DomainUnload(System.EventHandler)"
-  IL_0032:  call       "Sub System.AppDomain.Unload(System.AppDomain)"
-  IL_0037:  ret
+  IL_0007:  ldsfld     "MyClass1._Closure$__1._ClosureCache$__3 As System.EventHandler"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "MyClass1._Closure$__1.$Inst As MyClass1._Closure$__1"
+  IL_0013:  ldftn      "Sub MyClass1._Closure$__1._Lambda$__2(Object, System.EventArgs)"
+  IL_0019:  newobj     "Sub System.EventHandler..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "MyClass1._Closure$__1._ClosureCache$__3 As System.EventHandler"
+  IL_0024:  stloc.0
+  IL_0025:  ldstr      "qq"
+  IL_002a:  call       "Function System.AppDomain.CreateDomain(String) As System.AppDomain"
+  IL_002f:  dup
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   "Sub System.AppDomain.add_DomainUnload(System.EventHandler)"
+  IL_0036:  call       "Sub System.AppDomain.Unload(System.AppDomain)"
+  IL_003b:  ret
 }
 ]]>)
         End Sub
@@ -86,29 +86,29 @@ End Module
                 VerifyIL("MyClass1.Main",
             <![CDATA[
 {
-  // Code size       63 (0x3f)
+  // Code size       67 (0x43)
   .maxstack  3
   .locals init (System.EventHandler V_0) //del
-  IL_0000:  ldsfld     "MyClass1._ClosureCache$__2 As System.EventHandler"
+  IL_0000:  ldsfld     "MyClass1._Closure$__1._ClosureCache$__3 As System.EventHandler"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "MyClass1._ClosureCache$__2 As System.EventHandler"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub MyClass1._Lambda$__1(Object, Object, System.EventArgs)"
-  IL_0015:  newobj     "Sub System.EventHandler..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "MyClass1._ClosureCache$__2 As System.EventHandler"
-  IL_0020:  stloc.0
-  IL_0021:  ldstr      "qq"
-  IL_0026:  call       "Function System.AppDomain.CreateDomain(String) As System.AppDomain"
-  IL_002b:  dup
-  IL_002c:  ldloc.0
-  IL_002d:  callvirt   "Sub System.AppDomain.add_DomainUnload(System.EventHandler)"
-  IL_0032:  dup
-  IL_0033:  ldloc.0
-  IL_0034:  callvirt   "Sub System.AppDomain.remove_DomainUnload(System.EventHandler)"
-  IL_0039:  call       "Sub System.AppDomain.Unload(System.AppDomain)"
-  IL_003e:  ret
+  IL_0007:  ldsfld     "MyClass1._Closure$__1._ClosureCache$__3 As System.EventHandler"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "MyClass1._Closure$__1.$Inst As MyClass1._Closure$__1"
+  IL_0013:  ldftn      "Sub MyClass1._Closure$__1._Lambda$__2(Object, System.EventArgs)"
+  IL_0019:  newobj     "Sub System.EventHandler..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "MyClass1._Closure$__1._ClosureCache$__3 As System.EventHandler"
+  IL_0024:  stloc.0
+  IL_0025:  ldstr      "qq"
+  IL_002a:  call       "Function System.AppDomain.CreateDomain(String) As System.AppDomain"
+  IL_002f:  dup
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   "Sub System.AppDomain.add_DomainUnload(System.EventHandler)"
+  IL_0036:  dup
+  IL_0037:  ldloc.0
+  IL_0038:  callvirt   "Sub System.AppDomain.remove_DomainUnload(System.EventHandler)"
+  IL_003d:  call       "Sub System.AppDomain.Unload(System.AppDomain)"
+  IL_0042:  ret
 }
     ]]>)
         End Sub
@@ -241,27 +241,27 @@ End Module
                 VerifyIL("Module1.Main",
             <![CDATA[
 {
-  // Code size       67 (0x43)
+  // Code size       71 (0x47)
   .maxstack  2
-  IL_0000:  ldsfld     "Module1._ClosureCache$__2 As System.Action"
+  IL_0000:  ldsfld     "Module1._Closure$__1._ClosureCache$__3 As System.Action"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Module1._ClosureCache$__2 As System.Action"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Module1._Lambda$__1(Object)"
-  IL_0015:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "Module1._ClosureCache$__2 As System.Action"
-  IL_0020:  dup
-  IL_0021:  call       "Sub Module1.add_e1(System.Action)"
-  IL_0026:  ldsfld     "Module1.e1Event As System.Action"
-  IL_002b:  callvirt   "Sub System.Action.Invoke()"
-  IL_0030:  call       "Sub Module1.remove_e1(System.Action)"
-  IL_0035:  ldsfld     "Module1.e1Event As System.Action"
-  IL_003a:  ldnull
-  IL_003b:  ceq
-  IL_003d:  call       "Sub System.Console.Write(Boolean)"
-  IL_0042:  ret
+  IL_0007:  ldsfld     "Module1._Closure$__1._ClosureCache$__3 As System.Action"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "Module1._Closure$__1.$Inst As Module1._Closure$__1"
+  IL_0013:  ldftn      "Sub Module1._Closure$__1._Lambda$__2()"
+  IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "Module1._Closure$__1._ClosureCache$__3 As System.Action"
+  IL_0024:  dup
+  IL_0025:  call       "Sub Module1.add_e1(System.Action)"
+  IL_002a:  ldsfld     "Module1.e1Event As System.Action"
+  IL_002f:  callvirt   "Sub System.Action.Invoke()"
+  IL_0034:  call       "Sub Module1.remove_e1(System.Action)"
+  IL_0039:  ldsfld     "Module1.e1Event As System.Action"
+  IL_003e:  ldnull
+  IL_003f:  ceq
+  IL_0041:  call       "Sub System.Console.Write(Boolean)"
+  IL_0046:  ret
 }
     ]]>)
         End Sub
@@ -297,27 +297,27 @@ End Module
                 VerifyIL("Module1.Main",
             <![CDATA[
 {
-  // Code size       67 (0x43)
+  // Code size       71 (0x47)
   .maxstack  2
-  IL_0000:  ldsfld     "Module1._ClosureCache$__2 As Module1.e1EventHandler"
+  IL_0000:  ldsfld     "Module1._Closure$__1._ClosureCache$__3 As Module1.e1EventHandler"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Module1._ClosureCache$__2 As Module1.e1EventHandler"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Module1._Lambda$__1(Object)"
-  IL_0015:  newobj     "Sub Module1.e1EventHandler..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "Module1._ClosureCache$__2 As Module1.e1EventHandler"
-  IL_0020:  dup
-  IL_0021:  call       "Sub Module1.add_e1(Module1.e1EventHandler)"
-  IL_0026:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
-  IL_002b:  callvirt   "Sub Module1.e1EventHandler.Invoke()"
-  IL_0030:  call       "Sub Module1.remove_e1(Module1.e1EventHandler)"
-  IL_0035:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
-  IL_003a:  ldnull
-  IL_003b:  ceq
-  IL_003d:  call       "Sub System.Console.Write(Boolean)"
-  IL_0042:  ret
+  IL_0007:  ldsfld     "Module1._Closure$__1._ClosureCache$__3 As Module1.e1EventHandler"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "Module1._Closure$__1.$Inst As Module1._Closure$__1"
+  IL_0013:  ldftn      "Sub Module1._Closure$__1._Lambda$__2()"
+  IL_0019:  newobj     "Sub Module1.e1EventHandler..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "Module1._Closure$__1._ClosureCache$__3 As Module1.e1EventHandler"
+  IL_0024:  dup
+  IL_0025:  call       "Sub Module1.add_e1(Module1.e1EventHandler)"
+  IL_002a:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
+  IL_002f:  callvirt   "Sub Module1.e1EventHandler.Invoke()"
+  IL_0034:  call       "Sub Module1.remove_e1(Module1.e1EventHandler)"
+  IL_0039:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
+  IL_003e:  ldnull
+  IL_003f:  ceq
+  IL_0041:  call       "Sub System.Console.Write(Boolean)"
+  IL_0046:  ret
 }
 ]]>)
         End Sub
@@ -351,31 +351,31 @@ End Module
                 VerifyIL("Module1.Main",
             <![CDATA[
 {
-  // Code size       70 (0x46)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (Module1.e1EventHandler V_0) //h
-  IL_0000:  ldsfld     "Module1._ClosureCache$__4 As Module1.e1EventHandler"
+  IL_0000:  ldsfld     "Module1._Closure$__1._ClosureCache$__5 As Module1.e1EventHandler"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Module1._ClosureCache$__4 As Module1.e1EventHandler"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Module1._Lambda$__1(Object, Module1.e1EventHandler)"
-  IL_0015:  newobj     "Sub Module1.e1EventHandler..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "Module1._ClosureCache$__4 As Module1.e1EventHandler"
-  IL_0020:  stloc.0
-  IL_0021:  ldloc.0
-  IL_0022:  call       "Sub Module1.add_e1(Module1.e1EventHandler)"
-  IL_0027:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
-  IL_002c:  ldloc.0
-  IL_002d:  callvirt   "Sub Module1.e1EventHandler.Invoke(Module1.e1EventHandler)"
-  IL_0032:  ldloc.0
-  IL_0033:  call       "Sub Module1.remove_e1(Module1.e1EventHandler)"
-  IL_0038:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
-  IL_003d:  ldnull
-  IL_003e:  ceq
-  IL_0040:  call       "Sub System.Console.Write(Boolean)"
-  IL_0045:  ret
+  IL_0007:  ldsfld     "Module1._Closure$__1._ClosureCache$__5 As Module1.e1EventHandler"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "Module1._Closure$__1.$Inst As Module1._Closure$__1"
+  IL_0013:  ldftn      "Sub Module1._Closure$__1._Lambda$__2(Module1.e1EventHandler)"
+  IL_0019:  newobj     "Sub Module1.e1EventHandler..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "Module1._Closure$__1._ClosureCache$__5 As Module1.e1EventHandler"
+  IL_0024:  stloc.0
+  IL_0025:  ldloc.0
+  IL_0026:  call       "Sub Module1.add_e1(Module1.e1EventHandler)"
+  IL_002b:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   "Sub Module1.e1EventHandler.Invoke(Module1.e1EventHandler)"
+  IL_0036:  ldloc.0
+  IL_0037:  call       "Sub Module1.remove_e1(Module1.e1EventHandler)"
+  IL_003c:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
+  IL_0041:  ldnull
+  IL_0042:  ceq
+  IL_0044:  call       "Sub System.Console.Write(Boolean)"
+  IL_0049:  ret
 }
     ]]>)
         End Sub
@@ -470,62 +470,62 @@ End Module
                 VerifyIL("Program.Main",
             <![CDATA[
 {
-  // Code size      151 (0x97)
+  // Code size      155 (0x9b)
   .maxstack  3
   .locals init (Program.del1 V_0,
-  String V_1,
-  Program.del1 V_2,
-  Program.del1 V_3)
-  IL_0000:  ldsfld     "Program._ClosureCache$__2 As Program.del1"
+                String V_1,
+                Program.del1 V_2,
+                Program.del1 V_3)
+  IL_0000:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.del1"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._ClosureCache$__2 As Program.del1"
-  IL_000c:  br.s       IL_0020
-  IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, ByRef String)"
-  IL_0015:  newobj     "Sub Program.del1..ctor(Object, System.IntPtr)"
-  IL_001a:  dup
-  IL_001b:  stsfld     "Program._ClosureCache$__2 As Program.del1"
-  IL_0020:  ldstr      "hello "
-  IL_0025:  call       "Sub Program.set_str(String)"
-  IL_002a:  ldsfld     "Program.EEvent As Program.del1"
-  IL_002f:  stloc.0
-  IL_0030:  ldloc.0
-  IL_0031:  brfalse.s  IL_0047
-  IL_0033:  ldloc.0
-  IL_0034:  call       "Function Program.get_str() As String"
-  IL_0039:  stloc.1
-  IL_003a:  ldloca.s   V_1
-  IL_003c:  callvirt   "Sub Program.del1.Invoke(ByRef String)"
-  IL_0041:  ldloc.1
-  IL_0042:  call       "Sub Program.set_str(String)"
-  IL_0047:  dup
-  IL_0048:  call       "Sub Program.add_E(Program.del1)"
-  IL_004d:  ldsfld     "Program.EEvent As Program.del1"
-  IL_0052:  stloc.2
-  IL_0053:  ldloc.2
-  IL_0054:  brfalse.s  IL_006a
-  IL_0056:  ldloc.2
-  IL_0057:  call       "Function Program.get_str() As String"
-  IL_005c:  stloc.1
-  IL_005d:  ldloca.s   V_1
-  IL_005f:  callvirt   "Sub Program.del1.Invoke(ByRef String)"
-  IL_0064:  ldloc.1
-  IL_0065:  call       "Sub Program.set_str(String)"
-  IL_006a:  call       "Sub Program.remove_E(Program.del1)"
-  IL_006f:  ldsfld     "Program.EEvent As Program.del1"
-  IL_0074:  stloc.3
-  IL_0075:  ldloc.3
-  IL_0076:  brfalse.s  IL_008c
-  IL_0078:  ldloc.3
-  IL_0079:  call       "Function Program.get_str() As String"
-  IL_007e:  stloc.1
-  IL_007f:  ldloca.s   V_1
-  IL_0081:  callvirt   "Sub Program.del1.Invoke(ByRef String)"
-  IL_0086:  ldloc.1
-  IL_0087:  call       "Sub Program.set_str(String)"
-  IL_008c:  call       "Function Program.get_str() As String"
-  IL_0091:  call       "Sub System.Console.Write(String)"
-  IL_0096:  ret
+  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.del1"
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0013:  ldftn      "Sub Program._Closure$__1._Lambda$__2(ByRef String)"
+  IL_0019:  newobj     "Sub Program.del1..ctor(Object, System.IntPtr)"
+  IL_001e:  dup
+  IL_001f:  stsfld     "Program._Closure$__1._ClosureCache$__3 As Program.del1"
+  IL_0024:  ldstr      "hello "
+  IL_0029:  call       "Sub Program.set_str(String)"
+  IL_002e:  ldsfld     "Program.EEvent As Program.del1"
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  brfalse.s  IL_004b
+  IL_0037:  ldloc.0
+  IL_0038:  call       "Function Program.get_str() As String"
+  IL_003d:  stloc.1
+  IL_003e:  ldloca.s   V_1
+  IL_0040:  callvirt   "Sub Program.del1.Invoke(ByRef String)"
+  IL_0045:  ldloc.1
+  IL_0046:  call       "Sub Program.set_str(String)"
+  IL_004b:  dup
+  IL_004c:  call       "Sub Program.add_E(Program.del1)"
+  IL_0051:  ldsfld     "Program.EEvent As Program.del1"
+  IL_0056:  stloc.2
+  IL_0057:  ldloc.2
+  IL_0058:  brfalse.s  IL_006e
+  IL_005a:  ldloc.2
+  IL_005b:  call       "Function Program.get_str() As String"
+  IL_0060:  stloc.1
+  IL_0061:  ldloca.s   V_1
+  IL_0063:  callvirt   "Sub Program.del1.Invoke(ByRef String)"
+  IL_0068:  ldloc.1
+  IL_0069:  call       "Sub Program.set_str(String)"
+  IL_006e:  call       "Sub Program.remove_E(Program.del1)"
+  IL_0073:  ldsfld     "Program.EEvent As Program.del1"
+  IL_0078:  stloc.3
+  IL_0079:  ldloc.3
+  IL_007a:  brfalse.s  IL_0090
+  IL_007c:  ldloc.3
+  IL_007d:  call       "Function Program.get_str() As String"
+  IL_0082:  stloc.1
+  IL_0083:  ldloca.s   V_1
+  IL_0085:  callvirt   "Sub Program.del1.Invoke(ByRef String)"
+  IL_008a:  ldloc.1
+  IL_008b:  call       "Sub Program.set_str(String)"
+  IL_0090:  call       "Function Program.get_str() As String"
+  IL_0095:  call       "Sub System.Console.Write(String)"
+  IL_009a:  ret
 }
     ]]>)
         End Sub
@@ -634,28 +634,28 @@ End Module
                 VerifyIL("Program.Main",
             <![CDATA[
 {
-  // Code size       63 (0x3f)
+  // Code size       67 (0x43)
   .maxstack  4
   .locals init (String V_0) //Str
   IL_0000:  newobj     "Sub Program.cls1..ctor()"
   IL_0005:  dup
-  IL_0006:  ldsfld     "Program._ClosureCache$__2 As Program.i1.del1"
+  IL_0006:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.i1.del1"
   IL_000b:  brfalse.s  IL_0014
-  IL_000d:  ldsfld     "Program._ClosureCache$__2 As Program.i1.del1"
-  IL_0012:  br.s       IL_0026
-  IL_0014:  ldnull
-  IL_0015:  ldftn      "Sub Program._Lambda$__1(Object, ByRef String)"
-  IL_001b:  newobj     "Sub Program.i1.del1..ctor(Object, System.IntPtr)"
-  IL_0020:  dup
-  IL_0021:  stsfld     "Program._ClosureCache$__2 As Program.i1.del1"
-  IL_0026:  callvirt   "Sub Program.i1.add_E(Program.i1.del1)"
-  IL_002b:  ldstr      "hello "
-  IL_0030:  stloc.0
-  IL_0031:  ldloca.s   V_0
-  IL_0033:  callvirt   "Sub Program.i1.Raise(ByRef String)"
-  IL_0038:  ldloc.0
-  IL_0039:  call       "Sub System.Console.Write(String)"
-  IL_003e:  ret
+  IL_000d:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.i1.del1"
+  IL_0012:  br.s       IL_002a
+  IL_0014:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0019:  ldftn      "Sub Program._Closure$__1._Lambda$__2(ByRef String)"
+  IL_001f:  newobj     "Sub Program.i1.del1..ctor(Object, System.IntPtr)"
+  IL_0024:  dup
+  IL_0025:  stsfld     "Program._Closure$__1._ClosureCache$__3 As Program.i1.del1"
+  IL_002a:  callvirt   "Sub Program.i1.add_E(Program.i1.del1)"
+  IL_002f:  ldstr      "hello "
+  IL_0034:  stloc.0
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  callvirt   "Sub Program.i1.Raise(ByRef String)"
+  IL_003c:  ldloc.0
+  IL_003d:  call       "Sub System.Console.Write(String)"
+  IL_0042:  ret
 }
 ]]>)
         End Sub
@@ -710,28 +710,28 @@ End Module
                 VerifyIL("Program.Main",
             <![CDATA[
 {
-  // Code size       63 (0x3f)
+  // Code size       67 (0x43)
   .maxstack  4
   .locals init (String V_0) //Str
   IL_0000:  newobj     "Sub Program.cls1..ctor()"
   IL_0005:  dup
-  IL_0006:  ldsfld     "Program._ClosureCache$__2 As Program.i1.del1"
+  IL_0006:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.i1.del1"
   IL_000b:  brfalse.s  IL_0014
-  IL_000d:  ldsfld     "Program._ClosureCache$__2 As Program.i1.del1"
-  IL_0012:  br.s       IL_0026
-  IL_0014:  ldnull
-  IL_0015:  ldftn      "Sub Program._Lambda$__1(Object, ByRef String)"
-  IL_001b:  newobj     "Sub Program.i1.del1..ctor(Object, System.IntPtr)"
-  IL_0020:  dup
-  IL_0021:  stsfld     "Program._ClosureCache$__2 As Program.i1.del1"
-  IL_0026:  callvirt   "Sub Program.i1.add_E1(Program.i1.del1)"
-  IL_002b:  ldstr      "hello "
-  IL_0030:  stloc.0
-  IL_0031:  ldloca.s   V_0
-  IL_0033:  callvirt   "Sub Program.i1.Raise(ByRef String)"
-  IL_0038:  ldloc.0
-  IL_0039:  call       "Sub System.Console.Write(String)"
-  IL_003e:  ret
+  IL_000d:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.i1.del1"
+  IL_0012:  br.s       IL_002a
+  IL_0014:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0019:  ldftn      "Sub Program._Closure$__1._Lambda$__2(ByRef String)"
+  IL_001f:  newobj     "Sub Program.i1.del1..ctor(Object, System.IntPtr)"
+  IL_0024:  dup
+  IL_0025:  stsfld     "Program._Closure$__1._ClosureCache$__3 As Program.i1.del1"
+  IL_002a:  callvirt   "Sub Program.i1.add_E1(Program.i1.del1)"
+  IL_002f:  ldstr      "hello "
+  IL_0034:  stloc.0
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  callvirt   "Sub Program.i1.Raise(ByRef String)"
+  IL_003c:  ldloc.0
+  IL_003d:  call       "Sub System.Console.Write(String)"
+  IL_0042:  ret
 }
 ]]>)
         End Sub

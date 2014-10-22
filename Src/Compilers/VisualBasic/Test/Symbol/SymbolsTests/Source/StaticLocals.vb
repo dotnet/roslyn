@@ -455,9 +455,6 @@ $STATIC$TestProc4$2001$x
 $STATIC$TestProc4$2001$x$Init
 513
 0
-_ClosureCache$__2
-17
-1
 ]]>)
         End Sub
 
