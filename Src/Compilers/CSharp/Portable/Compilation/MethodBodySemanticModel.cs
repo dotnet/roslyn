@@ -72,6 +72,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MethodBodySemanticModel(parentSemanticModel.Compilation, owner, rootBinder, syntax, parentSemanticModel, position);
         }
 
+        /// <summary>
+        /// Creates a speculative SemanticModel for an expression body that did not appear in the original source code.
+        /// </summary>
+        internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, ArrowExpressionClauseSyntax syntax, Binder rootBinder, int position)
+        {
+            Debug.Assert(parentSemanticModel != null);
+            Debug.Assert(syntax != null);
+            Debug.Assert(rootBinder != null);
+            Debug.Assert(rootBinder.IsSemanticModelBinder);
+
+            return new MethodBodySemanticModel(parentSemanticModel.Compilation, owner, rootBinder, syntax, parentSemanticModel, position);
+        }
+
         internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
         {
             // CONSIDER: Do we want to ensure that speculated method and the original method have identical signatures?
@@ -115,6 +128,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, position);
+            return true;
+        }
+
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        {
+            position = CheckAndAdjustPosition(position);
+
+            var binder = this.GetEnclosingBinder(position);
+            if (binder == null)
+            {
+                speculativeModel = null;
+                return false;
+            }
+
+            var methodSymbol = (MethodSymbol)this.MemberSymbol;
+            binder = new ExecutableCodeBinder(expressionBody, methodSymbol, binder);
+
+            speculativeModel = CreateSpeculative(parentModel, methodSymbol, expressionBody, binder, position);
             return true;
         }
 

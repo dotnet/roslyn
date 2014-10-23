@@ -261,6 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        {
+            speculativeModel = null;
+            return false;
+        }
+
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out SemanticModel speculativeModel)
         {
             speculativeModel = null;

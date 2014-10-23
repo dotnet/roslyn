@@ -663,6 +663,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        {
+            position = CheckAndAdjustPosition(position);
+
+            var model = this.GetMemberModel(position);
+            if (model != null)
+            {
+                return model.TryGetSpeculativeSemanticModelCore(parentModel, position, expressionBody, out speculativeModel);
+            }
+
+            speculativeModel = null;
+            return false;
+        }
+
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
@@ -708,7 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var methodDecl = (BaseMethodDeclarationSyntax)memberDecl;
                         outsideMemberDecl =
                             !LookupPosition.IsInBlock(position, methodDecl.Body) &&
-                            !LookupPosition.IsInParameterList(position, methodDecl);
+                            !LookupPosition.IsInParameterList(position, methodDecl) &&
+                            !LookupPosition.IsInExpressionBody(position, methodDecl.GetExpressionBodySyntax(), methodDecl.SemicolonToken);
                         break;
                 }
             }
