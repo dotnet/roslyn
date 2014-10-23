@@ -712,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return DirectCast(parent, AsClauseSyntax).Type Is node
                     Case SyntaxKind.GetTypeExpression
                         Return DirectCast(parent, GetTypeExpressionSyntax).Type Is node
-                    Case SyntaxKind.TypeOfIsExpression
+                    Case SyntaxKind.TypeOfIsExpression, SyntaxKind.TypeOfIsNotExpression
                         Return DirectCast(parent, TypeOfExpressionSyntax).Type Is node
                     Case SyntaxKind.CTypeExpression, SyntaxKind.DirectCastExpression, SyntaxKind.TryCastExpression
                         Return DirectCast(parent, CastExpressionSyntax).Type Is node
