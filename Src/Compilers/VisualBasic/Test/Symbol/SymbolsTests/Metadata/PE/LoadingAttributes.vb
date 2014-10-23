@@ -1455,18 +1455,19 @@ End Class
             Dim d1 = class1.GetMember(Of FieldSymbol)("d1")
             Dim d2 = class1.GetMember(Of FieldSymbol)("d2")
             Dim m1 = class1.GetMember(Of MethodSymbol)("M1")
+            Dim context = New ModuleCompilationState()
 
             Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(d1.ConstantValue, CDec(-7))
             Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(d2.ConstantValue, #1/1/2013#)
             Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
             Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
 
             Dim c2 = CompilationUtils.CreateCompilationWithCustomILSource(
@@ -1481,16 +1482,16 @@ End Class
             m1 = class1.GetMember(Of MethodSymbol)("M1")
 
             Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(d1.ConstantValue, CDec(-7))
             Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(d2.ConstantValue, #1/1/2013#)
             Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
             Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
 
             Dim c3 = CompilationUtils.CreateCompilationWithCustomILSource(
@@ -1506,16 +1507,16 @@ End Class
 
             Assert.Equal(d1.ConstantValue, CDec(-7))
             Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(d2.ConstantValue, #1/1/2013#)
             Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
             Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
             Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
             Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit().Single().ToString())
+            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
         End Sub
 
     End Class

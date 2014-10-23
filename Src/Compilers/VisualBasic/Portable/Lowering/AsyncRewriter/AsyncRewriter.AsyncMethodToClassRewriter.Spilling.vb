@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class AsyncRewriter
-        Inherits StateMachineRewriter(Of AsyncStateMachine, CapturedSymbolOrExpression)
+        Inherits StateMachineRewriter(Of CapturedSymbolOrExpression)
 
         Partial Friend Class AsyncMethodToClassRewriter
             Inherits StateMachineMethodToClassRewriter

@@ -75,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New BoundBlock(syntaxNode, Nothing, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(statement, New BoundReturnStatement(syntaxNode, Nothing, Nothing, Nothing)))
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             AddSynthesizedAttribute(attributes,
                                     DeclaringCompilation.SynthesizeAttribute(WellKnownMember.System_STAThreadAttribute__ctor))

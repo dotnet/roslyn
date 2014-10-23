@@ -57,9 +57,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return stream;
         }
 
-        public static MetadataReference EmitToImageReference(this Compilation comp, bool embedInteropTypes = false, ImmutableArray<string> aliases = default(ImmutableArray<string>), DiagnosticDescription[] expectedWarnings = null)
+        public static MetadataReference EmitToImageReference(
+            this Compilation comp, 
+            EmitOptions options = null,
+            bool embedInteropTypes = false,
+            ImmutableArray<string> aliases = default(ImmutableArray<string>), 
+            DiagnosticDescription[] expectedWarnings = null)
         {
-            var image = comp.EmitToArray(expectedWarnings: expectedWarnings);
+            var image = comp.EmitToArray(options, expectedWarnings: expectedWarnings);
             if (comp.Options.OutputKind == OutputKind.NetModule)
             {
                 return ModuleMetadata.CreateFromImage(image).GetReference(display: comp.MakeSourceModuleName());

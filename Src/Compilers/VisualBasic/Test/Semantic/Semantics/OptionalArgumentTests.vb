@@ -1861,7 +1861,7 @@ End Class
 	]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation,
             <![CDATA[
 1: 21
@@ -1901,7 +1901,7 @@ End Class
 	]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation,
             <![CDATA[
 x: 14
@@ -1919,7 +1919,7 @@ public delegate void D(object o = null, [CallerLineNumber]int line = 0);
                 referencedAssemblies:=New MetadataReference() {MscorlibRef_v4_0_30316_17626})
             compilation1.VerifyDiagnostics()
             Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
-            Dim compilation2 = CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
                         <![CDATA[

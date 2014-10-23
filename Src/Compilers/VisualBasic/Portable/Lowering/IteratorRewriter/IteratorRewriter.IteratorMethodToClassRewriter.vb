@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class IteratorRewriter
-        Inherits StateMachineRewriter(Of IteratorStateMachine, FieldSymbol)
+        Inherits StateMachineRewriter(Of FieldSymbol)
 
         Private Class IteratorMethodToClassRewriter
             Inherits StateMachineMethodToClassRewriter

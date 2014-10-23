@@ -561,6 +561,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return fieldValue
         End Function
 
+        Friend Function GetSecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
+            Dim sourceSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
+
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.GetSourceAttributesBag()
+            Dim wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol))
+            If wellKnownAttributeData IsNot Nothing Then
+                Dim securityData As SecurityWellKnownAttributeData = wellKnownAttributeData.SecurityInformation
+                If securityData IsNot Nothing Then
+                    sourceSecurityAttributes = securityData.GetSecurityAttributes(attributesBag.Attributes)
+                End If
+            End If
+
+            Dim netmoduleSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
+            attributesBag = Me.GetNetModuleAttributesBag()
+            wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol))
+            If wellKnownAttributeData IsNot Nothing Then
+                Dim securityData As SecurityWellKnownAttributeData = wellKnownAttributeData.SecurityInformation
+                If securityData IsNot Nothing Then
+                    netmoduleSecurityAttributes = securityData.GetSecurityAttributes(attributesBag.Attributes)
+                End If
+            End If
+
+            Dim securityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
+            If sourceSecurityAttributes IsNot Nothing Then
+                If netmoduleSecurityAttributes IsNot Nothing Then
+                    securityAttributes = sourceSecurityAttributes.Concat(netmoduleSecurityAttributes)
+                Else
+                    securityAttributes = sourceSecurityAttributes
+                End If
+            Else
+                If netmoduleSecurityAttributes IsNot Nothing Then
+                    securityAttributes = netmoduleSecurityAttributes
+                Else
+                    securityAttributes = SpecializedCollections.EmptyEnumerable(Of Cci.SecurityAttribute)()
+                End If
+            End If
+
+            Debug.Assert(securityAttributes IsNot Nothing)
+            Return securityAttributes
+        End Function
+
         Friend ReadOnly Property FileVersion As String
             Get
                 Return GetWellKnownAttributeDataStringField(Function(data) data.AssemblyFileVersionAttributeSetting)
@@ -1328,8 +1369,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(m_lazyEmitExtensionAttribute <> ThreeState.Unknown)
             Debug.Assert(m_lazySourceAttributesBag.IsSealed)

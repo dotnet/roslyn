@@ -129,51 +129,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
+            Return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(Me.CompilationState, emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
 
         Friend NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
-            Dim sourceSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = SourceModule.ContainingSourceAssembly.GetSourceAttributesBag()
-            Dim wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol))
-            If wellKnownAttributeData IsNot Nothing Then
-                Dim securityData As SecurityWellKnownAttributeData = wellKnownAttributeData.SecurityInformation
-                If securityData IsNot Nothing Then
-                    sourceSecurityAttributes = securityData.GetSecurityAttributes(attributesBag.Attributes)
-                End If
-            End If
-
-            Dim netmoduleSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
-            attributesBag = SourceModule.ContainingSourceAssembly.GetNetModuleAttributesBag()
-            wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol))
-            If wellKnownAttributeData IsNot Nothing Then
-                Dim securityData As SecurityWellKnownAttributeData = wellKnownAttributeData.SecurityInformation
-                If securityData IsNot Nothing Then
-                    netmoduleSecurityAttributes = securityData.GetSecurityAttributes(attributesBag.Attributes)
-                End If
-            End If
-
-            Dim securityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
-            If sourceSecurityAttributes IsNot Nothing Then
-                If netmoduleSecurityAttributes IsNot Nothing Then
-                    securityAttributes = sourceSecurityAttributes.Concat(netmoduleSecurityAttributes)
-                Else
-                    securityAttributes = sourceSecurityAttributes
-                End If
-            Else
-                If netmoduleSecurityAttributes IsNot Nothing Then
-                    securityAttributes = netmoduleSecurityAttributes
-                Else
-                    securityAttributes = SpecializedCollections.EmptyEnumerable(Of Cci.SecurityAttribute)()
-                End If
-            End If
-
-            Debug.Assert(securityAttributes IsNot Nothing)
-            Return securityAttributes
+            Return SourceModule.ContainingSourceAssembly.GetSecurityAttributes()
         End Function
 
         Friend NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.GetCustomAttributesToEmit()
+            Return SourceModule.GetCustomAttributesToEmit(Me.CompilationState)
         End Function
 
         Protected Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)

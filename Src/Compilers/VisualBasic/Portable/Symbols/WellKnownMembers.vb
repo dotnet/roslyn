@@ -146,6 +146,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SynthesizedAttributeData.Create(constructor, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor)
         End Function
 
+        Friend Function SynthesizeStateMachineAttribute(method As MethodSymbol, compilationState As ModuleCompilationState) As SynthesizedAttributeData
+            Debug.Assert(method.IsAsync OrElse method.IsIterator)
+
+            ' The async state machine type is not synthesized until the async method body is rewritten. If we are
+            ' only emitting metadata the method body will not have been rewritten, and the async state machine
+            ' type will not have been created. In this case, omit the attribute.
+            Dim stateMachineType As NamedTypeSymbol = Nothing
+            If compilationState.TryGetStateMachineType(method, stateMachineType) Then
+
+                Dim ctor = If(method.IsAsync, WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+                                                WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor)
+
+                Dim arg = New TypedConstant(GetWellKnownType(WellKnownType.System_Type),
+                                            TypedConstantKind.Type,
+                                            If(stateMachineType.IsGenericType, stateMachineType.ConstructUnboundGenericType(), stateMachineType))
+
+                Return SynthesizeAttribute(ctor, ImmutableArray.Create(arg))
+            End If
+
+            Return Nothing
+        End Function
+
         Friend Function SynthesizeDecimalConstantAttribute(value As Decimal) As SynthesizedAttributeData
             Dim decimalData As DecimalData = value.GetBits()
 

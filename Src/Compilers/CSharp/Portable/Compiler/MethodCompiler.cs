@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator variableSlotAllocatorOpt = null;
-                NamedTypeSymbol stateMachineTypeOpt = null;
+                StateMachineTypeSymbol stateMachineTypeOpt = null;
                 BoundStatement loweredBodyOpt = null;
 
                 if (hasBody)
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            out NamedTypeSymbol stateMachineTypeOpt,
+            out StateMachineTypeSymbol stateMachineTypeOpt,
             out VariableSlotAllocator variableSlotAllocatorOpt)
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The reason why this rewrite happens before the lambda rewrite 
                 // is that we may need access to exception locals and it would be fairly hard to do
                 // if these locals are captured into closures (possibly nested ones).
-                Debug.Assert(method.IteratorElementType == null);
+                Debug.Assert(!method.IsIterator);
                 loweredBody = AsyncExceptionHandlerRewriter.Rewrite(
                     method,
                     method.ContainingType,
@@ -1168,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, variableSlotAllocatorOpt, compilationState, diagnostics, out asyncStateMachine);
 
             Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
-            stateMachineTypeOpt = (NamedTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
+            stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
             return bodyWithoutAsync;
         }
@@ -1176,8 +1176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodBody GenerateMethodBody(
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
-            BoundStatement block, 
-            NamedTypeSymbol stateMachineTypeOpt,
+            BoundStatement block,
+            StateMachineTypeSymbol stateMachineTypeOpt,
             VariableSlotAllocator variableSlotAllocatorOpt,
             DiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,

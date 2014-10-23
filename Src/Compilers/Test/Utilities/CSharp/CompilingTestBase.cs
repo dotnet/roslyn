@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return block;
                 }
 
-                NamedTypeSymbol stateMachineTypeOpt;
+                StateMachineTypeSymbol stateMachineTypeOpt;
                 VariableSlotAllocator variableSlotAllocatorOpt;
                 var body = MethodCompiler.LowerBodyOrInitializer(
                     method: method,

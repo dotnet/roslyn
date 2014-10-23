@@ -178,43 +178,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Sub AssignAsyncStateMachineType(type As NamedTypeSymbol)
-            Debug.Assert(Me.m_asyncStateMachineType Is Nothing OrElse Me.m_asyncStateMachineType.Name = type.Name)
-            Interlocked.CompareExchange(Of NamedTypeSymbol)(Me.m_asyncStateMachineType, type, Nothing)
-        End Sub
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-        Friend Overrides Function GetAsyncStateMachineType() As NamedTypeSymbol
-            Debug.Assert(Me.m_asyncStateMachineType IsNot Nothing)
-            Return Me.m_asyncStateMachineType
-        End Function
-
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(attributes)
-
-            If Me.m_asyncStateMachineType IsNot Nothing Then
-                Dim compilation = Me.DeclaringCompilation
-
-                Debug.Assert(
-                    WellKnownMembers.IsSynthesizedAttributeOptional(
-                        WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
-                AddSynthesizedAttribute(attributes,
-                                        compilation.SynthesizeAttribute(
-                                            WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
-                                            ImmutableArray.Create(Of TypedConstant)(
-                                                New TypedConstant(
-                                                    compilation.GetWellKnownType(WellKnownType.System_Type),
-                                                    TypedConstantKind.Type,
-                                                    If(Me.m_asyncStateMachineType.IsGenericType,
-                                                       Me.m_asyncStateMachineType.AsUnboundGenericType,
-                                                       Me.m_asyncStateMachineType)))))
-
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeOptionalDebuggerStepThroughAttribute())
-
-            ElseIf Me.IsIterator Then
-                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
-
+            If Me.IsAsync OrElse Me.IsIterator Then
+                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
             End If
-
         End Sub
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData

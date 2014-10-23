@@ -1033,10 +1033,10 @@ End Module
     <methods/>
 </symbols>)
 
-            compilation.VerifyPdb("Module1+VB$StateMachine_0_F.MoveNext",
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
 <symbols>
     <methods>
-        <method containingType="Module1+VB$StateMachine_0_F" name="MoveNext" parameterNames="">
+        <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
                     <slot kind="20" offset="-1"/>
@@ -1066,7 +1066,7 @@ End Module
             </scope>
             <async-info>
                 <kickoff-method declaringType="Module1" methodName="F" parameterNames="a"/>
-                <await yield="0x36" resume="0x52" declaringType="Module1+VB$StateMachine_0_F" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x36" resume="0x52" declaringType="Module1+VB$StateMachine_1_F" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -1145,10 +1145,10 @@ End Module
     <methods/>
 </symbols>)
 
-            compilation.VerifyPdb("Module1+VB$StateMachine_2_S.MoveNext",
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_S.MoveNext",
 <symbols>
     <methods>
-        <method containingType="Module1+VB$StateMachine_2_S" name="MoveNext" parameterNames="">
+        <method containingType="Module1+VB$StateMachine_1_S" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="27" offset="-1"/>
@@ -1176,7 +1176,7 @@ End Module
             </scope>
             <async-info catch-IL-offset="0x86">
                 <kickoff-method declaringType="Module1" methodName="S" parameterNames=""/>
-                <await yield="0x33" resume="0x4f" declaringType="Module1+VB$StateMachine_2_S" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x33" resume="0x4f" declaringType="Module1+VB$StateMachine_1_S" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -7160,10 +7160,10 @@ End Class
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_2$1".
-            compilation.VerifyPdb("C+VB$StateMachine_0_Async_Lambda_Hoisted.MoveNext",
+            compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda_Hoisted.MoveNext",
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_0_Async_Lambda_Hoisted" name="MoveNext" parameterNames="">
+        <method containingType="C+VB$StateMachine_1_Async_Lambda_Hoisted" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
                     <slot kind="27" offset="-1"/>
@@ -7207,7 +7207,7 @@ End Class
             </scope>
             <async-info>
                 <kickoff-method declaringType="C" methodName="Async_Lambda_Hoisted" parameterNames=""/>
-                <await yield="0x8e" resume="0xad" declaringType="C+VB$StateMachine_0_Async_Lambda_Hoisted" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x8e" resume="0xad" declaringType="C+VB$StateMachine_1_Async_Lambda_Hoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -7241,10 +7241,10 @@ End Class
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for the single-mangled name "$VB$Closure_1".
-            compilation.VerifyPdb("C+VB$StateMachine_0_Async_Lambda_NotHoisted.MoveNext",
+            compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda_NotHoisted.MoveNext",
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_0_Async_Lambda_NotHoisted" name="MoveNext" parameterNames="">
+        <method containingType="C+VB$StateMachine_1_Async_Lambda_NotHoisted" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
                     <slot kind="27" offset="-1"/>
@@ -7285,7 +7285,7 @@ End Class
             </scope>
             <async-info>
                 <kickoff-method declaringType="C" methodName="Async_Lambda_NotHoisted" parameterNames=""/>
-                <await yield="0x6e" resume="0x8a" declaringType="C+VB$StateMachine_0_Async_Lambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x6e" resume="0x8a" declaringType="C+VB$StateMachine_1_Async_Lambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -7319,10 +7319,10 @@ End Class
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
-            compilation.VerifyPdb("C+VB$StateMachine_0_Async_NoLambda_Hoisted.MoveNext",
+            compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda_Hoisted.MoveNext",
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_0_Async_NoLambda_Hoisted" name="MoveNext" parameterNames="">
+        <method containingType="C+VB$StateMachine_1_Async_NoLambda_Hoisted" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="27" offset="-1"/>
@@ -7363,7 +7363,7 @@ End Class
             </scope>
             <async-info>
                 <kickoff-method declaringType="C" methodName="Async_NoLambda_Hoisted" parameterNames=""/>
-                <await yield="0x58" resume="0x77" declaringType="C+VB$StateMachine_0_Async_NoLambda_Hoisted" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x58" resume="0x77" declaringType="C+VB$StateMachine_1_Async_NoLambda_Hoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -7398,7 +7398,7 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_0_Async_NoLambda_NotHoisted" name="MoveNext" parameterNames="">
+        <method containingType="C+VB$StateMachine_1_Async_NoLambda_NotHoisted" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
                     <slot kind="27" offset="-1"/>
@@ -7439,7 +7439,7 @@ End Class
             </scope>
             <async-info>
                 <kickoff-method declaringType="C" methodName="Async_NoLambda_NotHoisted" parameterNames=""/>
-                <await yield="0x47" resume="0x63" declaringType="C+VB$StateMachine_0_Async_NoLambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x47" resume="0x63" declaringType="C+VB$StateMachine_1_Async_NoLambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>

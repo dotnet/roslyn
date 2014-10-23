@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return metadataName; }
         }
 
+        internal sealed override Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor)
+        {
+            return Compilation.SynthesizeAttribute(attributeConstructor);
+        }
+
         internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
         {
             return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
@@ -99,11 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
         {
             return SourceModule.GetCustomAttributesToEmit(this.CompilationState);
-        }
-
-        internal sealed override Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor)
-        {
-            return Compilation.SynthesizeAttribute(attributeConstructor);
         }
 
         internal sealed override AssemblySymbol CorLibrary

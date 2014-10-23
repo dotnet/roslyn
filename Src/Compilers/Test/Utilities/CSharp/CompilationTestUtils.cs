@@ -268,10 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static ImmutableArray<SynthesizedAttributeData> GetSynthesizedAttributes(this ISymbol symbol, bool forReturnType = false)
         {
+            var context = new ModuleCompilationState();
+
             ArrayBuilder<SynthesizedAttributeData> attributes = null;
             if (!forReturnType)
             {
-                ((Symbol)symbol).AddSynthesizedAttributes(null, ref attributes);
+                ((Symbol)symbol).AddSynthesizedAttributes(context, ref attributes);
             }
             else
             {

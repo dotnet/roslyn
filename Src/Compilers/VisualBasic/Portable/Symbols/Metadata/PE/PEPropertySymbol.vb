@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return m_lazyCustomAttributes
         End Function
 
-        Friend Overrides Function GetCustomAttributesToEmit() As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
             Return GetAttributes()
         End Function
 

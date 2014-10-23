@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var compilation = method.DeclaringCompilation;
 
-            if (method.ReturnsVoid || (object)method.IteratorElementType != null
-                || (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
+            if (method.ReturnsVoid || method.IsIterator || 
+                (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
             {
                 var sourceMethod = method as SourceMethodSymbol;
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement ret =
-                (object)method != null && (object)method.IteratorElementType != null
+                (object)method != null && method.IsIterator
                 ? BoundYieldBreakStatement.Synthesized(syntax) as BoundStatement
                 : BoundReturnStatement.Synthesized(syntax, null);
 

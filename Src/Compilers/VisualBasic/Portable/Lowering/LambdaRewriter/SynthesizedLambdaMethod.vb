@@ -19,12 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
         Private ReadOnly m_typeMap As TypeSubstitution
 
-        ''' <summary>
-        ''' In case the lambda is an 'Async' lambda, stores the reference to a state machine type 
-        ''' synthesized in AsyncRewriter. 
-        ''' </summary>
-        Private ReadOnly m_asyncStateMachineType As NamedTypeSymbol = Nothing
-
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
                 Return If(TypeOf ContainingType Is LambdaFrame, Accessibility.Friend, Accessibility.Private)
@@ -78,21 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             Me.m_parameters = params.ToImmutableAndFree
-
-            If Me.m_lambda.IsAsync Then
-                Dim binder As Binder = lambdaNode.LambdaBinderOpt
-                Debug.Assert(binder IsNot Nothing)
-                Dim syntax As VisualBasicSyntaxNode = lambdaNode.Syntax
-
-                ' The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
-                Dim typeKind As TypeKind = If(DeclaringCompilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Structure)
-
-                Me.m_asyncStateMachineType =
-                    AsyncRewriter.CreateAsyncStateMachine(
-                        Me, 0, typeKind,
-                        binder.GetSpecialType(SpecialType.System_ValueType, syntax, diagnostics),
-                        binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine, syntax, diagnostics))
-            End If
         End Sub
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
@@ -171,8 +150,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Lambda that doesn't contain user code may still call to a user code (e.g. delegate relaxation stubs). We want the stack frame to be hidden.
             ' Dev11 marks such lambda with DebuggerStepThrough attribute but that seems to be useless. Rather we hide the frame completely.
@@ -180,28 +159,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeDebuggerHiddenAttribute())
             End If
 
-            If Me.m_asyncStateMachineType IsNot Nothing Then
-                Dim compilation = Me.DeclaringCompilation
-
-                Debug.Assert(
-                    WellKnownMembers.IsSynthesizedAttributeOptional(
-                        WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
-                AddSynthesizedAttribute(attributes,
-                                        compilation.SynthesizeAttribute(
-                                            WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
-                                            ImmutableArray.Create(Of TypedConstant)(
-                                                New TypedConstant(
-                                                    compilation.GetWellKnownType(WellKnownType.System_Type),
-                                                    TypedConstantKind.Type,
-                                                    If(Me.m_asyncStateMachineType.IsGenericType,
-                                                       Me.m_asyncStateMachineType.AsUnboundGenericType,
-                                                       Me.m_asyncStateMachineType)))))
-
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeOptionalDebuggerStepThroughAttribute())
-
-            ElseIf Me.IsIterator Then
-                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
-
+            If Me.IsAsync OrElse Me.IsIterator Then
+                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
             End If
         End Sub
 
@@ -216,10 +175,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.m_lambda.IsIterator
             End Get
         End Property
-
-        Friend Overrides Function GetAsyncStateMachineType() As NamedTypeSymbol
-            Return Me.m_asyncStateMachineType
-        End Function
 
         Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
             Return False

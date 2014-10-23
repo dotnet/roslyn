@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Friend MustInherit Class StateMachineRewriter(Of TStateMachineState As SynthesizedContainer, TProxy)
+    Partial Friend MustInherit Class StateMachineRewriter(Of TProxy)
 
         Friend MustInherit Class StateMachineMethodToClassRewriter
             Inherits MethodToClassRewriter(Of TProxy)

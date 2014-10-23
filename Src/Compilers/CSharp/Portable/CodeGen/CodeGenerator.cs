@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(method.ReturnsVoid == (returnTemp == null));
 
-            if (this.emitPdbSequencePoints && (object)method.IteratorElementType == null && !method.IsAsync)
+            if (this.emitPdbSequencePoints && !method.IsIterator && !method.IsAsync)
             {
                 // In debug mode user could set a breakpoint on the last "}" of the method and 
                 // expect to hit it before exiting the method.

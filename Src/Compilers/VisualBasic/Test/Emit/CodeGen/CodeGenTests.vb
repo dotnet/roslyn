@@ -6875,7 +6875,7 @@ End Module
         <Fact>
         Public Sub ArrayInitFromBlobEnumNetFx45()
             ' In NetFx 4.5 and higher, we can use fast literal initialization for enums
-            CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(
+            CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module M1

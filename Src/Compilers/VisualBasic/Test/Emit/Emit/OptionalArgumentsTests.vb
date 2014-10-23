@@ -724,8 +724,8 @@ End Interface
         End Sub
 
         Private Shared Function CountParamArrayAttributes(parameter As ParameterSymbol) As Integer
-            Dim attributes = DirectCast(parameter, Cci.IParameterDefinition).GetAttributes(Nothing).ToArray()
-            Return attributes.Where(Function(a) DirectCast(a, VisualBasicAttributeData).AttributeClass.Name = "ParamArrayAttribute").Count()
+            Dim attributes = parameter.GetCustomAttributesToEmit(New ModuleCompilationState)
+            Return attributes.Where(Function(a) a.AttributeClass.Name = "ParamArrayAttribute").Count()
         End Function
 
         <WorkItem(529684, "DevDiv")>
@@ -993,8 +993,7 @@ End Class
         End Sub
 
         Private Shared Sub VerifyDefaultValueAttribute(parameter As ParameterSymbol, expectedAttributeName As String, expectedDefault As Object, hasDefault As Boolean)
-            Dim context As EmitContext = Nothing
-            Dim attributes = DirectCast(parameter, Cci.IParameterDefinition).GetAttributes(context).ToArray()
+            Dim attributes = parameter.GetCustomAttributesToEmit(New ModuleCompilationState).ToArray()
             If expectedAttributeName Is Nothing Then
                 Assert.Equal(attributes.Length, 0)
             Else
@@ -1427,8 +1426,9 @@ BC37228: The field has multiple distinct constant values.
 ]]></errors>)
 
             Dim c = comp.GetTypeByMetadataName("C")
-            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit().Count())
-            Assert.Equal(1, c.GetMember("F16").GetCustomAttributesToEmit().Count())
+            Dim context = New ModuleCompilationState()
+            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(context).Count())
+            Assert.Equal(1, c.GetMember("F16").GetCustomAttributesToEmit(context).Count())
         End Sub
 
     End Class

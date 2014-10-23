@@ -36,16 +36,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function IReferenceGetAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
-            Return GetCustomAttributesToEmit()
+            Return GetCustomAttributesToEmit(DirectCast(context.Module, PEModuleBuilder).CompilationState)
         End Function
 
-        Friend Overridable Function GetCustomAttributesToEmit() As IEnumerable(Of VisualBasicAttributeData)
-            Return GetCustomAttributesToEmit(emittingAssemblyAttributesInNetModule:=False)
+        Friend Overridable Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+            Return GetCustomAttributesToEmit(compilationState, emittingAssemblyAttributesInNetModule:=False)
         End Function
 
-        Friend Function GetCustomAttributesToEmit(emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState, emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
             Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-            AddSynthesizedAttributes(synthesized)
+            AddSynthesizedAttributes(compilationState, synthesized)
             Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule)
         End Function
 

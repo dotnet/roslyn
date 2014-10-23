@@ -2419,6 +2419,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
 
+                // System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_IteratorStateMachineAttribute,                          // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
                 // Microsoft_VisualBasic_Strings__AscCharInt32
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.Microsoft_VisualBasic_Strings,                                                          // DeclaringTypeId
@@ -2805,6 +2813,7 @@ namespace Microsoft.CodeAnalysis
                 "SetStateMachine",                          // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetStateMachine
                 "Task",                                     // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task
                 ".ctor",                                    // System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor
                 "Asc",                                      // Microsoft_VisualBasic_Strings__AscCharInt32
                 "Asc",                                      // Microsoft_VisualBasic_Strings__AscStringInt32
                 "AscW",                                     // Microsoft_VisualBasic_Strings__AscWCharInt32
@@ -2845,6 +2854,7 @@ namespace Microsoft.CodeAnalysis
                 case WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor:
                 case WellKnownMember.System_STAThreadAttribute__ctor:
                 case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
+                case WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor:
                     return true;
 
                 default:

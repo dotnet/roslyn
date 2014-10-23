@@ -335,6 +335,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task,
 
         System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+        System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,
 
         Microsoft_VisualBasic_Strings__AscCharInt32,
         Microsoft_VisualBasic_Strings__AscStringInt32,

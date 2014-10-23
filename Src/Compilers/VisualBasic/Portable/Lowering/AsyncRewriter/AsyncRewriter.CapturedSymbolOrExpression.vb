@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class AsyncRewriter
-        Inherits StateMachineRewriter(Of AsyncStateMachine, CapturedSymbolOrExpression)
+        Inherits StateMachineRewriter(Of CapturedSymbolOrExpression)
 
         Friend MustInherit Class CapturedSymbolOrExpression
             ''' <summary>

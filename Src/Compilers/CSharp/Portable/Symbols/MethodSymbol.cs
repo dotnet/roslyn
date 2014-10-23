@@ -864,6 +864,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        internal bool IsIterator
+        {
+            get
+            {
+                return (object)IteratorElementType != null;
+            }
+        }
+
         /// <summary>
         /// If the method was written as an iterator method (i.e. with yield statements in its body) returns the
         /// element type of the iterator.  Otherwise returns null.

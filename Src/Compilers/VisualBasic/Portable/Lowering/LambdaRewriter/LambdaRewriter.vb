@@ -785,10 +785,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim node As BoundBlock = lambda.Body
             Dim frame As LambdaFrame = Nothing
-            Dim rewrittenBody As BoundBlock = Nothing
+            Dim loweredBody As BoundBlock = Nothing
 
             If frames.TryGetValue(node, frame) Then
-                rewrittenBody = DirectCast(
+                loweredBody = DirectCast(
                                     IntroduceFrame(node, frame,
                                       Function(prologue As ArrayBuilder(Of BoundExpression), newLocals As ArrayBuilder(Of LocalSymbol))
                                           Return RewriteBlock(node, prologue, newLocals)
@@ -796,18 +796,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       lambda.LambdaSymbol),
                                     BoundBlock)
             Else
-                rewrittenBody = RewriteBlock(node)
+                loweredBody = RewriteBlock(node)
             End If
 
+            ' TODO: create slot allocator
             Dim slotAllocatorOpt As VariableSlotAllocator = Nothing
+            Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
 
-            ' Rewrite Iterator lambdas
-            Dim iteratorRewritten = IteratorRewriter.Rewrite(rewrittenBody, method, slotAllocatorOpt, CompilationState, Diagnostics)
-
-            ' Rewrite Async Lambdas
-            rewrittenBody = AsyncRewriter.Rewrite(iteratorRewritten, method, slotAllocatorOpt, CompilationState, Diagnostics)
-
-            Return rewrittenBody
+            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
         End Function
 
         Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode

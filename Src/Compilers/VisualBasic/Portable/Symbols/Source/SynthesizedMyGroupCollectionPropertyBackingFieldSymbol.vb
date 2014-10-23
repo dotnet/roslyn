@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return LexicalSortKey.NotInSource
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeEditorBrowsableNeverAttribute())
         End Sub
 

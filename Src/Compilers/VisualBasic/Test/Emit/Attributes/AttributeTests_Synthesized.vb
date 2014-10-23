@@ -1,7 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -1350,6 +1352,236 @@ End Class
                                                                  End Sub
 
             TestDebuggableAttributeMatrix(source.Value, validator)
+        End Sub
+#End Region
+
+#Region "AsyncStateMachineAttribute"
+
+        <Fact>
+        Sub AsyncStateMachineAttribute_Method()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Class Test
+    Async Sub F()
+        Await Task.Delay(0)
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
+            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+
+            Dim asyncMethodAttributes = asyncMethod.GetAttributes()
+            AssertEx.SetEqual({"AsyncStateMachineAttribute"}, GetAttributeNames(asyncMethodAttributes))
+
+            Dim attributeArg = DirectCast(asyncMethodAttributes.Single().ConstructorArguments.Single().Value, NamedTypeSymbol)
+            Assert.Equal(attributeArg, stateMachine)
+        End Sub
+
+        <Fact>
+        Sub AsyncStateMachineAttribute_Lambda()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Class Test
+    Sub F()
+        Dim f As Action = Async Sub()
+                              Await Task.Delay(0)
+                          End Sub
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__1.VB$StateMachine_0__Lambda$__2")
+            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__1._Lambda$__2")
+
+            Dim asyncMethodAttributes = asyncMethod.GetAttributes()
+            AssertEx.SetEqual({"AsyncStateMachineAttribute"}, GetAttributeNames(asyncMethodAttributes))
+
+            Dim attributeArg = DirectCast(asyncMethodAttributes.Single().ConstructorArguments.First().Value, NamedTypeSymbol)
+            Assert.Equal(attributeArg, stateMachine)
+        End Sub
+
+        <Fact>
+        Sub AsyncStateMachineAttribute_GenericStateMachineClass()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Class Test(Of T)
+    Async Sub F(Of U As Test(Of Integer))(arg As U) 
+        Await Task.Delay(0)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
+            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+
+            Dim asyncMethodAttributes = asyncMethod.GetAttributes()
+            AssertEx.SetEqual({"AsyncStateMachineAttribute"}, GetAttributeNames(asyncMethodAttributes))
+
+            Dim attributeStateMachineClass = DirectCast(asyncMethodAttributes.Single().ConstructorArguments.Single().Value, NamedTypeSymbol)
+            Assert.Equal(attributeStateMachineClass, stateMachine.ConstructUnboundGenericType())
+        End Sub
+
+        <Fact>
+        Sub AsyncStateMachineAttribute_MetadataOnly()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Public Class Test
+    Public Async Sub F()
+        Await Task.Delay(0)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference(New EmitOptions(metadataOnly:=True))
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Assert.Empty(comp.GetMember(Of NamedTypeSymbol)("Test").GetMembers("VB$StateMachine_0_F"))
+            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+
+            Dim asyncMethodAttributes = asyncMethod.GetAttributes()
+            Assert.Empty(GetAttributeNames(asyncMethodAttributes))
+        End Sub
+#End Region
+
+#Region "IteratorStateMachineAttribute"
+
+        <Fact>
+        Sub IteratorStateMachineAttribute_Method()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class Test
+    Iterator Function F() As IEnumerable(Of Integer)
+        Yield 0
+    End Function
+End Class
+    </file>
+</compilation>
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
+            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+
+            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+            AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+
+            Dim attributeArg = DirectCast(iteratorMethodAttributes.Single().ConstructorArguments.Single().Value, NamedTypeSymbol)
+            Assert.Equal(attributeArg, stateMachine)
+        End Sub
+
+        <Fact>
+        Sub IteratorStateMachineAttribute_Lambda()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Class Test
+    Sub F()
+        Dim f As Func(Of IEnumerable(Of Integer)) = 
+            Iterator Function() As IEnumerable(Of Integer)
+                Yield 0
+            End Function
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__1.VB$StateMachine_3__Lambda$__2")
+            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__1._Lambda$__2")
+
+            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+            AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+
+            Dim smAttribute = iteratorMethodAttributes.Single(Function(a) a.AttributeClass.Name = "IteratorStateMachineAttribute")
+            Dim attributeArg = DirectCast(smAttribute.ConstructorArguments.First().Value, NamedTypeSymbol)
+            Assert.Equal(attributeArg, stateMachine)
+        End Sub
+
+        <Fact>
+        Sub IteratorStateMachineAttribute_GenericStateMachineClass()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Class Test(Of T)
+    Iterator Function F(Of U As Test(Of Integer))(arg As U) As IEnumerable(Of Integer)
+        Yield 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
+            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+
+            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+            AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+
+            Dim attributeStateMachineClass = DirectCast(iteratorMethodAttributes.Single().ConstructorArguments.Single().Value, NamedTypeSymbol)
+            Assert.Equal(attributeStateMachineClass, stateMachine.ConstructUnboundGenericType())
+        End Sub
+
+        <Fact>
+        Sub IteratorStateMachineAttribute_MetadataOnly()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class Test
+    Public Iterator Function F() As IEnumerable(Of Integer)
+        Yield 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference(New EmitOptions(metadataOnly:=True))
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Assert.Empty(comp.GetMember(Of NamedTypeSymbol)("Test").GetMembers("VB$StateMachine_1_F"))
+            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+
+            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+            Assert.Empty(GetAttributeNames(iteratorMethodAttributes))
         End Sub
 #End Region
     End Class

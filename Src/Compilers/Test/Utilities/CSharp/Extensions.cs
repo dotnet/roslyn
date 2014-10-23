@@ -149,14 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return builder.ToImmutableAndFree();
         }
 
-        public static Symbol GetMember(this Compilation compilation, string name)
+        public static Symbol GetMember(this Compilation compilation, string qualifiedName)
         {
-            return ((CSharpCompilation)compilation).GlobalNamespace.GetMember(name);
+            return ((CSharpCompilation)compilation).GlobalNamespace.GetMember(qualifiedName);
         }
 
-        public static T GetMember<T>(this Compilation compilation, string name) where T : Symbol
+        public static T GetMember<T>(this Compilation compilation, string qualifiedName) where T : Symbol
         {
-            return (T)((CSharpCompilation)compilation).GlobalNamespace.GetMember(name);
+            return (T)((CSharpCompilation)compilation).GlobalNamespace.GetMember(qualifiedName);
         }
 
         public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string name)

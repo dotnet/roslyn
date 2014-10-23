@@ -1,17 +1,17 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class IteratorRewriter
-        Inherits StateMachineRewriter(Of IteratorStateMachine, FieldSymbol)
+        Inherits StateMachineRewriter(Of FieldSymbol)
 
         Private ReadOnly elementType As TypeSymbol
         Private ReadOnly isEnumerable As Boolean
-        Private ReadOnly iteratorClass As IteratorStateMachine
 
         Private currentField As FieldSymbol
         Private initialThreadIdField As FieldSymbol
@@ -24,10 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        compilationState As TypeCompilationState,
                        diagnostics As DiagnosticBag)
 
-            MyBase.New(body, method, slotAllocatorOpt, compilationState, diagnostics)
+            MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
             Me.isEnumerable = isEnumerable
-            Me.iteratorClass = stateMachineType
 
             Dim methodReturnType = method.ReturnType
             If methodReturnType.GetArity = 0 Then
@@ -45,7 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  method As MethodSymbol,
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag) As BoundBlock
+                                                 diagnostics As DiagnosticBag,
+                                                 <Out> ByRef stateMachineType As IteratorStateMachine) As BoundBlock
 
             If body.HasErrors Or Not method.IsIterator Then
                 Return body
@@ -64,7 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0)
             End If
 
-            Dim stateMachineType = New IteratorStateMachine(method, compilationState.GenerateTempNumber(), elementType, isEnumerable)
+            stateMachineType = New IteratorStateMachine(method, compilationState.GenerateTempNumber(), elementType, isEnumerable)
+
+            If compilationState.ModuleBuilderOpt IsNot Nothing Then
+                compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
+            End If
 
             Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
@@ -172,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             False)
 
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
-                Dim resultVariable = F.SynthesizedLocal(StateMachineClass)      ' iteratorClass result;
+                Dim resultVariable = F.SynthesizedLocal(StateMachineType)      ' iteratorClass result;
 
                 Dim currentManagedThreadIdMethod As MethodSymbol = Nothing
 
@@ -213,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     DirectCast(F.Block(), BoundStatement))
                         ),
                     elseClause:=
-                        F.Assignment(F.Local(resultVariable, True), F.[New](StateMachineClass.Constructor, F.Literal(0)))
+                        F.Assignment(F.Local(resultVariable, True), F.[New](StateMachineType.Constructor, F.Literal(0)))
                     ))
 
                 ' Initialize all the parameter copies
@@ -225,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If (copyDest.TryGetValue(Method.MeParameter, proxy)) Then
                         bodyBuilder.Add(
                             F.Assignment(
-                                F.Field(F.Local(resultVariable, True), proxy.AsMember(StateMachineClass), True),
+                                F.Field(F.Local(resultVariable, True), proxy.AsMember(StateMachineType), True),
                                 F.Field(F.Me, copySrc(Method.MeParameter).AsMember(F.CurrentType), False)))
                     End If
                 End If
@@ -237,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If (copyDest.TryGetValue(parameter, proxy)) Then
                         bodyBuilder.Add(
                             F.Assignment(
-                                F.Field(F.Local(resultVariable, True), proxy.AsMember(StateMachineClass), True),
+                                F.Field(F.Local(resultVariable, True), proxy.AsMember(StateMachineType), True),
                                 F.Field(F.Me, copySrc(parameter).AsMember(F.CurrentType), False)))
                     End If
                 Next
@@ -293,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add a body for the constructor
             If True Then
-                F.CurrentMethod = StateMachineClass.Constructor
+                F.CurrentMethod = StateMachineType.Constructor
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
                 bodyBuilder.Add(F.BaseInitialization())
                 bodyBuilder.Add(F.Assignment(F.Field(F.Me, StateField, True), F.Parameter(F.CurrentMethod.Parameters(0)).MakeRValue))    ' this.state = state
@@ -321,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal, True),
-                    F.[New](StateMachineClass.Constructor.AsMember(frameType), F.Literal(initialState))))
+                    F.[New](StateMachineType.Constructor.AsMember(frameType), F.Literal(initialState))))
         End Sub
 
         Protected Overrides ReadOnly Property PreserveInitialParameterValues As Boolean
@@ -330,15 +334,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property StateMachineClass As IteratorStateMachine
-            Get
-                Return iteratorClass
-            End Get
-        End Property
-
         Friend Overrides ReadOnly Property TypeMap As TypeSubstitution
             Get
-                Return iteratorClass.TypeSubstitution
+                Return StateMachineType.TypeSubstitution
             End Get
         End Property
 
@@ -360,8 +358,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(proxy IsNot Nothing)
 
             Dim frameType As NamedTypeSymbol = If(Me.Method.IsGenericMethod,
-                                                  Me.StateMachineClass.Construct(Me.Method.TypeArguments),
-                                                  Me.StateMachineClass)
+                                                  Me.StateMachineType.Construct(Me.Method.TypeArguments),
+                                                  Me.StateMachineType)
 
             Dim expression As BoundExpression = If(parameter.IsMe,
                                                    DirectCast(Me.F.Me, BoundExpression),

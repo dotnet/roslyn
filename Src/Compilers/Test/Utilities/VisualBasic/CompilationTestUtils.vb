@@ -142,18 +142,13 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    ''' <param name="additionalRefs"></param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Function CreateCompilationWithMscorlib45AndVBRuntimeAndReferences(
+    Public Function CreateCompilationWithMscorlib45AndVBRuntime(
         sources As XElement,
         Optional additionalRefs As IEnumerable(Of MetadataReference) = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        If additionalRefs Is Nothing Then additionalRefs = {}
-        Dim references = {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929}.Concat(additionalRefs)
-
+        Dim references = {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}.Concat(If(additionalRefs, {}))
         Return CreateCompilationWithReferences(sources, references, options, parseOptions:=parseOptions)
     End Function
 
@@ -1105,7 +1100,8 @@ Friend Module CompilationUtils
     <Extension>
     Friend Function GetSynthesizedAttributes(symbol As ISymbol) As ImmutableArray(Of SynthesizedAttributeData)
         Dim attributes As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-        DirectCast(symbol, Symbol).AddSynthesizedAttributes(attributes)
+        Dim context = New ModuleCompilationState()
+        DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
         Return If(attributes IsNot Nothing, attributes.ToImmutableAndFree(), ImmutableArray.Create(Of SynthesizedAttributeData)())
     End Function
 

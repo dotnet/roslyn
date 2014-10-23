@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body,
             SourceMethodSymbol method,
             AsyncStateMachine stateMachineType,
-            VariableSlotAllocator variableSlotAllocatorOpt,
+            VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics)
-            : base(body, method, stateMachineType, variableSlotAllocatorOpt, compilationState, diagnostics)
+            : base(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
         {
             try
             {

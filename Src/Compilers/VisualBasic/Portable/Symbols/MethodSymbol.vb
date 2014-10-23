@@ -128,16 +128,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
-        ''' If the method is async we should emit AsyncStateMachineAttribute for this method providing information 
-        ''' about the synthesized state machine class. This method is called by async rewriter on the methods it builds 
-        ''' state machines for. This method should only be overriden by method symbols that can be defined 'async'.
-        ''' The method's state machine type should already be assigned!
-        ''' </summary>
-        Friend Overridable Function GetAsyncStateMachineType() As NamedTypeSymbol
-            Throw ExceptionUtilities.Unreachable
-        End Function
-
-        ''' <summary>
         ''' Returns the list of attributes, if any, associated with the return type.
         ''' </summary>
         Public Overridable Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)

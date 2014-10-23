@@ -246,8 +246,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_lazyCustomAttributesBag = attributeData
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             If Me.IsConst Then
                 If Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty) IsNot Nothing Then

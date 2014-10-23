@@ -296,6 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim emittedBody = GenerateMethodBody(moduleBeingBuilt,
                                                      scriptEntryPoint,
                                                      body,
+                                                     stateMachineTypeOpt:=Nothing,
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
                                                      diagnostics:=diagnostics,
@@ -770,11 +771,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim boundBody = method.GetBoundMethodBody(diagnosticsThisMethod)
 
-                Dim variableSlotAllocatorOpt = _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method)
                 Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                      method,
                                                      boundBody,
-                                                     variableSlotAllocatorOpt:=variableSlotAllocatorOpt,
+                                                     stateMachineTypeOpt:=Nothing,
+                                                     variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
                                                      diagnostics:=diagnosticsThisMethod,
                                                      namespaceScopes:=Nothing)
@@ -804,13 +805,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim emittedBody As MethodBody = Nothing
 
                     If Not diagnosticsThisMethod.HasAnyErrors Then
-                        Dim variableSlotAllocatorOpt = _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method)
+                        Dim variableSlotAllocatorOpt As VariableSlotAllocator = Nothing
+                        Dim statemachineTypeOpt As StateMachineTypeSymbol = Nothing
+
                         Dim rewrittenBody = Rewriter.LowerBodyOrInitializer(
                             method,
                             boundBody,
                             previousSubmissionFields:=Nothing,
                             compilationState:=compilationState,
                             diagnostics:=diagnosticsThisMethod,
+                            statemachineTypeOpt:=statemachineTypeOpt,
                             variableSlotAllocatorOpt:=variableSlotAllocatorOpt,
                             isBodySynthesized:=True)
 
@@ -818,7 +822,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                              method,
                                                              rewrittenBody,
-                                                             variableSlotAllocatorOpt:=variableSlotAllocatorOpt,
+                                                             statemachineTypeOpt,
+                                                             variableSlotAllocatorOpt,
                                                              debugDocumentProvider:=Nothing,
                                                              diagnostics:=diagnosticsThisMethod,
                                                              namespaceScopes:=Nothing)
@@ -853,13 +858,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each methodWithBody In compilationState.SynthesizedMethods
                 Dim method = methodWithBody.Method
-
                 Dim diagnosticsThisMethod As DiagnosticBag = DiagnosticBag.GetInstance()
-                Debug.Assert(_moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method) Is Nothing)
 
                 Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                      method,
                                                      methodWithBody.Body,
+                                                     stateMachineTypeOpt:=Nothing,
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=_debugDocumentProvider,
                                                      diagnostics:=diagnosticsThisMethod,
@@ -1121,7 +1125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' if method happen to handle events of a base WithEvents, ensure that we have an overriding WithEvents property
                 Dim handledEvents = method.HandledEvents
-                If _moduleBeingBuiltOpt IsNot Nothing AndAlso Not handledEvents.IsEmpty Then
+                If Not handledEvents.IsEmpty Then
                     CreateSyntheticWithEventOverridesIfNeeded(handledEvents,
                                                               compilationState,
                                                               containingTypeBinder,
@@ -1151,10 +1155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' property/accessors symbol into the emit module and assign bodies to the accessors.
         ''' </summary>
         Private Sub CreateSyntheticWithEventOverridesIfNeeded(handledEvents As ImmutableArray(Of HandledEvent),
-                                      compilationState As TypeCompilationState,
-                                      containingTypeBinder As Binder,
-                                      diagsForCurrentMethod As DiagnosticBag,
-                                      previousSubmissionFields As SynthesizedSubmissionFields)
+                                                              compilationState As TypeCompilationState,
+                                                              containingTypeBinder As Binder,
+                                                              diagsForCurrentMethod As DiagnosticBag,
+                                                              previousSubmissionFields As SynthesizedSubmissionFields)
 
             For Each handledEvent In handledEvents
                 If handledEvent.HandlesKind = HandledEventKind.WithEvents Then
@@ -1179,6 +1183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    previousSubmissionFields,
                                                                    compilationState,
                                                                    diagsForCurrentMethod,
+                                                                   statemachineTypeOpt:=Nothing,
                                                                    variableSlotAllocatorOpt:=Nothing,
                                                                    isBodySynthesized:=True)
 
@@ -1258,12 +1263,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics = DiagnosticBag.GetInstance()
             End If
 
-            Dim variableSlotAllocatorOpt = If(_moduleBeingBuiltOpt Is Nothing, Nothing, _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method))
+            Dim variableSlotAllocatorOpt As VariableSlotAllocator = Nothing
+            Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
+
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    body,
                                                    previousSubmissionFields,
                                                    compilationState,
                                                    diagnostics,
+                                                   stateMachineTypeOpt,
                                                    variableSlotAllocatorOpt,
                                                    isBodySynthesized:=False)
 
@@ -1303,6 +1311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim methodBody As MethodBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                               method,
                                                               body,
+                                                              stateMachineTypeOpt,
                                                               variableSlotAllocatorOpt,
                                                               _debugDocumentProvider,
                                                               diagnostics,
@@ -1319,6 +1328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function GenerateMethodBody(moduleBuilder As PEModuleBuilder,
                                                   method As MethodSymbol,
                                                   block As BoundStatement,
+                                                  stateMachineTypeOpt As StateMachineTypeSymbol,
                                                   variableSlotAllocatorOpt As VariableSlotAllocator,
                                                   debugDocumentProvider As DebugDocumentProvider,
                                                   diagnostics As DiagnosticBag,

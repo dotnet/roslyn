@@ -31,7 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var m in method.ContainingNamespaceOrType().GetMembers(method.Name))
             {
                 count++;
-                if (method == m) return count;
+                if ((object)method == m)
+                {
+                    return count;
+                }
             }
 
             // It is possible we did not find any such members, e.g. for methods that result from the translation of

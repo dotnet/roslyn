@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Sub
 
         Protected Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingParameter.GetCustomAttributesToEmit()
+            Return UnderlyingParameter.GetCustomAttributesToEmit(compilationState)
         End Function
 
         Protected Overrides ReadOnly Property HasDefaultValue As Boolean

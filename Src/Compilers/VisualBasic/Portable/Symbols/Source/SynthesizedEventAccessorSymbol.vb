@@ -435,8 +435,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return compareExchangeDefinition.Construct(ImmutableArray.Create(Of TypeSymbol)(typeArg))
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(Not ContainingType.IsImplicitlyDeclared)
             Dim compilation = Me.DeclaringCompilation

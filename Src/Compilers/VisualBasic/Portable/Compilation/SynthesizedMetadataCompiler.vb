@@ -49,17 +49,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._cancellationToken.ThrowIfCancellationRequested()
 
             For Each member In symbol.GetMembers()
-                member.Accept(Me)
+                Select Case member.Kind
+                    Case SymbolKind.NamedType
+                        member.Accept(Me)
+                End Select
             Next
         End Sub
 
-        Public Overrides Sub VisitMethod(symbol As MethodSymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
-
-            If symbol.IsAsync Then
-                Me._moduleBeingBuilt.AddSynthesizedDefinition(symbol.ContainingType, symbol.GetAsyncStateMachineType())
-            End If
+#If DEBUG Then
+        Public Overrides Sub VisitProperty(symbol As PropertySymbol)
+            Throw ExceptionUtilities.Unreachable
         End Sub
+
+        Public Overrides Sub VisitMethod(symbol As MethodSymbol)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+#End If
 
     End Class
 End Namespace

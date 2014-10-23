@@ -71,7 +71,7 @@ End Module
                                                   Dim a = m.GlobalNamespace.GetTypeMember("A")
                                                   Assert.Equal(TypeKind.Module, a.TypeKind)
                                                   Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
-                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit().Single().ToString())
+                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit(New ModuleCompilationState).Single().ToString())
                                               End Sub)
 
             CompileAndVerify(compilation,
@@ -79,7 +79,7 @@ End Module
                                                   Dim a = m.GlobalNamespace.GetTypeMember("A")
                                                   Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
                                                   Assert.Equal(TypeKind.Module, a.TypeKind)
-                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit().Single().ToString())
+                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit(New ModuleCompilationState).Single().ToString())
                                               End Sub)
         End Sub
 

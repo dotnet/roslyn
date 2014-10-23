@@ -9,52 +9,52 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Xunit
 
 Module Extensions
-    <Extension()>
+    <Extension>
     Public Function GetReferencedAssemblySymbol(compilation As Compilation, reference As MetadataReference) As AssemblySymbol
         Return DirectCast(compilation.GetAssemblyOrModuleSymbol(reference), AssemblySymbol)
     End Function
 
-    <Extension()>
+    <Extension>
     Public Function GetReferencedModuleSymbol(compilation As Compilation, reference As MetadataReference) As ModuleSymbol
         Return DirectCast(compilation.GetAssemblyOrModuleSymbol(reference), ModuleSymbol)
     End Function
 
-    <Extension()>
+    <Extension>
     Public Function ToTestDisplayString(Symbol As ISymbol) As String
         Return Symbol.ToDisplayString(SymbolDisplayFormat.TestFormat)
     End Function
 
-    Private Function SplitMemberName(name As String) As ImmutableArray(Of String)
+    Private Function SplitMemberName(qualifiedName As String) As ImmutableArray(Of String)
         Dim builder = ArrayBuilder(Of String).GetInstance()
         While True
-            Dim separator = name.IndexOf("."c)
+            Dim separator = qualifiedName.IndexOf("."c)
             If separator < 0 Then
                 Exit While
             End If
-            builder.Add(name.Substring(0, separator))
-            name = name.Substring(separator + 1)
+            builder.Add(qualifiedName.Substring(0, separator))
+            qualifiedName = qualifiedName.Substring(separator + 1)
         End While
-        builder.Add(name)
+        builder.Add(qualifiedName)
         Return builder.ToImmutableAndFree()
     End Function
 
-    <Extension()>
-    Public Function GetMember(comp As Compilation, name As String) As Symbol
-        Return DirectCast(comp, VisualBasicCompilation).GlobalNamespace.GetMember(name)
+    <Extension>
+    Public Function GetMember(comp As Compilation, qualifiedName As String) As Symbol
+        Return DirectCast(comp, VisualBasicCompilation).GlobalNamespace.GetMember(qualifiedName)
     End Function
 
-    <Extension()>
-    Public Function GetMember(Of T As Symbol)(comp As Compilation, name As String) As T
-        Return DirectCast(DirectCast(comp, VisualBasicCompilation).GlobalNamespace.GetMember(name), T)
+    <Extension>
+    Public Function GetMember(Of T As Symbol)(comp As Compilation, qualifiedName As String) As T
+        Return DirectCast(DirectCast(comp, VisualBasicCompilation).GlobalNamespace.GetMember(qualifiedName), T)
     End Function
 
-    <Extension()>
+    <Extension>
     Public Function GetMembers(comp As Compilation, name As String) As ImmutableArray(Of Symbol)
         Return GetMembers(DirectCast(comp, VisualBasicCompilation).GlobalNamespace, name)
     End Function
 
-    Private Function GetMembers([namespace] As NamespaceSymbol, name As String) As ImmutableArray(Of Symbol)
-        Dim parts = SplitMemberName(name)
+    Private Function GetMembers([namespace] As NamespaceSymbol, qualifiedName As String) As ImmutableArray(Of Symbol)
+        Dim parts = SplitMemberName(qualifiedName)
         Dim symbol As NamespaceOrTypeSymbol = [namespace]
         For i = 0 To parts.Length - 2
             symbol = DirectCast(symbol.GetMember(parts(i)), NamespaceOrTypeSymbol)
@@ -62,69 +62,69 @@ Module Extensions
         Return symbol.GetMembers(parts(parts.Length - 1))
     End Function
 
-    <Extension()>
-    Public Function GetMember([namespace] As NamespaceSymbol, name As String) As Symbol
-        Return GetMembers([namespace], name).Single()
+    <Extension>
+    Public Function GetMember([namespace] As NamespaceSymbol, qualifiedName As String) As Symbol
+        Return GetMembers([namespace], qualifiedName).Single()
     End Function
 
-    <Extension()>
+    <Extension>
     Public Function GetMember(symbol As NamespaceOrTypeSymbol, name As String) As Symbol
         Return symbol.GetMembers(name).Single()
     End Function
 
-    <Extension()>
+    <Extension>
     Public Function GetMember(Of T As Symbol)(symbol As NamespaceOrTypeSymbol, name As String) As T
         Return DirectCast(symbol.GetMember(name), T)
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function GetTypeMember(this As NamespaceOrTypeSymbol, name As String) As NamedTypeSymbol
         Return this.GetTypeMembers(name).Single
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function GetNamespace(this As NamespaceSymbol, name As String) As NamespaceSymbol
         Return DirectCast(this.GetMembers(name).Single(), NamespaceSymbol)
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function GetAttribute(this As Symbol, c As NamedTypeSymbol) As VisualBasicAttributeData
         Return this.GetAttributes().Where(Function(a) a.AttributeClass = c).First()
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function GetAttribute(this As Symbol, m As MethodSymbol) As VisualBasicAttributeData
         Return this.GetAttributes().Where(Function(a) a.AttributeConstructor = m).First()
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function GetAttributes(this As Symbol, c As NamedTypeSymbol) As IEnumerable(Of VisualBasicAttributeData)
         Return this.GetAttributes().Where(Function(a) a.AttributeClass = c)
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function GetAttributes(this As Symbol, m As MethodSymbol) As IEnumerable(Of VisualBasicAttributeData)
         Return this.GetAttributes().Where(Function(a) a.AttributeConstructor = m)
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function GetAttributes(this As Symbol, namespaceName As String, typeName As String) As IEnumerable(Of VisualBasicAttributeData)
         Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(namespaceName, typeName))
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function GetAttributes(this As Symbol, description As AttributeDescription) As IEnumerable(Of VisualBasicAttributeData)
         Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(this, description))
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Sub VerifyValue(Of T)(ByVal attr As VisualBasicAttributeData, ByVal i As Integer, ByVal kind As TypedConstantKind, ByVal v As T)
         Dim arg = attr.CommonConstructorArguments(i)
         Assert.Equal(kind, arg.Kind)
         Assert.True(IsEqual(Of T)(arg, v))
     End Sub
 
-    <Extension()>
+    <Extension>
     Friend Sub VerifyValue(Of T)(ByVal attr As VisualBasicAttributeData, ByVal i As Integer, ByVal name As String, ByVal kind As TypedConstantKind, ByVal v As T)
         Dim namedArg = attr.CommonNamedArguments(i)
         Assert.Equal(namedArg.Key, name)
@@ -133,7 +133,7 @@ Module Extensions
         Assert.True(IsEqual(Of T)(arg, v))
     End Sub
 
-    <Extension()>
+    <Extension>
     Friend Sub VerifyNamedArgumentValue(Of T)(ByVal attr As VisualBasicAttributeData, i As Integer, name As String, kind As TypedConstantKind, v As T)
         Dim namedArg = attr.CommonNamedArguments(i)
         Assert.Equal(namedArg.Key, name)

@@ -1399,8 +1399,8 @@ lReportErrorOnTwoTokens:
             Return Me.GetAttributesBag().Attributes
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Emit synthesized STAThreadAttribute for this method if both the following requirements are met:
             ' (a) This is the entry point method.

@@ -317,70 +317,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             cancellationToken.ThrowIfCancellationRequested()
             GenerateVarianceDiagnostics()
-
-            cancellationToken.ThrowIfCancellationRequested()
-            AssignAsyncStateMachineTypes(membersAndInitializers)
-        End Sub
-
-        ''' <summary>
-        ''' Generate all async state machine types
-        ''' </summary>
-        Private Sub AssignAsyncStateMachineTypes(members As MembersAndInitializers)
-            Dim asyncMethods As ArrayBuilder(Of SourceMemberMethodSymbol) = Nothing
-
-            For Each memberArray In members.Members.Values
-                For Each member In memberArray
-                    If member.Kind = SymbolKind.Method Then
-                        Dim sourceMethod = TryCast(member, SourceMemberMethodSymbol)
-                        If sourceMethod IsNot Nothing Then
-                            If sourceMethod.IsPartial Then
-                                sourceMethod = TryCast(sourceMethod.PartialImplementationPart, SourceMemberMethodSymbol)
-
-                                If sourceMethod Is Nothing Then
-                                    Continue For
-                                End If
-                            End If
-
-                            If sourceMethod.IsAsync Then
-                                If asyncMethods Is Nothing Then
-                                    asyncMethods = ArrayBuilder(Of SourceMemberMethodSymbol).GetInstance()
-                                End If
-
-                                asyncMethods.Add(sourceMethod)
-                            End If
-                        End If
-                    End If
-                Next
-            Next
-
-            If asyncMethods IsNot Nothing Then
-                Dim compilation As VisualBasicCompilation = Me.DeclaringCompilation
-
-                ' NOTE: we don't check for use-site errors on the following two types, because 
-                '       for EmitMetadataOnly scenario this is not important, and for regular 
-                '       emit, those errors will be reported by AsyncRewriter
-                Dim valueTypeSymbol As NamedTypeSymbol = compilation.GetSpecialType(SpecialType.System_ValueType)
-                Dim iAsyncStateMachine As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine)
-
-                ' NOTE: get the attribute type constructor to ensure use-site errors are reported
-                compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor)
-
-                ' Sort before assigning the names
-                asyncMethods.Sort(LexicalOrderSymbolComparer.Instance)
-
-                ' The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
-                Dim typeKind As TypeKind = If(compilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Structure)
-
-                For i = 0 To asyncMethods.Count - 1
-                    Dim method As SourceMemberMethodSymbol = asyncMethods(i)
-                    method.AssignAsyncStateMachineType(
-                        AsyncRewriter.CreateAsyncStateMachine(
-                            method, i, typeKind,
-                            valueTypeSymbol, iAsyncStateMachine))
-                Next
-
-                asyncMethods.Free()
-            End If
         End Sub
 
         Private Sub GenerateVarianceDiagnostics()
@@ -3891,8 +3827,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             If EmitExtensionAttribute Then
                 AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeExtensionAttribute())

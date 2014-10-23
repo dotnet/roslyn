@@ -464,8 +464,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return RetargetingTranslator.GetRetargetedAttributes(m_UnderlyingType, m_LazyCustomAttributes)
         End Function
 
-        Friend Overrides Function GetCustomAttributesToEmit() As IEnumerable(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.RetargetAttributes(m_UnderlyingType.GetCustomAttributesToEmit())
+        Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+            Return RetargetingTranslator.RetargetAttributes(m_UnderlyingType.GetCustomAttributesToEmit(compilationState))
         End Function
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol

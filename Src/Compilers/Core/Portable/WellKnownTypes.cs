@@ -234,6 +234,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T,
         System_Runtime_CompilerServices_AsyncStateMachineAttribute,
+        System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
         System_Windows_Forms_Form,
         System_Windows_Forms_Application,
@@ -471,6 +472,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1",
             "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
+            "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
             "System.Windows.Forms.Form",
             "System.Windows.Forms.Application",

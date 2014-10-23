@@ -4147,7 +4147,7 @@ End Interface
 
             Dim verifier = CompileAndVerify(compilation)
 
-            verifier.VerifyIL("Module1.VB$StateMachine_0_Test1(Of SM$T).MoveNext",
+            verifier.VerifyIL("Module1.VB$StateMachine_1_Test1(Of SM$T).MoveNext",
             <![CDATA[
 {
   // Code size      143 (0x8f)
@@ -4158,12 +4158,12 @@ End Interface
                 Short? V_3,
                 System.Exception V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Module1.VB$StateMachine_0_Test1(Of SM$T).$State As Integer"
+  IL_0001:  ldfld      "Module1.VB$StateMachine_1_Test1(Of SM$T).$State As Integer"
   IL_0006:  stloc.1
   .try
   {
     IL_0007:  ldarg.0
-    IL_0008:  ldfld      "Module1.VB$StateMachine_0_Test1(Of SM$T).$VB$Local_x As SM$T()"
+    IL_0008:  ldfld      "Module1.VB$StateMachine_1_Test1(Of SM$T).$VB$Local_x As SM$T()"
     IL_000d:  ldc.i4.0
     IL_000e:  readonly.
     IL_0010:  ldelema    "SM$T"
@@ -4196,9 +4196,9 @@ End Interface
     IL_005a:  stloc.s    V_4
     IL_005c:  ldarg.0
     IL_005d:  ldc.i4.s   -2
-    IL_005f:  stfld      "Module1.VB$StateMachine_0_Test1(Of SM$T).$State As Integer"
+    IL_005f:  stfld      "Module1.VB$StateMachine_1_Test1(Of SM$T).$State As Integer"
     IL_0064:  ldarg.0
-    IL_0065:  ldflda     "Module1.VB$StateMachine_0_Test1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?)"
+    IL_0065:  ldflda     "Module1.VB$StateMachine_1_Test1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?)"
     IL_006a:  ldloc.s    V_4
     IL_006c:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?).SetException(System.Exception)"
     IL_0071:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -4208,9 +4208,9 @@ End Interface
   IL_0079:  ldc.i4.s   -2
   IL_007b:  dup
   IL_007c:  stloc.1
-  IL_007d:  stfld      "Module1.VB$StateMachine_0_Test1(Of SM$T).$State As Integer"
+  IL_007d:  stfld      "Module1.VB$StateMachine_1_Test1(Of SM$T).$State As Integer"
   IL_0082:  ldarg.0
-  IL_0083:  ldflda     "Module1.VB$StateMachine_0_Test1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?)"
+  IL_0083:  ldflda     "Module1.VB$StateMachine_1_Test1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?)"
   IL_0088:  ldloc.0
   IL_0089:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Short?).SetResult(Short?)"
   IL_008e:  ret

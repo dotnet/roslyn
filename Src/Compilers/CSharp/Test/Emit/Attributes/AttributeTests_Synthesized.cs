@@ -398,7 +398,7 @@ class C
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
                     var foo = m.ContainingAssembly.GetTypeByMetadataName("C").GetMember<MethodSymbol>("Foo");
-                    AssertEx.SetEqual(new[] { "DebuggerStepThroughAttribute", "AsyncStateMachineAttribute" }, GetAttributeNames(foo.GetAttributes()));
+                    AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(foo.GetAttributes()));
 
                     var iter = m.ContainingAssembly.GetTypeByMetadataName("C+<Foo>d__1");
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
@@ -1337,7 +1337,7 @@ class C
         #region AsyncStateMachineAttribute
 
         [Fact]
-        public void AsyncStateMachineAttribute()
+        public void AsyncStateMachineAttribute_Method()
         {
             string source = @"
 using System.Threading.Tasks;
@@ -1346,28 +1346,76 @@ class Test
 {
     public static async void F()
     {
-        await Task.Factory.StartNew(() => { });
+        await Task.Delay(0);
     }
 }
 ";
-            var reference = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef_v4_0_30319_17929 }).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var testClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var stateMachineClass = (NamedTypeSymbol)testClass.GetMembers().Single(s => s.Name.StartsWith("<F>"));
-            var asyncMethod = testClass.GetMember<MethodSymbol>("F");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__1");
+            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
 
-            var expectedAttrs = new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" };
+            var asyncMethodAttributes = asyncMethod.GetAttributes();
+            AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
 
-            var attributes = asyncMethod.GetAttributes();
-            
-            AssertEx.SetEqual(expectedAttrs, GetAttributeNames(attributes));
+            var attributeArg = (NamedTypeSymbol)asyncMethodAttributes.Single().ConstructorArguments.Single().Value;
+            Assert.Equal(attributeArg, stateMachine);
+        }
 
-            CSharpAttributeData asyncStateMachineAttribute = attributes.Where(a => a.AttributeClass.Name == "AsyncStateMachineAttribute").Single();
+        [Fact]
+        public void AsyncStateMachineAttribute_Lambda()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
 
-            var attributeStateMachineClass = (NamedTypeSymbol)asyncStateMachineAttribute.ConstructorArguments.Single().Value;
+class Test
+{
+    public static void F()
+    {
+        Action f = async () => { await Task.Delay(0); };
+    }
+}
+";
+            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal(attributeStateMachineClass, stateMachineClass);
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<>c__DisplayClass0.<<F>b__1>d__0");
+            var asyncMethod = comp.GetMember<MethodSymbol>("Test.<>c__DisplayClass0.<F>b__1");
+
+            var asyncMethodAttributes = asyncMethod.GetAttributes();
+            AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
+
+            var attributeArg = (NamedTypeSymbol)asyncMethodAttributes.Single().ConstructorArguments.Single().Value;
+            Assert.Equal(attributeArg, stateMachine);
+        }
+
+        [Fact]
+        public void AsyncStateMachineAttribute_GenericStateMachineClass()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class Test<T>
+{
+    public async void F<U>(U u) where U : Test<int>, new()
+    {
+        await Task.Delay(0);
+    }
+}
+";
+            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__1");
+            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
+
+            var asyncMethodAttributes = asyncMethod.GetAttributes();
+            AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
+
+            var attributeStateMachineClass = (NamedTypeSymbol)asyncMethodAttributes.Single().ConstructorArguments.Single().Value;
+            Assert.Equal(attributeStateMachineClass, stateMachine.ConstructUnboundGenericType());
         }
 
         [Fact]
@@ -1382,49 +1430,104 @@ class Test
 {
     public static async void F()
     {
-        await Task.Factory.StartNew(() => { });
+        await Task.Delay(0);
     }
 }
 ";
-            var metadataStream = new MemoryStream();
-            var result = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef_v4_0_30319_17929 }).
-                Emit(metadataStream, options: new EmitOptions(metadataOnly: true));
+            var reference = CreateCompilationWithMscorlib45(source).
+                EmitToImageReference(new EmitOptions(metadataOnly: true));
 
-            Assert.True(result.Success);
+            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            Assert.Empty(comp.GetMember<NamedTypeSymbol>("Test").GetMembers("<F>d__1"));
+
+            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
+
+            var asyncMethodAttributes = asyncMethod.GetAttributes();
+            Assert.Empty(GetAttributeNames(asyncMethodAttributes));
+        }
+
+        #endregion
+
+        #region IteratorStateMachineAttribute
+
+        [Fact]
+        public void IteratorStateMachineAttribute_Method()
+        {
+            string source = @"
+using System.Collections.Generic;
+
+class Test
+{
+    public static IEnumerable<int> F()
+    {
+        yield return 1;
+    }
+}
+";
+            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
+            var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
+
+            var asyncMethodAttributes = asyncMethod.GetAttributes();
+            AssertEx.SetEqual(new[] { "IteratorStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
+
+            var attributeArg = (NamedTypeSymbol)asyncMethodAttributes.Single().ConstructorArguments.Single().Value;
+            Assert.Equal(attributeArg, stateMachine);
         }
 
         [Fact]
-        public void AsyncStateMachineAttribute_GenericStateMachineClass()
+        public void IteratorStateMachineAttribute_GenericStateMachineClass()
         {
             string source = @"
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
-public class MyTask<T>
+public class Test<T>
 {
-    public async void Run<U>(U u) where U : MyTask<int>, new()
+    public IEnumerable<int> F<U>(U u) where U : Test<int>, new()
     {
-        await Task.Factory.StartNew(() => { });
+        yield return 1;
     }
 }
 ";
-            var reference = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef_v4_0_30319_17929 }).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var testClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("MyTask");
-            var stateMachineClass = (NamedTypeSymbol)testClass.GetMembers().Single(s => s.Name.StartsWith("<Run>"));
-            var asyncMethod = testClass.GetMember<MethodSymbol>("Run");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
+            var iteratorMethod = comp.GetMember<MethodSymbol>("Test.F");
 
-            var expectedAttrs = new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" };
+            var iteratorMethodAttributes = iteratorMethod.GetAttributes();
+            AssertEx.SetEqual(new[] { "IteratorStateMachineAttribute" }, GetAttributeNames(iteratorMethodAttributes));
 
-            var attributes = asyncMethod.GetAttributes();
+            var attributeStateMachineClass = (NamedTypeSymbol)iteratorMethodAttributes.Single().ConstructorArguments.Single().Value;
+            Assert.Equal(attributeStateMachineClass, stateMachine.ConstructUnboundGenericType());
+        }
 
-            AssertEx.SetEqual(expectedAttrs, GetAttributeNames(attributes));
+        [Fact]
+        public void IteratorStateMachineAttribute_MetadataOnly()
+        {
+            string source = @"
+using System.Collections.Generic;
 
-            CSharpAttributeData asyncStateMachineAttribute = attributes.Where(a => a.AttributeClass.Name == "AsyncStateMachineAttribute").Single();
+public class Test
+{
+    public static IEnumerable<int> F()
+    {
+        yield return 1;
+    }
+}
+";
+            var reference = CreateCompilationWithMscorlib45(source).
+                EmitToImageReference(new EmitOptions(metadataOnly: true));
 
-            var attributeStateMachineClass = (NamedTypeSymbol)asyncStateMachineAttribute.ConstructorArguments.Single().Value;
+            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            Assert.Empty(comp.GetMember<NamedTypeSymbol>("Test").GetMembers("<F>d__0"));
 
-            Assert.Equal(attributeStateMachineClass, stateMachineClass.ConstructUnboundGenericType());
+            var iteratorMethod = comp.GetMember<MethodSymbol>("Test.F");
+
+            var iteratorMethodAttributes = iteratorMethod.GetAttributes();
+            Assert.Empty(GetAttributeNames(iteratorMethodAttributes));
         }
 
         #endregion
