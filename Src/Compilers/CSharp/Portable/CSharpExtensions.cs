@@ -1015,6 +1015,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Get a SemanticModel object that is associated with an expression body that did not appear in
+        /// this source code. This can be used to get detailed semantic information about sub-parts
+        /// of an expression body that did not appear in source code.
+        /// </summary>
+        public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.TryGetSpeculativeSemanticModel(position, expressionBody, out speculativeModel);
+            }
+            else
+            {
+                speculativeModel = null;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of a constructor initializer that did not appear in source code. 

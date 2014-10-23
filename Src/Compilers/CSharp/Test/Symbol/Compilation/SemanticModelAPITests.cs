@@ -1354,6 +1354,91 @@ class C
             Assert.Equal((short)0, constantInfo.Value);
         }
 
+        [Fact]
+        public void TestGetSpeculativeSemanticModelInExpressionBody_Property()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class C 
+{
+  public object X => 0;
+}
+");
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var typeDecl = (TypeDeclarationSyntax)root.Members[0];
+            var propertyDecl = (PropertyDeclarationSyntax)typeDecl.Members[0];
+            var expressionBody = propertyDecl.ExpressionBody;
+
+            TestExpressionBodySpeculation(compilation, tree, expressionBody);
+        }
+
+        [Fact]
+        public void TestGetSpeculativeSemanticModelInExpressionBody_Method()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class C 
+{
+  public object X() => 0;
+}
+");
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var typeDecl = (TypeDeclarationSyntax)root.Members[0];
+            var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
+            var expressionBody = methodDecl.ExpressionBody;
+
+            TestExpressionBodySpeculation(compilation, tree, expressionBody);
+        }
+
+        [Fact]
+        public void TestGetSpeculativeSemanticModelInExpressionBody_Indexer()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class C 
+{
+  public object this[int x] => 0;
+}
+");
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var typeDecl = (TypeDeclarationSyntax)root.Members[0];
+            var indexerDecl = (IndexerDeclarationSyntax)typeDecl.Members[0];
+            var expressionBody = indexerDecl.ExpressionBody;
+
+            TestExpressionBodySpeculation(compilation, tree, expressionBody);
+        }
+
+        private static void TestExpressionBodySpeculation(Compilation compilation, SyntaxTree tree, ArrowExpressionClauseSyntax expressionBody)
+        {
+            var model = compilation.GetSemanticModel(tree);
+            Assert.False(model.IsSpeculativeSemanticModel);
+            Assert.Null(model.ParentModel);
+            Assert.Equal(0, model.OriginalPositionForSpeculation);
+
+            // Speculate on the expression body syntax.
+            // Conversion info available, ConvertedType: Object.
+            var newExpressionBody = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression(@"(string)""Hello"""));
+            var expr = newExpressionBody.Expression;
+            int position = expressionBody.SpanStart;
+
+            SemanticModel speculativeModel;
+            bool success = model.TryGetSpeculativeSemanticModel(position, newExpressionBody, out speculativeModel);
+            Assert.True(success);
+            Assert.NotNull(speculativeModel);
+            Assert.True(speculativeModel.IsSpeculativeSemanticModel);
+            Assert.Equal(model, speculativeModel.ParentModel);
+            Assert.Equal(position, speculativeModel.OriginalPositionForSpeculation);
+
+            var typeInfo = speculativeModel.GetTypeInfo(expr);
+            Assert.NotNull(typeInfo.Type);
+            Assert.Equal("String", typeInfo.Type.Name);
+            Assert.Equal("Object", typeInfo.ConvertedType.Name);
+
+            var constantInfo = speculativeModel.GetConstantValue(expr);
+            Assert.True(constantInfo.HasValue, "must be a constant");
+            Assert.Equal("Hello", constantInfo.Value);
+        }
+
         [WorkItem(529893, "DevDiv")]
         [Fact]
         public void AliasCalledVar()

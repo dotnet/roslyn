@@ -2193,6 +2193,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel);
 
         /// <summary>
+        /// Get a SemanticModel object that is associated with an expression body that did not appear in
+        /// this source code. This can be used to get detailed semantic information about sub-parts
+        /// of an expression body that did not appear in source code.
+        /// </summary>
+        /// <param name="position">A character position used to identify a declaration scope and accessibility. This
+        /// character position must be within the FullSpan of the Root syntax node in this SemanticModel.
+        /// </param>
+        /// <param name="expressionBody">A syntax node that represents a parsed expression body. This node should not be
+        /// present in the syntax tree associated with this object.</param>
+        /// <param name="speculativeModel">A SemanticModel object that can be used to inquire about the semantic
+        /// information associated with syntax nodes within <paramref name="expressionBody"/>.</param>
+        /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
+        /// <exception cref="ArgumentException">Throws this exception if the <paramref name="expressionBody"/> node is contained any SyntaxTree in the current Compilation.</exception>
+        /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="expressionBody"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// Chaining of speculative semantic model is not supported.</exception>
+        public bool TryGetSpeculativeSemanticModel(int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        {
+            CheckModelAndSyntaxNodeToSpeculate(expressionBody);
+            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, expressionBody, out speculativeModel);
+        }
+
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel);
+
+        /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of a constructor initializer that did not appear in source code. 
@@ -4622,9 +4647,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                     {
                         var t = (IndexerDeclarationSyntax)node;
-                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        var parameterInitializers = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : null;
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, parameterInitializers));
+                        if (t.AccessorList != null)
+                        {
+                            foreach (var decl in t.AccessorList.Accessors)
+                            {
+                                ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                            }
+                        }
+
+                        var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+                        if (t.ExpressionBody != null)
+                        {
+                            codeBlocks = codeBlocks.Concat(t.ExpressionBody);
+                        }
+
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks));
                         return;
                     }
 
@@ -4652,6 +4689,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (ctorDecl != null && ctorDecl.Initializer != null)
                         {
                             codeBlocks = codeBlocks.Concat(ctorDecl.Initializer);
+                        }
+
+                        var expressionBody = t.GetExpressionBodySyntax();
+                        if (expressionBody != null)
+                        {
+                            codeBlocks = codeBlocks.Concat(expressionBody);
                         }
 
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks));

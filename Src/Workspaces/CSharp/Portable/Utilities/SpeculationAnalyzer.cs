@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 node.CSharpKind() == SyntaxKind.Attribute ||
                 node.CSharpKind() == SyntaxKind.ThisConstructorInitializer ||
                 node.CSharpKind() == SyntaxKind.BaseConstructorInitializer ||
-                node.CSharpKind() == SyntaxKind.EqualsValueClause;
+                node.CSharpKind() == SyntaxKind.EqualsValueClause ||
+                node.CSharpKind() == SyntaxKind.ArrowExpressionClause;
         }
 
         protected override void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate)
@@ -145,6 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 case SyntaxKind.EqualsValueClause:
                     semanticModel.TryGetSpeculativeSemanticModel(position, (EqualsValueClauseSyntax)nodeToSpeculate, out speculativeModel);
+                    return speculativeModel;
+
+                case SyntaxKind.ArrowExpressionClause:
+                    semanticModel.TryGetSpeculativeSemanticModel(position, (ArrowExpressionClauseSyntax)nodeToSpeculate, out speculativeModel);
                     return speculativeModel;
             }
 
