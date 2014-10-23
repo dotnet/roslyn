@@ -327,6 +327,19 @@ public class C : NotFound
 
         }
 
+        [Fact, WorkItem(1038025)]
+        public void TestImplicitlyDeclaredSymbolsNotAnalyzed()
+        {
+            string source = @"
+using System;
+public class C
+{
+    public event EventHandler e;
+}";
+            CreateCompilationWithMscorlib45(source)
+                .VerifyCSharpAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ImplicitlyDeclaredSymbolAnalyzer() });
+        }
+
         class SyntaxAndSymbolAnalyzer : DiagnosticAnalyzer
         {
             private static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor("XX0001", "My Syntax/Symbol Diagnostic", "My Syntax/Symbol Diagnostic for '{0}'", "Compiler", DiagnosticSeverity.Warning, isEnabledByDefault: true);
@@ -592,6 +605,26 @@ public class C { }").WithWarningAsError(true)); // class declaration
 
             public override void Initialize(AnalysisContext context)
             {
+            }
+        }
+
+        internal class ImplicitlyDeclaredSymbolAnalyzer : DiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor desc1 = new DiagnosticDescriptor("DummyId", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get { return ImmutableArray.Create(desc1); }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(
+                    (c) =>
+                    {
+                        Assert.False(c.Symbol.IsImplicitlyDeclared);
+                    },
+                    SymbolKind.Namespace, SymbolKind.NamedType, SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
             }
         }
 

@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected HostCompilationStartAnalysisScope compilationAnalysisScope;
         // TODO: should these be made lazy?
         private ImmutableArray<ImmutableArray<SymbolAnalyzerAction>> declarationAnalyzerActionsByKind;
+        private static readonly Task EmptyTask = Task.FromResult(false);
 
         private readonly Task initialWorker;
         protected AnalyzerOptions analyzerOptions;
@@ -319,12 +320,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Task AnalyzeSymbol(SymbolDeclaredCompilationEvent symbolEvent, CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
+            var isGlobalNamespace = symbol.Kind == SymbolKind.Namespace && ((INamespaceSymbol)symbol).IsGlobalNamespace;
+
+            // Skip implicitly declared symbols.
+            // For global namespace, we don't want to execute symbol actions, but do want to execute syntax actions for global syntax nodes.
+            if (symbol.IsImplicitlyDeclared && !isGlobalNamespace)
+            {
+                return EmptyTask;
+            }
+
             Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(symbol);
             var tasks = ArrayBuilder<Task>.GetInstance();
 
             // Invoke symbol analyzers only for source symbols.
             var declaringSyntaxRefs = symbol.DeclaringSyntaxReferences;
-            if ((int)symbol.Kind < declarationAnalyzerActionsByKind.Length && declaringSyntaxRefs.Any(s => s.SyntaxTree != null))
+            if (!isGlobalNamespace && (int)symbol.Kind < declarationAnalyzerActionsByKind.Length && declaringSyntaxRefs.Any(s => s.SyntaxTree != null))
             {
                 foreach (var da in declarationAnalyzerActionsByKind[(int)symbol.Kind])
                 {
@@ -684,8 +694,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return true;
 
                 case SymbolKind.Field:
-                    // Check if this is not a compiler generated backing field.
-                    return ((IFieldSymbol)symbol).AssociatedSymbol == null;
+                    Debug.Assert(((IFieldSymbol)symbol).AssociatedSymbol == null);
+                    return true;
 
                 default:
                     return false;
