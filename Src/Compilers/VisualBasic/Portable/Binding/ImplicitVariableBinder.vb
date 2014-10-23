@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
+#If DEBUG Then
     ''' <summary>
     ''' The ImplicitVariableBinder manages implicitly declared local variables in VB.
     ''' Unlike other Binders, the ImplicitVariableBinder is observably 
@@ -37,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Additional assert to make sure that declarations are handled in order is handled by 
     ''' <see cref="ExecutableCodeBinder.CheckSimpleNameBindingOrder"/>
     ''' </summary>
+#End If
     Friend Class ImplicitVariableBinder
         Inherits Binder
 
