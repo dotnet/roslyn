@@ -46,7 +46,7 @@ namespace Roslyn.Utilities
         }
 
         /// <remarks>
-        /// Not using <see cref="System.Func{T}"/> because this file is linked into the (debugger) Formatter,
+        /// Not using System.Func<T> because this file is linked into the (debugger) Formatter,
         /// which does not have that type (since it compiles against .NET 2.0).
         /// </remarks>
         internal delegate T Factory();
