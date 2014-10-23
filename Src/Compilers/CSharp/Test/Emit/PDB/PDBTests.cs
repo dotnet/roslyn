@@ -287,7 +287,7 @@ class C
         <namespace name=""System"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.cctor&gt;b__6"" parameterNames=""y"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;_cctor&gt;b__6"" parameterNames=""y"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
@@ -296,7 +296,7 @@ class C
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;.cctor&gt;b__2"" parameterNames=""x"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;_cctor&gt;b__2"" parameterNames=""x"">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
@@ -321,7 +321,7 @@ class C
         <local name=""g"" il_index=""1"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;.cctor&gt;b__3"" parameterNames=""o"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;_cctor&gt;b__3"" parameterNames=""o"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
@@ -330,7 +330,7 @@ class C
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;.cctor&gt;b__5"" parameterNames=""h"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;_cctor&gt;b__5"" parameterNames=""h"">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
@@ -2126,7 +2126,7 @@ class C
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.ctor&gt;b__1"" parameterNames=""z"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;_ctor&gt;b__1"" parameterNames=""z"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
       </customDebugInfo>

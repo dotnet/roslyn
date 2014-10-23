@@ -1295,7 +1295,7 @@ class C
             </sequencepoints>
             <locals/>
         </method>
-        <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.cctor&gt;b__1"" parameterNames=""x"">
+        <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;_cctor&gt;b__1"" parameterNames=""x"">
             <customDebugInfo version=""4"" count=""1"">
                 <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames=""""/>
             </customDebugInfo>
@@ -1306,7 +1306,7 @@ class C
             </sequencepoints>
             <locals/>
         </method>
-        <method containingType=""C+&lt;&gt;c__DisplayClass2"" name=""&lt;.ctor&gt;b__3"" parameterNames=""x"">
+        <method containingType=""C+&lt;&gt;c__DisplayClass2"" name=""&lt;_ctor&gt;b__3"" parameterNames=""x"">
             <customDebugInfo version=""4"" count=""1"">
                 <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames=""""/>
             </customDebugInfo>
