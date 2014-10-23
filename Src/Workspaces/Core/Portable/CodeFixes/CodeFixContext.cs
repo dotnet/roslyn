@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         private readonly Document document;
         private readonly TextSpan span;
-        private readonly Diagnostic diagnostic;
+        private readonly IEnumerable<Diagnostic> diagnostics;
         private readonly CancellationToken cancellationToken;
 
         /// <summary>
@@ -25,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public TextSpan Span { get { return this.span; } }
 
         /// <summary>
-        /// Diagnostic to fix.
+        /// Diagnostics to fix.
         /// </summary>
-        public Diagnostic Diagnostic { get { return this.diagnostic; } }
+        public IEnumerable<Diagnostic> Diagnostics { get { return this.diagnostics; } }
 
         /// <summary>
         /// CancellationToken.
@@ -40,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public CodeFixContext(
             Document document,
             TextSpan span,
-            Diagnostic diagnostic,
+            IEnumerable<Diagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             this.document = document;
             this.span = span;
-            this.diagnostic = diagnostic;
+            this.diagnostics = diagnostics;
             this.cancellationToken = cancellationToken;
         }
 
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
-            : this(document, diagnostic.Location.SourceSpan, diagnostic, cancellationToken)
+            : this(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken)
         {
         }
     }

@@ -44,7 +44,7 @@ Class MakeConstCodeFixProvider
     End Function
 
     Public NotOverridable Overrides Async Function GetFixesAsync(context As CodeFixContext) As Task(Of IEnumerable(Of CodeAction))
-        Dim diagnosticSpan = context.Diagnostic.Location.SourceSpan
+        Dim diagnosticSpan = context.Diagnostics.First().Location.SourceSpan
         Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken)
 
         ' Find the local declaration identified by the diagnostic.

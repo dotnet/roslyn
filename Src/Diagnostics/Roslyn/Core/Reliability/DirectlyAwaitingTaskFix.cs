@@ -27,21 +27,22 @@ namespace Roslyn.Diagnostics.CodeFixes
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            return GetFixesCore(context.Document, root, context.Diagnostic, context.CancellationToken);
+            return GetFixesCore(context.Document, root, context.Diagnostics, context.CancellationToken);
         }
 
-        private IEnumerable<CodeAction> GetFixesCore(Document document, SyntaxNode root, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private IEnumerable<CodeAction> GetFixesCore(Document document, SyntaxNode root, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var expression = root.FindNode(diagnostic.Location.SourceSpan) as TExpressionSyntax;
-
-            if (expression != null)
+            foreach (var diagnostic in diagnostics)
             {
-                return ImmutableArray.Create(new MyCodeAction(
-                    "Append .ConfigureAwait(" + FalseLiteralString + ")",
-                    c => GetFix(document, root, expression, c)));
-            }
+                var expression = root.FindNode(diagnostic.Location.SourceSpan) as TExpressionSyntax;
 
-            return null;
+                if (expression != null)
+                {
+                    yield return new MyCodeAction(
+                        "Append .ConfigureAwait(" + FalseLiteralString + ")",
+                        c => GetFix(document, root, expression, c));
+                }
+            }
         }
 
         private Task<Document> GetFix(Document document, SyntaxNode root, TExpressionSyntax expression, CancellationToken cancellationToken)

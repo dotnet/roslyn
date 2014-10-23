@@ -53,7 +53,7 @@ namespace MakeConstCS
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken);
 
-            var diagnosticSpan = context.Diagnostic.Location.SourceSpan;
+            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
 
             // Find the local declaration identified by the diagnostic.
             var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
