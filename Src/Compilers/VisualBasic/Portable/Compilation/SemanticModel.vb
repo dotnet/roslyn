@@ -2170,7 +2170,7 @@ _Default:
         ''' <returns>Flag indicating whether a speculative semantic model was created.</returns>
         ''' <exception cref="ArgumentException">Throws this exception if the <paramref name="method"/> node is contained any SyntaxTree in the current Compilation.</exception>
         ''' <exception cref="ArgumentNullException">Throws this exception if <paramref name="method"/> is null.</exception>
-        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is True.
+        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="IsSpeculativeSemanticModel"/> is True.
         ''' Chaining of speculative semantic model is not supported.</exception>
         Public Function TryGetSpeculativeSemanticModelForMethodBody(position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
@@ -2195,7 +2195,7 @@ _Default:
         ''' <returns>Flag indicating whether a speculative semantic model was created.</returns>
         ''' <exception cref="ArgumentException">Throws this exception if the <paramref name="rangeArgument"/> node is contained any SyntaxTree in the current Compilation.</exception>
         ''' <exception cref="ArgumentNullException">Throws this exception if <paramref name="rangeArgument"/> is null.</exception>
-        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is True.
+        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="IsSpeculativeSemanticModel"/> is True.
         ''' Chaining of speculative semantic model is not supported.</exception>
         Public Function TryGetSpeculativeSemanticModel(position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
@@ -2219,7 +2219,7 @@ _Default:
         ''' <returns>Flag indicating whether a speculative semantic model was created.</returns>
         ''' <exception cref="ArgumentException">Throws this exception if the <paramref name="statement"/> node is contained any SyntaxTree in the current Compilation.</exception>
         ''' <exception cref="ArgumentNullException">Throws this exception if <paramref name="statement"/> is null.</exception>
-        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is True.
+        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="IsSpeculativeSemanticModel"/> is True.
         ''' Chaining of speculative semantic model is not supported.</exception>
         Public Function TryGetSpeculativeSemanticModel(position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
@@ -2244,7 +2244,7 @@ _Default:
         ''' <returns>Flag indicating whether a speculative semantic model was created.</returns>
         ''' <exception cref="ArgumentException">Throws this exception if the <paramref name="initializer"/> node is contained any SyntaxTree in the current Compilation.</exception>
         ''' <exception cref="ArgumentNullException">Throws this exception if <paramref name="initializer"/> is null.</exception>
-        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is True.
+        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="IsSpeculativeSemanticModel"/> is True.
         ''' Chaining of speculative semantic model is not supported.</exception>
         Public Function TryGetSpeculativeSemanticModel(position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
@@ -2268,7 +2268,7 @@ _Default:
         ''' <returns>Flag indicating whether a speculative semantic model was created.</returns>
         ''' <exception cref="ArgumentException">Throws this exception if the <paramref name="attribute"/> node is contained any SyntaxTree in the current Compilation.</exception>
         ''' <exception cref="ArgumentNullException">Throws this exception if <paramref name="attribute"/> is null.</exception>
-        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is True.
+        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="IsSpeculativeSemanticModel"/> is True.
         ''' Chaining of speculative semantic model is not supported.</exception>
         Public Function TryGetSpeculativeSemanticModel(position As Integer, attribute As AttributeSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
@@ -2300,7 +2300,7 @@ _Default:
         ''' information associated with syntax nodes within <paramref name="type"/>.</param>
         ''' <returns>Flag indicating whether a speculative semantic model was created.</returns>
         ''' <exception cref="ArgumentException">Throws this exception if the <paramref name="type"/> node is contained any SyntaxTree in the current Compilation.</exception>
-        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is True.
+        ''' <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="IsSpeculativeSemanticModel"/> is True.
         ''' Chaining of speculative semantic model is not supported.</exception>
         Public Function TryGetSpeculativeSemanticModel(position As Integer, type As TypeSyntax, <Out> ByRef speculativeModel As SemanticModel, Optional bindingOption As SpeculativeBindingOption = SpeculativeBindingOption.BindAsExpression) As Boolean
             CheckPosition(position)

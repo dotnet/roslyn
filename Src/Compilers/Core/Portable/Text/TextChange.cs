@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Text
         public string NewText { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="T:TextChange"/>
+        /// Initializes a new instance of <see cref="TextChange"/>
         /// </summary>
         /// <param name="span">The original span of the changed text.</param>
         /// <param name="newText">The new text.</param>
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Provides a string representation for <see cref="T:TextChange"/>.
+        /// Provides a string representation for <see cref="TextChange"/>.
         /// </summary>
         public override string ToString()
         {

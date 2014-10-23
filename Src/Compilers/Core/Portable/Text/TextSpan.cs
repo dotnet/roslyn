@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Creates a new <see cref="T:TextSpan"/> from <param name="start" /> and <param
+        /// Creates a new <see cref="TextSpan"/> from <param name="start" /> and <param
         /// name="end"/> positions as opposed to a position and length.
         /// </summary>
         public static TextSpan FromBounds(int start, int end)
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Determines if two instances of <see cref="T:TextSpan"/> are the same.
+        /// Determines if two instances of <see cref="TextSpan"/> are the same.
         /// </summary>
         public static bool operator ==(TextSpan left, TextSpan right)
         {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Determines if two instances of <see cref="T:TextSpan"/> are different.
+        /// Determines if two instances of <see cref="TextSpan"/> are different.
         /// </summary>
         public static bool operator !=(TextSpan left, TextSpan right)
         {
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Determines if current instance of <see cref="T:TextSpan"/> is equal to another.
+        /// Determines if current instance of <see cref="TextSpan"/> is equal to another.
         /// </summary>
         public bool Equals(TextSpan other)
         {
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Determines if current instance of <see cref="T:TextSpan"/> is equal to another.
+        /// Determines if current instance of <see cref="TextSpan"/> is equal to another.
         /// </summary>
         public override bool Equals(object obj)
         {
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Produces a hash code for <see cref="T:TextSpan"/>.
+        /// Produces a hash code for <see cref="TextSpan"/>.
         /// </summary>
         public override int GetHashCode()
         {
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Provides a string representation for <see cref="T:TextSpan"/>.
+        /// Provides a string representation for <see cref="TextSpan"/>.
         /// </summary>
         public override string ToString()
         {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Compares current instance of <see cref="T:TextSpan"/> with another.
+        /// Compares current instance of <see cref="TextSpan"/> with another.
         /// </summary>
         public int CompareTo(TextSpan other)
         {

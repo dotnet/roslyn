@@ -760,7 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Property
 
                 ''' <summary>
-                ''' Guarded by <see cref="F:CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
+                ''' Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
                 ''' </summary>
                 Public ReadOnly Property CachedSymbols As WeakList(Of IAssemblySymbol)
                     Get

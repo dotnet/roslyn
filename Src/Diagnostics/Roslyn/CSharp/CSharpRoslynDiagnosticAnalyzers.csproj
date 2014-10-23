@@ -71,6 +71,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Documentation\CSharpDoNotUseVerbatimCrefsAnalyzer.cs" />
     <Compile Include="Performance\CSharpCodeActionCreateAnalyzer.cs" />
     <Compile Include="Performance\CSharpEmptyArrayDiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CSharpEmptyArrayCodeFixProvider.cs" />

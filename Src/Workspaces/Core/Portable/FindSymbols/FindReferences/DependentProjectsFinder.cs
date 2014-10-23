@@ -344,9 +344,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// This method creates an initial cheap InternalsVisibleTo map from the given <paramref name="assembly"/> to the assembly names that have friend access to this assembly.
         /// This map is a superset of the actual InternalsVisibleTo map and is used for performance reasons only.
-        /// While identifying depend projects that can reference a given symbol (see method <see cref="M:AddNonSubmissionDependentProjectsAsync"/>), we need to know a symbol's
+        /// While identifying depend projects that can reference a given symbol (see method <see cref="AddNonSubmissionDependentProjectsAsync"/>), we need to know a symbol's
         /// accessibility from referencing projects. This requires us to create a compilation for the referencing project just to check accessibility and can be performance intensive.
-        /// Instead, we crack the assembly attributes just for the symbol's containing assembly here to enable cheap checks for friend assemblies in <see cref="M:AddNonSubmissionDependentProjectsAsync"/>.
+        /// Instead, we crack the assembly attributes just for the symbol's containing assembly here to enable cheap checks for friend assemblies in <see cref="AddNonSubmissionDependentProjectsAsync"/>.
         /// </summary>
         private static Lazy<HashSet<string>> CreateInternalsVisibleToMap(IAssemblySymbol assembly)
         {

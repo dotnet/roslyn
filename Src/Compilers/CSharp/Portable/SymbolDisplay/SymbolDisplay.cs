@@ -6,10 +6,12 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#pragma warning disable RS0010
     /// <summary>
     /// Displays a symbol in the C# style.
     /// </summary>
     /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.SymbolDisplay"/>
+#pragma warning restore RS0010
     public static class SymbolDisplay
     {
         /// <summary>

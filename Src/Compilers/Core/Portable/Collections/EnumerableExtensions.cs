@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns the only element of specified sequence if it has exactly one, and default(TSource) otherwise.
-        /// Unlike <see cref="M: Enumerable.SingleOrDefault()"/> doesn't throw if there is more than one element in the sequence.
+        /// Unlike <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource})"/> doesn't throw if there is more than one element in the sequence.
         /// </summary>
         internal static TSource AsSingleton<TSource>(this IEnumerable<TSource> source)
         {

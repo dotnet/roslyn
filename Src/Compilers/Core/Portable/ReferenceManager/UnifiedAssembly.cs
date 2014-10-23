@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         where TAssemblySymbol : class, IAssemblySymbol
     {
         /// <summary>
-        /// Original reference that was unified to the identity of the <see cref="P:TargetAssembly"/>.
+        /// Original reference that was unified to the identity of the <see cref="TargetAssembly"/>.
         /// </summary>
         internal readonly AssemblyIdentity OriginalReference;
 

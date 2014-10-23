@@ -12,5 +12,6 @@
         public const string ImplementIEquatable = "RS0008";
         public const string OverrideObjectEquals = "RS0009";
         public const string MissingSharedAttributeRuleId = "RS0010";
+        public const string DoNotUseVerbatimCrefs = "RS0010";
     }
 }

@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the resulting bound node. May return null in some error cases.
         /// </summary>
         /// <remarks>
-        /// Keep in sync with <see cref="M:Binder.BindCrefParameterOrReturnType()"/>.
+        /// Keep in sync with Binder.BindCrefParameterOrReturnType.
         /// </remarks>
         private BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
         {
@@ -2081,7 +2081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="method"/> node is contained any SyntaxTree in the current Compilation</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="method"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModelForMethodBody(int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
         {
@@ -2106,7 +2106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="accessor"/> node is contained any SyntaxTree in the current Compilation</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="accessor"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModelForMethodBody(int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel)
         {
@@ -2133,7 +2133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="type"/> node is contained any SyntaxTree in the current Compilation</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="type"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModel(int position, TypeSyntax type, out SemanticModel speculativeModel, SpeculativeBindingOption bindingOption = SpeculativeBindingOption.BindAsExpression)
         {
@@ -2157,7 +2157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="statement"/> node is contained any SyntaxTree in the current Compilation</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="statement"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModel(int position, StatementSyntax statement, out SemanticModel speculativeModel)
         {
@@ -2182,7 +2182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="initializer"/> node is contained any SyntaxTree in the current Compilation.</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="initializer"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModel(int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
         {
@@ -2207,7 +2207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="expressionBody"/> node is contained any SyntaxTree in the current Compilation.</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="expressionBody"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModel(int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
         {
@@ -2235,7 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="constructorInitializer"/> node is contained any SyntaxTree in the current Compilation.</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="constructorInitializer"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModel(int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
@@ -2263,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="crefSyntax"/> node is contained any SyntaxTree in the current Compilation.</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="crefSyntax"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModel(int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel)
         {
@@ -2287,7 +2287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
         /// <exception cref="ArgumentException">Throws this exception if the <paramref name="attribute"/> node is contained any SyntaxTree in the current Compilation.</exception>
         /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="attribute"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="P:IsSpeculativeSemanticModel"/> is true.
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
         /// Chaining of speculative semantic model is not supported.</exception>
         public bool TryGetSpeculativeSemanticModel(int position, AttributeSyntax attribute, out SemanticModel speculativeModel)
         {

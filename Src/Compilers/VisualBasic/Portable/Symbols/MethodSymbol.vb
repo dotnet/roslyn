@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Returns a sequence of preprocessor symbols specified in <see cref="T:ConditionalAttribute"/> applied on this symbol, or null if there are none.
+        ''' Returns a sequence of preprocessor symbols specified in <see cref="ConditionalAttribute"/> applied on this symbol, or null if there are none.
         ''' </summary>
         Friend MustOverride Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
 
@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks>
         ''' This is set for methods with special semantics such as constructors or accessors
         ''' as well as in special synthetic methods such as lambdas.
-        ''' Also set for methods marked with <see cref="T:System.Runtime.CompilerServices.SpecialNameAttribute"/>.
+        ''' Also set for methods marked with System.Runtime.CompilerServices.SpecialNameAttribute.
         ''' </remarks>
         Friend MustOverride ReadOnly Property HasSpecialName As Boolean
 
@@ -307,6 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
 
+#Disable Warning RS0010
         ''' <summary>
         ''' Returns true if this method is not implemented in IL of the assembly it is defined in.
         ''' </summary>
@@ -319,6 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''    <see cref="T:System.Runtime.CompilerServices.MethodCodeType.Runtime"/> flags.
         ''' 4) Synthesized constructors of ComImport types
         ''' </remarks>
+#Enable Warning RS0010
         Public MustOverride ReadOnly Property IsExternalMethod As Boolean
 
         ''' <summary>

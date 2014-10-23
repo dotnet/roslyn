@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
-    /// Implementation of SourceText based on a <see cref="T:System.String"/> input
+    /// Implementation of SourceText based on a <see cref="String"/> input
     /// </summary>
     internal sealed partial class StringText : SourceText
     {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Underlying string which is the source of this SourceText instance
+        /// Underlying string which is the source of this <see cref="StringText"/>instance
         /// </summary>
         public string Source
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// The length of the text represented by <see cref="T:StringText"/>.
+        /// The length of the text represented by <see cref="StringText"/>.
         /// </summary>
         public override int Length
         {
@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <param name="position">The position to get the character from.</param>
         /// <returns>The character.</returns>
-        /// <exception cref="T:ArgumentOutOfRangeException">When position is negative or 
-        /// greater than <see cref="T:"/> length.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">When position is negative or 
+        /// greater than <see cref="Length"/>.</exception>
         public override char this[int position]
         {
             get
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Provides a string representation of the StringText located within given span.
         /// </summary>
-        /// <exception cref="T:ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public override string ToString(TextSpan span)
         {
             if (span.End > this.Source.Length)

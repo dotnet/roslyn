@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Called even if there are no attributes.
         /// </summary>
         /// <remarks>
-        /// This method is called by the binder from <see cref="M:LoadAndValidateAttributes"/> after it has finished binding attributes on the symbol,
-        /// has executed <see cref="M:DecodeWellKnownAttributes"/> for attributes applied on the symbol and has stored the decoded data in the
+        /// This method is called by the binder from <see cref="LoadAndValidateAttributes"/> after it has finished binding attributes on the symbol,
+        /// has executed <see cref="DecodeWellKnownAttribute"/> for attributes applied on the symbol and has stored the decoded data in the
         /// lazyCustomAttributesBag on the symbol. Bound attributes haven't been stored on the bag yet.
         /// 
         /// Post-validation for attributes that is dependant on other attributes can be done here.
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// This method validates attribute usage for each bound attribute and calls <see cref="M:DecodeWellKnownAttribute"/>
+        /// This method validates attribute usage for each bound attribute and calls <see cref="DecodeWellKnownAttribute"/>
         /// on attributes with valid attribute usage.
         /// This method is called by the binder when it is finished binding a set of attributes on the symbol so that
         /// the symbol can extract data from the attribute arguments and potentially perform validation specific to

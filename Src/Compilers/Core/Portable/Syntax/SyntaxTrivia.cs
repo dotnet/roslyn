@@ -9,10 +9,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+#pragma warning disable RS0010
     /// <summary>
     /// Represents a trivia in the syntax tree. This is the language agnostic equivalent of <see
     /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxTrivia"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxTrivia"/>.
     /// </summary>
+#pragma warning restore RS0010
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxTrivia : IEquatable<SyntaxTrivia>
     {
@@ -269,7 +271,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether two <see cref="T:Microsoft.CodeAnalysis.SyntaxTrivia"/>s are equal.
+        /// Determines whether two <see cref="SyntaxTrivia"/>s are equal.
         /// </summary>
         public static bool operator ==(SyntaxTrivia left, SyntaxTrivia right)
         {
@@ -277,7 +279,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether two <see cref="T:Microsoft.CodeAnalysis.SyntaxTrivia"/>s are unequal.
+        /// Determines whether two <see cref="SyntaxTrivia"/>s are unequal.
         /// </summary>
         public static bool operator !=(SyntaxTrivia left, SyntaxTrivia right)
         {
@@ -285,8 +287,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether the supplied <see cref="T:Microsoft.CodeAnalysis.SyntaxTrivia"/> is equal to this
-        /// <see cref="T:Microsoft.CodeAnalysis.SyntaxTrivia"/>.
+        /// Determines whether the supplied <see cref="SyntaxTrivia"/> is equal to this
+        /// <see cref="SyntaxTrivia"/>.
         /// </summary>
         public bool Equals(SyntaxTrivia other)
         {
@@ -294,8 +296,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether the supplied <see cref="T:Microsoft.CodeAnalysis.SyntaxTrivia"/> is equal to this
-        /// <see cref="T:Microsoft.CodeAnalysis.SyntaxTrivia"/>.
+        /// Determines whether the supplied <see cref="SyntaxTrivia"/> is equal to this
+        /// <see cref="SyntaxTrivia"/>.
         /// </summary>
         public override bool Equals(object obj)
         {
@@ -303,7 +305,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Serves as hash function for <see cref="T:Microsoft.CodeAnalysis.SyntaxTrivia"/>.
+        /// Serves as hash function for <see cref="SyntaxTrivia"/>.
         /// </summary>
         public override int GetHashCode()
         {

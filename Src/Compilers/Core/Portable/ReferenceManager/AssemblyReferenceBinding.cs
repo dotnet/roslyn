@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             /// -1 if version of the matched definition is lower than version of the reference, but the reference otherwise matches the definition.
             /// +1 if version of the matched definition is higher than version of the reference, but the reference otherwise matches the definition.
             ///   
-            /// Undefined unless <see cref="P:IsBound"/> is true.
+            /// Undefined unless <see cref="IsBound"/> is true.
             /// </summary>
             internal int VersionDifference
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Index into assembly definition list.
-            /// Undefined unless <see cref="P:IsBound"/> is true.
+            /// Undefined unless <see cref="IsBound"/> is true.
             /// </summary>
             internal int DefinitionIndex
             {

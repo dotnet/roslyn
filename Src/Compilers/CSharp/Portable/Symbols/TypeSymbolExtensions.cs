@@ -817,10 +817,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+#pragma warning disable RS0010
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
         /// <see cref="T:System.ArgIterator"/>, or <see cref="T:System.RuntimeArgumentHandle"/>.
         /// </summary>
+#pragma warning restore RS0010
         internal static bool IsRestrictedType(this TypeSymbol type)
         {
             // See Dev10 C# compiler, "type.cpp", bool Type::isSpecialByRefType() const

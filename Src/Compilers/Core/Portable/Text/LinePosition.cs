@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Text
     public struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
     {
         /// <summary>
-        /// A <see cref="T:LinePositions"/> that represents position 0 at line 0.
+        /// A <see cref="LinePosition"/> that represents position 0 at line 0.
         /// </summary>
         public static readonly LinePosition Zero = new LinePosition(0, 0);
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Provides a hash function for <see cref="T:LinePosition"/>.
+        /// Provides a hash function for <see cref="LinePosition"/>.
         /// </summary>
         public override int GetHashCode()
         {

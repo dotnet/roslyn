@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
         /// Cached assembly symbols.
         /// </summary>
         /// <remarks>
-        /// Guarded by <see cref="F:CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
+        /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
         /// </remarks>
         internal readonly WeakList<IAssemblySymbol> CachedSymbols = new WeakList<IAssemblySymbol>();
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>This object disposes the elements of <paramref name="modules"/> it when it is itself <see cref="Dispose"/>.</remarks>
         /// <exception cref="ArgumentException"><paramref name="modules"/> is default value.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> contains null elements.</exception>
-        /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="M:MetadataModule.Copy"/>).</exception>
+        /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="Metadata.Copy"/>).</exception>
         public static AssemblyMetadata Create(ImmutableArray<ModuleMetadata> modules)
         {
             if (modules.IsDefault)
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>This object disposes the elements of <paramref name="modules"/> it when it is itself <see cref="Dispose"/>.</remarks>
         /// <exception cref="ArgumentException"><paramref name="modules"/> is default value.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> contains null elements.</exception>
-        /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="M:MetadataModule.Copy"/>).</exception>
+        /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="Metadata.Copy"/>).</exception>
         public static AssemblyMetadata Create(IEnumerable<ModuleMetadata> modules)
         {
             return Create(modules.AsImmutableOrNull());
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>This object disposes the elements of <paramref name="modules"/> it when it is itself <see cref="Dispose"/>.</remarks>
         /// <exception cref="ArgumentException"><paramref name="modules"/> is default value.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> contains null elements.</exception>
-        /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="M:MetadataModule.Copy"/>).</exception>
+        /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="Metadata.Copy"/>).</exception>
         public static AssemblyMetadata Create(params ModuleMetadata[] modules)
         {
             return Create(ImmutableArray.CreateRange(modules));

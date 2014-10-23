@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <param name="position">The position to get the character from.</param>
         /// <returns>The character.</returns>
-        /// <exception cref="T:ArgumentOutOfRangeException">When position is negative or 
-        /// greater than <see cref="T:"/> length.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">When position is negative or 
+        /// greater than <see cref="Length"/>.</exception>
         public abstract char this[int position] { get; }
 
         /// <summary>
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Gets a string containing the characters in specified span.
         /// </summary>
-        /// <exception cref="T:ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public virtual string ToString(TextSpan span)
         {
             CheckSubSpan(span);
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Gets the set of <see cref="T:TextChange"/> that describe how the text changed
+        /// Gets the set of <see cref="TextChange"/> that describe how the text changed
         /// between this text and an older version. This may be multiple detailed changes 
         /// or a single change encompassing the entire text.
         /// </summary>

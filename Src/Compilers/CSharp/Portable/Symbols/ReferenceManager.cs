@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 /// <summary>
-                /// Guarded by <see cref="F:CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
+                /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
                 /// </summary>
                 public WeakList<IAssemblySymbol> CachedSymbols
                 {

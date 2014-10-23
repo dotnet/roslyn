@@ -12,10 +12,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+#pragma warning disable RS0010
     /// <summary>
     /// Represents a non-terminal node in the syntax tree. This is the language agnostic equivalent of <see
     /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxNode"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxNode"/>.
     /// </summary>
+#pragma warning restore RS0010
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract partial class SyntaxNode
     {

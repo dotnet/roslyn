@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns the marshalling type of this field, or 0 if marshalling information isn't available.
         ''' </summary>
         ''' <remarks>
-        ''' By default this information is extracted from <see cref="P:MarshallingInformation"/> if available. 
+        ''' By default this information is extracted from <see cref="MarshallingInformation"/> if available. 
         ''' Since the compiler does only need to know the marshalling type of symbols that aren't emitted 
         ''' PE symbols just decode the type from metadata and don't provide full marshalling information.
         ''' </remarks>

@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Provides information about how data flows into and out of a region. This information is
     /// returned from a call to
-    /// <see cref="M:Microsoft.CodeAnalysis.SemanticModel.AnalyzeRegionDataFlow" />.
+    /// <see cref="SemanticModel.AnalyzeDataFlow(SyntaxNode)" />.
     /// </summary>
     public abstract class DataFlowAnalysis
     {

@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <param name="genericIdentifier">The "name" of the generic identifier, last token before
         /// the "&amp;"</param>
         /// <returns>The last token in the name</returns>
-        /// <remarks>This is related to the code in <see cref="M:SyntaxTreeExtensions.IsInPartiallyWrittenGeneric"/></remarks>
+        /// <remarks>This is related to the code in <see cref="SyntaxTreeExtensions.IsInPartiallyWrittenGeneric(SyntaxTree, int, CancellationToken)"/></remarks>
         public static SyntaxToken FindLastTokenOfPartialGenericName(this SyntaxToken genericIdentifier)
         {
             Contract.ThrowIfFalse(genericIdentifier.CSharpKind() == SyntaxKind.IdentifierToken);

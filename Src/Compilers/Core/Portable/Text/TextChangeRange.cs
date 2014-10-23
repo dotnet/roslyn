@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Text
         public int NewLength { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="T:TextChangeRange"/>.
+        /// Initializes a new instance of <see cref="TextChangeRange"/>.
         /// </summary>
         /// <param name="span"></param>
         /// <param name="newLength"></param>
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Compares current instance of <see cref="T:TextChangeRange"/> to another.
+        /// Compares current instance of <see cref="TextChangeRange"/> to another.
         /// </summary>
         public bool Equals(TextChangeRange other)
         {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Compares current instance of <see cref="T:TextChangeRange"/> to another.
+        /// Compares current instance of <see cref="TextChangeRange"/> to another.
         /// </summary>
         public override bool Equals(object obj)
         {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Provides hash code for current instnce of <see cref="T:TextChangeRange"/>.
+        /// Provides hash code for current instnce of <see cref="TextChangeRange"/>.
         /// </summary>
         /// <returns></returns>
         public override int GetHashCode()
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Determines if two instances of <see cref="T:TextChangeRange"/> are same.
+        /// Determines if two instances of <see cref="TextChangeRange"/> are same.
         /// </summary>
         public static bool operator ==(TextChangeRange left, TextChangeRange right)
         {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Determines if two instances of <see cref="T:TextChangeRange"/> are different.
+        /// Determines if two instances of <see cref="TextChangeRange"/> are different.
         /// </summary>
         public static bool operator !=(TextChangeRange left, TextChangeRange right)
         {

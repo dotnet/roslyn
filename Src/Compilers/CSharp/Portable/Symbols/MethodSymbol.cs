@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns a sequence of preprocessor symbols specified in <see cref="T:ConditionalAttribute"/> applied on this symbol, or null if there are none.
+        /// Returns a sequence of preprocessor symbols specified in <see cref="ConditionalAttribute"/> applied on this symbol, or null if there are none.
         /// </summary>
         internal abstract ImmutableArray<string> GetAppliedConditionalSymbols();
 

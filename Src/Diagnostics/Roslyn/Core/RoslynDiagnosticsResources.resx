@@ -177,4 +177,10 @@
   <data name="UseSiteDiagnosticsCheckerMessage" xml:space="preserve">
     <value>Do not directly invoke the property '{0}', instead use '{0}NoUseSiteDiagnostics'.</value>
   </data>
+  <data name="UseProperCrefTagsDescription" xml:space="preserve">
+    <value>Use cref tags without a type prefix.</value>
+  </data>
+  <data name="UseProperCrefTagsMessage" xml:space="preserve">
+    <value>cref tag has prefix '{0}', which should be removed unless the type or member cannot be accessed.</value>
+  </data>
 </root>

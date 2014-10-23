@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Provides information about statements which transfer control in and out of a region. This
-    /// information is returned from a call to <see cref="M:SemanticModel.AnalyzeControlFlow" />.
+    /// information is returned from a call to <see cref="SemanticModel.AnalyzeControlFlow(SyntaxNode)" />.
     /// </summary>
     public abstract class ControlFlowAnalysis
     {

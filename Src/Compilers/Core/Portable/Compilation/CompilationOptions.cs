@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis
         /// The name usually (but not necessarily) includes an extension, e.g. "MyModule.dll".
         /// 
         /// If <see cref="ModuleName"/> is null the actual name written to metadata  
-        /// is derived from the name of the compilation (<see cref="P:Compilation.Name"/>)
-        /// by appending a default extension for <see cref="P:OutputKind"/>.
+        /// is derived from the name of the compilation (<see cref="Compilation.AssemblyName"/>)
+        /// by appending a default extension for <see cref="OutputKind"/>.
         /// </remarks>
         public string ModuleName { get; protected set; }
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
         /// The name of the file containing the key with which to sign the output.
         /// </summary>
         /// <remarks>
-        /// To sign the output supply either one of <see cref="P:CryptoKeyContainer"/> or <see cref="P:CryptoKeyFile"/>.
+        /// To sign the output supply either one of <see cref="CryptoKeyContainer"/> or <see cref="CryptoKeyFile"/>.
         /// but not both.
         /// </remarks>
         public string CryptoKeyFile { get; protected set; }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Turn off strong name signing when you have supplied a key either through
-        /// attributes or  <see cref="P:CryptoKeyContainer"/> or <see cref="P:CryptoKeyFile"/>.
+        /// attributes or <see cref="CryptoKeyContainer"/> or <see cref="CryptoKeyFile"/>.
         /// </summary>
         public bool? DelaySign { get; protected set; }
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// - Compilation.referenceManager
         /// - ReferenceManager state
         /// - <see cref="AssemblyMetadata.CachedSymbols"/>
-        /// - <see cref="F:Compilation.retargetingAssemblySymbols"/>
+        /// - <see cref="Compilation.RetargetingAssemblySymbols"/>
         /// 
         /// All the above data should be updated at once while holding this lock.
         /// Once lazyAssemblySymbol is set the Compilation.referenceManager field and ReferenceManager
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// If the compilation being built represents an assembly its assembly name.
         /// If the compilation being built represents a module, the name of the 
-        /// containing assembly or <see cref="F:Compilation.UnspecifiedModuleAssemblyName"/>
+        /// containing assembly or <see cref="Compilation.UnspecifiedModuleAssemblyName"/>
         /// if not specified (/moduleassemblyname command line option).
         /// </summary>
         internal readonly string SimpleAssemblyName;
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         /// <summary>
-        /// Call only while holding <see cref="P:SymbolCacheAndReferenceManagerStateGuard"/>.
+        /// Call only while holding <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
         /// </summary>
         [Conditional("DEBUG")]
         internal void AssertUnbound()
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call only while holding <see cref="P:SymbolCacheAndReferenceManagerStateGuard"/>.
+        /// Call only while holding <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
         /// </summary>
         internal void InitializeNoLock(
             Dictionary<MetadataReference, ReferencedAssembly> referencedAssembliesMap,

@@ -6,10 +6,12 @@ Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
+#Disable Warning RS0010
     ''' <summary>
     ''' Displays a value in the VisualBasic style.
     ''' </summary>
     ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.ObjectDisplay"/>
+#Enable Warning RS0010
     Friend Module ObjectDisplay
 
         Const NullChar As Char = ChrW(0)

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Simple name the assembly.
         /// </summary>
         /// <remarks>
-        /// This is equivalent to <see cref="P:Identity"/>.<see cref="P:AssemblyIdentity.Name"/>, but may be 
+        /// This is equivalent to <see cref="Identity"/>.<see cref="AssemblyIdentity.Name"/>, but may be 
         /// much faster to retrieve for source code assemblies, since it does not require binding
         /// the assembly-level attributes that contain the version number and other assembly
         /// information.

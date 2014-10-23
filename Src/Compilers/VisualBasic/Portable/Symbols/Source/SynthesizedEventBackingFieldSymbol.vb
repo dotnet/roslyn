@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ''' <summary>
-        ''' <see cref="T:System.NonSerializedAttribute"/> applied on an event and determines serializability of its backing field.
+        ''' System.NonSerializedAttribute applied on an event and determines serializability of its backing field.
         ''' </summary>
         Friend Overrides ReadOnly Property IsNotSerialized As Boolean
             Get

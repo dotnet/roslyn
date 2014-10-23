@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Gets a <see cref="T:Accessibility" /> indicating the declared accessibility for the symbol.
+        ''' Gets a <see cref="Accessibility" /> indicating the declared accessibility for the symbol.
         ''' Returns NotApplicable if no accessibility is declared.
         ''' </summary>
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility

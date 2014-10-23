@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Gets the <see cref="T:ISymbol" /> for the immediately containing symbol.
+        ''' Gets the <see cref="ISymbol" /> for the immediately containing symbol.
         ''' </summary>
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Gets a <see cref="T:Accessibility" /> indicating the declared accessibility for the symbol.
+        ''' Gets a <see cref="Accessibility" /> indicating the declared accessibility for the symbol.
         ''' Returns NotApplicable if no accessibility is declared.
         ''' </summary>
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility

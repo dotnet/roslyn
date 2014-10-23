@@ -624,7 +624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend MustOverride ReadOnly Property CoClassType As TypeSymbol
 
         ''' <summary>
-        ''' Returns a sequence of preprocessor symbols specified in <see cref="T:ConditionalAttribute"/> applied on this symbol, or null if there are none.
+        ''' Returns a sequence of preprocessor symbols specified in <see cref="ConditionalAttribute"/> applied on this symbol, or null if there are none.
         ''' </summary>
         Friend MustOverride Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
 

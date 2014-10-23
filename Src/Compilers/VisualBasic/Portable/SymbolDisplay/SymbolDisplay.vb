@@ -4,10 +4,12 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
+#Disable Warning RS0010
     ''' <summary>
     ''' Displays a symbol in the VisualBasic style.
     ''' </summary>
     ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.SymbolDisplay"/>
+#Enable Warning RS0010
     Public Module SymbolDisplay
         ''' <summary>
         ''' Displays a symbol in the Visual Basic style, based on a <see cref="SymbolDisplayFormat"/>.

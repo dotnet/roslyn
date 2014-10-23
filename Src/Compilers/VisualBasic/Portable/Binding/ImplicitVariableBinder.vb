@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' In Debug, Asserts validate these rules.
     ''' 
     ''' Additional assert to make sure that declarations are handled in order is handled by 
-    ''' <see cref="M:ExecutableStatementSyntax.CheckSimpleNameBindingOrder"/>
+    ''' <see cref="ExecutableCodeBinder.CheckSimpleNameBindingOrder"/>
     ''' </summary>
     Friend Class ImplicitVariableBinder
         Inherits Binder

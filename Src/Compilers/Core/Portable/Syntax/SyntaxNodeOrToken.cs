@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis
     // Note that we do not store the token directly, we just store enough information to reconstruct it.
     // This allows us to reuse nodeOrToken as a token's parent.
     /// <summary>
-    /// A wrapper for either a syntax node (<see cref="T:Microsoft.CodeAnalysis.SyntaxNode"/>) or a syntax token (<see
-    /// cref="T:Microsoft.CodeAnalysis.SyntaxToken"/>).
+    /// A wrapper for either a syntax node (<see cref="SyntaxNode"/>) or a syntax token (<see
+    /// cref="SyntaxToken"/>).
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
@@ -776,8 +776,8 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         /// <summary>
-        /// Determines whether the supplied <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/> is equal to this
-        /// <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.
+        /// Determines whether the supplied <see cref="SyntaxNodeOrToken"/> is equal to this
+        /// <see cref="SyntaxNodeOrToken"/>.
         /// </summary>
         public bool Equals(SyntaxNodeOrToken other)
         {
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether two <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>s are equal.
+        /// Determines whether two <see cref="SyntaxNodeOrToken"/>s are equal.
         /// </summary>
         public static bool operator ==(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
         {
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether two <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>s are unequal.
+        /// Determines whether two <see cref="SyntaxNodeOrToken"/>s are unequal.
         /// </summary>
         public static bool operator !=(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
         {
@@ -808,8 +808,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether the supplied <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/> is equal to this
-        /// <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.
+        /// Determines whether the supplied <see cref="SyntaxNodeOrToken"/> is equal to this
+        /// <see cref="SyntaxNodeOrToken"/>.
         /// </summary>
         public override bool Equals(object obj)
         {
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Serves as hash function for <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.
+        /// Serves as hash function for <see cref="SyntaxNodeOrToken"/>.
         /// </summary>
         public override int GetHashCode()
         {
@@ -841,11 +841,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns a new <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/> that wraps the supplied token.
+        /// Returns a new <see cref="SyntaxNodeOrToken"/> that wraps the supplied token.
         /// </summary>
         /// <param name="token">The input token.</param>
         /// <returns>
-        /// A <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/> that wraps the supplied token.
+        /// A <see cref="SyntaxNodeOrToken"/> that wraps the supplied token.
         /// </returns>
         public static implicit operator SyntaxNodeOrToken(SyntaxToken token)
         {
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the underlying token wrapped by the supplied <see cref="Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.
         /// </summary>
         /// <param name="nodeOrToken">
-        /// The input <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.
+        /// The input <see cref="SyntaxNodeOrToken"/>.
         /// </param>
         /// <returns>
         /// The underlying token wrapped by the supplied <see cref="Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.
@@ -867,11 +867,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns a new <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/> that wraps the supplied node.
+        /// Returns a new <see cref="SyntaxNodeOrToken"/> that wraps the supplied node.
         /// </summary>
         /// <param name="node">The input node.</param>
         /// <returns>
-        /// A <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/> that wraps the supplied node.
+        /// A <see cref="SyntaxNodeOrToken"/> that wraps the supplied node.
         /// </returns>
         public static implicit operator SyntaxNodeOrToken(SyntaxNode node)
         {
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the underlying node wrapped by the supplied <see cref="Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.
         /// </summary>
         /// <param name="nodeOrToken">
-        /// The input <see cref="T:Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.
+        /// The input <see cref="SyntaxNodeOrToken"/>.
         /// </param>
         /// <returns>
         /// The underlying node wrapped by the supplied <see cref="Microsoft.CodeAnalysis.SyntaxNodeOrToken"/>.

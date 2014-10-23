@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis
         /// The implementation needs to retrieve the object from a provider that manages their lifetime (such as metadata cache).
         /// The <see cref="Metadata"/> object is kept alive by the <see cref="Compilation"/> that called <see cref="GetMetadata"/>
         /// and by all compilations created from it via calls to With- factory methods on <see cref="Compilation"/>, 
-        /// other than <see cref="M:Compilation.WithReferences"/> overloads. A compilation created using 
-        /// <see cref="M:Compilation.WithReferences"/> will call to <see cref="GetMetadata"/> again.
+        /// other than <see cref="Compilation.WithReferences(MetadataReference[])"/> overloads. A compilation created using 
+        /// <see cref="Compilation.WithReferences(MetadataReference[])"/> will call to <see cref="GetMetadata"/> again.
         /// </remarks>
         protected abstract Metadata GetMetadataImpl();
 

@@ -47,7 +47,7 @@ namespace Roslyn.Utilities
         /// Get directory name from path.
         /// </summary>
         /// <remarks>
-        /// Unlike <see cref="M:System.IO.Path.GetDirectoryName"/> it
+        /// Unlike <see cref="System.IO.Path.GetDirectoryName"/> it
         ///     doesn't check for invalid path characters, 
         ///     doesn't strip any trailing directory separators (TODO: tomat),
         ///     doesn't recognize UNC structure \\computer-name\share\directory-name\file-name (TODO: tomat).

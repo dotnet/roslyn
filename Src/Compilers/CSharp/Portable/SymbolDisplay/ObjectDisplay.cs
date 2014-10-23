@@ -10,6 +10,7 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#pragma warning disable RS0010
     /// <summary>
     /// Displays a value in the C# style.
     /// </summary>
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the Formatter project and we don't want it to be public there.
     /// </remarks>
     /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.ObjectDisplay"/>
+#pragma warning restore RS0010
     internal static class ObjectDisplay
     {
         /// <summary>

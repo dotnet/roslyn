@@ -9,10 +9,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+#pragma warning disable RS0010
     /// <summary>
     /// Represents a token in the syntax tree. This is the language agnostic equivalent of <see
     /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxToken"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxToken"/>.
     /// </summary>
+#pragma warning restore RS0010
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxToken : IEquatable<SyntaxToken>
     {
@@ -594,7 +596,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether two <see cref="T:Microsoft.CodeAnalysis.SyntaxToken"/>s are equal.
+        /// Determines whether two <see cref="SyntaxToken"/>s are equal.
         /// </summary>
         public static bool operator ==(SyntaxToken left, SyntaxToken right)
         {
@@ -602,7 +604,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether two <see cref="T:Microsoft.CodeAnalysis.SyntaxToken"/>s are unequal.
+        /// Determines whether two <see cref="SyntaxToken"/>s are unequal.
         /// </summary>
         public static bool operator !=(SyntaxToken left, SyntaxToken right)
         {
@@ -610,8 +612,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether the supplied <see cref="T:Microsoft.CodeAnalysis.SyntaxToken"/> is equal to this
-        /// <see cref="T:Microsoft.CodeAnalysis.SyntaxToken"/>.
+        /// Determines whether the supplied <see cref="SyntaxToken"/> is equal to this
+        /// <see cref="SyntaxToken"/>.
         /// </summary>
         public bool Equals(SyntaxToken other)
         {
@@ -622,8 +624,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether the supplied <see cref="T:Microsoft.CodeAnalysis.SyntaxToken"/> is equal to this
-        /// <see cref="T:Microsoft.CodeAnalysis.SyntaxToken"/>.
+        /// Determines whether the supplied <see cref="SyntaxToken"/> is equal to this
+        /// <see cref="SyntaxToken"/>.
         /// </summary>
         public override bool Equals(object obj)
         {
@@ -631,7 +633,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Serves as hash function for <see cref="T:Microsoft.CodeAnalysis.SyntaxToken"/>.
+        /// Serves as hash function for <see cref="SyntaxToken"/>.
         /// </summary>
         public override int GetHashCode()
         {

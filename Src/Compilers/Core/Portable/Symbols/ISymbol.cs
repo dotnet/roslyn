@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     public interface ISymbol : IEquatable<ISymbol>
     {
         /// <summary>
-        /// Gets the <see cref="E:Microsoft.CodeAnalysis.SymbolKind"/> indicating what kind of symbol it is.
+        /// Gets the <see cref="SymbolKind"/> indicating what kind of symbol it is.
         /// </summary>
         SymbolKind Kind { get; }
 
@@ -43,30 +43,30 @@ namespace Microsoft.CodeAnalysis
         string MetadataName { get; }
 
         /// <summary>
-        /// Gets the <see cref="T:Microsoft.CodeAnalysis.ISymbol"/> for the immediately containing symbol.
+        /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
         /// </summary>
         ISymbol ContainingSymbol { get; }
 
         /// <summary>
-        /// Gets the <see cref="T:Microsoft.CodeAnalysis.IAssemblySymbol"/> for the containing assembly. Returns null if the
+        /// Gets the <see cref="IAssemblySymbol"/> for the containing assembly. Returns null if the
         /// symbol is shared across multiple assemblies.
         /// </summary>
         IAssemblySymbol ContainingAssembly { get; }
 
         /// <summary>
-        /// Gets the <see cref="T:Microsoft.CodeAnalysis.IModuleSymbol"/> for the containing module. Returns null if the
+        /// Gets the <see cref="IModuleSymbol"/> for the containing module. Returns null if the
         /// symbol is shared across multiple modules.
         /// </summary>
         IModuleSymbol ContainingModule { get; }
 
         /// <summary>
-        /// Gets the <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/> for the containing type. Returns null if the
+        /// Gets the <see cref="INamedTypeSymbol"/> for the containing type. Returns null if the
         /// symbol is not contained within a type.
         /// </summary>
         INamedTypeSymbol ContainingType { get; }
 
         /// <summary>
-        /// Gets the <see cref="T:Microsoft.CodeAnalysis.INamespaceSymbol"/> for the nearest enclosing namespace. Returns null if the
+        /// Gets the <see cref="INamespaceSymbol"/> for the nearest enclosing namespace. Returns null if the
         /// symbol isn't contained in a namespace.
         /// </summary>
         INamespaceSymbol ContainingNamespace { get; }

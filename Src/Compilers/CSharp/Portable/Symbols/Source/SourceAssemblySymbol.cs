@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Indices of duplicate assembly attributes, i.e. attributes that bind to the same constructor and have identical arguments, that must not be emitted.
         /// </summary>
         /// <remarks>
-        /// These indices correspond to the merged assembly attributes from source and added net modules, i.e. attributes returned by <see cref="M:GetAttributes"/> method.
+        /// These indices correspond to the merged assembly attributes from source and added net modules, i.e. attributes returned by <see cref="GetAttributes"/> method.
         /// </remarks>
         private HashSet<int> lazyDuplicateAttributeIndices;
 

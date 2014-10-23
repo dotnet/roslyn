@@ -94,6 +94,7 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Documentation\BasicDoNotUseVerbatimCrefsAnalyzer.vb" />
     <Compile Include="Performance\BasicCodeActionCreateAnalyzer.vb" />
     <Compile Include="Performance\BasicEmptyArrayCodeFixProvider.vb" />
     <Compile Include="Performance\BasicEmptyArrayDiagnosticAnalyzer.vb" />

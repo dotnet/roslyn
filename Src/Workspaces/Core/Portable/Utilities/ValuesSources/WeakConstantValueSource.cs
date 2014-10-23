@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A <see cref="T:ValueSource"/> that keeps a weak reference to a value.
+    /// A <see cref="ValueSource{T}"/> that keeps a weak reference to a value.
     /// </summary>
     internal sealed class WeakConstantValueSource<T> : ValueSource<T> where T : class
     {

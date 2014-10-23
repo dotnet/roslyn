@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Controls whether the <see cref="P:CharacterSet"/> field causes the common language runtime 
+        /// Controls whether the <see cref="CharacterSet"/> field causes the common language runtime 
         /// to search an unmanaged DLL for entry-point names other than the one specified.
         /// </summary>
         public bool ExactSpelling

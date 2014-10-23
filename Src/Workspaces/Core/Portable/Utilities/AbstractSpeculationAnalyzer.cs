@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         /// <summary>
-        /// First ancestor of <see cref="P:OriginalExpression"/> which is either a statement, attribute, constructor initializer,
+        /// First ancestor of <see cref="OriginalExpression"/> which is either a statement, attribute, constructor initializer,
         /// field initializer, default parameter initializer or type syntax node.
         /// It serves as the root node for all semantic analysis for this syntax replacement.
         /// </summary>

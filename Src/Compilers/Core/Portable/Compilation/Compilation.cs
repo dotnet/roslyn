@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If the compilation represents an assembly the value of <see cref="AssemblyName"/> is its simple name.
         /// 
-        /// Unless <see cref="P:CompilationOptions.ModuleName"/> specifies otherwise the module name
-        /// written to metadata is <see cref="P:Name"/> with an extension based upon <see cref="P:CompilationOptions.OutputKind"/>.
+        /// Unless <see cref="CompilationOptions.ModuleName"/> specifies otherwise the module name
+        /// written to metadata is <see cref="AssemblyName"/> with an extension based upon <see cref="CompilationOptions.OutputKind"/>.
         /// </remarks>
         public string AssemblyName { get; private set; }
 
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets all the diagnostics for the compilation, including syntax, declaration, and
         /// binding. Does not include any diagnostics that might be produced during emit, see
-        /// <see cref="T:EmitResult"/>.
+        /// <see cref="EmitResult"/>.
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 

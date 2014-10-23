@@ -879,9 +879,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameterBuilder.ToImmutableAndFree();
         }
 
-
         /// <remarks>
-        /// Keep in sync with <see cref="M:SemanticModel.GetSpeculativelyBoundExpression()"/>.
+        /// Keep in sync with CSharpSemanticModel.GetSpeculativelyBoundExpression.
         /// </remarks>
         private TypeSymbol BindCrefParameterOrReturnType(TypeSyntax typeSyntax, MemberCrefSyntax memberCrefSyntax, DiagnosticBag diagnostics)
         {

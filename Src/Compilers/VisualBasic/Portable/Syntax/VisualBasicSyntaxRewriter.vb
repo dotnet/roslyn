@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
-    ''' Represents a <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxVisitor`1"/> which descends an entire <see cref="T:Roslyn.Compilers.VisualBasic.SyntaxNode"/> graph and
+    ''' Represents a <see cref="VisualBasicSyntaxVisitor"/> which descends an entire <see cref="SyntaxNode"/> graph and
     ''' may replace or remove visited SyntaxNodes in depth-first order.
     ''' </summary>
     Partial Public Class VisualBasicSyntaxRewriter

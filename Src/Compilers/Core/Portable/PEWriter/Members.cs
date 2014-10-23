@@ -480,7 +480,7 @@ namespace Microsoft.Cci
         /// A container for a list of IL instructions providing the implementation (if any) of this method.
         /// </summary>
         /// <remarks>
-        /// When emitting metadata-only assemblies this returns null even if <see cref="M:Cci.Extensions.HasBody"/> returns true.
+        /// When emitting metadata-only assemblies this returns null even if <see cref="Cci.Extensions.HasBody"/> returns true.
         /// </remarks>
         IMethodBody GetBody(EmitContext context);
 
