@@ -1666,6 +1666,34 @@ End Namespace
     ]]>)
         End Sub
 
+        <WorkItem(1069554)>
+        <Fact(Skip:="1069554")>
+        Public Sub LambdaInEvent()
+            CompileAndVerify(
+    <compilation>
+        <file name="a.vb">
+Imports System
+
+Class C
+    Public Custom Event E As Action
+        AddHandler(value As Action)
+            Dim f = Function(x) x
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+    </file>
+    </compilation>, options:=TestOptions.DebugDll).
+                VerifyIL("C.add_E",
+            <![CDATA[
+{
+TODO
+}
+    ]]>)
+        End Sub
     End Class
 End Namespace
 
