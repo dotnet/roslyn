@@ -19609,8 +19609,8 @@ BC42021: Operator without an 'As' clause; type of Object assumed.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528714, "DevDiv")>
-        <Fact>
+        <WorkItem(528714, "DevDiv"), WorkItem(1070286, "DevDiv")>
+        <Fact(Skip:="1070286")>
         Public Sub BC42000WRN_MustShadowOnMultipleInheritance2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="MustShadowOnMultipleInheritance2">
