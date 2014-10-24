@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             spilledIndices(i) = SpillRValue(indices(i), builder)
                         Next
 
-                        array = array.Update(spilledExpression, spilledIndices.AsImmutableOrNull, True, array.Type)
+                        array = array.Update(spilledExpression, spilledIndices.AsImmutableOrNull, array.IsLValue, array.Type)
 
                         ' Make sure side effects are checked
                         builder.AddStatement(Me.F.ExpressionStatement(array))
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         fieldAccess = fieldAccess.Update(newReceiver,
                                                          fieldAccess.FieldSymbol,
-                                                         True,
+                                                         fieldAccess.IsLValue,
                                                          fieldAccess.SuppressVirtualCalls,
                                                          fieldAccess.ConstantsInProgressOpt,
                                                          fieldAccess.Type)
