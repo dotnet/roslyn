@@ -218,49 +218,128 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     errorReported = True
                 ElseIf lookup.IsGood Then
                     ' Check each method found to see if it matches signature of methodSym
+                    Dim candidates As ArrayBuilder(Of TSymbol) = Nothing
+
                     For Each possibleMatch In lookup.Symbols
                         Dim possibleMatchMember = TryCast(possibleMatch, TSymbol)
                         If possibleMatchMember IsNot Nothing AndAlso
                            possibleMatchMember.ContainingType.IsInterface AndAlso
                            MembersAreMatchingForPurposesOfInterfaceImplementation(implementingSym, possibleMatchMember) Then
-
-                            If foundMember IsNot Nothing Then
-                                ' Already found a match. We already know that "foundMethod" and "possibleMatch" have the same signature. There
-                                ' are two possibilities: 
-                                '   1) they are in one interface that is a base of the other, in which case the more derived shadows and should be picked. 
-                                '   2) they are in the same interface, which is an error (type substitution can create two methods with same signature)
-                                ' They can't be in unrelated interfaces, otherwise Lookup would have returned an ambiguity.
-                                If foundMember.ContainingType.OriginalDefinition = possibleMatchMember.ContainingType.OriginalDefinition Then
-                                    If Not errorReported Then
-                                        ' report ambiguity
-                                        Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_AmbiguousImplements3,
-                                                                CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(possibleMatchMember.ContainingType),
-                                                                implementedMethodName,
-                                                                CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(possibleMatchMember.ContainingType.OriginalDefinition),
-                                                                foundMember.OriginalDefinition,
-                                                                possibleMatchMember.OriginalDefinition)
-                                        errorReported = True
-                                    End If
-                                ElseIf possibleMatchMember.ContainingType.ImplementsInterface(foundMember.ContainingType, Nothing) Then
-                                    foundMember = possibleMatchMember
-                                Else
-                                    Debug.Assert(foundMember.ContainingType.ImplementsInterface(possibleMatchMember.ContainingType, Nothing),
-                                                 "How can this happen: shouldn't Lookup have returned an ambiguity?")
-                                End If
-                            Else
-                                foundMember = possibleMatchMember
+                            If candidates Is Nothing Then
+                                candidates = ArrayBuilder(Of TSymbol).GetInstance()
                             End If
+
+                            candidates.Add(possibleMatchMember)
                         End If
                     Next
 
-                    If foundMember Is Nothing Then
+                    Dim candidatesCount As Integer = If(candidates IsNot Nothing, candidates.Count, 0)
+
+                    ' If we have more than one candidate, eliminate candidates from least derived interfaces
+                    If candidatesCount > 1 Then
+                        For i As Integer = 0 To candidates.Count - 2
+                            Dim first As TSymbol = candidates(i)
+
+                            If first Is Nothing Then
+                                Continue For ' has been eliminated already
+                            End If
+
+                            For j As Integer = i + 1 To candidates.Count - 1
+                                Dim second As TSymbol = candidates(j)
+
+                                If second Is Nothing Then
+                                    Continue For ' has been eliminated already
+                                End If
+
+                                If second.ContainingType.ImplementsInterface(first.ContainingType, Nothing) Then
+                                    candidates(i) = Nothing
+                                    candidatesCount -= 1
+                                    GoTo Next_i
+                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, Nothing)
+                                    candidates(j) = Nothing
+                                    candidatesCount -= 1
+                                End If
+                            Next
+Next_i:
+                        Next
+                    End If
+
+                    ' If we still have more than one candidate, they are either from the same type (type substitution can create two methods with same signature),
+                    ' or from unrelated base interfaces
+                    If candidatesCount > 1 Then
+                        For i As Integer = 0 To candidates.Count - 2
+                            Dim first As TSymbol = candidates(i)
+
+                            If first Is Nothing Then
+                                Continue For ' has been eliminated already
+                            End If
+
+                            If foundMember Is Nothing Then
+                                foundMember = first
+                            End If
+
+                            For j As Integer = i + 1 To candidates.Count - 1
+                                Dim second As TSymbol = candidates(j)
+
+                                If second Is Nothing Then
+                                    Continue For ' has been eliminated already
+                                End If
+
+                                If first.ContainingType = second.ContainingType Then
+                                    ' type substitution can create two methods with same signature in the same type
+                                    ' report ambiguity
+                                    Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_AmbiguousImplements3,
+                                                                    CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(first.ContainingType),
+                                                                    implementedMethodName,
+                                                                    CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(first.ContainingType),
+                                                                    first,
+                                                                    second)
+                                    errorReported = True
+                                    resultKind = LookupResult.WorseResultKind(lookup.Kind, LookupResultKind.OverloadResolutionFailure)
+
+                                    GoTo DoneWithErrorReporting
+                                End If
+                            Next
+                        Next
+
+                        Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_AmbiguousImplementsMember3,
+                                    implementedMethodName,
+                                    implementedMethodName)
+
+                        resultKind = LookupResult.WorseResultKind(lookup.Kind, LookupResultKind.Ambiguous)
+                        errorReported = True
+DoneWithErrorReporting:
+                        If candidateSymbols IsNot Nothing Then
+                            candidateSymbols.AddRange(lookup.Symbols)
+                        End If
+
+                    ElseIf candidatesCount = 1
+
+                        For i As Integer = 0 To candidates.Count - 1
+                            Dim first As TSymbol = candidates(i)
+
+                            If first Is Nothing Then
+                                Continue For ' has been eliminated already
+                            End If
+
+                            foundMember = first
+                            Exit For
+                        Next
+
+                    Else
+                        Debug.Assert(candidatesCount = 0)
                         ' No matching members. Remember non-matching members for semantic model questions.
                         If candidateSymbols IsNot Nothing Then
                             candidateSymbols.AddRange(lookup.Symbols)
                         End If
                         resultKind = LookupResult.WorseResultKind(lookup.Kind, LookupResultKind.OverloadResolutionFailure)
-                    Else
+                    End If
 
+                    If candidates IsNot Nothing Then
+                        candidates.Free()
+                    End If
+
+                    If foundMember IsNot Nothing Then
                         Dim coClassContext As Boolean = DirectCast(interfaceType, NamedTypeSymbol).CoClassType IsNot Nothing
                         If coClassContext AndAlso (implementingSym.Kind = SymbolKind.Event) <> (foundMember.Kind = SymbolKind.Event) Then
                             ' Following Dev11 implementation: in COM Interface context if the implementing symbol 

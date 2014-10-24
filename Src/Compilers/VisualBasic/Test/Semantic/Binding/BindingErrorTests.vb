@@ -10309,7 +10309,7 @@ BC30676: 'E' is not an event of 'C1'.
 
         End Sub
 
-        <Fact()>
+        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
         Public Sub BC30685ERR_AmbiguousAcrossInterfaces3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="AmbiguousAcrossInterfaces3">
@@ -10337,10 +10337,12 @@ BC30676: 'E' is not an event of 'C1'.
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC30685: 'fun' is ambiguous across the inherited interfaces 'AB' and 'AC'.
+BC30521: Overload resolution failed because no accessible 'fun' is most specific for these arguments:
+    'Sub fun(i As Integer)': Not most specific.
+    'Sub fun(i As Integer)': Not most specific.
                 d.fun(2)
-                ~~~~~
-</expected>)
+                  ~~~
+    </expected>)
         End Sub
 
         <Fact()>

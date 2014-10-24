@@ -720,7 +720,7 @@ BC30002: Type 'System.UnknownType' is not defined.
         End Sub
 
         <Fact>
-        Public Sub AmbiguousInterface()
+        Public Sub AmbiguousInterface_01()
             ' Somewhat surprisingly, perhaps, I3.Foo is considered ambiguous between I1.Foo(String, String) and 
             ' I2.Foo(Integer), even though only I2.Foo(String, String) matches the method arguments provided. This
             ' matches Dev10 behavior.
@@ -752,16 +752,197 @@ End Class
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC30149: Class 'Class1' must implement 'Sub Foo(i As String, j As String)' for interface 'I1'.
+BC30149: Class 'Class1' must implement 'Sub Foo(x As Integer)' for interface 'I2'.
     Implements I3
                ~~
-BC30149: Class 'Class1' must implement 'Sub Foo(x As Integer)' for interface 'I2'.
+            </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub AmbiguousInterface_02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+   <compilation name="AmbiguousInterface">
+       <file name="a.vb">
+Option Strict On
+
+Interface I1
+    Sub Foo(ByVal i As String, ByVal j As String)
+End Interface
+
+Interface I2
+    Sub Foo(ByVal i As String, ByVal j As String)
+End Interface
+
+Interface I3
+    Inherits I1, I2
+End Interface
+
+Public Class Class1
+    Implements I3
+
+    Public Sub Foo(ByVal i As String, ByVal j As String) Implements I3.Foo
+    End Sub
+End Class
+</file>
+   </compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
+BC30149: Class 'Class1' must implement 'Sub Foo(i As String, j As String)' for interface 'I2'.
     Implements I3
                ~~
 BC31040: 'Foo' exists in multiple base interfaces. Use the name of the interface that declares 'Foo' in the 'Implements' clause instead of the name of the derived interface.
     Public Sub Foo(ByVal i As String, ByVal j As String) Implements I3.Foo
                                                                     ~~~~~~
-            </expected>)
+                                                                 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub AmbiguousInterface_03()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+   <compilation name="AmbiguousInterface">
+       <file name="a.vb">
+Option Strict On
+
+Interface I1(Of T, S)
+    Sub Foo(ByVal i As T, ByVal j As S)
+    Sub Foo(ByVal i As S, ByVal j As T)
+End Interface
+
+Interface I3
+    Inherits I1(Of Integer, Short), I1(Of Short, Integer)
+End Interface
+
+Public Class Class1
+    Implements I3
+
+    Public Sub Foo(ByVal i As Integer, ByVal j As Short) Implements I3.Foo
+    End Sub
+
+    Public Sub Foo(ByVal i As Short, ByVal j As Integer) Implements I3.Foo
+    End Sub
+End Class
+</file>
+   </compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
+BC30149: Class 'Class1' must implement 'Sub Foo(i As Integer, j As Short)' for interface 'I1(Of Short, Integer)'.
+    Implements I3
+               ~~
+BC30149: Class 'Class1' must implement 'Sub Foo(i As Short, j As Integer)' for interface 'I1(Of Short, Integer)'.
+    Implements I3
+               ~~
+BC31040: 'Foo' exists in multiple base interfaces. Use the name of the interface that declares 'Foo' in the 'Implements' clause instead of the name of the derived interface.
+    Public Sub Foo(ByVal i As Integer, ByVal j As Short) Implements I3.Foo
+                                                                    ~~~~~~
+BC31040: 'Foo' exists in multiple base interfaces. Use the name of the interface that declares 'Foo' in the 'Implements' clause instead of the name of the derived interface.
+    Public Sub Foo(ByVal i As Short, ByVal j As Integer) Implements I3.Foo
+                                                                    ~~~~~~
+                                                                 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub AmbiguousInterface_04()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+   <compilation name="AmbiguousInterface">
+       <file name="a.vb">
+Option Strict On
+
+Interface I1(Of T, S)
+    Sub Foo(ByVal i As T)
+    Sub Foo(ByVal i As S)
+End Interface
+
+Public Class Class1
+    Implements I1(Of Integer, Integer)
+
+    Public Sub Foo(ByVal i As Integer) Implements I1(Of Integer, Integer).Foo
+    End Sub
+End Class
+</file>
+   </compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
+BC30149: Class 'Class1' must implement 'Sub Foo(i As Integer)' for interface 'I1(Of Integer, Integer)'.
+    Implements I1(Of Integer, Integer)
+               ~~~~~~~~~~~~~~~~~~~~~~~
+BC30937: Member 'I1(Of Integer, Integer).Foo' that matches this signature cannot be implemented because the interface 'I1(Of Integer, Integer)' contains multiple members with this same name and signature:
+   'Sub Foo(i As Integer)'
+   'Sub Foo(i As Integer)'
+    Public Sub Foo(ByVal i As Integer) Implements I1(Of Integer, Integer).Foo
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                                 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub AmbiguousInterface_05()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+   <compilation name="AmbiguousInterface">
+       <file name="a.vb">
+Option Strict On
+
+Interface I1
+    Sub Foo(ByVal i As String)
+End Interface
+
+Interface I2
+    Inherits I1
+
+    Overloads Sub Foo(ByVal i As String)
+End Interface
+
+Interface I3
+    Inherits I1, I2
+End Interface
+
+Interface I4
+    Inherits I2, I1
+End Interface
+
+Public Class Class1
+    Implements I3
+
+    Public Sub Foo(ByVal i As String) Implements I3.Foo
+    End Sub
+End Class
+
+Public Class Class2
+    Implements I4
+
+    Public Sub Foo(ByVal i As String) Implements I4.Foo
+    End Sub
+End Class
+
+Public Class Class3
+    Implements I3
+
+    Public Sub Foo1(ByVal i As String) Implements I3.Foo
+    End Sub
+
+    Public Sub Foo2(ByVal i As String) Implements I1.Foo
+    End Sub
+End Class
+
+Public Class Class4
+    Implements I4
+
+    Public Sub Foo1(ByVal i As String) Implements I4.Foo
+    End Sub
+
+    Public Sub Foo2(ByVal i As String) Implements I1.Foo
+    End Sub
+End Class
+
+</file>
+   </compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
+BC30149: Class 'Class1' must implement 'Sub Foo(i As String)' for interface 'I1'.
+    Implements I3
+               ~~
+BC30149: Class 'Class2' must implement 'Sub Foo(i As String)' for interface 'I1'.
+    Implements I4
+               ~~
+                                                                 </expected>)
         End Sub
 
         <Fact>
@@ -1052,8 +1233,8 @@ End Namespace
 BC30149: Class 'Class1' must implement 'Sub Bar(x As String)' for interface 'I1(Of String)'.
         Implements I2
                    ~~
-BC30937: Member 'I1(Of String).Bar' that matches this signature cannot be implemented because the interface 'I1(Of T)' contains multiple members with this same name and signature:
-   'Sub Bar(x As T)'
+BC30937: Member 'I1(Of String).Bar' that matches this signature cannot be implemented because the interface 'I1(Of String)' contains multiple members with this same name and signature:
+   'Sub Bar(x As String)'
    'Sub Bar(x As String)'
         Public Sub B(ByVal x As String) Implements I2.Bar
                                                    ~~~~~~
@@ -1115,8 +1296,8 @@ End Namespace
 BC30149: Class 'Class1' must implement 'Property Bar(x As String) As Integer' for interface 'I1(Of String)'.
         Implements I2
                    ~~
-BC30937: Member 'I1(Of String).Bar' that matches this signature cannot be implemented because the interface 'I1(Of T)' contains multiple members with this same name and signature:
-   'Property Bar(x As T) As Integer'
+BC30937: Member 'I1(Of String).Bar' that matches this signature cannot be implemented because the interface 'I1(Of String)' contains multiple members with this same name and signature:
+   'Property Bar(x As String) As Integer'
    'Property Bar(x As String) As Integer'
         Public Property B(x As String) As Integer Implements I1(Of String).Bar
                                                              ~~~~~~~~~~~~~~~~~

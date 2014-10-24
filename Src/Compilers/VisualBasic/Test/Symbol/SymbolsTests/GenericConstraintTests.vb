@@ -1483,10 +1483,12 @@ End Class
     </file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<expected>
-BC30685: 'M1' is ambiguous across the inherited interfaces 'IB' and 'IA'.
+BC30521: Overload resolution failed because no accessible 'M1' is most specific for these arguments:
+    'Sub M1()': Not most specific.
+    'Sub M1()': Not most specific.
         arg.M1()
-        ~~~~~~
-</expected>)
+            ~~
+                                               </expected>)
         End Sub
 
         <Fact()>
@@ -1889,27 +1891,15 @@ End Module
     </file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<expected>
-BC30685: 'M' is ambiguous across the inherited interfaces 'IA' and 'IB'.
-        _1.M(_1(o)) ' Both
-        ~~~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA' and 'ReadOnly Default Property Q(o As Object) As Object' of interface 'IB'.
         _1.M(_1(o)) ' Both
              ~~
-BC30685: 'M' is ambiguous across the inherited interfaces 'IA' and 'IB'.
-        _1.M(_1(o)) ' One
-        ~~~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA' and 'ReadOnly Default Property Q(o As Object) As Object' of interface 'IB'.
         _1.M(_1(o)) ' One
              ~~
-BC30685: 'M' is ambiguous across the inherited interfaces 'IA' and 'IB'.
-        _1.M(_1(o)) ' Neither
-        ~~~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA' and 'ReadOnly Default Property Q(o As Object) As Object' of interface 'IB'.
         _1.M(_1(o)) ' Neither
              ~~
-BC30685: 'M' is ambiguous across the inherited interfaces 'IA' and 'IB'.
-        _2.M(_2(o)) ' Neither
-        ~~~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA' and 'ReadOnly Default Property Q(o As Object) As Object' of interface 'IB'.
         _2.M(_2(o)) ' Neither
              ~~

@@ -1799,7 +1799,7 @@ End Class
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
-            Assert.Equal(CandidateReason.Ambiguous, semanticSummary.CandidateReason)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
             Assert.Equal("Sub I2.foo(x As System.Int32, z As System.String)", sortedCandidates(0).ToTestDisplayString())

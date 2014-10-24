@@ -4956,10 +4956,10 @@ End Module
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC30685: 'Foo' is ambiguous across the inherited interfaces 'A' and 'B'.
+BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
         c.Foo(1).ToString()
-        ~~~~~
-                                                            </expected>)
+          ~~~
+                                                                 </expected>)
         End Sub
 
 
@@ -5455,5 +5455,175 @@ End Class
 
             CompileAndVerify(compilation, expectedOutput:="A.Test")
         End Sub
+
+
+        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
+        Sub Bug918579_01()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim p As IDerived = New CTest()
+        Dim x = p.X 
+    End Sub
+
+End Module
+
+        Public Interface IBase1
+            ReadOnly Property X As Integer
+        End Interface
+
+        Public Interface IBase2
+            ReadOnly Property X As Integer
+        End Interface
+
+        Public Interface IDerived
+            Inherits IBase1, IBase2
+
+            Overloads ReadOnly Property X As Integer
+        End Interface
+
+        Class CTest
+            Implements IDerived
+
+            Public ReadOnly Property IDerived_X As Integer Implements IDerived.X
+                Get
+                    System.Console.WriteLine("IDerived_X")
+                    Return 0
+                End Get
+            End Property
+
+            Private ReadOnly Property IBase1_X As Integer Implements IBase1.X
+                Get
+                    System.Console.WriteLine("IBase1_X")
+                    Return 0
+                End Get
+            End Property
+
+            Private ReadOnly Property IBase2_X As Integer Implements IBase2.X
+                Get
+                    System.Console.WriteLine("IBase2_X")
+                    Return 0
+                End Get
+            End Property
+        End Class
+]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="IDerived_X")
+        End Sub
+
+        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
+        Sub Bug918579_02()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim p As IDerived = New CTest()
+        Dim x = p.X(CInt(0)) 
+        x = p.X(CShort(0)) 
+        x = p.X(CLng(0)) 
+    End Sub
+
+End Module
+
+        Public Interface IBase1
+            ReadOnly Property X(y As Integer) As Integer
+        End Interface
+
+        Public Interface IBase2
+            ReadOnly Property X(y As Short) As Integer
+        End Interface
+
+        Public Interface IDerived
+            Inherits IBase1, IBase2
+
+            Overloads ReadOnly Property X(y As Long) As Integer
+        End Interface
+
+        Class CTest
+            Implements IDerived
+
+            Public ReadOnly Property IDerived_X(y As Long) As Integer Implements IDerived.X
+                Get
+                    System.Console.WriteLine("IDerived_X")
+                    Return 0
+                End Get
+            End Property
+
+            Private ReadOnly Property IBase1_X(y As Integer) As Integer Implements IBase1.X
+                Get
+                    System.Console.WriteLine("IBase1_X")
+                    Return 0
+                End Get
+            End Property
+
+            Private ReadOnly Property IBase2_X(y As Short) As Integer Implements IBase2.X
+                Get
+                    System.Console.WriteLine("IBase2_X")
+                    Return 0
+                End Get
+            End Property
+        End Class
+]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:=
+"IBase1_X
+IBase2_X
+IDerived_X")
+        End Sub
+
+        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
+        Sub Bug918579_03()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Sub Test(x as I3)
+        x.M1()
+    End Sub
+
+    Sub Test(x as I4)
+        x.M1()
+    End Sub
+End Module
+
+Interface I1(Of T)
+    Sub M1()
+End Interface 
+
+Interface I2
+    Inherits I1(Of String)
+    Shadows Sub M1(x as Integer)
+End Interface 
+
+Interface I3
+    Inherits I2, I1(Of Integer)
+End Interface 
+
+Interface I4
+    Inherits I1(Of Integer), I2
+End Interface 
+]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation)
+        End Sub
+
     End Class
 End Namespace

@@ -1665,12 +1665,6 @@ End Class
     </file>
 </compilation>)
 
-            Dim expectedErrors = <errors>
-BC30685: 'c1' is ambiguous across the inherited interfaces 'Base1' and 'Base2'.
-    Inherits Foo.c1
-             ~~~~~~
-                                 </errors>
-
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
@@ -1880,10 +1874,12 @@ End Module
 </compilation>)
 
             Dim expectedErrors = <errors>
-BC30685: 'Foo' is ambiguous across the inherited interfaces 'IA(Of String)' and 'IA(Of Integer)'.
+BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
+    'Function Foo() As String': Not most specific.
+    'Function Foo() As Integer': Not most specific.
         Dim s As Integer = x.Foo()
-                           ~~~~~                                             
-</errors>
+                             ~~~
+                                 </errors>
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
@@ -1922,7 +1918,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
                           ~
 BC30685: 'Foo' is ambiguous across the inherited interfaces 'IB' and 'IA(Of String)'.
         Dim s As String = x.Foo().ToLower()
-                          ~~~~~                                 
+                          ~~~~~
               </errors>
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
@@ -1950,7 +1946,7 @@ BC30685: 'Foo' is ambiguous across the inherited interfaces 'IB' and 'IA(Of Stri
 BC30685: 'B' is ambiguous across the inherited interfaces 'A(Of A(Of T).B)' and 'A(Of A(Of T).B())'.
                     Inherits B
                              ~
-              </errors>
+                                 </errors>
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
@@ -1980,10 +1976,7 @@ End Class
 </compilation>)
 
             Dim expectedErrors = <errors>
-BC30685: 'Foo' is ambiguous across the inherited interfaces 'IA(Of Date)' and 'IA(Of Integer)'.
-    c.Foo()
-    ~~~~~
-              </errors>
+                                 </errors>
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub

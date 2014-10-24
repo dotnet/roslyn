@@ -1283,18 +1283,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(base.IsInterface)
                 Debug.Assert(derived.IsInterface)
-                Debug.Assert(base = base.OriginalDefinition)
-                Debug.Assert(derived = derived.OriginalDefinition)
 
-                If derived = base Then
+                If derived.OriginalDefinition = base.OriginalDefinition Then
                     Return False
                 End If
 
                 ' if we are not resolving bases we can just go through AllInterfaces list
                 If basesBeingResolved Is Nothing Then
                     For Each i In derived.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                        Dim iOriginal As Symbol = i.OriginalDefinition
-                        If iOriginal = base Then
+                        If i = base Then
                             Return True
                         End If
                     Next
@@ -1317,8 +1314,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(base <> derived, "should already be verified for equality")
                 Debug.Assert(base.IsInterface)
                 Debug.Assert(derived.IsInterface)
-                Debug.Assert(base = base.OriginalDefinition)
-                Debug.Assert(derived = derived.OriginalDefinition)
 
                 verified.Add(derived)
 
@@ -1327,19 +1322,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not interfaces.IsDefaultOrEmpty Then
                     For Each i In interfaces
-                        Dim iOriginal As Symbol = i.OriginalDefinition
-                        If iOriginal = base Then
+                        If i = base Then
                             Return True
                         End If
 
-                        If verified.Contains(iOriginal) Then
+                        If verified.Contains(i) Then
                             ' seen this already
                             Continue For
                         End If
 
                         If IsDerivedInterface(
                             base,
-                            DirectCast(iOriginal, NamedTypeSymbol),
+                            i,
                             basesBeingResolved,
                             verified,
                             useSiteDiagnostics) Then
@@ -1485,26 +1479,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim ambiguityDiagnostics As AmbiguousSymbolDiagnostic = Nothing
                     Dim symbols As ArrayBuilder(Of Symbol) = lookupResult.Symbols
 
-                    For i As Integer = 0 To symbols.Count - 1
+                    For i As Integer = 0 To symbols.Count - 2
                         Dim interface1 = DirectCast(symbols(i).ContainingType, NamedTypeSymbol)
 
                         For j As Integer = i + 1 To symbols.Count - 1
-                            Dim interface2 = DirectCast(symbols(j).ContainingType, NamedTypeSymbol)
 
-                            If interface1 = interface2 OrElse
-                                IsDerivedInterface(base:=interface1.OriginalDefinition,
-                                     derived:=interface2.OriginalDefinition,
-                                     basesBeingResolved:=basesBeingResolved,
-                                     useSiteDiagnostics:=useSiteDiagnostics) OrElse
-                                IsDerivedInterface(base:=interface2.OriginalDefinition,
-                                    derived:=interface1.OriginalDefinition,
-                                    basesBeingResolved:=basesBeingResolved,
-                                    useSiteDiagnostics:=useSiteDiagnostics) Then
-
-                                ' this is ok, these symbols' containers are related.
-                            Else
-                                ' here unrelated really means ambiguous.
-                                ' and we will produce an error.
+                            If Not LookupResult.CanOverload(symbols(i), symbols(j)) Then
+                                ' Symbols cannot overload each other.
+                                ' If they were from the same interface, LookupWithoutInheritance would make the result ambiguous.
+                                ' If they were from interfaces related through inheritance, one of them would shadow another,
+                                ' MergeInterfaceLookupResults handles that.
+                                ' Therefore, this symbols are from unrelated interfaces.
                                 ambiguityDiagnostics = New AmbiguousSymbolDiagnostic(
                                             ERRID.ERR_AmbiguousAcrossInterfaces3,
                                             symbols.ToImmutable,
@@ -1676,7 +1661,7 @@ ExitForFor:
 
                 Dim knownSymbols As ArrayBuilder(Of Symbol) = knownResult.Symbols
                 Dim newSymbols As ArrayBuilder(Of Symbol) = newResult.Symbols
-                Dim newSymbolContainer = newSymbols.First().ContainingType.OriginalDefinition
+                Dim newSymbolContainer = newSymbols.First().ContainingType
 
                 For i As Integer = 0 To knownSymbols.Count - 1
                     Dim knownSymbol = knownSymbols(i)
@@ -1686,7 +1671,7 @@ ExitForFor:
                         Continue For
                     End If
 
-                    Dim knownSymbolContainer = knownSymbol.ContainingType.OriginalDefinition
+                    Dim knownSymbolContainer = knownSymbol.ContainingType
 
                     For j As Integer = 0 To newSymbols.Count - 1
                         Dim newSymbol As Symbol = newSymbols(j)
@@ -1708,7 +1693,7 @@ ExitForFor:
                         End If
 
                         ' container of the first new symbol should be container of all others
-                        Debug.Assert(newSymbolContainer Is newSymbol.ContainingType.OriginalDefinition)
+                        Debug.Assert(newSymbolContainer = newSymbol.ContainingType)
 
                         ' Are the known and new symbols of the right kinds to overload?
                         Dim cantOverloadEachOther = Not LookupResult.CanOverload(knownSymbol, newSymbol)
@@ -1743,7 +1728,7 @@ ExitForFor:
                                 ' we can do a quick check and remove them here
                                 For k = i + 1 To knownSymbols.Count - 1
                                     Dim otherKnown As Symbol = knownSymbols(k)
-                                    If otherKnown IsNot Nothing AndAlso otherKnown.ContainingType Is knownSymbolContainer Then
+                                    If otherKnown IsNot Nothing AndAlso otherKnown.ContainingType = knownSymbolContainer Then
                                         knownSymbols(k) = Nothing
                                     End If
                                 Next

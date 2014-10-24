@@ -875,10 +875,22 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
-BC36719: Cannot initialize the type 'T' with a collection initializer because it does not have an accessible 'Add' method.
+BC30521: Overload resolution failed because no accessible 'Add' is most specific for these arguments:
+    'Sub Add(p As String)': Not most specific.
+    'Sub Add(p As String)': Not most specific.
         Dim a As New T() From {"Hello", " ", "World!"}
-                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                   
-                                               </expected>)
+                               ~~~~~~~
+BC30521: Overload resolution failed because no accessible 'Add' is most specific for these arguments:
+    'Sub Add(p As String)': Not most specific.
+    'Sub Add(p As String)': Not most specific.
+        Dim a As New T() From {"Hello", " ", "World!"}
+                                        ~~~
+BC30521: Overload resolution failed because no accessible 'Add' is most specific for these arguments:
+    'Sub Add(p As String)': Not most specific.
+    'Sub Add(p As String)': Not most specific.
+        Dim a As New T() From {"Hello", " ", "World!"}
+                                             ~~~~~~~~
+                                                </expected>)
         End Sub
 
         <WorkItem(529265, "DevDiv")>

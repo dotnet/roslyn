@@ -8951,9 +8951,9 @@ BC30935: Member 'Public Overridable Sub foo(inputValue As String)' that matches 
 BC30149: Class 'implementingClass' must implement 'Sub doSomething(inputValue As String)' for interface 'baseInterface(Of String)'.
             Implements baseInterface(Of String)
                        ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30937: Member 'baseInterface(Of String).doSomething' that matches this signature cannot be implemented because the interface 'baseInterface(Of t)' contains multiple members with this same name and signature:
+BC30937: Member 'baseInterface(Of String).doSomething' that matches this signature cannot be implemented because the interface 'baseInterface(Of String)' contains multiple members with this same name and signature:
    'Sub doSomething(inputValue As String)'
-   'Sub doSomething(inputValue As t)'
+   'Sub doSomething(inputValue As String)'
                 Implements baseInterface(Of String).doSomething
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>
@@ -19610,7 +19610,7 @@ BC42021: Operator without an 'As' clause; type of Object assumed.
         End Sub
 
         <WorkItem(528714, "DevDiv")>
-        <Fact(Skip:="528714")>
+        <Fact>
         Public Sub BC42000WRN_MustShadowOnMultipleInheritance2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="MustShadowOnMultipleInheritance2">
@@ -19628,7 +19628,7 @@ BC42021: Operator without an 'As' clause; type of Object assumed.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC42000: sub 'foo' conflicts with other members of the same name across the inheritance hierarchy and so should be declared 'Shadows'.
+BC40003: sub 'foo' shadows an overloadable member declared in the base interface 'I2'.  If you want to overload the base method, this method must be declared 'Overloads'.
                 Sub foo()
                     ~~~
                  ]]></errors>

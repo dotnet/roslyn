@@ -562,9 +562,6 @@ BC30455: Argument not specified for parameter 'x' of 'Function GetHashCode(x As 
 BC30516: Overload resolution failed because no accessible 'ToString' accepts this number of arguments.
         x.ToString()
           ~~~~~~~~
-BC30685: 'GetHashCode' is ambiguous across the inherited interfaces 'I3' and 'I4'.
-        y.GetHashCode()
-        ~~~~~~~~~~~~~
 </result>
             )
 

@@ -2187,7 +2187,9 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30685: 'Current' is ambiguous across the inherited interfaces 'System.Collections.Generic.IEnumerator(Of Integer)' and 'System.Collections.Generic.IEnumerator(Of String)'.
+BC30521: Overload resolution failed because no accessible 'Current' is most specific for these arguments:
+    'ReadOnly Property Current As Integer': Not most specific.
+    'ReadOnly Property Current As String': Not most specific.
         For Each o In p
                       ~
 </expected>)
@@ -2220,7 +2222,12 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30685: 'Current' is ambiguous across the inherited interfaces 'System.Collections.Generic.IEnumerator(Of Integer)' and 'System.Collections.Generic.IEnumerator(Of String)'.
+BC30521: Overload resolution failed because no accessible 'Current' is most specific for these arguments:
+    'ReadOnly Property Current As Integer': Not most specific.
+    'ReadOnly Property Current As String': Not most specific.
+        For Each o In p
+                      ~
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         For Each o In p
                       ~
 </expected>)
@@ -2257,7 +2264,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30685: 'MoveNext' is ambiguous across the inherited interfaces 'IWithMoveNext' and 'System.Collections.IEnumerator'.
+BC32023: Expression is of type 'T2', which is not a collection type.
         For Each o In p
                       ~
 </expected>)
