@@ -253,10 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // allow the same thread to see the return type and parameters from the syntax (though
                         // they do not yet take on their final values), we return here.
 
-                        // Our normal pattern would be to wait for FinishMethodChecks to be set, but profiling
-                        // showed too many threads spinning at this location, so we switched to a lock.  Also,
-                        // the comment above seems to indicate that we might deadlock if we followed this pattern.
-                        // state.SpinWaitComplete(CompletionPart.FinishMethodChecks, CancellationToken.None)
+                        // Due to the fact that LazyMethodChecks is potentially reentrant, we must use a 
+                        // reentrant lock to avoid deadlock and cannot assert that at this point method checks
+                        // have completed (state.HasComplete(CompletionPart.FinishMethodChecks)).
                     }
                 }
             }
