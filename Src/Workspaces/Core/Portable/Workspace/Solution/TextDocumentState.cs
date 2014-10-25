@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         public static TextDocumentState Create(DocumentInfo info, SolutionServices services)
         {
             var textSource = info.TextLoader != null
-                ? CreateRecoverableText(info.TextLoader, info.Id, services)
+                ? CreateRecoverableText(info.TextLoader, info.Id, services, catchInvalidDataException: true)
                 : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath));
 
             // remove any initial loader so we don't keep source alive
@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis
             return new ConstantValueSource<TextAndVersion>(text);
         }
 
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
+        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services, bool catchInvalidDataException = false)
         {
-            return new AsyncLazy<TextAndVersion>(c => LoadTextAsync(loader, documentId, services, c), cacheResult: true);
+            return new AsyncLazy<TextAndVersion>(c => LoadTextAsync(loader, documentId, services, c, catchInvalidDataException), cacheResult: true);
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
@@ -83,15 +83,15 @@ namespace Microsoft.CodeAnalysis
             return new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage, services.TextCache);
         }
 
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
+        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services, bool catchInvalidDataException = false)
         {
             return new RecoverableTextAndVersion(
-                new AsyncLazy<TextAndVersion>(c => LoadTextAsync(loader, documentId, services, c), cacheResult: false),
+                new AsyncLazy<TextAndVersion>(c => LoadTextAsync(loader, documentId, services, c, catchInvalidDataException), cacheResult: false),
                 services.TemporaryStorage,
                 services.TextCache);
         }
 
-        protected static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, CancellationToken cancellationToken)
+        protected static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, CancellationToken cancellationToken, bool catchInvalidDataException = false)
         {
             try
             {
@@ -109,6 +109,12 @@ namespace Microsoft.CodeAnalysis
             catch (IOException e)
             {
                 services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
+                return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
+            }
+            catch (InvalidDataException) if (catchInvalidDataException)
+            {
+                // For non-text additional files, create an empty text document.
+                // TODO: If we add support for non-text additional files in future, remove this catch clause.
                 return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
             }
         }
@@ -222,9 +228,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("loader");
             }
 
+            // don't blow up on non-text documents.
             var newTextSource = (mode == PreservationMode.PreserveIdentity)
-                ? CreateStrongText(loader, this.Id, this.solutionServices)
-                : CreateRecoverableText(loader, this.Id, this.solutionServices);
+                ? CreateStrongText(loader, this.Id, this.solutionServices, catchInvalidDataException: true)
+                : CreateRecoverableText(loader, this.Id, this.solutionServices, catchInvalidDataException: true);
 
             return new TextDocumentState(
                 this.solutionServices,
