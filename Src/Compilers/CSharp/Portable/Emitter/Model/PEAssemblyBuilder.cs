@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        IEnumerable<byte> Cci.IAssembly.PublicKey
+        ImmutableArray<byte> Cci.IAssembly.PublicKey
         {
             get
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        IEnumerable<byte> Cci.IAssemblyReference.PublicKeyToken
+        ImmutableArray<byte> Cci.IAssemblyReference.PublicKeyToken
         {
             get { return sourceAssembly.Identity.PublicKeyToken; }
         }

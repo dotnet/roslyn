@@ -68,16 +68,19 @@ namespace Microsoft.Cci
 
         internal byte[] ToArray()
         {
-            uint n = this.Length;
-            byte[] source = this.Buffer;
-
-            byte[] result = new byte[n];
-            for (int i = 0; i < n; i++)
+            if (this.Length == 0)
             {
-                result[i] = source[i];
+                return SpecializedCollections.EmptyArray<byte>();
             }
 
+            byte[] result = new byte[this.Length];
+            Array.Copy(this.Buffer, result, result.Length);
             return result;
+        }
+
+        internal ImmutableArray<byte> ToImmutableArray()
+        {
+            return ImmutableArray.Create(this.Buffer, 0, (int)this.Length);
         }
 
         internal void Write(byte[] buffer, int index, int length)

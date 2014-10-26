@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private ReadOnly Property IAssemblyPublicKey As IEnumerable(Of Byte) Implements Cci.IAssembly.PublicKey
+        Private ReadOnly Property IAssemblyPublicKey As ImmutableArray(Of Byte) Implements Cci.IAssembly.PublicKey
             Get
                 Return m_SourceAssembly.Identity.PublicKey
             End Get
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private ReadOnly Property IAssemblyReferencePublicKeyToken As IEnumerable(Of Byte) Implements Cci.IAssemblyReference.PublicKeyToken
+        Private ReadOnly Property IAssemblyReferencePublicKeyToken As ImmutableArray(Of Byte) Implements Cci.IAssemblyReference.PublicKeyToken
             Get
                 Return m_SourceAssembly.Identity.PublicKeyToken
             End Get

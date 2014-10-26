@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     signatures.Add(signature);
                 }
 
-                uint blobIndex = this.GetBlobIndex(writer.BaseStream.ToArray());
+                uint blobIndex = this.GetBlobIndex(writer.BaseStream);
                 uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
                 stream.Free();
 

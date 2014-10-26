@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Reflection;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        System.Collections.Generic.IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
@@ -195,27 +198,27 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            System.Reflection.AssemblyContentType Cci.IAssemblyReference.ContentType
+            AssemblyContentType Cci.IAssemblyReference.ContentType
             {
                 get
                 {
-                    return System.Reflection.AssemblyContentType.Default;
+                    return AssemblyContentType.Default;
                 }
             }
 
-            System.Collections.Generic.IEnumerable<byte> Cci.IAssemblyReference.PublicKeyToken
+            ImmutableArray<byte> Cci.IAssemblyReference.PublicKeyToken
             {
                 get
                 {
-                    return null;
+                    return ImmutableArray<byte>.Empty;
                 }
             }
 
-            System.Version Cci.IAssemblyReference.Version
+            Version Cci.IAssemblyReference.Version
             {
                 get
                 {
-                    return new System.Version(0, 0, 0, 0);
+                    return AssemblyIdentity.NullVersion;
                 }
             }
 
@@ -224,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return this;
             }
 
-            System.Collections.Generic.IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
                 return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
             }

@@ -98,7 +98,7 @@ namespace Microsoft.Cci
         /// This value is used by the loader to decrypt an encrypted hash value stored in the assembly, which it then compares with a freshly computed hash value
         /// in order to verify the integrity of the assembly.
         /// </summary>
-        IEnumerable<byte> PublicKey { get; }
+        ImmutableArray<byte> PublicKey { get; }
 
         /// <summary>
         /// The contents of the AssemblySignatureKeyAttribute
@@ -115,7 +115,7 @@ namespace Microsoft.Cci
     {
         /// <summary>
         /// Identifies the culture associated with the assembly reference. Typically specified for sattelite assemblies with localized resources.
-        /// Empty or null if not specified.
+        /// Empty if not specified.
         /// </summary>
         string Culture { get; }
 
@@ -130,12 +130,13 @@ namespace Microsoft.Cci
         AssemblyContentType ContentType { get; }
 
         /// <summary>
-        /// The hashed 8 bytes of the public key of the referenced assembly. This is empty or null if the referenced assembly does not have a public key.
+        /// The hashed 8 bytes of the public key of the referenced assembly. 
+        /// Empty if the referenced assembly does not have a public key.
         /// </summary>
-        IEnumerable<byte> PublicKeyToken { get; }
+        ImmutableArray<byte> PublicKeyToken { get; }
 
         /// <summary>
-        /// The version of the assembly reference. Null means Version(0, 0, 0, 0).
+        /// The version of the assembly reference.
         /// </summary>
         Version Version { get; }
     }

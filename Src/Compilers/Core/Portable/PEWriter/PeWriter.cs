@@ -483,7 +483,7 @@ namespace Microsoft.Cci
         protected readonly BinaryWriter userStringWriter = new BinaryWriter(new MemoryStream(1024), true);
 
         // #Blob heap
-        private readonly Dictionary<byte[], uint> blobIndex = new Dictionary<byte[], uint>(ByteSequenceComparer.Instance);
+        private readonly Dictionary<ImmutableArray<byte>, uint> blobIndex = new Dictionary<ImmutableArray<byte>, uint>(ByteSequenceComparer.Instance);
         protected readonly BinaryWriter blobWriter = new BinaryWriter(new MemoryStream(1024));
 
         // #GUID heap
@@ -511,7 +511,6 @@ namespace Microsoft.Cci
         private readonly BinaryWriter rdataWriter = new BinaryWriter(new MemoryStream());
         private readonly SectionHeader relocSection = new SectionHeader();
         private readonly SectionHeader resourceSection = new SectionHeader();
-        private readonly BinaryWriter resourceWriter = new BinaryWriter(new MemoryStream(1024));
         private readonly BinaryWriter sdataWriter = new BinaryWriter(new MemoryStream());
         private readonly SectionHeader rdataSection = new SectionHeader();
         private readonly SectionHeader sdataSection = new SectionHeader();
@@ -685,7 +684,9 @@ namespace Microsoft.Cci
             var metadataWriter = new BinaryWriter(metadataBuffer);
             var mappedFieldDataBuffer = new MemoryStream();
             var mappedFieldDataWriter = new BinaryWriter(mappedFieldDataBuffer);
-
+            var managedResourceBuffer = new MemoryStream(1024);
+            var managedResourceWriter = new BinaryWriter(managedResourceBuffer);
+        
             // Since we are producing a full assembly, we should not have a module version ID
             // imposed ahead-of time. Instead we will compute a deterministic module version ID
             // based on the contents of the generated stream.
@@ -698,7 +699,8 @@ namespace Microsoft.Cci
             SerializeMetadataAndIL(
                 metadataWriter, 
                 ilWriter, 
-                mappedFieldDataWriter, 
+                mappedFieldDataWriter,
+                managedResourceWriter,
                 separateMethodIL: false,
                 moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
                 mappedFieldDataStreamRva: out mappedFieldDataStreamRva,
@@ -714,7 +716,17 @@ namespace Microsoft.Cci
 
             long startOfMetadataStream;
             long positionOfDebugTableTimestamp;
-            WriteTextSection(peStream, corHeader, metadataBuffer, ilBuffer, mappedFieldDataBuffer, out startOfMetadataStream, out positionOfDebugTableTimestamp);
+
+            WriteTextSection(
+                peStream, 
+                corHeader,
+                metadataBuffer,
+                ilBuffer,
+                mappedFieldDataBuffer,
+                managedResourceBuffer,
+                out startOfMetadataStream, 
+                out positionOfDebugTableTimestamp);
+
             WriteRdataSection(peStream);
             WriteSdataSection(peStream);
             WriteCoverSection(peStream);
@@ -741,6 +753,8 @@ namespace Microsoft.Cci
             var metadataWriter = new BinaryWriter(metadataBuffer);
             var mappedFieldDataBuffer = new MemoryStream(0);
             var mappedFieldDataWriter = new BinaryWriter(mappedFieldDataBuffer);
+            var managedResourceDataBuffer = new MemoryStream(0);
+            var managedResourceDataWriter = new BinaryWriter(managedResourceDataBuffer);
 
             // Add 4B of padding to the start of the separated IL stream, 
             // so that method RVAs, which are offsets to this stream, are never 0.
@@ -759,6 +773,7 @@ namespace Microsoft.Cci
                 metadataWriter, 
                 ilWriter, 
                 mappedFieldDataWriter,
+                managedResourceDataWriter,
                 separateMethodIL: true, 
                 moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
                 mappedFieldDataStreamRva: out mappedFieldDataStreamRva,
@@ -766,7 +781,9 @@ namespace Microsoft.Cci
             
             ilBuffer.WriteTo(ilStream);
             metadataBuffer.WriteTo(metadataStream);
+
             Debug.Assert(mappedFieldDataBuffer.Length == 0);
+            Debug.Assert(managedResourceDataBuffer.Length == 0);
         }
 
         /// <summary>
@@ -876,7 +893,7 @@ namespace Microsoft.Cci
         {
             uint result = this.ComputeOffsetToMetadata(ilStreamLength);
             result += (uint)metadataSizes.MetadataSize;
-            result += Align(this.resourceWriter.BaseStream.Length, 4);
+            result += (uint)metadataSizes.ResourceDataSize;
             result += this.ComputeStrongNameSignatureSize(); // size of strong name hash
             return result;
         }
@@ -1281,7 +1298,7 @@ namespace Microsoft.Cci
             corHeader.MetadataDirectory.Size = (uint)metadataSizes.MetadataSize;
             corHeader.MinorRuntimeVersion = 5;
             corHeader.Resources.RelativeVirtualAddress = corHeader.MetadataDirectory.RelativeVirtualAddress + corHeader.MetadataDirectory.Size;
-            corHeader.Resources.Size = Align(this.resourceWriter.BaseStream.Length, 4);
+            corHeader.Resources.Size = (uint)metadataSizes.ResourceDataSize;
             corHeader.StrongNameSignature.RelativeVirtualAddress = corHeader.Resources.RelativeVirtualAddress + corHeader.Resources.Size;
             corHeader.StrongNameSignature.Size = this.ComputeStrongNameSignatureSize();
             corHeader.VTableFixups.RelativeVirtualAddress = 0;
@@ -1521,7 +1538,13 @@ namespace Microsoft.Cci
             }
         }
 
-        internal uint GetBlobIndex(byte[] blob)
+        internal uint GetBlobIndex(MemoryStream stream)
+        {
+            // TODO: avoid making a copy if the blob exists in the index
+            return GetBlobIndex(stream.ToImmutableArray());
+        }
+
+        internal uint GetBlobIndex(ImmutableArray<byte> blob)
         {
             uint result = 0;
             if (blob.Length == 0 || this.blobIndex.TryGetValue(blob, out result))
@@ -1537,7 +1560,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private uint GetBlobIndex(object value)
+        private uint GetConstantBlobIndex(object value)
         {
             string str = value as string;
             if (str != null)
@@ -1548,7 +1571,7 @@ namespace Microsoft.Cci
             MemoryStream sig = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(sig, true);
             SerializeMetadataConstantValue(value, writer);
-            return this.GetBlobIndex(sig.ToArray());
+            return this.GetBlobIndex(sig);
         }
 
         private uint GetBlobIndex(string str)
@@ -1560,8 +1583,8 @@ namespace Microsoft.Cci
                 byteArray[i++] = (byte)(ch & 0xFF);
                 byteArray[i++] = (byte)(ch >> 8);
             }
-
-            return this.GetBlobIndex(byteArray);
+            
+            return this.GetBlobIndex(ImmutableArrayInterop.DangerousCreateFromUnderlyingArray(ref byteArray));
         }
 
         private CorFlags GetCorHeaderFlags()
@@ -1606,7 +1629,7 @@ namespace Microsoft.Cci
             MemoryStream sig = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(sig);
             this.SerializeCustomAttributeSignature(customAttribute, false, writer);
-            result = this.GetBlobIndex(sig.ToArray());
+            result = this.GetBlobIndex(sig);
             this.customAtributeSignatureIndex.Add(customAttribute, result);
             return result;
         }
@@ -1728,7 +1751,7 @@ namespace Microsoft.Cci
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);
             this.SerializeFieldSignature(fieldReference, writer);
-            result = this.GetBlobIndex(sig.ToArray());
+            result = this.GetBlobIndex(sig);
             this.fieldSignatureIndex.Add(fieldReference, result);
             sig.Free();
             return result;
@@ -1843,7 +1866,7 @@ namespace Microsoft.Cci
             return 0;
         }
 
-        private uint GetManagedResourceOffset(ManagedResource resource)
+        private uint GetManagedResourceOffset(ManagedResource resource, BinaryWriter resourceDataWriter)
         {
             Debug.Assert(!this.streamsAreComplete);
             if (resource.ExternalFile != null)
@@ -1851,8 +1874,8 @@ namespace Microsoft.Cci
                 return resource.Offset;
             }
 
-            uint result = this.resourceWriter.BaseStream.Position;
-            resource.WriteData(this.resourceWriter);
+            uint result = resourceDataWriter.BaseStream.Position;
+            resource.WriteData(resourceDataWriter);
             return result;
         }
 
@@ -2051,7 +2074,7 @@ namespace Microsoft.Cci
                 this.SerializeTypeReference(typeref, writer, false, true);
             }
 
-            result = this.GetBlobIndex(sig.ToArray());
+            result = this.GetBlobIndex(sig);
             this.methodInstanceSignatureIndex.Add(methodInstanceReference, result);
             sig.Free();
             return result;
@@ -2068,7 +2091,7 @@ namespace Microsoft.Cci
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);
             this.SerializeMarshallingDescriptor(marshallingInformation, writer);
-            result = this.GetBlobIndex(sig.ToArray());
+            result = this.GetBlobIndex(sig);
             this.marshallingDescriptorIndex.Add(marshallingInformation, result);
             sig.Free();
             return result;
@@ -2076,7 +2099,7 @@ namespace Microsoft.Cci
 
         private uint GetMarshallingDescriptorIndex(ImmutableArray<byte> descriptor)
         {
-            return this.GetBlobIndex(descriptor.ToArray());
+            return this.GetBlobIndex(descriptor);
         }
 
         private uint GetMemberRefSignatureIndex(ITypeMemberReference memberRef)
@@ -2113,7 +2136,7 @@ namespace Microsoft.Cci
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);
             this.SerializeSignature(methodReference, methodReference.GenericParameterCount, methodReference.ExtraParameters, writer);
-            result = this.GetBlobIndex(sig.ToArray());
+            result = this.GetBlobIndex(sig);
             this.signatureIndex.Add(methodReference, result);
             sig.Free();
             return result;
@@ -2138,7 +2161,7 @@ namespace Microsoft.Cci
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);
             this.SerializeGenericMethodInstanceSignature(writer, genericMethodInstanceReference);
-            uint result = this.GetBlobIndex(sig.ToArray());
+            uint result = this.GetBlobIndex(sig);
             sig.Free();
             return result;
         }
@@ -2222,7 +2245,7 @@ namespace Microsoft.Cci
                 writer.WriteByte((byte)'.');
                 writer.WriteCompressedUInt((uint)permissionSet.Length);
                 this.SerializePermissionSet(permissionSet, writer);
-                result = this.GetBlobIndex(sig.ToArray());
+                result = this.GetBlobIndex(sig);
             }
             finally
             {
@@ -2264,7 +2287,7 @@ namespace Microsoft.Cci
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);
             this.SerializeSignature(propertyDef, 0, ImmutableArray<IParameterTypeInformation>.Empty, writer);
-            result = this.GetBlobIndex(sig.ToArray());
+            result = this.GetBlobIndex(sig);
             this.signatureIndex.Add(propertyDef, result);
             sig.Free();
             return result;
@@ -2781,7 +2804,7 @@ namespace Microsoft.Cci
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);
             this.SerializeTypeReference(typeReference, writer, false, true);
-            result = this.GetBlobIndex(sig.ToArray());
+            result = this.GetBlobIndex(sig);
             this.typeSpecSignatureIndex.Add(typeReference, result);
             sig.Free();
             return result;
@@ -3094,6 +3117,7 @@ namespace Microsoft.Cci
             BinaryWriter metadataWriter, 
             BinaryWriter ilWriter, 
             BinaryWriter mappedFieldDataWriter,
+            BinaryWriter managedResourceDataWriter,
             bool separateMethodIL, 
             out uint moduleVersionIdOffsetInMetadataStream, 
             out int mappedFieldDataStreamRva,
@@ -3106,17 +3130,18 @@ namespace Microsoft.Cci
             // method body serialization adds Stand Alone Signatures
             this.tableIndicesAreComplete = true;
 
-            PopulateTables(methodBodyRvas, mappedFieldDataWriter);
+            PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter);
 
             var rowCounts = CalculateRowCounts();
 
             int mappedFieldDataLength = (int)mappedFieldDataWriter.BaseStream.Length;
             int ilStreamLength = (int)ilWriter.BaseStream.Length;
+            int managedResourceDataLength = (int)managedResourceDataWriter.BaseStream.Length;
 
             // Do this as soon as table rows are done and before we need to final size of string table
             SerializeStringHeap();
 
-            metadataSizes = new MetadataSizes(rowCounts, CalculateHeapSizes(), IsMinimalDelta);
+            metadataSizes = new MetadataSizes(rowCounts, CalculateHeapSizes(), managedResourceDataLength, IsMinimalDelta);
 
             // Do this here so that tables and win32 resources can contain actual RVAs without the need for fixups.
             FillInSectionHeaders(metadataSizes, ilStreamLength, mappedFieldDataLength);
@@ -3136,7 +3161,7 @@ namespace Microsoft.Cci
             SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, separateMethodIL, moduleVersionIdOffset: out moduleVersionIdOffsetInMetadataStream);
         }
 
-        private void PopulateTables(uint[] methodBodyRvas, BinaryWriter mappedFieldDataWriter)
+        private void PopulateTables(uint[] methodBodyRvas, BinaryWriter mappedFieldDataWriter, BinaryWriter resourceDataWriter)
         {
             this.PopulateAssemblyRefTableRows();
             this.PopulateAssemblyTableRows();
@@ -3155,7 +3180,7 @@ namespace Microsoft.Cci
             this.PopulateGenericParamConstraintTableRows();
             this.PopulateImplMapTableRows();
             this.PopulateInterfaceImplTableRows();
-            this.PopulateManifestResourceTableRows();
+            this.PopulateManifestResourceTableRows(resourceDataWriter);
             this.PopulateMemberRefTableRows();
             this.PopulateMethodImplTableRows();
             this.PopulateMethodTableRows(methodBodyRvas);
@@ -3199,28 +3224,20 @@ namespace Microsoft.Cci
             foreach (var assemblyRef in assemblyRefs)
             {
                 AssemblyRefTableRow r = new AssemblyRefTableRow();
-                r.Version = assemblyRef.Version ?? NullVersion;
-                if (IteratorHelper.EnumerableIsNotEmpty(assemblyRef.PublicKeyToken))
-                {
-                    r.PublicKeyToken = this.GetBlobIndex(new List<byte>(assemblyRef.PublicKeyToken).ToArray());
-                }
+                r.Version = assemblyRef.Version;
+                r.PublicKeyToken = this.GetBlobIndex(assemblyRef.PublicKeyToken);
 
                 Debug.Assert(!string.IsNullOrEmpty(assemblyRef.Name));
                 r.Name = this.GetStringIndexForPathAndCheckLength(assemblyRef.Name, assemblyRef);
 
-                if (assemblyRef.Culture != null)
-                {
-                    r.Culture = this.GetStringIndex(assemblyRef.Culture);
-                }
+                r.Culture = this.GetStringIndex(assemblyRef.Culture);
 
                 r.IsRetargetable = assemblyRef.IsRetargetable;
                 r.ContentType = assemblyRef.ContentType;
                 this.assemblyRefTable.Add(r);
             }
         }
-
-        private static readonly Version NullVersion = new Version(0, 0, 0, 0);
-
+        
         /// <summary>
         /// Compares quality of assembly references to achieve unique rows in AssemblyRef table.
         /// Metadata spec: "The AssemblyRef table shall contain no duplicates (where duplicate rows are deemd to 
@@ -3239,21 +3256,18 @@ namespace Microsoft.Cci
                 }
 
                 return
-                    (x.Version ?? NullVersion).Equals(y.Version ?? NullVersion) &&
-                    ByteSequenceComparer.Instance.Equals(
-                        x.PublicKeyToken ?? SpecializedCollections.EmptyBytes,
-                        y.PublicKeyToken ?? SpecializedCollections.EmptyBytes) &&
+                    x.Version.Equals(y.Version) &&
+                    ByteSequenceComparer.Instance.Equals(x.PublicKeyToken, y.PublicKeyToken) &&
                     x.Name == y.Name &&
-                    (x.Culture ?? String.Empty) == (y.Culture ?? String.Empty);
+                    x.Culture == y.Culture;
             }
 
             public int GetHashCode(IAssemblyReference reference)
             {
-                return
-                    Hash.Combine(reference.Version ?? NullVersion,
-                      Hash.Combine(ByteSequenceComparer.Instance.GetHashCode(reference.PublicKeyToken ?? SpecializedCollections.EmptyBytes),
-                          Hash.Combine(reference.Name.GetHashCode(), (reference.Culture ?? String.Empty).GetHashCode()
-                          )));
+                return Hash.Combine(reference.Version,
+                       Hash.Combine(ByteSequenceComparer.Instance.GetHashCode(reference.PublicKeyToken),
+                       Hash.Combine(reference.Name.GetHashCode(),
+                       Hash.Combine(reference.Culture, 0))));
             }
         }
 
@@ -3267,10 +3281,9 @@ namespace Microsoft.Cci
                 return;
             }
 
-            //EDMAURER make sure that GetBlobIndex overload that takes byte[] is called.
-            this.assemblyKey = (IteratorHelper.EnumerableIsNotEmpty(assembly.PublicKey)) ? this.GetBlobIndex(new List<byte>(assembly.PublicKey).ToArray()) : 0;
+            this.assemblyKey = this.GetBlobIndex(assembly.PublicKey);
             this.assemblyName = this.GetStringIndexForPathAndCheckLength(assembly.Name, assembly);
-            this.assemblyCulture = (assembly.Culture != null) ? this.GetStringIndex(assembly.Culture) : StringIdx.Empty;
+            this.assemblyCulture = this.GetStringIndex(assembly.Culture);
         }
 
         private uint assemblyKey;
@@ -3359,7 +3372,7 @@ namespace Microsoft.Cci
             {
                 Type = (byte)GetConstantTypeCode(value),
                 Parent = parent,
-                Value = this.GetBlobIndex(value)
+                Value = this.GetConstantBlobIndex(value)
             };
         }
 
@@ -3889,7 +3902,7 @@ namespace Microsoft.Cci
                 FileTableRow r = new FileTableRow();
                 r.Flags = fileReference.HasMetadata ? 0u : 1u;
                 r.FileName = this.GetStringIndexForPathAndCheckLength(fileReference.FileName);
-                r.HashValue = this.GetBlobIndex(fileReference.GetHashValue(hashAlgorithm).ToArray());
+                r.HashValue = this.GetBlobIndex(fileReference.GetHashValue(hashAlgorithm));
                 this.fileTable.Add(r);
             }
         }
@@ -4013,12 +4026,12 @@ namespace Microsoft.Cci
 
         private readonly List<InterfaceImplRow> interfaceImplTable = new List<InterfaceImplRow>();
 
-        private void PopulateManifestResourceTableRows()
+        private void PopulateManifestResourceTableRows(BinaryWriter resourceDataWriter)
         {
             foreach (var resource in this.module.GetResources(Context))
             {
                 ManifestResourceRow r = new ManifestResourceRow();
-                r.Offset = this.GetManagedResourceOffset(resource);
+                r.Offset = this.GetManagedResourceOffset(resource, resourceDataWriter);
                 r.Flags = resource.IsPublic ? 1u : 2u;
                 r.Name = this.GetStringIndexForNameAndCheckLength(resource.Name);
 
@@ -4036,6 +4049,9 @@ namespace Microsoft.Cci
 
                 this.manifestResourceTable.Add(r);
             }
+
+            // the stream should be aligned:
+            Debug.Assert((resourceDataWriter.BaseStream.Length % 8) == 0);
         }
 
         private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }
@@ -5082,7 +5098,7 @@ namespace Microsoft.Cci
                 this.SerializeLocalVariableSignature(writer, local);
             }
 
-            uint blobIndex = this.GetBlobIndex(writer.BaseStream.ToArray());
+            uint blobIndex = this.GetBlobIndex(writer.BaseStream);
             uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
             stream.Free();
 
@@ -5128,7 +5144,7 @@ namespace Microsoft.Cci
             }
 
             this.SerializeTypeReference(localConstant.Type, writer, false, true);
-            uint blobIndex = this.GetBlobIndex(sig.ToArray());
+            uint blobIndex = this.GetBlobIndex(sig);
             uint signatureIndex = GetOrAddStandAloneSignatureIndex(blobIndex);
             sig.Free();
 
@@ -5875,7 +5891,7 @@ namespace Microsoft.Cci
             StringBuilder sb = new StringBuilder();
             sb.Append(assemblyReference.Name);
             sb.AppendFormat(CultureInfo.InvariantCulture, ", Version={0}.{1}.{2}.{3}", assemblyReference.Version.Major, assemblyReference.Version.Minor, assemblyReference.Version.Build, assemblyReference.Version.Revision);
-            if (assemblyReference.Culture != null && assemblyReference.Culture.Length > 0)
+            if (!assemblyReference.Culture.IsEmpty())
             {
                 sb.AppendFormat(CultureInfo.InvariantCulture, ", Culture={0}", assemblyReference.Culture);
             }
@@ -5885,7 +5901,7 @@ namespace Microsoft.Cci
             }
 
             sb.Append(", PublicKeyToken=");
-            if (IteratorHelper.EnumerableIsNotEmpty(assemblyReference.PublicKeyToken))
+            if (!assemblyReference.PublicKeyToken.IsEmpty)
             {
                 foreach (byte b in assemblyReference.PublicKeyToken)
                 {
@@ -6875,7 +6891,15 @@ namespace Microsoft.Cci
             writer.WriteUint(sectionHeader.Characteristics);
         }
 
-        private void WriteTextSection(Stream peStream, CorHeader corHeader, MemoryStream metadataStream, MemoryStream ilStream, MemoryStream mappedFieldDataStream, out long startOfMetadata, out long positionOfTimestamp)
+        private void WriteTextSection(
+            Stream peStream, 
+            CorHeader corHeader,
+            MemoryStream metadataStream,
+            MemoryStream ilStream, 
+            MemoryStream mappedFieldDataStream,
+            MemoryStream managedResourceStream,
+            out long startOfMetadata,
+            out long positionOfTimestamp)
         {
             peStream.Position = this.textSection.PointerToRawData;
             if (this.emitRuntimeStartupStub)
@@ -6889,7 +6913,7 @@ namespace Microsoft.Cci
             startOfMetadata = peStream.Position;
             WriteMetadata(peStream, metadataStream);
 
-            this.WriteManagedResources(peStream);
+            this.WriteManagedResources(peStream, managedResourceStream);
             WriteSpaceForHash(peStream, (int)corHeader.StrongNameSignature.Size);
             this.WriteDebugTable(peStream, out positionOfTimestamp);
 
@@ -7045,9 +7069,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteManagedResources(Stream peStream)
+        private void WriteManagedResources(Stream peStream, MemoryStream managedResourceStream)
         {
-            this.resourceWriter.BaseStream.WriteTo(peStream);
+            managedResourceStream.WriteTo(peStream);
             while (peStream.Position % 4 != 0)
             {
                 peStream.WriteByte(0);

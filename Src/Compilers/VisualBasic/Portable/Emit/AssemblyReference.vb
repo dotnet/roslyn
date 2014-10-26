@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -37,13 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private ReadOnly Property IAssemblyReferenceContentType As System.Reflection.AssemblyContentType Implements Cci.IAssemblyReference.ContentType
+        Private ReadOnly Property IAssemblyReferenceContentType As AssemblyContentType Implements Cci.IAssemblyReference.ContentType
             Get
                 Return MetadataIdentity.ContentType
             End Get
         End Property
 
-        Private ReadOnly Property IAssemblyReferencePublicKeyToken As IEnumerable(Of Byte) Implements Cci.IAssemblyReference.PublicKeyToken
+        Private ReadOnly Property IAssemblyReferencePublicKeyToken As ImmutableArray(Of Byte) Implements Cci.IAssemblyReference.PublicKeyToken
             Get
                 Return MetadataIdentity.PublicKeyToken
             End Get
