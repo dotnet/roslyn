@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: instead of calling TryGetMultipleValues(...) we first check GetCountForKey(...)
             '       which seems to be double dictionary search; well, it is, but because *current* 
             '       implementation of MultiDictionary "promotes singleton to set" even for keys 
-            '       with a single value (which we want to avoid) we still do it twise even with 
+            '       with a single value (which we want to avoid) we still do it twice even with 
             '       simple call to TryGetMultipleValues(...)
             Select Case Me.LabelsMap.GetCountForKey(name)
                 Case 0
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: instead of calling TryGetMultipleValues(...) we first check GetCountForKey(...)
                 '       which seems to be double dictionary search; well, it is, but because *current* 
                 '       implementation of MultiDictionary "promotes singleton to set" even for keys 
-                '       with a single value (which we want to avoid) we still do it twise even with 
+                '       with a single value (which we want to avoid) we still do it twice even with 
                 '       simple call to TryGetMultipleValues(...)
                 Select Case Me.LabelsMap.GetCountForKey(name)
                     Case 0

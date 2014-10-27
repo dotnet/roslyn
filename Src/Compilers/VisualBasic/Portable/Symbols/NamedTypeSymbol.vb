@@ -764,7 +764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Function GetDirectBaseInterfacesNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As ImmutableArray(Of NamedTypeSymbol)
-            If (Me.TypeKind = TypeKind.Interface) Then
+            If Me.TypeKind = TypeKind.Interface Then
                 If basesBeingResolved Is Nothing Then
                     Return Me.InterfacesNoUseSiteDiagnostics
                 Else
@@ -783,8 +783,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return GetDeclaredInterfacesNoUseSiteDiagnostics(If(basesBeingResolved, ConsList(Of Symbol).Empty).Prepend(Me))
         End Function
-
-
 
         ''' <summary>
         ''' NamedTypeSymbol calls derived implementations of this method when acyclic base type

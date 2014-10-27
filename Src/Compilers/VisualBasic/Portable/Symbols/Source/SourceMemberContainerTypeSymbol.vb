@@ -2186,7 +2186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''       'structBeingAnalyzed';
         '''   (c) we also always enter types from other modules
         ''' 
-        ''' !!! To be ONLY used in 'DetectStructureCircularity'.
+        ''' !!! To be ONLY used in 'CheckStructureCircularity'.
         ''' </summary>
         ''' <returns>True if detect type circularity code should step into 'typeToTest' type </returns>
         Friend Function DetectTypeCircularity_ShouldStepIntoType(typeToTest As NamedTypeSymbol) As Boolean
@@ -2208,7 +2208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' NOTE: we use '>=' for locations comparison; this is a safeguard against the case where two different
             '       types are declared in the files with same file name (if possible) and have the same location;
-            '       if we used '>' we would not report the cycle, with '>=' we will report the cycle twise.
+            '       if we used '>' we would not report the cycle, with '>=' we will report the cycle twice.
             Return (fileCompResult > 0) OrElse
                     ((fileCompResult = 0) AndAlso typeToTestLocation.SourceSpan.Start >= structBeingAnalyzedLocation.SourceSpan.Start)
 
