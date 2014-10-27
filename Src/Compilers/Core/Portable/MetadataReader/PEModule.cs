@@ -1216,6 +1216,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case 0: // DeprecatedAttribute(String, DeprecationType, UInt32) 
                 case 1: // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
+                case 2: // DeprecatedAttribute(String, DeprecationType, UInt32, Type) 
                     return TryExtractValueFromAttribute<ObsoleteAttributeData>(attributeInfo.Handle, out obsoleteData, AttributeDeprecatedDataExtractor);
 
                 default:

@@ -1231,6 +1231,116 @@ BC31142: 'Windows.Foundation.Metadata.DeprecatedAttribute' cannot be applied to 
             compilation2.AssertTheseDiagnostics(expected)
         End Sub
 
+        <Fact()>
+        Public Sub TestDeprecatedAttribute001()
+            Dim source1 =
+            <![CDATA[
+using System;
+using Windows.Foundation.Metadata;
+
+namespace Windows.Foundation.Metadata
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, AllowMultiple = true)]
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version, Type contract)
+        {
+        }
+    }
+
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}
+
+public class Test
+{
+        [Deprecated("hello", DeprecationType.Deprecate, 1, typeof(int))]
+        public static void Foo()
+        {
+
+        }
+
+        [Deprecated("hi", DeprecationType.Deprecate, 1)]
+        public static void Bar()
+        {
+
+        }
+}
+]]>
+
+            Dim compilation1 = CreateCSharpCompilation("Dll1", source1.Value)
+
+            Dim ref = compilation1.EmitToImageReference()
+
+            Dim source2 =
+<compilation>
+    <file name="test.vb"><![CDATA[
+    Module Program
+        Sub Main()
+            Test.Foo()
+            Test.Bar()
+        end Sub
+    end module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {ref})
+
+            Dim expected = <![CDATA[
+BC40000: 'Public Shared Overloads Sub Foo()' is obsolete: 'hello'.
+            Test.Foo()
+            ~~~~~~~~~~
+BC40000: 'Public Shared Overloads Sub Bar()' is obsolete: 'hi'.
+            Test.Bar()
+            ~~~~~~~~~~
+]]>
+            compilation2.AssertTheseDiagnostics(expected)
+
+
+            Dim source3 =
+<compilation>
+    <file name="test.vb"><![CDATA[
+    Imports Windows.Foundation.Metadata
+
+    Module Program
+        <Deprecated("hello", DeprecationType.Deprecate, 1, gettype(integer))>
+        sub Foo()
+        end sub
+
+        <Deprecated("hi", DeprecationType.Deprecate, 1)>
+        Sub Bar()
+        End sub
+
+        Sub Main()
+            Foo()
+            Bar()
+        end Sub
+    end module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {ref})
+
+            Dim expected2 = <![CDATA[
+BC40000: 'Public Sub Foo()' is obsolete: 'hello'.
+            Foo()
+            ~~~~~
+BC40000: 'Public Sub Bar()' is obsolete: 'hi'.
+            Bar()
+            ~~~~~
+]]>
+            compilation3.AssertTheseDiagnostics(expected2)
+        End Sub
+
         <Fact(), WorkItem(858839, "DevDiv")>
         Public Sub Bug858839_1()
             Dim source1 =

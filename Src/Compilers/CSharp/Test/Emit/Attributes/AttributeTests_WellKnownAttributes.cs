@@ -7451,6 +7451,93 @@ class Class6
             compilation2.VerifyDiagnostics(expected);
         }
 
+        [Fact]
+        public void TestDeprecatedAttribute1()
+        {
+            var source1 = @"
+using System;
+using Windows.Foundation.Metadata;
+
+namespace Windows.Foundation.Metadata
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, AllowMultiple = true)]
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version, Type contract)
+        {
+        }
+    }
+
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}
+
+public class Test
+{
+        [Deprecated(""hello"", DeprecationType.Deprecate, 1, typeof(int))]
+        public static void Foo()
+        {
+
+        }
+
+        [Deprecated(""hi"", DeprecationType.Deprecate, 1)]
+        public static void Bar()
+        {
+
+        }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1);
+
+            var source2 = @"
+namespace ConsoleApplication74
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Test.Foo();
+            Test.Bar();
+        }
+    }
+}
+
+
+";
+            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { compilation1.EmitToImageReference()});
+
+
+            compilation2.VerifyDiagnostics(
+    // (8,13): warning CS0618: 'Test.Foo()' is obsolete: 'hello'
+    //             Test.Foo();
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Foo()").WithArguments("Test.Foo()", "hello").WithLocation(8, 13),
+    // (9,13): warning CS0618: 'Test.Bar()' is obsolete: 'hi'
+    //             Test.Bar();
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
+);
+
+            var compilation3 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1)});
+
+
+            compilation3.VerifyDiagnostics(
+    // (8,13): warning CS0618: 'Test.Foo()' is obsolete: 'hello'
+    //             Test.Foo();
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Foo()").WithArguments("Test.Foo()", "hello").WithLocation(8, 13),
+    // (9,13): warning CS0618: 'Test.Bar()' is obsolete: 'hi'
+    //             Test.Bar();
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
+);
+
+        }
+
+
         [Fact, WorkItem(858839, "DevDiv")]
         public void Bug858839_1()
         {
