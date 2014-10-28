@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var projectTasks = new List<Task>();
             foreach (var project in dependentProjects)
             {
-                projectTasks.Add(Task.Run(() => GetDependentTypesInProjectAsync(type, project, solution, predicate, cache, locationsInMetadata, results, cancellationToken), cancellationToken));
+                projectTasks.Add(Task.Run(
+                    async () => await GetDependentTypesInProjectAsync(type, project, solution, predicate, cache, locationsInMetadata, results, cancellationToken).ConfigureAwait(false), cancellationToken));
             }
 
             await Task.WhenAll(projectTasks).ConfigureAwait(false);

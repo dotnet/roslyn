@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         List<Task> symbolTasks = new List<Task>();
                         foreach (var child in symbols)
                         {
-                            symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), this.cancellationToken));
+                            symbolTasks.Add(Task.Run(async () => await DetermineAllSymbolsCoreAsync(child, result).ConfigureAwait(false), this.cancellationToken));
                         }
 
                         await Task.WhenAll(symbolTasks).ConfigureAwait(false);

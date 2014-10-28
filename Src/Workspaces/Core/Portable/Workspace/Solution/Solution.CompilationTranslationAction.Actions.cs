@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             private class ProjectParseOptionsAction : SimpleCompilationTranslationAction<ProjectState>
             {
                 private static readonly Func<Compilation, ProjectState, CancellationToken, Task<Compilation>> action =
-                    (o, d, c) => Task.Run(() => ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(o, d, c), c);
+                    (o, d, c) => Task.Run(async () => await ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(o, d, c).ConfigureAwait(false), c);
 
                 public ProjectParseOptionsAction(ProjectState state)
                     : base(state, action)

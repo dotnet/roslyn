@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var workers = ArrayBuilder<Task>.GetInstance();
             for (int i = 0; i < nTasks; i++)
             {
-                workers.Add(Task.Run(() => ProcessCompilationEventsAsync(cancellationToken)));
+                workers.Add(Task.Run(async () => await ProcessCompilationEventsAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
             }
 
             ImmutableInterlocked.InterlockedInitialize(ref this.workers, workers.ToImmutableAndFree());
