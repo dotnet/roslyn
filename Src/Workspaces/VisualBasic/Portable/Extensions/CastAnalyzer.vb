@@ -304,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If expressionToOuterType.IsIdentity AndAlso
                         castToOuterType.IsWidening AndAlso
                         castToOuterType.IsReference Then
-                    Return True
+                    Return Not (expressionToCastType.IsNarrowing AndAlso expressionToCastType.IsReference)
                 End If
             End If
 
