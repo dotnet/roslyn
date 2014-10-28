@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public static string GenerateFunctionDefinitions()
         {
             var output = new StringBuilder();
-#if !PORTABLE
+
             var functions = from f in typeof(FunctionId).GetFields()
                             where !f.IsSpecialName
                             select f;
@@ -145,7 +145,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 output.Append(" ");
                 output.AppendLine(goal.ToString());
             }
-#endif
 
             // Note that changing the format of this output string will break any ETW listeners
             // that don't have a direct reference to Microsoft.CodeAnalysis.Workspaces.dll

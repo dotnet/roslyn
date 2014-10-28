@@ -558,13 +558,11 @@
     <Compile Include="LanguageServices\TypeInferenceService\ITypeInferenceService.cs" />
     <Compile Include="Log\EmptyLogBlock.cs" />
     <Compile Include="Log\EmptyLogger.cs" />
-    <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\FunctionId.cs" />
     <Compile Include="Log\FunctionIdOptions.cs" />
     <Compile Include="Log\ILogger.cs" />
     <Compile Include="Log\InteractionClass.cs" />
     <Compile Include="Log\Logger.cs" />
-    <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Notification\AbstractGlobalOperationNotificationService.cs" />
     <Compile Include="Notification\GlobalOperationEventArgs.cs" />
     <Compile Include="Notification\GlobalOperationNotificationService.cs" />
