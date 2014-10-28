@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Roslyn.Test.Utilities;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
@@ -283,6 +284,27 @@ class C
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact, WorkItem(1069421, "DevDiv")]
+        public void Bug1069421()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class Program
+{
+    private int x => () => { 
+}
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var typeInfo1 = model.GetTypeInfo(node);
+            var typeInfo2 = model.GetTypeInfo(node);
+
+            Assert.Equal(typeInfo1.Type, typeInfo2.Type);
         }
 
     }
