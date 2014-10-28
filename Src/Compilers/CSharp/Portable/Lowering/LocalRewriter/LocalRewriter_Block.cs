@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            if (node.WasCompilerGenerated || !this.GenerateDebugInfo)
+            if (node.WasCompilerGenerated || !this.GenerateDebugInfo || node.Syntax.Kind == SyntaxKind.ArrowExpressionClause)
             {
                 return node.Update(node.Locals, VisitList(node.Statements));
             }
