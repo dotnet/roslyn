@@ -2453,6 +2453,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("0xffff0000ffff0000ffff0000", token.Value);
         }
 
+        /// <summary>
+        /// Earlier identifier syntax "[0-9]+#" not supported.
+        /// </summary>
+        [WorkItem(1071347)]
         [Fact]
         public void TestDebuggerAliasIdentifiers()
         {
@@ -2460,21 +2464,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = DebuggerLexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
             var errors = token.Errors();
-            Assert.Equal(0, errors.Length);
-            Assert.Equal(text, token.Text);
-            Assert.Equal(text, token.Value);
+            Assert.Equal(1, errors.Length);
+            Assert.Equal(errors[0].ToString(), "error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line");
+            Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
+            Assert.Equal(123, token.Value);
 
             text = "0123#";
             token = DebuggerLexToken(text);
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
-            Assert.Equal(0, errors.Length);
-            Assert.Equal(text, token.Text);
-            Assert.Equal(text, token.Value);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(1, errors.Length);
+            Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
+            Assert.Equal(123, token.Value);
 
             text = "0x123#";
             token = DebuggerLexToken(text);
@@ -2495,6 +2500,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, errors.Length);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
             Assert.Equal(123L, token.Value);
+
+            // Current syntax.
+            text = "$123";
+            token = DebuggerLexToken(text);
+            errors = token.Errors();
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal("$123", token.Value);
         }
 
         [Fact]
