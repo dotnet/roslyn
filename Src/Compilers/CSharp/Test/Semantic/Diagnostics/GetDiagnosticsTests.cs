@@ -106,11 +106,23 @@ class C
 
             var error = diag.WithSeverity(DiagnosticSeverity.Error);
             Assert.Equal(DiagnosticSeverity.Error, error.Severity);
+            Assert.Equal(DiagnosticSeverity.Warning, error.DefaultSeverity);
             Assert.Equal(0, error.WarningLevel);
 
             var warning = error.WithSeverity(DiagnosticSeverity.Warning);
             Assert.Equal(DiagnosticSeverity.Warning, warning.Severity);
+            Assert.Equal(DiagnosticSeverity.Warning, warning.DefaultSeverity);
             Assert.Equal(3, warning.WarningLevel);
+
+            var hidden = diag.WithSeverity(DiagnosticSeverity.Hidden);
+            Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity);
+            Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity);
+            Assert.Equal(4, hidden.WarningLevel);
+
+            var info = diag.WithSeverity(DiagnosticSeverity.Info);
+            Assert.Equal(DiagnosticSeverity.Info, info.Severity);
+            Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity);
+            Assert.Equal(4, info.WarningLevel);
         }
     }
 }

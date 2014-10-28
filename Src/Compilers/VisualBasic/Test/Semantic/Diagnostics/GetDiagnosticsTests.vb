@@ -101,11 +101,23 @@ End Class
 
             Dim [error] = diag.WithSeverity(DiagnosticSeverity.Error)
             Assert.Equal(DiagnosticSeverity.Error, [error].Severity)
+            Assert.Equal(DiagnosticSeverity.Warning, [error].DefaultSeverity)
             Assert.Equal(0, [error].WarningLevel)
 
             Dim warning = [error].WithSeverity(DiagnosticSeverity.Warning)
             Assert.Equal(DiagnosticSeverity.Warning, warning.Severity)
+            Assert.Equal(DiagnosticSeverity.Warning, warning.DefaultSeverity)
             Assert.Equal(1, warning.WarningLevel)
+
+            Dim hidden = warning.WithSeverity(DiagnosticSeverity.Hidden)
+            Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity)
+            Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity)
+            Assert.Equal(4, hidden.WarningLevel)
+
+            Dim info = warning.WithSeverity(DiagnosticSeverity.Info)
+            Assert.Equal(DiagnosticSeverity.Info, info.Severity)
+            Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity)
+            Assert.Equal(4, info.WarningLevel)
         End Sub
     End Class
 End Namespace

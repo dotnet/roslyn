@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis
 
             internal SimpleDiagnostic(string id, string category, string message, string description, string helpLink,
                                       DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity,
-                                       bool isEnabledByDefault, int warningLevel, Location location,
+                                      bool isEnabledByDefault, int warningLevel, Location location,
                                       IEnumerable<Location> additionalLocations, IEnumerable<string> customTags)
             {
-                if ((warningLevel == 0 && severity == DiagnosticSeverity.Warning) ||
-                    (warningLevel != 0 && severity != DiagnosticSeverity.Warning))
+                if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
+                    (warningLevel != 0 && severity == DiagnosticSeverity.Error))
                 {
                     throw new ArgumentException("warningLevel");
                 }
@@ -158,7 +158,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.Severity != severity)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, severity, this.defaultSeverity, this.isEnabledByDefault, severity == DiagnosticSeverity.Warning ? 1 : 0, this.location, this.additionalLocations, this.customTags);
+                    var warningLevel = GetDefaultWarningLevel(severity);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, severity, this.defaultSeverity, this.isEnabledByDefault, warningLevel, this.location, this.additionalLocations, this.customTags);
                 }
 
                 return this;

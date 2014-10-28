@@ -75,6 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static int GetWarningLevel(ErrorCode code)
         {
+            if (IsInfo(code) || IsHidden(code))
+            {
+                // Info and hidden diagnostics have least warning level.
+                return Diagnostic.HighestValidWarningLevel;
+            }
+
             switch (code)
             {
                 case ErrorCode.WRN_OldWarning_AccessibleReadonly:

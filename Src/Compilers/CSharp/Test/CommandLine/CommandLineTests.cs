@@ -6657,14 +6657,12 @@ using System.Diagnostics; // Unused.
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that /warn:0 has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0", "/warnaserror:Hidden01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0", "/warnaserror:Hidden01" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
-            Assert.Contains("a.cs(2,1): error Hidden01: Throwing a diagnostic for #region", output);
 
             // TEST: Verify that /warn:0 has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Hidden01", "/warn:0" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Hidden01", "/warn:0" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
-            Assert.Contains("a.cs(2,1): error Hidden01: Throwing a diagnostic for #region", output);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Hidden01", "/warnaserror-:Hidden01" }, expectedWarningCount: 1);
@@ -6728,9 +6726,8 @@ using System.Diagnostics; // Unused.
             Assert.Contains("warning CS8032", output);
             Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
 
-            // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0" }, expectedWarningCount: 1, expectedInfoCount: 1);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output);
+            // TEST: Verify that /warn:0 suppresses custom info diagnostic Info01.
+            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that custom info diagnostic Info01 can be individually suppressed via /nowarn:.
@@ -6774,14 +6771,12 @@ using System.Diagnostics; // Unused.
             Assert.Contains("warning CS8032", output);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0", "/warnaserror:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0", "/warnaserror:Info01" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
-            Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/warn:0" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/warn:0" }, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output);
-            Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);

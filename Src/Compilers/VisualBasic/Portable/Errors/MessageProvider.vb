@@ -51,13 +51,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetWarningLevel(code As Integer) As Integer
-            If ErrorFacts.IsWarning(DirectCast(code, ERRID)) AndAlso
+            Dim errorId = DirectCast(code, ERRID)
+            If ErrorFacts.IsWarning(errorId) AndAlso
                code <> ERRID.WRN_BadSwitch AndAlso
                code <> ERRID.WRN_FileAlreadyIncluded AndAlso
                code <> ERRID.WRN_NoConfigInResponseFile AndAlso
                code <> ERRID.WRN_InvalidWarningId AndAlso
                code <> ERRID.WRN_SwitchNoBool AndAlso
                code <> ERRID.WRN_IgnoreModuleManifest Then
+                Return 1
+            ElseIf ErrorFacts.IsInfo(errorId) OrElse ErrorFacts.IsHidden(errorId)
+                ' Info and hidden diagnostics
                 Return 1
             Else
                 Return 0
