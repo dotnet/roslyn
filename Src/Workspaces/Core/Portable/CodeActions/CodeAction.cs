@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,15 +45,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         /// <summary>
-        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see cref="CodeActionOperation"/>'s.
-        /// </summary>
-        protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-        {
-            var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
-            return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
-        }
-
-        /// <summary>
         /// The sequence of operations used to construct a preview. 
         /// </summary>
         public async Task<IEnumerable<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
@@ -65,6 +57,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             return operations;
+        }
+
+        /// <summary>
+        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see cref="CodeActionOperation"/>'s.
+        /// </summary>
+        protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        {
+            var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
         }
 
         /// <summary>
@@ -86,12 +87,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return changedDocument.Project.Solution;
         }
 
-        internal async Task<Solution> GetChangedSolutionInternalAsync(CancellationToken cancellationToken)
-        {
-            var solution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
-            return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
-        }
-
         /// <summary>
         /// Computes changes for a single document.
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that changes a single document.
@@ -101,148 +96,19 @@ namespace Microsoft.CodeAnalysis.CodeActions
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// used by batch fixer engine to get new solution
+        /// </summary>
+        internal async Task<Solution> GetChangedSolutionInternalAsync(CancellationToken cancellationToken)
+        {
+            var solution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
+        }
+
         internal async Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
         {
             return await this.GetChangedDocumentAsync(cancellation).ConfigureAwait(false);
         }
-
-        #region Factories for standard code actions
-
-        /// <summary>
-        /// Creates a code action for a change to a single document. 
-        /// Use this factory when the change is expensive to compute, and should be deferred until requested.
-        /// </summary>
-        public static CodeAction Create(string description, Func<CancellationToken, Task<Document>> createChangedDocument, string id = null)
-        {
-            if (description == null)
-            {
-                throw new ArgumentNullException("description");
-            }
-
-            if (createChangedDocument == null)
-            {
-                throw new ArgumentNullException("createChangedDocument");
-            }
-
-            return new DocumentChangeAction(description, createChangedDocument, id);
-        }
-
-        /// <summary>
-        /// Creates a code action for a change to a single document.
-        /// Use this factory when the change is trivial to compute or is already computed.
-        /// </summary>
-        public static CodeAction Create(string description, Document changedDocument, string id = null)
-        {
-            if (description == null)
-            {
-                throw new ArgumentNullException("description");
-            }
-
-            if (changedDocument == null)
-            {
-                throw new ArgumentNullException("changedDocument");
-            }
-
-            return new DocumentChangeAction(description, (ct) => Task.FromResult(changedDocument), id);
-        }
-
-        internal class DocumentChangeAction : CodeAction
-        {
-            private readonly string title;
-            private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
-            private readonly string id;
-
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id = null)
-            {
-                this.title = title;
-                this.createChangedDocument = createChangedDocument;
-                this.id = id;
-            }
-
-            public override string Title
-            {
-                get { return this.title; }
-            }
-
-            public override string Id
-            {
-                get { return this.id; }
-            }
-
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return this.createChangedDocument(cancellationToken);
-            }
-        }
-
-        /// <summary>
-        /// Creates a code action for a change to more than one document within a solution.
-        /// Use this factory when the change is expensive to compute, and should be deferred until requested.
-        /// </summary>
-        public static CodeAction Create(string description, Func<CancellationToken, Task<Solution>> createChangedSolution, string id = null)
-        {
-            if (description == null)
-            {
-                throw new ArgumentNullException("description");
-            }
-
-            if (createChangedSolution == null)
-            {
-                throw new ArgumentNullException("createChangedSolution");
-            }
-
-            return new SolutionChangeAction(description, createChangedSolution, id);
-        }
-
-        /// <summary>
-        /// Creates a code action for a change to more than one document within a solution.
-        /// Use this factory when the change is trivial to compute or is already computed.
-        /// </summary>
-        public static CodeAction Create(string description, Solution changedSolution, string id = null)
-        {
-            if (description == null)
-            {
-                throw new ArgumentNullException("description");
-            }
-
-            if (changedSolution == null)
-            {
-                throw new ArgumentNullException("changedSolution");
-            }
-
-            return new SolutionChangeAction(description, (ct) => Task.FromResult(changedSolution), id);
-        }
-
-        internal class SolutionChangeAction : CodeAction
-        {
-            private readonly string title;
-            private readonly Func<CancellationToken, Task<Solution>> createChangedSolution;
-            private readonly string id;
-
-            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string id = null)
-            {
-                this.title = title;
-                this.createChangedSolution = createChangedSolution;
-                this.id = id;
-            }
-
-            public override string Title
-            {
-                get { return this.title; }
-            }
-
-            public override string Id
-            {
-                get { return this.id; }
-            }
-
-            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
-            {
-                return this.createChangedSolution(cancellationToken);
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// Apply post processing steps to any <see cref="ApplyChangesOperation"/>'s.
@@ -312,5 +178,143 @@ namespace Microsoft.CodeAnalysis.CodeActions
             document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
             return document;
         }
+
+        #region Factories for standard code actions
+
+        /// <summary>
+        /// Creates a code action for a change to a single document. 
+        /// Use this factory when the change is expensive to compute, and should be deferred until requested.
+        /// </summary>
+        public static CodeAction Create(string description, Func<CancellationToken, Task<Document>> createChangedDocument, string id = null)
+        {
+            if (description == null)
+            {
+                throw new ArgumentNullException("description");
+            }
+
+            if (createChangedDocument == null)
+            {
+                throw new ArgumentNullException("createChangedDocument");
+            }
+
+            return new DocumentChangeAction(description, createChangedDocument, id);
+        }
+
+        /// <summary>
+        /// Creates a code action for a change to a single document.
+        /// Use this factory when the change is trivial to compute or is already computed.
+        /// </summary>
+        public static CodeAction Create(string description, Document changedDocument, string id = null)
+        {
+            if (description == null)
+            {
+                throw new ArgumentNullException("description");
+            }
+
+            if (changedDocument == null)
+            {
+                throw new ArgumentNullException("changedDocument");
+            }
+
+            return new DocumentChangeAction(description, (ct) => Task.FromResult(changedDocument), id);
+        }
+
+        /// <summary>
+        /// Creates a code action for a change to more than one document within a solution.
+        /// Use this factory when the change is expensive to compute, and should be deferred until requested.
+        /// </summary>
+        public static CodeAction Create(string description, Func<CancellationToken, Task<Solution>> createChangedSolution, string id = null)
+        {
+            if (description == null)
+            {
+                throw new ArgumentNullException("description");
+            }
+
+            if (createChangedSolution == null)
+            {
+                throw new ArgumentNullException("createChangedSolution");
+            }
+
+            return new SolutionChangeAction(description, createChangedSolution, id);
+        }
+
+        /// <summary>
+        /// Creates a code action for a change to more than one document within a solution.
+        /// Use this factory when the change is trivial to compute or is already computed.
+        /// </summary>
+        public static CodeAction Create(string description, Solution changedSolution, string id = null)
+        {
+            if (description == null)
+            {
+                throw new ArgumentNullException("description");
+            }
+
+            if (changedSolution == null)
+            {
+                throw new ArgumentNullException("changedSolution");
+            }
+
+            return new SolutionChangeAction(description, (ct) => Task.FromResult(changedSolution), id);
+        }
+
+        internal class DocumentChangeAction : CodeAction
+        {
+            private readonly string title;
+            private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
+            private readonly string id;
+
+            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id = null)
+            {
+                this.title = title;
+                this.createChangedDocument = createChangedDocument;
+                this.id = id;
+            }
+
+            public override string Title
+            {
+                get { return this.title; }
+            }
+
+            public override string Id
+            {
+                get { return this.id; }
+            }
+
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return this.createChangedDocument(cancellationToken);
+            }
+        }
+
+        internal class SolutionChangeAction : CodeAction
+        {
+            private readonly string title;
+            private readonly Func<CancellationToken, Task<Solution>> createChangedSolution;
+            private readonly string id;
+
+            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string id = null)
+            {
+                this.title = title;
+                this.createChangedSolution = createChangedSolution;
+                this.id = id;
+            }
+
+            public override string Title
+            {
+                get { return this.title; }
+            }
+
+            public override string Id
+            {
+                get { return this.id; }
+            }
+
+            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            {
+                return this.createChangedSolution(cancellationToken);
+            }
+        }
+
+        #endregion
     }
 }
