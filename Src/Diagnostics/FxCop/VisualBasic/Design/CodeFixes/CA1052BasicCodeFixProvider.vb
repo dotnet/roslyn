@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
             Return WellKnownFixAllProviders.BatchFixer
         End Function
 
-        Public NotOverridable Overrides Async Function GetFixesAsync(context As CodeFixContext) As Task(Of IEnumerable(Of CodeAction))
+        Public NotOverridable Overrides Async Function ComputeFixesAsync(context As CodeFixContext) As Task
             Dim document = context.Document
             Dim span = context.Span
             Dim cancellationToken = context.CancellationToken
@@ -37,10 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
                 Dim notInheritableKeyword = SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword).WithAdditionalAnnotations(Formatter.Annotation)
                 Dim newClassStatement = classStatement.AddModifiers(notInheritableKeyword)
                 Dim newRoot = root.ReplaceNode(classStatement, newClassStatement)
-                Return {New MyCodeAction(String.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text), document.WithSyntaxRoot(newRoot))}
+                context.RegisterFix(
+                    New MyCodeAction(String.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text), document.WithSyntaxRoot(newRoot)),
+                    context.Diagnostics)
             End If
-
-            Return Nothing
         End Function
 
         Private Class MyCodeAction

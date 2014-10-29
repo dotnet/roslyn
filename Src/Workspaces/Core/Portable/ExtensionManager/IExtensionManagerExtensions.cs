@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions
 {
@@ -56,6 +57,29 @@ namespace Microsoft.CodeAnalysis.Extensions
             return defaultValue;
         }
 
+        public static async Task PerformActionAsync(
+            this IExtensionManager extensionManager,
+            object extension,
+            Func<Task> function)
+        {
+            try
+            {
+                if (!extensionManager.IsDisabled(extension))
+                {
+                    var task = function() ?? SpecializedTasks.EmptyTask;
+                    await task.ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                extensionManager.HandleException(extension, e);
+            }
+        }
+
         public static async Task<T> PerformFunctionAsync<T>(
             this IExtensionManager extensionManager,
             object extension,
@@ -66,7 +90,8 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 if (!extensionManager.IsDisabled(extension))
                 {
-                    return await function().ConfigureAwait(false);
+                    var task = function() ?? SpecializedTasks.Default<T>();
+                    return await task.ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

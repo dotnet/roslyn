@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CodeActions;
 
 namespace TestTemplate
 {
@@ -75,11 +77,12 @@ namespace TestTemplate
             var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
             var compilerDiagnostics = GetCompilerDiagnostics(document);
             var attempts = analyzerDiagnostics.Length;
-            
+
             for (int i = 0; i < attempts; ++i)
             {
-                var context = new CodeFixContext(document, analyzerDiagnostics[0], CancellationToken.None);
-                var actions = codeFixProvider.GetFixesAsync(context).Result;
+                var actions = new List<CodeAction>();
+                var context = new CodeFixContext(document, analyzerDiagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);
+                codeFixProvider.ComputeFixesAsync(context).Wait();
                 if (!actions.Any())
                 {
                     break;

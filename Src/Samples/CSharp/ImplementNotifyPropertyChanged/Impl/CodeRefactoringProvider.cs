@@ -20,7 +20,6 @@
 //
 // *********************************************************
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -32,14 +31,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace ImplementNotifyPropertyChangedCS
 {
     [ExportCodeRefactoringProvider("ImplementNotifyPropertyChangedCS", LanguageNames.CSharp), Shared]
     internal partial class ImplementNotifyPropertyChangedCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public sealed override async Task<IEnumerable<CodeAction>> GetRefactoringsAsync(CodeRefactoringContext context)
+        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
             var textSpan = context.Span;
@@ -60,11 +58,14 @@ namespace ImplementNotifyPropertyChangedCS
 
             var properties = ExpansionChecker.GetExpandableProperties(textSpan, root, model);
 
+            if (properties.Any())
+            {
 #pragma warning disable RS0005
-            return properties.Any()
-                ? new[] { CodeAction.Create("Apply INotifyPropertyChanged pattern", (c) => ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)) }
-                : null;
+                context.RegisterRefactoring(
+                   CodeAction.Create("Apply INotifyPropertyChanged pattern", (c) =>
+                                     ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)));
 #pragma warning restore RS0005
+            }
         }
 
         private async Task<Document> ImplementNotifyPropertyChangedAsync(Document document, CompilationUnitSyntax root, SemanticModel model, IEnumerable<ExpandablePropertyInfo> properties, CancellationToken cancellationToken)

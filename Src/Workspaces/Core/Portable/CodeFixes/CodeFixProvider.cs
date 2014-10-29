@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -18,10 +16,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public abstract ImmutableArray<string> GetFixableDiagnosticIds();
 
         /// <summary>
-        /// Gets one or more fixes for the specified code fix context represented as a list of <see cref="CodeAction"/>'s.
+        /// Computes one or more fixes for the specified <see cref="CodeFixContext"/>.
         /// </summary>
-        /// <returns>A list of zero or more potential <see cref="CodeAction"/>. It is also safe to return null if there are none.</returns>
-        public abstract Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context);
+        public abstract Task ComputeFixesAsync(CodeFixContext context);
 
         /// <summary>
         /// Gets an optional <see cref="FixAllProvider"/> that can fix all/multiple occurrences of diagnostics fixed by this code fix provider.

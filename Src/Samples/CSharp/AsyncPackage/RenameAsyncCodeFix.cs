@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -25,17 +24,21 @@ namespace AsyncPackage
             return ImmutableArray.Create(RenameAsyncAnalyzer.RenameAsyncId);
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
+        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
+            var diagnostic = context.Diagnostics.First();
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
             var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
-            // Return a code action that will invoke the fix. (The name is intentional; that's my sense of humor)
-            return new[] { new RenameAsyncCodeAction("Add Async to the end of the method name", c => RenameMethodAsync(context.Document, methodDeclaration, c)) };
+            // Register a code action that will invoke the fix.
+            context.RegisterFix(
+                new RenameAsyncCodeAction("Add Async to the end of the method name",
+                                          c => RenameMethodAsync(context.Document, methodDeclaration, c)),
+                diagnostic);
         }
 
         private async Task<Solution> RenameMethodAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)

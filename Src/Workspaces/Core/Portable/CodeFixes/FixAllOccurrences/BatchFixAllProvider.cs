@@ -91,17 +91,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var diagnostic = diagnosticsArray[i];
                 fixerTasks[i] = Task.Run(async () =>
                 {
-                    var context = new CodeFixContext(document, diagnostic, cancellationToken);
-                    var fixes = await fixAllContext.CodeFixProvider.GetFixesAsync(context).ConfigureAwait(false);
+                    var fixes = new List<CodeAction>();
+                    var context = new CodeFixContext(document, diagnostic,
 
-                    if (fixes != null)
-                    {
-                        foreach (var fix in fixes)
+                        // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
+                        (a, d) =>
                         {
-                            if (fix != null && fix.Id == fixAllContext.CodeActionId)
+                            // Serialize access for thread safety - we don't know what thread the fix provider will call this delegate from.
+                            lock (fixes)
                             {
-                                addFix(fix);
+                                fixes.Add(a);
                             }
+                        },
+                        cancellationToken);
+
+                    // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
+                    // a buggy extension that throws can't bring down the host?
+                    var task = fixAllContext.CodeFixProvider.ComputeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
+                    await task.ConfigureAwait(false);
+
+                    foreach (var fix in fixes)
+                    {
+                        if (fix != null && fix.Id == fixAllContext.CodeActionId)
+                        {
+                            addFix(fix);
                         }
                     }
                 });

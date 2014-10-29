@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -29,17 +28,21 @@ namespace AsyncPackage
             return null;
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
+        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
+            var diagnostic = context.Diagnostics.First();
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
             var invocation = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<InvocationExpressionSyntax>();
 
-            // Return a code action that will invoke the fix.
-            return new[] { new CancellationCodeAction("Propagate CancellationTokens when possible", c => AddCancellationTokenAsync(context.Document, invocation, c)) };
+            // Register a code action that will invoke the fix.
+            context.RegisterFix(
+                new CancellationCodeAction("Propagate CancellationTokens when possible",
+                                           c => AddCancellationTokenAsync(context.Document, invocation, c)),
+                diagnostic);
         }
 
         private async Task<Document> AddCancellationTokenAsync(Document document, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)

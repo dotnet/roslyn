@@ -43,15 +43,16 @@ Class MakeConstCodeFixProvider
         Return Nothing
     End Function
 
-    Public NotOverridable Overrides Async Function GetFixesAsync(context As CodeFixContext) As Task(Of IEnumerable(Of CodeAction))
-        Dim diagnosticSpan = context.Diagnostics.First().Location.SourceSpan
+    Public NotOverridable Overrides Async Function ComputeFixesAsync(context As CodeFixContext) As Task
+        Dim diagnostic = context.Diagnostics.First()
+        Dim diagnosticSpan = diagnostic.Location.SourceSpan
         Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken)
 
         ' Find the local declaration identified by the diagnostic.
         Dim declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType(Of LocalDeclarationStatementSyntax)().First()
 
-        ' return a code action that will invoke the fix
-        Return {CodeAction.Create("Make constant", Function(c) MakeConstAsync(context.Document, declaration, c))}
+        ' Register a code action that will invoke the fix.
+        context.RegisterFix(CodeAction.Create("Make constant", Function(c) MakeConstAsync(context.Document, declaration, c)), diagnostic)
     End Function
 
     Private Async Function MakeConstAsync(document As Document, localDeclaration As LocalDeclarationStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)

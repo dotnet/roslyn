@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -26,11 +25,12 @@ namespace AsyncPackage
             return ImmutableArray.Create(BlockingAsyncAnalyzer.BlockingAsyncId);
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
+        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
+            var diagnostic = context.Diagnostics.First();
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
             var invocation = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<InvocationExpressionSyntax>();
@@ -46,50 +46,72 @@ namespace AsyncPackage
                 {
                     var name = invokemethod.Name.Identifier.Text;
 
-                    // Return a code action that will invoke the fix.
-                    return new[] { new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitAsync(context.Document, invocation, c, name)) };
+                    // Register a code action that will invoke the fix.
+                    context.RegisterFix(
+                        new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart",
+                                                         c => ChangetoAwaitAsync(context.Document, invocation, c, name)),
+                        diagnostic);
+                    return;
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("GetAwaiter"))
                 {
-                    // Return a code action that will invoke the fix.
-                    return new[] { new CodeActionChangetoAwaitGetAwaiterAsync("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitGetAwaiterAsync(context.Document, invocation, c)) };
+                    // Register a code action that will invoke the fix.
+                    context.RegisterFix(
+                        new CodeActionChangetoAwaitGetAwaiterAsync("Change synchronous operation to asynchronous counterpart",
+                                                                   c => ChangetoAwaitGetAwaiterAsync(context.Document, invocation, c)),
+                        diagnostic);
+                    return;
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("Result"))
                 {
                     var name = invokemethod.Name.Identifier.Text;
 
-                    // Return a code action that will invoke the fix.
-                    return new[] { new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart", c => ChangetoAwaitAsync(context.Document, invocation, c, name)) };
+                    // Register a code action that will invoke the fix.
+                    context.RegisterFix(
+                        new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart",
+                                                         c => ChangetoAwaitAsync(context.Document, invocation, c, name)),
+                        diagnostic);
+                    return;
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("WaitAny"))
                 {
                     var name = invokemethod.Name.Identifier.Text;
 
-                    // Return a code action that will invoke the fix.
-                    return new[] { new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)) };
+                    // Register a code action that will invoke the fix.
+                    context.RegisterFix(
+                        new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
+                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)),
+                        diagnostic);
+                    return;
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("WaitAll"))
                 {
                     var name = invokemethod.Name.Identifier.Text;
 
-                    // Return a code action that will invoke the fix.
-                    return new[] { new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)) };
+                    // Register a code action that will invoke the fix.
+                    context.RegisterFix(
+                        new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
+                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)),
+                        diagnostic);
+                    return;
                 }
 
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("Sleep"))
                 {
                     var name = invokemethod.Name.Identifier.Text;
 
-                    // Return a code action that will invoke the fix.
-                    return new[] { new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart", c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)) };
+                    // Register a code action that will invoke the fix.
+                    context.RegisterFix(
+                        new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
+                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)),
+                        diagnostic);
+                    return;
                 }
             }
-
-            return ImmutableArray<CodeAction>.Empty;
         }
 
         private async Task<Document> ToDelayWhenAnyWhenAllAsync(Document document, InvocationExpressionSyntax invocation, CancellationToken c, string name)
@@ -139,7 +161,7 @@ namespace AsyncPackage
             {
                 oldExpression = invocation.Parent.FirstAncestorOrSelf<MemberAccessExpressionSyntax>();
                 newExpression = SyntaxFactory.PrefixUnaryExpression(
-                    SyntaxKind.AwaitExpression, 
+                    SyntaxKind.AwaitExpression,
                     invocation).WithAdditionalAnnotations(Formatter.Annotation);
             }
 
