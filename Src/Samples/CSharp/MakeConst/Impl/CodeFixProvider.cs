@@ -20,7 +20,6 @@
 //
 // *********************************************************
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -49,17 +48,18 @@ namespace MakeConstCS
             return null;
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
+        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken);
 
-            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
+            var diagnostic = context.Diagnostics.First();
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the local declaration identified by the diagnostic.
             var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
 
-            // return a code action that will invoke the fix.
-            return new[] { CodeAction.Create("Make constant", c => MakeConstAsync(context.Document, declaration, c)) };
+            // Register a code action that will invoke the fix.
+            context.RegisterFix(CodeAction.Create("Make constant", c => MakeConstAsync(context.Document, declaration, c)), diagnostic);
         }
 
         private async Task<Document> MakeConstAsync(Document document, LocalDeclarationStatementSyntax localDeclaration, CancellationToken cancellationToken)

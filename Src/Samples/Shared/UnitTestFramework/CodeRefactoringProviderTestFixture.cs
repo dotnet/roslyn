@@ -36,8 +36,10 @@ namespace Roslyn.UnitTestFramework
         private IEnumerable<CodeAction> GetRefactoring(Document document, TextSpan span)
         {
             var provider = CreateCodeRefactoringProvider();
-            var context = new CodeRefactoringContext(document, span, CancellationToken.None);
-            return provider.GetRefactoringsAsync(context).Result;
+            var actions = new List<CodeAction>();
+            var context = new CodeRefactoringContext(document, span, (a) => actions.Add(a), CancellationToken.None);
+            provider.ComputeRefactoringsAsync(context).Wait();
+            return actions;
         }
 
         protected void TestNoActions(string markup)

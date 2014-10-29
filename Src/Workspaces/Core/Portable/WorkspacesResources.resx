@@ -363,4 +363,10 @@
   <data name="InvalidCodePage" xml:space="preserve">
     <value>Invalid CodePage value: {0}</value>
   </data>
+  <data name="DiagnoisticCannotBeNull" xml:space="preserve">
+    <value>Supplied diagnostic cannot be null.</value>
+  </data>
+  <data name="DiagnosticsCannotBeEmpty" xml:space="preserve">
+    <value>At least one diagnostic must be supplied.</value>
+  </data>
 </root>

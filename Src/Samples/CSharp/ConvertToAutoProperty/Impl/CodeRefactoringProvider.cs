@@ -21,7 +21,6 @@
 // *********************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -31,14 +30,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace ConvertToAutoPropertyCS
 {
     [ExportCodeRefactoringProvider("ConvertToAutoPropertyCS", LanguageNames.CSharp), Shared]
     internal class ConvertToAutoPropertyCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public sealed override async Task<IEnumerable<CodeAction>> GetRefactoringsAsync(CodeRefactoringContext context)
+        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
             var textSpan = context.Span;
@@ -48,7 +46,7 @@ namespace ConvertToAutoPropertyCS
             var token = root.FindToken(textSpan.Start);
             if (token.Parent == null)
             {
-                return null;
+                return;
             }
 
             var propertyDeclaration = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
@@ -58,10 +56,12 @@ namespace ConvertToAutoPropertyCS
                 !HasBothAccessors(propertyDeclaration) ||
                 !propertyDeclaration.Identifier.Span.IntersectsWith(textSpan.Start))
             {
-                return null;
+                return;
             }
 
-            return new[] { new ConvertToAutoPropertyCodeAction("Convert to auto property", (c) => ConvertToAutoPropertyAsync(document, propertyDeclaration, c)) };
+            context.RegisterRefactoring(
+                new ConvertToAutoPropertyCodeAction("Convert to auto property",
+                                                    (c) => ConvertToAutoPropertyAsync(document, propertyDeclaration, c)));
         }
 
         /// <summary>

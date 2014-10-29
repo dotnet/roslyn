@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -32,11 +31,12 @@ namespace AsyncPackage
             return null;
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
+        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
+            var diagnostic = context.Diagnostics.First();
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             Debug.Assert(root != null);
             var parent = root.FindToken(diagnosticSpan.Start).Parent;
@@ -45,11 +45,12 @@ namespace AsyncPackage
                 // Find the type declaration identified by the diagnostic.
                 var variableDeclaration = parent.FirstAncestorOrSelf<VariableDeclarationSyntax>();
 
-                // Return a code action that will invoke the fix.
-                return new[] { new AsyncLambdaVariableCodeAction("Async lambdas should not be stored in void-returning delegates", c => ChangeToFunc(context.Document, variableDeclaration, c)) };
+                // Register a code action that will invoke the fix.
+                context.RegisterFix(
+                    new AsyncLambdaVariableCodeAction("Async lambdas should not be stored in void-returning delegates",
+                                                      c => ChangeToFunc(context.Document, variableDeclaration, c)),
+                    diagnostic);
             }
-
-            return ImmutableArray<CodeAction>.Empty;
         }
 
         private async Task<Document> ChangeToFunc(Document document, VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)

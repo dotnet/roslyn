@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,24 +22,21 @@ namespace Roslyn.Diagnostics.CodeFixes
             return ImmutableArray.Create(RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId);
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
+        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            return GetFixesCore(context.Document, root, context.Diagnostics, context.CancellationToken);
-        }
-
-        private IEnumerable<CodeAction> GetFixesCore(Document document, SyntaxNode root, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            foreach (var diagnostic in diagnostics)
+            foreach (var diagnostic in context.Diagnostics)
             {
                 var expression = root.FindNode(diagnostic.Location.SourceSpan) as TExpressionSyntax;
 
                 if (expression != null)
                 {
-                    yield return new MyCodeAction(
-                        "Append .ConfigureAwait(" + FalseLiteralString + ")",
-                        c => GetFix(document, root, expression, c));
+                    context.RegisterFix(
+                        new MyCodeAction(
+                            "Append .ConfigureAwait(" + FalseLiteralString + ")",
+                            c => GetFix(context.Document, root, expression, c)),
+                        diagnostic);
                 }
             }
         }

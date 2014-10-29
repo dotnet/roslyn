@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.FxCopAnalyzers;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
 {
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override async Task<IEnumerable<CodeAction>> GetFixesAsync(CodeFixContext context)
+        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var span = context.Span;
@@ -42,11 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
                 var staticKeyword = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithAdditionalAnnotations(Formatter.Annotation);
                 var newDeclaration = classDeclaration.AddModifiers(staticKeyword);
                 var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
-                return SpecializedCollections.SingletonEnumerable(
-                    new MyCodeAction(string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text), document.WithSyntaxRoot(newRoot)));
+                context.RegisterFix(
+                    new MyCodeAction(string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text), document.WithSyntaxRoot(newRoot)),
+                    context.Diagnostics);
             }
-
-            return null;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

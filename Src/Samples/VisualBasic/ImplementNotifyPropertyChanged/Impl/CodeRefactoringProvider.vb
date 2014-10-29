@@ -35,7 +35,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Friend Class ImplementNotifyPropertyChangedCodeRefactoringProvider
     Inherits CodeRefactoringProvider
 
-    Public NotOverridable Overrides Async Function GetRefactoringsAsync(context As CodeRefactoringContext) As Task(Of IEnumerable(Of CodeAction))
+    Public NotOverridable Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
         Dim document = context.Document
         Dim textSpan = context.Span
         Dim cancellationToken = context.CancellationToken
@@ -53,9 +53,11 @@ Friend Class ImplementNotifyPropertyChangedCodeRefactoringProvider
 
         Dim properties = ExpansionChecker.GetExpandableProperties(textSpan, root, model)
 
-        Return If(properties.Any(),
-            {CodeAction.Create("Apply INotifyPropertyChanged pattern", Function(c) ImplementNotifyPropertyChangedAsync(document, root, model, properties, c))},
-            Nothing)
+        If properties.Any Then
+            context.RegisterRefactoring(
+                CodeAction.Create("Apply INotifyPropertyChanged pattern",
+                                  Function(c) ImplementNotifyPropertyChangedAsync(document, root, model, properties, c)))
+        End If
     End Function
 
     Private Async Function ImplementNotifyPropertyChangedAsync(document As Document, root As CompilationUnitSyntax, model As SemanticModel, properties As IEnumerable(Of ExpandablePropertyInfo), cancellationToken As CancellationToken) As Task(Of Document)
