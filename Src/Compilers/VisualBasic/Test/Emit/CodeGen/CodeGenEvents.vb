@@ -1666,6 +1666,85 @@ End Namespace
     ]]>)
         End Sub
 
+        <WorkItem(1069554)>
+        <Fact>
+        Public Sub LocalDefinitionInEventHandler()
+            Dim c = CompileAndVerify(
+    <compilation>
+        <file name="a.vb">
+Imports System
+
+Class C
+    Public Custom Event E As Action
+        AddHandler(value As Action)
+            Dim f = 1
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+    </file>
+    </compilation>, options:=TestOptions.DebugDll)
+
+            c.VerifyIL("C.add_E", <![CDATA[
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  .locals init (Integer V_0) //f
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ret
+}
+]]>)
+        End Sub
+
+        <WorkItem(1069554)>
+        <Fact>
+        Public Sub ClosureInEventHandler()
+            Dim c = CompileAndVerify(
+    <compilation>
+        <file name="a.vb">
+Imports System
+
+Class C
+    Public Custom Event E As Action
+        AddHandler(value As Action)
+            Dim f = Sub() 
+                        value()
+                    End Sub
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+    </file>
+    </compilation>, options:=TestOptions.DebugDll)
+
+            c.VerifyIL("C.add_E", <![CDATA[
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (C._Closure$__1 V_0, //$VB$Closure_0
+                VB$AnonymousDelegate_0 V_1) //f
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C._Closure$__1..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      "C._Closure$__1.$VB$Local_value As System.Action"
+  IL_000e:  ldloc.0
+  IL_000f:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
+  IL_0015:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
+  IL_001a:  stloc.1
+  IL_001b:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace
 
