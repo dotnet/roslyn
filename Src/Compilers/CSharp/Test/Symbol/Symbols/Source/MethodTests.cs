@@ -1625,7 +1625,7 @@ class IC : Namespace.I<int>
             context.Diagnostics.Verify();
         }
 
-        [Fact(Skip = "893788")]
+        [Fact()]
         public void TestMetadataVirtual()
         {
             string text = @"
