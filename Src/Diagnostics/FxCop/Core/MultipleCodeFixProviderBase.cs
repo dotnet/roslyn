@@ -28,15 +28,18 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var actions = SpecializedCollections.EmptyEnumerable<CodeAction>();
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var nodeToFix = root.FindNode(context.Diagnostic.Location.SourceSpan);
-
-            var newActions = await GetFixesAsync(document, model, root, nodeToFix, cancellationToken).ConfigureAwait(false);
-
-            if (newActions != null)
+            foreach (var diagnostic in context.Diagnostics)
             {
-                actions = actions.Concat(newActions);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var nodeToFix = root.FindNode(diagnostic.Location.SourceSpan);
+
+                var newActions = await GetFixesAsync(document, model, root, nodeToFix, cancellationToken).ConfigureAwait(false);
+
+                if (newActions != null)
+                {
+                    actions = actions.Concat(newActions);
+                }
             }
 
             return actions;

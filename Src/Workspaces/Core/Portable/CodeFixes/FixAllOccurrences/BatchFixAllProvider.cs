@@ -170,7 +170,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public virtual string GetFixAllTitle(FixAllContext fixAllContext)
         {
-            var diagnosticId = fixAllContext.DiagnosticId;
+            var diagnosticIds = fixAllContext.DiagnosticIds;
+            string diagnosticId;
+            if (diagnosticIds.Count() == 1)
+            {
+                diagnosticId = diagnosticIds.Single();
+            }
+            else
+            {
+                diagnosticId = string.Join(",", diagnosticIds.ToArray());
+            }
 
             switch (fixAllContext.Scope)
             {

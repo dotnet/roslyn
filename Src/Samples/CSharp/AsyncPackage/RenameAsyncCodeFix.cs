@@ -29,7 +29,7 @@ namespace AsyncPackage
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnosticSpan = context.Diagnostic.Location.SourceSpan;
+            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
             var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();

@@ -26,18 +26,20 @@ namespace Microsoft.CodeAnalysis
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var actions = SpecializedCollections.EmptyEnumerable<CodeAction>();
-            var diagnostic = context.Diagnostic;
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var nodeToFix = root.FindNode(diagnostic.Location.SourceSpan);
-
-            var newDocument = await GetUpdatedDocumentAsync(document, model, root, nodeToFix, diagnostic.Id, cancellationToken).ConfigureAwait(false);
-
-            Debug.Assert(newDocument != null);
-            if (newDocument != document)
+            foreach (var diagnostic in context.Diagnostics)
             {
-                var codeFixDescription = GetCodeFixDescription(diagnostic.Id);
-                actions = actions.Concat(new MyCodeAction(codeFixDescription, newDocument));
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var nodeToFix = root.FindNode(diagnostic.Location.SourceSpan);
+
+                var newDocument = await GetUpdatedDocumentAsync(document, model, root, nodeToFix, diagnostic.Id, cancellationToken).ConfigureAwait(false);
+
+                Debug.Assert(newDocument != null);
+                if (newDocument != document)
+                {
+                    var codeFixDescription = GetCodeFixDescription(diagnostic.Id);
+                    actions = actions.Concat(new MyCodeAction(codeFixDescription, newDocument));
+                }
             }
 
             return actions;

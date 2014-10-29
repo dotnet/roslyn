@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -29,7 +30,7 @@ namespace AsyncPackage
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnosticSpan = context.Diagnostic.Location.SourceSpan;
+            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
             var invocation = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<InvocationExpressionSyntax>();
@@ -138,7 +139,7 @@ namespace AsyncPackage
             {
                 oldExpression = invocation.Parent.FirstAncestorOrSelf<MemberAccessExpressionSyntax>();
                 newExpression = SyntaxFactory.PrefixUnaryExpression(
-                    SyntaxKind.AwaitExpression,
+                    SyntaxKind.AwaitExpression, 
                     invocation).WithAdditionalAnnotations(Formatter.Annotation);
             }
 
