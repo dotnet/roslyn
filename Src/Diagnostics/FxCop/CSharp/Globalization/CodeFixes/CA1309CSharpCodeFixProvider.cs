@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
     [ExportCodeFixProvider(CA1309DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
     public class CA1309CSharpCodeFixProvider : CA1309CodeFixProviderBase
     {
-        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
+        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             // if nothing can be fixed, return the unchanged node
             var newRoot = root;

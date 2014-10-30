@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
             return ImmutableArray.Create(Interoperability.PInvokeDiagnosticAnalyzer.CA2101);
         }
 
-        protected sealed override string GetCodeFixDescription(string ruleId)
+        protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
             return FxCopFixersResources.SpecifyMarshalingForPInvokeStringArguments;
         }

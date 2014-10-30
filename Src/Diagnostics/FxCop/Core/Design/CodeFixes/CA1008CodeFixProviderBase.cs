@@ -17,35 +17,29 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// </summary>
     public abstract class CA1008CodeFixProviderBase : CodeFixProviderBase
     {
-        // TODO: Fix this code fix provider
-
-        ////private readonly IEnumerable<string> diagnosticIds = ImmutableArray.Create(CA1008DiagnosticAnalyzer.RuleNameRename,
-        ////                                                                           CA1008DiagnosticAnalyzer.RuleNameMultipleZero,
-        ////                                                                           CA1008DiagnosticAnalyzer.RuleNameNoZeroValue);
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            ////return diagnosticIds;
-            return ImmutableArray<string>.Empty;
+            return ImmutableArray.Create(CA1008DiagnosticAnalyzer.RuleId);
         }
 
-        protected sealed override string GetCodeFixDescription(string ruleId)
+        protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
-            ////switch (ruleId)
-            ////{
-            ////    case CA1008DiagnosticAnalyzer.RuleNameRename:
-            ////        return FxCopFixersResources.EnumsShouldZeroValueFlagsRenameCodeFix;
+            foreach (var customTag in diagnostic.CustomTags)
+            {
+                switch (customTag)
+                {
+                    case CA1008DiagnosticAnalyzer.RuleRenameCustomTag:
+                        return FxCopFixersResources.EnumsShouldZeroValueFlagsRenameCodeFix;
 
-            ////    case CA1008DiagnosticAnalyzer.RuleNameMultipleZero:
-            ////        return FxCopFixersResources.EnumsShouldZeroValueFlagsMultipleZeroCodeFix;
+                    case CA1008DiagnosticAnalyzer.RuleMultipleZeroCustomTag:
+                        return FxCopFixersResources.EnumsShouldZeroValueFlagsMultipleZeroCodeFix;
 
-            ////    case CA1008DiagnosticAnalyzer.RuleNameNoZeroValue:
-            ////        return FxCopFixersResources.EnumsShouldZeroValueNotFlagsNoZeroValueCodeFix;
+                    case CA1008DiagnosticAnalyzer.RuleNoZeroCustomTag:
+                        return FxCopFixersResources.EnumsShouldZeroValueNotFlagsNoZeroValueCodeFix;
+                }
+            }
 
-            ////    default:
-            ////        throw ExceptionUtilities.Unreachable;
-            ////}
-
-            throw new NotImplementedException();
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal abstract SyntaxNode GetFieldInitializer(IFieldSymbol field);
@@ -66,39 +60,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 originalField.Type, originalField.Name, originalField.HasConstantValue, originalField.ConstantValue, newInitializer);
         }
 
-        private IList<ISymbol> GetNewFieldsForRuleNameRename(INamedTypeSymbol enumType, IFieldSymbol zeroValuedField)
+        private async Task<Document> GetUpdatedDocumentForRuleNameRenameAsync(Document document, IFieldSymbol field, CancellationToken cancellationToken)
         {
-            // Diagnostic: In enum '{0}', change the name of '{1}' to 'None'.
-            // Fix: Rename zero-valued enum field to 'None'.
-
-            var newFields = new List<ISymbol>();
-            foreach (IFieldSymbol field in enumType.GetMembers().Where(m => m.Kind == SymbolKind.Field))
-            {
-                if (field != zeroValuedField)
-                {
-                    newFields.Add(field);
-                }
-                else
-                {
-                    var newInitializer = GetFieldInitializer(field);
-                    var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(field.GetAttributes(), field.DeclaredAccessibility, field.GetSymbolModifiers(),
-                        field.Type, "None", field.HasConstantValue, field.ConstantValue, newInitializer);
-                    newFields.Add(newField);
-                }
-            }
-
-            return newFields;
-        }
-
-        private Task<Document> GetUpdatedDocumentForRuleNameRename(Document document, SyntaxNode root, SyntaxNode nodeToFix, INamedTypeSymbol enumType, IEnumerable<IFieldSymbol> zeroValuedFields, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(zeroValuedFields.Count() == 1);
-            var zeroValuedField = zeroValuedFields.Single();
-
-            Contract.ThrowIfTrue(CA1008DiagnosticAnalyzer.IsMemberNamedNone(zeroValuedField));
-
-            var newFields = GetNewFieldsForRuleNameRename(enumType, zeroValuedField);
-            return GetUpdatedDocumentWithFix(document, root, nodeToFix, newFields, cancellationToken);
+            var newSolution = await Rename.Renamer.RenameSymbolAsync(document.Project.Solution, field, "None", null).ConfigureAwait(false);
+            return newSolution.GetDocument(document.Id);
         }
 
         private IList<ISymbol> GetNewFieldsForRuleNameMultipleZero(INamedTypeSymbol enumType, IEnumerable<IFieldSymbol> zeroValuedFields, SyntaxGenerator syntaxFactoryService)
@@ -151,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             return newFields;
         }
 
-        private Task<Document> GetUpdatedDocumentForRuleNameMultipleZero(Document document, SyntaxNode root, SyntaxNode nodeToFix, INamedTypeSymbol enumType, IEnumerable<IFieldSymbol> zeroValuedFields, CancellationToken cancellationToken)
+        private Document GetUpdatedDocumentForRuleNameMultipleZero(Document document, SyntaxNode root, SyntaxNode nodeToFix, INamedTypeSymbol enumType, IEnumerable<IFieldSymbol> zeroValuedFields, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(zeroValuedFields.Count() > 1);
 
@@ -183,42 +148,50 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             return newFields;
         }
 
-        private Task<Document> GetUpdatedDocumentForRuleNameNoZeroValue(Document document, SyntaxNode root, SyntaxNode nodeToFix, INamedTypeSymbol enumType, CancellationToken cancellationToken)
+        private Document GetUpdatedDocumentForRuleNameNoZeroValue(Document document, SyntaxNode root, SyntaxNode nodeToFix, INamedTypeSymbol enumType, CancellationToken cancellationToken)
         {
             var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
             var newFields = GetNewFieldsForRuleNameNoZeroValue(enumType, syntaxFactoryService);
             return GetUpdatedDocumentWithFix(document, root, nodeToFix, newFields, cancellationToken);
         }
 
-        private Task<Document> GetUpdatedDocumentWithFix(Document document, SyntaxNode root, SyntaxNode nodeToFix, IList<ISymbol> newFields, CancellationToken cancellationToken)
+        protected virtual SyntaxNode GetParentNodeOrSelfToFix(SyntaxNode nodeToFix)
         {
+            return nodeToFix;
+        }
+
+        private Document GetUpdatedDocumentWithFix(Document document, SyntaxNode root, SyntaxNode nodeToFix, IList<ISymbol> newFields, CancellationToken cancellationToken)
+        {
+            nodeToFix = GetParentNodeOrSelfToFix(nodeToFix);
             var newEnumSyntax = CodeGenerator.UpdateDeclarationMembers(nodeToFix, document.Project.Solution.Workspace, newFields, cancellationToken: cancellationToken)
                 .WithAdditionalAnnotations(Formatting.Formatter.Annotation);
             var newRoot = root.ReplaceNode(nodeToFix, newEnumSyntax);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return document.WithSyntaxRoot(newRoot);
         }
 
-        internal sealed override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
+        internal sealed override async Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var enumType = model.GetDeclaredSymbol(nodeToFix, cancellationToken) as INamedTypeSymbol;
-            Contract.ThrowIfNull(enumType);
+            ISymbol declaredSymbol = model.GetDeclaredSymbol(nodeToFix, cancellationToken);
+            Contract.ThrowIfNull(declaredSymbol);
 
-            switch (diagnosticId)
+            foreach (var customTag in diagnostic.CustomTags)
             {
-                ////case CA1008DiagnosticAnalyzer.RuleNameRename:
-                ////    var zeroValuedFields = CA1008DiagnosticAnalyzer.GetZeroValuedFields(enumType);
-                ////    return GetUpdatedDocumentForRuleNameRename(document, root, nodeToFix, enumType, zeroValuedFields, cancellationToken);
+                switch (customTag)
+                {
+                    case CA1008DiagnosticAnalyzer.RuleRenameCustomTag:
+                        return await GetUpdatedDocumentForRuleNameRenameAsync(document, (IFieldSymbol)declaredSymbol, cancellationToken).ConfigureAwait(false);
 
-                ////case CA1008DiagnosticAnalyzer.RuleNameMultipleZero:
-                ////    zeroValuedFields = CA1008DiagnosticAnalyzer.GetZeroValuedFields(enumType);
-                ////    return GetUpdatedDocumentForRuleNameMultipleZero(document, root, nodeToFix, enumType, zeroValuedFields, cancellationToken);
+                    case CA1008DiagnosticAnalyzer.RuleMultipleZeroCustomTag:
+                        var enumType = (INamedTypeSymbol)declaredSymbol;
+                        var zeroValuedFields = CA1008DiagnosticAnalyzer.GetZeroValuedFields(enumType);
+                        return GetUpdatedDocumentForRuleNameMultipleZero(document, root, nodeToFix, enumType, zeroValuedFields, cancellationToken);
 
-                ////case CA1008DiagnosticAnalyzer.RuleNameNoZeroValue:
-                ////    return GetUpdatedDocumentForRuleNameNoZeroValue(document, root, nodeToFix, enumType, cancellationToken);
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
+                    case CA1008DiagnosticAnalyzer.RuleNoZeroCustomTag:
+                        return GetUpdatedDocumentForRuleNameNoZeroValue(document, root, nodeToFix, (INamedTypeSymbol)declaredSymbol, cancellationToken);
+                }
             }
+
+            return document;
         }
     }
 }

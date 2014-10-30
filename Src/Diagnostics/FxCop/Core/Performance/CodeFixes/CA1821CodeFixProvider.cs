@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
             return ImmutableArray.Create(CA1821DiagnosticAnalyzerRule.RuleId);
         }
 
-        protected sealed override string GetCodeFixDescription(string ruleId)
+        protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
             return FxCopFixersResources.RemoveEmptyFinalizers;
         }
 
-        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
+        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             return Task.FromResult(document.WithSyntaxRoot(root.RemoveNode(nodeToFix, SyntaxRemoveOptions.KeepNoTrivia)));
         }

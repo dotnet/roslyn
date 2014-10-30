@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
             return ImmutableArray.Create(CA1813DiagnosticAnalyzer.RuleId);
         }
 
-        protected sealed override string GetCodeFixDescription(string ruleId)
+        protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
             return FxCopFixersResources.AvoidUnsealedAttributesCodeFix;
         }

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Performance
     Public Class CA1813BasicCodeFixProvider
         Inherits CA1813CodeFixProviderBase
 
-        Friend Overrides Function GetUpdatedDocumentAsync(document As Document, model As SemanticModel, root As SyntaxNode, nodeToFix As SyntaxNode, diagnosticId As String, cancellationToken As CancellationToken) As Task(Of Document)
+        Friend Overrides Function GetUpdatedDocumentAsync(document As Document, model As SemanticModel, root As SyntaxNode, nodeToFix As SyntaxNode, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Document)
             Dim attributeStatementSyntax = TryCast(nodeToFix, ClassStatementSyntax)
             If attributeStatementSyntax IsNot Nothing Then
                 ' TODO : Organize the modifiers list after adding sealed modifier.

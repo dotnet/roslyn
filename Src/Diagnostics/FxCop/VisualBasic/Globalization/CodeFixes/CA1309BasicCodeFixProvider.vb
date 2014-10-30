@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
     Public Class CA1309BasicCodeFixProvider
         Inherits CA1309CodeFixProviderBase
 
-        Friend Overrides Function GetUpdatedDocumentAsync(document As Document, model As SemanticModel, root As SyntaxNode, nodeToFix As SyntaxNode, diagnosticId As String, cancellationToken As CancellationToken) As Task(Of Document)
+        Friend Overrides Function GetUpdatedDocumentAsync(document As Document, model As SemanticModel, root As SyntaxNode, nodeToFix As SyntaxNode, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Document)
             ' if nothing can be fixed, return the unchanged node
             Dim newRoot = root
             Dim kind = nodeToFix.VBKind()

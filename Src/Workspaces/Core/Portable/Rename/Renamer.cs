@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            optionSet = optionSet ?? solution.Workspace.Options;
             var renameLocationSet = await RenameLocationSet.FindAsync(symbol, solution, optionSet, cancellationToken).ConfigureAwait(false);
             var conflictResolution = await ConflictEngine.ConflictResolver.ResolveConflictsAsync(renameLocationSet, symbol.Name, newName, optionSet, cancellationToken).ConfigureAwait(false);
 

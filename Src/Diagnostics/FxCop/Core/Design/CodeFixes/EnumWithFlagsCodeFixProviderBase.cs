@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             return diagnosticIds;
         }
 
-        protected sealed override string GetCodeFixDescription(string ruleId)
+        protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
-            return ruleId == EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags ?
+            return diagnostic.Id == EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags ?
                 FxCopFixersResources.MarkEnumsWithFlagsCodeFix :
                 FxCopFixersResources.DoNotMarkEnumsWithFlagsCodeFix;
         }
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             return root.ReplaceNode(nodeToFix, newEnumTypeSyntax);
         }
 
-        internal sealed override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
+        internal sealed override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var flagsAttributeType = WellKnownTypes.FlagsAttribute(model.Compilation);
             Contract.ThrowIfNull(flagsAttributeType);
 
             var workspace = document.Project.Solution.Workspace;
-            var newEnumBlockSyntax = diagnosticId == EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags ?
+            var newEnumBlockSyntax = diagnostic.Id == EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags ?
                 AddFlagsAttribute(workspace, nodeToFix, flagsAttributeType, cancellationToken) :
                 RemoveFlagsAttribute(workspace, model, nodeToFix, flagsAttributeType, cancellationToken);
 

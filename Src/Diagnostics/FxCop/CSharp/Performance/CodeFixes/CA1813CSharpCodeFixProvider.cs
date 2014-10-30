@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Performance
     [ExportCodeFixProvider(CA1813DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
     public class CA1813CSharpCodeFixProvider : CA1813CodeFixProviderBase
     {
-        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
+        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var attributeSyntax = nodeToFix as ClassDeclarationSyntax;
             if (attributeSyntax != null)

@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             return ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2229Id);
         }
 
-        protected sealed override string GetCodeFixDescription(string ruleId)
+        protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
             return FxCopFixersResources.ImplementSerializationConstructor;
         }
 
-        internal async override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
+        internal async override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
 

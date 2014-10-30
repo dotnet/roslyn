@@ -26,5 +26,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
         Friend Overrides Function CreateConstantValueInitializer(constantValueExpression As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.EqualsValue(DirectCast(constantValueExpression, ExpressionSyntax))
         End Function
+
+        Protected Overrides Function GetParentNodeOrSelfToFix(nodeToFix As SyntaxNode) As SyntaxNode
+            If nodeToFix.IsKind(SyntaxKind.EnumStatement) And nodeToFix.Parent IsNot Nothing Then
+                Return nodeToFix.Parent
+            End If
+
+            Return nodeToFix
+        End Function
     End Class
 End Namespace

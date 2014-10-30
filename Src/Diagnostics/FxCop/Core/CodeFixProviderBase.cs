@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
 {
     public abstract class CodeFixProviderBase : CodeFixProvider
     {
-        protected abstract string GetCodeFixDescription(string ruleId);
+        protected abstract string GetCodeFixDescription(Diagnostic diagnostic);
 
-        internal abstract Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken);
+        internal abstract Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeFixesAsync(CodeFixContext context)
         {
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
 
                 var nodeToFix = root.FindNode(diagnostic.Location.SourceSpan);
 
-                var newDocument = await GetUpdatedDocumentAsync(document, model, root, nodeToFix, diagnostic.Id, cancellationToken).ConfigureAwait(false);
+                var newDocument = await GetUpdatedDocumentAsync(document, model, root, nodeToFix, diagnostic, cancellationToken).ConfigureAwait(false);
 
                 Debug.Assert(newDocument != null);
                 if (newDocument != document)
                 {
-                    var codeFixDescription = GetCodeFixDescription(diagnostic.Id);
+                    var codeFixDescription = GetCodeFixDescription(diagnostic);
                     context.RegisterFix(new MyCodeAction(codeFixDescription, newDocument), diagnostic);
                 }
             }

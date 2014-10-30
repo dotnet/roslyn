@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
@@ -35,6 +36,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         */
 
         internal const string RuleId = "CA1008";
+        internal const string RuleRenameCustomTag = "RuleRename";
+        internal const string RuleMultipleZeroCustomTag = "RuleMultipleZero";
+        internal const string RuleNoZeroCustomTag = "RuleNoZero";
 
         internal static DiagnosticDescriptor RuleRename = new DiagnosticDescriptor(RuleId,
                                                                        FxCopRulesResources.EnumsShouldHaveZeroValue,
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                        isEnabledByDefault: true,
                                                                        description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
                                                                        helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
-                                                                       customTags: DiagnosticCustomTags.Microsoft);
+                                                                       customTags: DiagnosticCustomTags.Microsoft.Concat(RuleRenameCustomTag).ToArray());
 
         internal static DiagnosticDescriptor RuleMultipleZero = new DiagnosticDescriptor(RuleId,
                                                                FxCopRulesResources.EnumsShouldHaveZeroValue,
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                isEnabledByDefault: true,
                                                                description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
                                                                helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
-                                                               customTags: DiagnosticCustomTags.Microsoft);
+                                                               customTags: DiagnosticCustomTags.Microsoft.Concat(RuleMultipleZeroCustomTag).ToArray());
 
         internal static DiagnosticDescriptor RuleNoZero = new DiagnosticDescriptor(RuleId,
                                                                FxCopRulesResources.EnumsShouldHaveZeroValue,
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                isEnabledByDefault: true,
                                                                description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
                                                                helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
-                                                               customTags: DiagnosticCustomTags.Microsoft);
+                                                               customTags: DiagnosticCustomTags.Microsoft.Concat(RuleNoZeroCustomTag).ToArray());
 
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(RuleRename, RuleMultipleZero, RuleNoZero);
 
@@ -137,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        private static IEnumerable<IFieldSymbol> GetZeroValuedFields(INamedTypeSymbol enumType)
+        internal static IEnumerable<IFieldSymbol> GetZeroValuedFields(INamedTypeSymbol enumType)
         {
             var specialType = enumType.EnumUnderlyingType.SpecialType;
             foreach (IFieldSymbol field in enumType.GetMembers().Where(m => m.Kind == SymbolKind.Field))

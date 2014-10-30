@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     [ExportCodeFixProvider(CA1001DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
     public class CA1001CSharpCodeFixProvider : CA1001CodeFixProviderBase
     {
-        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
+        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             //// We are going to implement IDisposable interface:
             ////

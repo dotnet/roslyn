@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             return ImmutableArray.Create(CA1012DiagnosticAnalyzer.RuleId);
         }
 
-        protected sealed override string GetCodeFixDescription(string ruleId)
+        protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
             return FxCopFixersResources.AbstractTypesShouldNotHavePublicConstructorsCodeFix;
         }
 
-        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
+        internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var classSymbol = (INamedTypeSymbol)model.GetDeclaredSymbol(nodeToFix);
             var instanceConstructors = classSymbol.InstanceConstructors.Where(t => t.DeclaredAccessibility == Accessibility.Public).Select(t => t.DeclaringSyntaxReferences[0].GetSyntax());

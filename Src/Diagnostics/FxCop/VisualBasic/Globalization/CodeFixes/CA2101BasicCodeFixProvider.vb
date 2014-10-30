@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
     Public Class CA2101BasicCodeFixProvider
         Inherits CA2101CodeFixProviderBase
 
-        Friend Overrides Function GetUpdatedDocumentAsync(document As Document, model As SemanticModel, root As SyntaxNode, nodeToFix As SyntaxNode, diagnosticId As String, cancellationToken As CancellationToken) As Task(Of Document)
+        Friend Overrides Function GetUpdatedDocumentAsync(document As Document, model As SemanticModel, root As SyntaxNode, nodeToFix As SyntaxNode, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Document)
             cancellationToken.ThrowIfCancellationRequested()
             Dim charSetType = WellKnownTypes.CharSet(model.Compilation)
             Dim dllImportType = WellKnownTypes.DllImportAttribute(model.Compilation)
