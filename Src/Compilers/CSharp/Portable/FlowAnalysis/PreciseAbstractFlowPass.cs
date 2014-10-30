@@ -2237,6 +2237,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
         {
+            var savedState = this.State;
+            SetState(UnreachableState());
+            Visit(node.Argument);
+            SetState(savedState);
             return null;
         }
 

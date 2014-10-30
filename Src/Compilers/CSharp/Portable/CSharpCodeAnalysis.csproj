@@ -73,6 +73,7 @@
     <Compile Include="Binder\Binder_Flags.cs" />
     <Compile Include="Binder\Binder_Initializers.cs" />
     <Compile Include="Binder\Binder_InterpolatedString.cs" />
+    <Compile Include="Binder\Binder_Invocation.cs" />
     <Compile Include="Binder\Binder_Lambda.cs" />
     <Compile Include="Binder\Binder_Lookup.cs" />
     <Compile Include="Binder\Binder_NameConflicts.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="Binder\LookupSymbolsInfo.cs" />
     <Compile Include="Binder\LoopBinderContext.cs" />
     <Compile Include="Binder\MethodGroupResolution.cs" />
+    <Compile Include="Binder\NameofBinder.cs" />
     <Compile Include="Binder\NamespaceOrTypeAndUsingDirective.cs" />
     <Compile Include="Binder\Semantics\AccessCheck.cs" />
     <Compile Include="Binder\Semantics\BestTypeInferrer.cs" />

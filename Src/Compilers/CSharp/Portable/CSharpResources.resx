@@ -3973,4 +3973,16 @@
   <data name="ERR_InsufficientStack" xml:space="preserve">
     <value>An expression is too long or complex to compile</value>
   </data>
+  <data name="ERR_ExpressionHasNoName" xml:space="preserve">
+    <value>Expression does not have a name.</value>
+  </data>
+  <data name="ERR_SubexpressionNotInNameof" xml:space="preserve">
+    <value>Sub-expression cannot be used in an argument to nameof.</value>
+  </data>
+  <data name="ERR_AliasQualifiedNameNotAnExpression" xml:space="preserve">
+    <value>An alias-qualified name is not an expression.</value>
+  </data>
+  <data name="ERR_NameofMethodGroupWithTypeParameters" xml:space="preserve">
+    <value>Type parameters are not allowed on a method group as an argument to 'nameof'.</value>
+  </data>
 </root>

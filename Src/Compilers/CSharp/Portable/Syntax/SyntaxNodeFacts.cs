@@ -354,12 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     return syntax.IsMissing;
 
-                // An expression of the syntactic form nameof(X) might be an invocation expresession (allowed)
-                // or it might be a nameof operator (disallowed). We allow it here and check separately for the
-                // error case.
-                case SyntaxKind.NameOfExpression:
-                    return true;
-
                 // TODO: The native implementation also disallows delegate
                 // creation expressions with the ERR_IllegalStatement error, 
                 // so that needs to go into the semantic analysis somewhere

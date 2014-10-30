@@ -1280,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8060-8069
         ERR_SwitchFallOut = 8070,
-        ERR_UnexpectedBoundGenericName = 8071, // for nameof
+        // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
         ERR_NullPropagatingOpInExpressionTree = 8072,
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
@@ -1288,8 +1288,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnclosedExpressionHole = 8076,
         ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,
-
         ERR_UseDefViolationProperty = 8079,
         ERR_AutoPropertyMustOverrideSet = 8080,
+        ERR_ExpressionHasNoName = 8081,
+        ERR_SubexpressionNotInNameof = 8082,
+        ERR_AliasQualifiedNameNotAnExpression = 8083,
+        ERR_NameofMethodGroupWithTypeParameters = 8084,
     }
 }

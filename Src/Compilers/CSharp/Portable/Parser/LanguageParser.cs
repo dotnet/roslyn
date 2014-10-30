@@ -6468,12 +6468,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool IsPossibleNameOfExpression()
-        {
-            return this.CurrentToken.ContextualKind == SyntaxKind.NameOfKeyword &&
-                   this.PeekToken(1).Kind == SyntaxKind.OpenParenToken && this.PeekToken(2).Kind != SyntaxKind.CloseParenToken;
-        }
-
         private bool IsPossibleLabeledStatement()
         {
             return this.PeekToken(1).Kind == SyntaxKind.ColonToken && this.IsTrueIdentifier();
@@ -7609,30 +7603,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return syntaxFactory.YieldStatement(kind, yieldToken, returnOrBreak, arg, semi);
         }
 
-        private ExpressionSyntax ParseNameOfExpression()
-        {
-            ExpressionSyntax result;
-            var identifier = this.ParseIdentifierName();
-            var resetPoint = this.GetResetPoint();
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var type = this.ParseTypeName();
-            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-
-            if (type.ContainsDiagnostics || closeParen.IsMissing)
-            {
-                // The argument is not parsed as a TypeSyntax, or the following token is not CloseParenToken. 
-                // In this case, come back to the reset point and parse it as an invocation expression.
-                this.Reset(ref resetPoint);
-                result = syntaxFactory.InvocationExpression(identifier, this.ParseParenthesizedArgumentList());
-            }
-            else
-            {
-                result = syntaxFactory.NameOfExpression(identifier, openParen, type, closeParen);
-            }
-            this.Release(ref resetPoint);
-            return result;
-        }
-
         private SwitchStatementSyntax ParseSwitchStatement()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.SwitchKeyword);
@@ -8176,7 +8146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
                 case SyntaxKind.AwaitExpression:
-                case SyntaxKind.NameOfExpression:
                     return 13;
                 case SyntaxKind.CastExpression:
                     return 14;
@@ -8465,10 +8434,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         else if (this.IsPossibleLambdaExpression(precedence))
                         {
                             expr = this.ParseLambdaExpression();
-                        }
-                        else if (this.IsPossibleNameOfExpression())
-                        {
-                            expr = this.ParseNameOfExpression();
                         }
                         else
                         {

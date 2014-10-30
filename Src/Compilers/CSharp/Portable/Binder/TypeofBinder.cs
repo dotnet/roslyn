@@ -38,47 +38,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.allowedMap != null && this.allowedMap.TryGetValue(syntax, out allowed) && allowed;
         }
 
-        /// <summary>
-        /// Returns the list of the symbols which represent the argument of the nameof operator. Ambiguities are not an error for the nameof.
-        /// </summary>
-        internal ImmutableArray<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, DiagnosticBag diagnostics, bool isAliasQualified, out bool hasErrors)
-        {
-            ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
-            Symbol container = null;
-            hasErrors = false;
+        /////// <summary>
+        /////// Returns the list of the symbols which represent the argument of the nameof operator. Ambiguities are not an error for the nameof.
+        /////// </summary>
+        ////internal ImmutableArray<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, DiagnosticBag diagnostics, bool isAliasQualified, out bool hasErrors)
+        ////{
+        ////    ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
+        ////    Symbol container = null;
+        ////    hasErrors = false;
 
-            // We treat the AliasQualified syntax different than the rest. We bind the whole part for the alias.
-            if (isAliasQualified)
-            {
-                container = BindNamespaceAliasSymbol((IdentifierNameSyntax)left, diagnostics);
-                var aliasSymbol = container as AliasSymbol;
-                if (aliasSymbol != null) container = aliasSymbol.Target;
-                if (container.Kind == SymbolKind.NamedType)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, left.Location, left);
-                    hasErrors = true;
-                    return symbols.ToImmutableAndFree();
-                }
-            }
-            // If it isn't AliasQualified, we first bind the left part, and then bind the right part as a simple name.
-            else if (left != null)
-            {
-                // We use OriginalDefinition because of the unbound generic names such as List<>, Dictionary<,>.
-                container = BindNamespaceOrTypeSymbol(left, diagnostics, null, false).OriginalDefinition;
-            }
+        ////    // We treat the AliasQualified syntax different than the rest. We bind the whole part for the alias.
+        ////    if (isAliasQualified)
+        ////    {
+        ////        container = BindNamespaceAliasSymbol((IdentifierNameSyntax)left, diagnostics);
+        ////        var aliasSymbol = container as AliasSymbol;
+        ////        if (aliasSymbol != null) container = aliasSymbol.Target;
+        ////        if (container.Kind == SymbolKind.NamedType)
+        ////        {
+        ////            diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, left.Location, left);
+        ////            hasErrors = true;
+        ////            return symbols.ToImmutableAndFree();
+        ////        }
+        ////    }
+        ////    // If it isn't AliasQualified, we first bind the left part, and then bind the right part as a simple name.
+        ////    else if (left != null)
+        ////    {
+        ////        // We use OriginalDefinition because of the unbound generic names such as List<>, Dictionary<,>.
+        ////        container = BindNamespaceOrTypeSymbol(left, diagnostics, null, false).OriginalDefinition;
+        ////    }
 
-            this.BindNonGenericSimpleName(right, diagnostics, null, false, (NamespaceOrTypeSymbol)container, isNameofArgument: true, symbols: symbols);
-            if (CheckUsedBeforeDeclarationIfLocal(symbols, right))
-            {
-                Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, right, right);
-                hasErrors = true;
-            }
-            else if (symbols.Count == 0)
-            {
-                hasErrors = true;
-            }
-            return symbols.ToImmutableAndFree();
-        }
+        ////    this.BindNonGenericSimpleName(right, diagnostics, null, false, (NamespaceOrTypeSymbol)container, isNameofArgument: true, symbols: symbols);
+        ////    if (CheckUsedBeforeDeclarationIfLocal(symbols, right))
+        ////    {
+        ////        Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, right, right);
+        ////        hasErrors = true;
+        ////    }
+        ////    else if (symbols.Count == 0)
+        ////    {
+        ////        hasErrors = true;
+        ////    }
+        ////    return symbols.ToImmutableAndFree();
+        ////}
 
         /// <summary>
         /// This visitor walks over a type expression looking for open types.

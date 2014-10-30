@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // Is the given node being bound as a nameof(...) operator?
+        protected virtual bool IsNameofArgument(SyntaxNode node)
+        {
+            return false;
+        }
+
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
