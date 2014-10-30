@@ -149,8 +149,12 @@ namespace Microsoft.Cci
 
             var module = peWriter.Context.Module;
 
+            // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
+            // bug #1067635 is fixed and available in SDK.
+            bool suppressNewCustomDebugInfo = peWriter.Context.ModuleBuilder.CommonCompilation.Options.OutputKind == OutputKind.WindowsRuntimeMetadata;
+
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !this.peWriter.IsFullMetadata, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !this.peWriter.IsFullMetadata, suppressNewCustomDebugInfo, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);

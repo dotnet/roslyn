@@ -4150,5 +4150,98 @@ public class C
                 Assert.False(result.Success);
             }
         }
+
+        [Fact, WorkItem(1067635)]
+        public void SuppressDynamicAndEncCDIForWinRT()
+        {
+            var source = @"
+public class C
+{
+    public static void F()
+    {
+        dynamic a = 1;
+        int b = 2;
+        foreach (var x in new[] { 1,2,3 })
+        {
+            System.Console.WriteLine(a * b);
+        }
+    }
+}
+";
+
+            var debug = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugWinMD);
+            debug.VerifyPdb(@"
+<symbols>
+    <methods>
+    <method containingType=""C"" name=""F"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""13"">
+        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x8"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""19"" file_ref=""0"" />
+        <entry il_offset=""0xa"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""16"" file_ref=""0"" />
+        <entry il_offset=""0xb"" start_row=""8"" start_column=""27"" end_row=""8"" end_column=""42"" file_ref=""0"" />
+        <entry il_offset=""0x1f"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x24"" start_row=""8"" start_column=""18"" end_row=""8"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x29"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x2a"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""45"" file_ref=""0"" />
+        <entry il_offset=""0xe6"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xe7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xeb"" start_row=""8"" start_column=""24"" end_row=""8"" end_column=""26"" file_ref=""0"" />
+        <entry il_offset=""0xf4"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals>
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
+        <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
+        <local name=""x"" il_index=""4"" il_start=""0x24"" il_end=""0xe7"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0xf5"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
+        <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
+        <scope startOffset=""0x24"" endOffset=""0xe7"">
+          <local name=""x"" il_index=""4"" il_start=""0x24"" il_end=""0xe7"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+
+            var release = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
+            release.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""9"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x7"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""19"" file_ref=""0"" />
+        <entry il_offset=""0x9"" start_row=""8"" start_column=""27"" end_row=""8"" end_column=""42"" file_ref=""0"" />
+        <entry il_offset=""0x1d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x22"" start_row=""8"" start_column=""18"" end_row=""8"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x26"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""45"" file_ref=""0"" />
+        <entry il_offset=""0xdd"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xe1"" start_row=""8"" start_column=""24"" end_row=""8"" end_column=""26"" file_ref=""0"" />
+        <entry il_offset=""0xea"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals>
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
+        <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0xeb"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
+        <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
     }
 }

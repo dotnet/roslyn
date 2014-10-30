@@ -52,7 +52,7 @@ namespace Microsoft.Cci
             return false;
         }
 
-        public byte[] SerializeMethodDebugInfo(IModule module, IMethodBody methodBody, uint methodToken, bool isEncDelta, out bool emitExternNamespaces)
+        public byte[] SerializeMethodDebugInfo(IModule module, IMethodBody methodBody, uint methodToken, bool isEncDelta, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
         {
             emitExternNamespaces = false;
 
@@ -92,12 +92,15 @@ namespace Microsoft.Cci
                 SerializeIteratorLocalScopes(methodBody, customDebugInfo);
             }
 
-            SerializeDynamicLocalInfo(methodBody, customDebugInfo);
-
-            // delta doesn't need this information - we use information recorded by previous generation emit
-            if (!isEncDelta)
+            if (!suppressNewCustomDebugInfo)
             {
-                GetEncDebugInfo(methodBody.LocalVariables).SerializeCustomDebugInformation(customDebugInfo);
+                SerializeDynamicLocalInfo(methodBody, customDebugInfo);
+
+                // delta doesn't need this information - we use information recorded by previous generation emit
+                if (!isEncDelta)
+                {
+                    GetEncDebugInfo(methodBody.LocalVariables).SerializeCustomDebugInformation(customDebugInfo);
+                }
             }
 
             byte[] result = SerializeCustomDebugMetadata(customDebugInfo);
