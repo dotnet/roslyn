@@ -133,6 +133,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "CS$<>9__CachedAnonymousMethodDelegate" + uniqueId;
         }
 
+        internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string localNameOpt = null)
+        {
+            Debug.Assert((localNameOpt != null) == (kind == SynthesizedLocalKind.UserDefined));
+            Debug.Assert(slotIndex >= 0);
+            Debug.Assert(kind.IsLongLived());
+
+            // Lambda display class local follows a different naming pattern.
+            // EE depends on the name format. 
+            // There's logic in the EE to recognize locals that have been captured by a lambda
+            // and would have been hoisted for the state machine.  Basically, we just hoist the local containing
+            // the instance of the lambda display class and retain its original name (rather than using an
+            // iterator local name).  See FUNCBRECEE::ImportIteratorMethodInheritedLocals.
+
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+            builder.Append('<');
+            if (localNameOpt != null)
+            {
+                Debug.Assert(localNameOpt.IndexOf('.') == -1);
+                builder.Append(localNameOpt);
+            }
+
+            builder.Append('>');
+
+            if (kind == SynthesizedLocalKind.LambdaDisplayClass)
+            {
+                builder.Append((char)GeneratedNameKind.DisplayClassLocalOrField);
+            }
+            else if (kind == SynthesizedLocalKind.UserDefined)
+            {
+                builder.Append((char)GeneratedNameKind.HoistedLocalField);
+            }
+            else
+            {
+                builder.Append('s');
+            }
+
+            builder.Append("__");
+            builder.Append(slotIndex + 1);
+
+            return result.ToStringAndFree();
+        }
+
+        // Extracts the slot index from a name of a field that stores hoisted variables. 
+        // Such a name ends with "__{slot index}". 
+        // Returned slot index is >= 0.
+        internal static bool TryParseHoistedLocalSlotIndex(string fieldName, out int slotIndex)
+        {
+            int lastUnder = fieldName.LastIndexOf('_');
+            if (lastUnder - 1 < 0 || lastUnder == fieldName.Length || fieldName[lastUnder - 1] != '_')
+            {
+                slotIndex = -1;
+                return false;
+            }
+
+            if (int.TryParse(fieldName.Substring(lastUnder + 1), out slotIndex) && slotIndex >= 1)
+            {
+                slotIndex--;
+                return true;
+            }
+
+            slotIndex = -1;
+            return false;
+        }
+
         internal static string MakeCachedFrameInstanceName()
         {
             return "CS$<>9__inst";
@@ -145,13 +210,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Lambda display class local has to be named. EE depends on the name format. 
             if (kind == SynthesizedLocalKind.LambdaDisplayClass)
             {
-                return MakeLambdaDisplayClassStorageName(uniqueId++);
+                return MakeLambdaDisplayLocalName(uniqueId++);
             }
 
             return null;
         }
 
-        internal static string MakeLambdaDisplayClassStorageName(int uniqueId)
+        internal static string MakeLambdaDisplayLocalName(int uniqueId)
         {
             Debug.Assert((char)GeneratedNameKind.DisplayClassLocalOrField == '8');
             return SynthesizedLocalNamePrefix + "<>8__locals" + uniqueId;
@@ -219,13 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>l__initialThreadId";
         }
 
-        internal static string MakeHoistedLocalFieldName(string localName, int localNumber)
-        {
-            Debug.Assert((char)GeneratedNameKind.HoistedLocalField == '5');
-            Debug.Assert(localName == EnsureNoDotsInName(localName));
-            return "<" + localName + ">5__" + localNumber;
-        }
-
         internal static string ThisProxyName()
         {
             Debug.Assert((char)GeneratedNameKind.ThisProxy == '4');
@@ -262,7 +320,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string AsyncAwaiterFieldName(int number)
         {
-            return "<>u__$awaiter" + number;
+            return "<>u__" + number;
+        }
+
+        internal static bool IsAsyncAwaiterFieldName(string name)
+        {
+            return name.StartsWith("<>u__", StringComparison.Ordinal);
         }
 
         internal static string ReusableHoistedLocalFieldName(int number)

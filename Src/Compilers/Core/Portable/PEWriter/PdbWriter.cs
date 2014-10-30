@@ -87,7 +87,7 @@ namespace Microsoft.Cci
         {
             Debug.Assert(peWriter != null);
 
-            bool isIterator = methodBody.IteratorClassName != null;
+            bool isIterator = methodBody.StateMachineTypeName != null;
             bool emitDebugInfo = isIterator || methodBody.HasAnyLocations;
 
             if (!emitDebugInfo)

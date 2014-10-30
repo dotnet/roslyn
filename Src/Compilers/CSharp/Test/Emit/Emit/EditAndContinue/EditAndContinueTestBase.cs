@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities.Pdb;
@@ -20,7 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public abstract class EditAndContinueTestBase : EmitMetadataTestBase
     {
+        // PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
+        protected readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
+
         internal static readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EmptyLocalsProvider = handle => default(EditAndContinueMethodDebugInformation);
+
+        internal static string Visualize(ModuleMetadata baseline, PinnedMetadata delta)
+        {
+            var result = new StringWriter();
+            new MetadataVisualizer(new[] { baseline.MetadataReader, delta.Reader }, result).VisualizeAllGenerations();
+            return result.ToString();
+        }
 
         internal static ImmutableArray<SyntaxNode> GetAllLocals(MethodSymbol method)
         {

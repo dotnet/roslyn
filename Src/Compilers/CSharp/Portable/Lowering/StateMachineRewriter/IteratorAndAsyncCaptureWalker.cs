@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -22,10 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal sealed class IteratorAndAsyncCaptureWalker : DataFlowPass
     {
-        // The analyzer collects captured variables and their usages. The syntax locations are used to report errors.
-        private readonly MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+        // In Release builds we hoist only variables (locals and parameters) that are captured. 
+        // This set will contain such variables after the bound tree is visited.
+        private readonly OrderedSet<Symbol> variablesToHoist;
 
-        private bool seenYieldInCurrentTry = false;
+        // Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
+        // The value is a list of all uses of each such variable.
+        private MultiDictionary<Symbol, CSharpSyntaxNode> lazyDisallowedCaptures;
+
+        private bool seenYieldInCurrentTry;
 
         private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, NeverEmptyStructTypeCache emptyStructCache, HashSet<Symbol> initiallyAssignedVariables)
             : base(compilation, 
@@ -35,9 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                   trackUnassignments: true, 
                   initiallyAssignedVariables: initiallyAssignedVariables)
         {
+            this.variablesToHoist = new OrderedSet<Symbol>();
         }
 
-        public static MultiDictionary<Symbol, CSharpSyntaxNode> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node)
+        // Returns deterministically ordered list of variables that ought to be hoisted.
+        public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
         {
             var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node);
             var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, new NeverEmptyStructTypeCache(), initiallyAssignedVariables);
@@ -45,17 +53,89 @@ namespace Microsoft.CodeAnalysis.CSharp
             walker.Analyze(ref badRegion);
             Debug.Assert(!badRegion);
 
-            var result = walker.variablesCaptured;
-
             if (!method.IsStatic && method.ContainingType.TypeKind == TypeKind.Struct)
             {
                 // It is possible that the enclosing method only *writes* to the enclosing struct, but in that
                 // case it should be considered captured anyway so that we have a proxy for it to write to.
-                result.Add(method.ThisParameter, node.Syntax);
+                walker.CaptureVariable(method.ThisParameter, node.Syntax);
             }
 
+            var variablesToHoist = walker.variablesToHoist;
+            var lazyDisallowedCaptures = walker.lazyDisallowedCaptures;
+            var allVariables = walker.variableBySlot;
+
             walker.Free();
-            return result;
+
+            if (lazyDisallowedCaptures != null)
+            {
+                foreach (var variable in lazyDisallowedCaptures.Keys)
+                {
+                    var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
+
+                    foreach (CSharpSyntaxNode syntax in lazyDisallowedCaptures[variable])
+                    {
+                        // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                        diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                    }
+                }
+            }
+
+            if (compilation.Options.OptimizationLevel != OptimizationLevel.Release)
+            {
+                Debug.Assert(variablesToHoist.Count == 0);
+
+                // In debug build we hoist all locals and parameters:
+                variablesToHoist.AddRange(from v in allVariables
+                                          where v.Symbol != null && HoistInDebugBuild(v.Symbol)
+                                          select v.Symbol);
+            }
+
+            return variablesToHoist;
+        }
+
+        private static int GetVariableSourcePosition(Symbol symbol)
+        {
+            if (symbol.Locations.IsEmpty)
+            {
+                // All user-defined locals and long-lived synthesized variables have to have a position.
+                Debug.Assert(symbol is SynthesizedParameterSymbol || !((LocalSymbol)symbol).SynthesizedKind.IsLongLived());
+
+                // Short-lived locals don't get hoisted to fields, so their order doesn't matter.
+                return -1;
+            }
+
+            return symbol.Locations[0].SourceSpan.Start;
+        }
+
+        private static bool HoistInDebugBuild(Symbol symbol)
+        {
+            // in Debug build hoist all parameters that can be hoisted:
+            if (symbol.Kind == SymbolKind.Parameter)
+            {
+                var parameter = (ParameterSymbol)symbol;
+                return !parameter.Type.IsRestrictedType();
+            }
+
+            if (symbol.Kind == SymbolKind.Local)
+            {
+                LocalSymbol local = (LocalSymbol)symbol;
+
+                if (local.IsConst)
+                {
+                    return false;
+                }
+
+                // hoist all user-defined locals that can be hoisted:
+                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined)
+                {
+                    return !local.Type.IsRestrictedType();
+                }
+
+                // hoist all synthesized variables that have to survive state machine suspension:
+                return local.SynthesizedKind.MustSurviveStateMachineSuspension();
+            }
+
+            return false;
         }
 
         private void MarkLocalsUnassigned()
@@ -95,8 +175,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
-            variablesCaptured.Clear();
+            variablesToHoist.Clear();
+
+            if (lazyDisallowedCaptures != null)
+            {
+                lazyDisallowedCaptures.Clear();
+            }
+
             return base.Scan(ref badRegion);
+        }
+
+        private void CaptureVariable(Symbol variable, CSharpSyntaxNode syntax)
+        {
+            var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
+            if (type.IsRestrictedType())
+            {
+                // error has already been reported:
+                if (variable is SynthesizedLocal)
+                {
+                    return;
+                }
+
+                if (lazyDisallowedCaptures == null)
+                {
+                    lazyDisallowedCaptures = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+                }
+
+                lazyDisallowedCaptures.Add(variable, syntax);
+            }
+            else if (compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+            {
+                variablesToHoist.Add(variable);
+            }
         }
 
         protected override void EnterParameter(ParameterSymbol parameter)
@@ -110,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol is LocalSymbol || symbol is ParameterSymbol)
             {
-                variablesCaptured.Add(symbol, node);
+                CaptureVariable(symbol, node);
             }
         }
 
@@ -123,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
         {
-            variablesCaptured.Add(GetNonFieldSymbol(unassignedSlot), node);
+            CaptureVariable(GetNonFieldSymbol(unassignedSlot), node);
         }
 
         protected override void VisitLvalueParameter(BoundParameter node)
@@ -142,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ParameterSymbol.ContainingSymbol == topLevelMethod)
             {
-                variablesCaptured.Add(node.ParameterSymbol, node.Syntax);
+                CaptureVariable(node.ParameterSymbol, node.Syntax);
             }
         }
 
@@ -151,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.ThisReference)
             {
                 var thisSymbol = topLevelMethod.ThisParameter;
-                variablesCaptured.Add(thisSymbol, node.Syntax);
+                CaptureVariable(thisSymbol, node.Syntax);
             }
 
             return base.VisitFieldAccess(node);
@@ -159,13 +269,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThisReference(BoundThisReference node)
         {
-            variablesCaptured.Add(topLevelMethod.ThisParameter, node.Syntax);
+            CaptureVariable(topLevelMethod.ThisParameter, node.Syntax);
             return base.VisitThisReference(node);
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
-            variablesCaptured.Add(topLevelMethod.ThisParameter, node.Syntax);
+            CaptureVariable(topLevelMethod.ThisParameter, node.Syntax);
             return base.VisitBaseReference(node);
         }
 
@@ -184,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Locals cannot be used to communicate between the finally block and the rest of the method.
                 // So we just capture any outside variables that are used inside.
-                new OutsideVariablesUsedInside(variablesCaptured, this.topLevelMethod).Visit(finallyBlock);
+                new OutsideVariablesUsedInside(this, this.topLevelMethod).Visit(finallyBlock);
             }
 
             base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
@@ -192,14 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class OutsideVariablesUsedInside : BoundTreeWalker
         {
-            private HashSet<Symbol> localsInScope = new HashSet<Symbol>();
-            private readonly MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured;
+            private readonly HashSet<Symbol> localsInScope;
+            private readonly IteratorAndAsyncCaptureWalker analyzer;
             private readonly MethodSymbol topLevelMethod;
 
-            public OutsideVariablesUsedInside(MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured, MethodSymbol topLevelMethod)
+            public OutsideVariablesUsedInside(IteratorAndAsyncCaptureWalker analyzer, MethodSymbol topLevelMethod)
             {
-                this.variablesCaptured = variablesCaptured;
+                this.analyzer = analyzer;
                 this.topLevelMethod = topLevelMethod;
+                this.localsInScope = new HashSet<Symbol>();
             }
 
             public override BoundNode VisitBlock(BoundBlock node)
@@ -261,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)s != null && !localsInScope.Contains(s))
                 {
-                    this.variablesCaptured.Add(s, syntax);
+                    analyzer.CaptureVariable(s, syntax);
                 }
             }
         }

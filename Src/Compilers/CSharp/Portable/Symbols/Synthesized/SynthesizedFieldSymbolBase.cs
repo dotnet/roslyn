@@ -56,11 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Each hoisted iterator/async local has an associated index (1-based).
-        /// </summary>
-        internal abstract int UserDefinedHoistedLocalId { get; }
-
         internal abstract override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         public override string Name

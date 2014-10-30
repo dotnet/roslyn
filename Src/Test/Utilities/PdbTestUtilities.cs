@@ -13,6 +13,11 @@ namespace Roslyn.Test.Utilities
         public static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader symReader, MethodDefinitionHandle handle)
         {
             var cdi = symReader.GetCustomDebugInfo(MetadataTokens.GetToken(handle));
+            if (cdi == null)
+            {
+                return default(EditAndContinueMethodDebugInformation);
+            }
+
             return GetEncMethodDebugInfo(cdi);
         }
 

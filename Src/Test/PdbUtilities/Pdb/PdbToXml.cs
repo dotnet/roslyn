@@ -299,8 +299,8 @@ namespace Roslyn.Test.PdbUtilities
                         case CustomDebugInfoKind.ForwardToModuleInfo:
                             WriteForwardToModuleCustomDebugInfo(version, kind, size, bytes, ref offset);
                             break;
-                        case CustomDebugInfoKind.IteratorLocals:
-                            WriteIteratorLocalsCustomDebugInfo(version, kind, size, bytes, ref offset);
+                        case CustomDebugInfoKind.StateMachineHoistedLocalScopes:
+                            WriteStatemachineHoistedLocalScopesCustomDebugInfo(version, kind, size, bytes, ref offset);
                             break;
                         case CustomDebugInfoKind.ForwardIterator:
                             WriteForwardIteratorCustomDebugInfo(version, kind, size, bytes, ref offset);
@@ -439,28 +439,28 @@ namespace Roslyn.Test.PdbUtilities
         /// <remarks>
         /// Appears when there are locals in iterator methods.
         /// </remarks>
-        private void WriteIteratorLocalsCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private void WriteStatemachineHoistedLocalScopesCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
         {
-            Debug.Assert(kind == CustomDebugInfoKind.IteratorLocals);
+            Debug.Assert(kind == CustomDebugInfoKind.StateMachineHoistedLocalScopes);
 
-            writer.WriteStartElement("iteratorLocals");
+            writer.WriteStartElement("hoistedLocalScopes");
 
             WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
 
-            ImmutableArray<IteratorLocalScope> buckets;
-            CDI.ReadIteratorLocalsRecord(bytes, ref offset, size, out buckets);
+            ImmutableArray<StateMachineHoistedLocalScope> scopes;
+            CDI.ReadStateMachineHoistedLocalScopesRecord(bytes, ref offset, size, out scopes);
 
-            writer.WriteAttributeString("bucketCount", buckets.Length.ToString());
+            writer.WriteAttributeString("count", scopes.Length.ToString());
 
-            foreach (IteratorLocalScope bucket in buckets)
+            foreach (StateMachineHoistedLocalScope scope in scopes)
             {
-                writer.WriteStartElement("bucket");
-                writer.WriteAttributeString("startOffset", AsILOffset(bucket.StartOffset));
-                writer.WriteAttributeString("endOffset", AsILOffset(bucket.EndOffset));
+                writer.WriteStartElement("slot");
+                writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
+                writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
                 writer.WriteEndElement(); //bucket
             }
 
-            writer.WriteEndElement(); //iteratorLocals
+            writer.WriteEndElement();
         }
 
         /// <summary>
@@ -561,19 +561,11 @@ namespace Roslyn.Test.PdbUtilities
                     }
                     else
                     {
-                        int ordinalCount = 0;
-
-                        if ((b & (1 << 7)) != 0)
-                        {
-                            // highest bit set - we have an ordinal
-                            ordinalCount++;
-                        }
-
                         int synthesizedKind = (b & 0x3f) - 1;
-                        if (synthesizedKind == 29) // AwaitByRefSpill
-                        {
-                            ordinalCount++;
-                        }
+                        bool hasOrdinal = (b & (1 << 7)) != 0;
+
+                        // TODO: we don't need subordinals at this point
+                        bool hasSubordinal = false;
 
                         // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
                         int syntaxOffset;
@@ -581,20 +573,20 @@ namespace Roslyn.Test.PdbUtilities
                         syntaxOffset--;
 
                         int ordinal = 0;
-                        bool badOrdinal = ordinalCount >= 1 && !blobReader.TryReadCompressedInteger(out ordinal);
+                        bool badOrdinal = hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal);
 
                         int subordinal = 0;
-                        bool badSubordinal = ordinalCount >= 2 && !blobReader.TryReadCompressedInteger(out subordinal);
+                        bool badSubordinal = hasSubordinal && !blobReader.TryReadCompressedInteger(out subordinal);
 
                         writer.WriteAttributeString("kind", synthesizedKind.ToString());
                         writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
 
-                        if (badOrdinal || ordinal > 0)
+                        if (badOrdinal || hasOrdinal)
                         {
                             writer.WriteAttributeString("ordinal", badOrdinal ? "?" : ordinal.ToString());
                         }
 
-                        if (badSubordinal || subordinal > 0)
+                        if (badSubordinal || hasSubordinal)
                         {
                             writer.WriteAttributeString("subordinal", badSubordinal ? "?" : subordinal.ToString());
                         }

@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LoweredDynamicOperationFactory dynamicFactory;
 
-        private readonly Dictionary<TypeSymbol, FieldSymbol> awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>();
+        private readonly Dictionary<TypeSymbol, FieldSymbol> awaiterFields;
 
         internal AsyncMethodToStateMachineRewriter(
             MethodSymbol method,
@@ -58,10 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
-            IReadOnlySet<Symbol> variablesCaptured,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
+            VariableSlotAllocator slotAllocatorOpt,
+            int nextFreeHoistedLocalSlot,
             DiagnosticBag diagnostics)
-            : base(F, method, state, variablesCaptured, nonReusableLocalProxies, diagnostics, useFinalizerBookkeeping: false)
+            : base(F, method, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics, useFinalizerBookkeeping: false)
         {
             this.method = method;
             this.asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
@@ -74,14 +79,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
 
             this.dynamicFactory = new LoweredDynamicOperationFactory(F);
+            this.awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
         }
 
         private FieldSymbol GetAwaiterField(TypeSymbol awaiterType)
         {
             FieldSymbol result;
+
+            // Awaiters of the same type always share the same slot, regardless of what await expressions they belong to.
+            // Even in case of nested await expressions only one awaiter is active.
+            // So we don't need to tie the awaiter variable to a particular await expression and only use its type 
+            // to find the previous awaiter field.
             if (!awaiterFields.TryGetValue(awaiterType, out result))
             {
-                result = F.StateMachineField(awaiterType, GeneratedNames.AsyncAwaiterFieldName(CompilationState.GenerateTempNumber()), isPublic: true);
+                string fieldName = slotAllocatorOpt?.GetPreviousAwaiter((Cci.ITypeReference)awaiterType);
+
+                if (fieldName == null)
+                {
+                    fieldName = GeneratedNames.AsyncAwaiterFieldName(CompilationState.GenerateTempNumber());
+                }
+
+                result = F.StateMachineField(awaiterType, fieldName);
                 awaiterFields.Add(awaiterType, result);
             }
 

@@ -169,20 +169,16 @@ namespace Roslyn.Utilities.Pdb
         }
 
         /// <summary>
-        /// Appears when iterator locals have to lifted into fields.  Contains a list of buckets with
-        /// start and end offsets (presumably, into IL).
+        /// Scopes of state machine hoisted local variables.
         /// </summary>
-        /// <remarks>
-        /// Appears when there are locals in iterator methods.
-        /// </remarks>
-        public static void ReadIteratorLocalsRecord(byte[] bytes, ref int offset, int size, out ImmutableArray<IteratorLocalScope> buckets)
+        public static void ReadStateMachineHoistedLocalScopesRecord(byte[] bytes, ref int offset, int size, out ImmutableArray<StateMachineHoistedLocalScope> scopes)
         {
             int tempOffset = offset;
 
             var bucketCount = BitConverter.ToInt32(bytes, tempOffset);
             tempOffset += 4;
 
-            var builder = ArrayBuilder<IteratorLocalScope>.GetInstance(bucketCount);
+            var builder = ArrayBuilder<StateMachineHoistedLocalScope>.GetInstance(bucketCount);
             for (int i = 0; i < bucketCount; i++)
             {
                 int startOffset = BitConverter.ToInt32(bytes, tempOffset);
@@ -190,10 +186,10 @@ namespace Roslyn.Utilities.Pdb
                 int endOffset = BitConverter.ToInt32(bytes, tempOffset);
                 tempOffset += 4;
 
-                builder.Add(new IteratorLocalScope(startOffset, endOffset));
+                builder.Add(new StateMachineHoistedLocalScope(startOffset, endOffset));
             }
 
-            buckets = builder.ToImmutableAndFree();
+            scopes = builder.ToImmutableAndFree();
 
             offset += size - CdiRecordHeaderSize;
             Debug.Assert(offset >= tempOffset);
@@ -903,12 +899,12 @@ namespace Roslyn.Utilities.Pdb
         Project,
     }
 
-    internal struct IteratorLocalScope
+    internal struct StateMachineHoistedLocalScope
     {
         public readonly int StartOffset;
         public readonly int EndOffset;
 
-        public IteratorLocalScope(int startoffset, int endOffset)
+        public StateMachineHoistedLocalScope(int startoffset, int endOffset)
         {
             this.StartOffset = startoffset;
             this.EndOffset = endOffset;
@@ -941,7 +937,7 @@ namespace Roslyn.Utilities.Pdb
         UsingInfo = 0,
         ForwardInfo = 1,
         ForwardToModuleInfo = 2,
-        IteratorLocals = 3,
+        StateMachineHoistedLocalScopes = 3,
         ForwardIterator = 4,
         DynamicLocals = 5,
         EditAndContinueLocalSlotMap = 6,

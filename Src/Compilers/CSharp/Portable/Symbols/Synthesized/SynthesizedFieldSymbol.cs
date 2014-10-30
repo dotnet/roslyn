@@ -36,10 +36,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return this.type;
         }
-
-        internal override int UserDefinedHoistedLocalId
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
     }
 }

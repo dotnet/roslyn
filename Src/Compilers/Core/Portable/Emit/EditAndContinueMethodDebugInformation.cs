@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     public struct EditAndContinueMethodDebugInformation
     {
-        internal readonly ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>> LocalSlots;
+        internal readonly ImmutableArray<LocalSlotDebugInfo> LocalSlots;
 
-        internal EditAndContinueMethodDebugInformation(ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>> localSlots)
+        internal EditAndContinueMethodDebugInformation(ImmutableArray<LocalSlotDebugInfo> localSlots)
         {
             this.LocalSlots = localSlots;
         }
@@ -28,28 +28,22 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EditAndContinueMethodDebugInformation(UncompressSlotMap(compressedSlotMap));
         }
 
+        // TODO: remove, we don't need this 
         private static bool HasSubordinal(SynthesizedLocalKind kind)
         {
-            switch (kind)
-            {
-                case SynthesizedLocalKind.AwaitByRefSpill:
-                    return true;
-
-                default:
-                    return false;
-            }
+            return false;
         }
 
         private const byte AlignmentValue = 0xff;
 
-        private unsafe static ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>> UncompressSlotMap(ImmutableArray<byte> compressedSlotMap)
+        private unsafe static ImmutableArray<LocalSlotDebugInfo> UncompressSlotMap(ImmutableArray<byte> compressedSlotMap)
         {
             if (compressedSlotMap.IsDefaultOrEmpty)
             {
-                return default(ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>>);
+                return default(ImmutableArray<LocalSlotDebugInfo>);
             }
 
-            var mapBuilder = ArrayBuilder<ValueTuple<SynthesizedLocalKind, LocalDebugId>>.GetInstance();
+            var mapBuilder = ArrayBuilder<LocalSlotDebugInfo>.GetInstance();
             
             fixed (byte* compressedSlotMapPtr = &compressedSlotMap.ToArray()[0])
             {
@@ -67,46 +61,36 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (b == 0)
                     {
                         // short-lived temp, no info
-                        mapBuilder.Add(ValueTuple.Create(SynthesizedLocalKind.LoweringTemp, default(LocalDebugId)));
+                        mapBuilder.Add(new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, default(LocalDebugId)));
                         continue;
                     }
 
-                    int ordinalCount = 0;
-
-                    if ((b & (1 << 7)) != 0)
-                    {
-                        // highest bit set - we have an ordinal
-                        ordinalCount++;
-                    }
-
                     var kind = (SynthesizedLocalKind)((b & 0x3f) - 1);
-                    if (HasSubordinal(kind))
-                    {
-                        ordinalCount++;
-                    }
+                    bool hasOrdinal = (b & (1 << 7)) != 0;
+                    bool hasSubordinal = HasSubordinal(kind);
 
                     // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
                     int syntaxOffset;
                     if (!blobReader.TryReadCompressedInteger(out syntaxOffset)) 
                     {
-                        return default(ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>>);
+                        return default(ImmutableArray<LocalSlotDebugInfo>);
                     }
 
                     syntaxOffset--;
 
                     int ordinal = 0;
-                    if (ordinalCount >= 1 && (!blobReader.TryReadCompressedInteger(out ordinal) || ordinal > int.MaxValue))
+                    if (hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal))
                     {
-                        return default(ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>>);
+                        return default(ImmutableArray<LocalSlotDebugInfo>);
                     }
 
                     int subordinal = 0;
-                    if (ordinalCount >= 2 && (!blobReader.TryReadCompressedInteger(out subordinal) || subordinal > int.MaxValue))
+                    if (hasSubordinal && !blobReader.TryReadCompressedInteger(out subordinal))
                     {
-                        return default(ImmutableArray<ValueTuple<SynthesizedLocalKind, LocalDebugId>>);
+                        return default(ImmutableArray<LocalSlotDebugInfo>);
                     }
 
-                    mapBuilder.Add(ValueTuple.Create(kind, new LocalDebugId(syntaxOffset, (int)ordinal, (int)subordinal)));
+                    mapBuilder.Add(new LocalSlotDebugInfo(kind, new LocalDebugId(syntaxOffset, ordinal, subordinal)));
                 }
             }
 
@@ -130,38 +114,39 @@ namespace Microsoft.CodeAnalysis.Emit
             uint lengthPosition = cmw.BaseStream.Position;
             cmw.WriteUint(0);
 
-            foreach (ValueTuple<SynthesizedLocalKind, LocalDebugId> localSlot in this.LocalSlots)
+            foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
             {
-                var kind = localSlot.Item1;
+                var kind = localSlot.SynthesizedKind;
+                bool hasOrdinal = localSlot.Id.Ordinal > 0;
+                bool hasSubordinal = HasSubordinal(kind);
 
-                byte b = (byte)(kind.IsLongLived() ? kind + 1 : 0);
-                Debug.Assert((b & (1 << 7)) == 0);
-
-                cmw.WriteByte(b);
-
-                if (b == 0)
+                if (!kind.IsLongLived())
                 {
+                    cmw.WriteByte(0);
                     continue;
                 }
 
-                if (localSlot.Item2.Ordinal != 0)
+                byte b = (byte)(kind + 1);
+                Debug.Assert((b & (1 << 7)) == 0);
+
+                if (hasOrdinal)
                 {
                     b |= 1 << 7;
                 }
 
-                Debug.Assert(HasSubordinal(kind) == (localSlot.Item2.Subordinal != 0));
-                
-                // TODO: Right now all integers are >= -1, but we should not assume that and write Ecma335 compressed int instead.
-                cmw.WriteCompressedUInt(unchecked((uint)(localSlot.Item2.SyntaxOffset + 1)));
+                cmw.WriteByte(b);
 
-                if (localSlot.Item2.Ordinal != 0)
+                // TODO: Right now all integers are >= -1, but we should not assume that and write Ecma335 compressed int instead.
+                cmw.WriteCompressedUInt(unchecked((uint)(localSlot.Id.SyntaxOffset + 1)));
+
+                if (hasOrdinal)
                 {
-                    cmw.WriteCompressedUInt((uint)localSlot.Item2.Ordinal);
+                    cmw.WriteCompressedUInt((uint)localSlot.Id.Ordinal);
                 }
 
-                if (localSlot.Item2.Subordinal != 0)
+                if (hasSubordinal)
                 {
-                    cmw.WriteCompressedUInt((uint)localSlot.Item2.Subordinal);
+                    cmw.WriteCompressedUInt((uint)localSlot.Id.Subordinal);
                 }
             }
 

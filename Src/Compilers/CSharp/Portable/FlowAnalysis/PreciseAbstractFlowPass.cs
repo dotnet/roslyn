@@ -256,13 +256,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [DebuggerHidden]
         public override BoundNode Visit(BoundNode node)
         {
             return VisitAlways(node);
         }
 
-        [DebuggerHidden]
         protected BoundNode VisitAlways(BoundNode node)
         {
             BoundNode result = null;

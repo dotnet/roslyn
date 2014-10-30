@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -195,12 +196,17 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     get { return ImmutableArray<Cci.NamespaceScope>.Empty; }
                 }
 
-                ImmutableArray<Cci.LocalScope> Cci.IMethodBody.IteratorScopes
+                ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
                 {
-                    get { return ImmutableArray<Cci.LocalScope>.Empty; }
+                    get { return default(ImmutableArray<Cci.StateMachineHoistedLocalScope>); }
                 }
 
-                string Cci.IMethodBody.IteratorClassName
+                ImmutableArray<LocalSlotDebugInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
+                {
+                    get { return default(ImmutableArray<LocalSlotDebugInfo>); }
+                }
+
+                string Cci.IMethodBody.StateMachineTypeName
                 {
                     get { return null; }
                 }

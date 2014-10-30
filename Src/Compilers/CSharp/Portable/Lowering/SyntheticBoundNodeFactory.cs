@@ -153,16 +153,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundHoistedFieldAccess(Syntax, field, field.Type);
         }
 
-        public SynthesizedFieldSymbolBase StateMachineField(TypeSymbol fieldType, string name, bool isPublic)
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false)
         {
-            var result = new StateMachineFieldSymbol(CurrentClass, fieldType, name, isPublic);
+            var result = new StateMachineFieldSymbol(CurrentClass, type, name, isPublic);
             AddField(CurrentClass, result);
             return result;
         }
 
-        public SynthesizedFieldSymbolBase StateMachineField(TypeSymbol fieldType, string localName, int userDefinedHoistedLocalId)
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex)
         {
-            var result = new StateMachineFieldSymbol(CurrentClass, fieldType, localName, userDefinedHoistedLocalId);
+            var result = new StateMachineFieldSymbol(CurrentClass, type, name, slotDebugInfo, slotIndex, isPublic: false);
             AddField(CurrentClass, result);
             return result;
         }

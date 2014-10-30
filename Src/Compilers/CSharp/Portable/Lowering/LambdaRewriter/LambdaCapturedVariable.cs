@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -56,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
-                    return GeneratedNames.MakeLambdaDisplayClassStorageName(uniqueId++);
+                    return GeneratedNames.MakeLambdaDisplayLocalName(uniqueId++);
                 }
 
                 if (local.SynthesizedKind == SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal)
                 {
-                    return GeneratedNames.MakeHoistedLocalFieldName(string.Empty, uniqueId++);
+                    return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++);
                 }
             }
 
@@ -83,11 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type);
-        }
-
-        internal override int UserDefinedHoistedLocalId
-        {
-            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)

@@ -24,9 +24,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed class CapturedToFrameSymbolReplacement : CapturedSymbolReplacement
     {
-        public readonly SynthesizedFieldSymbolBase HoistedField;
+        public readonly LambdaCapturedVariable HoistedField;
 
-        public CapturedToFrameSymbolReplacement(SynthesizedFieldSymbolBase hoistedField, bool isReusable)
+        public CapturedToFrameSymbolReplacement(LambdaCapturedVariable hoistedField, bool isReusable)
+            : base(isReusable)
+        {
+            this.HoistedField = hoistedField;
+        }
+
+        public override BoundExpression Replacement(CSharpSyntaxNode node, Func<NamedTypeSymbol, BoundExpression> makeFrame)
+        {
+            var frame = makeFrame(this.HoistedField.ContainingType);
+            var field = this.HoistedField.AsMember((NamedTypeSymbol)frame.Type);
+            return new BoundFieldAccess(node, frame, field, default(ConstantValue));
+        }
+    }
+
+    internal sealed class CapturedToStateMachineFieldReplacement : CapturedSymbolReplacement
+    {
+        public readonly StateMachineFieldSymbol HoistedField;
+
+        public CapturedToStateMachineFieldReplacement(StateMachineFieldSymbol hoistedField, bool isReusable)
             : base(isReusable)
         {
             this.HoistedField = hoistedField;
@@ -43,10 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class CapturedToExpressionSymbolReplacement : CapturedSymbolReplacement
     {
         private readonly BoundExpression replacement;
-        public readonly ImmutableArray<SynthesizedFieldSymbolBase> HoistedFields;
+        public readonly ImmutableArray<StateMachineFieldSymbol> HoistedFields;
 
-        public CapturedToExpressionSymbolReplacement(BoundExpression replacement, ImmutableArray<SynthesizedFieldSymbolBase> hoistedFields)
-            : base(isReusable: false)
+        public CapturedToExpressionSymbolReplacement(BoundExpression replacement, ImmutableArray<StateMachineFieldSymbol> hoistedFields, bool isReusable)
+            : base(isReusable)
         {
             this.replacement = replacement;
             this.HoistedFields = hoistedFields;

@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,10 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             FieldSymbol current,
-            IReadOnlySet<Symbol> variablesCaptured,
-            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> initialProxies,
+            IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
+            VariableSlotAllocator slotAllocatorOpt,
+            int nextFreeHoistedLocalSlot,
             DiagnosticBag diagnostics)
-            : base(F, originalMethod, state, variablesCaptured, initialProxies, diagnostics, useFinalizerBookkeeping: false)
+            : base(F, originalMethod, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics, useFinalizerBookkeeping: false)
         {
             this.current = current;
         }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -214,14 +215,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="edgeInclusive">Specifies whether scope spans should be reported as edge inclusive
         /// (position at "start + length" is IN the scope). VB EE expects that.</param>
         /// <returns></returns>
-        internal ImmutableArray<Cci.LocalScope> GetIteratorScopes(bool edgeInclusive = false)
+        internal ImmutableArray<Cci.StateMachineHoistedLocalScope> GetHoistedLocalScopes(bool edgeInclusive = false)
         {
-            // The iterator scopes are enumerated and returned here, sorted by variable "index",
+            // The hoisted local scopes are enumerated and returned here, sorted by variable "index",
             // which is a number appearing after the "__" at the end of the field's name.  The index should
             // correspond to the location in the returned sequence.  Indices are 1-based, which means that the
             // "first" element at the resulting list (i.e. index 0) corresponds to the variable whose name ends
             // with "__1".
-            return scopeManager.GetIteratorScopes(edgeInclusive);
+            return scopeManager.GetHoistedLocalScopes(edgeInclusive);
         }
 
         internal void FreeBasicBlocks()
@@ -1170,15 +1171,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             OpenLocalScope(ScopeType.IteratorVariable);
         }
 
-        /// <summary>
-        /// See Microsoft.Cci.ILocalScopeProvider.GetIteratorScopes.  This is called within an
-        /// iterator scope to identify that a field named "&lt;Xyzzy&gt;5__i" is used to represent
-        /// a local variable named Xyzzy.  The "i" is an integer, which is passed to this method
-        /// as the index parameter.
-        /// </summary>
-        internal void DefineIteratorLocal(int index)
+        internal void DefineUserDefinedStateMachineHoistedLocal(int slotIndex)
         {
-            scopeManager.AddIteratorVariable(index - 1);
+            // Add user-defined local into the current scope.
+            // We emit custom debug information for these locals that is used by the EE to reconstruct their scopes.
+            scopeManager.AddUserHoistedLocal(slotIndex);
         }
 
         internal void CloseIteratorScope()

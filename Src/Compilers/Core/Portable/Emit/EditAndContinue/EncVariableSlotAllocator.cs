@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -20,14 +21,21 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IMethodSymbolInternal previousMethod;
 
         // locals:
-        private readonly IReadOnlyDictionary<EncLocalInfo, int> previousLocalInfoToSlot;
+        private readonly IReadOnlyDictionary<EncLocalInfo, int> previousLocalSlots;
         private readonly ImmutableArray<EncLocalInfo> previousLocals;
+
+        private readonly int hoistedLocalSlotCount;
+        private readonly IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalSlotsOpt;
+        private readonly IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMapOpt;
 
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousMethod,
-            ImmutableArray<EncLocalInfo> previousLocals)
+            ImmutableArray<EncLocalInfo> previousLocals,
+            int hoistedLocalSlotCount,
+            IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalSlotsOpt,
+            IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMapOpt)
         {
             Debug.Assert(symbolMap != null);
             Debug.Assert(previousMethod != null);
@@ -37,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Emit
             this.syntaxMapOpt = syntaxMapOpt;
             this.previousLocals = previousLocals;
             this.previousMethod = previousMethod;
+            this.previousHoistedLocalSlotsOpt = previousHoistedLocalSlotsOpt;
+            this.awaiterMapOpt = awaiterMapOpt;
+            this.hoistedLocalSlotCount = hoistedLocalSlotCount;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -53,12 +64,36 @@ namespace Microsoft.CodeAnalysis.Emit
                 previousLocalInfoToSlot.Add(localInfo, slot);
             }
 
-            this.previousLocalInfoToSlot = previousLocalInfoToSlot;
+            this.previousLocalSlots = previousLocalInfoToSlot;
         }
 
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
         {
             builder.AddRange(this.previousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
+        }
+
+        private bool TryGetPreviousLocalId(SyntaxNode currentDeclarator, LocalDebugId currentId, out LocalDebugId previousId)
+        {
+            if (syntaxMapOpt == null)
+            {
+                // no syntax map 
+                // => the source of the current method is the same as the source of the previous method 
+                // => relative positions are the same 
+                // => synthesized ids are the same
+                previousId = currentId;
+                return true;
+            }
+
+            SyntaxNode previousDeclarator = syntaxMapOpt(currentDeclarator);
+            if (previousDeclarator == null)
+            {
+                previousId = default(LocalDebugId);
+                return false;
+            }
+
+            int syntaxOffset = previousMethod.CalculateLocalSyntaxOffset(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
+            previousId = new LocalDebugId(syntaxOffset, currentId.Ordinal, currentId.Subordinal);
+            return true;
         }
 
         public override LocalDefinition GetPreviousLocal(
@@ -76,27 +111,11 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return null;
             }
-            
-            LocalDebugId previousId;
-            var currentSyntax = currentLocalSymbol.GetDeclaratorSyntax();
-            if (syntaxMapOpt != null)
-            {
-                SyntaxNode previousSyntax = syntaxMapOpt(currentSyntax);
-                if (previousSyntax == null)
-                {
-                    return null;
-                }
 
-                int syntaxOffset = previousMethod.CalculateLocalSyntaxOffset(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
-                previousId = new LocalDebugId(syntaxOffset, id.Ordinal, id.Subordinal);
-            }
-            else
+            LocalDebugId previousId;
+            if (!TryGetPreviousLocalId(currentLocalSymbol.GetDeclaratorSyntax(), id, out previousId))
             {
-                // no syntax map 
-                // => the source of the current method is the same as the source of the previous method 
-                // => relative positions are the same 
-                // => synthesized ids are the same
-                previousId = id;
+                return null;
             }
 
             var previousType = symbolMap.MapReference(currentType);
@@ -110,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var localKey = new EncLocalInfo(previousId, previousType, constraints, kind, signature: null);
 
             int slot;
-            if (!previousLocalInfoToSlot.TryGetValue(localKey, out slot))
+            if (!previousLocalSlots.TryGetValue(localKey, out slot))
             {
                 return null;
             }
@@ -126,6 +145,48 @@ namespace Microsoft.CodeAnalysis.Emit
                 constraints,
                 isDynamic,
                 dynamicTransformFlags);
+        }
+
+        public override string GetPreviousHoistedLocal(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId)
+        {
+            Debug.Assert(previousHoistedLocalSlotsOpt != null);
+
+            LocalDebugId previousId;
+            if (!TryGetPreviousLocalId(currentDeclarator, currentId, out previousId))
+            {
+                return null;
+            }
+
+            var previousType = symbolMap.MapReference(currentType);
+            if (previousType == null)
+            {
+                return null;
+            }
+
+            // TODO (bug #781309): Should report a warning if the type of the local has changed
+            // and the previous value will be dropped.
+            var localKey = new EncLocalInfo(previousId, previousType, LocalSlotConstraints.None, synthesizedKind, signature: null);
+
+            string fieldName;
+            if (!previousHoistedLocalSlotsOpt.TryGetValue(localKey, out fieldName))
+            {
+                return null;
+            }
+
+            return fieldName;
+        }
+
+        public override int HoistedLocalSlotCount
+        {
+            get { return this.hoistedLocalSlotCount; }
+        }
+
+        public override string GetPreviousAwaiter(Cci.ITypeReference currentType)
+        {
+            Debug.Assert(awaiterMapOpt != null);
+
+            string name;
+            return awaiterMapOpt.TryGetValue(symbolMap.MapReference(currentType), out name) ? name : null;
         }
     }
 }

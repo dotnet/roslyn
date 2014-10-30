@@ -184,6 +184,23 @@ namespace Microsoft.CodeAnalysis
             return kind >= SynthesizedLocalKind.UserDefined;
         }
 
+        public static bool MustSurviveStateMachineSuspension(this SynthesizedLocalKind kind)
+        {
+            // Conditional branch discriminator doens't need to be hoisted. 
+            // Its lifetime never spans accross await expression/yield statement.
+            // This is true even in cases like:
+            // 
+            //   if (F(arg, await G())) { ... }
+            //
+            // Which is emitted as:
+            // 
+            //   $result = taskAwaiter.GetResult();
+            //   $cbd = C.F(sm.spilled_arg, $result);
+            //   if ($cbd) { ... }
+
+            return IsLongLived(kind) && kind != SynthesizedLocalKind.ConditionalBranchDiscriminator;
+        }
+
         public static bool IsSlotReusable(this SynthesizedLocalKind kind, OptimizationLevel optimizations)
         {
             if (optimizations == OptimizationLevel.Debug)
@@ -196,7 +213,7 @@ namespace Microsoft.CodeAnalysis
             switch (kind)
             {
                 // The following variables should always be non-reusable, EE depends on their value.
-                // Note: Lambda display classes have distinct types so their slots can't be reused anyways.
+                case SynthesizedLocalKind.UserDefined:
                 case SynthesizedLocalKind.LambdaDisplayClass:
                 case SynthesizedLocalKind.With:
                     return false;

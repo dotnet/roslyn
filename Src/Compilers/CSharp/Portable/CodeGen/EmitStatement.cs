@@ -603,9 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             builder.OpenIteratorScope();
             foreach (var field in scope.Fields)
             {
-                int index = field.UserDefinedHoistedLocalId;
-                Debug.Assert(index >= 1);
-                builder.DefineIteratorLocal(index);
+                builder.DefineUserDefinedStateMachineHoistedLocal(field.HoistedLocalSlotIndex);
             }
 
             EmitStatement(scope.Statement);
@@ -1401,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var syntax = local.GetDeclaratorSyntax();
                 int syntaxOffset = this.method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
 
-                int ordinal = AssignLocalOrdinal(localKind, syntaxOffset);
+                int ordinal = synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
@@ -1410,36 +1408,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return local.Name ?? GeneratedNames.MakeSynthesizedLocalName(localKind, ref uniqueNameId);
-        }
-
-        private int AssignLocalOrdinal(SynthesizedLocalKind localKind, int syntaxOffset)
-        {
-#if !DEBUG
-            // Optimization (avoid growing the dictionary below): 
-            // User-defined locals have to have a distinct syntax offset, thus ordinal is always 0.
-            if (localKind == SynthesizedLocalKind.UserDefined)
-            {
-                return 0;
-            }
-#endif
-            int ordinal;
-            long key = (long)syntaxOffset << 8 | (long)localKind;
-
-            // Group by syntax offset and kind.
-            // Variables associated with the same syntax and kind will be assigned different ordinals.
-            if (synthesizedLocalOrdinals == null)
-            {
-                synthesizedLocalOrdinals = PooledDictionary<long, int>.GetInstance();
-                ordinal = 0;
-            }
-            else if (!synthesizedLocalOrdinals.TryGetValue(key, out ordinal))
-            {
-                ordinal = 0;
-            }
-
-            synthesizedLocalOrdinals[key] = ordinal + 1;
-            Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
-            return ordinal;
         }
 
         private bool IsSlotReusable(LocalSymbol local)

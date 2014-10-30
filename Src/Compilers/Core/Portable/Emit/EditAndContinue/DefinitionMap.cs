@@ -88,5 +88,15 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         internal abstract bool DefinitionExists(Cci.IDefinition def);
+
+        protected static IReadOnlyDictionary<SyntaxNode, int> CreateDeclaratorToSyntaxOrdinalMap(ImmutableArray<SyntaxNode> declarators)
+        {
+            var declaratorToIndex = new Dictionary<SyntaxNode, int>();
+            for (int i = 0; i < declarators.Length; i++)
+            {
+                declaratorToIndex.Add(declarators[i], i);
+            }
+            return declaratorToIndex;
+        }
     }
 }

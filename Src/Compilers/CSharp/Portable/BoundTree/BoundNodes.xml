@@ -542,20 +542,15 @@
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
   </Node>
 
-
   <!--
-  BoundIteratorScope represents a scope within a translated iterator method, in which
-  some local variables have been moved to fields of the class that implements the iterator.
-  The fields have names of the form "<localName>x_i" where x is the name of the local
-  variable and i is a unique index assigned to these hoisted variables, assigned sequentially
-  starting at 0.  Caveat: when lambda locals (i.e. locals holding onto lambda display class instances)
-  are hoisted, they retain their original names of the form CS$<>8__localsi.
+  BoundIteratorScope represents a scope within a translated iterator method.
+  It is used to emit debugging information that allows the EE to map 
+  fields to locals.
   -->
   <Node Name="BoundIteratorScope" Base="BoundStatement">
-    <Field Name="Fields" Type="ImmutableArray&lt;SynthesizedFieldSymbolBase&gt;"/>
+    <Field Name="Fields" Type="ImmutableArray&lt;StateMachineFieldSymbol&gt;"/>
     <Field Name="Statement" Type="BoundStatement" Null="disallow"/>
   </Node>
-
   
   <!--
   Bound node that represents a single local declaration:

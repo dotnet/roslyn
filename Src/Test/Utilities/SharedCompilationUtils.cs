@@ -79,7 +79,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath]string expectedValueSourcePath = null)
         {
             string actualPdb = GetPdbXml(compilation, qualifiedMethodName);
-            XmlElementDiff.AssertEqual(XElement.Parse(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
+            XmlElementDiff.AssertEqual(ParseExpectedPdbXml(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
+        }
+
+        private static XElement ParseExpectedPdbXml(string str)
+        {
+            return XElement.Parse(string.IsNullOrWhiteSpace(str) ? "<symbols></symbols>" : str);
         }
 
         internal static void VerifyPdb(
@@ -128,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static EditAndContinueMethodDebugInformation GetEncDebugInfo(this CompilationTestData.MethodData methodData)
         {
-            return Cci.CustomDebugInfoWriter.GetEncDebugInfo(methodData.ILBuilder.LocalSlotManager.LocalsInOrder());
+            return Cci.CustomDebugInfoWriter.GetEncDebugInfoForLocals(methodData.ILBuilder.LocalSlotManager.LocalsInOrder());
         }
 
         internal static Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EncDebugInfoProvider(this CompilationTestData.MethodData methodData)

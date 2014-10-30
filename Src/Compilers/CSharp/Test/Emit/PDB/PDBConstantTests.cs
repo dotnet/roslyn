@@ -153,9 +153,19 @@ class C
             // all of the changes look reasonable.  The main thing for this test is that 
             // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
             // do that - the <constant> in the <scope> is sufficient.
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current",
+                    "<>l__initialThreadId",
+                    "<>4__this",
+                    "<i>5__1"
+                }, module.GetFieldNames("C.<M>d__0"));
+            });
 
-            compilation.VerifyPdb(@"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
@@ -163,9 +173,9 @@ class C
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""1"" />
         </using>
-        <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x22"" endOffset=""0x6b"" />
-        </iteratorLocals>
+        <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
+          <slot startOffset=""0x22"" endOffset=""0x6b"" />
+        </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
           <slot kind=""temp"" />

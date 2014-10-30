@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -321,16 +323,24 @@ namespace Microsoft.Cci
     /// </summary>
     internal class AsyncMethodBodyDebugInfo
     {
-        /// <summary> Original async method transformed into MoveNext() </summary>
+        /// <summary>
+       ///  Original async method transformed into MoveNext() 
+       /// </summary>
         public readonly IMethodDefinition KickoffMethod;
 
-        /// <summary> IL offset of catch handler or -1 </summary>
+        /// <summary> 
+        /// IL offset of catch handler or -1 
+        /// </summary>
         public readonly int CatchHandlerOffset;
 
-        /// <summary> Set of IL offsets where await operators yield control </summary>
+        /// <summary> 
+        /// Set of IL offsets where await operators yield control
+        ///  </summary>
         public readonly ImmutableArray<int> YieldOffsets;
 
-        /// <summary> Set of IL offsets where await operators are to be resumed </summary>
+        /// <summary> 
+        /// Set of IL offsets where await operators are to be resumed 
+        /// </summary>
         public readonly ImmutableArray<int> ResumeOffsets;
 
         public AsyncMethodBodyDebugInfo(
@@ -444,6 +454,10 @@ namespace Microsoft.Cci
         ImmutableArray<NamespaceScope> NamespaceScopes { get; }
 
         /// <summary>
+        /// Returns debug information for local variables hoisted to state machine fields, 
+        /// or null if this method isn't MoveNext method of a state machine.
+        /// </summary>
+        /// <remarks>
         /// Returns zero or more local (block) scopes, each defining an IL range in which an iterator local is defined.
         /// The scopes are returned for the MoveNext method of the object returned by the iterator method.
         /// The index of the scope corresponds to the index of the local.  Specifically local scope i corresponds
@@ -452,14 +466,20 @@ namespace Microsoft.Cci
         /// the first local to be moved into the class is named "xyzzy", it will be stored in a field named
         /// "&lt;xyzzy&gt;5__1", and the ILocalScope returned from this method at index 1 (i.e. the second one) will
         /// have the scope information for where that variable is in scope.
+        /// </remarks>
+        ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes { get; }
+
+        /// <summary>
+        /// Returns debug information for slots of local variables hoisted to state machine fields, 
+        /// or null if this method isn't the kickoff method of a state machine.
         /// </summary>
-        ImmutableArray<LocalScope> IteratorScopes { get; }
+        ImmutableArray<LocalSlotDebugInfo> StateMachineHoistedLocalSlots { get; }
 
         /// <summary>
         /// If the body was written as an iterator, returns the name of the (nested)
         /// type that implements the iterator's state machine.
         /// </summary>
-        string IteratorClassName { get; }
+        string StateMachineTypeName { get; }
     }
 
     /// <summary>

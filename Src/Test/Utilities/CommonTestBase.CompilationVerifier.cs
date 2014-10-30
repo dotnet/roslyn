@@ -177,10 +177,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return this;
             }
 
-            public CompilationVerifier VerifyPdb(string qualifiedMethodName, string expectedPdbXml)
+            public CompilationVerifier VerifyPdb(
+                string qualifiedMethodName,
+                string expectedPdb,
+                [CallerLineNumber]int expectedValueSourceLine = 0,
+                [CallerFilePath]string expectedValueSourcePath = null)
             {
-                var actualPdbXml = GetPdbXml(this.compilation, qualifiedMethodName);
-                AssertXmlEqual(expectedPdbXml, actualPdbXml);
+                this.compilation.VerifyPdb(qualifiedMethodName, expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 

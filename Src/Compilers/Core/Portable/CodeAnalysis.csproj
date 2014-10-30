@@ -52,6 +52,7 @@
     <Compile Include="CodeGen\LocalDefinition.cs" />
     <Compile Include="CodeGen\LocalOrParameter.cs" />
     <Compile Include="CodeGen\LocalScopeManager.cs" />
+    <Compile Include="CodeGen\LocalSlotDebugInfo.cs" />
     <Compile Include="CodeGen\LocalSlotManager.cs" />
     <Compile Include="CodeGen\MetadataConstant.cs" />
     <Compile Include="CodeGen\MetadataCreateArray.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="CodeGen\SwitchIntegralJumpTableEmitter.cs" />
     <Compile Include="CodeGen\SwitchIntegralJumpTableEmitter.SwitchBucket.cs" />
     <Compile Include="CodeGen\SwitchStringJumpTableEmitter.cs" />
+    <Compile Include="CodeGen\SynthesizedLocalOrdinalsDispenser.cs" />
     <Compile Include="CodeGen\TokenMap.cs" />
     <Compile Include="CodeGen\VariableSlotAllocator.cs" />
     <Compile Include="CodeGen\Win32Res.cs" />
@@ -88,7 +90,9 @@
     <Compile Include="Collections\IdentifierCollection.cs" />
     <Compile Include="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
+    <Compile Include="Collections\OrderedSet.cs" />
     <Compile Include="Emit\DebugInformationFormat.cs" />
+    <Compile Include="Emit\EditAndContinue\EncHoistedLocalMetadata.cs" />
     <Compile Include="Emit\EmitOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AsyncQueue.TaskCompletionSourceWithCancellation.cs" />
     <Compile Include="Emit\EditAndContinue\EncVariableSlotAllocator.cs" />
@@ -302,6 +306,7 @@
     <Compile Include="MetadataReference\PortableExecutableReference.cs" />
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
+    <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />

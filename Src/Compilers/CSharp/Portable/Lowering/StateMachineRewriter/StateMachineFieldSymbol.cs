@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -14,26 +15,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly TypeSymbol type;
 
-        // 0 if the corresponding captured local is synthesized, 
-        // or the field doesn't correspond to a hoisted local.
-        // > 0 if it corresponds to the field name
-        private readonly int userDefinedHoistedLocalId;
+        // -1 if the field doesn't represent a long-lived local
+        internal readonly int HoistedLocalSlotIndex;
 
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string fieldName, bool isPublic)
-            : base(stateMachineType, fieldName, isPublic: isPublic, isReadOnly: false, isStatic: false)
+        internal readonly LocalSlotDebugInfo SlotDebugInfo;
+
+        // Some fields need to be public since they are initialized directly by the kickoff method.
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, bool isPublic)
+            : this(stateMachineType, type, name, new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, LocalDebugId.None), slotIndex: -1, isPublic: isPublic)
         {
-            Debug.Assert((object)type != null);
-            this.type = type;
         }
 
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string localName, int userDefinedHoistedLocalId)
-            : base(stateMachineType, localName, isPublic: true, isReadOnly: false, isStatic: false)
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic)
+            : base(stateMachineType, name, isPublic: isPublic, isReadOnly: false, isStatic: false)
         {
-            Debug.Assert(userDefinedHoistedLocalId >= 1);
             Debug.Assert((object)type != null);
+            Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));
 
             this.type = type;
-            this.userDefinedHoistedLocalId = userDefinedHoistedLocalId;
+            this.HoistedLocalSlotIndex = slotIndex;
+            this.SlotDebugInfo = slotDebugInfo;
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
@@ -41,15 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.type;
         }
 
-        internal override int UserDefinedHoistedLocalId
-        {
-            get { return userDefinedHoistedLocalId; }
-        }
-
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {
-            // TODO: hoisted temps?
-            get { return false; }
+            get { return true; }
         }
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method

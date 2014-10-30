@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodBody GenerateMethodBody(
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
-            BoundStatement block,
+            BoundStatement block, 
             StateMachineTypeSymbol stateMachineTypeOpt,
             VariableSlotAllocator variableSlotAllocatorOpt,
             DiagnosticBag diagnostics,
@@ -1196,11 +1196,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 Cci.AsyncMethodBodyDebugInfo asyncDebugInfo = null;
+
                 var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdbs);
 
                 // We need to save additional debugging information for MoveNext of an async state machine.
                 var stateMachineMethod = method as SynthesizedStateMachineMethod;
-                if (stateMachineMethod != null && stateMachineMethod.StateMachineType.KickoffMethod.IsAsync && method.Name == WellKnownMemberNames.MoveNextMethodName)
+                bool isStateMachineMoveNextMethod = stateMachineMethod != null && method.Name == WellKnownMemberNames.MoveNextMethodName;
+
+                if (isStateMachineMoveNextMethod && stateMachineMethod.StateMachineType.KickoffMethod.IsAsync)
                 {
                     int asyncCatchHandlerOffset;
                     ImmutableArray<int> asyncYieldPoints;
@@ -1234,12 +1237,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Only compiler-generated MoveNext methods have iterator scopes.  See if this is one.
-                bool hasIteratorScopes =
-                    method.Locations.IsEmpty && method.Name == WellKnownMemberNames.MoveNextMethodName &&
-                    (method.ExplicitInterfaceImplementations.Contains(compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext) as MethodSymbol) ||
-                     method.ExplicitInterfaceImplementations.Contains(compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext) as MethodSymbol));
+                var stateMachineHoistedLocalScopes = default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
+                if (isStateMachineMoveNextMethod)
+                {
+                    stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes();
+                }
 
-                var iteratorScopes = hasIteratorScopes ? builder.GetIteratorScopes() : ImmutableArray<Cci.LocalScope>.Empty;
+                var stateMachineHoistedLocalSlots = default(ImmutableArray<LocalSlotDebugInfo>);
+                if (optimizations == OptimizationLevel.Debug && stateMachineTypeOpt != null)
+                {
+                    Debug.Assert(method.IsAsync || method.IsIterator);
+
+                    stateMachineHoistedLocalSlots = GetStateMachineSlotDebugInfo(moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt));
+                }
 
                 return new MethodBody(
                     builder.RealizedIL,
@@ -1254,7 +1264,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namespaceScopes,
                     Cci.NamespaceScopeEncoding.InPlace,
                     (stateMachineTypeOpt != null) ? stateMachineTypeOpt.Name : null,
-                    iteratorScopes,
+                    stateMachineHoistedLocalScopes,
+                    stateMachineHoistedLocalSlots,
                     asyncDebugInfo);
             }
             finally
@@ -1267,6 +1278,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.AddRange(diagnosticsForThisMethod);
                 diagnosticsForThisMethod.Free();
             }
+        }
+
+        private static ImmutableArray<LocalSlotDebugInfo> GetStateMachineSlotDebugInfo(IEnumerable<Cci.IFieldDefinition> fieldDefs)
+        {
+            var slots = ArrayBuilder<LocalSlotDebugInfo>.GetInstance();
+            foreach (StateMachineFieldSymbol field in fieldDefs)
+            {
+                int index = field.HoistedLocalSlotIndex;
+                if (index < 0)
+                {
+                    continue;
+                }
+
+                while (index >= slots.Count)
+                {
+                    // Empty slots may be present if variables were deleted during EnC.
+                    slots.Add(new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None));
+                }
+
+                Debug.Assert(!field.SlotDebugInfo.Id.IsNone);
+                slots[index] = field.SlotDebugInfo;
+            }
+
+            return slots.ToImmutableAndFree();
         }
 
         // NOTE: can return null if the method has no body.

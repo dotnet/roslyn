@@ -86,10 +86,10 @@ namespace Microsoft.Cci
             // method causes the custom debug info to be produced for all methods (including the iterator methods).
             // Since we are making the same ISymUnmanagedWriter calls as Dev10, we see the same behavior (i.e. this
             // is not a regression).
-            if (methodBody.IteratorClassName == null)
+            if (methodBody.StateMachineTypeName == null)
             {
                 SerializeNamespaceScopeMetadata(methodBody, customDebugInfo);
-                SerializeIteratorLocalScopes(methodBody, customDebugInfo);
+                SerializeStateMachineLocalScopes(methodBody, customDebugInfo);
             }
 
             SerializeDynamicLocalInfo(methodBody, customDebugInfo);
@@ -97,7 +97,13 @@ namespace Microsoft.Cci
             // delta doesn't need this information - we use information recorded by previous generation emit
             if (!isEncDelta)
             {
-                GetEncDebugInfo(methodBody.LocalVariables).SerializeCustomDebugInformation(customDebugInfo);
+                var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
+
+                // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
+                // so we use its EnC method debug info to store information about locals hoisted to the state machine.
+                var encDebugInfo = encSlotInfo.IsDefault ? GetEncDebugInfoForLocals(methodBody.LocalVariables) : new EditAndContinueMethodDebugInformation(encSlotInfo);
+
+                encDebugInfo.SerializeCustomDebugInformation(customDebugInfo);
             }
 
             byte[] result = SerializeCustomDebugMetadata(customDebugInfo);
@@ -105,7 +111,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        public static EditAndContinueMethodDebugInformation GetEncDebugInfo(ImmutableArray<ILocalDefinition> locals)
+        public static EditAndContinueMethodDebugInformation GetEncDebugInfoForLocals(ImmutableArray<ILocalDefinition> locals)
         {
             if (!locals.Any(localDef => !localDef.Id.IsNone))
             {
@@ -113,12 +119,12 @@ namespace Microsoft.Cci
             }
 
             return new EditAndContinueMethodDebugInformation(
-                locals.SelectAsArray(localDef => ValueTuple.Create(localDef.Kind, localDef.Id.IsNone ? new LocalDebugId(0) : localDef.Id)));
+                locals.SelectAsArray(localDef => new LocalSlotDebugInfo(localDef.Kind, localDef.Id.IsNone ? new LocalDebugId(0) : localDef.Id)));
         }
 
         private static void SerializeIteratorClassMetadata(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
         {
-            SerializeReferenceToIteratorClass(methodBody.IteratorClassName, customDebugInfo);
+            SerializeReferenceToIteratorClass(methodBody.StateMachineTypeName, customDebugInfo);
         }
 
         private static void SerializeReferenceToIteratorClass(string iteratorClassName, ArrayBuilder<MemoryStream> customDebugInfo)
@@ -138,15 +144,15 @@ namespace Microsoft.Cci
             customDebugInfo.Add(customMetadata);
         }
 
-        private static void SerializeIteratorLocalScopes(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
+        private static void SerializeStateMachineLocalScopes(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
         {
-            ImmutableArray<LocalScope> scopes = methodBody.IteratorScopes;
-            uint numberOfScopes = (uint)scopes.Length;
-            if (numberOfScopes == 0)
+            var scopes = methodBody.StateMachineHoistedLocalScopes;
+            if (scopes.IsDefaultOrEmpty)
             {
                 return;
             }
 
+            uint numberOfScopes = (uint)scopes.Length;
             MemoryStream customMetadata = new MemoryStream();
             BinaryWriter cmw = new BinaryWriter(customMetadata);
             cmw.WriteByte(4); // version

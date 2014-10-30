@@ -57,28 +57,26 @@ namespace Microsoft.CodeAnalysis.Emit
                             return SymbolChange.None;
                         }
 
-                        if (synthesizedSymbol.Kind == SymbolKind.NamedType)
+                        if (!this.definitionMap.DefinitionExists(def))
                         {
-                            if (this.definitionMap.DefinitionExists(def))
-                            {
-                                // If the type produced from the method body existed before then its members are updated.
-                                return SymbolChange.ContainsChanges;
-                            }
-                            else
-                            {
-                                // A method was changed to a method containing a lambda, to an interator, or to an async method.
-                                // The state machine or closure class has been added.
-                                return SymbolChange.Added;
-                            }
-                        }
-
-                        if (synthesizedSymbol.Kind == SymbolKind.Field)
-                        {
+                            // A method was changed to a method containing a lambda, to an interator, or to an async method.
+                            // The state machine or closure class has been added.
                             return SymbolChange.Added;
                         }
 
-                        // If the containing type of the synthesized symbol exists we can just reuse the existing synthesized member.
-                        return SymbolChange.Updated;
+                        // If the type produced from the method body existed before then its members are updated.
+                        if (synthesizedSymbol.Kind == SymbolKind.NamedType)
+                        {
+                            return SymbolChange.ContainsChanges;
+                        }
+
+                        if (synthesizedSymbol.Kind == SymbolKind.Method)
+                        {
+                            // The method body might have been updated.
+                            return SymbolChange.Updated;
+                        }
+                        
+                        return SymbolChange.None;
 
                     case SymbolChange.Added:
                         // The method has been added - add the synthesized member as well.

@@ -81,10 +81,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // of special name C# compiler uses for backing fields, which is not desirable.
             AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute());
         }
-
-        internal override int UserDefinedHoistedLocalId
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
     }
 }

@@ -14534,7 +14534,7 @@ class C
     IL_00f6:  stfld      ""int C.<M>d__1.<>1__state""
     IL_00fb:  ldarg.0
     IL_00fc:  ldloc.2
-    IL_00fd:  stfld      ""object C.<M>d__1.<>u__$awaiter4""
+    IL_00fd:  stfld      ""object C.<M>d__1.<>u__4""
     IL_0102:  ldloc.2
     IL_0103:  isinst     ""System.Runtime.CompilerServices.ICriticalNotifyCompletion""
     IL_0108:  stloc.3
@@ -14560,11 +14560,11 @@ class C
     IL_0136:  stloc.3
     IL_0137:  leave      IL_035a
     IL_013c:  ldarg.0
-    IL_013d:  ldfld      ""object C.<M>d__1.<>u__$awaiter4""
+    IL_013d:  ldfld      ""object C.<M>d__1.<>u__4""
     IL_0142:  stloc.2
     IL_0143:  ldarg.0
     IL_0144:  ldnull
-    IL_0145:  stfld      ""object C.<M>d__1.<>u__$awaiter4""
+    IL_0145:  stfld      ""object C.<M>d__1.<>u__4""
     IL_014a:  ldarg.0
     IL_014b:  ldc.i4.m1
     IL_014c:  dup
@@ -14664,7 +14664,7 @@ class C
     IL_0280:  stfld      ""int C.<M>d__1.<>1__state""
     IL_0285:  ldarg.0
     IL_0286:  ldloc.2
-    IL_0287:  stfld      ""object C.<M>d__1.<>u__$awaiter4""
+    IL_0287:  stfld      ""object C.<M>d__1.<>u__4""
     IL_028c:  ldloc.2
     IL_028d:  isinst     ""System.Runtime.CompilerServices.ICriticalNotifyCompletion""
     IL_0292:  stloc.3
@@ -14690,11 +14690,11 @@ class C
     IL_02c0:  stloc.3
     IL_02c1:  leave      IL_035a
     IL_02c6:  ldarg.0
-    IL_02c7:  ldfld      ""object C.<M>d__1.<>u__$awaiter4""
+    IL_02c7:  ldfld      ""object C.<M>d__1.<>u__4""
     IL_02cc:  stloc.2
     IL_02cd:  ldarg.0
     IL_02ce:  ldnull
-    IL_02cf:  stfld      ""object C.<M>d__1.<>u__$awaiter4""
+    IL_02cf:  stfld      ""object C.<M>d__1.<>u__4""
     IL_02d4:  ldarg.0
     IL_02d5:  ldc.i4.m1
     IL_02d6:  dup

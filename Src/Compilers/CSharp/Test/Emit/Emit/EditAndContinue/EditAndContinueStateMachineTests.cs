@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -297,7 +300,7 @@ class C
                 // - Method 'SetStateMachine'
                 // - Field '<>1__state'
                 // - Field '<>t__builder'
-                // - Field '<>u__$awaiter0'
+                // - Field '<>u__0'
                 // Add method F()
                 CheckEncLogDefinitions(reader1,
                     Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -482,6 +485,8 @@ class C
                         Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                        Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                         Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -826,7 +831,7 @@ class C
     IL_0029:  stfld      ""int C.<F>d__1.<>1__state""
     IL_002e:  ldarg.0
     IL_002f:  ldloc.2
-    IL_0030:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__$awaiter0""
+    IL_0030:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
     IL_0035:  ldarg.0
     IL_0036:  stloc.3
     IL_0037:  ldarg.0
@@ -837,10 +842,10 @@ class C
     IL_0046:  nop
     IL_0047:  leave.s    IL_00aa
     IL_0049:  ldarg.0
-    IL_004a:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__$awaiter0""
+    IL_004a:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
     IL_004f:  stloc.2
     IL_0050:  ldarg.0
-    IL_0051:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__$awaiter0""
+    IL_0051:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
     IL_0056:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_005c:  ldarg.0
     IL_005d:  ldc.i4.m1
@@ -914,7 +919,7 @@ class C
     IL_0028:  stfld      ""int C.<F>d__1.<>1__state""
     IL_002d:  ldarg.0
     IL_002e:  ldloc.2
-    IL_002f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__$awaiter0""
+    IL_002f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
     IL_0034:  ldarg.0
     IL_0035:  stloc.3
     IL_0036:  ldarg.0
@@ -925,10 +930,10 @@ class C
     IL_0045:  nop
     IL_0046:  leave.s    IL_00a8
     IL_0048:  ldarg.0
-    IL_0049:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__$awaiter0""
+    IL_0049:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
     IL_004e:  stloc.2
     IL_004f:  ldarg.0
-    IL_0050:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__$awaiter0""
+    IL_0050:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
     IL_0055:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_005b:  ldarg.0
     IL_005c:  ldc.i4.m1
@@ -967,6 +972,642 @@ class C
   IL_00a2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00a7:  nop
   IL_00a8:  ret
+}
+");
+                }
+            }
+        }
+
+        [Fact]
+        public void UpdateIterator_UserDefinedVariables_NoChange()
+        {
+            var source0 = @"
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F(int p) 
+    {
+        int x = p;
+        yield return 1;
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var source1 = @"
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F(int p) 
+    {
+        int x = p;
+        yield return 2;
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll);
+
+            var v0 = CompileAndVerify(compilation0);
+            var debugInfoProvider = v0.CreatePdbInfoProvider();
+
+            using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
+            {
+                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+                // Verify delta metadata contains expected rows.
+                using (var md1 = diff1.GetMetadata())
+                {
+                    // Verify that no new TypeDefs, FieldDefs or MethodDefs were added,
+                    // 3 methods were updated: 
+                    // - the kick-off method (might be changed if the method previously wasn't an iterator)
+                    // - Finally method
+                    // - MoveNext method
+                    CheckEncLogDefinitions(md1.Reader,
+                        Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_001a
+  IL_0014:  br.s       IL_0040
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ret
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""int C.<F>d__0.p""
+  IL_0029:  stfld      ""int C.<F>d__0.<x>5__1""
+  IL_002e:  ldarg.0
+  IL_002f:  ldc.i4.2
+  IL_0030:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0035:  ldarg.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003c:  ldc.i4.1
+  IL_003d:  stloc.1
+  IL_003e:  br.s       IL_0018
+  IL_0040:  ldarg.0
+  IL_0041:  ldc.i4.m1
+  IL_0042:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0047:  ldc.i4.0
+  IL_0048:  stloc.1
+  IL_0049:  br.s       IL_0018
+}
+");
+                }
+            }
+        }
+
+        [Fact]
+        public void UpdateIterator_UserDefinedVariables_AddVariable()
+        {
+            var source0 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F(int p) 
+    {
+        int x = p;
+        yield return x;
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var source1 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F(int p) 
+    {
+        int y = 1234;
+        int x = p;
+        yield return y;
+        Console.WriteLine(x);
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll);
+
+            var v0 = CompileAndVerify(compilation0);
+            var debugInfoProvider = v0.CreatePdbInfoProvider();
+
+            using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
+            {
+                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+                // Verify delta metadata contains expected rows.
+                using (var md1 = diff1.GetMetadata())
+                {
+                    // 1 field def added & 3 methods updated
+                    CheckEncLogDefinitions(md1.Reader,
+                        Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                        Row(7, TableIndex.Field, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size      103 (0x67)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_001a
+  IL_0014:  br.s       IL_0050
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ret
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4     0x4d2
+  IL_0028:  stfld      ""int C.<F>d__0.<y>5__2""
+  IL_002d:  ldarg.0
+  IL_002e:  ldarg.0
+  IL_002f:  ldfld      ""int C.<F>d__0.p""
+  IL_0034:  stfld      ""int C.<F>d__0.<x>5__1""
+  IL_0039:  ldarg.0
+  IL_003a:  ldarg.0
+  IL_003b:  ldfld      ""int C.<F>d__0.<y>5__2""
+  IL_0040:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0045:  ldarg.0
+  IL_0046:  ldc.i4.1
+  IL_0047:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_004c:  ldc.i4.1
+  IL_004d:  stloc.1
+  IL_004e:  br.s       IL_0018
+  IL_0050:  ldarg.0
+  IL_0051:  ldc.i4.m1
+  IL_0052:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0057:  ldarg.0
+  IL_0058:  ldfld      ""int C.<F>d__0.<x>5__1""
+  IL_005d:  call       ""void System.Console.WriteLine(int)""
+  IL_0062:  nop
+  IL_0063:  ldc.i4.0
+  IL_0064:  stloc.1
+  IL_0065:  br.s       IL_0018
+}
+");
+                }
+            }
+        }
+
+        [Fact]
+        public void UpdateIterator_UserDefinedVariables_AddAndRemoveVariable()
+        {
+            var source0 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F(int p) 
+    {
+        int x = p;
+        yield return x;
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var source1 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F(int p) 
+    {
+        int y = 1234;
+        yield return y;
+        Console.WriteLine(p);
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll);
+
+            var v0 = CompileAndVerify(compilation0);
+            var debugInfoProvider = v0.CreatePdbInfoProvider();
+
+            using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
+            {
+                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+                // Verify delta metadata contains expected rows.
+                using (var md1 = diff1.GetMetadata())
+                {
+                    // 1 field def added & 3 methods updated
+                    CheckEncLogDefinitions(md1.Reader,
+                        Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                        Row(7, TableIndex.Field, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size       91 (0x5b)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_001a
+  IL_0014:  br.s       IL_0044
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ret
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4     0x4d2
+  IL_0028:  stfld      ""int C.<F>d__0.<y>5__2""
+  IL_002d:  ldarg.0
+  IL_002e:  ldarg.0
+  IL_002f:  ldfld      ""int C.<F>d__0.<y>5__2""
+  IL_0034:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0039:  ldarg.0
+  IL_003a:  ldc.i4.1
+  IL_003b:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0040:  ldc.i4.1
+  IL_0041:  stloc.1
+  IL_0042:  br.s       IL_0018
+  IL_0044:  ldarg.0
+  IL_0045:  ldc.i4.m1
+  IL_0046:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_004b:  ldarg.0
+  IL_004c:  ldfld      ""int C.<F>d__0.p""
+  IL_0051:  call       ""void System.Console.WriteLine(int)""
+  IL_0056:  nop
+  IL_0057:  ldc.i4.0
+  IL_0058:  stloc.1
+  IL_0059:  br.s       IL_0018
+}
+");
+                }
+            }
+        }
+
+        [Fact]
+        public void UpdateIterator_UserDefinedVariables_ChangeVariableType()
+        {
+            var source0 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F() 
+    {
+        var x = 1;
+        yield return 1;
+        Console.WriteLine(x);
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var source1 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F() 
+    {
+        var x = 1.0;
+        yield return 2;
+        Console.WriteLine(x);
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll);
+
+            var v0 = CompileAndVerify(compilation0);
+            var debugInfoProvider = v0.CreatePdbInfoProvider();
+
+            using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
+            {
+                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+                // Verify delta metadata contains expected rows.
+                using (var md1 = diff1.GetMetadata())
+                {
+                    // 1 field def added & 3 methods updated
+                    CheckEncLogDefinitions(md1.Reader,
+                        Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                        Row(5, TableIndex.Field, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size       90 (0x5a)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_001a
+  IL_0014:  br.s       IL_0043
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ret
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.r8     1
+  IL_002c:  stfld      ""double C.<F>d__0.<x>5__2""
+  IL_0031:  ldarg.0
+  IL_0032:  ldc.i4.2
+  IL_0033:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0038:  ldarg.0
+  IL_0039:  ldc.i4.1
+  IL_003a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003f:  ldc.i4.1
+  IL_0040:  stloc.1
+  IL_0041:  br.s       IL_0018
+  IL_0043:  ldarg.0
+  IL_0044:  ldc.i4.m1
+  IL_0045:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_004a:  ldarg.0
+  IL_004b:  ldfld      ""double C.<F>d__0.<x>5__2""
+  IL_0050:  call       ""void System.Console.WriteLine(double)""
+  IL_0055:  nop
+  IL_0056:  ldc.i4.0
+  IL_0057:  stloc.1
+  IL_0058:  br.s       IL_0018
+}
+");
+                }
+            }
+        }
+
+        [Fact]
+        public void UpdateIterator_SynthesizedVariables_ChangeVariableType()
+        {
+            var source0 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F() 
+    {
+        foreach (object item in new[] { 1 }) { yield return 1; }
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var source1 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F() 
+    {
+        foreach (object item in new[] { 1.0 }) { yield return 1; }
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            // Rude edit but the compiler should handle it.
+
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var v0 = CompileAndVerify(compilation0, symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>1__state: int",
+                    "<>2__current: int",
+                    "<>l__initialThreadId: int",
+                    "<>s__1: int[]",
+                    "<>s__2: int",
+                    "<item>5__3: object"
+                }, module.GetFieldNamesAndTypes("C.<F>d__0"));
+            });
+            
+            var debugInfoProvider = v0.CreatePdbInfoProvider();
+
+            using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
+            {
+                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapByKind(method0, SyntaxKind.ForEachStatement), preserveLocalVariables: true)));
+
+                // Verify delta metadata contains expected rows.
+                using (var md1 = diff1.GetMetadata())
+                {
+                    // 1 field def added & 3 methods updated
+                    CheckEncLogDefinitions(md1.Reader,
+                        Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                        Row(7, TableIndex.Field, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size      170 (0xaa)
+  .maxstack  5
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_001a
+  IL_0014:  br.s       IL_006f
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ret
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0021:  nop
+  IL_0022:  nop
+  IL_0023:  ldarg.0
+  IL_0024:  ldc.i4.1
+  IL_0025:  newarr     ""double""
+  IL_002a:  dup
+  IL_002b:  ldc.i4.0
+  IL_002c:  ldc.r8     1
+  IL_0035:  stelem.r8
+  IL_0036:  stfld      ""double[] C.<F>d__0.<>s__4""
+  IL_003b:  ldarg.0
+  IL_003c:  ldc.i4.0
+  IL_003d:  stfld      ""int C.<F>d__0.<>s__2""
+  IL_0042:  br.s       IL_008c
+  IL_0044:  ldarg.0
+  IL_0045:  ldarg.0
+  IL_0046:  ldfld      ""double[] C.<F>d__0.<>s__4""
+  IL_004b:  ldarg.0
+  IL_004c:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_0051:  ldelem.r8
+  IL_0052:  box        ""double""
+  IL_0057:  stfld      ""object C.<F>d__0.<item>5__3""
+  IL_005c:  nop
+  IL_005d:  ldarg.0
+  IL_005e:  ldc.i4.1
+  IL_005f:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0064:  ldarg.0
+  IL_0065:  ldc.i4.1
+  IL_0066:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_006b:  ldc.i4.1
+  IL_006c:  stloc.1
+  IL_006d:  br.s       IL_0018
+  IL_006f:  ldarg.0
+  IL_0070:  ldc.i4.m1
+  IL_0071:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0076:  nop
+  IL_0077:  ldarg.0
+  IL_0078:  ldnull
+  IL_0079:  stfld      ""object C.<F>d__0.<item>5__3""
+  IL_007e:  ldarg.0
+  IL_007f:  ldarg.0
+  IL_0080:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_0085:  ldc.i4.1
+  IL_0086:  add
+  IL_0087:  stfld      ""int C.<F>d__0.<>s__2""
+  IL_008c:  ldarg.0
+  IL_008d:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_0092:  ldarg.0
+  IL_0093:  ldfld      ""double[] C.<F>d__0.<>s__4""
+  IL_0098:  ldlen
+  IL_0099:  conv.i4
+  IL_009a:  blt.s      IL_0044
+  IL_009c:  ldarg.0
+  IL_009d:  ldnull
+  IL_009e:  stfld      ""double[] C.<F>d__0.<>s__4""
+  IL_00a3:  ldc.i4.0
+  IL_00a4:  stloc.1
+  IL_00a5:  br         IL_0018
 }
 ");
                 }

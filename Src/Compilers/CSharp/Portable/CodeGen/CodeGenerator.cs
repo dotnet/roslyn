@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // not 0 when in a protected region with a handler. 
         private int tryNestingLevel = 0;
 
-        // Dispenser of unique ordinals for synthesized variable names that have the same kind and syntax offset.
-        // The key is (local.SyntaxOffset << 8) | local.SynthesizedKind.
-        private PooledDictionary<long, int> synthesizedLocalOrdinals;
+        private readonly SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
         private int uniqueNameId;
 
         // label used when when return is emitted in a form of store/goto
@@ -211,11 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 builder.Realize();
             }
 
-            if (this.synthesizedLocalOrdinals != null)
-            {
-                this.synthesizedLocalOrdinals.Free();
-                this.synthesizedLocalOrdinals = null;
-            }
+            this.synthesizedLocalOrdinals.Free();
         }
 
         private void HandleReturn()

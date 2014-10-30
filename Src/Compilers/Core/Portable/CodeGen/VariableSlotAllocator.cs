@@ -19,5 +19,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags);
+
+        public abstract string GetPreviousHoistedLocal(
+            SyntaxNode currentDeclarator,
+            Cci.ITypeReference currentType,
+            SynthesizedLocalKind synthesizedKind,
+            LocalDebugId currentId);
+
+        public abstract int HoistedLocalSlotCount { get; }
+
+        public abstract string GetPreviousAwaiter(Cci.ITypeReference currentType);
     }
 }

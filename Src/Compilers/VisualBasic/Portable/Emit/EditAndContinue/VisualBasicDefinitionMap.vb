@@ -164,7 +164,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 symbolMap = Me.mapToMetadata
             End If
 
-            Return New EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals)
+            ' TODO
+            Return New EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals, 0, Nothing, Nothing)
         End Function
 
         ''' <summary>
@@ -181,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim localSlots = methodEncInfo.LocalSlots
             If Not localSlots.IsDefault Then
 
-                ' In case of corrupted PDB Or metadata, these lengths might Not match.
+                ' In case of corrupted PDB or metadata, these lengths might Not match.
                 ' Let's guard against such case.
                 Dim slotCount = Math.Min(localSlots.Length, slotMetadata.Length)
 
@@ -189,14 +190,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 For slotIndex = 0 To slotCount - 1
 
-                    Dim slot As ValueTuple(Of SynthesizedLocalKind, LocalDebugId) = localSlots(slotIndex)
-                    If slot.Item1.IsLongLived() Then
+                    Dim slot = localSlots(slotIndex)
+                    If slot.SynthesizedKind.IsLongLived() Then
                         Dim metadata = slotMetadata(slotIndex)
 
                         ' We do Not emit custom modifiers on locals so ignore the
                         ' previous version of the local if it had custom modifiers.
                         If metadata.CustomModifiers.IsDefaultOrEmpty Then
-                            Dim local = New EncLocalInfo(slot.Item2, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, slot.Item1, metadata.SignatureOpt)
+                            Dim local = New EncLocalInfo(slot.Id, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, slot.SynthesizedKind, metadata.SignatureOpt)
                             map.Add(local, slotIndex)
                         End If
                     End If

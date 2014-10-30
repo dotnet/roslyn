@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -21,8 +22,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers;
         private readonly ImmutableArray<Cci.LocalScope> localScopes;
         private readonly ImmutableArray<Cci.NamespaceScope> namespaceScopes;
-        private readonly string iteratorClassName;
-        private readonly ImmutableArray<Cci.LocalScope> iteratorScopes;
+        private readonly string stateMachineTypeNameOpt;
+        private readonly ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes;
+        private readonly ImmutableArray<LocalSlotDebugInfo> stateMachineHoistedLocalSlots;
         private readonly Cci.NamespaceScopeEncoding namespaceScopeEncoding;
         private readonly bool hasDynamicLocalVariables;
 
@@ -38,8 +40,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             bool hasDynamicLocalVariables,
             ImmutableArray<Cci.NamespaceScope> namespaceScopes,
             Cci.NamespaceScopeEncoding namespaceScopeEncoding,
-            string iteratorClassName,
-            ImmutableArray<Cci.LocalScope> iteratorScopes,
+            string stateMachineTypeNameOpt,
+            ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
+            ImmutableArray<LocalSlotDebugInfo> stateMachineHoistedLocalSlots,
             Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo)
         {
             Debug.Assert(!locals.IsDefault);
@@ -58,8 +61,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.namespaceScopeEncoding = namespaceScopeEncoding;
             this.hasDynamicLocalVariables = hasDynamicLocalVariables;
             this.namespaceScopes = namespaceScopes.IsDefault ? ImmutableArray<Cci.NamespaceScope>.Empty : namespaceScopes;
-            this.iteratorClassName = iteratorClassName;
-            this.iteratorScopes = iteratorScopes.IsDefault ? ImmutableArray<Cci.LocalScope>.Empty : iteratorScopes;
+            this.stateMachineTypeNameOpt = stateMachineTypeNameOpt;
+            this.stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
+            this.stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
         }
 
         void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
@@ -149,19 +153,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        string Cci.IMethodBody.IteratorClassName
+        string Cci.IMethodBody.StateMachineTypeName
         {
             get
             {
-                return iteratorClassName;
+                return stateMachineTypeNameOpt;
             }
         }
 
-        ImmutableArray<Cci.LocalScope> Cci.IMethodBody.IteratorScopes
+        ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
         {
             get
             {
-                return this.iteratorScopes;
+                return this.stateMachineHoistedLocalScopes;
+            }
+        }
+
+        ImmutableArray<LocalSlotDebugInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
+        {
+            get
+            {
+                return this.stateMachineHoistedLocalSlots;
             }
         }
 

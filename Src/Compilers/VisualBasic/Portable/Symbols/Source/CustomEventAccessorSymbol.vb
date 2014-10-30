@@ -274,7 +274,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return CheckEventMethodParameterModifier(container, token, flag, diagnostics)
         End Function
-
     End Class
 
 End Namespace

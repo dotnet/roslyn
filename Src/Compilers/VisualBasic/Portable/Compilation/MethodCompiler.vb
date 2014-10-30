@@ -1414,8 +1414,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       hasDynamicLocalVariables:=False,
                                       namespaceScopes:=namespaceScopes,
                                       namespaceScopeEncoding:=Cci.NamespaceScopeEncoding.Forwarding,
-                                      iteratorClassName:=Nothing,
-                                      iteratorScopes:=Nothing,
+                                      stateMachineTypeNameOpt:=Nothing,
+                                      stateMachineHoistedLocalScopes:=Nothing,
+                                      stateMachineHoistedLocalSlots:=Nothing, ' TODO
                                       asyncMethodDebugInfo:=asyncDebugInfo)
             Finally
                 ' Free resources used by the basic blocks in the builder.
