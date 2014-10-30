@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -690,6 +692,54 @@ class Program
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );
+        }
+
+        [Fact]
+        [WorkItem(1023539, "DevDiv")]
+        public void SymbolInfoForMethodGroup01()
+        {
+            var source =
+@"public class SomeClass
+{
+    public const string FooName = nameof(SomeClass.Foo);
+    public static int Foo()
+    {
+        return 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal("Foo", symbolInfo.Symbol.Name);
+        }
+
+        [Fact]
+        [WorkItem(1023539, "DevDiv")]
+        public void SymbolInfoForMethodGroup02()
+        {
+            var source =
+@"public class SomeClass
+{
+    public const string FooName = nameof(SomeClass.Foo);
+    public static int Foo()
+    {
+        return 1;
+    }
+    public static string Foo()
+    {
+        return string.Empty;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
         }
 
     }

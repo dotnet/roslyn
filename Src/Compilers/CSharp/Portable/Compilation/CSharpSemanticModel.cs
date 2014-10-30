@@ -3682,13 +3682,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
 
+                    case BoundKind.NameOfOperator:
+                        symbols = methodGroup;
+                        if (symbols.Length > 1)
+                        {
+                            resultKind = resultKind.WorseResultKind(LookupResultKind.Ambiguous);
+                        }
+                        break;
+
                     default:
                         symbols = methodGroup;
                         if (symbols.Length > 0)
                         {
                             resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
                         }
-
                         break;
                 }
             }
