@@ -564,9 +564,6 @@ namespace Roslyn.Test.PdbUtilities
                         int synthesizedKind = (b & 0x3f) - 1;
                         bool hasOrdinal = (b & (1 << 7)) != 0;
 
-                        // TODO: we don't need subordinals at this point
-                        bool hasSubordinal = false;
-
                         // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
                         int syntaxOffset;
                         bool badSyntaxOffset = !blobReader.TryReadCompressedInteger(out syntaxOffset);
@@ -575,20 +572,12 @@ namespace Roslyn.Test.PdbUtilities
                         int ordinal = 0;
                         bool badOrdinal = hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal);
 
-                        int subordinal = 0;
-                        bool badSubordinal = hasSubordinal && !blobReader.TryReadCompressedInteger(out subordinal);
-
                         writer.WriteAttributeString("kind", synthesizedKind.ToString());
                         writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
 
                         if (badOrdinal || hasOrdinal)
                         {
                             writer.WriteAttributeString("ordinal", badOrdinal ? "?" : ordinal.ToString());
-                        }
-
-                        if (badSubordinal || hasSubordinal)
-                        {
-                            writer.WriteAttributeString("subordinal", badSubordinal ? "?" : subordinal.ToString());
                         }
                     }
 

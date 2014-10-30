@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         public readonly int Ordinal;
 
-        /// <summary>
-        /// To support EnC of async method we will assign another number "subordinal" to certain synthesized locals 
-        /// (produced by spilling by-ref variables) to simplify the mapping.
-        /// </summary>
-        public readonly int Subordinal;
-
         public static readonly LocalDebugId None = new LocalDebugId(isNone: true);
 
         private LocalDebugId(bool isNone)
@@ -49,17 +43,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             this.SyntaxOffset = -1;
             this.Ordinal = -1;
-            this.Subordinal = -1;
         }
 
-        public LocalDebugId(int syntaxOffset, int ordinal = 0, int subordinal = 0)
+        public LocalDebugId(int syntaxOffset, int ordinal = 0)
         {
             Debug.Assert(ordinal >= 0);
-            Debug.Assert(subordinal >= 0);
 
             this.SyntaxOffset = syntaxOffset;
             this.Ordinal = ordinal;
-            this.Subordinal = subordinal;
         }
 
         public bool IsNone
@@ -73,15 +64,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public bool Equals(LocalDebugId other)
         {
             return SyntaxOffset == other.SyntaxOffset
-                && Ordinal == other.Ordinal
-                && Subordinal == other.Subordinal;
+                && Ordinal == other.Ordinal;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.Combine(SyntaxOffset, Ordinal), Subordinal);
+            return Hash.Combine(SyntaxOffset, Ordinal);
         }
-
+        
         public override bool Equals(object obj)
         {
             return obj is LocalDebugId && Equals((LocalDebugId)obj);

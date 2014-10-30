@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return "[invalid]";
             }
 
-            return string.Format("[Id={0}.{1}.{2}, Type={3}, Constraints={4}, SynthesizedKind={5}]", this.Id.SyntaxOffset, this.Id.Ordinal, this.Id.Subordinal, this.Type, this.Constraints, this.Kind);
+            return string.Format("[Id={0}.{1}, Type={3}, Constraints={4}, SynthesizedKind={5}]", this.Id.SyntaxOffset, this.Id.Ordinal, this.Type, this.Constraints, this.Kind);
         }
     }
 }

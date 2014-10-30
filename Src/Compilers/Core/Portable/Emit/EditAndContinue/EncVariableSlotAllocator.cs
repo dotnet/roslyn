@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             int syntaxOffset = previousMethod.CalculateLocalSyntaxOffset(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
-            previousId = new LocalDebugId(syntaxOffset, currentId.Ordinal, currentId.Subordinal);
+            previousId = new LocalDebugId(syntaxOffset, currentId.Ordinal);
             return true;
         }
 

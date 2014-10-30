@@ -418,8 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxOffset = -1;
             }
 
-            int subordinal = 0;
-            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, ref subordinal, true, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, true, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
 
             proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree(), isReusable: true));
 
@@ -446,7 +445,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expr,
             AwaitExpressionSyntax awaitSyntaxOpt,
             int syntaxOffset,
-            ref int subordinal,
             bool isRef,
             ArrayBuilder<BoundExpression> sideEffects,
             ArrayBuilder<StateMachineFieldSymbol> hoistedFields,
@@ -457,11 +455,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                     {
                         var array = (BoundArrayAccess)expr;
-                        BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, ref subordinal, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+                        BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         var indices = ArrayBuilder<BoundExpression>.GetInstance();
                         foreach (var index in array.Indices)
                         {
-                            indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, ref subordinal, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
+                            indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
                         }
 
                         needsSacrificialEvaluation = true; // need to force array index out of bounds exceptions
@@ -485,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var isFieldOfStruct = !field.FieldSymbol.ContainingType.IsReferenceType;
 
-                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset, ref subordinal, isFieldOfStruct, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset, isFieldOfStruct, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
                         {
                             needsSacrificialEvaluation = true; // need the null check in field receiver

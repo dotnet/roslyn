@@ -28,12 +28,6 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EditAndContinueMethodDebugInformation(UncompressSlotMap(compressedSlotMap));
         }
 
-        // TODO: remove, we don't need this 
-        private static bool HasSubordinal(SynthesizedLocalKind kind)
-        {
-            return false;
-        }
-
         private const byte AlignmentValue = 0xff;
 
         private unsafe static ImmutableArray<LocalSlotDebugInfo> UncompressSlotMap(ImmutableArray<byte> compressedSlotMap)
@@ -67,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     var kind = (SynthesizedLocalKind)((b & 0x3f) - 1);
                     bool hasOrdinal = (b & (1 << 7)) != 0;
-                    bool hasSubordinal = HasSubordinal(kind);
 
                     // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
                     int syntaxOffset;
@@ -84,13 +77,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         return default(ImmutableArray<LocalSlotDebugInfo>);
                     }
 
-                    int subordinal = 0;
-                    if (hasSubordinal && !blobReader.TryReadCompressedInteger(out subordinal))
-                    {
-                        return default(ImmutableArray<LocalSlotDebugInfo>);
-                    }
-
-                    mapBuilder.Add(new LocalSlotDebugInfo(kind, new LocalDebugId(syntaxOffset, ordinal, subordinal)));
+                    mapBuilder.Add(new LocalSlotDebugInfo(kind, new LocalDebugId(syntaxOffset, ordinal)));
                 }
             }
 
@@ -118,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var kind = localSlot.SynthesizedKind;
                 bool hasOrdinal = localSlot.Id.Ordinal > 0;
-                bool hasSubordinal = HasSubordinal(kind);
 
                 if (!kind.IsLongLived())
                 {
@@ -142,11 +128,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (hasOrdinal)
                 {
                     cmw.WriteCompressedUInt((uint)localSlot.Id.Ordinal);
-                }
-
-                if (hasSubordinal)
-                {
-                    cmw.WriteCompressedUInt((uint)localSlot.Id.Subordinal);
                 }
             }
 
