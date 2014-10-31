@@ -146,12 +146,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Not used by MethodSignatureComparer"
 
-        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
-            Get
-                Throw ExceptionUtilities.Unreachable
-            End Get
-        End Property
-
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
                 Throw ExceptionUtilities.Unreachable
@@ -293,6 +287,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Throw ExceptionUtilities.Unreachable
+        End Function
 #End Region
     End Class
 End Namespace

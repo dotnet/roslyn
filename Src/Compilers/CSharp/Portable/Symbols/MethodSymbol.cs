@@ -910,6 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Calculates a syntax offset for a local (user-defined or long-lived synthesized) declared at <paramref name="localPosition"/>.
+        /// Must be implemented by all methods that may contain user code.
         /// </summary>
         /// <remarks>
         /// Syntax offset is a unique identifier for the local within the emitted method body.
@@ -919,11 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// as if all source these parts were concatenated together and prepended to the constructor body.
         /// The resulting syntax offset is then negative for locals defined outside of the constructor body.
         /// </remarks>
-        internal virtual int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-        {
-            // Method body doesn't contain any user-defined or long-lived synthesized locals.
-            throw ExceptionUtilities.Unreachable;
-        }
+        internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
         #region IMethodSymbol Members
 

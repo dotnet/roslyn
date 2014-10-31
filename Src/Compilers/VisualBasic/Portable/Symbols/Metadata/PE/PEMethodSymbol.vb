@@ -948,12 +948,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Me.m_lazyConditionalAttributeSymbols
         End Function
 
-        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
@@ -972,6 +966,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Interlocked.CompareExchange(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
             meParameter = m_lazyMeParameter
             Return True
+        End Function
+
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 

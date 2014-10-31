@@ -1,10 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -23,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected ReadOnly Property ContainingProperty As PropertySymbol
             Get
-                Return DirectCast(m_propertyOrEvent, PropertySymbol)
+                Return m_propertyOrEvent
             End Get
         End Property
 
@@ -85,7 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Protected MustOverride Function GetParameters() As ImmutableArray(Of ParameterSymbol)
+
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(Not ContainingType.IsImplicitlyDeclared)
@@ -99,7 +97,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' - the code doesn't throw exceptions whose stack frames we would need to hide
         End Sub
 
-        Protected MustOverride Function GetParameters() As ImmutableArray(Of ParameterSymbol)
+        Friend NotOverridable Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Throw ExceptionUtilities.Unreachable
+        End Function
     End Class
 
     Friend NotInheritable Class SynthesizedWithEventsGetAccessorSymbol

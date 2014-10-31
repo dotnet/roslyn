@@ -308,16 +308,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
+                Return False
+            End Function
+
             Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
                 Get
                     Return False
                 End Get
             End Property
 
-            Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
-                Return False
+            Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+                Throw ExceptionUtilities.Unreachable
             End Function
-
         End Class
     End Class
 End Namespace

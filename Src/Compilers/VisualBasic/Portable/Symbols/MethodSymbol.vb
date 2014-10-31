@@ -699,6 +699,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
+            Get
+                Return If(Me.ContainingSymbol Is Nothing, EmbeddedSymbolKind.None, Me.ContainingSymbol.EmbeddedSymbolKind)
+            End Get
+        End Property
+
         ''' <summary> 
         ''' Returns bound block representing method's body. This method is called 
         ''' by 'method compiler' when it is ready to emit IL code for the method.
@@ -727,14 +733,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
-            Get
-                Return If(Me.ContainingSymbol Is Nothing, EmbeddedSymbolKind.None, Me.ContainingSymbol.EmbeddedSymbolKind)
-            End Get
-        End Property
-
         ''' <summary>
         ''' Calculates a syntax offset for a local (user-defined or long-lived synthesized) declared at <paramref name="localPosition"/>.
+        ''' Must be implemented by all methods that may contain user code.
         ''' </summary>
         ''' <remarks>
         ''' Syntax offset is a unique identifier for the local within the emitted method body.
@@ -744,10 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' as if all source these parts were concatenated together and prepended to the constructor body.
         ''' The resulting syntax offset is then negative for locals defined outside of the constructor body.
         ''' </remarks>
-        Friend Overridable Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
-            ' Method body doesn't contain any user-defined or long-lived synthesized locals.
-            Throw ExceptionUtilities.Unreachable
-        End Function
+        Friend MustOverride Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
 
 #Region "IMethodSymbol"
 

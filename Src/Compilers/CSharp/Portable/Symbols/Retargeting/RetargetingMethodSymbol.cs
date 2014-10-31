@@ -338,14 +338,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override bool GenerateDebugInfo
-        {
-            get
-            {
-                return underlyingMethod.GenerateDebugInfo;
-            }
-        }
-
         internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
         {
             return this.underlyingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
@@ -590,6 +582,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+        internal override bool GenerateDebugInfo
+        {
+            get { return false; }
+        }
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            // retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

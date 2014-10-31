@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' This class represents a base class for compiler generated methods
     ''' </summary>
-    Friend Class SynthesizedSimpleMethodSymbol
+    Friend NotInheritable Class SynthesizedSimpleMethodSymbol
         Inherits SynthesizedRegularMethodBase
 
         Private _parameters As ImmutableArray(Of ParameterSymbol)
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._parameters = parameters
         End Sub
 
-        Friend NotOverridable Overrides ReadOnly Property ParameterCount As Integer
+        Friend Overrides ReadOnly Property ParameterCount As Integer
             Get
                 Return Me._parameters.Length
             End Get
@@ -102,6 +102,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-    End Class
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return False
+            End Get
+        End Property
 
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
 End Namespace

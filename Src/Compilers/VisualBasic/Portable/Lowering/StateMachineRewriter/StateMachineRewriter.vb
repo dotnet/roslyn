@@ -366,29 +366,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Function OpenMethodImplementation(interfaceMethod As WellKnownMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
+        Friend Function OpenMethodImplementation(interfaceMethod As WellKnownMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
             Dim methodToImplement As MethodSymbol = Me.F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
 
-            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty)
+            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo, hasMethodBodyDependency, associatedProperty)
         End Function
 
-        Friend Function OpenMethodImplementation(interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
+        Friend Function OpenMethodImplementation(interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol)
 
-            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty)
+            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo, hasMethodBodyDependency, associatedProperty)
         End Function
 
-        Friend Function OpenMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
+        Friend Function OpenMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol).AsMember(interfaceType)
 
-            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty)
+            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo, hasMethodBodyDependency, associatedProperty)
         End Function
 
         Private Function OpenMethodImplementation(methodToImplement As MethodSymbol,
                                                   methodName As String,
                                                   debugAttributes As DebugAttributes,
                                                   accessibility As Accessibility,
-                                                  enableDebugInfo As Boolean,
+                                                  generateDebugInfo As Boolean,
                                                   Optional hasMethodBodyDependency As Boolean = False,
                                                   Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
 
@@ -401,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             Me.F.Syntax,
                                                             debugAttributes,
                                                             accessibility,
-                                                            enableDebugInfo,
+                                                            generateDebugInfo,
                                                             hasMethodBodyDependency,
                                                             associatedProperty)
 
@@ -410,23 +410,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Friend Function OpenPropertyImplementation(interfaceProperty As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean) As MethodSymbol
+        Friend Function OpenPropertyImplementation(interfaceProperty As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean) As MethodSymbol
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceProperty), PropertySymbol).GetMethod
 
-            Return OpenPropertyImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo)
+            Return OpenPropertyImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo)
         End Function
 
-        Friend Function OpenPropertyImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean) As MethodSymbol
+        Friend Function OpenPropertyImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean) As MethodSymbol
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), PropertySymbol).GetMethod.AsMember(interfaceType)
 
-            Return OpenPropertyImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo)
+            Return OpenPropertyImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo)
         End Function
 
         Private Function OpenPropertyImplementation(getterToImplement As MethodSymbol,
                                                     name As String,
                                                     debugAttributes As DebugAttributes,
                                                     accessibility As Accessibility,
-                                                    enableDebugInfo As Boolean,
+                                                    generateDebugInfo As Boolean,
                                                     Optional hasMethodBodyDependency As Boolean = False) As MethodSymbol
 
             Dim prop As New SynthesizedStateMachineProperty(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             Me.F.Syntax,
                                                             debugAttributes,
                                                             accessibility,
-                                                            enableDebugInfo,
+                                                            generateDebugInfo,
                                                             hasMethodBodyDependency)
 
             Me.F.AddProperty(Me.F.CurrentType, prop)

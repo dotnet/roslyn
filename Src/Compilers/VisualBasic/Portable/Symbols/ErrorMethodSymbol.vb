@@ -61,12 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
         Friend Overrides Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
             Return ImmutableArray(Of String).Empty
         End Function
@@ -239,7 +233,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-    End Class
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return False
+            End Get
+        End Property
 
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
 End Namespace
 

@@ -45,7 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Create a bound block 
                 Return New BoundBlock(syntax, Nothing, ImmutableArray(Of LocalSymbol).Empty, statements.ToImmutableAndFree()).MakeCompilerGenerated()
             End Function
-
         End Class
 
         Partial Private NotInheritable Class AnonymousTypeEqualsMethodSymbol
@@ -77,7 +76,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                       ImmutableArray.Create(Of BoundStatement)(
                                           New BoundReturnStatement(syntax, boundCallToEquals, Nothing, Nothing).MakeCompilerGenerated()))
             End Function
-
         End Class
 
         Partial Private NotInheritable Class AnonymousTypeGetHashCodeMethodSymbol
@@ -177,12 +175,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                       ImmutableArray.Create(Of BoundStatement)(
                                           New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()))
             End Function
-
         End Class
 
         Partial Private NotInheritable Class AnonymousType_IEquatable_EqualsMethodSymbol
             Inherits SynthesizedRegularMethodBase
-
 
             Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
@@ -313,7 +309,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New BoundBinaryOperator(Syntax, BinaryOperatorKind.AndAlso,
                                                left, right, False, booleanType).MakeCompilerGenerated()
             End Function
-
         End Class
 
         Partial Private NotInheritable Class AnonymousTypeToStringMethodSymbol

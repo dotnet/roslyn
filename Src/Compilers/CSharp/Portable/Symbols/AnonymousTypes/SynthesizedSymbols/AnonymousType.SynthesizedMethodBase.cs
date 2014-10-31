@@ -1,16 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -84,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return default(System.Reflection.MethodImplAttributes); }
             }
 
-            internal sealed override Microsoft.Cci.CallingConvention CallingConvention
+            internal sealed override Cci.CallingConvention CallingConvention
             {
-                get { return Microsoft.Cci.CallingConvention.HasThis; }
+                get { return Cci.CallingConvention.HasThis; }
             }
 
             public sealed override bool IsExtensionMethod
@@ -196,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+            internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -219,6 +210,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
                 F.CurrentMethod = this;
                 return F;
+            }
+
+            internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

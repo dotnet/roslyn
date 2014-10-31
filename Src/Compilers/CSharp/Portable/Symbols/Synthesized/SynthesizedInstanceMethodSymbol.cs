@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -49,6 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }
+        }
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

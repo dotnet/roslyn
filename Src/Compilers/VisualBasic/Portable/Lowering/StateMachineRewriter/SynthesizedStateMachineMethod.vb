@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _locations As ImmutableArray(Of Location)
         Private ReadOnly _debugAttributes As DebugAttributes
         Private ReadOnly _accessibility As Accessibility
-        Private ReadOnly _enableDebugInfo As Boolean
+        Private ReadOnly _generateDebugInfo As Boolean
         Private ReadOnly _hasMethodBodyDependency As Boolean
         Private ReadOnly _associatedProperty As PropertySymbol
 
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        syntax As VisualBasicSyntaxNode,
                        attributes As DebugAttributes,
                        declaredAccessibility As Accessibility,
-                       enableDebugInfo As Boolean,
+                       generateDebugInfo As Boolean,
                        hasMethodBodyDependency As Boolean,
                        Optional associatedProperty As PropertySymbol = Nothing)
 
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._locations = ImmutableArray.Create(syntax.GetLocation())
             Me._debugAttributes = attributes
             Me._accessibility = declaredAccessibility
-            Me._enableDebugInfo = enableDebugInfo
+            Me._generateDebugInfo = generateDebugInfo
             Me._hasMethodBodyDependency = hasMethodBodyDependency
 
             Debug.Assert(Not interfaceMethod.IsGenericMethod)
@@ -164,15 +164,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
-            Get
-                Return Me._enableDebugInfo
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                Return ImmutableArray.Create(Of MethodSymbol)(Me._interfaceMethod)
+                Return ImmutableArray.Create(Me._interfaceMethod)
             End Get
         End Property
 
@@ -186,6 +180,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return Me._generateDebugInfo
+            End Get
+        End Property
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Return Me.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree)
+        End Function
+
         Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
             Get
                 Return _hasMethodBodyDependency
@@ -197,10 +201,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return StateMachineType.KickoffMethod
             End Get
         End Property
-
-        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
-            Return Me.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree)
-        End Function
     End Class
 
 End Namespace

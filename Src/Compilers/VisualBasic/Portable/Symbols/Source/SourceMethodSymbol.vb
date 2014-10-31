@@ -1211,6 +1211,28 @@ lReportErrorOnTwoTokens:
 
             Return New BoundBlock(methodBlock, methodBlock.Statements, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(boundStatement))
         End Function
+
+        Friend NotOverridable Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Dim span As TextSpan
+
+            Dim block = BlockSyntax
+            If block IsNot Nothing AndAlso localTree Is block.SyntaxTree Then
+                ' Assign all variables that are associated with the header -1.
+                ' We can't assign >=0 since user-defined variables defined in the first statement of the body have 0
+                ' and user-defined variables need to have a unique syntax offset.
+                If localPosition = block.Begin.SpanStart Then
+                    Return -1
+                End If
+
+                span = block.Statements.Span
+
+                If span.Contains(localPosition) Then
+                    Return localPosition - span.Start
+                End If
+            End If
+
+            Throw ExceptionUtilities.Unreachable
+        End Function
 #End Region
 
 #Region "Signature"

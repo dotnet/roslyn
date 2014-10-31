@@ -24,7 +24,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            Protected Overrides Function GenerateMetadataName() As String
+                Return Binder.GetAccessorName(m_propertyOrEvent.MetadataName, Me.MethodKind, Me.IsCompilationOutputWinMdObj())
+            End Function
+
+            Public Overrides ReadOnly Property ReturnType As TypeSymbol
+                Get
+                    Return m_returnType
+                End Get
+            End Property
+
+            Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                 MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                 ' Dev11 adds DebuggerNonUserCode; there is no reason to do so since:
@@ -35,15 +45,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' C# also doesn't add DebuggerHidden nor DebuggerNonUserCode attributes.
             End Sub
 
-            Protected Overrides Function GenerateMetadataName() As String
-                Return Binder.GetAccessorName(m_propertyOrEvent.MetadataName, Me.MethodKind, Me.IsCompilationOutputWinMdObj())
-            End Function
-
-            Public Overrides ReadOnly Property ReturnType As TypeSymbol
+            Friend NotOverridable Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
                 Get
-                    Return m_returnType
+                    Return False
                 End Get
             End Property
+
+            Friend NotOverridable Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+                Throw ExceptionUtilities.Unreachable
+            End Function
         End Class
 
         Private NotInheritable Class AnonymousTypePropertyGetAccessorSymbol
@@ -96,9 +106,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return MethodKind.PropertySet
                 End Get
             End Property
-
         End Class
-
     End Class
-
 End Namespace

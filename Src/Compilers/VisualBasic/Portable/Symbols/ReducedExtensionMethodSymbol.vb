@@ -575,12 +575,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
-            Get
-                Return m_CurriedFromMethod.GenerateDebugInfo
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property Name As String
             Get
                 Return m_CurriedFromMethod.Name
@@ -605,6 +599,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
             Return False
+        End Function
+
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return m_CurriedFromMethod.GenerateDebugInfo
+            End Get
+        End Property
+
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Public Overrides Function GetHashCode() As Integer

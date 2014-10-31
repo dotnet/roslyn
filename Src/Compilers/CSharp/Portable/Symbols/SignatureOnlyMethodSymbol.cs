@@ -132,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsMetadataFinal() { throw ExceptionUtilities.Unreachable; }
 
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) { throw ExceptionUtilities.Unreachable; }
+
         #endregion
     }
 }

@@ -134,36 +134,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Function AsMember(constructedFrame As NamedTypeSymbol) As MethodSymbol
-            ' ContainingType is always a Frame here which is a type definition so we can use "Is"
-            If constructedFrame Is ContainingType Then
-                Return Me
-            End If
-
-            Dim substituted = DirectCast(constructedFrame, SubstitutedNamedType)
-            Return DirectCast(substituted.GetMemberForDefinition(Me), MethodSymbol)
-        End Function
-
-        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
-            Get
-                Return m_lambda.GenerateDebugInfoImpl
-            End Get
-        End Property
-
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
-
-            ' Lambda that doesn't contain user code may still call to a user code (e.g. delegate relaxation stubs). We want the stack frame to be hidden.
-            ' Dev11 marks such lambda with DebuggerStepThrough attribute but that seems to be useless. Rather we hide the frame completely.
-            If Not GenerateDebugInfoImpl Then
-                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeDebuggerHiddenAttribute())
-            End If
-
-            If Me.IsAsync OrElse Me.IsIterator Then
-                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
-            End If
-        End Sub
-
         Public Overrides ReadOnly Property IsAsync As Boolean
             Get
                 Return Me.m_lambda.IsAsync
@@ -179,6 +149,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
             Return False
         End Function
+
+        Friend Function AsMember(constructedFrame As NamedTypeSymbol) As MethodSymbol
+            ' ContainingType is always a Frame here which is a type definition so we can use "Is"
+            If constructedFrame Is ContainingType Then
+                Return Me
+            End If
+
+            Dim substituted = DirectCast(constructedFrame, SubstitutedNamedType)
+            Return DirectCast(substituted.GetMemberForDefinition(Me), MethodSymbol)
+        End Function
+
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+
+            ' Lambda that doesn't contain user code may still call to a user code (e.g. delegate relaxation stubs). We want the stack frame to be hidden.
+            ' Dev11 marks such lambda with DebuggerStepThrough attribute but that seems to be useless. Rather we hide the frame completely.
+            If Not GenerateDebugInfoImpl Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeDebuggerHiddenAttribute())
+            End If
+
+            If Me.IsAsync OrElse Me.IsIterator Then
+                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
+            End If
+        End Sub
+
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return m_lambda.GenerateDebugInfoImpl
+            End Get
+        End Property
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Dim syntax = TryCast(Me.Syntax, LambdaExpressionSyntax)
@@ -198,6 +198,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(localPosition >= bodyStart)
             Return localPosition - bodyStart
         End Function
-
     End Class
 End Namespace

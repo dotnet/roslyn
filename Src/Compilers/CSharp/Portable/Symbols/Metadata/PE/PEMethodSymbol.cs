@@ -19,6 +19,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEMethodSymbol : MethodSymbol
     {
+        private class SignatureData
+        {
+            public readonly SignatureHeader Header;
+            public readonly ImmutableArray<ParameterSymbol> Parameters;
+            public readonly PEParameterSymbol ReturnParam;
+
+            public SignatureData(SignatureHeader header, ImmutableArray<ParameterSymbol> parameters, PEParameterSymbol returnParam)
+            {
+                this.Header = header;
+                this.Parameters = parameters;
+                this.ReturnParam = returnParam;
+            }
+        }
+
         private readonly MethodDefinitionHandle handle;
         private readonly string name;
         private readonly MethodImplAttributes implFlags;
@@ -54,6 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private const int IsExplicitOverrideIsPopulatedMask = 1 << 9;
 
         private ImmutableArray<TypeParameterSymbol> lazyTypeParameters;
+        private ParameterSymbol lazyThisParameter;
+        private SignatureData lazySignature;
 
         // CONSIDER: Should we use a CustomAttributeBag for PE symbols?
         private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
@@ -65,26 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<MethodSymbol> lazyExplicitMethodImplementations;
         private DiagnosticInfo lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
         private OverriddenOrHiddenMembersResult lazyOverriddenOrHiddenMembersResult;
-
-        #region "Signature data"
-
-        private SignatureData lazySignature;
-
-        private class SignatureData
-        {
-            public readonly SignatureHeader Header;
-            public readonly ImmutableArray<ParameterSymbol> Parameters;
-            public readonly PEParameterSymbol ReturnParam;
-
-            public SignatureData(SignatureHeader header, ImmutableArray<ParameterSymbol> parameters, PEParameterSymbol returnParam)
-            {
-                this.Header = header;
-                this.Parameters = parameters;
-                this.ReturnParam = returnParam;
-            }
-        }
-
-        #endregion
 
         internal PEMethodSymbol(
             PEModuleSymbol moduleSymbol,
@@ -118,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             this.flags = localflags;
         }
 
-        private ParameterSymbol lazyThisParameter;
         internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
             thisParameter = lazyThisParameter;
@@ -1092,6 +1087,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return this.lazyConditionalAttributeSymbols;
         }
 
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get
@@ -1114,6 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     Interlocked.CompareExchange(ref lazyOverriddenOrHiddenMembersResult, base.OverriddenOrHiddenMembers, null);
                 }
+
                 return lazyOverriddenOrHiddenMembersResult;
             }
         }
