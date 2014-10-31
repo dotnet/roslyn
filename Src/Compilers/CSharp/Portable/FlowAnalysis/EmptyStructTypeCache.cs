@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool dev12CompilerCompatibility;
 
+        private SourceAssemblySymbol sourceAssembly;
+
         private SmallDictionary<NamedTypeSymbol, bool> Cache
         {
             get
@@ -37,10 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Create a cache for computing whether or not a struct type is "empty".
         /// </summary>
         /// <param name="dev12CompilerCompatibility">Enable compatibility with the native compiler, which
-        ///  ignored private fields of reference type for structs loaded from metadata.</param>
-        internal EmptyStructTypeCache(bool dev12CompilerCompatibility)
+        ///  ignores inaccessible fields of reference type for structs loaded from metadata.</param>
+        /// <param name="compilation">if <see cref="dev12CompilerCompatibility"/> is true, set to the compilation from
+        /// which to check accessibility.</param>
+        internal EmptyStructTypeCache(Compilation compilation, bool dev12CompilerCompatibility)
         {
+            Debug.Assert(compilation != null || !dev12CompilerCompatibility);
             this.dev12CompilerCompatibility = dev12CompilerCompatibility;
+            this.sourceAssembly = (compilation == null) ? null : (SourceAssemblySymbol)compilation.Assembly;
         }
 
         /// <summary>
@@ -172,10 +178,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ShouldIgnoreStructField(Symbol member, TypeSymbol memberType)
         {
-            return this.dev12CompilerCompatibility &&                                     // when we're trying to be compatible with the native compiler, we ignore
-                   member.DeclaredAccessibility == Accessibility.Private &&        // private fields
-                   !memberType.IsValueType &&                                      // of reference type (more precisely, not of value type)
+            return this.dev12CompilerCompatibility &&                              // when we're trying to be compatible with the native compiler, we ignore
+                   (object)member.ContainingAssembly != this.sourceAssembly &&
+                   !IsAccessibleToAssembly(member, this.sourceAssembly) &&         // fields inaccessible to our assembly
+                   memberType.IsReferenceType && !memberType.IsTypeParameter() &&  // of reference type (but not type parameters)
                    !member.Dangerous_IsFromSomeCompilationIncludingRetargeting;    // that come from metadata
+        }
+
+        private static bool IsAccessibleToAssembly(Symbol symbol, SourceAssemblySymbol assembly)
+        {
+            for (;symbol != null && symbol.Kind != SymbolKind.Namespace; symbol = symbol.ContainingSymbol)
+            {
+                switch (symbol.DeclaredAccessibility)
+                {
+                    case Accessibility.Internal:
+                    case Accessibility.ProtectedAndInternal:
+                        if (!assembly.HasInternalAccessTo(symbol.ContainingAssembly)) return false;
+                        break;
+
+                    case Accessibility.Private:
+                        return false;
+                }
+            }
+
+            return true;
         }
 
     }
@@ -186,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class NeverEmptyStructTypeCache : EmptyStructTypeCache
     {
         public NeverEmptyStructTypeCache()
-           : base(false)
+           : base(null, false)
         {
         }
 

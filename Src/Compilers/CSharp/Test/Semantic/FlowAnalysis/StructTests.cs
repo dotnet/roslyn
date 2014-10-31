@@ -213,5 +213,107 @@ public struct StructWithValue
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
                 );
         }
+
+        [Fact, WorkItem(1072447)]
+        public void DoNotIgnorePrivateStructFieldsOfTypeParameterTypeFromMetadata()
+        {
+            var comp1 = CreateCompilationWithMscorlib(
+@"public struct GenericStruct<T> where T : class
+{
+    T PrivateData;
+}
+");
+            var sourceReference = new CSharpCompilationReference(comp1);
+            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+
+            var source2 =
+@"class Program<T> where T : class
+{
+    public static void Main()
+    {
+        GenericStruct<T> r1;
+        var r2 = r1;
+    }
+}";
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
+
+        [Fact, WorkItem(1072447)]
+        public void IgnoreInternalStructFieldsOfReferenceTypeFromMetadata()
+        {
+            var comp1 = CreateCompilationWithMscorlib(
+@"public struct Struct
+{
+    internal string data;
+}
+");
+            var sourceReference = new CSharpCompilationReference(comp1);
+            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+
+            var source2 =
+@"class Program
+{
+    public static void Main()
+    {
+        Struct r1;
+        var r2 = r1;
+    }
+}";
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(1072447)]
+        public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromMetadata()
+        {
+            var comp1 = CreateCompilationWithMscorlib(
+@"
+internal class C1
+{
+    public struct S
+    {
+        public string data;
+    }
+}
+public struct Struct
+{
+    internal C1.S data;
+}
+");
+            var sourceReference = new CSharpCompilationReference(comp1);
+            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+
+            var source2 =
+@"class Program
+{
+    public static void Main()
+    {
+        Struct r1;
+        var r2 = r1;
+    }
+}";
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+                );
+        }
+
     }
 }
