@@ -1667,6 +1667,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_StructParameterlessInstanceCtorMustBePublic = 37242
         ERR_AutoPropertyCantBeWriteOnly = 37243
 
+        ERR_ExpressionDoesntHaveName = 37244
+        ERR_InvalidNameOfSubExpression = 37245
+        ERR_MethodTypeArgsUnexpected = 37246
+
         ERR_LastPlusOne
 
 

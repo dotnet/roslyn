@@ -173,8 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case sym.Kind
                     Case SymbolKind.NamedType, SymbolKind.ErrorType
                         Dim actualArity As Integer = DirectCast(sym, NamedTypeSymbol).Arity
-                        If actualArity <> arity AndAlso
-                           Not ((options And LookupOptions.AllTypesOfAnyArity) <> 0) Then
+                        If actualArity <> arity Then
                             Return SingleLookupResult.WrongArity(sym, WrongArityErrid(actualArity, arity))
                         End If
 

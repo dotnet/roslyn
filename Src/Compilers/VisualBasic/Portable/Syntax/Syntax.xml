@@ -9072,7 +9072,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "(" token.</description>
       </child>
 
-      <child name="Argument" kind="@NameSyntax">
+      <child name="Argument" kind="@ExpressionSyntax">
         <description>The argument.</description>
       </child>
 

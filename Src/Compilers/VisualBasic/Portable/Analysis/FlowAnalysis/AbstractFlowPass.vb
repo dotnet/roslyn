@@ -2502,6 +2502,19 @@ lUnsplitAndFinish:
             Visit(node.Operand)
             Return Nothing
         End Function
+
+        Public Overrides Function VisitNameOfOperator(node As BoundNameOfOperator) As BoundNode
+            Dim savedState As LocalState = Me.State.Clone()
+            SetUnreachable()
+            Visit(node.Argument)
+            Me.SetState(savedState)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitTypeAsValueExpression(node As BoundTypeAsValueExpression) As BoundNode
+            Visit(node.Expression)
+            Return Nothing
+        End Function
 #End Region
 
     End Class

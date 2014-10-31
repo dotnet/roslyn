@@ -137,11 +137,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' When performing a lookup in interface do NOT lookup in System.Object 
         ''' </summary>
         NoSystemObjectLookupForInterfaces = 1 << 16
-
-        ''' <summary>
-        ''' Consider types of any arity (but still consider arity for other types of symbols).
-        ''' </summary>
-        AllTypesOfAnyArity = 1 << 17
     End Enum
 
     Friend Module LookupOptionExtensions

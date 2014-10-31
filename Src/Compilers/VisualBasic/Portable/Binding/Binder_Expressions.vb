@@ -402,94 +402,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindNameOfExpression(node As NameOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
-            Dim namespaceOrType As NameSyntax
-            Dim member As SimpleNameSyntax
-
             ' Suppress diagnostocs if argument has syntax errors
             If node.Argument.HasErrors Then
                 diagnostics = New DiagnosticBag()
             End If
 
-            Select Case node.Argument.Kind
-                Case SyntaxKind.QualifiedName
-                    Dim qualified = DirectCast(node.Argument, QualifiedNameSyntax)
-                    namespaceOrType = qualified.Left
-                    member = qualified.Right
-                Case Else
-
-                    namespaceOrType = Nothing
-                    member = TryCast(node.Argument, SimpleNameSyntax)
-                    Debug.Assert(member IsNot Nothing OrElse node.Argument.HasErrors)
-            End Select
-
-            Dim lookupResult As LookupResult = LookupResult.GetInstance()
-            Const options As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.AllTypesOfAnyArity
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-
-            If namespaceOrType IsNot Nothing Then
-                ' Create a special binder that allows unbound types
-                Dim nameOfBinder As New GetTypeBinder(namespaceOrType, Me)
-
-                Dim boundLeft As BoundExpression
-                boundLeft = NameOfBinder.BindNamespaceOrTypeExpression(namespaceOrType, diagnostics)
-
-                If member Is Nothing OrElse String.IsNullOrEmpty(member.Identifier.ValueText) Then
-                    ' Must have been a syntax error.
-                    Debug.Assert(node.Argument.HasErrors)
-
-                ElseIf boundLeft.Kind = BoundKind.NamespaceExpression Then
-
-                    Dim ns As NamespaceSymbol = DirectCast(boundLeft, BoundNamespaceExpression).NamespaceSymbol
-
-                    LookupMember(lookupResult, ns, member.Identifier.ValueText, 0, options, useSiteDiagnostics)
-                    VerifyNameOfLookupResult(ns, member, lookupResult, diagnostics)
-                ElseIf boundLeft.Kind = BoundKind.TypeExpression Then
-                    Dim type As TypeSymbol = DirectCast(boundLeft, BoundTypeExpression).Type.OriginalDefinition ' Member lookup doesn't quite work with unbound generic types, hence OriginalDefinition
-
-                    If Not type.IsErrorType() Then
-                        LookupMember(lookupResult, type, member.Identifier.ValueText, 0, options, useSiteDiagnostics)
-                        VerifyNameOfLookupResult(type, member, lookupResult, diagnostics)
-                    End If
-                Else
-                    Throw ExceptionUtilities.Unreachable
-                End If
-
-            ElseIf member IsNot Nothing AndAlso Not String.IsNullOrEmpty(member.Identifier.ValueText)
-                Lookup(lookupResult, member.Identifier.ValueText, 0, options, useSiteDiagnostics)
-
-                If lookupResult.HasSingleSymbol AndAlso lookupResult.SingleSymbol.Kind = SymbolKind.Local Then
-                    Dim localSymbol = DirectCast(lookupResult.SingleSymbol, LocalSymbol)
-
-                    If member.Identifier.SpanStart < localSymbol.IdentifierToken.SpanStart Then
-
-                        Dim declarationLocation As Location = localSymbol.IdentifierLocation
-                        Dim referenceLocation As Location = member.Identifier.GetLocation()
-
-                        If Not localSymbol.IsImplicitlyDeclared AndAlso
-                           declarationLocation.IsInSource AndAlso
-                           referenceLocation IsNot Nothing AndAlso referenceLocation.IsInSource AndAlso
-                           declarationLocation.SourceTree Is referenceLocation.SourceTree Then
-
-                            ReportDiagnostic(diagnostics, member.Identifier, ERRID.ERR_UseOfLocalBeforeDeclaration1, localSymbol)
-                        End If
-                    End If
-                End If
-
-                VerifyNameOfLookupResult(Nothing, member, lookupResult, diagnostics)
-            End If
-
             Dim value As String = Nothing
 
-            If member IsNot Nothing Then
-                value = member.Identifier.ValueText
-                diagnostics.Add(member, useSiteDiagnostics)
-            Else
-                Debug.Assert(useSiteDiagnostics Is Nothing)
-            End If
+            Select Case node.Argument.Kind
+                Case SyntaxKind.SimpleMemberAccessExpression
+                    value = DirectCast(node.Argument, MemberAccessExpressionSyntax).Name.Identifier.ValueText
 
-            lookupResult.Free()
+                Case SyntaxKind.IdentifierName,
+                     SyntaxKind.GenericName
+                    value = DirectCast(node.Argument, SimpleNameSyntax).Identifier.ValueText
 
-            Return New BoundNameOfOperator(node, ConstantValue.Create(If(value, "")), GetSpecialType(SpecialType.System_String, node, diagnostics))
+                Case Else
+                    ' Must be a syntax error
+                    Debug.Assert(node.Argument.HasErrors)
+            End Select
+
+            ' Bind the argument
+            Dim argument As BoundExpression = BindExpression(node.Argument, diagnostics)
+
+            Select Case argument.Kind
+                Case BoundKind.MethodGroup
+
+                    Dim group = DirectCast(argument, BoundMethodGroup)
+
+                    If group.ResultKind = LookupResultKind.Inaccessible Then
+                        ReportDiagnostic(diagnostics,
+                                         If(node.Argument.Kind = SyntaxKind.SimpleMemberAccessExpression,
+                                            DirectCast(node.Argument, MemberAccessExpressionSyntax).Name,
+                                            node.Argument),
+                                         GetInaccessibleErrorInfo(group.Methods.First, useSiteDiagnostics:=Nothing))
+
+                    ElseIf group.ResultKind = LookupResultKind.Good AndAlso group.TypeArgumentsOpt IsNot Nothing
+                        ReportDiagnostic(diagnostics, group.TypeArgumentsOpt.Syntax, ERRID.ERR_MethodTypeArgsUnexpected)
+                    End If
+
+                Case BoundKind.PropertyGroup
+
+                    Dim group = DirectCast(argument, BoundPropertyGroup)
+
+                    If group.ResultKind = LookupResultKind.Inaccessible Then
+                        ReportDiagnostic(diagnostics,
+                                         If(node.Argument.Kind = SyntaxKind.SimpleMemberAccessExpression,
+                                            DirectCast(node.Argument, MemberAccessExpressionSyntax).Name,
+                                            node.Argument),
+                                         GetInaccessibleErrorInfo(group.Properties.First, useSiteDiagnostics:=Nothing))
+                    End If
+            End Select
+
+            Return New BoundNameOfOperator(node, argument, ConstantValue.Create(value), GetSpecialType(SpecialType.System_String, node, diagnostics))
         End Function
 
         Private Sub VerifyNameOfLookupResult(container As NamespaceOrTypeSymbol, member As SimpleNameSyntax, lookupResult As LookupResult, diagnostics As DiagnosticBag)
@@ -3319,8 +3284,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' We don't have a valid qualifier for this instance method.
-                    ReportDiagnostic(diagnostics, node, ERRID.ERR_ObjectReferenceNotSupplied)
-                    Return True
+                    If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeExpression AndAlso IsReceiverOfNameOfArgument(receiver.Syntax) Then
+                        receiver = New BoundTypeAsValueExpression(receiver.Syntax, DirectCast(receiver, BoundTypeExpression), receiver.Type).MakeCompilerGenerated()
+                        Return False
+                    Else
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_ObjectReferenceNotSupplied)
+                        Return True
+                    End If
                 End If
 
                 Dim errorId As ERRID = Nothing
@@ -3332,6 +3302,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return False
+        End Function
+
+        Private Shared Function IsReceiverOfNameOfArgument(syntax As VisualBasicSyntaxNode) As Boolean
+            Dim parent = syntax.Parent
+
+            Return parent IsNot Nothing AndAlso
+                   parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso
+                   DirectCast(parent, MemberAccessExpressionSyntax).Expression Is syntax AndAlso
+                   parent.Parent IsNot Nothing AndAlso
+                   parent.Parent.Kind = SyntaxKind.NameOfExpression AndAlso
+                   DirectCast(parent.Parent, NameOfExpressionSyntax).Argument Is parent
         End Function
 
         ''' <summary> 

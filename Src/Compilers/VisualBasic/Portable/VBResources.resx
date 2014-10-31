@@ -4699,4 +4699,13 @@
   <data name="ERR_InsufficientStack" xml:space="preserve">
     <value>An expression is too long or complex to compile</value>
   </data>
+  <data name="ERR_ExpressionDoesntHaveName" xml:space="preserve">
+    <value>This expression does not have a name.</value>
+  </data>
+  <data name="ERR_InvalidNameOfSubExpression" xml:space="preserve">
+    <value>This sub-expression cannot be used inside NameOf argument.</value>
+  </data>
+  <data name="ERR_MethodTypeArgsUnexpected" xml:space="preserve">
+    <value>Method type arguments unexpected.</value>
+  </data>
 </root>

@@ -663,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim openParen As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen, createIfMissing:=True)
 
-            Dim nameOfName = ParseNameOfArgument()
+            Dim nameOfName = ValidateNameOfArgument(ParseExpression(), isTopLevel:=True)
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
@@ -671,55 +671,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.NameOfExpression([nameOf], openParen, nameOfName, closeParen)
         End Function
 
-        Friend Function ParseNameOfArgument() As NameSyntax
-            Dim name As NameSyntax = Nothing
+        Private Function ValidateNameOfArgument(argument As ExpressionSyntax, isTopLevel As Boolean) As ExpressionSyntax
 
-            Dim requireQualification As Boolean = False
+            Select Case argument.Kind
+                Case SyntaxKind.IdentifierName,
+                     SyntaxKind.GenericName
+                    Return argument
 
-            If CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
-                name = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
-                GetNextToken()
-                requireQualification = True
-            Else
-                name = ParseNameOfSimpleName(allowKeyword:=False)
-            End If
+                Case SyntaxKind.MeExpression,
+                     SyntaxKind.MyClassExpression,
+                     SyntaxKind.MyBaseExpression,
+                     SyntaxKind.PredefinedType,
+                     SyntaxKind.NullableType,
+                     SyntaxKind.GlobalName
 
-            ' Parse tail: A sequence of zero or more [dot SimpleName].
-            Dim dotToken As PunctuationSyntax = Nothing
+                    If isTopLevel Then
+                        Return ReportSyntaxError(argument, ERRID.ERR_ExpressionDoesntHaveName)
+                    End If
 
-            Do While TryGetTokenAndEatNewLine(SyntaxKind.DotToken, dotToken)
-                Debug.Assert(dotToken IsNot Nothing)
-                name = SyntaxFactory.QualifiedName(name, dotToken, ParseNameOfSimpleName(allowKeyword:=True))
-            Loop
+                    Return argument
 
-            If requireQualification AndAlso dotToken Is Nothing Then
-                name = SyntaxFactory.QualifiedName(name,
-                                                   ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.DotToken), ERRID.ERR_ExpectedDot),
-                                                   SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier()))
-            End If
+                Case SyntaxKind.SimpleMemberAccessExpression
+                    Dim access = DirectCast(argument, MemberAccessExpressionSyntax)
+                    Dim expression = ValidateNameOfArgument(access.Expression, isTopLevel:=False)
 
-            Return name
-        End Function
+                    If expression IsNot access.Expression Then
+                        access = SyntaxFactory.SimpleMemberAccessExpression(expression, access.OperatorToken, access.Name)
+                    End If
 
-        Private Function ParseNameOfSimpleName(allowKeyword As Boolean) As SimpleNameSyntax
-            Dim name As SimpleNameSyntax
-            Dim allowEmptyGenericArguments As Boolean = True
-            Dim allowNonEmptyGenericArguments As Boolean = False
+                    Return access
 
-            name = ParseSimpleName(allowGenericArguments:=True,
-                                   allowGenericsWithoutOf:=True,
-                                   disallowGenericArgumentsOnLastQualifiedName:=False,
-                                   allowKeyword:=allowKeyword,
-                                   nonArrayName:=True,
-                                   allowEmptyGenericArguments:=allowEmptyGenericArguments,
-                                   allowNonEmptyGenericArguments:=allowNonEmptyGenericArguments)
-
-            If CurrentToken.Kind <> SyntaxKind.DotToken AndAlso name.Kind = SyntaxKind.GenericName Then
-                Dim genericName = DirectCast(name, GenericNameSyntax)
-                name = SyntaxFactory.IdentifierName(genericName.Identifier.AddTrailingSyntax(genericName.TypeArgumentList, ERRID.ERR_TypeArgsUnexpected))
-            End If
-
-            Return name
+                Case Else
+                    Return ReportSyntaxError(argument, If(isTopLevel, ERRID.ERR_ExpressionDoesntHaveName, ERRID.ERR_InvalidNameOfSubExpression))
+            End Select
         End Function
 
         ' File: Parser.cpp

@@ -4404,6 +4404,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to This expression does not have a name..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpressionDoesntHaveName() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpressionDoesntHaveName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Constant expression not representable in type &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_ExpressionOverflow1() As String
@@ -5919,6 +5928,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to This sub-expression cannot be used inside NameOf argument..
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidNameOfSubExpression() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidNameOfSubExpression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;New&apos; is not valid in this context..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidNewInType() As String
@@ -6699,6 +6717,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_MethodMustBeFirstStatementOnLine() As String
             Get
                 Return ResourceManager.GetString("ERR_MethodMustBeFirstStatementOnLine", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Method type arguments unexpected..
+        '''</summary>
+        Friend ReadOnly Property ERR_MethodTypeArgsUnexpected() As String
+            Get
+                Return ResourceManager.GetString("ERR_MethodTypeArgsUnexpected", resourceCulture)
             End Get
         End Property
         
