@@ -24,6 +24,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var linkedDocument = solution.GetDocument(linkedDocumentId);
                     var linkedSyntaxRoot = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Defend against constructed solutions with inconsistent linked documents
+                    if (!linkedSyntaxRoot.FullSpan.Contains(location.Span))
+                    {
+                        continue;
+                    }
+
                     var linkedNode = linkedSyntaxRoot.FindNode(location.Span, getInnermostNodeForTie: true);
 
                     var semanticModel = await linkedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
