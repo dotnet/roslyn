@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// When set, we ignore private reference fields of structs loaded from metadata.
         /// </summary>
-        private bool dev12CompilerCompatibility;
+        private readonly bool dev12CompilerCompatibility;
 
-        private SourceAssemblySymbol sourceAssembly;
+        private readonly SourceAssemblySymbol sourceAssembly;
 
         private SmallDictionary<NamedTypeSymbol, bool> Cache
         {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(compilation != null || !dev12CompilerCompatibility);
             this.dev12CompilerCompatibility = dev12CompilerCompatibility;
-            this.sourceAssembly = (compilation == null) ? null : (SourceAssemblySymbol)compilation.Assembly;
+            this.sourceAssembly = (SourceAssemblySymbol)compilation?.Assembly;
         }
 
         /// <summary>
@@ -178,16 +178,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ShouldIgnoreStructField(Symbol member, TypeSymbol memberType)
         {
-            return this.dev12CompilerCompatibility &&                              // when we're trying to be compatible with the native compiler, we ignore
-                   (object)member.ContainingAssembly != this.sourceAssembly &&
-                   !IsAccessibleToAssembly(member, this.sourceAssembly) &&         // fields inaccessible to our assembly
-                   memberType.IsReferenceType && !memberType.IsTypeParameter() &&  // of reference type (but not type parameters)
-                   !member.Dangerous_IsFromSomeCompilationIncludingRetargeting;    // that come from metadata
+            return this.dev12CompilerCompatibility &&                             // when we're trying to be compatible with the native compiler, we ignore
+                   ((object)member.ContainingAssembly != this.sourceAssembly ||   // imported fields
+                    member.ContainingModule.Ordinal != 0) &&                      //     (an added module is imported)
+                   IsIgnorableType(memberType) &&                                 // of reference type (but not type parameters, looking through arrays)
+                   !IsAccessibleInAssembly(member, this.sourceAssembly);          // that are inaccessible to our assembly.
         }
 
-        private static bool IsAccessibleToAssembly(Symbol symbol, SourceAssemblySymbol assembly)
+        /// <summary>
+        /// When deciding what struct fields to drop on the floor, the native compiler looks
+        /// through arrays, and does not ignore value types or type parameters.
+        /// </summary>
+        private static bool IsIgnorableType(TypeSymbol type)
         {
-            for (;symbol != null && symbol.Kind != SymbolKind.Namespace; symbol = symbol.ContainingSymbol)
+            while (true)
+            {
+                switch (type.TypeKind)
+                {
+                    case TypeKind.Enum:
+                    case TypeKind.Struct:
+                    case TypeKind.TypeParameter:
+                        return false;
+                    case TypeKind.Array:
+                        type = ((ArrayTypeSymbol)type).BaseType;
+                        continue;
+                    default:
+                        return true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Is it possible that the given symbol can be accessed somewhere in the given assembly?
+        /// For the purposes of this test, we assume that code in the given assembly might derive from
+        /// any type. So protected members are considered potentially accessible.
+        /// </summary>
+        private static bool IsAccessibleInAssembly(Symbol symbol, SourceAssemblySymbol assembly)
+        {
+            for (; symbol != null && symbol.Kind != SymbolKind.Namespace; symbol = symbol.ContainingSymbol)
             {
                 switch (symbol.DeclaredAccessibility)
                 {

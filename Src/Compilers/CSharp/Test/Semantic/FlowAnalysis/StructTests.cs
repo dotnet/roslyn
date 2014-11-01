@@ -200,9 +200,10 @@ public struct StructWithValue
     }
 }";
             CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
-                // (6,18): error CS0165: Use of unassigned local variable 'r1'
-                //         var r2 = r1;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
+                // NOTE: no errors expected because we treat all imported data the same as if imported from metadata.
+                ////// (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //////         var r2 = r1;
+                ////Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
                 // (9,18): error CS0165: Use of unassigned local variable 'v1'
                 //         var v2 = v1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
@@ -269,9 +270,10 @@ public struct StructWithValue
     }
 }";
             CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
-                // (6,18): error CS0165: Use of unassigned local variable 'r1'
-                //         var r2 = r1;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                // NOTE: no errors expected because we treat all imported data the same as if imported from metadata.
+                ////// (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //////         var r2 = r1;
+                ////Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
                 );
             CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
                 );
@@ -307,11 +309,72 @@ public struct Struct
     }
 }";
             CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // NOTE: no errors expected because we treat all imported data the same as if imported from metadata.
+                ////// (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //////         var r2 = r1;
+                ////Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(1072447)]
+        public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule()
+        {
+            var source = @"
+internal class C1
+{
+    public struct S
+    {
+        public string data;
+    }
+}
+public struct Struct
+{
+    internal C1.S data;
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.DebugModule);
+            var moduleReference = comp1.EmitToImageReference();
+
+            var source2 =
+@"class Program
+{
+    public static void Main()
+    {
+        Struct r1;
+        var r2 = r1;
+    }
+}";
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
                 );
-            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+        }
+
+        [Fact, WorkItem(1072447)]
+        public void IgnorePrivateStructFieldsOfReferenceTypeFromAddedModule02()
+        {
+            var source = @"
+public struct Struct
+{
+    private string data;
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.DebugModule);
+            var moduleReference = comp1.EmitToImageReference();
+
+            var source2 =
+@"class Program
+{
+    public static void Main()
+    {
+        Struct r1;
+        var r2 = r1;
+    }
+}";
+            CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
                 );
         }
 
