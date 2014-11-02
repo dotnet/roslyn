@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.MovePInvokesToNativeMethodsClass,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true,
+                                                                         isEnabledByDefault: false,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182161.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 

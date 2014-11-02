@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                                                                                       FxCopRulesResources.IdentifierNamesShouldDifferMoreThanCase,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
-                                                                                      isEnabledByDefault: true,
+                                                                                      isEnabledByDefault: false,
                                                                                       description: FxCopRulesResources.IdentifiersShouldDifferByMoreThanCaseDescription,
                                                                                       helpLink: "http://msdn.microsoft.com/library/ms182242.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
                                                                              FxCopRulesResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase,
                                                                              FxCopDiagnosticCategory.Globalization,
                                                                              DiagnosticSeverity.Warning,
-                                                                             isEnabledByDefault: true,
+                                                                             isEnabledByDefault: false,
                                                                              description: FxCopRulesResources.StringComparisonShouldBeOrdinalDescription,
                                                                              helpLink: "http://msdn.microsoft.com/library/bb385972.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);

@@ -261,6 +261,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             foreach (var project in projects)
             {
                 var compilation = project.GetCompilationAsync().Result;
+                compilation = EnableAnalyzer(analyzer, compilation);
+
                 var diags = compilation.GetAnalyzerDiagnostics(new[] { analyzer });
 
                 foreach (var diag in diags)
@@ -293,10 +295,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return results;
         }
 
+        private static Compilation EnableAnalyzer(DiagnosticAnalyzer analyzer, Compilation compilation)
+        {
+            return compilation
+                .WithOptions(
+                    compilation
+                        .Options
+                        .WithSpecificDiagnosticOptions(
+                            analyzer
+                                .SupportedDiagnostics
+                                .Select(x =>
+                                    KeyValuePair.Create(x.Id, ReportDiagnostic.Default))
+                                    .ToImmutableDictionaryOrEmpty()));
+        }
+
         protected static void AnalyzeDocumentCore(DiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
-            var diagnostics = semanticModel.Compilation.GetAnalyzerDiagnostics(new[] { analyzer }, continueOnAnalyzerException: continueOnAnalyzerException);
+            var compilation = semanticModel.Compilation;
+            compilation = EnableAnalyzer(analyzer, compilation);
+
+            var diagnostics = compilation.GetAnalyzerDiagnostics(new[] { analyzer }, continueOnAnalyzerException: continueOnAnalyzerException);
             foreach (var diagnostic in diagnostics)
             {
                 if (!span.HasValue ||

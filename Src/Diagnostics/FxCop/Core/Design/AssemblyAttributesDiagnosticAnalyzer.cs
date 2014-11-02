@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true,
+                                                                         isEnabledByDefault: false,
                                                                          description: FxCopRulesResources.MarkAssembliesWithCLSCompliantDescription,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182156.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
