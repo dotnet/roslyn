@@ -14,6 +14,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <NeedsFakeSign>true</NeedsFakeSign>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MSBuildAssemblyNameFragment)' == 'v12.0'">
     <DefineConstants>MSBUILD12</DefineConstants>
