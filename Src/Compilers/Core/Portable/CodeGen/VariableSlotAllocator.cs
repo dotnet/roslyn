@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             SynthesizedLocalKind synthesizedKind,
             LocalDebugId currentId);
 
+        public abstract string PreviousStateMachineTypeName { get; }
+
         public abstract int HoistedLocalSlotCount { get; }
 
         public abstract string GetPreviousAwaiter(Cci.ITypeReference currentType);

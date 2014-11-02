@@ -323,11 +323,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>u__" + number;
         }
 
-        internal static bool IsAsyncAwaiterFieldName(string name)
-        {
-            return name.StartsWith("<>u__", StringComparison.Ordinal);
-        }
-
         internal static string ReusableHoistedLocalFieldName(int number)
         {
             return "<>7__wrap" + number;

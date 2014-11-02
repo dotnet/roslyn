@@ -511,7 +511,7 @@ End Class
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
 BC37220: Name 'VB$StateMachine_1_<%= longName %>1' exceeds the maximum length allowed in metadata.
-BC37220: Name 'VB$StateMachine_2_<%= longName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name 'VB$StateMachine_1_<%= longName %>1' exceeds the maximum length allowed in metadata.
                                             </errors>)
         End Sub
 

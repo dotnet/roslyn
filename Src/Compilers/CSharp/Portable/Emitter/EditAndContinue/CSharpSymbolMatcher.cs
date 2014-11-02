@@ -43,14 +43,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly);
         }
 
-        internal IDefinition MapDefinition(IDefinition def)
+        public IDefinition MapDefinition(IDefinition definition)
         {
-            var symbol = def as Symbol;
+            var symbol = definition as Symbol;
             if ((object)symbol != null)
             {
                 return (IDefinition)this.symbols.Visit(symbol);
             }
-            return this.defs.VisitDef(def);
+
+            return this.defs.VisitDef(definition);
         }
 
         public override ITypeReference MapReference(ITypeReference reference)
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 return (ITypeReference)this.symbols.Visit(symbol);
             }
+
             return null;
         }
 

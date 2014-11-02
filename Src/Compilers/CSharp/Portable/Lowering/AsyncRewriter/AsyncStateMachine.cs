@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,32 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol constructor;
         private readonly ImmutableArray<NamedTypeSymbol> interfaces;
 
-        public AsyncStateMachine(MethodSymbol asyncMethod, TypeKind typeKind)
-            : base(GeneratedNames.MakeStateMachineTypeName(asyncMethod.Name, SequenceNumber(asyncMethod)), asyncMethod)
+        public AsyncStateMachine(VariableSlotAllocator variableAllocatorOpt, MethodSymbol asyncMethod, TypeKind typeKind)
+            : base(variableAllocatorOpt, asyncMethod)
         {
             // TODO: report use-site errors on these types
             this.typeKind = typeKind;
             this.interfaces = ImmutableArray.Create(asyncMethod.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine));
             this.constructor = new AsyncConstructor(this);
-        }
-
-        private static int SequenceNumber(MethodSymbol method)
-        {
-            // return a unique sequence number for the async implementation class that is independent of the compilation state.
-            int count = 0;
-            foreach (var m in method.ContainingNamespaceOrType().GetMembers(method.Name))
-            {
-                count++;
-                if ((object)method == m)
-                {
-                    return count;
-                }
-            }
-
-            // It is possible we did not find any such members, e.g. for methods that result from the translation of
-            // async lambdas.  In that case the method has already been uniquely named, so there is no need to
-            // produce a unique sequence number for the corresponding class, which already includes the (unique) method name.
-            return count;
         }
 
         public override TypeKind TypeKind

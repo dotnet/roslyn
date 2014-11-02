@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<EncLocalInfo, int> previousLocalSlots;
         private readonly ImmutableArray<EncLocalInfo> previousLocals;
 
+        // state machine:
+        private readonly string previousStateMachineTypeNameOpt;
         private readonly int hoistedLocalSlotCount;
         private readonly IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalSlotsOpt;
         private readonly IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMapOpt;
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousMethod,
             ImmutableArray<EncLocalInfo> previousLocals,
+            string previousStateMachineTypeNameOpt,
             int hoistedLocalSlotCount,
             IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalSlotsOpt,
             IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMapOpt)
@@ -48,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.previousHoistedLocalSlotsOpt = previousHoistedLocalSlotsOpt;
             this.awaiterMapOpt = awaiterMapOpt;
             this.hoistedLocalSlotCount = hoistedLocalSlotCount;
+            this.previousStateMachineTypeNameOpt = previousStateMachineTypeNameOpt;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -174,6 +178,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return fieldName;
+        }
+
+        public override string PreviousStateMachineTypeName
+        {
+            get { return previousStateMachineTypeNameOpt; }
         }
 
         public override int HoistedLocalSlotCount

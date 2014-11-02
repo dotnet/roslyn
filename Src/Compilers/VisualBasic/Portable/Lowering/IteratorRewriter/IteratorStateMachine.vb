@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -11,13 +12,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _constructor As SynthesizedSimpleConstructorSymbol
         Private ReadOnly _iteratorMethod As MethodSymbol
 
-        Protected Friend Sub New(kickoffMethod As MethodSymbol,
-                                 typeIndex As Integer,
+        Protected Friend Sub New(slotAllocatorOpt As VariableSlotAllocator,
+                                 kickoffMethod As MethodSymbol,
                                  valueTypeSymbol As TypeSymbol,
                                  isEnumerable As Boolean)
 
-            MyBase.New(kickoffMethod,
-                       GeneratedNames.MakeStateMachineTypeName(typeIndex, kickoffMethod.Name),
+            MyBase.New(slotAllocatorOpt,
+                       kickoffMethod,
                        kickoffMethod.ContainingAssembly.GetSpecialType(SpecialType.System_Object),
                        GetIteratorInterfaces(valueTypeSymbol,
                                              isEnumerable,

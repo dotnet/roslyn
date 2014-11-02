@@ -134,12 +134,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If Not methodEntry.PreserveLocalVariables Then
-                ' Not necessary to preserve locals.
+                ' We should always "preserve locals" of iterator And async methods since the state machine 
+                ' might be active without MoveNext method being on stack. We don't enforce this requirement here,
+                ' since a method may be incorrectly marked by Iterator/AsyncStateMachine attribute by the user, 
+                ' in which case we can't reliably figure out that it's an error in semantic edit set. 
+
                 Return Nothing
             End If
 
             Dim symbolMap As VisualBasicSymbolMatcher
             Dim previousLocals As ImmutableArray(Of EncLocalInfo) = Nothing
+            Dim previousHoistedLocalMap As IReadOnlyDictionary(Of EncLocalInfo, String) = Nothing
+            Dim awaiterMap As IReadOnlyDictionary(Of Cci.ITypeReference, String) = Nothing
+            Dim hoistedLocalSlotCount As Integer = 0
+            Dim previousStateMachineTypeNameOpt As String = Nothing
 
             Dim methodIndex As UInteger = CUInt(MetadataTokens.GetRowNumber(handle))
 
@@ -165,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             ' TODO
-            Return New EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals, 0, Nothing, Nothing)
+            Return New EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals, previousStateMachineTypeNameOpt, hoistedLocalSlotCount, previousHoistedLocalMap, awaiterMap)
         End Function
 
         ''' <summary>

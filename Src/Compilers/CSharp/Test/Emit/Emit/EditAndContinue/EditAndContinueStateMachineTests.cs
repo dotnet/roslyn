@@ -1,19 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Xunit;
 
@@ -602,6 +596,101 @@ class C
         }
 
         [Fact]
+        public void AsyncMethodOverloads()
+        {
+            var source0 = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<int> F(long a) 
+    {
+        return await Task.FromResult(1);
+    }
+
+    static async Task<int> F(int a) 
+    {
+        return await Task.FromResult(1);
+    }
+
+    static async Task<int> F(short a) 
+    {
+        return await Task.FromResult(1);
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var source1 = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<int> F(short a) 
+    {
+        return await Task.FromResult(2);
+    }
+
+    static async Task<int> F(long a) 
+    {
+        return await Task.FromResult(3);
+    }
+
+    static async Task<int> F(int a) 
+    {
+        return await Task.FromResult(4);
+    }
+
+    public void X() { } // needs to be present to work around SymWriter bug #1068894
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+
+            var v0 = CompileAndVerify(compilation0);
+
+            using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
+            {
+                var methodShort0 = compilation0.GetMembers("C.F").Single(m => m.ToTestDisplayString() == "System.Threading.Tasks.Task<System.Int32> C.F(System.Int16 a)");
+                var methodShort1 = compilation1.GetMembers("C.F").Single(m => m.ToTestDisplayString() == "System.Threading.Tasks.Task<System.Int32> C.F(System.Int16 a)");
+
+                var methodInt0 = compilation0.GetMembers("C.F").Single(m => m.ToTestDisplayString() == "System.Threading.Tasks.Task<System.Int32> C.F(System.Int32 a)");
+                var methodInt1 = compilation1.GetMembers("C.F").Single(m => m.ToTestDisplayString() == "System.Threading.Tasks.Task<System.Int32> C.F(System.Int32 a)");
+
+                var methodLong0 = compilation0.GetMembers("C.F").Single(m => m.ToTestDisplayString() == "System.Threading.Tasks.Task<System.Int32> C.F(System.Int64 a)");
+                var methodLong1 = compilation1.GetMembers("C.F").Single(m => m.ToTestDisplayString() == "System.Threading.Tasks.Task<System.Int32> C.F(System.Int64 a)");
+
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(
+                        new SemanticEdit(SemanticEditKind.Update, methodShort0, methodShort1, preserveLocalVariables: true),
+                        new SemanticEdit(SemanticEditKind.Update, methodInt0, methodInt1, preserveLocalVariables: true),
+                        new SemanticEdit(SemanticEditKind.Update, methodLong0, methodLong1, preserveLocalVariables: true)
+                    ));
+
+                using (var md1 = diff1.GetMetadata())
+                {
+                    // notice no TypeDefs, FieldDefs
+                    CheckEncLogDefinitions(md1.Reader,
+                        Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(12, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                }
+            }
+        }
+
+        [Fact]
         public void UpdateIterator_NoVariables()
         {
             var source0 = @"
@@ -656,14 +745,14 @@ class C
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
-                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+                    diff1.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size       63 (0x3f)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -680,33 +769,33 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001c:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0021:  nop
   IL_0022:  ldarg.0
   IL_0023:  ldc.i4.2
-  IL_0024:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0024:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0029:  ldarg.0
   IL_002a:  ldc.i4.1
-  IL_002b:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_002b:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0030:  ldc.i4.1
   IL_0031:  stloc.1
   IL_0032:  br.s       IL_0018
   IL_0034:  ldarg.0
   IL_0035:  ldc.i4.m1
-  IL_0036:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0036:  stfld      ""int C.<F>d__1.<>1__state""
   IL_003b:  ldc.i4.0
   IL_003c:  stloc.1
   IL_003d:  br.s       IL_0018
 }
 ");
-                    v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+                    v0.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size       63 (0x3f)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -723,20 +812,20 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001c:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0021:  nop
   IL_0022:  ldarg.0
   IL_0023:  ldc.i4.1
-  IL_0024:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0024:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0029:  ldarg.0
   IL_002a:  ldc.i4.1
-  IL_002b:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_002b:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0030:  ldc.i4.1
   IL_0031:  stloc.1
   IL_0032:  br.s       IL_0018
   IL_0034:  ldarg.0
   IL_0035:  ldc.i4.m1
-  IL_0036:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0036:  stfld      ""int C.<F>d__1.<>1__state""
   IL_003b:  ldc.i4.0
   IL_003c:  stloc.1
   IL_003d:  br.s       IL_0018
@@ -1041,14 +1130,14 @@ class C
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
-                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+                    diff1.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size       75 (0x4b)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -1065,24 +1154,24 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001c:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0021:  nop
   IL_0022:  ldarg.0
   IL_0023:  ldarg.0
-  IL_0024:  ldfld      ""int C.<F>d__0.p""
-  IL_0029:  stfld      ""int C.<F>d__0.<x>5__1""
+  IL_0024:  ldfld      ""int C.<F>d__1.p""
+  IL_0029:  stfld      ""int C.<F>d__1.<x>5__1""
   IL_002e:  ldarg.0
   IL_002f:  ldc.i4.2
-  IL_0030:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0030:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0035:  ldarg.0
   IL_0036:  ldc.i4.1
-  IL_0037:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0037:  stfld      ""int C.<F>d__1.<>1__state""
   IL_003c:  ldc.i4.1
   IL_003d:  stloc.1
   IL_003e:  br.s       IL_0018
   IL_0040:  ldarg.0
   IL_0041:  ldc.i4.m1
-  IL_0042:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0042:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0047:  ldc.i4.0
   IL_0048:  stloc.1
   IL_0049:  br.s       IL_0018
@@ -1156,14 +1245,14 @@ class C
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
-                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+                    diff1.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size      103 (0x67)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -1180,30 +1269,30 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001c:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0021:  nop
   IL_0022:  ldarg.0
   IL_0023:  ldc.i4     0x4d2
-  IL_0028:  stfld      ""int C.<F>d__0.<y>5__2""
+  IL_0028:  stfld      ""int C.<F>d__1.<y>5__2""
   IL_002d:  ldarg.0
   IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int C.<F>d__0.p""
-  IL_0034:  stfld      ""int C.<F>d__0.<x>5__1""
+  IL_002f:  ldfld      ""int C.<F>d__1.p""
+  IL_0034:  stfld      ""int C.<F>d__1.<x>5__1""
   IL_0039:  ldarg.0
   IL_003a:  ldarg.0
-  IL_003b:  ldfld      ""int C.<F>d__0.<y>5__2""
-  IL_0040:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_003b:  ldfld      ""int C.<F>d__1.<y>5__2""
+  IL_0040:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0045:  ldarg.0
   IL_0046:  ldc.i4.1
-  IL_0047:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0047:  stfld      ""int C.<F>d__1.<>1__state""
   IL_004c:  ldc.i4.1
   IL_004d:  stloc.1
   IL_004e:  br.s       IL_0018
   IL_0050:  ldarg.0
   IL_0051:  ldc.i4.m1
-  IL_0052:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0052:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0057:  ldarg.0
-  IL_0058:  ldfld      ""int C.<F>d__0.<x>5__1""
+  IL_0058:  ldfld      ""int C.<F>d__1.<x>5__1""
   IL_005d:  call       ""void System.Console.WriteLine(int)""
   IL_0062:  nop
   IL_0063:  ldc.i4.0
@@ -1278,14 +1367,14 @@ class C
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
-                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+                    diff1.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size       91 (0x5b)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -1302,26 +1391,26 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001c:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0021:  nop
   IL_0022:  ldarg.0
   IL_0023:  ldc.i4     0x4d2
-  IL_0028:  stfld      ""int C.<F>d__0.<y>5__2""
+  IL_0028:  stfld      ""int C.<F>d__1.<y>5__2""
   IL_002d:  ldarg.0
   IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int C.<F>d__0.<y>5__2""
-  IL_0034:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_002f:  ldfld      ""int C.<F>d__1.<y>5__2""
+  IL_0034:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0039:  ldarg.0
   IL_003a:  ldc.i4.1
-  IL_003b:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003b:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0040:  ldc.i4.1
   IL_0041:  stloc.1
   IL_0042:  br.s       IL_0018
   IL_0044:  ldarg.0
   IL_0045:  ldc.i4.m1
-  IL_0046:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0046:  stfld      ""int C.<F>d__1.<>1__state""
   IL_004b:  ldarg.0
-  IL_004c:  ldfld      ""int C.<F>d__0.p""
+  IL_004c:  ldfld      ""int C.<F>d__1.p""
   IL_0051:  call       ""void System.Console.WriteLine(int)""
   IL_0056:  nop
   IL_0057:  ldc.i4.0
@@ -1397,14 +1486,14 @@ class C
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
-                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+                    diff1.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size       90 (0x5a)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -1421,25 +1510,25 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001c:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0021:  nop
   IL_0022:  ldarg.0
   IL_0023:  ldc.r8     1
-  IL_002c:  stfld      ""double C.<F>d__0.<x>5__2""
+  IL_002c:  stfld      ""double C.<F>d__1.<x>5__2""
   IL_0031:  ldarg.0
   IL_0032:  ldc.i4.2
-  IL_0033:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0033:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0038:  ldarg.0
   IL_0039:  ldc.i4.1
-  IL_003a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003a:  stfld      ""int C.<F>d__1.<>1__state""
   IL_003f:  ldc.i4.1
   IL_0040:  stloc.1
   IL_0041:  br.s       IL_0018
   IL_0043:  ldarg.0
   IL_0044:  ldc.i4.m1
-  IL_0045:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0045:  stfld      ""int C.<F>d__1.<>1__state""
   IL_004a:  ldarg.0
-  IL_004b:  ldfld      ""double C.<F>d__0.<x>5__2""
+  IL_004b:  ldfld      ""double C.<F>d__1.<x>5__2""
   IL_0050:  call       ""void System.Console.WriteLine(double)""
   IL_0055:  nop
   IL_0056:  ldc.i4.0
@@ -1495,7 +1584,7 @@ class C
                     "<>s__1: int[]",
                     "<>s__2: int",
                     "<item>5__3: object"
-                }, module.GetFieldNamesAndTypes("C.<F>d__0"));
+                }, module.GetFieldNamesAndTypes("C.<F>d__1"));
             });
             
             var debugInfoProvider = v0.CreatePdbInfoProvider();
@@ -1525,14 +1614,14 @@ class C
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
-                    diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+                    diff1.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size      170 (0xaa)
   .maxstack  5
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -1549,7 +1638,7 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001c:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0021:  nop
   IL_0022:  nop
   IL_0023:  ldarg.0
@@ -1559,52 +1648,52 @@ class C
   IL_002b:  ldc.i4.0
   IL_002c:  ldc.r8     1
   IL_0035:  stelem.r8
-  IL_0036:  stfld      ""double[] C.<F>d__0.<>s__4""
+  IL_0036:  stfld      ""double[] C.<F>d__1.<>s__4""
   IL_003b:  ldarg.0
   IL_003c:  ldc.i4.0
-  IL_003d:  stfld      ""int C.<F>d__0.<>s__2""
+  IL_003d:  stfld      ""int C.<F>d__1.<>s__2""
   IL_0042:  br.s       IL_008c
   IL_0044:  ldarg.0
   IL_0045:  ldarg.0
-  IL_0046:  ldfld      ""double[] C.<F>d__0.<>s__4""
+  IL_0046:  ldfld      ""double[] C.<F>d__1.<>s__4""
   IL_004b:  ldarg.0
-  IL_004c:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_004c:  ldfld      ""int C.<F>d__1.<>s__2""
   IL_0051:  ldelem.r8
   IL_0052:  box        ""double""
-  IL_0057:  stfld      ""object C.<F>d__0.<item>5__3""
+  IL_0057:  stfld      ""object C.<F>d__1.<item>5__3""
   IL_005c:  nop
   IL_005d:  ldarg.0
   IL_005e:  ldc.i4.1
-  IL_005f:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_005f:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0064:  ldarg.0
   IL_0065:  ldc.i4.1
-  IL_0066:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0066:  stfld      ""int C.<F>d__1.<>1__state""
   IL_006b:  ldc.i4.1
   IL_006c:  stloc.1
   IL_006d:  br.s       IL_0018
   IL_006f:  ldarg.0
   IL_0070:  ldc.i4.m1
-  IL_0071:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0071:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0076:  nop
   IL_0077:  ldarg.0
   IL_0078:  ldnull
-  IL_0079:  stfld      ""object C.<F>d__0.<item>5__3""
+  IL_0079:  stfld      ""object C.<F>d__1.<item>5__3""
   IL_007e:  ldarg.0
   IL_007f:  ldarg.0
-  IL_0080:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_0080:  ldfld      ""int C.<F>d__1.<>s__2""
   IL_0085:  ldc.i4.1
   IL_0086:  add
-  IL_0087:  stfld      ""int C.<F>d__0.<>s__2""
+  IL_0087:  stfld      ""int C.<F>d__1.<>s__2""
   IL_008c:  ldarg.0
-  IL_008d:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_008d:  ldfld      ""int C.<F>d__1.<>s__2""
   IL_0092:  ldarg.0
-  IL_0093:  ldfld      ""double[] C.<F>d__0.<>s__4""
+  IL_0093:  ldfld      ""double[] C.<F>d__1.<>s__4""
   IL_0098:  ldlen
   IL_0099:  conv.i4
   IL_009a:  blt.s      IL_0044
   IL_009c:  ldarg.0
   IL_009d:  ldnull
-  IL_009e:  stfld      ""double[] C.<F>d__0.<>s__4""
+  IL_009e:  stfld      ""double[] C.<F>d__1.<>s__4""
   IL_00a3:  ldc.i4.0
   IL_00a4:  stloc.1
   IL_00a5:  br         IL_0018

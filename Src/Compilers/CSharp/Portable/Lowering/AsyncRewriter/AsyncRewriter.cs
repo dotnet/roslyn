@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
 
-            stateMachineType = new AsyncStateMachine(method, typeKind);
+            stateMachineType = new AsyncStateMachine(slotAllocatorOpt, method, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
             var rewriter = new AsyncRewriter(bodyWithAwaitLifted, (SourceMethodSymbol)method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
             if (!rewriter.constructedSuccessfully)

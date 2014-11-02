@@ -55,14 +55,13 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly ISymbol NewSymbol;
 
         /// <summary>
-        /// A map from syntax node in the later compilation to syntax node in the
-        /// previous compilation, or null if the edit is not in the active method.
+        /// A map from syntax node in the later compilation to syntax node in the previous compilation, 
+        /// or null if <see cref="PreserveLocalVariables"/> is false and the map is not needed or 
+        /// the source of the current method is the same as the source of the previous method.
         /// </summary>
         /// <remarks>
         /// The map does not need to map all syntax nodes in the active method, only those syntax nodes
-        /// that declare a local or generate a temporary with a scope spanning multiple methods (in C#,
-        /// variable declarations, foreach, lock, using, and fixed; in VB, variable declarations, With,
-        /// For Each, SyncLock, and Using).
+        /// that declare a local or generate a long lived local.
         /// </remarks>
         public readonly Func<SyntaxNode, SyntaxNode> SyntaxMap;
 
@@ -76,14 +75,20 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Initializes an instance of <see cref="SemanticEdit"/>.
         /// </summary>
         /// <param name="kind">The type of edit.</param>
-        /// <param name="oldSymbol">The symbol from the earlier compilation,
-        /// or null if the edit represents an addition.</param>
-        /// <param name="newSymbol">The symbol from the later compilation,
-        /// or null if the edit represents a deletion.</param>
-        /// <param name="syntaxMap">A map from syntax node in the later compilation to syntax
-        /// node in the previous compilation, or null if the edit is not in the active method.</param>
-        /// <param name="preserveLocalVariables">True if the edit is an update of the
-        /// active method and local values should be preserved; false otherwise.</param>
+        /// <param name="oldSymbol">
+        /// The symbol from the earlier compilation, or null if the edit represents an addition.
+        /// </param>
+        /// <param name="newSymbol">
+        /// The symbol from the later compilation, or null if the edit represents a deletion.
+        /// </param>
+        /// <param name="syntaxMap">
+        /// A map from syntax node in the later compilation to syntax node in the previous compilation, 
+        /// or null if <paramref name="preserveLocalVariables"/> is false and the map is not needed or 
+        /// the source of the current method is the same as the source of the previous method.
+        /// </param>
+        /// <param name="preserveLocalVariables">
+        /// True if the edit is an update of an active method and local values should be preserved; false otherwise.
+        /// </param>
         public SemanticEdit(SemanticEditKind kind, ISymbol oldSymbol, ISymbol newSymbol, Func<SyntaxNode, SyntaxNode> syntaxMap = null, bool preserveLocalVariables = false)
         {
             // TODO (tomat): more validation

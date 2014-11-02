@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly TypeSymbol ElementType;
 
-        public IteratorStateMachine(MethodSymbol iteratorMethod, bool isEnumerable, TypeSymbol elementType, TypeCompilationState compilationState)
-            : base(GeneratedNames.MakeStateMachineTypeName(iteratorMethod.Name, compilationState.GenerateTempNumber()), iteratorMethod)
+        public IteratorStateMachine(VariableSlotAllocator slotAllocatorOpt, MethodSymbol iteratorMethod, bool isEnumerable, TypeSymbol elementType, TypeCompilationState compilationState)
+            : base(slotAllocatorOpt, iteratorMethod)
         {
             this.ElementType = TypeMap.SubstituteType(elementType);
 

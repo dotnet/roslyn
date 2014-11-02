@@ -168,7 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (!methodEntry.PreserveLocalVariables)
             {
-                // Not necessary to preserve locals.
+                // We should always "preserve locals" of iterator and async methods since the state machine 
+                // might be active without MoveNext method being on stack. We don't enforce this requirement here,
+                // since a method may be incorrectly marked by Iterator/AsyncStateMachine attribute by the user, 
+                // in which case we can't reliably figure out that it's an error in semantic edit set. 
+
                 return null;
             }
 
@@ -177,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalMap;
             IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMap;
             int hoistedLocalSlotCount;
+            string previousStateMachineTypeNameOpt;
 
             uint methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
 
@@ -189,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 previousHoistedLocalMap = null;
                 awaiterMap = null;
                 hoistedLocalSlotCount = 0;
+                previousStateMachineTypeNameOpt = null;
             }
             else
             {
@@ -197,7 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 var debugInfo = baseline.DebugInformationProvider(handle);
                 TypeSymbol stateMachineType = TryGetStateMachineType(handle);
-
                 if (stateMachineType != null)
                 {
                     var localSlotDebugInfo = debugInfo.LocalSlots.NullToEmpty();
@@ -210,6 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     previousLocals = ImmutableArray<EncLocalInfo>.Empty;
 
                     hoistedLocalSlotCount = localSlotDebugInfo.Length;
+                    previousStateMachineTypeNameOpt = stateMachineType.Name;
                 }
                 else
                 {
@@ -226,12 +232,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     previousHoistedLocalMap = null;
                     awaiterMap = null;
                     hoistedLocalSlotCount = 0;
+                    previousStateMachineTypeNameOpt = null;
                 }
 
                 symbolMap = this.mapToMetadata;
             }
 
-            return new EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals, hoistedLocalSlotCount, previousHoistedLocalMap, awaiterMap);
+            return new EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals, previousStateMachineTypeNameOpt, hoistedLocalSlotCount, previousHoistedLocalMap, awaiterMap);
         }
 
         private void GetStateMachineFieldMap(
@@ -248,34 +255,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if (member.Kind == SymbolKind.Field)
                 {
                     string name = member.Name;
-
                     int slotIndex;
-                    if (GeneratedNames.TryParseHoistedLocalSlotIndex(name, out slotIndex))
+
+                    switch (GeneratedNames.GetKind(name))
                     {
-                        var field = (FieldSymbol)member;
-                        if (slotIndex >= localSlotDebugInfo.Length)
-                        {
-                            // invalid metadata
-                            continue;
-                        }
+                        case GeneratedNameKind.AwaiterField:
+                            {
+                                var field = (FieldSymbol)member;
 
-                        var key = new EncLocalInfo(
-                            localSlotDebugInfo[slotIndex].Id, 
-                            (Cci.ITypeReference)field.Type, 
-                            LocalSlotConstraints.None,
-                            localSlotDebugInfo[slotIndex].SynthesizedKind, 
-                            signature: null);
-                        
-                        // correct metadata won't contain duplicate ids, but malformed might, ignore the duplicate:
-                        hoistedLocals[key] = name;
-                    }
+                                // correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
+                                awaiters[(Cci.ITypeReference)field.Type] = field.Name;
+                                break;
+                            }
 
-                    if (GeneratedNames.IsAsyncAwaiterFieldName(name))
-                    {
-                        var field = (FieldSymbol)member;
+                        case GeneratedNameKind.HoistedLocalField:
+                        case GeneratedNameKind.HoistedSynthesizedLocalField:
+                            if (GeneratedNames.TryParseHoistedLocalSlotIndex(name, out slotIndex))
+                            {
+                                var field = (FieldSymbol)member;
+                                if (slotIndex >= localSlotDebugInfo.Length)
+                                {
+                                    // invalid or missing metadata
+                                    continue;
+                                }
 
-                        // correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
-                        awaiters[(Cci.ITypeReference)field.Type] = field.Name;
+                                var key = new EncLocalInfo(
+                                    localSlotDebugInfo[slotIndex].Id,
+                                    (Cci.ITypeReference)field.Type,
+                                    LocalSlotConstraints.None,
+                                    localSlotDebugInfo[slotIndex].SynthesizedKind,
+                                    signature: null);
+
+                                // correct metadata won't contain duplicate ids, but malformed might, ignore the duplicate:
+                                hoistedLocals[key] = name;
+                            }
+
+                            break;
                     }
                 }
             }

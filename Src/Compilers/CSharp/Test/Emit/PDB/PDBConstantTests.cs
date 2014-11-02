@@ -162,13 +162,13 @@ class C
                     "<>l__initialThreadId",
                     "<>4__this",
                     "<i>5__1"
-                }, module.GetFieldNames("C.<M>d__0"));
+                }, module.GetFieldNames("C.<M>d__1"));
             });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+            v.VerifyPdb("C+<M>d__1.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""1"" />

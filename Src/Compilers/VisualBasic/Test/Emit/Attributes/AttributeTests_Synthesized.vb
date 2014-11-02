@@ -1518,7 +1518,7 @@ End Class
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__1.VB$StateMachine_3__Lambda$__2")
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__1.VB$StateMachine_0__Lambda$__2")
             Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__1._Lambda$__2")
 
             Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()

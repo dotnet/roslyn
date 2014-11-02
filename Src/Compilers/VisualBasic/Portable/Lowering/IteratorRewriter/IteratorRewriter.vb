@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0)
             End If
 
-            stateMachineType = New IteratorStateMachine(method, compilationState.GenerateTempNumber(), elementType, isEnumerable)
+            stateMachineType = New IteratorStateMachine(slotAllocatorOpt, method, elementType, isEnumerable)
 
             If compilationState.ModuleBuilderOpt IsNot Nothing Then
                 compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)

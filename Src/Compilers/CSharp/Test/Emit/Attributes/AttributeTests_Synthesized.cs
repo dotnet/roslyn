@@ -341,7 +341,7 @@ public class C
 
                 CompileAndVerify(comp, symbolValidator: module =>
                 {
-                    var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__0");
+                    var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__1");
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
 
                     foreach (var member in iter.GetMembers().Where(member => member is MethodSymbol))
@@ -1467,7 +1467,7 @@ class Test
             var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__1");
             var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
 
             var asyncMethodAttributes = asyncMethod.GetAttributes();
@@ -1494,7 +1494,7 @@ public class Test<T>
             var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__1");
             var iteratorMethod = comp.GetMember<MethodSymbol>("Test.F");
 
             var iteratorMethodAttributes = iteratorMethod.GetAttributes();

@@ -7,12 +7,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal enum GeneratedNameKind
     {
         None = 0,
+
+        // Used by EE:
         ThisProxy = '4',
         HoistedLocalField = '5',
         DisplayClassLocalOrField = '8',
         LambdaMethod = 'b',
         LambdaDisplayClassType = 'c',
         StateMachineType = 'd',
+
+        // Used by EnC:
+        AwaiterField = 'u',
+        HoistedSynthesizedLocalField = 's',
     }
 
     internal static partial class GeneratedNames

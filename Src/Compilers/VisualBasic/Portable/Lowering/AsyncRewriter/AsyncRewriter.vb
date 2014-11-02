@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._asyncMethodKind = asyncKind
 
             Select Case Me._asyncMethodKind
-                Case AsyncMethodKind.[Sub]
+                Case AsyncMethodKind.Sub
                     Me._resultType = Me.F.SpecialType(SpecialType.System_Void)
                     Me._builderType = Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder)
 
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             Dim kind = If(compilationState.Compilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Struct)
 
-            stateMachineType = New AsyncStateMachine(method, kind)
+            stateMachineType = New AsyncStateMachine(slotAllocatorOpt, method, kind)
 
             If compilationState.ModuleBuilderOpt IsNot Nothing Then
                 compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)

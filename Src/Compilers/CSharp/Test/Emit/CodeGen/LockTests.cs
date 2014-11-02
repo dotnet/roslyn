@@ -1211,10 +1211,10 @@ class Test
   // Code size       15 (0xf)
   .maxstack  3
   IL_0000:  ldc.i4.s   -2
-  IL_0002:  newobj     ""Test.<Values>d__0..ctor(int)""
+  IL_0002:  newobj     ""Test.<Values>d__1..ctor(int)""
   IL_0007:  dup
   IL_0008:  ldarg.0
-  IL_0009:  stfld      ""Test Test.<Values>d__0.<>4__this""
+  IL_0009:  stfld      ""Test Test.<Values>d__1.<>4__this""
   IL_000e:  ret
 }");
         }

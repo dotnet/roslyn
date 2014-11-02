@@ -2854,14 +2854,14 @@ class C
 
             var v0 = CompileAndVerify(compilation0);
 
-            v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+            v0.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size      137 (0x89)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -2878,22 +2878,22 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001c:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0021:  nop
   IL_0022:  ldarg.0
   IL_0023:  ldc.i4.0
-  IL_0024:  stfld      ""bool C.<F>d__0.<>s__2""
+  IL_0024:  stfld      ""bool C.<F>d__1.<>s__2""
   .try
   {
     IL_0029:  ldarg.0
     IL_002a:  ldarg.0
-    IL_002b:  ldfld      ""C C.<F>d__0.<>4__this""
+    IL_002b:  ldfld      ""C C.<F>d__1.<>4__this""
     IL_0030:  callvirt   ""System.Collections.Generic.IEnumerable<int> C.F()""
-    IL_0035:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_0035:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__1.<>s__1""
     IL_003a:  ldarg.0
-    IL_003b:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_003b:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__1.<>s__1""
     IL_0040:  ldarg.0
-    IL_0041:  ldflda     ""bool C.<F>d__0.<>s__2""
+    IL_0041:  ldflda     ""bool C.<F>d__1.<>s__2""
     IL_0046:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
     IL_004b:  nop
     IL_004c:  nop
@@ -2903,29 +2903,29 @@ class C
   finally
   {
     IL_0050:  ldarg.0
-    IL_0051:  ldfld      ""bool C.<F>d__0.<>s__2""
+    IL_0051:  ldfld      ""bool C.<F>d__1.<>s__2""
     IL_0056:  brfalse.s  IL_0064
     IL_0058:  ldarg.0
-    IL_0059:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_0059:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__1.<>s__1""
     IL_005e:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_0063:  nop
     IL_0064:  endfinally
   }
   IL_0065:  ldarg.0
   IL_0066:  ldnull
-  IL_0067:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+  IL_0067:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__1.<>s__1""
   IL_006c:  ldarg.0
   IL_006d:  ldc.i4.1
-  IL_006e:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_006e:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0073:  ldarg.0
   IL_0074:  ldc.i4.1
-  IL_0075:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0075:  stfld      ""int C.<F>d__1.<>1__state""
   IL_007a:  ldc.i4.1
   IL_007b:  stloc.1
   IL_007c:  br.s       IL_0018
   IL_007e:  ldarg.0
   IL_007f:  ldc.i4.m1
-  IL_0080:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0080:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0085:  ldc.i4.0
   IL_0086:  stloc.1
   IL_0087:  br.s       IL_0018

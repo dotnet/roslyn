@@ -35,11 +35,11 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            compilation.VerifyPdb("Program+_Closure$__1+VB$StateMachine_3__Lambda$__2.MoveNext",
+            compilation.VerifyPdb("Program+_Closure$__1+VB$StateMachine_0__Lambda$__2.MoveNext",
 <symbols>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
-        <method containingType="Program+_Closure$__1+VB$StateMachine_3__Lambda$__2" name="MoveNext" parameterNames="">
+        <method containingType="Program+_Closure$__1+VB$StateMachine_0__Lambda$__2" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="20" offset="-1"/>
@@ -189,13 +189,13 @@ End Class
                     source,
                     TestOptions.ReleaseDll)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_3_Iterator_Lambda_Hoisted.MoveNext")
+            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext")
 
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_2$1".
             Dim expected =
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_3_Iterator_Lambda_Hoisted" name="MoveNext" parameterNames="">
+        <method containingType="C+VB$StateMachine_1_Iterator_Lambda_Hoisted" name="MoveNext" parameterNames="">
             <sequencepoints total="9">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x19" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
@@ -248,13 +248,13 @@ End Class
                     source,
                     TestOptions.ReleaseDll)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_3_Iterator_Lambda_NotHoisted.MoveNext")
+            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext")
 
             ' Goal: We're looking for the single-mangled name "$VB$Closure_1".
             Dim expected =
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_3_Iterator_Lambda_NotHoisted" name="MoveNext" parameterNames="">
+        <method containingType="C+VB$StateMachine_1_Iterator_Lambda_NotHoisted" name="MoveNext" parameterNames="">
             <sequencepoints total="6">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x19" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>

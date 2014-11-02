@@ -567,7 +567,7 @@ public class C
             var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__2");
+                var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__1");
 
                 foreach (var member in iteratorClass.GetMembers())
                 {
@@ -614,13 +614,13 @@ class C
     }
 }
 ";
-            CompileAndVerifyIL(source, "C.<Run>d__2<T>.System.Collections.IEnumerator.MoveNext", @"
+            CompileAndVerifyIL(source, "C.<Run>d__1<T>.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size      121 (0x79)
   .maxstack  4
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<Run>d__2<T>.<>1__state""
+  IL_0001:  ldfld      ""int C.<Run>d__1<T>.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0010
@@ -631,7 +631,7 @@ class C
   IL_000f:  ret
   IL_0010:  ldarg.0
   IL_0011:  ldc.i4.m1
-  IL_0012:  stfld      ""int C.<Run>d__2<T>.<>1__state""
+  IL_0012:  stfld      ""int C.<Run>d__1<T>.<>1__state""
   IL_0017:  ldarg.0
   IL_0018:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, T>> C.<Run>o__SiteContainer0<T>.<>p__Site1""
   IL_001d:  brtrue.s   IL_0043
@@ -647,18 +647,18 @@ class C
   IL_0048:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, T> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, T>>.Target""
   IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, T>> C.<Run>o__SiteContainer0<T>.<>p__Site1""
   IL_0052:  ldarg.0
-  IL_0053:  ldfld      ""C C.<Run>d__2<T>.<>4__this""
+  IL_0053:  ldfld      ""C C.<Run>d__1<T>.<>4__this""
   IL_0058:  ldfld      ""dynamic C.d""
   IL_005d:  callvirt   ""T System.Func<System.Runtime.CompilerServices.CallSite, object, T>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
-  IL_0062:  stfld      ""T C.<Run>d__2<T>.<>2__current""
+  IL_0062:  stfld      ""T C.<Run>d__1<T>.<>2__current""
   IL_0067:  ldarg.0
   IL_0068:  ldc.i4.1
-  IL_0069:  stfld      ""int C.<Run>d__2<T>.<>1__state""
+  IL_0069:  stfld      ""int C.<Run>d__1<T>.<>1__state""
   IL_006e:  ldc.i4.1
   IL_006f:  ret
   IL_0070:  ldarg.0
   IL_0071:  ldc.i4.m1
-  IL_0072:  stfld      ""int C.<Run>d__2<T>.<>1__state""
+  IL_0072:  stfld      ""int C.<Run>d__1<T>.<>1__state""
   IL_0077:  ldc.i4.0
   IL_0078:  ret
 }
