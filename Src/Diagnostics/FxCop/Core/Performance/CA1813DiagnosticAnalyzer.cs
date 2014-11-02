@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                                                                          FxCopRulesResources.SealAttributeTypesForImprovedPerf,
                                                                          FxCopDiagnosticCategory.Performance,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true,
+                                                                         isEnabledByDefault: false,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182267.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 

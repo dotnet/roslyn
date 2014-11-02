@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                        FxCopRulesResources.EnumsShouldZeroValueFlagsRename,
                                                                        FxCopDiagnosticCategory.Design,
                                                                        DiagnosticSeverity.Warning,
-                                                                       isEnabledByDefault: true,
+                                                                       isEnabledByDefault: false,
                                                                        description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
                                                                        helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                        customTags: DiagnosticCustomTags.Microsoft.Concat(RuleRenameCustomTag).ToArray());
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero,
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
-                                                               isEnabledByDefault: true,
+                                                               isEnabledByDefault: false,
                                                                description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
                                                                helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft.Concat(RuleMultipleZeroCustomTag).ToArray());
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue,
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
-                                                               isEnabledByDefault: true,
+                                                               isEnabledByDefault: false,
                                                                description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
                                                                helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft.Concat(RuleNoZeroCustomTag).ToArray());

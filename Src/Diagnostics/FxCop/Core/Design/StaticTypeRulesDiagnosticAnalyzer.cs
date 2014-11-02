@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                           FxCopRulesResources.StaticHolderTypeIsNotStatic,
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning,
-                                                                          isEnabledByDefault: true,
+                                                                          isEnabledByDefault: false,
                                                                           helpLink: "http://msdn.microsoft.com/library/ms182168.aspx",
                                                                           customTags: DiagnosticCustomTags.Microsoft);
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                           FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage,
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning,
-                                                                          isEnabledByDefault: true,
+                                                                          isEnabledByDefault: false,
                                                                           helpLink: "http://msdn.microsoft.com/library/ms182169.aspx",
                                                                           customTags: DiagnosticCustomTags.Microsoft);
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                              FxCopRulesResources.MarkEnumsWithFlagsMessage,
                                                                              FxCopDiagnosticCategory.Design,
                                                                              DiagnosticSeverity.Warning,
-                                                                             isEnabledByDefault: true,
+                                                                             isEnabledByDefault: false,
                                                                              description: FxCopRulesResources.MarkEnumsWithFlagsDescription,
                                                                              helpLink: "http://msdn.microsoft.com/library/ms182159.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                              FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage,
                                                                              FxCopDiagnosticCategory.Usage,
                                                                              DiagnosticSeverity.Warning,
-                                                                             isEnabledByDefault: true,
+                                                                             isEnabledByDefault: false,
                                                                              description: FxCopRulesResources.DoNotMarkEnumsWithFlagsDescription,
                                                                              helpLink: "http://msdn.microsoft.com/library/ms182335.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);

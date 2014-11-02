@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             FxCopRulesResources.UseGenericEventHandlerInstances,
             FxCopDiagnosticCategory.Design,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             helpLink: "http://msdn.microsoft.com/library/ms182178.aspx",
             customTags: DiagnosticCustomTags.Microsoft);
 

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.ChangeToAPropertyIfAppropriate,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true,
+                                                                         isEnabledByDefault: false,
                                                                          description: FxCopRulesResources.UsePropertiesWhereAppropriateDescription,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182181.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);

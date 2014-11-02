@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.TypeIsAbstractButHasPublicConstructors,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true,
+                                                                         isEnabledByDefault: false,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182126.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
