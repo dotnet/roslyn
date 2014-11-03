@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function SpillValue(expr As BoundExpression, isReceiver As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
-                If Unspillable(expr) OrElse expr.Kind = BoundKind.FieldAccess AndAlso Unspillable(DirectCast(expr, BoundFieldAccess).ReceiverOpt) Then
+                If Unspillable(expr) Then
                     Return expr
 
                 ElseIf isReceiver OrElse expr.IsLValue Then

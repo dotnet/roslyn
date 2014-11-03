@@ -5479,5 +5479,109 @@ End Class
 
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
+
+        <Fact(), WorkItem(1066694, "DevDiv")>
+        Public Sub Bug1066694()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        System.Console.WriteLine("Non-Async")
+        System.Console.WriteLine()
+        TestLocal()
+        System.Console.WriteLine()
+        System.Console.WriteLine("Async")
+        System.Console.WriteLine()
+        Task.WaitAll(TestLocalAsync())
+    End Sub
+    Sub TestLocal()
+        Dim l = New TestClass("Unchanged")
+        l.M1(l, Mutate(l))
+        System.Console.WriteLine(l.State)
+    End Sub
+
+    Async Function DummyAsync(x As Object) As Task(Of Object)
+        Return x
+    End Function
+    Async Function TestLocalAsync() As Task
+        Dim l = New TestClass("Unchanged")
+        l.M1(l, Await DummyAsync(Mutate(l)))
+        System.Console.WriteLine(l.State)
+    End Function
+    Function Mutate(ByRef x As TestClass) As Object
+        x = New TestClass("Changed")
+        Return x
+    End Function
+End Module
+Class TestClass
+    Private ReadOnly fld1 As String
+    Sub New(val As String)
+        fld1 = val
+    End Sub
+    Function State() As String
+        Return fld1
+    End Function
+    Sub M1(arg1 As TestClass, arg2 As Object)
+        System.Console.WriteLine(Me.State)
+        System.Console.WriteLine(arg1.State)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Non-Async
+
+Unchanged
+Unchanged
+Changed
+
+Async
+
+Unchanged
+Unchanged
+Changed
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1068084, "DevDiv")>
+        Public Sub Bug1068084()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System.Threading.Tasks
+ 
+Class Test
+    Async Sub F()
+        Await Task.Delay(0)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, TestOptions.ReleaseDll)
+
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
+    Async Sub F()
+    ~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
+    Async Sub F()
+    ~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
     End Class
 End Namespace

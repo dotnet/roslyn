@@ -857,27 +857,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             For Each methodWithBody In compilationState.SynthesizedMethods
-                Dim method = methodWithBody.Method
-                Dim diagnosticsThisMethod As DiagnosticBag = DiagnosticBag.GetInstance()
+                If Not methodWithBody.Body.HasErrors Then
+                    Dim method = methodWithBody.Method
+                    Dim diagnosticsThisMethod As DiagnosticBag = DiagnosticBag.GetInstance()
 
-                Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
-                                                     method,
-                                                     methodWithBody.Body,
-                                                     stateMachineTypeOpt:=Nothing,
-                                                     variableSlotAllocatorOpt:=Nothing,
-                                                     debugDocumentProvider:=_debugDocumentProvider,
-                                                     diagnostics:=diagnosticsThisMethod,
-                                                     namespaceScopes:=GetNamespaceScopes(methodWithBody.Method))
+                    Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
+                                                         method,
+                                                         methodWithBody.Body,
+                                                         stateMachineTypeOpt:=Nothing,
+                                                         variableSlotAllocatorOpt:=Nothing,
+                                                         debugDocumentProvider:=_debugDocumentProvider,
+                                                         diagnostics:=diagnosticsThisMethod,
+                                                         namespaceScopes:=GetNamespaceScopes(methodWithBody.Method))
 
-                _diagnostics.AddRange(diagnosticsThisMethod)
-                diagnosticsThisMethod.Free()
+                    _diagnostics.AddRange(diagnosticsThisMethod)
+                    diagnosticsThisMethod.Free()
 
-                ' error while generating IL
-                If emittedBody Is Nothing Then
-                    Exit For
+                    ' error while generating IL
+                    If emittedBody Is Nothing Then
+                        Exit For
+                    End If
+
+                    _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
                 End If
-
-                _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
             Next
         End Sub
 

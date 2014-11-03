@@ -978,7 +978,10 @@ nextm:
         End Function
 
         Public Function [Catch](local As LocalSymbol, block As BoundBlock) As BoundCatchBlock
-            Return New BoundCatchBlock(Syntax, local, Me.Local(local, False), Nothing, Nothing, block)
+            Dim m1 = WellKnownMember(Of MethodSymbol)(Microsoft.CodeAnalysis.WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError)
+            Dim m2 = WellKnownMember(Of MethodSymbol)(Microsoft.CodeAnalysis.WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError)
+            Return New BoundCatchBlock(Syntax, local, Me.Local(local, False), Nothing, Nothing, block,
+                                       hasErrors:=m1 Is Nothing OrElse m2 Is Nothing)
         End Function
 
         Public Function SequencePoint(syntax As VisualBasicSyntaxNode, statement As BoundStatement) As BoundStatement
