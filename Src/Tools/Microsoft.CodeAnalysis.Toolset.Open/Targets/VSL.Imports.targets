@@ -4,6 +4,8 @@
   <!-- This file is imported by all projects at the end of the project files -->
   <PropertyGroup Condition="'$(OpenSourceDebug)' == 'true'">
     <DeployVSHive>Roslyn</DeployVSHive>
+  </PropertyGroup>
+  <PropertyGroup>
     <NonShipping Condition="'$(NonShipping)' == ''">false</NonShipping>
     <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
     <BuildVersion>$(MajorRoslynVersion).0.0</BuildVersion>
