@@ -138,7 +138,7 @@
   <!-- ====================================================================================
         FakeSign Assembly 
   ===================================================================================== -->
-  <Target Name="FakeSignAssembly" Condition="'$(NeedsFakeSign)' == 'true'">
+  <Target Name="FakeSignAssembly" Condition="'$(NeedsFakeSign)' == 'true' and '$(OpenSourceDebug)' == 'true'">
     <Exec Command="$(FakeSignToolPath) $(IntermediateOutputPath)$(TargetFileName)"/>
   </Target>
  
