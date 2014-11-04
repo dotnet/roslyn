@@ -5,11 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -5678,6 +5676,21 @@ namespace ConsoleApplication1
             Assert.Equal(1, errs.Count());
             errs = model.GetMethodBodyDiagnostics();
             Assert.Equal(2, errs.Count());
+        }
+
+        [WorkItem(1076661, "DevDiv")]
+        [Fact(Skip = "Bug 1076661")]
+        public void Bug1076661()
+        {
+            const string source = @"
+using X = System.Collections.Generic.List<dynamic>;
+class Test
+{
+    void Foo(ref X. x) { }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+            var diag = comp.GetDiagnostics();
         }
     }
 }
