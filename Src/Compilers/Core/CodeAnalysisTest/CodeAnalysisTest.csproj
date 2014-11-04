@@ -17,7 +17,7 @@
     <AssemblyName>Roslyn.Compilers.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StyleCopEnabled>false</StyleCopEnabled>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
@@ -27,6 +27,7 @@
     <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoReaderTests.cs" />
+    <Compile Include="PEWriter\BinaryWriterTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
