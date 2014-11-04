@@ -538,6 +538,7 @@ namespace Roslyn.Test.PdbUtilities
             WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
 
             int bodySize = size - CDI.CdiRecordHeaderSize;
+            int syntaxOffsetBaseline = -1;
 
             fixed (byte* compressedSlotMapPtr = &bytes[offset])
             {
@@ -552,6 +553,13 @@ namespace Roslyn.Test.PdbUtilities
                         break;
                     }
 
+                    if (b == 0xfe)
+                    {
+                        syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
+                        writer.WriteElementString("baseline", syntaxOffsetBaseline.ToString());
+                        continue;
+                    }
+
                     writer.WriteStartElement("slot");
 
                     if (b == 0)
@@ -564,10 +572,9 @@ namespace Roslyn.Test.PdbUtilities
                         int synthesizedKind = (b & 0x3f) - 1;
                         bool hasOrdinal = (b & (1 << 7)) != 0;
 
-                        // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
                         int syntaxOffset;
                         bool badSyntaxOffset = !blobReader.TryReadCompressedInteger(out syntaxOffset);
-                        syntaxOffset--;
+                        syntaxOffset += syntaxOffsetBaseline;
 
                         int ordinal = 0;
                         bool badOrdinal = hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal);

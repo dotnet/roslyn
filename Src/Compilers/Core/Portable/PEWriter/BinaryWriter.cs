@@ -380,43 +380,36 @@ namespace Microsoft.Cci
             }
         }
 
-        internal void WriteCompressedInt(int val)
+        internal void WriteCompressedSignedInteger(int value)
         {
             unchecked
             {
-                if (val >= 0)
+                const int b6 = (1 << 6) - 1;
+                const int b13 = (1 << 13) - 1;
+                const int b28 = (1 << 28) - 1;
+
+                int sign = (int)((uint)value >> 31);
+
+                if ((value & ~b6) == sign * ~b6)
                 {
-                    val = val << 1;
-                    this.WriteCompressedUInt((uint)val);
+                    int n = ((value & b6) << 1) | sign;
+                    this.WriteByte((byte)n);
                 }
-                else
+                else if ((value & ~b13) == sign * ~b13)
                 {
-                    if (val > -0x40)
-                    {
-                        val = 0x40 + val;
-                        val = (val << 1) | 1;
-                        this.WriteByte((byte)val);
-                    }
-                    else if (val >= -0x2000)
-                    {
-                        val = 0x2000 - val;
-                        val = (val << 1) | 1;
-                        this.WriteByte((byte)((val >> 8) | 0x80));
-                        this.WriteByte((byte)(val & 0xff));
-                    }
-                    else if (val >= -0x20000000)
-                    {
-                        val = 0x20000000 - val;
-                        val = (val << 1) | 1;
-                        this.WriteByte((byte)((val >> 24) | 0xc0));
-                        this.WriteByte((byte)((val & 0xff0000) >> 16));
-                        this.WriteByte((byte)((val & 0xff00) >> 8));
-                        this.WriteByte((byte)(val & 0xff));
-                    }
-                    else
-                    {
-                        // ^ assume false;
-                    }
+                    int n = ((value & b13) << 1) | sign;
+                    this.WriteByte((byte)(0x80 | (n >> 8)));
+                    this.WriteByte((byte)(n & 0xff));
+                }
+                else 
+                {
+                    Debug.Assert((value & ~b28) == sign * ~b28);
+
+                    int n = ((value & b28) << 1) | sign;
+                    this.WriteByte((byte)(0xc0 | (n >> 24)));
+                    this.WriteByte((byte)((n >> 16) & 0xff));
+                    this.WriteByte((byte)((n >> 8) & 0xff));
+                    this.WriteByte((byte)(n & 0xff));
                 }
             }
         }
@@ -431,19 +424,17 @@ namespace Microsoft.Cci
                 }
                 else if (val <= 0x3fff)
                 {
-                    this.WriteByte((byte)((val >> 8) | 0x80));
-                    this.WriteByte((byte)(val & 0xff));
-                }
-                else if (val <= 0x1fffffff)
-                {
-                    this.WriteByte((byte)((val >> 24) | 0xc0));
-                    this.WriteByte((byte)((val & 0xff0000) >> 16));
-                    this.WriteByte((byte)((val & 0xff00) >> 8));
+                    this.WriteByte((byte)(0x80 | (val >> 8)));
                     this.WriteByte((byte)(val & 0xff));
                 }
                 else
                 {
-                    // ^ assume false;
+                    Debug.Assert(val <= 0x1fffffff);
+
+                    this.WriteByte((byte)(0xc0 | (val >> 24)));
+                    this.WriteByte((byte)((val >> 16) & 0xff));
+                    this.WriteByte((byte)((val >> 8) & 0xff));
+                    this.WriteByte((byte)(val & 0xff));
                 }
             }
         }

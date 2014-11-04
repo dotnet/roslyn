@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    internal struct LocalSlotDebugInfo
+    internal struct LocalSlotDebugInfo : IEquatable<LocalSlotDebugInfo>
     {
         public readonly SynthesizedLocalKind SynthesizedKind;
         public readonly LocalDebugId Id;
@@ -11,6 +14,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             this.SynthesizedKind = synthesizedKind;
             this.Id = id;
+        }
+
+        public bool Equals(LocalSlotDebugInfo other)
+        {
+            return this.SynthesizedKind == other.SynthesizedKind
+                && this.Id.Equals(other.Id);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is LocalSlotDebugInfo && Equals((LocalSlotDebugInfo)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine((int)SynthesizedKind, Id.GetHashCode());
         }
     }
 }

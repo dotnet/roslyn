@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValue"/> (<see cref="EditAndContinueMethodDebugInformation"/>)
         /// </summary>
-        MaxValidValue = 0x7f - 1,
+        MaxValidValue = 0x7f - 2,
     }
 
     internal static class SynthesizedLocalKindExtensions

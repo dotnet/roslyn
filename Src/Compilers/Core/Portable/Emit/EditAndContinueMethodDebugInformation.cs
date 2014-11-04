@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         private const byte AlignmentValue = 0xff;
+        private const byte SyntaxOffsetBaseline = 0xfe;
 
         private unsafe static ImmutableArray<LocalSlotDebugInfo> UncompressSlotMap(ImmutableArray<byte> compressedSlotMap)
         {
@@ -38,11 +39,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             var mapBuilder = ArrayBuilder<LocalSlotDebugInfo>.GetInstance();
-            
+            int syntaxOffsetBaseline = -1;
+
             fixed (byte* compressedSlotMapPtr = &compressedSlotMap.ToArray()[0])
             {
                 var blobReader = new BlobReader(compressedSlotMapPtr, compressedSlotMap.Length);
-
                 while (blobReader.RemainingBytes > 0)
                 {
                     byte b = blobReader.ReadByte();
@@ -50,6 +51,12 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (b == AlignmentValue)
                     {
                         break;
+                    }
+
+                    if (b == SyntaxOffsetBaseline)
+                    {
+                        syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
+                        continue;
                     }
 
                     if (b == 0)
@@ -62,14 +69,13 @@ namespace Microsoft.CodeAnalysis.Emit
                     var kind = (SynthesizedLocalKind)((b & 0x3f) - 1);
                     bool hasOrdinal = (b & (1 << 7)) != 0;
 
-                    // TODO: Right now all integers are >= -1, but we should not assume that and read Ecma335 compressed int instead.
                     int syntaxOffset;
                     if (!blobReader.TryReadCompressedInteger(out syntaxOffset)) 
                     {
                         return default(ImmutableArray<LocalSlotDebugInfo>);
                     }
 
-                    syntaxOffset--;
+                    syntaxOffset += syntaxOffsetBaseline;
 
                     int ordinal = 0;
                     if (hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal))
@@ -92,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             Cci.MemoryStream customMetadata = new Cci.MemoryStream();
-            Cci.BinaryWriter cmw = new Cci.BinaryWriter(customMetadata, true);
+            Cci.BinaryWriter cmw = new Cci.BinaryWriter(customMetadata);
             cmw.WriteByte(4); // version
             cmw.WriteByte(6); // kind: EditAndContinueLocalSlotMap
             cmw.Align(4);
@@ -100,6 +106,41 @@ namespace Microsoft.CodeAnalysis.Emit
             // length (will be patched)
             uint lengthPosition = cmw.BaseStream.Position;
             cmw.WriteUint(0);
+
+            SerializeLocalSlots(cmw);
+
+            uint length = customMetadata.Position;
+
+            // align with values that the reader skips
+            while (length % 4 != 0)
+            {
+                cmw.WriteByte(AlignmentValue);
+                length++;
+            }
+
+            cmw.BaseStream.Position = lengthPosition;
+            cmw.WriteUint(length);
+            cmw.BaseStream.Position = length;
+
+            customDebugInfo.Add(customMetadata);
+        }
+
+        internal void SerializeLocalSlots(Cci.BinaryWriter cmw)
+        {
+            int syntaxOffsetBaseline = -1;
+            foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
+            {
+                if (localSlot.Id.SyntaxOffset < syntaxOffsetBaseline)
+                {
+                    syntaxOffsetBaseline = localSlot.Id.SyntaxOffset;
+                }
+            }
+
+            if (syntaxOffsetBaseline != -1)
+            {
+                cmw.WriteByte(SyntaxOffsetBaseline);
+                cmw.WriteCompressedUInt((uint)(-syntaxOffsetBaseline));
+            }
 
             foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
             {
@@ -121,30 +162,13 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 cmw.WriteByte(b);
-
-                // TODO: Right now all integers are >= -1, but we should not assume that and write Ecma335 compressed int instead.
-                cmw.WriteCompressedUInt(unchecked((uint)(localSlot.Id.SyntaxOffset + 1)));
+                cmw.WriteCompressedUInt((uint)(localSlot.Id.SyntaxOffset - syntaxOffsetBaseline));
 
                 if (hasOrdinal)
                 {
                     cmw.WriteCompressedUInt((uint)localSlot.Id.Ordinal);
                 }
             }
-
-            uint length = customMetadata.Position;
-
-            // align with values that the reader skips
-            while (length % 4 != 0)
-            {
-                cmw.WriteByte(AlignmentValue);
-                length++;
-            }
-
-            cmw.BaseStream.Position = lengthPosition;
-            cmw.WriteUint(length);
-            cmw.BaseStream.Position = length;
-
-            customDebugInfo.Add(customMetadata);
         }
     }
 }

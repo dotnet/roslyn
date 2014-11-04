@@ -6145,7 +6145,7 @@ namespace Microsoft.Cci
                     writer.WriteCompressedUInt(IteratorHelper.EnumerableCount(arrayTypeReference.LowerBounds));
                     foreach (int lowerBound in arrayTypeReference.LowerBounds)
                     {
-                        writer.WriteCompressedInt(lowerBound);
+                        writer.WriteCompressedSignedInteger(lowerBound);
                     }
 
                     return;

@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
+
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 using PDB::Roslyn.Utilities.Pdb;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -132,6 +136,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             };
 
             AssertEx.Equal(new byte[] { 0xab }, CustomDebugInfoReader.TryGetCustomDebugInfoRecord(cdi, CustomDebugInfoKind.DynamicLocals));
+        }
+
+        [Fact]
+        public void EditAndContinueLocalSlotMap_NegativeSyntaxOffsets()
+        {
+            var slots = ImmutableArray.Create(
+                new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, new LocalDebugId(-1, 10)),
+                new LocalSlotDebugInfo(SynthesizedLocalKind.TryAwaitPendingCaughtException, new LocalDebugId(-20000, 10)));
+
+            var customMetadata = new Cci.MemoryStream();
+            var cmw = new Cci.BinaryWriter(customMetadata);
+
+            new EditAndContinueMethodDebugInformation(slots).SerializeLocalSlots(cmw);
+
+            var bytes = customMetadata.ToImmutableArray();
+            AssertEx.Equal(new byte[] { 0xFE, 0xC0, 0x00, 0x4E, 0x20, 0x81, 0xC0, 0x00, 0x4E, 0x1F, 0x0A, 0x9A, 0x00, 0x0A }, bytes);
+
+            var deserialized = EditAndContinueMethodDebugInformation.Create(bytes).LocalSlots;
+
+            AssertEx.Equal(slots, deserialized);
         }
     }
 }
