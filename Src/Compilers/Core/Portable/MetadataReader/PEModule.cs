@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> AttributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> AttributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
 
-        internal PEModule(PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt)
+        internal PEModule(PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt, bool includeEmbeddedInteropTypes = false)
         {
             // shall not throw
 
@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis
             this.lazyTypeNameCollection = new Lazy<IdentifierCollection>(ComputeTypeNameCollection);
             this.lazyNamespaceNameCollection = new Lazy<IdentifierCollection>(ComputeNamespaceNameCollection);
             this.hashesOpt = (peReader != null) ? new PEHashProvider(peReader) : null;
+            this.lazyContainsNoPiaLocalTypes = includeEmbeddedInteropTypes ? ThreeState.False : ThreeState.Unknown;
         }
 
         private sealed class PEHashProvider : CryptographicHashProvider
