@@ -264,6 +264,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Debug.Assert(Not excludeInstance OrElse Not excludeShared)
             Debug.Assert(Not excludeInstance OrElse Not useBaseReferenceAccessibility)
 
+            If context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken) Then
+                Dim type = DirectCast(container, INamedTypeSymbol)
+                If type.ConstructedFrom.SpecialType = SpecialType.System_Nullable_T Then
+                    container = type.GetTypeArguments().First()
+                End If
+            End If
+
             Dim position = node.SpanStart
             Dim symbols As IEnumerable(Of ISymbol)
             If couldBeMergedNamespace Then
