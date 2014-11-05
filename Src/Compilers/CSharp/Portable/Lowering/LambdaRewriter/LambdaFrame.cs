@@ -90,34 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-#if FEATURE_CSHARP6_CUT
-            // primary constructor:
-            if (syntax.IsKind(SyntaxKind.ParameterList))
-            {
-                Debug.Assert(syntax.Parent.IsKind(SyntaxKind.ClassDeclaration) || syntax.Parent.IsKind(SyntaxKind.StructDeclaration));
-                return;
-            }
-
-            // base class with arguments containing a declaration expression:
-            if (syntax.IsKind(SyntaxKind.BaseClassWithArguments))
-            {
-                return;
-            }
-
-            // constructor declaration with constructor initializer containing a declaration expression:
-            if (syntax.IsKind(SyntaxKind.ConstructorDeclaration))
-            {
-                return;
-            }
-
-            // statement body containing a declaration expression:
-            if (syntax is StatementSyntax)
-            {
-                Debug.Assert(IsStatementWithEmbeddedStatementBody(syntax.Parent.Kind));
-                return;
-            }
-#endif
-
             if (IsStatementWithEmbeddedStatementBody(syntax.Kind))
             {
                 return;

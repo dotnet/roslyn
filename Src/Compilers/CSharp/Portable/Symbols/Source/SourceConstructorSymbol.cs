@@ -234,84 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-#if FEATURE_CSHARP6_CUT
-            var ctorSyntax = GetSyntax();
-
-            int ctorInitializerLength;
-            var ctorInitializer = GetSyntax().Initializer;
-            if (ctorInitializer != null && localTree == ctorInitializer.SyntaxTree)
-            {
-                span = ctorInitializer.Span;
-                ctorInitializerLength = span.Length;
-
-                if (span.Contains(localPosition))
-                {
-                    return -ctorInitializerLength + (localPosition - span.Start);
-                }
-
-                // the scope of variables declared in a constructor initializer starts at the start of the constructor declaration:
-                if (ctorSyntax.SpanStart == localPosition)
-                {
-                    return -ctorInitializerLength;
-                }
-            }
-            else
-            {
-                ctorInitializerLength = 0;
-            }
-
-            var containingType = (SourceNamedTypeSymbol)this.ContainingType;
-            int initializerStart;
-            int aggregateInitializerLength;
-            if (containingType.TryFindDeclaringInitializerStart(localPosition, localTree, this.IsStatic, out initializerStart, out aggregateInitializerLength))
-            {
-                return -(ctorInitializerLength + aggregateInitializerLength) + (localPosition - initializerStart);
-            }
-
-            // The scope of primary constructor parameters starts at the primary constructor start 
-            // and spans all declarations of the type.
-            if (ctorSyntax.IsKind(SyntaxKind.ParameterList) && ctorSyntax.SpanStart == localPosition)
-            {
-                return -(ctorInitializerLength + aggregateInitializerLength);
-            }
-#endif
             // we haven't found the contructor part that declares the variable:
             throw ExceptionUtilities.Unreachable;
         }
-
-#if FEATURE_CSHARP6_CUT
-
-        /// <summary>
-        /// Retruns either
-        /// - <see cref="ConstructorInitializerSyntax"/> - regular constructor initializer
-        /// - <see cref="BaseClassWithArgumentsSyntax"/> - primary constructor initializer
-        /// - null - no initializer
-        /// </summary>
-        private SyntaxNode TryGetConstructorInitializer()
-        {
-            var syntax = GetSyntax();
-
-            if (syntax.IsKind(SyntaxKind.ConstructorDeclaration))
-            {
-                return ((ConstructorDeclarationSyntax)syntax).Initializer;
-            }
-
-            if (syntax.IsKind(SyntaxKind.ParameterList))
-            {
-                var classDeclaration = (ClassDeclarationSyntax)syntax.Parent;
-
-                if (classDeclaration.BaseList != null && classDeclaration.BaseList.Types.Count > 0)
-                {
-                    TypeSyntax baseTypeSyntax = classDeclaration.BaseList.Types[0];
-                    if (baseTypeSyntax.Kind == SyntaxKind.BaseClassWithArguments)
-                    {
-                        return baseTypeSyntax;
-                    }
-                }
-            }
-
-            return null;
-        }
-#endif
     }
 }
