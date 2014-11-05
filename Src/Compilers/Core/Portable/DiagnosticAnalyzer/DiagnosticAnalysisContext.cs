@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (symbolKinds.Length == 0)
             {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmptyArray, nameof(symbolKinds));
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
             }
 
             this.scope.RegisterSymbolAction(action, symbolKinds);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (syntaxKinds.Length == 0)
             {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmptyArray, nameof(syntaxKinds));
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
             }
 
             this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (symbolKinds.Length == 0)
             {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmptyArray, nameof(symbolKinds));
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
             }
 
             this.scope.RegisterSymbolAction(action, symbolKinds);
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (syntaxKinds.Length == 0)
             {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmptyArray, nameof(syntaxKinds));
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
             }
 
             this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);

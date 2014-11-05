@@ -71,11 +71,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument cannot be an empty array.
+        ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
-        internal static string ArgumentCannotBeEmptyArray {
+        internal static string ArgumentCannotBeEmpty {
             get {
-                return ResourceManager.GetString("ArgumentCannotBeEmptyArray", resourceCulture);
+                return ResourceManager.GetString("ArgumentCannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Argument cannot have a null element..
+        /// </summary>
+        internal static string ArgumentElementCannotBeNull {
+            get {
+                return ResourceManager.GetString("ArgumentElementCannotBeNull", resourceCulture);
             }
         }
         

@@ -53,6 +53,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Action<CodeAction, IEnumerable<Diagnostic>> registerFix,
             CancellationToken cancellationToken)
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (registerFix == null)
+            {
+                throw new ArgumentNullException(nameof(registerFix));
+            }
+
+            VerifyDiagnosticsArgument(diagnostics);
+
             this.document = document;
             this.span = span;
             this.diagnostics = diagnostics;
@@ -104,28 +116,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException(nameof(action));
             }
 
-            if (diagnostics == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostics));
-            }
-
-            var diagnosticsArray = diagnostics.ToImmutableArray();
-            if (diagnosticsArray.Length == 0)
-            {
-                throw new ArgumentException(WorkspacesResources.DiagnosticsCannotBeEmpty, nameof(diagnostics));
-            }
-
-            if (diagnosticsArray.Any(d => d == null))
-            {
-                throw new ArgumentException(WorkspacesResources.DiagnoisticCannotBeNull, nameof(diagnostics));
-            }
+            VerifyDiagnosticsArgument(diagnostics);
 
             // TODO: 
             // - Check that all diagnostics are unique (no duplicates).
             // - Check that supplied diagnostics form subset of diagnostics originally
             //   passed to the provider via CodeFixContext.Diagnostics.
 
-            this.registerFix(action, diagnosticsArray);
+            this.registerFix(action, diagnostics.ToImmutableArray());
+        }
+
+        private static void VerifyDiagnosticsArgument(IEnumerable<Diagnostic> diagnostics)
+        {
+            if (diagnostics == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostics));
+            }
+
+            if (diagnostics.IsEmpty())
+            {
+                throw new ArgumentException(WorkspacesResources.DiagnosticsCannotBeEmpty, nameof(diagnostics));
+            }
+
+            if (diagnostics.Any(d => d == null))
+            {
+                throw new ArgumentException(WorkspacesResources.DiagnoisticCannotBeNull, nameof(diagnostics));
+            }
         }
     }
 }

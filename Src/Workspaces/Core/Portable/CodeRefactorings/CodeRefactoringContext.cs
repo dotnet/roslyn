@@ -42,6 +42,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (registerRefactoring == null)
+            {
+                throw new ArgumentNullException(nameof(registerRefactoring));
+            }
+
             this.document = document;
             this.span = span;
             this.registerRefactoring = registerRefactoring;

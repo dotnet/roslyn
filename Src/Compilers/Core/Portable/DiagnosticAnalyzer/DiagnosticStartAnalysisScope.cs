@@ -551,8 +551,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.syntaxNodeActions = this.syntaxNodeActions.Add(action);
         }
 
+        /// <summary>
+        /// Append analyzer actions from <paramref name="otherActions"/> to actions from this instance.
+        /// </summary>
+        /// <param name="otherActions">Analyzer actions to append</param>.
         public AnalyzerActions Append(AnalyzerActions otherActions)
         {
+            if (otherActions == null)
+            {
+                throw new ArgumentNullException(nameof(otherActions));
+            }
+
             AnalyzerActions actions = new AnalyzerActions();
             actions.compilationStartActions = this.compilationStartActions.AddRange(otherActions.compilationStartActions);
             actions.compilationEndActions = this.compilationEndActions.AddRange(otherActions.compilationEndActions);
