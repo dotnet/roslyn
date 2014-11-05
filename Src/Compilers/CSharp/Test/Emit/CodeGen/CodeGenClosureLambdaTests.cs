@@ -4864,7 +4864,47 @@ namespace ConsoleApplication16
 }
 
 ";
-            var compilation = CompileAndVerify(source);
+            CompileAndVerify(source);
+        }
+
+        [Fact]
+        public void LambdaInQuery_Let()
+        {
+            var source = @"
+using System;
+using System.Linq;
+
+class C
+{
+    public void F(int[] array)
+    {
+        var f = from item in array
+                let a = new Func<int>(() => item)
+                select a() + new Func<int>(() => item)();
+    }
+}";
+
+            CompileAndVerify(source, new[] { SystemCoreRef } );
+        }
+
+        [Fact]
+        public void LambdaInQuery_From()
+        {
+            var source = @"
+using System;
+using System.Linq;
+
+class C
+{
+    public void F(int[] array)
+    {
+        var f = from item1 in new Func<int[]>(() => array)()
+                from item2 in new Func<int[]>(() => array)()
+                select item1 + item2;
+    }
+}";
+
+            CompileAndVerify(source, new[] { SystemCoreRef });
         }
 
         #endregion

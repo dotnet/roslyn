@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         private static void AssertIsLambdaScopeSyntax(CSharpSyntaxNode syntax)
         {
+            // See C# specification, chapter 3.7 Scopes.
+
             // static lambdas technically have the class scope so the scope syntax is null 
             if (syntax == null)
             {
@@ -77,6 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // class/struct containing a field/property with a declaration expression
             if (syntax.IsKind(SyntaxKind.ClassDeclaration) || syntax.IsKind(SyntaxKind.StructDeclaration))
+            {
+                return;
+            }
+
+            // lambda in a let clause, 
+            // e.g. from item in array let a = new Func<int>(() => item)
+            if (syntax.IsKind(SyntaxKind.LetClause))
             {
                 return;
             }
