@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly SessionStartAnalysisScope scope;
 
-        public AnalysisContext(SessionStartAnalysisScope scope)
+        internal AnalysisContext(SessionStartAnalysisScope scope)
         {
             this.scope = scope;
         }
@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at compilation start.</param>
         public void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterCompilationStartAction(action);
         }
 
@@ -62,6 +67,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at compilation end.</param>
         public void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterCompilationEndAction(action);
         }
 
@@ -73,6 +83,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed for a document's <see cref="SemanticModel"/>.</param>
         public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterSemanticModelAction(action);
         }
 
@@ -84,6 +99,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (symbolKinds == null)
+            {
+                throw new ArgumentNullException(nameof(symbolKinds));
+            }
+
+            if (symbolKinds.Length == 0)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmptyArray, nameof(symbolKinds));
+            }
+
             this.scope.RegisterSymbolAction(action, symbolKinds);
         }
 
@@ -96,6 +126,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
         public void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterCodeBlockStartAction(action);
         }
 
@@ -107,6 +142,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
         public void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(action);
         }
 
@@ -117,6 +157,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of parsing of a document.</param>
         public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterSyntaxTreeAction(action);
         }
 
@@ -130,6 +175,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (syntaxKinds == null)
+            {
+                throw new ArgumentNullException(nameof(syntaxKinds));
+            }
+
+            if (syntaxKinds.Length == 0)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmptyArray, nameof(syntaxKinds));
+            }
+
             this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
         }
     }
@@ -183,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        public CompilationStartAnalysisContext(CompilationStartAnalysisScope scope, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        internal CompilationStartAnalysisContext(CompilationStartAnalysisScope scope, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             this.scope = scope;
             this.compilation = compilation;
@@ -198,6 +258,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at compilation end.</param>
         public void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterCompilationEndAction(action);
         }
 
@@ -209,6 +274,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed for a document's <see cref="SemanticModel"/>.</param>
         public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterSemanticModelAction(action);
         }
 
@@ -220,6 +290,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (symbolKinds == null)
+            {
+                throw new ArgumentNullException(nameof(symbolKinds));
+            }
+
+            if (symbolKinds.Length == 0)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmptyArray, nameof(symbolKinds));
+            }
+
             this.scope.RegisterSymbolAction(action, symbolKinds);
         }
 
@@ -232,6 +317,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
         public void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterCodeBlockStartAction(action);
         }
 
@@ -243,6 +333,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
         public void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(action);
         }
 
@@ -253,6 +348,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of parsing of a document.</param>
         public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             this.scope.RegisterSyntaxTreeAction(action);
         }
 
@@ -266,6 +366,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (syntaxKinds == null)
+            {
+                throw new ArgumentNullException(nameof(syntaxKinds));
+            }
+
+            if (syntaxKinds.Length == 0)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmptyArray, nameof(syntaxKinds));
+            }
+
             this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
         }
     }
@@ -296,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        public CompilationEndAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        internal CompilationEndAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.compilation = compilation;
             this.options = options;
@@ -310,7 +425,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            this.reportDiagnostic(diagnostic);
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            lock (this.reportDiagnostic)
+            {
+                this.reportDiagnostic(diagnostic);
+            }
         }
     }
 
@@ -340,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        internal SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.semanticModel = semanticModel;
             this.options = options;
@@ -354,7 +477,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            this.reportDiagnostic(diagnostic);
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            lock (this.reportDiagnostic)
+            {
+                this.reportDiagnostic(diagnostic);
+            }
         }
     }
 
@@ -390,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        internal SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.symbol = symbol;
             this.compilation = compilation;
@@ -405,7 +536,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            this.reportDiagnostic(diagnostic);
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            lock (this.reportDiagnostic)
+            {
+                this.reportDiagnostic(diagnostic);
+            }
         }
     }
 
@@ -543,7 +682,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            this.reportDiagnostic(diagnostic);
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            lock (this.reportDiagnostic)
+            {
+                this.reportDiagnostic(diagnostic);
+            }
         }
     }
 
@@ -573,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        internal SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.tree = tree;
             this.options = options;
@@ -587,7 +734,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            this.reportDiagnostic(diagnostic);
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            lock (this.reportDiagnostic)
+            {
+                this.reportDiagnostic(diagnostic);
+            }
         }
     }
 
@@ -623,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        internal SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.node = node;
             this.semanticModel = semanticModel;
@@ -638,7 +793,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            this.reportDiagnostic(diagnostic);
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            lock (this.reportDiagnostic)
+            {
+                this.reportDiagnostic(diagnostic);
+            }
         }
     }
 }

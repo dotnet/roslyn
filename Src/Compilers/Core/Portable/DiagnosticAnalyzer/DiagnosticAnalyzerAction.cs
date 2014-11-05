@@ -3,23 +3,21 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.Internal
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    // ToDo: Figure out how to make these types internal.
-
-    public abstract class AnalyzerAction
+    internal abstract class AnalyzerAction
     {
         private readonly DiagnosticAnalyzer analyzer;
 
-        public AnalyzerAction(DiagnosticAnalyzer analyzer)
+        internal AnalyzerAction(DiagnosticAnalyzer analyzer)
         {
             this.analyzer = analyzer;
         }
 
-        public DiagnosticAnalyzer Analyzer { get { return this.analyzer; } }
+        internal DiagnosticAnalyzer Analyzer { get { return this.analyzer; } }
     }
 
-    public sealed class SymbolAnalyzerAction : AnalyzerAction
+    internal sealed class SymbolAnalyzerAction : AnalyzerAction
     {
         private readonly Action<SymbolAnalysisContext> action;
         private readonly ImmutableArray<SymbolKind> kinds;
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public ImmutableArray<SymbolKind> Kinds { get { return this.kinds; } }
     }
 
-    public sealed class SyntaxNodeAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
+    internal sealed class SyntaxNodeAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
         private readonly Action<SyntaxNodeAnalysisContext> action;
         private readonly ImmutableArray<TLanguageKindEnum> kinds;
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public ImmutableArray<TLanguageKindEnum> Kinds { get { return this.kinds; } }
     }
 
-    public sealed class CompilationStartAnalyzerAction : AnalyzerAction
+    internal sealed class CompilationStartAnalyzerAction : AnalyzerAction
     {
         private readonly Action<CompilationStartAnalysisContext> action;
 
@@ -64,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<CompilationStartAnalysisContext> Action { get { return this.action; } }
     }
 
-    public sealed class CompilationEndAnalyzerAction : AnalyzerAction
+    internal sealed class CompilationEndAnalyzerAction : AnalyzerAction
     {
         private readonly Action<CompilationEndAnalysisContext> action;
 
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<CompilationEndAnalysisContext> Action { get { return this.action; } }
     }
 
-    public sealed class SemanticModelAnalyzerAction : AnalyzerAction
+    internal sealed class SemanticModelAnalyzerAction : AnalyzerAction
     {
         private readonly Action<SemanticModelAnalysisContext> action;
 
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<SemanticModelAnalysisContext> Action { get { return this.action; } }
     }
 
-    public sealed class SyntaxTreeAnalyzerAction : AnalyzerAction
+    internal sealed class SyntaxTreeAnalyzerAction : AnalyzerAction
     {
         private readonly Action<SyntaxTreeAnalysisContext> action;
 
@@ -103,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<SyntaxTreeAnalysisContext> Action { get { return this.action; } }
     }
 
-    public sealed class CodeBlockStartAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
+    internal sealed class CodeBlockStartAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
         private readonly Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action;
 
@@ -116,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Internal
         public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get { return this.action; } }
     }
 
-    public sealed class CodeBlockEndAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
+    internal sealed class CodeBlockEndAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
         private readonly Action<CodeBlockEndAnalysisContext> action;
 

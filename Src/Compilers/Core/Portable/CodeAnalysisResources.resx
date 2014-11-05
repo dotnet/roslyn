@@ -390,4 +390,7 @@
   <data name="SeverityWarning" xml:space="preserve">
     <value>warning</value>
   </data>
+  <data name="ArgumentCannotBeEmptyArray" xml:space="preserve">
+    <value>Argument cannot be an empty array</value>
+  </data>
 </root>

@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument cannot be an empty array.
+        /// </summary>
+        internal static string ArgumentCannotBeEmptyArray {
+            get {
+                return ResourceManager.GetString("ArgumentCannotBeEmptyArray", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Arrays with more than one dimension cannot be serialized..
         /// </summary>
         internal static string ArraysWithMoreThanOneDimensionCannotBeSerialized {
