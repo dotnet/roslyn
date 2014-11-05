@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 case FunctionId.WorkCoordinator_SemanticChange_EnqueueFromType:
                 case FunctionId.WorkCoordinator_SemanticChange_FullProjects:
                 case FunctionId.WorkCoordinator_Project_Enqueue:
+                case FunctionId.WorkCoordinator_ActivieFileEnqueue:
                     return false;
 
                 case FunctionId.Diagnostics_SyntaxDiagnostic:
