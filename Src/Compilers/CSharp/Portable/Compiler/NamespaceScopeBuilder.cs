@@ -65,6 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var namespaceScopes = ArrayBuilder<Cci.NamespaceScope>.GetInstance();
 
+            // NOTE: All extern aliases are stored on the outermost Imports object.
+            var validExternAliases = PooledHashSet<string>.GetInstance();
+            foreach (AliasAndExternAliasDirective externAlias in debugImports.Last().ExternAliases.NullToEmpty())
+            {
+                validExternAliases.Add(externAlias.Alias.Name);
+            }
+
             foreach (Imports imports in debugImports)
             {
                 var usedNamespaces = ArrayBuilder<Cci.UsedNamespaceOrType>.GetInstance();
@@ -91,8 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             NamespaceSymbol @namespace = (NamespaceSymbol)namespaceOrType;
                             string namespaceString = GetNamespaceOrTypeString(@namespace);
 
-                            // TODO: incorrect, see bug #913022
-                            string externAlias = GetExternAliases(@namespace).FirstOrDefault();
+                            string externAlias = GuessExternAlias(@namespace, validExternAliases);
 
                             usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpNamespace(namespaceString, externAlias));
                         }
@@ -120,8 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var targetString = GetNamespaceOrTypeString(target);
                         if (target.Kind == SymbolKind.Namespace)
                         {
-                            // TODO: incorrect, see bug #913022
-                            string externAlias = GetExternAliases((NamespaceSymbol)target).FirstOrDefault();
+                            string externAlias = GuessExternAlias((NamespaceSymbol)target, validExternAliases);
 
                             usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpNamespaceAlias(targetString, alias, externAlias));
                         }
@@ -136,10 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namespaceScopes.Add(new Cci.NamespaceScope(usedNamespaces.ToImmutableAndFree()));
             }
 
+            validExternAliases.Free();
+
             return namespaceScopes.ToImmutableAndFree(); //NOTE: inner-to-outer order matches dev10
         }
 
-        private ImmutableArray<string> GetExternAliases(NamespaceSymbol @namespace)
+        private string GuessExternAlias(NamespaceSymbol @namespace, HashSet<string> validAliases)
         {
             AssemblySymbol containingAssembly = @namespace.ContainingAssembly;
             if ((object)containingAssembly != null && containingAssembly != this.compilation.Assembly)
@@ -147,11 +154,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MetadataReference reference = this.compilation.GetMetadataReference(containingAssembly);
                 if (reference != null)
                 {
-                    return reference.Properties.Aliases.NullToEmpty();
+                    ImmutableArray<string> aliases = reference.Properties.Aliases;
+                    if (!aliases.IsDefaultOrEmpty)
+                    {
+                        foreach (string alias in aliases)
+                        {
+                            if (alias == MetadataReferenceProperties.GlobalAlias)
+                            {
+                                // Don't bother explicitly emitting "global".
+                                return null;
+                            }
+                            else if (validAliases.Contains(alias))
+                            {
+                                // CONSIDER: Dev12 uses the one that appeared in source, whereas we use
+                                // the first one that COULD have appeared in source.  (DevDiv #913022)
+                                // NOTE: The reason we're not just using the alias from the syntax is that
+                                // it is non-trivial to locate.  In particular, since "." may be used in
+                                // place of "::", determining whether the first identifier in the name is
+                                // the alias requires binding.  For example, "using A.B;" could refer to
+                                // either "A::B" or "global::A.B".
+                                return alias;
+                            }
+                        }
+
+                        Debug.Assert(false, string.Format("None of the aliases of {0} is valid in this scope", @namespace));
+                    }
                 }
             }
 
-            return ImmutableArray<string>.Empty;
+            return null;
         }
 
         private string GetNamespaceOrTypeString(NamespaceOrTypeSymbol symbol)
