@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -41,6 +42,107 @@ BC30804: 'Variant' is no longer a supported type; use the 'Object' type instead.
         Dim z = NameOf(Variant)
                        ~~~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().ToArray()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            If True Then
+                Dim node1 = nodes(0)
+                Assert.Equal("NameOf(Integer.MaxValue)", node1.ToString())
+                Assert.Equal("MaxValue", model.GetConstantValue(node1).Value)
+
+                typeInfo = model.GetTypeInfo(node1)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+                symbolInfo = model.GetSymbolInfo(node1)
+                Assert.Null(symbolInfo.Symbol)
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+                group = model.GetMemberGroup(node1)
+                Assert.True(group.IsEmpty)
+
+                Dim argument = node1.Argument
+
+                typeInfo = model.GetTypeInfo(argument)
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+
+                symbolInfo = model.GetSymbolInfo(argument)
+                Assert.Equal("System.Int32.MaxValue As System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+                group = model.GetMemberGroup(argument)
+                Assert.True(group.IsEmpty)
+
+                Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+                typeInfo = model.GetTypeInfo(receiver)
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+
+                symbolInfo = model.GetSymbolInfo(receiver)
+                Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            End If
+
+            If True Then
+                Dim node2 = nodes(1)
+                Assert.Equal("NameOf(Integer)", node2.ToString())
+                Assert.Null(model.GetConstantValue(node2).Value)
+
+                typeInfo = model.GetTypeInfo(node2)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+                symbolInfo = model.GetSymbolInfo(node2)
+                Assert.Null(symbolInfo.Symbol)
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+                group = model.GetMemberGroup(node2)
+                Assert.True(group.IsEmpty)
+
+                Dim argument = node2.Argument
+
+                typeInfo = model.GetTypeInfo(argument)
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+
+                symbolInfo = model.GetSymbolInfo(argument)
+                Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+                group = model.GetMemberGroup(argument)
+                Assert.True(group.IsEmpty)
+            End If
+
+            If True Then
+                Dim node3 = nodes(2)
+                Assert.Equal("NameOf(Variant)", node3.ToString())
+                Assert.Equal("Variant", model.GetConstantValue(node3).Value)
+
+                typeInfo = model.GetTypeInfo(node3)
+                Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+                symbolInfo = model.GetSymbolInfo(node3)
+                Assert.Null(symbolInfo.Symbol)
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+                group = model.GetMemberGroup(node3)
+                Assert.True(group.IsEmpty)
+
+                Dim argument = node3.Argument
+
+                typeInfo = model.GetTypeInfo(argument)
+                Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind)
+
+                symbolInfo = model.GetSymbolInfo(argument)
+                Assert.Null(symbolInfo.Symbol)
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+                group = model.GetMemberGroup(argument)
+                Assert.True(group.IsEmpty)
+            End If
         End Sub
 
         <Fact>
@@ -339,6 +441,48 @@ End Module
 System
 system
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(Global.System)", node1.ToString())
+            Assert.Equal("System", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("System", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("Global", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -369,6 +513,59 @@ End Class
 M1
 m1
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2(Of Integer).C3(Of Short).M1)", node1.ToString())
+            Assert.Equal("M1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal("Sub C2(Of System.Int32).C3(Of System.Int16).M1()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(1, group.Length)
+            Assert.Equal("Sub C2(Of System.Int32).C3(Of System.Int16).M1()", group.Single.ToTestDisplayString())
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            receiver = DirectCast(receiver, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -400,6 +597,32 @@ End Class
 M1
 m1
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C1.M1)", node1.ToString())
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length)
+            Assert.Equal("Sub C1.M1(Of T)()", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
+            Assert.Equal("Sub C1.M1(x As System.Int32)", symbolInfo.CandidateSymbols(1).ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(2, group.Length)
+            Assert.Equal("Sub C1.M1(Of T)()", group(0).ToTestDisplayString())
+            Assert.Equal("Sub C1.M1(x As System.Int32)", group(1).ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -426,6 +649,28 @@ End Class
             <![CDATA[
 M1
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C1.M1)", node1.ToString())
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal("Sub C1.M1(Of T)()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Sub C1.M1(Of T)()", group.Single.ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -454,6 +699,131 @@ BC37246: Method type arguments unexpected.
         System.Console.WriteLine(NameOf(C1.M1(Of Integer)))
                                              ~~~~~~~~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C1.M1(Of Integer))", node1.ToString())
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal("Sub C1.M1(Of System.Int32)()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Sub C1.M1(Of System.Int32)()", group.Single.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub Method_05()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        System.Console.WriteLine(NameOf(C1.M1(Of Integer)))
+    End Sub
+End Module
+
+Class C1
+    Sub M1(Of T)()
+    End Sub
+
+    Sub M1(x as Integer)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            AssertTheseDiagnostics(comp,
+<expected>
+BC37246: Method type arguments unexpected.
+        System.Console.WriteLine(NameOf(C1.M1(Of Integer)))
+                                             ~~~~~~~~~~~~
+</expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C1.M1(Of Integer))", node1.ToString())
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal("Sub C1.M1(Of System.Int32)()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Sub C1.M1(Of System.Int32)()", group.Single.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub Method_06()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        System.Console.WriteLine(NameOf(C1.M1(Of Integer)))
+    End Sub
+End Module
+
+Class C1
+    Sub M1(x as Integer)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            AssertTheseDiagnostics(comp,
+<expected>
+BC37246: Method type arguments unexpected.
+        System.Console.WriteLine(NameOf(C1.M1(Of Integer)))
+                                             ~~~~~~~~~~~~
+</expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C1.M1(Of Integer))", node1.ToString())
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
         End Sub
 
         <Fact>
@@ -482,6 +852,48 @@ End Class
 C3
 c3
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2(Of Integer).C3(Of Short))", node1.ToString())
+            Assert.Equal("C3", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -517,6 +929,49 @@ BC32042: Too few type arguments to 'C2(Of Integer).Cc3(Of S)'.
         System.Console.WriteLine(NameOf(C2(Of Integer).cc3))
                                         ~~~~~~~~~~~~~~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2(Of Integer).CC3)", node1.ToString())
+            Assert.Equal("CC3", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("C2(Of System.Int32).Cc3(Of S)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.WrongArity, symbolInfo.CandidateReason)
+            Assert.Equal("C2(Of System.Int32).Cc3(Of S)", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -587,6 +1042,49 @@ BC30389: 'C2.Cc3' is not accessible in this context because it is 'Protected'.
         System.Console.WriteLine(NameOf(C2.CC3))
                                         ~~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2.CC3)", node1.ToString())
+            Assert.Equal("CC3", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("C2.Cc3", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason)
+            Assert.Equal("C2.Cc3", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -612,6 +1110,41 @@ End Module
 alias
 ALIAS
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf([alias])", node1.ToString())
+            Assert.Equal("alias", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("System", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Assert.Equal("[alias]=System", model.GetAliasInfo(argument).ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -642,6 +1175,59 @@ BC30390: 'C3.Protected Sub M1()' is not accessible in this context because it is
         Dim x = NameOf(C2(Of Integer).C3(Of Short).M1)
                                                    ~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2(Of Integer).C3(Of Short).M1)", node1.ToString())
+            Assert.Equal("M1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason)
+            Assert.Equal("Sub C2(Of System.Int32).C3(Of System.Int16).M1()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(1, group.Length)
+            Assert.Equal("Sub C2(Of System.Int32).C3(Of System.Int16).M1()", group.Single.ToTestDisplayString())
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            receiver = DirectCast(receiver, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -671,6 +1257,59 @@ BC30389: 'C2(Of Integer).C3(Of Short).P1' is not accessible in this context beca
         Dim x = NameOf(C2(Of Integer).C3(Of Short).P1)
                                                    ~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2(Of Integer).C3(Of Short).P1)", node1.ToString())
+            Assert.Equal("P1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason)
+            Assert.Equal("Property C2(Of System.Int32).C3(Of System.Int16).P1 As System.Int32", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(1, group.Length)
+            Assert.Equal("Property C2(Of System.Int32).C3(Of System.Int16).P1 As System.Int32", group.Single.ToTestDisplayString())
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            receiver = DirectCast(receiver, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -700,6 +1339,58 @@ BC30389: 'C2(Of Integer).C3(Of Short).F1' is not accessible in this context beca
         Dim x = NameOf(C2(Of Integer).C3(Of Short).F1)
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2(Of Integer).C3(Of Short).F1)", node1.ToString())
+            Assert.Equal("F1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16).F1 As System.Int32", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            receiver = DirectCast(receiver, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -729,6 +1420,58 @@ BC30389: 'C2(Of Integer).C3(Of Short).E1' is not accessible in this context beca
         Dim x = NameOf(C2(Of Integer).C3(Of Short).E1)
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2(Of Integer).C3(Of Short).E1)", node1.ToString())
+            Assert.Equal("E1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason)
+            Assert.Equal("Event C2(Of System.Int32).C3(Of System.Int16).E1 As System.Action", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            receiver = DirectCast(receiver, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -757,6 +1500,58 @@ BC30456: 'Missing' is not a member of 'C2(Of Integer).C3(Of Short)'.
         Dim x = NameOf(C2(Of Integer).C3(Of Short).Missing)
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2(Of Integer).C3(Of Short).Missing)", node1.ToString())
+            Assert.Equal("Missing", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32).C3(Of System.Int16)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            receiver = DirectCast(receiver, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -836,6 +1631,42 @@ BC30562: 'Ambiguous' is ambiguous between declarations in Modules 'Module2, Modu
         System.Console.WriteLine(NameOf(Ambiguous))
                                         ~~~~~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(Ambiguous)", node1.ToString())
+            Assert.Equal("Ambiguous", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Void", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason)
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length)
+            Assert.Equal("Sub Module2.Ambiguous()", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
+            Assert.Equal("Sub Module3.Ambiguous()", symbolInfo.CandidateSymbols(1).ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
         End Sub
 
         <Fact>
@@ -893,6 +1724,39 @@ End Module
 LOCAL
 loCal
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(LOCAL)", node1.ToString())
+            Assert.Equal("LOCAL", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("local As System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
         End Sub
 
         <Fact>
@@ -917,6 +1781,39 @@ BC32000: Local variable 'local' cannot be referred to before it is declared.
         System.Console.WriteLine(NameOf(LOCAL))
                                         ~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(LOCAL)", node1.ToString())
+            Assert.Equal("LOCAL", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("local As System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
         End Sub
 
         <Fact>
@@ -941,6 +1838,39 @@ BC30980: Type of 'local' cannot be inferred from an expression containing 'local
         Dim local = NameOf(LOCAL)
                            ~~~~~
 </expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(LOCAL)", node1.ToString())
+            Assert.Equal("LOCAL", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("local As System.String", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
         End Sub
 
         <Fact>
@@ -965,6 +1895,39 @@ End Module
             <![CDATA[
 LOCAL
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(LOCAL)", node1.ToString())
+            Assert.Equal("LOCAL", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Object", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("LOCAL As System.Object", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
         End Sub
 
         <Fact>
@@ -1074,6 +2037,49 @@ End Class
             <![CDATA[
 F1
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2.F1)", node1.ToString())
+            Assert.Equal("F1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("C2.F1 As System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -1130,6 +2136,49 @@ End Class
             <![CDATA[
 P1
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2.P1)", node1.ToString())
+            Assert.Equal("P1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal("Property C2.P1 As System.Int32", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Property C2.P1 As System.Int32", group.Single.ToTestDisplayString())
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -1188,6 +2237,49 @@ End Class
             <![CDATA[
 M1
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2.M1)", node1.ToString())
+            Assert.Equal("M1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal("Function C2.M1() As System.Int32", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Function C2.M1() As System.Int32", group.Single.ToTestDisplayString())
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -1251,6 +2343,49 @@ End Class
             <![CDATA[
 M1
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2.M1)", node1.ToString())
+            Assert.Equal("M1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal("Function C2.M1() As System.Int32", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Function C2.M1() As System.Int32", group.Single.ToTestDisplayString())
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -1312,6 +2447,49 @@ End Class
             <![CDATA[
 E1
 ]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2.E1)", node1.ToString())
+            Assert.Equal("E1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Action", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("Event C2.E1 As System.Action", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("C2", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("C2", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
         <Fact>
@@ -1605,6 +2783,118 @@ End Class
             <![CDATA[
 ={MTest()}
 ]]>).VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(Test.MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal("Function Test.MTest() As System.String", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Function Test.MTest() As System.String", group.Single.ToTestDisplayString())
+
+            Dim receiver = DirectCast(argument, MemberAccessExpressionSyntax).Expression
+
+            typeInfo = model.GetTypeInfo(receiver)
+            Assert.Equal("Test", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(receiver)
+            Assert.Equal("Test", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+        End Sub
+
+        <Fact>
+        Public Sub InstanceAndExtension()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+    Sub Main()
+        System.Console.WriteLine(NameOf(C2.M1))
+    End Sub
+
+    <System.Runtime.CompilerServices.Extension>
+    Public Function M1(this As C2) As Integer
+        Return Nothing
+    End Function
+End Module
+
+Class C2
+    Sub M1(x as Integer)
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+M1
+]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(C2.M1)", node1.ToString())
+            Assert.Equal("M1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length)
+            Assert.Equal("Sub C2.M1(x As System.Int32)", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
+            Assert.Equal("Function C2.M1() As System.Int32", symbolInfo.CandidateSymbols(1).ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(2, group.Length)
+            Assert.Equal("Sub C2.M1(x As System.Int32)", group(0).ToTestDisplayString())
+            Assert.Equal("Function C2.M1() As System.Int32", group(1).ToTestDisplayString())
         End Sub
 
     End Class
