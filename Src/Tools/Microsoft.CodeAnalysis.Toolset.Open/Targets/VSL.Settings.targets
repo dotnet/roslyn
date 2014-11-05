@@ -3,7 +3,6 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
 
-  <!-- Path settings -->
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
@@ -76,6 +75,13 @@
   <PropertyGroup Condition="'$(DeployToSamplesSubfolder)' == 'true'">
     <OutDir>$(OutDir)\Samples\$(MSBuildProjectName)</OutDir>
   </PropertyGroup>
+
+  <PropertyGroup>
+  <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
+       that any builds of portable projects end up in a sub folder of $(OutDir). Search for this flag in
+       Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
+    <WindowsAppContainer>false</WindowsAppContainer>
+  </PropertyGroup>	
 
   <Choose>
     <!-- VB specific settings -->
