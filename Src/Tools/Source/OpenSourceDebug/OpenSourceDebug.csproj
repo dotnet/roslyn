@@ -64,7 +64,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="enableopensource.pkgdef">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="License.txt">
