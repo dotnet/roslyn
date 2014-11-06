@@ -2883,6 +2883,9 @@
   <data name="ERR_InvalidDebugInformationFormat" xml:space="preserve">
     <value>Invalid debug information format: {0}</value>
   </data>
+  <data name="ERR_LegacyObjectIdSyntax" xml:space="preserve">
+    <value>'id#' syntax is no longer supported. Use '$id' instead.</value>
+  </data>
   <data name="WRN_DefineIdentifierRequired" xml:space="preserve">
     <value>Invalid value for '/define'; '{0}' is not a valid identifier</value>
   </data>

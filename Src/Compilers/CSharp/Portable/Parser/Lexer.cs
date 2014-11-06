@@ -937,6 +937,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     TextWindow.AdvanceChar();
                 }
 
+                if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar() == '#')
+                {
+                    // Previously, in DebuggerSyntax mode, "123#" was a valid identifier.
+                    TextWindow.AdvanceChar();
+                    info.StringValue = info.Text = TextWindow.GetText(intern: true);
+                    info.Kind = SyntaxKind.IdentifierToken;
+                    this.AddError(MakeError(ErrorCode.ERR_LegacyObjectIdSyntax));
+                    return true;
+                }
+
                 if ((ch = TextWindow.PeekChar()) == '.')
                 {
                     var ch2 = TextWindow.PeekChar(1);

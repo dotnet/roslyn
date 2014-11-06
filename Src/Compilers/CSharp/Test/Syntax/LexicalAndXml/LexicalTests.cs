@@ -2464,22 +2464,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = DebuggerLexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.Equal(errors[0].ToString(), "error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line");
-            Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
-            Assert.Equal(123, token.Value);
+            Assert.Equal((int)ErrorCode.ERR_LegacyObjectIdSyntax, errors[0].Code);
+            Assert.Equal("error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.", errors[0].ToString());
+            Assert.Equal(text, token.Text);
+            Assert.Equal(text, token.Value);
 
             text = "0123#";
             token = DebuggerLexToken(text);
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
             Assert.Equal(1, errors.Length);
-            Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
-            Assert.Equal(123, token.Value);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(text, token.Value);
 
             text = "0x123#";
             token = DebuggerLexToken(text);

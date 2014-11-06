@@ -5237,6 +5237,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;id#&apos; syntax is no longer supported. Use &apos;$id&apos; instead..
+        /// </summary>
+        internal static string ERR_LegacyObjectIdSyntax {
+            get {
+                return ResourceManager.GetString("ERR_LegacyObjectIdSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Runtime library method &apos;{0}.{1}&apos; not found..
         /// </summary>
         internal static string ERR_LibraryMethodNotFound {

@@ -1054,7 +1054,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingGuidForOption = 2040,
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
-        // unused 2043-2999
+        ERR_LegacyObjectIdSyntax = 2043,
+        // unused 2044-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
