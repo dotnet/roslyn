@@ -159,12 +159,7 @@
   </Choose>
 
   <PropertyGroup>
-    <!-- ILASM is in the Framework  -->
-    <IlasmPath>$(MSBuildFrameworkToolsPath)\ilasm.exe</IlasmPath>
-
-    <!-- ILDASM and SN are in the Framework SDK tools path, but TargetFrameworkSDKToolsDirectory isn't always available  -->
-    <IldasmPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' != '' ">$(TargetFrameworkSDKToolsDirectory)\ildasm.exe</IldasmPath>
-    <IldasmPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' == '' ">$(MSBuildProgramFiles32)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\ildasm.exe</IldasmPath>
+    <!-- SN is in the Framework SDK tools path, but TargetFrameworkSDKToolsDirectory isn't always available  -->
     <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' != '' ">$(TargetFrameworkSDKToolsDirectory)\sn.exe</SnToolPath>
     <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' == '' ">$(MSBuildProgramFiles32)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe</SnToolPath>
 
