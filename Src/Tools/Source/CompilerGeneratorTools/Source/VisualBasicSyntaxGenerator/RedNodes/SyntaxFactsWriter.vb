@@ -25,10 +25,8 @@ Public Class SyntaxFactsWriter
         _writer = writer
 
         _writer.WriteLine()
-        If Not String.IsNullOrEmpty(_parseTree.NamespaceName) Then
-            _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName))
-            _writer.WriteLine()
-        End If
+        _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName))
+        _writer.WriteLine()
 
         _writer.WriteLine("    Partial Public Class SyntaxFacts")
         GenerateAllFactoryMethods()
@@ -38,15 +36,26 @@ Public Class SyntaxFactsWriter
         _writer.WriteLine("    Public Module GeneratedExtensionSyntaxFacts")
         GenerateAllExtensionFactoryMethods()
         _writer.WriteLine("    End Module")
-        _writer.WriteLine()
 
-        If Not String.IsNullOrEmpty(_parseTree.NamespaceName) Then
-            _writer.WriteLine("End Namespace")
-        End If
+        _writer.WriteLine()
+        _writer.WriteLine("End Namespace")
 
     End Sub
 
-    ' Generator all factory methods for all node structures.
+    Public Sub GenerateGetText(writer As TextWriter)
+
+        _writer = writer
+
+        _writer.WriteLine()
+        _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName))
+        _writer.WriteLine("    Partial Public Class SyntaxFacts")
+        GenerateGetText()
+        _writer.WriteLine("    End Class")
+        _writer.WriteLine("End Namespace")
+
+    End Sub
+
+    ' Generate all factory methods for all node structures.
     Private Sub GenerateAllFactoryMethods()
         For Each nodeStructure In _parseTree.NodeStructures.Values
             GenerateFactoryMethodsForStructure(nodeStructure)
@@ -106,7 +115,7 @@ Public Class SyntaxFactsWriter
 
     End Sub
 
-    ' Generator all factory methods for a node structure.
+    ' Generate all factory methods for a node structure.
     ' If a nodeStructure has 0 kinds, it is abstract and no factory method is generator
     ' If a nodeStructure has 1 kind, a factory method for that kind is generator
     ' If a nodestructure has >=2 kinds, a factory method for each kind is generated, plus one for the structure as a whole, unless name would conflict.

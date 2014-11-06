@@ -15,6 +15,7 @@
   <PropertyGroup>
     <CompileDependsOn>
       GenerateSyntaxModel;
+      GenerateSyntaxModelGetText;
       GenerateSyntaxModelTests;
       GenerateBoundTree;
       GenerateErrorFacts;
@@ -25,6 +26,7 @@
   <PropertyGroup>
     <CleanDependsOn>
       CleanSyntaxModel;
+      CleanSyntaxModelGetText;
       CleanSyntaxModelTests;
       CleanBoundTree;
       CleanErrorFacts;
@@ -66,6 +68,39 @@
     </PropertyGroup>
 
     <Delete Files="$(GeneratedSyntaxModel)" />
+  </Target>
+
+  <Target
+    Name="GenerateSyntaxModelGetText"
+    Inputs="@(SyntaxGetTextDefinition);$(VBSyntaxGeneratorToolPath)"
+    Outputs="@(SyntaxGetTextDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')"
+    Condition="'$(Language)' == 'VB'"
+  >
+    <PropertyGroup>
+      <SyntaxGenerator>"$(VBSyntaxGeneratorToolPath)"</SyntaxGenerator>
+    </PropertyGroup>
+    <PropertyGroup>
+      <GeneratedSyntaxModelGetText>@(SyntaxGetTextDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelGetText>
+    </PropertyGroup>
+
+    <Exec
+      Command='$(SyntaxGenerator) @(SyntaxGetTextDefinition) $(GeneratedSyntaxModelGetText) /gettext'
+      Outputs="$(GeneratedSyntaxModelGetText)"
+    >
+      <Output TaskParameter="Outputs" ItemName="FileWrites" />
+    </Exec>
+
+  </Target>
+
+  <Target
+    Name="CleanSyntaxModelGetText"
+    Condition="'$(Language)' == 'VB'"
+  >
+    <PropertyGroup>
+      <GeneratedSyntaxModelGetText>@(SyntaxGetTextDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelGetText>
+    </PropertyGroup>
+
+    <Delete Files="$(GeneratedSyntaxModelGetText)" />
   </Target>
 
   <Target
