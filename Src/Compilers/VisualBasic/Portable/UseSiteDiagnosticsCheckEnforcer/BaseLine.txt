@@ -1,5 +1,0 @@
-    .get instance class Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol::get_BaseType()
-    .get instance valuetype [System.Collections.Immutable]System.Collections.Immutable.ImmutableArray`1<class Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol> Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol::get_Interfaces()
-    .get instance valuetype [System.Collections.Immutable]System.Collections.Immutable.ImmutableArray`1<class Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol> Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol::get_AllInterfaces()
-    .get instance valuetype [System.Collections.Immutable]System.Collections.Immutable.ImmutableArray`1<class Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol> Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol::get_TypeArguments()
-    .get instance valuetype [System.Collections.Immutable]System.Collections.Immutable.ImmutableArray`1<class Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol> Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeParameterSymbol::get_ConstraintTypes()

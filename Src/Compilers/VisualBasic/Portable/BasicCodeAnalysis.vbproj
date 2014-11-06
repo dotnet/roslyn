@@ -64,9 +64,6 @@
     <NoWarn>42014</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>
@@ -924,8 +921,6 @@
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
-    <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
-    <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <ErrorCode Include="Errors\Errors.vb" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">
       <SubType>Designer</SubType>
@@ -978,11 +973,6 @@
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
-  <PropertyGroup Label="Post Build Events">
-    <!-- This post build step is not required as we have a Roslyn analyzer doing these checks now: BasicUseSiteDiagnosticsCheckEnforcerAnalyzer
-    <PostBuildEvent>"$(ProjectDir)UseSiteDiagnosticsCheckEnforcer\Run.bat" "$(OutDir)" "$(TargetFileName)" "$(TargetPath)" "$(ProjectDir)" "$(IldasmPath)"</PostBuildEvent>
-    -->
-  </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
