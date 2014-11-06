@@ -2105,6 +2105,32 @@ class Test
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlows.WrittenInside));
         }
 
+        [Fact]
+        public void UnaryPlus()
+        {
+            // reported at https://social.msdn.microsoft.com/Forums/vstudio/en-US/f5078027-def2-429d-9fef-ab7f240883d2/writteninside-for-unary-operators?forum=roslyn
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+class Main
+{
+    static int Main(int a)
+    {
+/*<bind>*/
+        return +a;
+/*</bind>*/
+    }
+}
+");
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("a", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("a", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("a", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured));
+        }
+
         #endregion
 
         #region "Statements"
