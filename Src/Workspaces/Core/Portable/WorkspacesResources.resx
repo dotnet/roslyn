@@ -405,10 +405,13 @@
   <data name="WorkspaceServicesUnavailable" xml:space="preserve">
     <value>Services required to accomplish the task are not available from the workspace.</value>
   </data>
-  <data name="DiagnoisticCannotBeNull" xml:space="preserve">
+  <data name="DiagnosticCannotBeNull" xml:space="preserve">
     <value>Supplied diagnostic cannot be null.</value>
   </data>
   <data name="DiagnosticsCannotBeEmpty" xml:space="preserve">
     <value>At least one diagnostic must be supplied.</value>
+  </data>
+  <data name="DiagnosticMustHaveMatchingSpan" xml:space="preserve">
+    <value>Diagnostic must have span '{0}'</value>
   </data>
 </root>

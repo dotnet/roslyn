@@ -298,9 +298,18 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Supplied diagnostic cannot be null..
         /// </summary>
-        internal static string DiagnoisticCannotBeNull {
+        internal static string DiagnosticCannotBeNull {
             get {
-                return ResourceManager.GetString("DiagnoisticCannotBeNull", resourceCulture);
+                return ResourceManager.GetString("DiagnosticCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Diagnostic must have span &apos;{0}&apos;.
+        /// </summary>
+        internal static string DiagnosticMustHaveMatchingSpan {
+            get {
+                return ResourceManager.GetString("DiagnosticMustHaveMatchingSpan", resourceCulture);
             }
         }
         

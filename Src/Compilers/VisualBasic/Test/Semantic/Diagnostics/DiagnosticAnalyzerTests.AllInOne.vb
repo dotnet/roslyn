@@ -47,9 +47,9 @@ End Enum
 
         <Fact>
         Public Sub AnalyzerOptionsArePassedToAllAnalyzers()
-
-            Dim options = New AnalyzerOptions({New AdditionalFileStream("myfilepath")},
-                                              New Dictionary(Of String, String) From {{"optionName", "optionValue"}})
+            Dim additionalStreams As AdditionalStream() = {New AdditionalFileStream("myfilepath")}
+            Dim options = New AnalyzerOptions(additionalStreams.ToImmutableArray(),
+                                              New Dictionary(Of String, String) From {{"optionName", "optionValue"}}.ToImmutableDictionary())
 
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(options)

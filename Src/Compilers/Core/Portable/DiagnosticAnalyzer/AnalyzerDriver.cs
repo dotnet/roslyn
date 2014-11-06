@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
+            options = options ?? AnalyzerOptions.Empty;
             AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, options, cancellationToken);
             newCompilation = compilation.WithEventQueue(analyzerDriver.CompilationEventQueue);
             return analyzerDriver;

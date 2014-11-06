@@ -95,8 +95,8 @@ public class C
         {
             AnalyzerOptions options = new AnalyzerOptions
             (
-                new[] { new AdditionalFileStream("myfilepath") },
-                new Dictionary<string, string> { { "optionName", "optionValue" } }
+                new[] { new AdditionalFileStream("myfilepath") }.ToImmutableArray<AdditionalStream>(),
+                new Dictionary<string, string> { { "optionName", "optionValue" } }.ToImmutableDictionary()
             );
 
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));

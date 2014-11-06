@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (analyzerOptions == null)
                 {
-                    this.analyzerOptions = new AnalyzerOptions(this.additionalDocumentStates.Values.Select(d => new AdditionalDocumentStream(d)), globalOptions: null);
+                    this.analyzerOptions = new AnalyzerOptions(this.additionalDocumentStates.Values.Select(d => new AdditionalDocumentStream(d)).ToImmutableArray<AdditionalStream>(), globalOptions: null);
                 }
 
                 return analyzerOptions;
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis
 
         private static AnalyzerOptions CreateAnalyzerOptions(ImmutableDictionary<DocumentId, TextDocumentState> additionalDocStates)
         {
-            return new AnalyzerOptions(additionalDocStates.Values.Select(d => new AdditionalDocumentStream(d)), globalOptions: null);
+            return new AnalyzerOptions(additionalDocStates.Values.Select(d => new AdditionalDocumentStream(d)).ToImmutableArray<AdditionalStream>(), globalOptions: null);
         }
 
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
