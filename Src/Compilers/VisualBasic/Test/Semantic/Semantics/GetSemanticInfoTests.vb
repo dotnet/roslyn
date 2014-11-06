@@ -5894,5 +5894,52 @@ BC30516: Overload resolution failed because no accessible 'N' accepts this numbe
             Dim conversionC = model.ClassifyConversion(methodGroupSyntax, typeFuncC)
             Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, conversionC.Kind)
         End Sub
+
+        <Fact, WorkItem(1068547, "DevDiv")>
+        Public Sub Bug1068547_01()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Module Program
+    <System.Diagnostics.DebuggerDisplay(Me)>
+    Sub Main(args As String())
+
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.MeExpression).Cast(Of MeExpressionSyntax)().Single()
+
+            Dim symbolInfo = model.GetSymbolInfo(node)
+
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason)
+        End Sub
+
+        <Fact, WorkItem(1068547, "DevDiv")>
+        Public Sub Bug1068547_02()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+    <System.Diagnostics.DebuggerDisplay(Me)>
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.MeExpression).Cast(Of MeExpressionSyntax)().Single()
+
+            Dim symbolInfo = model.GetSymbolInfo(node)
+
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason)
+        End Sub
     End Class
 End Namespace

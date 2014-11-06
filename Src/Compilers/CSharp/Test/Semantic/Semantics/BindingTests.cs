@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -2312,6 +2314,50 @@ class Program
 {
     static void Main() { }
 }").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1068547, "DevDiv")]
+        public void Bug1068547_01()
+        {
+            var source =
+@"
+class Program
+{
+    [System.Diagnostics.DebuggerDisplay(this)]
+    static void Main(string[] args)
+    {
+        
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.CSharpKind() == SyntaxKind.ThisExpression).Cast<ThisExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(node);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
+        }
+
+        [Fact, WorkItem(1068547, "DevDiv")]
+        public void Bug1068547_02()
+        {
+            var source =
+@"
+    [System.Diagnostics.DebuggerDisplay(this)]
+";
+            var comp = CreateCompilationWithMscorlib(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.CSharpKind() == SyntaxKind.ThisExpression).Cast<ThisExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(node);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
         }
     }
 }

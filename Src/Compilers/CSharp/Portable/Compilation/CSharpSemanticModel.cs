@@ -3113,50 +3113,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ParameterSymbol GetThisParameter(TypeSymbol typeOfThis, NamedTypeSymbol containingType, Symbol containingMember, out LookupResultKind resultKind)
         {
-            ParameterSymbol thisParam;
-
             if ((object)containingMember == null || (object)containingType == null)
             {
                 // not in a member of a type (can happen when speculating)
-                thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, typeOfThis);
                 resultKind = LookupResultKind.NotReferencable;
+                return new ThisParameterSymbol(containingMember as MethodSymbol, typeOfThis);
             }
 
-            if (containingMember.IsStatic)
+            ParameterSymbol thisParam;
+
+            switch (containingMember.Kind)
             {
-                // in a static member
-                resultKind = LookupResultKind.StaticInstanceMismatch;
-                thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, containingType);
-            }
-            else
-            {
-                if (typeOfThis == ErrorTypeSymbol.UnknownResultType)
-                {
-                    // in an instance member, but binder considered this/base unreferencable
-                    thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, containingType);
-                    resultKind = LookupResultKind.NotReferencable;
-                }
-                else
-                {
-                    switch (containingMember.Kind)
+                case SymbolKind.Method:
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                    if (containingMember.IsStatic)
                     {
-                        case SymbolKind.Method:
-                            resultKind = LookupResultKind.Viable;
-                            thisParam = containingMember.EnclosingThisSymbol();
-                            break;
-
-                        // Fields and properties can't access 'this' since
-                        // initializers are run in the constructor    
-                        case SymbolKind.Field:
-                        case SymbolKind.Property:
-                            resultKind = LookupResultKind.NotReferencable;
-                            thisParam = containingMember.EnclosingThisSymbol() ?? new ThisParameterSymbol(null, containingType);
-                            break;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(containingMember.Kind);
+                        // in a static member
+                        resultKind = LookupResultKind.StaticInstanceMismatch;
+                        thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, containingType);
                     }
-                }
+                    else
+                    {
+                        if (typeOfThis == ErrorTypeSymbol.UnknownResultType)
+                        {
+                            // in an instance member, but binder considered this/base unreferencable
+                            thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, containingType);
+                            resultKind = LookupResultKind.NotReferencable;
+                        }
+                        else
+                        {
+                            switch (containingMember.Kind)
+                            {
+                                case SymbolKind.Method:
+                                    resultKind = LookupResultKind.Viable;
+                                    thisParam = containingMember.EnclosingThisSymbol();
+                                    break;
+
+                                // Fields and properties can't access 'this' since
+                                // initializers are run in the constructor    
+                                case SymbolKind.Field:
+                                case SymbolKind.Property:
+                                    resultKind = LookupResultKind.NotReferencable;
+                                    thisParam = containingMember.EnclosingThisSymbol() ?? new ThisParameterSymbol(null, containingType);
+                                    break;
+
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(containingMember.Kind);
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, typeOfThis);
+                    resultKind = LookupResultKind.NotReferencable;
+                    break;
             }
 
             return thisParam;

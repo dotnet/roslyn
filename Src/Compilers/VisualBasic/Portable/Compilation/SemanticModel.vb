@@ -1199,30 +1199,37 @@ _Default:
                                                containingMember As Symbol,
                                                ByRef resultKind As LookupResultKind) As ParameterSymbol
 
-            Dim meParam As ParameterSymbol
-
             If containingMember Is Nothing OrElse containingType Is Nothing Then
                 ' not in a member of a type (can happen when speculating)
-                meParam = New MeParameterSymbol(containingMember, referenceType)
                 resultKind = LookupResultKind.NotReferencable
+                Return New MeParameterSymbol(containingMember, referenceType)
             End If
 
-            If containingMember.IsShared Then
-                ' in a static member
-                resultKind = LookupResultKind.MustNotBeInstance
-                meParam = New MeParameterSymbol(containingMember, containingType)
+            Dim meParam As ParameterSymbol
 
-            Else
-                If referenceType = ErrorTypeSymbol.UnknownResultType Then
-                    ' in an instance member, but binder considered Me/MyBase/MyClass unreferencable
-                    meParam = New MeParameterSymbol(containingMember, containingType)
+            Select Case containingMember.Kind
+                Case SymbolKind.Method, SymbolKind.Field, SymbolKind.Property
+                    If containingMember.IsShared Then
+                        ' in a static member
+                        resultKind = LookupResultKind.MustNotBeInstance
+                        meParam = New MeParameterSymbol(containingMember, containingType)
+
+                    Else
+                        If referenceType = ErrorTypeSymbol.UnknownResultType Then
+                            ' in an instance member, but binder considered Me/MyBase/MyClass unreferencable
+                            meParam = New MeParameterSymbol(containingMember, containingType)
+                            resultKind = LookupResultKind.NotReferencable
+                        Else
+                            ' should be good
+                            resultKind = LookupResultKind.Good
+                            meParam = containingMember.GetMeParameter()
+                        End If
+                    End If
+
+                Case Else
+                    meParam = New MeParameterSymbol(containingMember, referenceType)
                     resultKind = LookupResultKind.NotReferencable
-                Else
-                    ' should be good
-                    resultKind = LookupResultKind.Good
-                    meParam = containingMember.GetMeParameter()
-                End If
-            End If
+            End Select
 
             Return meParam
         End Function
