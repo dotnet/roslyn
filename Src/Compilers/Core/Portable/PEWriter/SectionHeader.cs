@@ -2,7 +2,7 @@
 
 namespace Microsoft.Cci
 {
-    internal class SectionHeader
+    internal sealed class SectionHeader
     {
         internal string Name;
         internal uint VirtualSize;

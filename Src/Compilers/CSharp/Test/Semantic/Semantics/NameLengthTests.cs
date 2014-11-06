@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class NameLengthTests : CSharpTestBase
     {
         // Longest legal symbol name.
-        private static readonly string LongSymbolName = new string('A', PeWriter.NameLengthLimit);
+        private static readonly string LongSymbolName = new string('A', MetadataWriter.NameLengthLimit);
         // Longest legal path name.
-        private static readonly string LongPathName = new string('A', PeWriter.PathLengthLimit);
+        private static readonly string LongPathName = new string('A', MetadataWriter.PathLengthLimit);
         // Longest legal local name.
-        private static readonly string LongLocalName = new string('A', PeWriter.PdbLengthLimit);
+        private static readonly string LongLocalName = new string('A', MetadataWriter.PdbLengthLimit);
 
         [Fact]
         public void UnmangledMemberNames()

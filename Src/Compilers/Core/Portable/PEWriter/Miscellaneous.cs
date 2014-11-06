@@ -207,7 +207,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Method must be called before calling INamedEntity.Name.
         /// </summary>
-        void AssociateWithPeWriter(PeWriter peWriter);
+        void AssociateWithMetadataWriter(MetadataWriter metadataWriter);
     }
 
     /// <summary>

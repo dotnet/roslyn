@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                         If aliasedType.ContainingType Is Nothing Then
                             Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName((DirectCast(aliasedType, Cci.INamespaceTypeReference)).NamespaceName,
-                                                                                        Cci.PeWriter.GetMangledName(aliasedType))
+                                                                                        Cci.MetadataWriter.GetMangledName(aliasedType))
 
                             ' First check against types declared in the primary module
                             If ContainsTopLevelType(fullEmittedName) Then

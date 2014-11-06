@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         if (aliasedType.IsTopLevelType())
                         {
                             string fullEmittedName = MetadataHelpers.BuildQualifiedName(((Cci.INamespaceTypeReference)aliasedType).NamespaceName,
-                                                                                        Cci.PeWriter.GetMangledName(aliasedType));
+                                                                                        Cci.MetadataWriter.GetMangledName(aliasedType));
 
                             // First check against types declared in the primary module
                             if (ContainsTopLevelType(fullEmittedName))

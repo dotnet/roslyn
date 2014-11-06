@@ -147,12 +147,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim assemblyMSCorLib As Handle = [Module].GetAssemblyRef(corlibName)
 
                 If Not assemblyMSCorLib.IsNil Then
-                    For Each qualifier In Microsoft.Cci.PeWriter.dummyAssemblyAttributeParentQualifier
+                    For Each qualifier In Cci.MetadataWriter.dummyAssemblyAttributeParentQualifier
                         Dim typerefAssemblyAttributesGoHere As Handle =
                             [Module].GetTypeRef(
                                 assemblyMSCorLib,
-                                Microsoft.Cci.PeWriter.dummyAssemblyAttributeParentNamespace,
-                                Microsoft.Cci.PeWriter.dummyAssemblyAttributeParentName + qualifier)
+                                Cci.MetadataWriter.dummyAssemblyAttributeParentNamespace,
+                                Cci.MetadataWriter.dummyAssemblyAttributeParentName + qualifier)
                         If Not typerefAssemblyAttributesGoHere.IsNil Then
                             Try
                                 For Each customAttributeHandle In [Module].GetCustomAttributesOrThrow(typerefAssemblyAttributesGoHere)

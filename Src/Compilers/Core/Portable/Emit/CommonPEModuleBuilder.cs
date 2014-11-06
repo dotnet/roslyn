@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             if (names != null)
             {
-                names.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.PeWriter.GetMangledName(type)));
+                names.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
             }
         }
 

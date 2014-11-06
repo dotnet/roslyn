@@ -191,7 +191,7 @@
     <Compile Include="Compilation\CommonModuleCompilationState.cs" />
     <Compile Include="Emit\Context.cs" />
     <Compile Include="Emit\EditAndContinue\DefinitionMap.cs" />
-    <Compile Include="Emit\EditAndContinue\DeltaPeWriter.cs" />
+    <Compile Include="Emit\EditAndContinue\DeltaMetadataWriter.cs" />
     <Compile Include="Emit\EditAndContinue\EmitBaseline.cs" />
     <Compile Include="Emit\EditAndContinue\EmitDifferenceResult.cs" />
     <Compile Include="Emit\EditAndContinue\EncLocalInfo.cs" />
@@ -308,6 +308,7 @@
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
+    <Compile Include="PEWriter\MetadataWriter.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
@@ -322,7 +323,7 @@
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
     <Compile Include="PEWriter\Expressions.cs" />
     <Compile Include="PEWriter\ExternNamespace.cs" />
-    <Compile Include="PEWriter\FullPeWriter.cs" />
+    <Compile Include="PEWriter\FullMetadataWriter.cs" />
     <Compile Include="PEWriter\ICustomAttribute.cs" />
     <Compile Include="PEWriter\IFileReference.cs" />
     <Compile Include="PEWriter\InheritedTypeParameter.cs" />

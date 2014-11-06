@@ -4,7 +4,7 @@ using Cci = Microsoft.Cci;
 
 namespace Microsoft.Cci
 {
-    internal class NtHeader
+    internal sealed class NtHeader
     {
         internal ushort NumberOfSections;
         internal uint TimeDateStamp;

@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal sealed class DeltaPeWriter : PeWriter
+    internal sealed class DeltaMetadataWriter : MetadataWriter
     {
         private struct MethodLocals
         {
@@ -58,16 +58,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private uint unalignedStringStreamLength;
 
-        public DeltaPeWriter(
+        public DeltaMetadataWriter(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            PdbWriter pdbWriter,
             EmitBaseline previousGeneration,
             Guid encId,
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken) 
-            : base(context, messageProvider, pdbWriter, false, false, cancellationToken)
+            : base(context, messageProvider, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
@@ -1335,9 +1334,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private sealed class MethodImplIndex : DefinitionIndexBase<MethodImplKey>
         {
-            private readonly DeltaPeWriter writer;
+            private readonly DeltaMetadataWriter writer;
 
-            public MethodImplIndex(DeltaPeWriter writer, uint lastRowId) :
+            public MethodImplIndex(DeltaMetadataWriter writer, uint lastRowId) :
                 base(lastRowId)
             {
                 this.writer = writer;
@@ -1371,7 +1370,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             private readonly SymbolChanges changes;
 
-            public DeltaReferenceIndexer(DeltaPeWriter writer) :
+            public DeltaReferenceIndexer(DeltaMetadataWriter writer) :
                 base(writer)
             {
                 this.changes = writer.changes;
@@ -1385,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.Emit
             public override void Visit(IModule module)
             {
                 this.module = module;
-                this.Visit(((DeltaPeWriter)this.peWriter).GetTopLevelTypes(module));
+                this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));
             }
 
             public override void Visit(IEventDefinition eventDefinition)

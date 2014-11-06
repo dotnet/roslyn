@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Class SynthesizedStaticLocalBackingField
         Implements IContextualNamedEntity
 
-        Private m_PeWriter As PeWriter
+        Private m_MetadataWriter As MetadataWriter
         Private m_NameToEmit As String
 
         Public Overrides ReadOnly Property MetadataName As String
@@ -27,10 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Sub AssociateWithPeWriter(peWriter As PeWriter) Implements IContextualNamedEntity.AssociateWithPeWriter
+        Private Sub AssociateWithMetadataWriter(metadataWriter As MetadataWriter) Implements IContextualNamedEntity.AssociateWithMetadataWriter
 
-            Interlocked.CompareExchange(m_PeWriter, peWriter, Nothing)
-            Debug.Assert(peWriter Is m_PeWriter)
+            Interlocked.CompareExchange(m_MetadataWriter, metadataWriter, Nothing)
+            Debug.Assert(metadataWriter Is m_MetadataWriter)
 
             If m_NameToEmit Is Nothing Then
                 Dim declaringMethod = DirectCast(Me.ImplicitlyDefinedBy.ContainingSymbol, MethodSymbol)
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 builder.Builder.Append(declaringMethod.Name)
                 builder.Builder.Append("$"c)
 
-                For Each b As Byte In peWriter.GetMethodSignature(declaringMethod)
+                For Each b As Byte In metadataWriter.GetMethodSignature(declaringMethod)
                     builder.Builder.Append(String.Format("{0:X}", b))
                 Next
 

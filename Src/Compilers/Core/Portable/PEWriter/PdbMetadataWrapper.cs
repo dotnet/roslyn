@@ -166,12 +166,12 @@ namespace Microsoft.Cci
     [SuppressUnmanagedCodeSecurity]
     internal class PdbMetadataWrapper : IMetaDataEmit, IMetaDataImport
     {
-        private readonly PeWriter writer;
+        private readonly MetadataWriter writer;
 
         private uint lastTypeDef;
         private string lastTypeDefName;
 
-        internal PdbMetadataWrapper(PeWriter writer)
+        internal PdbMetadataWrapper(MetadataWriter writer)
         {
             this.writer = writer;
         }
@@ -195,7 +195,7 @@ namespace Microsoft.Cci
             }
             else
             {
-                typeDefName = PeWriter.GetMangledName((INamedTypeReference)t);
+                typeDefName = MetadataWriter.GetMangledName((INamedTypeReference)t);
 
                 INamespaceTypeDefinition namespaceTypeDef;
 

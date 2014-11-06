@@ -67,8 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Nothing
         End Function
 
-        Private Sub AssociateWithPeWriter(peWriter As Cci.PeWriter) Implements Cci.IContextualNamedEntity.AssociateWithPeWriter
-            DirectCast(m_UnderlyingField, Cci.IContextualNamedEntity).AssociateWithPeWriter(peWriter)
+        Private Sub AssociateWithMetadataWriter(metadataWriter As Cci.MetadataWriter) Implements Cci.IContextualNamedEntity.AssociateWithMetadataWriter
+            DirectCast(m_UnderlyingField, Cci.IContextualNamedEntity).AssociateWithMetadataWriter(metadataWriter)
         End Sub
 
         Private ReadOnly Property IsContextualNamedEntity As Boolean Implements Cci.IFieldReference.IsContextualNamedEntity

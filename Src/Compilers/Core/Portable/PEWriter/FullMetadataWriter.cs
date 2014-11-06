@@ -9,7 +9,7 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
-    internal sealed class FullPeWriter : PeWriter
+    internal sealed class FullMetadataWriter : MetadataWriter
     {
         private readonly DefinitionIndex<ITypeDefinition> typeDefs;
         private readonly DefinitionIndex<IEventDefinition> eventDefs;
@@ -31,14 +31,13 @@ namespace Microsoft.Cci
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> typeSpecIndex;
         private readonly HeapOrReferenceIndex<uint> standAloneSignatureIndex;
 
-        public FullPeWriter(
+        public FullMetadataWriter(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(context, messageProvider, pdbWriter, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -289,8 +288,8 @@ namespace Microsoft.Cci
 
         private sealed class FullReferenceIndexer : ReferenceIndexer
         {
-            internal FullReferenceIndexer(PeWriter peWriter)
-                : base(peWriter)
+            internal FullReferenceIndexer(MetadataWriter metadataWriter)
+                : base(metadataWriter)
             {
             }
         }

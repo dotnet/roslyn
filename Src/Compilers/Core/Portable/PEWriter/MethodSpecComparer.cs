@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.Cci
 {
-    internal class MethodSpecComparer : IEqualityComparer<IGenericMethodInstanceReference>
+    internal sealed class MethodSpecComparer : IEqualityComparer<IGenericMethodInstanceReference>
     {
-        internal MethodSpecComparer(PeWriter peWriter)
+        private readonly MetadataWriter metadataWriter;
+
+        internal MethodSpecComparer(MetadataWriter metadataWriter)
         {
-            this.peWriter = peWriter;
+            this.metadataWriter = metadataWriter;
         }
 
         public bool Equals(IGenericMethodInstanceReference x, IGenericMethodInstanceReference y)
@@ -20,16 +21,14 @@ namespace Microsoft.Cci
             }
 
             return
-                this.peWriter.GetMethodDefOrRefCodedIndex(x.GetGenericMethod(peWriter.Context)) == this.peWriter.GetMethodDefOrRefCodedIndex(y.GetGenericMethod(peWriter.Context)) &&
-                this.peWriter.GetMethodInstanceSignatureIndex(x) == this.peWriter.GetMethodInstanceSignatureIndex(y);
+                this.metadataWriter.GetMethodDefOrRefCodedIndex(x.GetGenericMethod(metadataWriter.Context)) == this.metadataWriter.GetMethodDefOrRefCodedIndex(y.GetGenericMethod(metadataWriter.Context)) &&
+                this.metadataWriter.GetMethodInstanceSignatureIndex(x) == this.metadataWriter.GetMethodInstanceSignatureIndex(y);
         }
 
         public int GetHashCode(IGenericMethodInstanceReference methodInstanceReference)
         {
-            return (int)((this.peWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(peWriter.Context)) << 2) ^
-              this.peWriter.GetMethodInstanceSignatureIndex(methodInstanceReference));
+            return (int)((this.metadataWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(metadataWriter.Context)) << 2) ^
+              this.metadataWriter.GetMethodInstanceSignatureIndex(methodInstanceReference));
         }
-
-        private PeWriter peWriter;
     }
 }

@@ -38,7 +38,7 @@ namespace Microsoft.Cci
 
             // do not visit the reference to aliased type, it does not get into the type ref table based only on its membership of the exported types collection.
             // but DO visit the reference to assembly (if any) that defines the aliased type. That assembly might not already be in the assembly reference list.
-            var definingUnit = PeWriter.GetDefiningUnitReference(aliasForType.ExportedType, Context);
+            var definingUnit = MetadataWriter.GetDefiningUnitReference(aliasForType.ExportedType, Context);
             var definingAssembly = definingUnit as IAssemblyReference;
             if (definingAssembly != null)
             {
@@ -76,7 +76,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            IUnitReference/*?*/ definingUnit = PeWriter.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
+            IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 return;
@@ -160,7 +160,7 @@ namespace Microsoft.Cci
             // in fact the number of extra arguments passed is zero; in that case we are permitted to use
             // an ordinary method def token. We consistently choose to emit a method ref regardless.)
 
-            IUnitReference definingUnit = PeWriter.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
+            IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module) && !methodReference.AcceptsExtraArguments)
             {
                 return;
@@ -485,12 +485,12 @@ namespace Microsoft.Cci
 
     internal abstract class ReferenceIndexer : ReferenceIndexerBase
     {
-        protected readonly PeWriter peWriter;
+        protected readonly MetadataWriter metadataWriter;
 
-        internal ReferenceIndexer(PeWriter peWriter)
-            : base(peWriter.Context)
+        internal ReferenceIndexer(MetadataWriter metadataWriter)
+            : base(metadataWriter.Context)
         {
-            this.peWriter = peWriter;
+            this.metadataWriter = metadataWriter;
         }
 
         public override void Visit(IAssembly assembly)
@@ -553,7 +553,7 @@ namespace Microsoft.Cci
                 {
                     if (fieldReference.IsContextualNamedEntity)
                     {
-                        ((IContextualNamedEntity)fieldReference).AssociateWithPeWriter(this.peWriter);
+                        ((IContextualNamedEntity)fieldReference).AssociateWithMetadataWriter(this.metadataWriter);
                     }
 
                     this.Visit(fieldReference);
@@ -571,7 +571,7 @@ namespace Microsoft.Cci
 
         protected override void RecordAssemblyReference(IAssemblyReference assemblyReference)
         {
-            this.peWriter.GetAssemblyRefIndex(assemblyReference);
+            this.metadataWriter.GetAssemblyRefIndex(assemblyReference);
         }
 
         protected override void ProcessMethodBody(IMethodDefinition method)
@@ -584,7 +584,7 @@ namespace Microsoft.Cci
                 {
                     this.Visit(body);
                 }
-                else if (!peWriter.allowMissingMethodBodies)
+                else if (!metadataWriter.allowMissingMethodBodies)
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -593,37 +593,37 @@ namespace Microsoft.Cci
 
         protected override void RecordTypeReference(ITypeReference typeReference)
         {
-            this.peWriter.RecordTypeReference(typeReference);
+            this.metadataWriter.RecordTypeReference(typeReference);
         }
 
         protected override void RecordTypeMemberReference(ITypeMemberReference typeMemberReference)
         {
-            this.peWriter.GetMemberRefIndex(typeMemberReference);
+            this.metadataWriter.GetMemberRefIndex(typeMemberReference);
         }
 
         protected override void RecordFileReference(IFileReference fileReference)
         {
-            this.peWriter.GetFileRefIndex(fileReference);
+            this.metadataWriter.GetFileRefIndex(fileReference);
         }
 
         protected override void ReserveMethodToken(IMethodReference methodReference)
         {
-            this.peWriter.GetMethodToken(methodReference);
+            this.metadataWriter.GetMethodToken(methodReference);
         }
 
         protected override void ReserveFieldToken(IFieldReference fieldReference)
         {
-            this.peWriter.GetFieldToken(fieldReference);
+            this.metadataWriter.GetFieldToken(fieldReference);
         }
 
         protected override void RecordModuleReference(IModuleReference moduleReference)
         {
-            this.peWriter.GetModuleRefIndex(moduleReference.Name);
+            this.metadataWriter.GetModuleRefIndex(moduleReference.Name);
         }
 
         public override void Visit(IPlatformInvokeInformation platformInvokeInformation)
         {
-            this.peWriter.GetModuleRefIndex(platformInvokeInformation.ModuleName);
+            this.metadataWriter.GetModuleRefIndex(platformInvokeInformation.ModuleName);
         }
     }
 

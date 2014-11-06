@@ -37,7 +37,7 @@ namespace Microsoft.Cci
         private readonly ComStreamWrapper stream;
         private readonly string fileName;
         private readonly Func<object> symWriterFactory;
-        private PeWriter peWriter;
+        private MetadataWriter metadataWriter;
         private ISymUnmanagedWriter2 symWriter;
 
         private readonly Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter> documentMap = new Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter>();
@@ -85,7 +85,7 @@ namespace Microsoft.Cci
 
         public void SerializeDebugInfo(IMethodBody methodBody, uint localSignatureToken, CustomDebugInfoWriter customDebugInfoWriter)
         {
-            Debug.Assert(peWriter != null);
+            Debug.Assert(metadataWriter != null);
 
             bool isIterator = methodBody.StateMachineTypeName != null;
             bool emitDebugInfo = isIterator || methodBody.HasAnyLocations;
@@ -95,7 +95,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            uint methodToken = peWriter.GetMethodToken(methodBody.MethodDefinition);
+            uint methodToken = metadataWriter.GetMethodToken(methodBody.MethodDefinition);
 
             OpenMethod(methodToken);
 
@@ -119,8 +119,8 @@ namespace Microsoft.Cci
                 {
                     if (forwardToMethod != null)
                     {
-                        string usingString = "@" + peWriter.GetMethodToken(forwardToMethod);
-                        Debug.Assert(!peWriter.IsUsingStringTooLong(usingString));
+                        string usingString = "@" + metadataWriter.GetMethodToken(forwardToMethod);
+                        Debug.Assert(!metadataWriter.IsUsingStringTooLong(usingString));
                         UsingNamespace(usingString, methodBody.MethodDefinition.Name);
                     }
 
@@ -141,16 +141,16 @@ namespace Microsoft.Cci
             {
                 SetAsyncInfo(
                     methodToken,
-                    peWriter.GetMethodToken(asyncDebugInfo.KickoffMethod),
+                    metadataWriter.GetMethodToken(asyncDebugInfo.KickoffMethod),
                     asyncDebugInfo.CatchHandlerOffset,
                     asyncDebugInfo.YieldOffsets,
                     asyncDebugInfo.ResumeOffsets);
             }
 
-            var module = peWriter.Context.Module;
+            var module = metadataWriter.Context.Module;
 
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !this.peWriter.IsFullMetadata, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !this.metadataWriter.IsFullMetadata, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);
@@ -195,7 +195,7 @@ namespace Microsoft.Cci
                 foreach (UsedNamespaceOrType used in namespaceScope.UsedNamespaces)
                 {
                     string usingString = used.Encode();
-                    if (!peWriter.IsUsingStringTooLong(usingString, methodDefinition))
+                    if (!metadataWriter.IsUsingStringTooLong(usingString, methodDefinition))
                     {
                         UsingNamespace(usingString, used.Alias);
                     }
@@ -208,7 +208,7 @@ namespace Microsoft.Cci
             foreach (ExternNamespace @extern in module.ExternNamespaces)
             {
                 string usingString = "Z" + @extern.NamespaceAlias + " " + @extern.AssemblyName;
-                if (!peWriter.IsUsingStringTooLong(usingString))
+                if (!metadataWriter.IsUsingStringTooLong(usingString))
                 {
                     UsingNamespace(usingString, @extern.NamespaceAlias);
                 }
@@ -257,16 +257,16 @@ namespace Microsoft.Cci
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
-                uint token = peWriter.SerializeLocalConstantSignature(scopeConstant);
-                if (!peWriter.IsLocalNameTooLong(scopeConstant))
+                uint token = metadataWriter.SerializeLocalConstantSignature(scopeConstant);
+                if (!metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
-                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, peWriter.GetConstantTypeCode(scopeConstant), token);
+                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, metadataWriter.GetConstantTypeCode(scopeConstant), token);
                 }
             }
 
             foreach (ILocalDefinition scopeLocal in currentScope.Variables)
             {
-                if (!peWriter.IsLocalNameTooLong(scopeLocal))
+                if (!metadataWriter.IsLocalNameTooLong(scopeLocal))
                 {
                     Debug.Assert(scopeLocal.SlotIndex >= 0);
                     DefineLocalVariable((uint)scopeLocal.SlotIndex, scopeLocal.Name, scopeLocal.PdbAttributes, localSignatureToken);
@@ -287,14 +287,14 @@ namespace Microsoft.Cci
             return lazyCorSymWriterSxSType;
         }
 
-        public void SetMetadataEmitter(PeWriter peWriter)
+        public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
             try
             {
                 var instance = (ISymUnmanagedWriter2)(symWriterFactory != null ? symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
-                instance.Initialize(new PdbMetadataWrapper(peWriter), this.fileName, this.stream, true);
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), this.fileName, this.stream, true);
 
-                this.peWriter = peWriter;
+                this.metadataWriter = metadataWriter;
                 this.symWriter = instance;
             }
             catch (Exception ex)
@@ -726,7 +726,7 @@ namespace Microsoft.Cci
                             open = true;
                         }
 
-                        uint token = peWriter.GetTokenForDefinition(definition.Definition);
+                        uint token = metadataWriter.GetTokenForDefinition(definition.Definition);
                         Debug.Assert(token != 0);
 
                         try

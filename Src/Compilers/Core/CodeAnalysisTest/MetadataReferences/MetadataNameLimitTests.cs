@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void CheckIsTooLong(string fullName, int maxLength, bool withinLimit)
         {
-            Assert.NotEqual(withinLimit, PeWriter.IsTooLongInternal(fullName, maxLength));
+            Assert.NotEqual(withinLimit, MetadataWriter.IsTooLongInternal(fullName, maxLength));
         }
     }
 }

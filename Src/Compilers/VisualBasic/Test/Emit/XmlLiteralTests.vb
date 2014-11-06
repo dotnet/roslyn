@@ -4500,7 +4500,7 @@ content
         <WorkItem(814052, "DevDiv")>
         <Fact()>
         Public Sub XmlnsNamespaceTooLong()
-            Dim identifier = New String("a"c, PeWriter.PdbLengthLimit)
+            Dim identifier = New String("a"c, MetadataWriter.PdbLengthLimit)
             XmlnsNamespaceTooLong(identifier.Substring(6), tooLong:=False)
             XmlnsNamespaceTooLong(identifier, tooLong:=True)
         End Sub

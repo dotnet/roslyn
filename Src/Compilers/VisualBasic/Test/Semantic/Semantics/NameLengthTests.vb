@@ -12,11 +12,11 @@ Imports System.Xml.Linq
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class NameLengthTests : Inherits BasicTestBase
         ' Longest legal symbol name.
-        Private Shared ReadOnly LongSymbolName As New String("A"c, PeWriter.NameLengthLimit)
+        Private Shared ReadOnly LongSymbolName As New String("A"c, MetadataWriter.NameLengthLimit)
         ' Longest legal path name.
-        Private Shared ReadOnly LongPathName As New String("A"c, PeWriter.PathLengthLimit)
+        Private Shared ReadOnly LongPathName As New String("A"c, MetadataWriter.PathLengthLimit)
         ' Longest legal local name.
-        Private Shared ReadOnly LongLocalName As New String("A"c, PeWriter.PdbLengthLimit)
+        Private Shared ReadOnly LongLocalName As New String("A"c, MetadataWriter.PdbLengthLimit)
 
         <Fact>
         Public Sub UnmangledMemberNames()

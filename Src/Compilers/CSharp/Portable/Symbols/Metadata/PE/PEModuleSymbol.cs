@@ -215,13 +215,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Handle assemblyMSCorLib = Module.GetAssemblyRef(corlibName);
                 if (!assemblyMSCorLib.IsNil)
                 {
-                    foreach (var qualifier in Microsoft.Cci.PeWriter.dummyAssemblyAttributeParentQualifier)
+                    foreach (var qualifier in Cci.MetadataWriter.dummyAssemblyAttributeParentQualifier)
                     {
                         Handle typerefAssemblyAttributesGoHere =
                                     Module.GetTypeRef(
                                         assemblyMSCorLib,
-                                        Microsoft.Cci.PeWriter.dummyAssemblyAttributeParentNamespace,
-                                        Microsoft.Cci.PeWriter.dummyAssemblyAttributeParentName + qualifier);
+                                        Cci.MetadataWriter.dummyAssemblyAttributeParentNamespace,
+                                        Cci.MetadataWriter.dummyAssemblyAttributeParentName + qualifier);
 
                         if (!typerefAssemblyAttributesGoHere.IsNil)
                         {

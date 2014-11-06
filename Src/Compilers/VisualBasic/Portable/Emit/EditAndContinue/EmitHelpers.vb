@@ -77,10 +77,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim encId = Guid.NewGuid()
 
                     Try
-                        Dim writer = New DeltaPeWriter(
+                        Dim writer = New DeltaMetadataWriter(
                             context,
                             compilation.MessageProvider,
-                            pdbWriter,
                             baseline,
                             encId,
                             definitionMap,
@@ -88,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             cancellationToken)
 
                         Dim metadataSizes As Cci.MetadataSizes = Nothing
-                        writer.WriteMetadataAndIL(metadataStream, ilStream, metadataSizes)
+                        writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, metadataSizes)
                         writer.GetMethodTokens(updatedMethods)
 
                         Return New EmitDifferenceResult(
