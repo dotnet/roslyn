@@ -41,6 +41,11 @@
     <OverwriteReadOnlyFiles Condition="'$(OverwriteReadOnlyFiles)' == ''">true</OverwriteReadOnlyFiles>
   </PropertyGroup>
 
+  <!-- Build settings for Open Source preview package -->
+  <PropertyGroup>
+    <OpenSourceDebug>true</OpenSourceDebug>
+  </PropertyGroup>
+
   <!-- Project language -->
   <PropertyGroup Condition="'$(ProjectLanguage)' == ''">
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#'">CSharp</ProjectLanguage>
