@@ -3,11 +3,8 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -370,66 +367,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             scope As String,
             identifier As String
         ) As TypeSymbol
-            Dim lookupIn As ImmutableArray(Of AssemblySymbol)
 
-            lookupIn = m_ModuleSymbol.ContainingAssembly.GetNoPiaResolutionAssemblies()
+            Dim result As TypeSymbol
 
-            Dim result As TypeSymbol = Nothing
+            Try
+                Dim isInterface As Boolean = Me.Module.IsInterfaceOrThrow(typeDef)
+                Dim baseType As TypeSymbol = Nothing
 
-            If Not lookupIn.IsDefault Then
-                Try
-                    Dim isInterface As Boolean = Me.Module.IsInterfaceOrThrow(typeDef)
-                    Dim baseType As TypeSymbol = Nothing
+                If Not isInterface Then
+                    Dim baseToken As Handle = Me.Module.GetBaseTypeOfTypeOrThrow(typeDef)
 
-                    If Not isInterface Then
-                        Dim baseToken As Handle = Me.Module.GetBaseTypeOfTypeOrThrow(typeDef)
-
-                        If Not baseToken.IsNil() Then
-                            baseType = GetTypeOfToken(baseToken)
-                        End If
+                    If Not baseToken.IsNil() Then
+                        baseType = GetTypeOfToken(baseToken)
                     End If
+                End If
 
-                    result = SubstituteNoPiaLocalType(
+                result = SubstituteNoPiaLocalType(
                         name,
                         isInterface,
                         baseType,
                         interfaceGuid,
                         scope,
                         identifier,
-                        m_ModuleSymbol.ContainingAssembly,
-                        lookupIn)
+                        m_ModuleSymbol.ContainingAssembly)
 
-                Catch mrEx As BadImageFormatException
-                    result = GetUnsupportedMetadataTypeSymbol(mrEx)
-                End Try
+            Catch mrEx As BadImageFormatException
+                result = GetUnsupportedMetadataTypeSymbol(mrEx)
+            End Try
 
-                Debug.Assert(result IsNot Nothing)
-            End If
+            Debug.Assert(result IsNot Nothing)
 
-            If result IsNot Nothing Then
-                Dim cache As ConcurrentDictionary(Of TypeDefinitionHandle, TypeSymbol) = GetTypeHandleToTypeMap()
+            Dim cache As ConcurrentDictionary(Of TypeDefinitionHandle, TypeSymbol) = GetTypeHandleToTypeMap()
+            Debug.Assert(cache IsNot Nothing)
 
-                If cache IsNot Nothing Then
-                    Dim newresult As TypeSymbol = cache.GetOrAdd(typeDef, result)
-                    Debug.Assert(newresult Is result OrElse (newresult.Kind = SymbolKind.ErrorType))
-                    result = newresult
-                End If
-            End If
-
-            Return result
+            Dim newresult As TypeSymbol = cache.GetOrAdd(typeDef, result)
+            Debug.Assert(newresult Is result OrElse (newresult.Kind = SymbolKind.ErrorType))
+            Return newresult
         End Function
 
         ''' <summary>
         ''' Find canonical type for NoPia embedded type.
         ''' </summary>
-        ''' <param name="fullEmittedName"></param>
-        ''' <param name="isInterface"></param>
-        ''' <param name="baseType"></param>
-        ''' <param name="interfaceGuid"></param>
-        ''' <param name="scope"></param>
-        ''' <param name="identifier"></param>
-        ''' <param name="referringAssembly"></param>
-        ''' <param name="lookupIn"></param>
         ''' <returns>
         ''' Symbol for the canonical type or an ErrorTypeSymbol. Never returns null.
         ''' </returns>
@@ -440,8 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             interfaceGuid As String,
             scope As String,
             identifier As String,
-            referringAssembly As AssemblySymbol,
-            lookupIn As ImmutableArray(Of AssemblySymbol)
+            referringAssembly As AssemblySymbol
         ) As NamedTypeSymbol
 
             Dim result As NamedTypeSymbol = Nothing
@@ -465,8 +442,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 haveScopeGuidValue = Guid.TryParse(scope, scopeGuidValue)
             End If
 
-            For Each assembly As AssemblySymbol In lookupIn
-                If assembly Is Nothing OrElse assembly Is referringAssembly Then
+            For Each assembly As AssemblySymbol In referringAssembly.GetNoPiaResolutionAssemblies()
+                Debug.Assert(assembly IsNot Nothing)
+                If assembly Is referringAssembly Then
                     Continue For
                 End If
 

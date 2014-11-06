@@ -512,11 +512,8 @@ namespace Microsoft.CodeAnalysis
                                                 interfaceGuid,
                                                 scope,
                                                 identifier);
-
-                            if (result != null)
-                            {
-                                return result;
-                            }
+                            Debug.Assert((object)result != null);
+                            return result;
                         }
                         else
                         {

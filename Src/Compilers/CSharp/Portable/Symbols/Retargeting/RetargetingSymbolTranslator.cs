@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     return cached;
                 }
 
-                NamedTypeSymbol result = null;
+                NamedTypeSymbol result;
 
                 if (type.ContainingSymbol.Kind != SymbolKind.NamedType &&
                     type.Arity == 0)
@@ -336,8 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         interfaceGuid,
                         scope,
                         identifier,
-                        RetargetingAssembly,
-                        RetargetingAssembly.GetNoPiaResolutionAssemblies());
+                        RetargetingAssembly);
 
                     Debug.Assert((object)result != null);
                 }

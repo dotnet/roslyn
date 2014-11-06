@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Return cached
                 End If
 
-                Dim result As NamedTypeSymbol = Nothing
+                Dim result As NamedTypeSymbol
 
                 If type.ContainingSymbol.Kind <> SymbolKind.NamedType AndAlso
                    type.Arity = 0 Then
@@ -288,8 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         interfaceGuid,
                         scope,
                         identifier,
-                        RetargetingAssembly,
-                        RetargetingAssembly.GetNoPiaResolutionAssemblies())
+                        RetargetingAssembly)
 
                     Debug.Assert(result IsNot Nothing)
                 Else
