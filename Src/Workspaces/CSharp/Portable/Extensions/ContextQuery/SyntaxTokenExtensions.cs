@@ -617,5 +617,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return false;
         }
+
+        public static bool IsMandatoryNamedParameterPosition(this SyntaxToken token)
+        {
+            if (token.CSharpKind() == SyntaxKind.CommaToken && token.Parent is BaseArgumentListSyntax)
+            {
+                var argumentList = (BaseArgumentListSyntax)token.Parent;
+
+                foreach (var item in argumentList.Arguments.GetWithSeparators())
+                {
+                    if (item.IsToken && item.AsToken() == token)
+                    {
+                        return false;
+                    }
+
+                    if (item.IsNode)
+                    {
+                        var node = item.AsNode() as ArgumentSyntax;
+                        if (node != null && node.NameColon != null)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }
