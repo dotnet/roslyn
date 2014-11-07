@@ -3,12 +3,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -18,6 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' has an internal cache.
     ''' </summary>
     Friend Class NamespaceScopeBuilder
+
+        ' lazy embedded PIA imports
+        Private m_lazyEmbeddedPIAImports As Cci.NamespaceScope
 
         ' lazy project level imports
         Private m_lazyProjectLevelImports As Cci.NamespaceScope
@@ -52,6 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceModule = DirectCast(method.ContainingModule, SourceModuleSymbol)
 
+            If m_lazyEmbeddedPIAImports Is Nothing Then
+                Interlocked.CompareExchange(m_lazyEmbeddedPIAImports, BuildEmbeddedPiaImports(sourceModule), Nothing)
+            End If
+
             If m_lazyProjectLevelImports Is Nothing Then
                 Interlocked.CompareExchange(m_lazyProjectLevelImports, BuildProjectLevelImports(sourceModule), Nothing)
             End If
@@ -61,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Dev11 outputs them in LIFO order, which we can't do this exactly the same way because we store parts of the 
-            ' needed information in tree's.
+            ' needed information in trees.
             ' The order should be irrelevant because at the end it's a flat list, however we still output file level imports 
             ' before project level imports the same way as Dev11 did.
 
@@ -71,8 +73,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return ImmutableArray.Create(sourceLevelImports,
                                          m_lazyDefaultNamespaceImport,
+                                         m_lazyEmbeddedPIAImports,
                                          m_lazyProjectLevelImports,
                                          BuildCurrentNamespace(method))
+        End Function
+
+        ''' <remarks>
+        ''' Roslyn does not consume this information - it is only emitted for the benefit of legacy EEs.
+        ''' See Builder::WriteNoPiaPdbList.
+        ''' </remarks>
+        Private Function BuildEmbeddedPiaImports([module] As SourceModuleSymbol) As Cci.NamespaceScope
+            Dim embeddedPiasBuilder As ArrayBuilder(Of Cci.UsedNamespaceOrType) = Nothing
+
+            For Each referencedAssembly In [module].ReferencedAssemblySymbols
+                If referencedAssembly.IsLinked Then
+                    If embeddedPiasBuilder Is Nothing Then
+                        embeddedPiasBuilder = ArrayBuilder(Of Cci.UsedNamespaceOrType).GetInstance()
+                    End If
+
+                    ' NOTE: Dev12 does not seem to emit anything but the name (i.e. no version, token, etc).
+                    embeddedPiasBuilder.Add(Cci.UsedNamespaceOrType.CreateVisualBasicEmbeddedPia(referencedAssembly.Name))
+                End If
+            Next
+
+            Dim embeddedPias = If(embeddedPiasBuilder Is Nothing, ImmutableArray(Of Cci.UsedNamespaceOrType).Empty, embeddedPiasBuilder.ToImmutableAndFree())
+            Return New Cci.NamespaceScope(embeddedPias)
         End Function
 
         Private Function BuildProjectLevelImports([module] As SourceModuleSymbol) As Cci.NamespaceScope

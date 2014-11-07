@@ -775,6 +775,13 @@ namespace Roslyn.Test.PdbUtilities
                         writer.WriteEndElement(); // </externinfo>
                     }
                     break;
+                case ImportTargetKind.Defunct:
+                    Debug.Assert(alias == null);
+                    Debug.Assert(scope == ImportScope.Unspecified);
+                    writer.WriteStartElement("defunct");
+                    writer.WriteAttributeString("name", rawName);
+                    writer.WriteEndElement(); // </defunct>
+                    break;
                 default:
                     Debug.Assert(false, "Unexpected import kind '" + kind + "'");
                     writer.WriteStartElement("unknown");

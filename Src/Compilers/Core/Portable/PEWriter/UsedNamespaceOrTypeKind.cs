@@ -14,5 +14,6 @@ namespace Microsoft.Cci
         VBXmlNamespace, // e.g. Imports <xmlns:ns="http://NewNamespace"> (VB only)
         VBCurrentNamespace, // the current namespace of the method's container
         VBDefaultNamespace, // the default namespace of the project
+        VBEmbeddedPia, // indicates that a type has been embedded from a given PIA
     }
 }

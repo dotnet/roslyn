@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace Microsoft.Cci
 {
     /// <summary>
-    /// This is a list of the using directives (including aliases) in a lexial scope.
+    /// This is a list of the using directives (including aliases) in a lexical scope.
     /// </summary>
     /// <remarks>
     /// This scope is tied to a particular method body, so that partial types can be accommodated.

@@ -519,7 +519,8 @@ namespace Roslyn.Utilities.Pdb
         /// </summary>
         /// <remarks>
         /// Doesn't consider forwarding.
-        /// TODO (acasey): VB doesn't just check the root scope - it digs around to find the best
+        /// 
+        /// CONSIDER: Dev12 doesn't just check the root scope - it digs around to find the best
         /// match based on the IL offset and then walks up to the root scope (see PdbUtil::GetScopeFromOffset).
         /// However, it's not clear that this matters, since imports can't be scoped in VB.  This is probably
         /// just based on the way they were extracting locals and constants based on a specific scope.
@@ -706,12 +707,20 @@ namespace Roslyn.Utilities.Pdb
                 return true;
             }
 
-            // TODO (acasey): looks like we missed some cases (e.g. '$', '#', '&')
-            // See ProcedureContext::LoadImportsAndDefaultNamespaceNormal.
-
             int pos = 0;
             switch (import[pos])
             {
+                case '&':
+                    // Indicates the presence of embedded PIA types from a given assembly.  No longer required (as of Roslyn).
+                case '$':
+                case '#':
+                    // From ProcedureContext::LoadImportsAndDefaultNamespaceNormal:
+                    //   "Module Imports and extension types are no longer needed since we are not doing custom name lookup"
+                    alias = null;
+                    target = import;
+                    kind = ImportTargetKind.Defunct;
+                    scope = ImportScope.Unspecified;
+                    return true;
                 case '*': // VB default namespace
                     // see PEBuilder.cpp in vb\language\CodeGen
                     pos++;
@@ -890,6 +899,11 @@ namespace Roslyn.Utilities.Pdb
         /// VB root namespace (not an import).
         /// </summary>
         DefaultNamespace,
+
+        /// <summary>
+        /// A kind that is no longer used.
+        /// </summary>
+        Defunct,
     }
 
     internal enum ImportScope

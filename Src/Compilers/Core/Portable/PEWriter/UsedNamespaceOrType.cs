@@ -94,6 +94,12 @@ namespace Microsoft.Cci
             return new UsedNamespaceOrType(UsedNamespaceOrTypeKind.VBDefaultNamespace, name, null, externAlias: null, projectLevel: true);
         }
 
+        internal static UsedNamespaceOrType CreateVisualBasicEmbeddedPia(string name)
+        {
+            Debug.Assert(name != null);
+            return new UsedNamespaceOrType(UsedNamespaceOrTypeKind.VBEmbeddedPia, name, null, externAlias: null);
+        }
+
         private UsedNamespaceOrType(UsedNamespaceOrTypeKind kind, string name, string alias, string externAlias, bool projectLevel = false)
         {
             this.kind = kind;
@@ -171,8 +177,11 @@ namespace Microsoft.Cci
                     return this.name;
 
                 case UsedNamespaceOrTypeKind.VBDefaultNamespace:
-                    // VB marks the default/root namespace with an asteriks
+                    // VB marks the default/root namespace with an asterisk
                     return "*" + this.name;
+
+                case UsedNamespaceOrTypeKind.VBEmbeddedPia:
+                    return "&" + this.name;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.kind);
