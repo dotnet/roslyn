@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var symbolId = symbol.GetSymbolKey();
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var result = symbolId.Resolve(compilation);
+                var result = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
                 if (result.Symbol != null && InSource(result.Symbol))
                 {
