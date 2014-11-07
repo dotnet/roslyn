@@ -54,8 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // but can occur withing a BoundBadExpression.
         Ambiguous,
 
-        // Indicates the symbol is totally fine.
-        Viable
+        // Indicates a set of symbols, and they are totally fine.
+        MemberGroup,
+
+        // Indicates a single symbol is totally fine.
+        Viable,
     }
 
     internal static class LookupResultKindExtensions
@@ -80,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LookupResultKind.StaticInstanceMismatch: return CandidateReason.StaticInstanceMismatch;
                 case LookupResultKind.OverloadResolutionFailure: return CandidateReason.OverloadResolutionFailure;
                 case LookupResultKind.Ambiguous: return CandidateReason.Ambiguous;
+                case LookupResultKind.MemberGroup: return CandidateReason.MemberGroup;
 
                 case LookupResultKind.Viable:
                     Debug.Assert(false, "Should not call this on LookupResultKind.Viable");

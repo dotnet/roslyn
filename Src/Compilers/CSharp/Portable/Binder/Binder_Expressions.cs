@@ -4514,6 +4514,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
                                 return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
                             }
+                            else if (this.IsNameofArgument(node))
+                            {
+                                // Support selecing an extension method from a type name in nameof(.)
+                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
+                            }
                             else
                             {
                                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -5002,19 +5007,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = DiagnosticBag.GetInstance();
 
                 this.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArguments, diagnostics);
+
+                // Arguments will be null if the caller is resolving to the first method group that can accept
+                // that receiver, regardless of arguments, when the signature cannot
+                // be inferred. (In the case of nameof(o.M) or the error case of o.M = null; for instance.)
+                if (analyzedArguments == null)
+                {
+                    for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                    {
+                        if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
+                    }
+
+                    if (methodGroup.Methods.Count != 0)
+                    {
+                        return new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                    }
+                }
+
                 if (methodGroup.Methods.Count == 0)
                 {
                     methodGroup.Free();
                     diagnostics.Free();
                     continue;
-                }
-
-                // Arguments will be null if the caller is resolving to the first available
-                // method group, regardless of arguments, when the signature cannot
-                // be inferred. (In the error case of o.M = null; for instance.)
-                if (analyzedArguments == null)
-                {
-                    return new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
                 }
 
                 if (actualArguments == null)

@@ -111,5 +111,11 @@ namespace Microsoft.CodeAnalysis
         /// multiple interface inheritance situation.
         /// </summary>
         Ambiguous = 15,
+
+        /// <summary>
+        /// CandidateSymbols are members of a group of results. This is used when there isn't a problem,
+        /// but there is more than one result, for example nameof(int.ToString).
+        /// </summary>
+        MemberGroup = 16,
     }
 }

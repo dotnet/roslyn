@@ -95,10 +95,9 @@ class Program
         // (2.4) accessing instance members of other classes
         Console.WriteLine(nameof(Test.instanceVar));
 
-        // (2.5) ambiguous members
+        // (2.5) members that hide
         Console.WriteLine(nameof(E.D));
-        Console.WriteLine(nameof(E.D.C));
-
+        Console.WriteLine(nameof(A.D.C));
 
         ////// (3) identifier :: identifier
         ////Console.WriteLine(nameof(alias2::List<int>));
@@ -214,7 +213,7 @@ class Program
         s = nameof(global::Program); // not an expression
         s = nameof(Test<>.s); // inaccessible
         s = nameof(b); // cannot use before declaration
-        s = nameof(System.Collections.Generic.List<int>.Select); // extension methods are not candidates for nameof
+        //s = nameof(System.Collections.Generic.List<int>.Select); // extension methods are now candidates for nameof
         s = nameof(System.Linq.Enumerable.Select<int, int>); // type parameters not allowed on method group in nameof
         int b;
 
@@ -307,9 +306,6 @@ class Test<T>
                 // (33,20): error CS0841: Cannot use local variable 'b' before it is declared
                 //         s = nameof(b); // cannot use before declaration
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(33, 20),
-                // (34,57): error CS0117: 'List<int>' does not contain a definition for 'Select'
-                //         s = nameof(System.Collections.Generic.List<int>.Select); // extension methods are not candidates for nameof
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "Select").WithArguments("System.Collections.Generic.List<int>", "Select").WithLocation(34, 57),
                 // (35,20): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
                 //         s = nameof(System.Linq.Enumerable.Select<int, int>); // type parameters not allowed on method group in nameof
                 Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "System.Linq.Enumerable.Select<int, int>").WithLocation(35, 20),
@@ -712,8 +708,8 @@ class Program
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-            Assert.Equal("Foo", symbolInfo.Symbol.Name);
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
+            Assert.Equal("Foo", symbolInfo.CandidateSymbols[0].Name);
         }
 
         [Fact]
@@ -738,8 +734,368 @@ class Program
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
-            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        [WorkItem(1077150, "DevDiv")]
+        public void SymbolInfoForMethodGroup03()
+        {
+            var source =
+@"public class A
+{
+}
+public static class X1
+{
+    public static string Extension(this A a) { return null; }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        A a = null;
+        Use(nameof(a.Extension));
+    }
+    private static void Use(object o) {}
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
+            Assert.Equal(1, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        [WorkItem(1077150, "DevDiv")]
+        public void SymbolInfoForMethodGroup04()
+        {
+            var source =
+@"public class A
+{
+}
+namespace N1
+{
+    public static class X1
+    {
+        public static string Extension(this A a) { return null; }
+    }
+    namespace N2
+    {
+        public static class X2
+        {
+            public static string Extension(this A a, long x) { return null; }
+            public static string Extension(this A a, int x) { return null; }
+        }
+        public class Program
+        {
+            public static void Main(string[] args)
+            {
+                A a = null;
+                Use(nameof(a.Extension));
+            }
+            private static void Use(object o) {}
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(3, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        [WorkItem(1077150, "DevDiv")]
+        public void SymbolInfoForEmptyMethodGroup()
+        {
+            var source =
+@"public class A
+{
+}
+public static class X1
+{
+    public static string Extension(this string a) { return null; }
+    public static string Extension(this int a) { return null; }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        A a = null;
+        Use(nameof(a.Extension));
+    }
+    private static void Use(object o) {}
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                //         Use(nameof(a.Extension));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(14, 22)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        [WorkItem(1077150, "DevDiv")]
+        public void SymbolInfoForTypeFromInstance()
+        {
+            var source =
+@"public class A
+{
+    public class Nested {}
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        A a = null;
+        Use(nameof(a.Nested));
+    }
+    private static void Use(object o) {}
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (10,22): error CS0572: 'Nested': cannot reference a type through an expression; try 'A.Nested' instead
+                //         Use(nameof(a.Nested));
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "Nested").WithArguments("Nested", "A.Nested").WithLocation(10, 22),
+                // (9,11): warning CS0219: The variable 'a' is assigned but its value is never used
+                //         A a = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(9, 11)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Nested").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        [WorkItem(1077150, "DevDiv")]
+        public void SymbolInfoForMethodGroup05()
+        {
+            var source =
+@"public class A
+{
+}
+namespace N1
+{
+    public static class X1
+    {
+        public static string Extension(this A a) { return null; }
+    }
+    namespace N2
+    {
+        public static class X2
+        {
+            public static string Extension(this A a, long x) { return null; }
+            public static string Extension(this A a, int x) { return null; }
+        }
+        public class Program
+        {
+            public static void Main(string[] args)
+            {
+                Use(nameof(A.Extension));
+            }
+            private static void Use(object o) {}
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "A.Extension").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(3, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        [WorkItem(1077150, "DevDiv")]
+        public void SymbolInfoForNothingFound()
+        {
+            var source =
+@"public class A
+{
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        A a = null;
+        Use(nameof(a.Extension));
+    }
+    private static void Use(object o) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (9,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                //         Use(nameof(a.Extension));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(9, 22)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        public void ExtensionMethodConstraintFailed()
+        {
+            var source =
+@"public class A
+{
+}
+public interface Interface
+{
+}
+public static class B
+{
+    public static void Extension<T>(this T t) where T : Interface {}
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        A a = null;
+        Use(nameof(a.Extension));
+    }
+    private static void Use(object o) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                //         Use(nameof(a.Extension));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(16, 22)
+                );
+        }
+
+        [Fact]
+        public void StaticMemberFromType()
+        {
+            var source =
+@"public class A
+{
+    public static int Field;
+    public static int Property { get; }
+    public static event System.Action Event;
+    public class Type {}
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Use(nameof(A.Field));
+        Use(nameof(A.Property));
+        Use(nameof(A.Event));
+        Use(nameof(A.Type));
+    }
+    private static void Use(object o) {}
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AllowImplicitThisInStaticContext()
+        {
+            var source =
+@"
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string S) {}
+}
+
+[My(nameof(SS))] // attribute argument (NOTE: class members in scope here)
+public class Program
+{
+    string SS;
+    static string S1 = nameof(SS); // static initializer
+    string S2 = nameof(SS); // instance initializer
+    Program(string s) {}
+    Program() : this(nameof(SS)) {} // ctor initializer
+
+    static string L(string s = nameof(SS)) // default value
+    {
+        return nameof(SS); // in static method
+    }
+    public void M()
+    {
+        SS = SS + S1 + S2;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NameofInaccessibleMethod()
+        {
+            var source =
+@"
+public class Class
+{
+    protected void Method() {}
+}
+public class Program
+{
+    public string S = nameof(Class.Method);
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (8,36): error CS0122: 'Class.Method()' is inaccessible due to its protection level
+                //     public string S = nameof(Class.Method);
+                Diagnostic(ErrorCode.ERR_BadAccess, "Method").WithArguments("Class.Method()").WithLocation(8, 36)
+                );
+        }
+
+        [Fact]
+        public void NameofAmbiguousProperty()
+        {
+            var source =
+@"
+public interface I1
+{
+    int Property { get; }
+}
+public interface I2
+{
+    int Property { get; }
+}
+public interface I3 : I1, I2 {}
+public class Program
+{
+    public string S = nameof(I3.Property);
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (13,33): error CS0229: Ambiguity between 'I1.Property' and 'I2.Property'
+                //     public string S = nameof(I3.Property);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Property").WithArguments("I1.Property", "I2.Property").WithLocation(13, 33)
+                );
         }
 
     }

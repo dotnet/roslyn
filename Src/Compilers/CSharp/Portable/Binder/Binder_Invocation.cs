@@ -1073,34 +1073,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argument = node.ArgumentList.Arguments[0].Expression;
             string name = "";
             // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
-            var boundArgument = new NameofBinder(argument, this).BindExpression(argument, diagnostics);
-            if (!boundArgument.HasAnyErrors &&
-                CheckSyntaxForNameofArgument(argument, out name, diagnostics) &&
-                boundArgument.Kind == BoundKind.MethodGroup &&
-                !((BoundMethodGroup)boundArgument).TypeArgumentsOpt.IsDefaultOrEmpty)
+            var nameofBinder = new NameofBinder(argument, this);
+            var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
+            if (!boundArgument.HasAnyErrors && CheckSyntaxForNameofArgument(argument, out name, diagnostics) && boundArgument.Kind == BoundKind.MethodGroup)
             {
-                // method group with type parameters not allowed
-                diagnostics.Add(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, argument.Location);
+                var methodGroup = (BoundMethodGroup)boundArgument;
+                if (!methodGroup.TypeArgumentsOpt.IsDefaultOrEmpty)
+                {
+                    // method group with type parameters not allowed
+                    diagnostics.Add(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, argument.Location);
+                }
+                else
+                {
+                    nameofBinder.EnsureNameofExpressionSymbols(methodGroup, diagnostics);
+                }
             }
 
-            var symbols = NameofExpressionSymbols(boundArgument);
-            return new BoundNameOfOperator(node, symbols, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
+            return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
         }
 
-        private ImmutableArray<Symbol> NameofExpressionSymbols(BoundExpression boundArgument)
+        private void EnsureNameofExpressionSymbols(BoundMethodGroup methodGroup, DiagnosticBag diagnostics)
         {
-            switch (boundArgument.Kind)
-            {
-                case BoundKind.MethodGroup:
-                    {
-                        var argument = (BoundMethodGroup)boundArgument;
-                        return argument.Methods.As<Symbol>();
-                    }
-                default:
-                    {
-                        return ImmutableArray.Create(boundArgument.ExpressionSymbol);
-                    }
-            }
+            // Check that the method group contains something applicable. Otherwise error.
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            diagnostics.Add(methodGroup.Syntax, useSiteDiagnostics);
+            diagnostics.AddRange(resolution.Diagnostics);
         }
 
         /// <summary>

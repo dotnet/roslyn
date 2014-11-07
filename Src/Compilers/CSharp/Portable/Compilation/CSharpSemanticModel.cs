@@ -3696,10 +3696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.NameOfOperator:
                         symbols = methodGroup;
-                        if (symbols.Length > 1)
-                        {
-                            resultKind = resultKind.WorseResultKind(LookupResultKind.Ambiguous);
-                        }
+                        resultKind = resultKind.WorseResultKind(LookupResultKind.MemberGroup);
                         break;
 
                     default:

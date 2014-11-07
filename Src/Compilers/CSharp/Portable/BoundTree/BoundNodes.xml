@@ -1272,7 +1272,6 @@
   <Node Name="BoundNameOfOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Symbols" Type="ImmutableArray&lt;Symbol&gt;" Null="disallow"/>
     <Field Name="Argument" Type="BoundExpression" Null="disallow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="disallow"/>
   </Node>
