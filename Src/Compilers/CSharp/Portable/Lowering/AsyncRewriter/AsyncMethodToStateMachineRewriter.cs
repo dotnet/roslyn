@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LoweredDynamicOperationFactory dynamicFactory;
 
         private readonly Dictionary<TypeSymbol, FieldSymbol> awaiterFields;
+        private int nextAwaiterId;
 
         internal AsyncMethodToStateMachineRewriter(
             MethodSymbol method,
@@ -80,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.dynamicFactory = new LoweredDynamicOperationFactory(F);
             this.awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
+            this.nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
         }
 
         private FieldSymbol GetAwaiterField(TypeSymbol awaiterType)
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (fieldName == null)
                 {
-                    fieldName = GeneratedNames.AsyncAwaiterFieldName(CompilationState.GenerateTempNumber());
+                    fieldName = GeneratedNames.AsyncAwaiterFieldName(nextAwaiterId++);
                 }
 
                 result = F.StateMachineField(awaiterType, fieldName);

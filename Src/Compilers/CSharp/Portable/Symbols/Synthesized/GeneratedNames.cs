@@ -176,10 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToStringAndFree();
         }
 
-        // Extracts the slot index from a name of a field that stores hoisted variables. 
-        // Such a name ends with "__{slot index}". 
+        internal static string AsyncAwaiterFieldName(int slotIndex)
+        {
+            return "<>u__" + (slotIndex + 1);
+        }
+
+        // Extracts the slot index from a name of a field that stores hoisted variables or awaiters.
+        // Such a name ends with "__{slot index + 1}". 
         // Returned slot index is >= 0.
-        internal static bool TryParseHoistedLocalSlotIndex(string fieldName, out int slotIndex)
+        internal static bool TryParseSlotIndex(string fieldName, out int slotIndex)
         {
             int lastUnder = fieldName.LastIndexOf('_');
             if (lastUnder - 1 < 0 || lastUnder == fieldName.Length || fieldName[lastUnder - 1] != '_')
@@ -316,11 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on this name.
             return "<>t__builder";
-        }
-
-        internal static string AsyncAwaiterFieldName(int number)
-        {
-            return "<>u__" + number;
         }
 
         internal static string ReusableHoistedLocalFieldName(int number)

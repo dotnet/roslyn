@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly string previousStateMachineTypeNameOpt;
         private readonly int hoistedLocalSlotCount;
         private readonly IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalSlotsOpt;
+        private readonly int awaiterCount;
         private readonly IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMapOpt;
 
         public EncVariableSlotAllocator(
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Emit
             string previousStateMachineTypeNameOpt,
             int hoistedLocalSlotCount,
             IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalSlotsOpt,
+            int awaiterCount,
             IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMapOpt)
         {
             Debug.Assert(symbolMap != null);
@@ -49,9 +51,10 @@ namespace Microsoft.CodeAnalysis.Emit
             this.previousLocals = previousLocals;
             this.previousMethod = previousMethod;
             this.previousHoistedLocalSlotsOpt = previousHoistedLocalSlotsOpt;
-            this.awaiterMapOpt = awaiterMapOpt;
             this.hoistedLocalSlotCount = hoistedLocalSlotCount;
             this.previousStateMachineTypeNameOpt = previousStateMachineTypeNameOpt;
+            this.awaiterCount = awaiterCount;
+            this.awaiterMapOpt = awaiterMapOpt;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -180,14 +183,20 @@ namespace Microsoft.CodeAnalysis.Emit
             return fieldName;
         }
 
+
         public override string PreviousStateMachineTypeName
         {
             get { return previousStateMachineTypeNameOpt; }
         }
 
-        public override int HoistedLocalSlotCount
+        public override int PreviousHoistedLocalSlotCount
         {
-            get { return this.hoistedLocalSlotCount; }
+            get { return hoistedLocalSlotCount; }
+        }
+
+        public override int PreviousAwaiterSlotCount
+        {
+            get { return awaiterCount; }
         }
 
         public override string GetPreviousAwaiter(Cci.ITypeReference currentType)

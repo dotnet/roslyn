@@ -28,7 +28,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public abstract string PreviousStateMachineTypeName { get; }
 
-        public abstract int HoistedLocalSlotCount { get; }
+        /// <summary>
+        /// Number of slots reserved for hoisted local variables.
+        /// </summary>
+        /// <remarks>
+        /// Some of the slots might not be used anymore (a variable might have been deleted or its type changed).
+        /// Still, new hoisted variables are assigned slots starting with <see cref="PreviousHoistedLocalSlotCount"/>.
+        /// </remarks>
+        public abstract int PreviousHoistedLocalSlotCount { get; }
+
+        /// <summary>
+        /// Number of slots reserved for awaiters.
+        /// </summary>
+        /// <remarks>
+        /// Some of the slots might not be used anymore (the type of an awaiter might have changed).
+        /// Still, new awaiters are assigned slots starting with <see cref="PreviousAwaiterSlotCount"/>.
+        /// </remarks>
+        public abstract int PreviousAwaiterSlotCount { get; }
 
         public abstract string GetPreviousAwaiter(Cci.ITypeReference currentType);
     }

@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            GeneratedNames.TryParseHoistedLocalSlotIndex(fieldName, out slotIndex);
+                            GeneratedNames.TryParseSlotIndex(fieldName, out slotIndex);
                         }
 
                         hoistedField = F.StateMachineField(expr.Type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex);

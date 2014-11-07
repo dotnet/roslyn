@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDebugBuild = F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug;
             bool mapToPreviousFields = isDebugBuild && slotAllocatorOpt != null;
 
-            nextFreeHoistedLocalSlot = mapToPreviousFields ? slotAllocatorOpt.HoistedLocalSlotCount : 0;
+            nextFreeHoistedLocalSlot = mapToPreviousFields ? slotAllocatorOpt.PreviousHoistedLocalSlotCount : 0;
 
             foreach (var variable in variablesToHoist)
             {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (fieldName != null)
                                 {
-                                    GeneratedNames.TryParseHoistedLocalSlotIndex(fieldName, out slotIndex);
+                                    GeneratedNames.TryParseSlotIndex(fieldName, out slotIndex);
                                 }
                             }
                         }

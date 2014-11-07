@@ -468,7 +468,7 @@ class C
                 {
                     "<>1__state",
                     "<>t__builder",
-                    "<>u__2",  // awaiter
+                    "<>u__1",  // awaiter
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -558,7 +558,7 @@ class C
                     "<>t__builder",
                     "b",
                     "<>8__1",  // display class
-                    "<>u__2",  // awaiter
+                    "<>u__1",  // awaiter
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -652,7 +652,7 @@ class C
                     "<>1__state",
                     "<>t__builder",
                     "<>8__1",  // display class
-                    "<>u__2",  // awaiter
+                    "<>u__1",  // awaiter
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -738,7 +738,7 @@ class C
                     "<>t__builder",
                     "b",
                     "<>8__1",  // display class
-                    "<>u__2",  // awaiter
+                    "<>u__1",  // awaiter
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -826,7 +826,7 @@ class C
                     "<>1__state",
                     "<>t__builder",
                     "<d>5__1",
-                    "<>u__2",  // awaiter
+                    "<>u__1",  // awaiter
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -913,7 +913,7 @@ class C
                 {
                     "<>1__state",
                     "<>t__builder",
-                    "<>u__2", // awaiter
+                    "<>u__1", // awaiter
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -997,7 +997,7 @@ class C
                     "<>1__state",
                     "<>t__builder",
                     "<d>5__1",
-                    "<>u__2", // awaiter
+                    "<>u__1", // awaiter
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -1095,7 +1095,7 @@ class C
                     "<>1__state",
                     "<>t__builder",
                     "<x>5__1",
-                    "<>u__0", // awaiter
+                    "<>u__1", // awaiter
                 }, module.GetFieldNames("C.<M>d__1"));
             });
         }
@@ -1136,7 +1136,7 @@ class C
                     "<>s__2",
                     "<>s__3",
                     "<>s__4",
-                    "<>u__0", // awaiter
+                    "<>u__1", // awaiter
                 }, module.GetFieldNames("C.<G>d__1"));
             });
 
@@ -1217,7 +1217,7 @@ class C
     IL_004c:  stfld      ""int C.<G>d__1.<>1__state""
     IL_0051:  ldarg.0
     IL_0052:  ldloc.3
-    IL_0053:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__0""
+    IL_0053:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__1""
     IL_0058:  ldarg.0
     IL_0059:  stloc.s    V_5
     IL_005b:  ldarg.0
@@ -1228,10 +1228,10 @@ class C
     IL_006a:  nop
     IL_006b:  leave      IL_011e
     IL_0070:  ldarg.0
-    IL_0071:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__0""
+    IL_0071:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__1""
     IL_0076:  stloc.3
     IL_0077:  ldarg.0
-    IL_0078:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__0""
+    IL_0078:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__1""
     IL_007d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_0083:  ldarg.0
     IL_0084:  ldc.i4.m1
@@ -1389,7 +1389,7 @@ class C
                     "<>s__8",
                     "<>s__9",
                     "<>s__10",
-                    "<>u__0",  // awaiter
+                    "<>u__1",  // awaiter
                     "<>s__11", // ref-spills
                     "<>s__12",
                     "<>s__13",

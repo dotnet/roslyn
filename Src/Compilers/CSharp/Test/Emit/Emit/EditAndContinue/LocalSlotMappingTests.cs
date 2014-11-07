@@ -2911,7 +2911,7 @@ class C
     IL_007e:  stfld      ""int C.<F>d__1.<>1__state""
     IL_0083:  ldarg.0
     IL_0084:  ldloc.2
-    IL_0085:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
+    IL_0085:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__1""
     IL_008a:  ldarg.0
     IL_008b:  stloc.3
     IL_008c:  ldarg.0
@@ -2922,10 +2922,10 @@ class C
     IL_009b:  nop
     IL_009c:  leave.s    IL_00fe
     IL_009e:  ldarg.0
-    IL_009f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
+    IL_009f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__1""
     IL_00a4:  stloc.2
     IL_00a5:  ldarg.0
-    IL_00a6:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__0""
+    IL_00a6:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__1.<>u__1""
     IL_00ab:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_00b1:  ldarg.0
     IL_00b2:  ldc.i4.m1

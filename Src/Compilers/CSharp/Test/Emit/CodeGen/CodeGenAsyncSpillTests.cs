@@ -664,7 +664,7 @@ public class Test
     IL_006f:  stfld      ""int Test.<F>d__1.<>1__state""
     IL_0074:  ldarg.0
     IL_0075:  ldloc.s    V_5
-    IL_0077:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__1.<>u__0""
+    IL_0077:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__1.<>u__1""
     IL_007c:  ldarg.0
     IL_007d:  stloc.s    V_6
     IL_007f:  ldarg.0
@@ -675,10 +675,10 @@ public class Test
     IL_008e:  nop
     IL_008f:  leave      IL_0134
     IL_0094:  ldarg.0
-    IL_0095:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__1.<>u__0""
+    IL_0095:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__1.<>u__1""
     IL_009a:  stloc.s    V_5
     IL_009c:  ldarg.0
-    IL_009d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__1.<>u__0""
+    IL_009d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__1.<>u__1""
     IL_00a2:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_00a8:  ldarg.0
     IL_00a9:  ldc.i4.m1
@@ -814,7 +814,7 @@ public class C
                     "array",
                     "<>7__wrap1",
                     "<>7__wrap2",
-                    "<>u__0",
+                    "<>u__1",
                     "<>7__wrap3",
                     "<>7__wrap4",
                 }, module.GetFieldNames("C.<F>d__1"));
@@ -834,7 +834,7 @@ public class C
                     "<>s__5",
                     "<>s__6",
                     "<>s__7",
-                    "<>u__0",
+                    "<>u__1",
                     "<>s__8"
                 }, module.GetFieldNames("C.<F>d__1"));
             });

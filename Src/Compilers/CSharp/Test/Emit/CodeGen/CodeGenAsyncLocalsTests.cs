@@ -167,7 +167,7 @@ class C
                     "x",
                     "z",
                     "y",
-                    "<>u__0",
+                    "<>u__1",
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -180,7 +180,7 @@ class C
                     "x",
                     "y",
                     "z",
-                    "<>u__0",
+                    "<>u__1",
                 }, module.GetFieldNames("C.<M>d__1"));
             });
         }
@@ -221,7 +221,7 @@ class C
                     "<>7__wrap1",
                     "<>7__wrap2",
                     "<>7__wrap3",
-                    "<>u__0",
+                    "<>u__1",
                     "<>7__wrap4",
                     "<>7__wrap5",
                     "<>7__wrap6",
@@ -255,7 +255,7 @@ class C
                     "<>s__17",
                     "<>s__18",
                     "<>s__19",
-                    "<>u__0",
+                    "<>u__1",
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
@@ -547,13 +547,13 @@ IL_0038:  ldfld      ""System.Collections.Generic.IEnumerator<T> Test<U>.<M>d__1
 IL_005b:  stloc.0
 IL_005c:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_0062:  ldloc.1
-IL_0063:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0063:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_0068:  ldarg.0
 IL_0069:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test<U>.<M>d__1<S, T>.<>t__builder""
 IL_007b:  ldarg.0
-IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_0082:  ldarg.0
-IL_0083:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0083:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_0091:  stloc.0
 IL_0092:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_00a7:  ldarg.0
@@ -571,13 +571,13 @@ IL_00ed:  ldfld      ""System.Collections.Generic.IEnumerator<S> Test<U>.<M>d__1
 IL_0110:  stloc.0
 IL_0111:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_0117:  ldloc.1
-IL_0118:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0118:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_011d:  ldarg.0
 IL_011e:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test<U>.<M>d__1<S, T>.<>t__builder""
 IL_0130:  ldarg.0
-IL_0131:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0131:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_0137:  ldarg.0
-IL_0138:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0138:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_0146:  stloc.0
 IL_0147:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_015c:  ldarg.0
@@ -595,13 +595,13 @@ IL_01a2:  ldfld      ""System.Collections.Generic.IEnumerator<T> Test<U>.<M>d__1
 IL_01c5:  stloc.0
 IL_01c6:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_01cc:  ldloc.1
-IL_01cd:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_01cd:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_01d2:  ldarg.0
 IL_01d3:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test<U>.<M>d__1<S, T>.<>t__builder""
 IL_01e5:  ldarg.0
-IL_01e6:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_01e6:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_01ec:  ldarg.0
-IL_01ed:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_01ed:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_01fb:  stloc.0
 IL_01fc:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_0211:  ldarg.0
@@ -619,13 +619,13 @@ IL_0257:  ldfld      ""System.Collections.Generic.IEnumerator<U> Test<U>.<M>d__1
 IL_027a:  stloc.0
 IL_027b:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_0281:  ldloc.1
-IL_0282:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0282:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_0287:  ldarg.0
 IL_0288:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test<U>.<M>d__1<S, T>.<>t__builder""
 IL_029a:  ldarg.0
-IL_029b:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_029b:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_02a1:  ldarg.0
-IL_02a2:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_02a2:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_02b0:  stloc.0
 IL_02b1:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_02c6:  ldarg.0
@@ -643,13 +643,13 @@ IL_030c:  ldfld      ""System.Collections.Generic.IEnumerator<U> Test<U>.<M>d__1
 IL_032f:  stloc.0
 IL_0330:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_0336:  ldloc.1
-IL_0337:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0337:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_033c:  ldarg.0
 IL_033d:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test<U>.<M>d__1<S, T>.<>t__builder""
 IL_034f:  ldarg.0
-IL_0350:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0350:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_0356:  ldarg.0
-IL_0357:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__0""
+IL_0357:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test<U>.<M>d__1<S, T>.<>u__1""
 IL_0365:  stloc.0
 IL_0366:  stfld      ""int Test<U>.<M>d__1<S, T>.<>1__state""
 IL_037b:  ldarg.0
@@ -705,13 +705,13 @@ IL_0028:  ldfld      ""System.Collections.Generic.IEnumerator<dynamic> Test.<M>d
 IL_004b:  stloc.0
 IL_004c:  stfld      ""int Test.<M>d__1.<>1__state""
 IL_0052:  ldloc.1
-IL_0053:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__0""
+IL_0053:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__1""
 IL_0058:  ldarg.0
 IL_0059:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<M>d__1.<>t__builder""
 IL_006b:  ldarg.0
-IL_006c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__0""
+IL_006c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__1""
 IL_0072:  ldarg.0
-IL_0073:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__0""
+IL_0073:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__1""
 IL_0081:  stloc.0
 IL_0082:  stfld      ""int Test.<M>d__1.<>1__state""
 IL_0097:  ldarg.0
@@ -729,13 +729,13 @@ IL_00dd:  ldfld      ""System.Collections.Generic.IEnumerator<dynamic> Test.<M>d
 IL_0100:  stloc.0
 IL_0101:  stfld      ""int Test.<M>d__1.<>1__state""
 IL_0107:  ldloc.1
-IL_0108:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__0""
+IL_0108:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__1""
 IL_010d:  ldarg.0
 IL_010e:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<M>d__1.<>t__builder""
 IL_0120:  ldarg.0
-IL_0121:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__0""
+IL_0121:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__1""
 IL_0127:  ldarg.0
-IL_0128:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__0""
+IL_0128:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<M>d__1.<>u__1""
 IL_0136:  stloc.0
 IL_0137:  stfld      ""int Test.<M>d__1.<>1__state""
 IL_014c:  ldarg.0

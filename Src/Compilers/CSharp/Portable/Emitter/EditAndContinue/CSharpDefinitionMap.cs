@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalMap;
             IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMap;
             int hoistedLocalSlotCount;
+            int awaiterSlotCount;
             string previousStateMachineTypeNameOpt;
 
             uint methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
@@ -194,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 previousHoistedLocalMap = null;
                 awaiterMap = null;
                 hoistedLocalSlotCount = 0;
+                awaiterSlotCount = 0;
                 previousStateMachineTypeNameOpt = null;
             }
             else
@@ -208,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var localSlotDebugInfo = debugInfo.LocalSlots.NullToEmpty();
 
                     // method is async/iterator kickoff method
-                    GetStateMachineFieldMap(stateMachineType, localSlotDebugInfo, out previousHoistedLocalMap, out awaiterMap);
+                    GetStateMachineFieldMap(stateMachineType, localSlotDebugInfo, out previousHoistedLocalMap, out awaiterMap, out awaiterSlotCount);
 
                     // Kickoff method has no interesting locals on its own. 
                     // We use the EnC method debug infromation for hoisted locals.
@@ -229,26 +231,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     previousLocals = CreateLocalSlotMap(debugInfo, slotMetadata);
                     Debug.Assert(previousLocals.Length == slotMetadata.Length);
 
+                    hoistedLocalSlotCount = 0;
                     previousHoistedLocalMap = null;
                     awaiterMap = null;
-                    hoistedLocalSlotCount = 0;
+                    awaiterSlotCount = 0;
                     previousStateMachineTypeNameOpt = null;
                 }
 
                 symbolMap = this.mapToMetadata;
             }
 
-            return new EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals, previousStateMachineTypeNameOpt, hoistedLocalSlotCount, previousHoistedLocalMap, awaiterMap);
+            return new EncVariableSlotAllocator(
+                symbolMap,
+                methodEntry.SyntaxMap, 
+                methodEntry.PreviousMethod, 
+                previousLocals, 
+                previousStateMachineTypeNameOpt,
+                hoistedLocalSlotCount, 
+                previousHoistedLocalMap, 
+                awaiterSlotCount,
+                awaiterMap);
         }
 
         private void GetStateMachineFieldMap(
             TypeSymbol stateMachineType,
             ImmutableArray<LocalSlotDebugInfo> localSlotDebugInfo,
             out IReadOnlyDictionary<EncLocalInfo, string> hoistedLocalMap,
-            out IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMap)
+            out IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMap,
+            out int awaiterSlotCount)
         {
             var hoistedLocals = new Dictionary<EncLocalInfo, string>();
             var awaiters = new Dictionary<Cci.ITypeReference, string>();
+            int maxAwaiterSlotIndex = -1;
 
             foreach (var member in stateMachineType.GetMembers())
             {
@@ -260,17 +274,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     switch (GeneratedNames.GetKind(name))
                     {
                         case GeneratedNameKind.AwaiterField:
+                            if (GeneratedNames.TryParseSlotIndex(name, out slotIndex))
                             {
                                 var field = (FieldSymbol)member;
 
                                 // correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
-                                awaiters[(Cci.ITypeReference)field.Type] = field.Name;
-                                break;
+                                awaiters[(Cci.ITypeReference)field.Type] = name;
+
+                                if (slotIndex > maxAwaiterSlotIndex)
+                                {
+                                    maxAwaiterSlotIndex = slotIndex;
+                                }
                             }
+
+                            break;
 
                         case GeneratedNameKind.HoistedLocalField:
                         case GeneratedNameKind.HoistedSynthesizedLocalField:
-                            if (GeneratedNames.TryParseHoistedLocalSlotIndex(name, out slotIndex))
+                            if (GeneratedNames.TryParseSlotIndex(name, out slotIndex))
                             {
                                 var field = (FieldSymbol)member;
                                 if (slotIndex >= localSlotDebugInfo.Length)
@@ -297,6 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             hoistedLocalMap = hoistedLocals;
             awaiterMap = awaiters;
+            awaiterSlotCount = maxAwaiterSlotIndex + 1;
         }
 
         private TypeSymbol TryGetStateMachineType(Handle methodHandle)

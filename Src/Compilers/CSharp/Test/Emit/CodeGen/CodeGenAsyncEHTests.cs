@@ -350,7 +350,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
     IL_003c:  stfld      ""int Test.<G>d__1.<>1__state""
     IL_0041:  ldarg.0
     IL_0042:  ldloc.3
-    IL_0043:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_0043:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_0048:  ldarg.0
     IL_0049:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<G>d__1.<>t__builder""
     IL_004e:  ldloca.s   V_3
@@ -358,10 +358,10 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
     IL_0051:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<G>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<G>d__1)""
     IL_0056:  leave      IL_00dc
     IL_005b:  ldarg.0
-    IL_005c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_005c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_0061:  stloc.3
     IL_0062:  ldarg.0
-    IL_0063:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_0063:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_0068:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_006e:  ldarg.0
     IL_006f:  ldc.i4.m1
@@ -514,7 +514,7 @@ class Test
                     "<>s__5", // spill
                     "<>s__6", // spill
                     "<>s__7", // spill
-                    "<>u__0", // awaiter
+                    "<>u__1", // awaiter
                 }, module.GetFieldNames("Test.<G>d__1"));
             });
 
@@ -598,7 +598,7 @@ class Test
       IL_0050:  stfld      ""int Test.<G>d__1.<>1__state""
       IL_0055:  ldarg.0
       IL_0056:  ldloc.2
-      IL_0057:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+      IL_0057:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
       IL_005c:  ldarg.0
       IL_005d:  stloc.s    V_4
       IL_005f:  ldarg.0
@@ -609,10 +609,10 @@ class Test
       IL_006e:  nop
       IL_006f:  leave      IL_01de
       IL_0074:  ldarg.0
-      IL_0075:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+      IL_0075:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
       IL_007a:  stloc.2
       IL_007b:  ldarg.0
-      IL_007c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+      IL_007c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
       IL_0081:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
       IL_0087:  ldarg.0
       IL_0088:  ldc.i4.m1
@@ -667,7 +667,7 @@ class Test
     IL_00fb:  stfld      ""int Test.<G>d__1.<>1__state""
     IL_0100:  ldarg.0
     IL_0101:  ldloc.2
-    IL_0102:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_0102:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_0107:  ldarg.0
     IL_0108:  stloc.s    V_4
     IL_010a:  ldarg.0
@@ -678,10 +678,10 @@ class Test
     IL_0119:  nop
     IL_011a:  leave      IL_01de
     IL_011f:  ldarg.0
-    IL_0120:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_0120:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_0125:  stloc.2
     IL_0126:  ldarg.0
-    IL_0127:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_0127:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_012c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_0132:  ldarg.0
     IL_0133:  ldc.i4.m1
@@ -1105,7 +1105,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
     IL_0036:  stfld      ""int Test.<G>d__1.<>1__state""
     IL_003b:  ldarg.0
     IL_003c:  ldloc.s    V_4
-    IL_003e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_003e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_0043:  ldarg.0
     IL_0044:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<G>d__1.<>t__builder""
     IL_0049:  ldloca.s   V_4
@@ -1113,10 +1113,10 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
     IL_004c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<G>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<G>d__1)""
     IL_0051:  leave.s    IL_00b1
     IL_0053:  ldarg.0
-    IL_0054:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_0054:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_0059:  stloc.s    V_4
     IL_005b:  ldarg.0
-    IL_005c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__0""
+    IL_005c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<G>d__1.<>u__1""
     IL_0061:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_0067:  ldarg.0
     IL_0068:  ldc.i4.m1

@@ -147,6 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim previousHoistedLocalMap As IReadOnlyDictionary(Of EncLocalInfo, String) = Nothing
             Dim awaiterMap As IReadOnlyDictionary(Of Cci.ITypeReference, String) = Nothing
             Dim hoistedLocalSlotCount As Integer = 0
+            Dim awaiterSlotCount As Integer = 0
             Dim previousStateMachineTypeNameOpt As String = Nothing
 
             Dim methodIndex As UInteger = CUInt(MetadataTokens.GetRowNumber(handle))
@@ -173,7 +174,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             ' TODO
-            Return New EncVariableSlotAllocator(symbolMap, methodEntry.SyntaxMap, methodEntry.PreviousMethod, previousLocals, previousStateMachineTypeNameOpt, hoistedLocalSlotCount, previousHoistedLocalMap, awaiterMap)
+            Return New EncVariableSlotAllocator(
+                symbolMap,
+                methodEntry.SyntaxMap,
+                methodEntry.PreviousMethod,
+                previousLocals,
+                previousStateMachineTypeNameOpt,
+                hoistedLocalSlotCount,
+                previousHoistedLocalMap,
+                awaiterSlotCount,
+                awaiterMap)
         End Function
 
         ''' <summary>
