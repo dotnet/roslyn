@@ -629,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.tryState = tryState
                     End If
 
-                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol).DeclarationKind = LocalDeclarationKind.FunctionValue Then
+                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol).IsFunctionValue Then
                         Me.State.Unassign(SlotKind.FunctionValue)
                         If Me.tryState IsNot Nothing Then
                             Dim tryState = Me.tryState.Value
@@ -711,7 +711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     '  otherwise the parent can be set to assigned
                     state.Assign(parentSlot)
-                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol).DeclarationKind = LocalDeclarationKind.FunctionValue Then
+                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol).IsFunctionValue Then
                         state.Assign(SlotKind.FunctionValue)
                     End If
                     id = parentIdentifier
@@ -1247,7 +1247,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return operatorBlock.Begin.OperatorToken.Text
 
                 Case Else
-                    Debug.Assert((local.Name Is Nothing) = (method.IsAsync OrElse method.IsIterator))
                     Return If(local.Name, method.Name)
             End Select
         End Function

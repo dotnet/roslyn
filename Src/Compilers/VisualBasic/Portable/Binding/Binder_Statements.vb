@@ -256,7 +256,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim statements As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance
             Dim locals As ImmutableArray(Of LocalSymbol) = ImmutableArray(Of LocalSymbol).Empty
 
-            Dim localForFunctionValue As LocalSymbol = Me.GetLocalForFunctionValue()
+            Dim methodSymbol = DirectCast(ContainingMember, MethodSymbol)
+            Dim localForFunctionValue As LocalSymbol
+
+            If methodSymbol.IsIterator OrElse (methodSymbol.IsAsync AndAlso methodSymbol.ReturnType.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))) Then
+                ' We are actually not using FunctionValue of such method in Return statements and referencing it explicitly is an error. 
+                localForFunctionValue = Nothing
+            Else
+                localForFunctionValue = Me.GetLocalForFunctionValue()
+            End If
 
             If localForFunctionValue IsNot Nothing Then
                 ' Declare local variable for function return 
@@ -298,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Note that in constructors this handler does not extend over the call to New at the beginning
                     ' of the constructor.
-                    If DirectCast(ContainingMember, MethodSymbol).MethodKind = MethodKind.Constructor Then
+                    If methodSymbol.MethodKind = MethodKind.Constructor Then
                         Dim hasMyBaseConstructorCall As Boolean = False
 
                         If InitializerRewriter.HasExplicitMeConstructorCall(body, ContainingMember.ContainingType, hasMyBaseConstructorCall) OrElse hasMyBaseConstructorCall Then

@@ -110,10 +110,9 @@ End Module
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="20" offset="-1"/>
                     <slot kind="27" offset="-1"/>
-                    <slot kind="21" offset="-1"/>
                     <slot kind="0" offset="4"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
@@ -131,29 +130,29 @@ End Module
                 <entry il_offset="0xb4" start_row="19" start_column="9" end_row="19" end_column="13" file_ref="0"/>
                 <entry il_offset="0xb5" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0xc3" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0xd9" start_row="21" start_column="9" end_row="21" end_column="28" file_ref="0"/>
-                <entry il_offset="0xeb" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x104" start_row="22" start_column="13" end_row="22" end_column="44" file_ref="0"/>
-                <entry il_offset="0x129" start_row="23" start_column="13" end_row="23" end_column="44" file_ref="0"/>
-                <entry il_offset="0x14e" start_row="24" start_column="9" end_row="24" end_column="13" file_ref="0"/>
-                <entry il_offset="0x14f" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x15d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x179" start_row="26" start_column="5" end_row="26" end_column="17" file_ref="0"/>
+                <entry il_offset="0xd7" start_row="21" start_column="9" end_row="21" end_column="28" file_ref="0"/>
+                <entry il_offset="0xe9" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x102" start_row="22" start_column="13" end_row="22" end_column="44" file_ref="0"/>
+                <entry il_offset="0x127" start_row="23" start_column="13" end_row="23" end_column="44" file_ref="0"/>
+                <entry il_offset="0x14c" start_row="24" start_column="9" end_row="24" end_column="13" file_ref="0"/>
+                <entry il_offset="0x14d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x15b" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x175" start_row="26" start_column="5" end_row="26" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="arr" il_index="3" il_start="0x44" il_end="0x17a" attributes="0"/>
+                <local name="arr" il_index="2" il_start="0x44" il_end="0x176" attributes="0"/>
                 <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0x61" il_end="0xc2" attributes="0"/>
-                <local name="$VB$ResumableLocal_x$2" il_index="0" il_start="0xed" il_end="0x15c" attributes="0" reusingslot="True"/>
+                <local name="$VB$ResumableLocal_x$2" il_index="0" il_start="0xeb" il_end="0x15a" attributes="0" reusingslot="True"/>
             </locals>
-            <scope startOffset="0x0" endOffset="0x17b">
+            <scope startOffset="0x0" endOffset="0x177">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                <scope startOffset="0x44" endOffset="0x17a">
-                    <local name="arr" il_index="3" il_start="0x44" il_end="0x17a" attributes="0"/>
+                <scope startOffset="0x44" endOffset="0x176">
+                    <local name="arr" il_index="2" il_start="0x44" il_end="0x176" attributes="0"/>
                     <scope startOffset="0x61" endOffset="0xc2">
                         <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0x61" il_end="0xc2" attributes="0"/>
                     </scope>
-                    <scope startOffset="0xed" endOffset="0x15c">
-                        <local name="$VB$ResumableLocal_x$2" il_index="0" il_start="0xed" il_end="0x15c" attributes="0"/>
+                    <scope startOffset="0xeb" endOffset="0x15a">
+                        <local name="$VB$ResumableLocal_x$2" il_index="0" il_start="0xeb" il_end="0x15a" attributes="0"/>
                     </scope>
                 </scope>
             </scope>
@@ -428,10 +427,9 @@ End Module
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
                     <slot kind="20" offset="-1"/>
                     <slot kind="27" offset="-1"/>
-                    <slot kind="21" offset="-1"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencepoints total="6">

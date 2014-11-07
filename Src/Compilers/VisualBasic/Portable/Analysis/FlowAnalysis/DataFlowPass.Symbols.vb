@@ -37,6 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property IsFunctionValue As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
             Friend Shared Shadows Function Create(locals As ImmutableArray(Of LocalSymbol)) As LocalSymbol
                 Debug.Assert(Not locals.IsDefault AndAlso locals.Length > 1)
                 Dim firstLocal As LocalSymbol = locals(0)

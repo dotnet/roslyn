@@ -1041,7 +1041,7 @@ End Module
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
                     <slot kind="20" offset="-1"/>
                     <slot kind="27" offset="-1"/>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="0" offset="-1"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
@@ -1060,9 +1060,14 @@ End Module
                 <entry il_offset="0xa8" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
                 <entry il_offset="0xb2" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
-            <locals/>
+            <locals>
+                <local name="F" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
+            </locals>
             <scope startOffset="0x0" endOffset="0xc0">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
+                <scope startOffset="0xf" endOffset="0x82">
+                    <local name="F" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
+                </scope>
             </scope>
             <async-info>
                 <kickoff-method declaringType="Module1" methodName="F" parameterNames="a"/>

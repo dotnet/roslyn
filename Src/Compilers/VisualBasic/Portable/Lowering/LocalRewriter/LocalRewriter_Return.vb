@@ -11,6 +11,10 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitReturnStatement(node As BoundReturnStatement) As BoundNode
+            Debug.Assert(node.FunctionLocalOpt Is Nothing OrElse
+                         (Not Me.currentMethodOrLambda.IsIterator AndAlso
+                            Not (Me.currentMethodOrLambda.IsAsync AndAlso Me.currentMethodOrLambda.ReturnType.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)))))
+
             Dim rewritten = RewriteReturnStatement(node)
 
             If ShouldGenerateUnstructuredExceptionHandlingResumeCode(node) Then

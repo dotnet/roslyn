@@ -9,7 +9,7 @@ Imports System.Collections.ObjectModel
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
-    Friend Class AsyncAwait
+    Public Class AsyncAwait
         Inherits BasicTestBase
 
         <Fact()>
@@ -1936,7 +1936,7 @@ End Module
             ' error BC37056: 'MyTaskAwaiter(Of Integer)' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'.
             AssertTheseDiagnostics(compilation,
 <expected>
-BC37056: 'MyTaskAwaiter(Of Integer)' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'.
+BC37056: 'MyTaskAwaiter(Of Integer)' does not implement 'INotifyCompletion'.
         Await New MyTask(Of Integer) 'BIND1:"Await New MyTask(Of Integer)"
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1996,7 +1996,7 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC31091: Import of type 'System.Runtime.CompilerServices.INotifyCompletion' from assembly or module 'MissingINotifyCompletion.exe' failed.
+BC31091: Import of type 'INotifyCompletion' from assembly or module 'MissingINotifyCompletion.exe' failed.
         Await New MyTask(Of Integer)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -2155,10 +2155,10 @@ End Module
             Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929})
             compilation.AssertTheseDiagnostics(
 <expected>
-BC37056: 'T1' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'.
+BC37056: 'T1' does not implement 'INotifyCompletion'.
         Await New Awaitable(Of T1)()
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37056: 'T6' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'.
+BC37056: 'T6' does not implement 'INotifyCompletion'.
         Await New Awaitable(Of T6)()
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -2215,15 +2215,15 @@ End Module
 </compilation>
             Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929})
             Dim verifier = CompileAndVerify(compilation)
-            Dim actualIL = verifier.VisualizeIL("M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6).MoveNext()")
+            Dim actualIL = verifier.VisualizeIL("M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6).MoveNext()")
             Dim calls = actualIL.Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).Where(Function(s) s.Contains("OnCompleted")).ToArray()
             Assert.Equal(calls.Length, 6)
-            Assert.Equal(calls(0), <![CDATA[    IL_0056:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted(Of SM$T1, M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T1, ByRef M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(1), <![CDATA[    IL_00c1:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T2, M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T2, ByRef M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(2), <![CDATA[    IL_012c:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T3, M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T3, ByRef M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(3), <![CDATA[    IL_019a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted(Of SM$T4, M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T4, ByRef M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(4), <![CDATA[    IL_020a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T5, M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T5, ByRef M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(5), <![CDATA[    IL_027a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T6, M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T6, ByRef M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(0), <![CDATA[    IL_0056:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted(Of SM$T1, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T1, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(1), <![CDATA[    IL_00c1:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T2, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T2, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(2), <![CDATA[    IL_012c:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T3, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T3, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(3), <![CDATA[    IL_019a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted(Of SM$T4, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T4, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(4), <![CDATA[    IL_020a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T5, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T5, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(5), <![CDATA[    IL_027a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T6, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T6, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
         End Sub
 
         <Fact()>
@@ -2646,7 +2646,7 @@ BC37055: Since this is an async method, the return expression must be of type 'I
 BC36945: The 'Async' modifier can only be used on Subs, or on Functions that return Task or Task(Of T).
     Async Function Test5() As Object
                               ~~~~~~
-BC30311: Value of type 'System.Guid' cannot be converted to 'Integer'.
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
         Return New Guid()
                ~~~~~~~~~~
 </expected>)
@@ -2674,17 +2674,17 @@ Module Program
 
         Dim x01 = Async Iterator Function() As Object
                       Return Nothing
-                  End Function
+                  End Function ' 1
 
         Dim x02 = Async Function() As Object
                       Await Task.Delay(3)
                       Return Nothing ' 5
-                  End Function
+                  End Function '2
 
         Dim x03 As D1 = Async Function()
                             Await Task.Delay(3)
                             Return Nothing ' 5
-                        End Function
+                        End Function '3
 
         Dim x04 = Async Sub(ByRef x As Integer)
                       Await Task.Delay(0)
@@ -2701,7 +2701,7 @@ Module Program
         Dim x07 = Async Iterator Function() As Object
                       Await Task.Delay(0)
                       Return Nothing
-                  End Function
+                  End Function ' 4
 
         Dim x08 = Sub()
                       Await Task.Delay(0) ' x08
@@ -2722,7 +2722,7 @@ Module Program
                       Else
                           Return 1
                       End If
-                  End Function
+                  End Function ' 5
 
         Dim x12 As Func(Of Task(Of Integer)) = x11
         Dim x13 As Func(Of Task(Of Byte)) = x11
@@ -2734,7 +2734,7 @@ Module Program
 
         Dim x15 = Async Function()
                       Await Task.Delay(0)
-                  End Function
+                  End Function ' 6
 
         Dim x16 As Func(Of Task) = x15
         Dim x17 As Func(Of Integer) = x15
@@ -2742,7 +2742,7 @@ Module Program
         Dim x18 = Async Function()
                       Await Task.Delay(0)
                       Return
-                  End Function
+                  End Function ' 7
 
         x16 = x18
         x17 = x18
@@ -2755,38 +2755,38 @@ Module Program
                       Else
                           Return 1
                       End If
-                  End Function
+                  End Function ' 8
 
         Dim x20 As Func(Of Object) = Async Function()
                                          Await Task.Delay(0)
-                                     End Function
+                                     End Function ' 9
 
         Dim x21 As Func(Of Object) = Async Function() Await New Task(Of Byte)(Function() 1)
 
         Dim x22 As Func(Of Object) = Async Function()
                                          Await Task.Delay(0)
                                          Return 1
-                                     End Function
+                                     End Function ' 10
 
         'Dim x23 As Action = Async Function() ' Expected BC42359: The Task returned from this Async Function will be dropped, and any exceptions in it ignored. Consider changing it to an Async Sub so its exceptions are propagated.
         '                        Await Task.Delay(0)
-        '                    End Function
+        '                    End Function ' 11
 
         'Dim x24 As Action = Async Function() ' Expected BC42359: The Task returned from this Async Function will be dropped, and any exceptions in it ignored. Consider changing it to an Async Sub so its exceptions are propagated.
         '                        Await Task.Delay(0)
         '                        Return 1
-        '                    End Function
+        '                    End Function ' 12
 
         Dim x25 As Func(Of Task) = Async Function()
                                        Await Task.Delay(0)
-                                   End Function
+                                   End Function ' 12
 
         Dim x26 As Func(Of Task) = Async Function() Await New Task(Of Byte)(Function() 1)
 
         Dim x27 As Func(Of Task) = Async Function()
                                        Await Task.Delay(0)
                                        Return 1
-                                   End Function
+                                   End Function ' 13
 
         'Dim x28 = Async Overridable Sub()
         '              Await Task.Delay(0)
@@ -2813,7 +2813,7 @@ Module Program
         Dim x40 = Async Iterator Function() 1
         Dim x41 = Async Iterator Function()
                       Yield 1
-                  End Function
+                  End Function ' 14
     End Sub
 End Module
     ]]>
@@ -2857,16 +2857,16 @@ BC37059: 'Await' can only be used within an Async lambda expression. Consider ma
 BC30800: Method arguments must be enclosed in parentheses.
                                     Await Task.Delay(0) ' x10
                                           ~~~~~~~~~~~~~~
-BC30311: Value of type 'Function <generated method>() As System.Threading.Tasks.Task(Of Integer)' cannot be converted to 'System.Func(Of System.Threading.Tasks.Task(Of Byte))'.
+BC30311: Value of type 'Function <generated method>() As Task(Of Integer)' cannot be converted to 'Func(Of Task(Of Byte))'.
         Dim x13 As Func(Of Task(Of Byte)) = x11
                                             ~~~
-BC30311: Value of type 'Function <generated method>() As System.Threading.Tasks.Task(Of Byte)' cannot be converted to 'System.Func(Of System.Threading.Tasks.Task(Of Integer))'.
+BC30311: Value of type 'Function <generated method>() As Task(Of Byte)' cannot be converted to 'Func(Of Task(Of Integer))'.
         x12 = x14
               ~~~
-BC30311: Value of type 'Function <generated method>() As System.Threading.Tasks.Task' cannot be converted to 'System.Func(Of Integer)'.
+BC30311: Value of type 'Function <generated method>() As Task' cannot be converted to 'Func(Of Integer)'.
         Dim x17 As Func(Of Integer) = x15
                                       ~~~
-BC30311: Value of type 'Function <generated method>() As System.Threading.Tasks.Task' cannot be converted to 'System.Func(Of Integer)'.
+BC30311: Value of type 'Function <generated method>() As Task' cannot be converted to 'Func(Of Integer)'.
         x17 = x18
               ~~~
 BC30654: 'Return' statement in a Function, Get, or Operator must return a value.
@@ -2875,6 +2875,9 @@ BC30654: 'Return' statement in a Function, Get, or Operator must return a value.
 BC36945: The 'Async' modifier can only be used on Subs, or on Functions that return Task or Task(Of T).
         Dim x20 As Func(Of Object) = Async Function()
                                      ~~~~~~~~~~~~~~~~
+BC42105: Function '<anonymous method>' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+                                     End Function ' 9
+                                     ~~~~~~~~~~~~
 BC36945: The 'Async' modifier can only be used on Subs, or on Functions that return Task or Task(Of T).
         Dim x21 As Func(Of Object) = Async Function() Await New Task(Of Byte)(Function() 1)
                                      ~~~~~~~~~~~~~~~~
@@ -2890,6 +2893,9 @@ BC30429: 'End Sub' must be preceded by a matching 'Sub'.
 BC36936: 'Async' and 'Iterator' modifiers cannot be used together.
         Dim x40 = Async Iterator Function() 1
                   ~~~~~
+BC36947: Single-line lambdas cannot have the 'Iterator' modifier. Use a multiline lambda instead.
+        Dim x40 = Async Iterator Function() 1
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36936: 'Async' and 'Iterator' modifiers cannot be used together.
         Dim x41 = Async Iterator Function()
                   ~~~~~
@@ -2915,6 +2921,7 @@ Module Program
     End Sub
 
     Function CandidateMethod(f As Func(Of Task)) As Object
+        System.Console.WriteLine("CandidateMethod(f As Func(Of Task)) As Object")
         Return Nothing
     End Function
 
@@ -2930,7 +2937,9 @@ End Module
 
             Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            CompileAndVerify(compilation, <![CDATA[
+CandidateMethod(f As Func(Of Task)) As Object
+]]>).VerifyDiagnostics()
         End Sub
 
         <Fact()>
@@ -2961,13 +2970,13 @@ End Class
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC31091: Import of type 'System.Threading.Tasks.Task' from assembly or module 'MissingTaskTypes.exe' failed.
+BC31091: Import of type 'Task' from assembly or module 'MissingTaskTypes.exe' failed.
         Dim x = Async Function()
                 ~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'System.Threading.Tasks.Task(Of )' from assembly or module 'MissingTaskTypes.exe' failed.
+BC31091: Import of type 'Task(Of )' from assembly or module 'MissingTaskTypes.exe' failed.
         Dim y = Async Function() 1
                 ~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'System.Threading.Tasks.Task(Of )' from assembly or module 'MissingTaskTypes.exe' failed.
+BC31091: Import of type 'Task(Of )' from assembly or module 'MissingTaskTypes.exe' failed.
         Dim z = Async Function()
                 ~~~~~~~~~~~~~~~~~
 ]]></expected>)
@@ -3625,34 +3634,34 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Delegate Sub D2(ByRef x As ArgIterator)
                                ~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Delegate Sub D3(ByRef x As ArgIterator())
                                ~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Delegate Sub D4(x As ArgIterator())
                          ~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim x = Async Sub(a As ArgIterator)
                                ~~~~~~~~~~~
-BC36932: 'System.ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
+BC36932: 'ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
         Dim x = Async Sub(a As ArgIterator)
                                ~~~~~~~~~~~
 BC36926: Async methods cannot have ByRef parameters.
         Dim y = Async Sub(ByRef a As ArgIterator)
                           ~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim y = Async Sub(ByRef a As ArgIterator)
                                      ~~~~~~~~~~~
 BC36926: Async methods cannot have ByRef parameters.
         Dim z = Async Sub(ByRef a As ArgIterator())
                           ~~~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim u = Async Sub(a As ArgIterator())
                                ~~~~~~~~~~~~~
-BC36932: 'System.ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
+BC36932: 'ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
         Dim x1 As D1 = Async Sub(a As ArgIterator)
                                       ~~~~~~~~~~~
 BC36926: Async methods cannot have ByRef parameters.
@@ -3661,10 +3670,10 @@ BC36926: Async methods cannot have ByRef parameters.
 BC36926: Async methods cannot have ByRef parameters.
         Dim z1 As D3 = Async Sub(ByRef a As ArgIterator())
                                  ~~~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim u1 As D4 = Async Sub(a As ArgIterator())
                                       ~~~~~~~~~~~~~
-BC36932: 'System.ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
+BC36932: 'ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
         Dim x2 As D1 = Async Sub(a)
                                  ~
 BC36926: Async methods cannot have ByRef parameters.
@@ -3673,13 +3682,13 @@ BC36926: Async methods cannot have ByRef parameters.
 BC36926: Async methods cannot have ByRef parameters.
         Dim z2 As D3 = Async Sub(ByRef a)
                                  ~~~~~~~
-BC36932: 'System.ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
+BC36932: 'ArgIterator' cannot be used as a parameter type for an Iterator or Async method.
     Async Sub Test1(x As ArgIterator)
                          ~~~~~~~~~~~
 BC36926: Async methods cannot have ByRef parameters.
     Async Sub Test2(ByRef x As ArgIterator)
                     ~~~~~~~~~~~~~~~~~~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
     Async Sub Test3(x As ArgIterator())
                          ~~~~~~~~~~~~~
 BC36926: Async methods cannot have ByRef parameters.
@@ -3866,46 +3875,46 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim a1 As ArgIterator
                   ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim b1 As ArgIterator = Nothing
                   ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim c1 As ArgIterator, d1 As ArgIterator = Nothing
                   ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim c1 As ArgIterator, d1 As ArgIterator = Nothing
                                      ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim e1 As New ArgIterator(Nothing)
                       ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim f1, g1 As New ArgIterator(Nothing)
                           ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim h1 = New ArgIterator()
                ~~~~~~~~~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim a2 As ArgIterator
                   ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim b2 As ArgIterator = Nothing
                   ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim c2 As ArgIterator, d2 As ArgIterator = Nothing
                   ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim c2 As ArgIterator, d2 As ArgIterator = Nothing
                                      ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim e2 As New ArgIterator(Nothing)
                       ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim f2, g2 As New ArgIterator(Nothing)
                           ~~~~~~~~~~~
-BC37052: Variable of restricted type 'System.ArgIterator' cannot be declared in an Async or Iterator method.
+BC37052: Variable of restricted type 'ArgIterator' cannot be declared in an Async or Iterator method.
         Dim h2 = New ArgIterator()
                ~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
@@ -5122,7 +5131,7 @@ Module Module1
 
         Dim test3 = Async Function() As Await
                         Await Task.Delay(1)
-                    End Function
+                    End Function ' 1
 
         Dim test4 = Async Sub (await As Integer) Await Task.Delay(1)
 
@@ -5138,7 +5147,7 @@ Module Module1
 
         Dim test31 = Async Function() As Task(Of [Await])
                          Await Task.Delay(1)
-                     End Function
+                     End Function ' 2
 
         Dim test41 = Async Sub([await] As Integer) Await Task.Delay(1)
 
@@ -5161,7 +5170,7 @@ End Class
             Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
-<expected>
+<expected><![CDATA[
 BC42024: Unused local variable: 'x'.
                         Dim x As Await
                             ~
@@ -5183,13 +5192,19 @@ BC30183: Keyword is not valid as an identifier.
 BC36945: The 'Async' modifier can only be used on Subs, or on Functions that return Task or Task(Of T).
         Dim test3 = Async Function() As Await
                                         ~~~~~
+BC42105: Function '<anonymous method>' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+                    End Function ' 1
+                    ~~~~~~~~~~~~
 BC30183: Keyword is not valid as an identifier.
         Dim test4 = Async Sub (await As Integer) Await Task.Delay(1)
                                ~~~~~
 BC30183: Keyword is not valid as an identifier.
         Dim test5 = Async Sub (await As Integer) Await GetTask()
                                ~~~~~
-</expected>)
+BC42105: Function '<anonymous method>' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+                     End Function ' 2
+                     ~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Fact(), WorkItem(568948, "DevDiv")>

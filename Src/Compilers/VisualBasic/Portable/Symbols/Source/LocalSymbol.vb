@@ -280,11 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property IsFunctionValue As Boolean Implements ILocalSymbol.IsFunctionValue
-            Get
-                Return Me.DeclarationKind = LocalDeclarationKind.FunctionValue
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property IsFunctionValue As Boolean Implements ILocalSymbol.IsFunctionValue
 
         Friend ReadOnly Property IsCompilerGenerated As Boolean
             Get
@@ -461,6 +457,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides ReadOnly Property DeclarationKind As LocalDeclarationKind
                 Get
                     Return _declarationKind
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsFunctionValue As Boolean
+                Get
+                    Return _declarationKind = LocalDeclarationKind.FunctionValue
                 End Get
             End Property
 
@@ -922,6 +924,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides ReadOnly Property SynthesizedKind As SynthesizedLocalKind
                 Get
                     Return _originalVariable.SynthesizedKind
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsFunctionValue As Boolean
+                Get
+                    Return _originalVariable.IsFunctionValue
                 End Get
             End Property
 

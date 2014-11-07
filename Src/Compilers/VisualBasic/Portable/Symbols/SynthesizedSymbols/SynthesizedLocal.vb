@@ -82,6 +82,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsFunctionValue As Boolean
+            Get
+                Return m_kind = SynthesizedLocalKind.FunctionReturnValue
+            End Get
+        End Property
+
         Private Function GetDebuggerDisplay() As String
             Dim builder As New StringBuilder()
 
