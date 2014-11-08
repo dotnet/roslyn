@@ -542,7 +542,7 @@ m1
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal("Sub C2(Of System.Int32).C3(Of System.Int16).M1()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
 
             group = model.GetMemberGroup(argument)
@@ -614,7 +614,7 @@ m1
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length)
             Assert.Equal("Sub C1.M1(Of T)()", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
             Assert.Equal("Sub C1.M1(x As System.Int32)", symbolInfo.CandidateSymbols(1).ToTestDisplayString())
@@ -666,7 +666,7 @@ M1
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal("Sub C1.M1(Of T)()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
 
             group = model.GetMemberGroup(argument)
@@ -716,7 +716,7 @@ BC37246: Method type arguments unexpected.
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal("Sub C1.M1(Of System.Int32)()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
 
             group = model.GetMemberGroup(argument)
@@ -769,7 +769,7 @@ BC37246: Method type arguments unexpected.
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal("Sub C1.M1(Of System.Int32)()", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
 
             group = model.GetMemberGroup(argument)
@@ -2165,7 +2165,7 @@ P1
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal("Property C2.P1 As System.Int32", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
 
             group = model.GetMemberGroup(argument)
@@ -2266,7 +2266,7 @@ M1
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal("Function C2.M1() As System.Int32", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
 
             group = model.GetMemberGroup(argument)
@@ -2372,7 +2372,7 @@ M1
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal("Function C2.M1() As System.Int32", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
 
             group = model.GetMemberGroup(argument)
@@ -2812,7 +2812,7 @@ End Class
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal("Function Test.MTest() As System.String", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
 
             group = model.GetMemberGroup(argument)
@@ -2826,6 +2826,380 @@ End Class
             symbolInfo = model.GetSymbolInfo(receiver)
             Assert.Equal("Test", symbolInfo.Symbol.ToTestDisplayString())
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+        End Sub
+
+        <Fact>
+        Public Sub Attribute_02()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<System.Diagnostics.DebuggerDisplay("={" + NameOf(MTest) + "()}")>
+Class Test
+
+    Shared Sub Main()
+        System.Console.WriteLine(DirectCast(GetType(Test).GetCustomAttributes(GetType(System.Diagnostics.DebuggerDisplayAttribute), False)(0), System.Diagnostics.DebuggerDisplayAttribute).Value)
+    End Sub
+
+    Function MTest() As String
+        Return ""
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC30059: Constant expression is required.
+<System.Diagnostics.DebuggerDisplay("={" + NameOf(MTest) + "()}")>
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'MTest' is not declared. It may be inaccessible due to its protection level.
+<System.Diagnostics.DebuggerDisplay("={" + NameOf(MTest) + "()}")>
+                                                  ~~~~~
+]]></expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+        End Sub
+
+        <Fact>
+        Public Sub Attribute_03()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<System.Diagnostics.DebuggerDisplay("={" + NameOf(.MTest) + "()}")>
+Class Test
+
+    Shared Sub Main()
+        System.Console.WriteLine(DirectCast(GetType(Test).GetCustomAttributes(GetType(System.Diagnostics.DebuggerDisplayAttribute), False)(0), System.Diagnostics.DebuggerDisplayAttribute).Value)
+    End Sub
+
+    Function MTest() As String
+        Return ""
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC30059: Constant expression is required.
+<System.Diagnostics.DebuggerDisplay("={" + NameOf(.MTest) + "()}")>
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30157: Leading '.' or '!' can only appear inside a 'With' statement.
+<System.Diagnostics.DebuggerDisplay("={" + NameOf(.MTest) + "()}")>
+                                                  ~~~~~~
+]]></expected>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(.MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+        End Sub
+
+        <Fact>
+        Public Sub Attribute_04()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Module1
+
+    Shared Sub Main()
+        System.Console.WriteLine(DirectCast(GetType(Test).GetCustomAttributes(GetType(System.Diagnostics.DebuggerDisplayAttribute), False)(0), System.Diagnostics.DebuggerDisplayAttribute).Value)
+    End Sub
+
+    <System.Diagnostics.DebuggerDisplay("={" + NameOf(MTest) + "()}")>
+    Class Test
+    End Class
+
+    Function MTest() As String
+        Return ""
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+={MTest()}
+]]>).VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
+            Assert.Equal("Function Module1.MTest() As System.String", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Function Module1.MTest() As System.String", group.Single.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub Attribute_05()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Module1
+
+    Shared Sub Main()
+        System.Console.WriteLine(DirectCast(GetType(Test).GetCustomAttributes(GetType(System.Diagnostics.DebuggerDisplayAttribute), False)(0), System.Diagnostics.DebuggerDisplayAttribute).Value)
+    End Sub
+
+    <System.Diagnostics.DebuggerDisplay("={" + NameOf(MTest) + "()}")>
+    Class Test
+    End Class
+
+    Property MTest As String
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+={MTest()}
+]]>).VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
+            Assert.Equal("Property Module1.MTest As System.String", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Property Module1.MTest As System.String", group.Single.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub Attribute_06()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Module1
+
+    Shared Sub Main()
+        System.Console.WriteLine(DirectCast(GetType(Test).GetCustomAttributes(GetType(System.Diagnostics.DebuggerDisplayAttribute), False)(0), System.Diagnostics.DebuggerDisplayAttribute).Value)
+    End Sub
+
+    <System.Diagnostics.DebuggerDisplay("={" + NameOf(MTest) + "()}")>
+    Class Test
+    End Class
+
+    Dim MTest As String
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+={MTest()}
+]]>).VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("Module1.MTest As System.String", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+        End Sub
+
+        <Fact>
+        Public Sub Attribute_07()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Module1
+
+    Shared Sub Main()
+        System.Console.WriteLine(DirectCast(GetType(Test).GetCustomAttributes(GetType(System.Diagnostics.DebuggerDisplayAttribute), False)(0), System.Diagnostics.DebuggerDisplayAttribute).Value)
+    End Sub
+
+    <System.Diagnostics.DebuggerDisplay("={" + NameOf(MTest) + "()}")>
+    Class Test
+    End Class
+
+    Event MTest As System.Action
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+={MTest()}
+]]>).VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Action", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("Event Module1.MTest As System.Action", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
         End Sub
 
         <Fact>
@@ -2886,7 +3260,7 @@ M1
 
             symbolInfo = model.GetSymbolInfo(argument)
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length)
             Assert.Equal("Sub C2.M1(x As System.Int32)", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
             Assert.Equal("Function C2.M1() As System.Int32", symbolInfo.CandidateSymbols(1).ToTestDisplayString())
@@ -2895,6 +3269,234 @@ M1
             Assert.Equal(2, group.Length)
             Assert.Equal("Sub C2.M1(x As System.Int32)", group(0).ToTestDisplayString())
             Assert.Equal("Function C2.M1() As System.Int32", group(1).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub InstanceInShared_01()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class Module1
+    Shared Sub Main()
+        System.Console.WriteLine(NameOf(F1))
+    End Sub
+
+    Public F1 As Integer
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+F1
+]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(F1)", node1.ToString())
+            Assert.Equal("F1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("Module1.F1 As System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+        End Sub
+
+        <Fact>
+        Public Sub InstanceInShared_02()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class Module1
+    Shared Sub Main()
+        System.Console.WriteLine(NameOf(F1))
+    End Sub
+
+    Event F1 As System.Action
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+F1
+]]>)
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(F1)", node1.ToString())
+            Assert.Equal("F1", model.GetConstantValue(node1).Value)
+
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Equal("System.Action", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Equal("Event Module1.F1 As System.Action", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal(0, group.Length)
+        End Sub
+
+        <Fact>
+        Public Sub InstanceInShared_03()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class Module1
+    Shared Sub Main()
+        System.Console.WriteLine(NameOf(MTest))
+    End Sub
+
+    Function MTest() As String
+        Return ""
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+MTest
+]]>).VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
+            Assert.Equal("Function Module1.MTest() As System.String", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Function Module1.MTest() As System.String", group.Single.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub InstanceInShared_04()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class Module1
+    Shared Sub Main()
+        System.Console.WriteLine(NameOf(MTest))
+    End Sub
+
+    Property MTest As String
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+MTest
+]]>).VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.First
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+
+            Dim typeInfo As TypeInfo
+            Dim symbolInfo As SymbolInfo
+            Dim group As ImmutableArray(Of ISymbol)
+
+            Assert.Equal("NameOf(MTest)", node1.ToString())
+            Assert.Equal("MTest", model.GetConstantValue(node1).Value)
+            typeInfo = model.GetTypeInfo(node1)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+
+            symbolInfo = model.GetSymbolInfo(node1)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+
+            group = model.GetMemberGroup(node1)
+            Assert.True(group.IsEmpty)
+
+            Dim argument = node1.Argument
+
+            typeInfo = model.GetTypeInfo(argument)
+            Assert.Null(typeInfo.Type)
+
+            symbolInfo = model.GetSymbolInfo(argument)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason)
+            Assert.Equal("Property Module1.MTest As System.String", symbolInfo.CandidateSymbols.Single.ToTestDisplayString())
+
+            group = model.GetMemberGroup(argument)
+            Assert.Equal("Property Module1.MTest As System.String", group.Single.ToTestDisplayString())
         End Sub
 
     End Class

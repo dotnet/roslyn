@@ -33,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         OverloadResolutionFailure
         NotAWithEventsMember
         Ambiguous
+        MemberGroup ' Indicates a set of symbols, and they are totally fine.
         Good
 
     End Enum
@@ -71,6 +72,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return CandidateReason.StaticInstanceMismatch
                 Case LookupResultKind.Ambiguous
                     Return CandidateReason.Ambiguous
+                Case LookupResultKind.MemberGroup
+                    Return CandidateReason.MemberGroup
 
                 Case Else
                     ' Should not call this on LookupResultKind.Good or undefined kind

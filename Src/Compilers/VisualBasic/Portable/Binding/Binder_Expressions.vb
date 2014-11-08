@@ -3294,7 +3294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim errorId As ERRID = Nothing
-                If qualKind = QualificationKind.Unqualified And Not CanAccessMe(True, errorId) Then
+                If qualKind = QualificationKind.Unqualified AndAlso Not IsNameOfArgument(node) AndAlso Not CanAccessMe(True, errorId) Then
                     ' We can't use implicit Me here.
                     ReportDiagnostic(diagnostics, node, errorId)
                     Return True
@@ -3310,9 +3310,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return parent IsNot Nothing AndAlso
                    parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso
                    DirectCast(parent, MemberAccessExpressionSyntax).Expression Is syntax AndAlso
-                   parent.Parent IsNot Nothing AndAlso
-                   parent.Parent.Kind = SyntaxKind.NameOfExpression AndAlso
-                   DirectCast(parent.Parent, NameOfExpressionSyntax).Argument Is parent
+                   IsNameOfArgument(parent)
+        End Function
+
+        Private Shared Function IsNameOfArgument(syntax As VisualBasicSyntaxNode) As Boolean
+            Return syntax.Parent IsNot Nothing AndAlso
+                   syntax.Parent.Kind = SyntaxKind.NameOfExpression AndAlso
+                   DirectCast(syntax.Parent, NameOfExpressionSyntax).Argument Is syntax
         End Function
 
         ''' <summary> 

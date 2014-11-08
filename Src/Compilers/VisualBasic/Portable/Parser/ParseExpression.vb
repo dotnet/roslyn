@@ -693,10 +693,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.SimpleMemberAccessExpression
                     Dim access = DirectCast(argument, MemberAccessExpressionSyntax)
-                    Dim expression = ValidateNameOfArgument(access.Expression, isTopLevel:=False)
 
-                    If expression IsNot access.Expression Then
-                        access = SyntaxFactory.SimpleMemberAccessExpression(expression, access.OperatorToken, access.Name)
+                    If access.Expression IsNot Nothing Then
+                        Dim expression = ValidateNameOfArgument(access.Expression, isTopLevel:=False)
+
+                        If expression IsNot access.Expression Then
+                            access = SyntaxFactory.SimpleMemberAccessExpression(expression, access.OperatorToken, access.Name)
+                        End If
                     End If
 
                     Return access

@@ -1314,6 +1314,11 @@ _Default:
                             resultKind = badExpression.ResultKind
                             foundResolution = True
                         End If
+
+                    Case BoundKind.NameOfOperator
+                        symbolsBuilder.AddRange(memberGroupBuilder)
+                        resultKind = LookupResultKind.MemberGroup
+                        foundResolution = True
                 End Select
             End If
 
@@ -1365,6 +1370,11 @@ _Default:
                             resultKind = badExpression.ResultKind
                             foundResolution = True
                         End If
+
+                    Case BoundKind.NameOfOperator
+                        symbolsBuilder.AddRange(memberGroupBuilder)
+                        resultKind = LookupResultKind.MemberGroup
+                        foundResolution = True
                 End Select
             End If
 
