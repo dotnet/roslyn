@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -139,13 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ImmutableArray<string> SplitMemberName(string name)
         {
             var builder = ArrayBuilder<string>.GetInstance();
-            int separator;
-            while ((separator = name.IndexOf('.')) > 0)
+            var curr = name;
+            while (curr.Length > 0)
             {
-                builder.Add(name.Substring(0, separator));
-                name = name.Substring(separator + 1);
+                builder.Add(MetadataHelpers.SplitQualifiedName(curr, out curr));
             }
-            builder.Add(name);
+            builder.ReverseContents();
             return builder.ToImmutableAndFree();
         }
 

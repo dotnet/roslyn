@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis
         public const int MaxStringLengthForIntToStringConversion = 22;
         public const string SystemString = "System";
 
+        // These can appear in the interface name that precedes an explicit interface implementation member.
+        public const char MangledNameRegionStartChar = '<';
+        public const char MangledNameRegionEndChar = '>';
+
         internal struct AssemblyQualifiedTypeName
         {
             internal readonly string TopLevelType;
@@ -510,6 +514,7 @@ namespace Microsoft.CodeAnalysis
               string name)
         {
             Debug.Assert(name != null);
+            Debug.Assert(name.IndexOf(MangledNameRegionStartChar) < 0);
 
             if (name.Length == 0)
             {
@@ -566,7 +571,33 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(pstrName != null);
 
-            int delimiter = pstrName.LastIndexOf(DotDelimiter);
+            // In mangled names, the original unmangled name is frequently included,
+            // surrounded by angle brackets.  The unmangled name may contain dots
+            // (e.g. if it is an explicit interface implementation) or paired angle
+            // brackets (e.g. if the explicitly implemented interface is generic).
+            var angleBracketDepth = 0;
+            var delimiter = -1;
+            for (int i = 0; i < pstrName.Length; i++)
+            {
+                switch (pstrName[i])
+                {
+                case MangledNameRegionStartChar:
+                    angleBracketDepth++;
+                    break;
+                case MangledNameRegionEndChar:
+                    angleBracketDepth--;
+                    break;
+                case DotDelimiter:
+                    // If we see consecutive dots, the second is part of the method name
+                    // (i.e. ".ctor" or ".cctor").
+                    if (angleBracketDepth == 0 && (i == 0 || delimiter < i - 1))
+                    {
+                        delimiter = i;
+                    }
+                    break;
+                }
+            }
+            Debug.Assert(angleBracketDepth == 0);
 
             if (delimiter < 0)
             {

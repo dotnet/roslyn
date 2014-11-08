@@ -26,15 +26,11 @@ Module Extensions
 
     Private Function SplitMemberName(qualifiedName As String) As ImmutableArray(Of String)
         Dim builder = ArrayBuilder(Of String).GetInstance()
-        While True
-            Dim separator = qualifiedName.IndexOf("."c)
-            If separator < 0 Then
-                Exit While
-            End If
-            builder.Add(qualifiedName.Substring(0, separator))
-            qualifiedName = qualifiedName.Substring(separator + 1)
+        Dim curr = qualifiedName
+        While curr.Length > 0
+            builder.Add(MetadataHelpers.SplitQualifiedName(curr, curr))
         End While
-        builder.Add(qualifiedName)
+        builder.ReverseContents()
         Return builder.ToImmutableAndFree()
     End Function
 

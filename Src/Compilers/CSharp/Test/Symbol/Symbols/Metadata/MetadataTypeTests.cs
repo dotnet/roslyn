@@ -360,5 +360,133 @@ class Test : StaticModClass
             symInfo = model.GetSymbolInfo(id);
             Assert.NotNull(symInfo.Symbol);
         }
+
+        [WorkItem(1066489)]
+        [Fact]
+        public void InstanceIterator_ExplicitInterfaceImplementation_OldName()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I`1<T>
+{
+  .method public hidebysig newslot abstract virtual 
+          instance class [mscorlib]System.Collections.IEnumerable 
+          F() cil managed
+  {
+  } // end of method I`1::F
+
+} // end of class I`1
+
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+       implements class I`1<int32>
+{
+  .class auto ansi sealed nested private beforefieldinit '<I<System.Int32>'.'F>d__0'
+         extends [mscorlib]System.Object
+         implements class [mscorlib]System.Collections.Generic.IEnumerable`1<object>,
+                    [mscorlib]System.Collections.IEnumerable,
+                    class [mscorlib]System.Collections.Generic.IEnumerator`1<object>,
+                    [mscorlib]System.Collections.IEnumerator,
+                    [mscorlib]System.IDisposable
+  {
+    .field private object '<>2__current'
+    .field private int32 '<>1__state'
+    .field private int32 '<>l__initialThreadId'
+    .field public class C '<>4__this'
+
+    .method private hidebysig newslot virtual final 
+            instance class [mscorlib]System.Collections.Generic.IEnumerator`1<object> 
+            'System.Collections.Generic.IEnumerable<System.Object>.GetEnumerator'() cil managed
+    {
+      ldnull
+      throw
+    }
+
+    .method private hidebysig newslot virtual final 
+            instance class [mscorlib]System.Collections.IEnumerator 
+            System.Collections.IEnumerable.GetEnumerator() cil managed
+    {
+      ldnull
+      throw
+    }
+
+    .method private hidebysig newslot virtual final 
+            instance bool  MoveNext() cil managed
+    {
+      ldnull
+      throw
+    }
+
+    .method private hidebysig newslot specialname virtual final 
+            instance object  'System.Collections.Generic.IEnumerator<System.Object>.get_Current'() cil managed
+    {
+      ldnull
+      throw
+    }
+
+    .method private hidebysig newslot virtual final 
+            instance void  System.Collections.IEnumerator.Reset() cil managed
+    {
+      ldnull
+      throw
+    }
+
+    .method private hidebysig newslot virtual final 
+            instance void  System.IDisposable.Dispose() cil managed
+    {
+      ldnull
+      throw
+    }
+
+    .method private hidebysig newslot specialname virtual final 
+            instance object  System.Collections.IEnumerator.get_Current() cil managed
+    {
+      ldnull
+      throw
+    }
+
+    .method public hidebysig specialname rtspecialname 
+            instance void  .ctor(int32 '<>1__state') cil managed
+    {
+      ldarg.0
+      call       instance void [mscorlib]System.Object::.ctor()
+      ret
+    }
+
+    .property instance object 'System.Collections.Generic.IEnumerator<System.Object>.Current'()
+    {
+      .get instance object C/'<I<System.Int32>'.'F>d__0'::'System.Collections.Generic.IEnumerator<System.Object>.get_Current'()
+    }
+    .property instance object System.Collections.IEnumerator.Current()
+    {
+      .get instance object C/'<I<System.Int32>'.'F>d__0'::System.Collections.IEnumerator.get_Current()
+    }
+  } // end of class '<I<System.Int32>'.'F>d__0'
+
+  .method private hidebysig newslot virtual final 
+          instance class [mscorlib]System.Collections.IEnumerable 
+          'I<System.Int32>.F'() cil managed
+  {
+    ldnull
+    throw
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+
+} // end of class C
+";
+
+            var comp = CreateCompilationWithCustomILSource("", ilSource);
+
+            var stateMachineClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<NamedTypeSymbol>().Single();
+            Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name); // The name has been reconstructed correctly.
+            Assert.Equal("C.<I<System.Int32>.F>d__0", stateMachineClass.ToTestDisplayString()); // SymbolDisplay works.
+            Assert.Equal(stateMachineClass, comp.GetTypeByMetadataName("C+<I<System.Int32>.F>d__0")); // GetTypeByMetadataName works.
+        }
     }
 }

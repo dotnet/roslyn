@@ -803,7 +803,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // When working with such APIs, names with dots become ambiguous since metadata 
                 // consumer cannot figure where namespace ends and actual type name starts.
                 // Therefore it is a good practice to avoid type names with dots.
-                Debug.Assert(this.IsErrorType() || !unsuffixedName.Contains("."), "type name contains dots: " + unsuffixedName);
+                // Exception: The EE copies type names from metadata, which may contain dots already.
+                Debug.Assert(this.IsErrorType() || 
+                    !unsuffixedName.Contains(".") ||
+                    this.OriginalDefinition is PENamedTypeSymbol, "type name contains dots: " + unsuffixedName);
 
                 return unsuffixedName;
             }

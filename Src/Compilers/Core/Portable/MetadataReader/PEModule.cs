@@ -514,9 +514,33 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         public string GetTypeDefNameOrThrow(TypeDefinitionHandle typeDef)
         {
-            string result = MetadataReader.GetString(MetadataReader.GetTypeDefinition(typeDef).Name);
-            Debug.Assert(result.Length == 0 || MetadataHelpers.IsValidMetadataIdentifier(result)); // Obfuscated assemblies can have types with empty names.
-            return result;
+            TypeDefinition typeDefinition = MetadataReader.GetTypeDefinition(typeDef);
+            string name = MetadataReader.GetString(typeDefinition.Name);
+            Debug.Assert(name.Length == 0 || MetadataHelpers.IsValidMetadataIdentifier(name)); // Obfuscated assemblies can have types with empty names.
+
+            // The problem is that the mangled name for an static machine type looks like 
+            // "<" + methodName + ">d__" + uniqueId.However, methodName will have dots in 
+            // it for explicit interface implementations (e.g. "<I.F>d__0").  Unfortunately, 
+            // the native compiler emits such names in a very strange way: everything before 
+            // the last dot goes in the namespace (!!) field of the typedef.Since state
+            // machine types are always nested types and since nested types never have 
+            // explicit namespaces (since they are in the same namespaces as their containing
+            // types), it should be safe to check for a non-empty namespace name on a nested
+            // type and prepend the namespace name and a dot to the type name.  After that, 
+            // debugging support falls out.
+            if (IsNestedTypeDefOrThrow(typeDef))
+            {
+                string namespaceName = MetadataReader.GetString(typeDefinition.Namespace);
+                if (namespaceName.Length > 0)
+                {
+                    // As explained above, this is not really the qualified name - the namespace
+                    // name is actually the part of the name that preceded the last dot (in bad
+                    // metadata).
+                    name = namespaceName + "." + name;
+                }
+            }
+
+            return name;
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
