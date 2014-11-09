@@ -3,7 +3,6 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : DocumentChangeAction
         {
             public MyCodeAction(string title, Document newDocument) :
                 base(title, c => Task.FromResult(newDocument))

@@ -56,7 +56,7 @@ namespace Roslyn.Diagnostics.CodeFixes
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
                 base(title, createChangedDocument)

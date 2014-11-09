@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="CodeFixProviderBase.cs" />
     <Compile Include="Documentation\DoNotUseVerbatimCrefsAnalyzer.cs" />
+    <Compile Include="DocumentChangedAction.cs" />
     <Compile Include="Performance\CodeActionCreateAnalyzer.cs" />
     <Compile Include="Performance\EmptyArrayDiagnosticAnalyzer.cs" />
     <Compile Include="Performance\EquatableAnalyzer.cs" />
