@@ -1108,16 +1108,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return MakeAssignmentStatement(target, operatorToken, source)
             End If
 
+            Return SyntaxFactory.ExpressionStatement(MakeInvocationExpression(target))
+        End Function
+
+        Private Function MakeInvocationExpression(target As ExpressionSyntax) As ExpressionSyntax
             ' Dig into conditional access
-            Dim conditionalTarget As ConditionalAccessExpressionSyntax = Nothing
-
             If target.Kind = SyntaxKind.ConditionalAccessExpression Then
-                conditionalTarget = DirectCast(target, ConditionalAccessExpressionSyntax)
-                target = conditionalTarget.WhenNotNull
-            End If
+                Dim conditionalTarget = DirectCast(target, ConditionalAccessExpressionSyntax)
+                Dim invocation = MakeInvocationExpression(conditionalTarget.WhenNotNull)
 
-            ' VS320205
-            If target.Kind <> SyntaxKind.InvocationExpression Then
+                If conditionalTarget.WhenNotNull IsNot invocation Then
+                    target = SyntaxFactory.ConditionalAccessExpression(conditionalTarget.Expression, conditionalTarget.QuestionMarkToken, invocation)
+                End If
+
+            ElseIf target.Kind <> SyntaxKind.InvocationExpression Then ' VS320205
                 If Not CanEndExecutableStatement(CurrentToken) AndAlso
                     CurrentToken.Kind <> SyntaxKind.BadToken AndAlso
                     target.Kind <> SyntaxKind.PredefinedCastExpression Then
@@ -1148,15 +1152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             End If
 
-            If conditionalTarget IsNot Nothing Then
-                If conditionalTarget.WhenNotNull IsNot target Then
-                    target = SyntaxFactory.ConditionalAccessExpression(conditionalTarget.Expression, conditionalTarget.QuestionMarkToken, target)
-                Else
-                    target = conditionalTarget
-                End If
-            End If
-
-            Return SyntaxFactory.ExpressionStatement(target)
+            Return target
         End Function
 
         Private Function MakeAssignmentStatement(left As ExpressionSyntax, operatorToken As PunctuationSyntax, right As ExpressionSyntax) As AssignmentStatementSyntax
@@ -1208,31 +1204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim callKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
 
-            Dim expr As ExpressionSyntax = ParseVariable()
-
-
-            Dim conditionalTarget As ConditionalAccessExpressionSyntax = Nothing
-
-            If expr.Kind = SyntaxKind.ConditionalAccessExpression Then
-                conditionalTarget = DirectCast(expr, ConditionalAccessExpressionSyntax)
-                expr = conditionalTarget.WhenNotNull
-            End If
-
-            Dim invocation As ExpressionSyntax
-            If expr.Kind = SyntaxKind.InvocationExpression Then
-                invocation = expr
-            Else
-                ' Make sure that the expression is an invocation in case user left off parentheses
-                invocation = SyntaxFactory.InvocationExpression(expr, Nothing)
-            End If
-
-            If conditionalTarget IsNot Nothing Then
-                If conditionalTarget.WhenNotNull IsNot invocation Then
-                    invocation = SyntaxFactory.ConditionalAccessExpression(conditionalTarget.Expression, conditionalTarget.QuestionMarkToken, invocation)
-                Else
-                    invocation = conditionalTarget
-                End If
-            End If
+            Dim invocation As ExpressionSyntax = MakeCallStatementExpression(ParseVariable())
 
             If invocation.ContainsDiagnostics Then
                 invocation = ResyncAt(invocation)
@@ -1242,6 +1214,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return statement
 
+        End Function
+
+        Private Function MakeCallStatementExpression(expr As ExpressionSyntax) As ExpressionSyntax
+            If expr.Kind = SyntaxKind.ConditionalAccessExpression Then
+                Dim conditionalTarget = DirectCast(expr, ConditionalAccessExpressionSyntax)
+                Dim invocation = MakeCallStatementExpression(conditionalTarget.WhenNotNull)
+
+                If conditionalTarget.WhenNotNull IsNot invocation Then
+                    expr = SyntaxFactory.ConditionalAccessExpression(conditionalTarget.Expression, conditionalTarget.QuestionMarkToken, invocation)
+                End If
+
+            ElseIf expr.Kind <> SyntaxKind.InvocationExpression Then
+                ' Make sure that the expression is an invocation in case user left off parentheses
+                expr = SyntaxFactory.InvocationExpression(expr, Nothing)
+            End If
+
+            Return expr
         End Function
 
         ' File: Parser.cpp

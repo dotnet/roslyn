@@ -6854,5 +6854,148 @@ Else
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub Bug1078014_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+        Dim x = New Test()
+        x?.M1()?.M1()
+    End Sub
+End Module
+
+Class Test
+    Function M1() As Test
+        System.Console.WriteLine("Test.M1")
+        return Me
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Test.M1
+Test.M1
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Bug1078014_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+        Dim x = New Test()
+        x?.M1()?.M1()?.M1()?.M1()?.M1()?.M1()?.M1()?.M1()
+    End Sub
+End Module
+
+Class Test
+    Function M1() As Test
+        System.Console.WriteLine("Test.M1")
+        return Me
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Bug1078014_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+        Dim x = New Test()
+        Call x?.M1()?.M1()?.M1()?.M1()?.M1()?.M1()?.M1()?.M1()
+    End Sub
+End Module
+
+Class Test
+    Function M1() As Test
+        System.Console.WriteLine("Test.M1")
+        return Me
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Bug1078014_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+        Dim x = New Test()
+        System.Console.WriteLine(x?.M1()?.M1()?.M1()?.M1()?.M1()?.M1()?.M1()?.M1())
+    End Sub
+End Module
+
+Class Test
+    Function M1() As Test
+        System.Console.WriteLine("Test.M1")
+        return Me
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test.M1
+Test
+]]>)
+        End Sub
+
     End Class
 End Namespace
