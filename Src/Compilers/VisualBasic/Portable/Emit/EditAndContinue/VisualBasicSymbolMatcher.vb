@@ -256,9 +256,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Overrides Function Visit(symbol As Symbol) As Symbol
                 Debug.Assert(symbol.ContainingAssembly IsNot Me.otherAssembly)
 
-                If symbol.ContainingAssembly IsNot Me.sourceAssembly Then
-                    ' The symbol Is Not from the source assembly. Unless the symbol
-                    ' Is a constructed symbol, no matching Is necessary.
+                ' If the symbol is not defined in any of the previous source assemblies and not a constructed symbol
+                ' no matching is necessary, just return the symbol.
+                If TypeOf symbol.ContainingAssembly IsNot SourceAssemblySymbol Then
                     Dim kind As SymbolKind = symbol.Kind
                     If kind <> SymbolKind.ArrayType Then
                         If kind <> SymbolKind.NamedType Then
@@ -299,8 +299,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Public Overrides Function VisitModule([module] As ModuleSymbol) As Symbol
-                Debug.Assert([module].ContainingSymbol Is Me.sourceAssembly)
-
                 Return Me.otherAssembly.Modules([module].Ordinal)
             End Function
 

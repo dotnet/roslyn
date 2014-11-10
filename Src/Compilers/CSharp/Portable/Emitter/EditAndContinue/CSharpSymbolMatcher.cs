@@ -306,21 +306,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert((object)symbol.ContainingAssembly != (object)this.otherAssembly);
 
-                if ((object)symbol.ContainingAssembly != (object)this.sourceAssembly)
+                // If the symbol is not defined in any of the previous source assemblies and not a constructed symbol
+                // no matching is necessary, just return the symbol.
+                if (!(symbol.ContainingAssembly is SourceAssemblySymbol))
                 {
-                    // The symbol is not from the source assembly. Unless the symbol
-                    // is a constructed symbol, no matching is necessary.
                     switch (symbol.Kind)
                     {
                         case SymbolKind.ArrayType:
                         case SymbolKind.PointerType:
                             break;
+
                         case SymbolKind.NamedType:
                             if (symbol.IsDefinition)
                             {
                                 return symbol;
                             }
                             break;
+
                         default:
                             Debug.Assert(symbol.IsDefinition);
                             return symbol;
@@ -360,8 +362,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitModule(ModuleSymbol module)
             {
-                Debug.Assert((object)module.ContainingSymbol == (object)this.sourceAssembly);
-
                 return this.otherAssembly.Modules[module.Ordinal];
             }
 
