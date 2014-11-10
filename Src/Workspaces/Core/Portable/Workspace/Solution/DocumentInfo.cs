@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         /// Specifies an encoding to be used if the actual encoding of the file 
         /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
         /// If <c>null</c> auto-detect heristics are used to determine the encoding. 
-        /// If these heristics fail the decoding is assumed to be the system encoding.
+        /// If these heuristics fail the decoding is assumed to be the system encoding.
         /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
         /// </summary>
         internal Encoding DefaultEncoding { get; private set; }

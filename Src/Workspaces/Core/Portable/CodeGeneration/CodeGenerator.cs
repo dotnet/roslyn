@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
-    /// A generator used for creating or modifing member declarations in source.
+    /// A generator used for creating or modifying member declarations in source.
     /// </summary>
     internal static class CodeGenerator
     {

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <param name="stream">The stream to read the text from. Must be readable and seekable. The text is read from the start of the stream.</param>
         /// <param name="defaultEncoding">
         /// Specifies an encoding to be used if the actual encoding can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If not specified auto-detect heristics are used to determine the encoding. If these heristics fail the decoding is assumed to be the system encoding.
+        /// If not specified auto-detect heuristics are used to determine the encoding. If these heuristics fail the decoding is assumed to be the system encoding.
         /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>

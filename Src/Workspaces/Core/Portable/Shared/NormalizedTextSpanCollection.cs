@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Shared
         }
 
         /// <summary>
-        /// Private ctor for use when the span list is already normalized.
+        /// Private constructor for use when the span list is already normalized.
         /// </summary>
         /// <param name="normalizedSpans">An already normalized span list.</param>
         private NormalizedTextSpanCollection(OrderedSpanList normalizedSpans)

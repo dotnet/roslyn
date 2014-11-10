@@ -14,7 +14,7 @@ namespace Roslyn.Utilities
         public readonly string FullPath;
 
         /// <summary>
-        /// Last write time (Utc).
+        /// Last write time (UTC).
         /// </summary>
         public readonly DateTime Timestamp;
 
@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
         /// Constructor.
         /// </summary>
         /// <param name="fullPath">Full path.</param>
-        /// <param name="timestamp">Last write time (Utc).</param>
+        /// <param name="timestamp">Last write time (UTC).</param>
         public FileKey(string fullPath, DateTime timestamp)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));

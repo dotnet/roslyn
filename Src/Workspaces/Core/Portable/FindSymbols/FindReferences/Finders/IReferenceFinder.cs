@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     /// <summary>
     /// Extensibility interface to allow extending the IFindReferencesService service.  Implementations
-    /// must be threadsafe as the methods on this interface may be called on multiple threads
+    /// must be thread-safe as the methods on this interface may be called on multiple threads
     /// simultaneously.  Implementations should also respect the provided cancellation token and
     /// should try to cancel themselves quickly when requested.
     /// </summary>
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// a solution is not recommended (unless, of course, there is reasonable reason to believe
         /// there are references in every project).
         /// 
-        /// Implementations of this method must be threadsafe.
+        /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<IEnumerable<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// in a project is not recommended (unless, of course, there is reasonable reason to
         /// believe there are references in every document).
         /// 
-        /// Implementations of this method must be threadsafe.
+        /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// in the provided document.  Only documents returned by DetermineDocumentsToSearch will be
         /// passed to this method. 
         /// 
-        /// Implementations of this method must be threadsafe.
+        /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(ISymbol symbol, Document document, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// implementation could choose for the find references search engine to cascade to
         /// constructors when searching for standard types.
         /// 
-        /// Implementations of this method must be threadsafe.
+        /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken));
     }

@@ -116,7 +116,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Returns path with the extenion changed to <paramref name="extension"/>.
+        /// Returns path with the extension changed to <paramref name="extension"/>.
         /// </summary>
         /// <returns>
         /// Equivalent of <see cref="System.IO.Path.ChangeExtension(string, string)"/>

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         string FilePath { get; }
 
         /// <summary>
-        /// The unique Guid associated with the project.
+        /// The unique GUID associated with the project.
         /// </summary>
         Guid Guid { get; }
 

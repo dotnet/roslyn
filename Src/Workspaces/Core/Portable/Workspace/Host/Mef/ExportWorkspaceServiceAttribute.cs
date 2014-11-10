@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// <summary>
         /// Declares a <see cref="IWorkspaceService"/> implementation for inclusion in a MEF-based workspace.
         /// </summary>
-        /// <param name="serviceType">The type that will be used to retreive the service from a <see cref="HostWorkspaceServices"/>.</param>
-        /// <param name="layer">The layer that the service is specified for; ServiceLayer.Default, etc.</param>
+        /// <param name="serviceType">The type that will be used to retrieve the service from a <see cref="HostWorkspaceServices"/>.</param>
+        /// <param name="layer">The layer that the service is specified for; <see cref="ServiceLayer.Default" />, etc.</param>
         public ExportWorkspaceServiceAttribute(Type serviceType, string layer = ServiceLayer.Default)
             : base(typeof(IWorkspaceService))
         {

@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
 
         /// <summary>
-        /// Creates an aexpression that denotes a coalesce operation. 
+        /// Creates an expression that denotes a coalesce operation. 
         /// </summary>
         public abstract SyntaxNode CoalesceExpression(SyntaxNode left, SyntaxNode right);
 

@@ -6,16 +6,27 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// The layer of an exported service.  
     /// 
     /// If there are multiple definitions of a service, the <see cref="ServiceLayer"/> is used to determine which is used.
-    /// 
-    /// Deskktop overrides Default
-    /// Editor overrides Desktop and Default
-    /// Host overrides Editor, Desktop and Default
     /// </summary>
     public static class ServiceLayer
     {
+        /// <summary>
+        /// Service layer that overrides <see cref="Editor"/>, <see cref="Desktop"/> and <see cref="Default"/>.
+        /// </summary>
         public const string Host = "Host";
+
+        /// <summary>
+        /// Service layer that overrides <see cref="Desktop" /> and <see cref="Default"/>.
+        /// </summary>
         public const string Editor = "Editor";
+
+        /// <summary>
+        /// Service layer that overrides <see cref="Default"/>.
+        /// </summary>
         public const string Desktop = "Desktop";
+
+        /// <summary>
+        /// The base service layer.
+        /// </summary>
         public const string Default = "Default";
     }
 }

@@ -74,12 +74,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// or an IAssemblySymbol.  If 'symbol' is accessed off of an expression then
         /// 'throughTypeOpt' is the type of that expression. This is needed to properly do protected
         /// access checks. Sets "failedThroughTypeCheck" to true if this protected check failed.
-        /// 
-        /// NOTE(cyrusn): I expect this function to be called a lot.  As such, I do not do any memory
-        /// allocations in the function itself (including not making any iterators).  This does mean
-        /// that certain helper functions that we'd like to call are inlined in this method to
-        /// prevent the overhead of returning collections or enumerators.  
         /// </summary>
+        //// NOTE(cyrusn): I expect this function to be called a lot.  As such, I do not do any memory
+        //// allocations in the function itself (including not making any iterators).  This does mean
+        //// that certain helper functions that we'd like to call are inlined in this method to
+        //// prevent the overhead of returning collections or enumerators.  
         private static bool IsSymbolAccessibleCore(
             ISymbol symbol,
             ISymbol within,  // must be assembly or named type symbol

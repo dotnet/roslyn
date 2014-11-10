@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
     /// object is enqueued that is already in the list, it is removed from its location and placed
     /// at the end of the queue.  These aspects make the queue useful for LRU caches.
     /// 
-    /// This class is not threadsafe.  If you need it to be, wrap it within your own lock.
+    /// This class is not thread-safe.  If you need it to be, wrap it within your own lock.
     /// </summary>
     internal class LinkedHashQueue<T> : IEnumerable<T>
     {

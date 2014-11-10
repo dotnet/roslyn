@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly Func<Project, Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDiagnosticsAsync;
         
         /// <summary>
-        /// Solution to fix all occurences.
+        /// Solution to fix all occurrences.
         /// </summary>
         public Solution Solution { get { return this.Project.Solution; } }
 
         /// <summary>
-        /// Project within which fix all occurences was triggered.
+        /// Project within which fix all occurrences was triggered.
         /// </summary>
         public Project Project { get; private set; }
 
         /// <summary>
-        /// Document within which fix all occurences was triggered.
+        /// Document within which fix all occurrences was triggered.
         /// </summary>
         public Document Document { get; private set; }
 
