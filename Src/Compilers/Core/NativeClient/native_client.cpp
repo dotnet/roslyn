@@ -122,20 +122,32 @@ void OutputResponse(_In_ const CompletedResponse& response)
     OutputWideString(stderr, response.ErrorOutput, utf8output);
 }
 
-// Get the expected process path of the server. We assume that the server EXE
+// Get the expected process path of a compiler EXE. We assume that the EXE
 // will be in the same directory as the client EXE. This allows us to support
 // side-by-side install of different compilers. We only connect to servers that
 // have the expected full process path.
-bool GetExpectedProcessPath(_Out_writes_z_(cch) LPWSTR szProcessName, int cch)
+bool GetExpectedProcessPath(
+	_In_z_ LPCWSTR processName,
+	_Out_ wstring& processPath)
 {
-    if (GetModuleFileNameW(NULL, szProcessName, cch) != 0)
-    {
-        LPWSTR lastBackslash = wcsrchr(szProcessName, '\\');
-        if (lastBackslash != NULL)
-        {
-            *(lastBackslash + 1) = '\0';
-            return SUCCEEDED(StringCchCatW(szProcessName, cch, SERVERNAME));
-        }
+	processPath.clear();
+	processPath.resize(MAX_PATH);
+	while (GetModuleFileNameW(NULL, &processPath[0], processPath.size()) == 0)
+	{
+		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+			processPath.resize(processPath.size() * 2);
+		} else {
+			return false;
+		}
+	}
+	// Find the last backslash, which should be the directory of the client
+	// EXE, and append the new process name
+	auto lastBackslash = processPath.find_last_of('\\');
+	if (lastBackslash != string::npos)
+	{
+		processPath.erase(lastBackslash + 1);
+		processPath.append(processName);
+		return true;
     }
 
     return false;
@@ -171,12 +183,12 @@ HANDLE ConnectToProcess(DWORD processID, int timeoutMs)
 /// </param>
 _Success_(return != false)
 bool TryCompile(HANDLE pipeHandle,
-RequestLanguage language,
-_In_z_ LPCWSTR currentDirectory,
-_In_ const list<wstring>& commandLineArgs,
-_In_opt_z_ LPCWSTR libEnvVariable,
-_In_ const wstring& keepAlive,
-_Out_ CompletedResponse& response)
+				RequestLanguage language,
+				_In_z_ LPCWSTR currentDirectory,
+				_In_ const list<wstring>& commandLineArgs,
+				_In_opt_z_ LPCWSTR libEnvVariable,
+				_In_ const wstring& keepAlive,
+				_Out_ CompletedResponse& response)
 {
     auto request = Request(language, currentDirectory);
     request.AddCommandLineArguments(commandLineArgs);
@@ -199,11 +211,11 @@ _Out_ CompletedResponse& response)
     // We should expect a completed response since
     // the only other option is a an erroroneous response
     // which will generate an exception.
-    response = ReadResponse(wrapper);
-    Log(IDS_SuccessfullyReadResponse);
-
-    // We got a response.
-    return true;
+	if (ReadResponse(wrapper, response)) {
+		Log(IDS_SuccessfullyReadResponse);
+		return true;
+	}
+	return false;
 }
 
 // Get the process ids of all processes on the system.
@@ -497,26 +509,20 @@ void ParseAndValidateClientArguments(
 
 }
 
-CompletedResponse Run(
+bool TryRunServerCompilation(
     RequestLanguage language,
     _In_z_ LPCWSTR currentDirectory,
-    _In_reads_(argsCount) LPCWSTR rawCommandLineArgs[],
-    int argsCount,
-    _In_opt_z_ LPCWSTR libEnvVar)
+	_In_ const list<wstring>& commandLineArgs,
+	_In_ const wstring& keepAlive,
+    _In_opt_z_ LPCWSTR libEnvVar,
+	_Out_ CompletedResponse& response)
 {
-    list<wstring> commandLineArgs(rawCommandLineArgs,
-        rawCommandLineArgs + argsCount);
-    // Throws FatalError if there was a problem parsing a command line argument
-    wstring keepAlive;
-    ParseAndValidateClientArguments(commandLineArgs, keepAlive);
-
-    wchar_t expectedProcessPath[MAX_PATH];
-
     InitializeLogging();
 
     LogTime();
 
-    if (!GetExpectedProcessPath(expectedProcessPath, MAX_PATH))
+	wstring expectedProcessPath;
+    if (!GetExpectedProcessPath(SERVERNAME, expectedProcessPath))
     {
         FailWithGetLastError(IDS_GetExpectedProcessPathFailed);
     }
@@ -543,31 +549,25 @@ CompletedResponse Run(
     {
         // Check for already running processes in case someone came in before us
         Log(IDS_TryingExistingProcesses);
-        pipeHandle.reset(TryExistingProcesses(expectedProcessPath));
+        pipeHandle.reset(TryExistingProcesses(expectedProcessPath.c_str()));
         if (pipeHandle != nullptr)
         {
             Log(IDS_Connected);
             createProcessMutex.release();
             Log(IDS_Compiling);
 
-            CompletedResponse response;
-            if (TryCompile(pipeHandle.get(),
-                language,
-                currentDirectory,
-                commandLineArgs,
-                libEnvVar,
-                keepAlive,
-                response))
-            {
-                return response;
-            }
-
-            Log(IDS_ExistingProcessFailedRetrying);
+            return TryCompile(pipeHandle.get(),
+							  language,
+							  currentDirectory,
+							  commandLineArgs,
+							  libEnvVar,
+							  keepAlive,
+							  response);
         }
         else
         {
             Log(IDS_CreatingNewProcess);
-            processId = CreateNewServerProcess(expectedProcessPath);
+            processId = CreateNewServerProcess(expectedProcessPath.c_str());
             if (processId != 0)
             {
                 LogFormatted(IDS_ConnectingToNewProcess, processId);
@@ -578,89 +578,27 @@ CompletedResponse Run(
                     Log(IDS_Connected);
                     createProcessMutex.release();
                     Log(IDS_Compiling);
-                    CompletedResponse response;
-                    if (TryCompile(pipeHandle.get(),
-                        language,
-                        currentDirectory,
-                        commandLineArgs,
-                        libEnvVar,
-                        keepAlive,
-                        response))
-                    {
-                        return response;
-                    }
+
+                    return TryCompile(pipeHandle.get(),
+									  language,
+									  currentDirectory,
+									  commandLineArgs,
+									  libEnvVar,
+									  keepAlive,
+									  response);
                 }
             }
-
-            Log(IDS_CreatedProcessFailedRetrying);
         }
 
         createProcessMutex.release();
-
-        // Sleep shortly before retying in case the failure was due to
-        // resource contention
-        Sleep(500);
     }
 
-    // Try one time without a mutex
-    Log(IDS_TryingWithoutMutex);
-    processId = CreateNewServerProcess(expectedProcessPath);
-    if (processId != 0)
-    {
-        LogFormatted(IDS_ConnectingToNewProcess, processId);
-        pipeHandle.reset(ConnectToProcess(processId, TimeOutMsNewProcess));
-        if (pipeHandle != nullptr)
-        {
-            // Let everyone else access our process
-            Log(IDS_ConnectedNewProcess);
-            CompletedResponse response;
-            if (TryCompile(pipeHandle.get(),
-                language,
-                currentDirectory,
-                commandLineArgs,
-                libEnvVar,
-                keepAlive,
-                response))
-            {
-                return response;
-            }
-        }
-    }
-
-    // We're about to exit due to an error above. Check to see if the
-    // server has crashed or disconnected. If so, print a better error
-    // message.
-
-    // If the pipe handle is null, it's likely we never even connected to the
-    // pipe
-    if (pipeHandle == nullptr)
-    {
-        FailFormatted(IDS_ConnectToServerPipeFailed);
-    }
-    else if (processId != 0)
-    {
-        SmartHandle process(OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId));
-        if (process == NULL)
-        {
-            FailFormatted(IDS_ServerIsLost);
-        }
-        else
-        {
-            DWORD exitCode;
-            if (GetExitCodeProcess(process.get(), &exitCode))
-            {
-                FailFormatted(IDS_ServerCrashed, exitCode);
-            }
-        }
-    }
-    else
-    {
-        FailWithGetLastError(IDS_UnknownFailure);
-    }
-
-    // Unreachable
-    return CompletedResponse();
+	return false;
 }
+
+int RunCsc(
+	_In_ const wstring& processPath,
+	_In_ const list<wstring> args);
 
 bool ProcessSlashes(_Inout_ WCHAR * & outBuffer, _Inout_ LPCWSTR * pszCur)
 {
@@ -811,6 +749,8 @@ int Run(RequestLanguage language)
     try
     {
         LPCWSTR uiDllname = L"vbcsc2ui.dll";
+		LPCWSTR clientExeName = language == RequestLanguage::CSHARPCOMPILE
+			? L"csc.exe" : L"vbc.exe";
         g_hinstMessages = GetMessageDll(uiDllname);
 
         if (!g_hinstMessages)
@@ -820,8 +760,11 @@ int Run(RequestLanguage language)
         }
 
         auto currentDirectory = GetCurrentDirectory();
-        int argsCount;
-        auto commandLineArgs = GetCommandLineArgs(argsCount);
+        int commandLineCount;
+        auto commandLine = GetCommandLineArgs(commandLineCount);
+		// Omit process name
+		auto rawArgs = commandLine.get() + 1;
+		auto rawArgsCount = commandLineCount - 1;
         wstring libEnvVariable;
 
         // Change stderr, stdout to binary, because the output we get from the server already 
@@ -831,21 +774,37 @@ int Run(RequestLanguage language)
 
         // Process the /preferreduilang switch and refetch the resource dll
         SetPreferredUILangForMessages(
-            // Don't include the name of the process
-            commandLineArgs.get() + 1,
-            argsCount - 1,
+            rawArgs,
+            rawArgsCount,
             uiDllname);
 
-        auto response = Run(
-            language,
-            currentDirectory.c_str(),
-            // Don't include the name of the process
-            commandLineArgs.get() + 1,
-            argsCount - 1,
-            GetEnvVar(L"LIB", libEnvVariable) ? libEnvVariable.c_str() : nullptr);
+		// Get the args without the native client-specific arguments
+		list<wstring> argsList(rawArgs, rawArgs + rawArgsCount);
+		wstring keepAlive;
+		// Throws FatalError if parsing fails
+		ParseAndValidateClientArguments(argsList, keepAlive);
 
-        OutputResponse(response);
-        return response.ExitCode;
+		// Try to use the compiler server
+		CompletedResponse response;
+		if (TryRunServerCompilation(
+				language,
+				currentDirectory.c_str(),
+				argsList,
+				keepAlive,
+				GetEnvVar(L"LIB", libEnvVariable) ? libEnvVariable.c_str() : nullptr,
+				response))
+		{
+			OutputResponse(response);
+			return response.ExitCode;
+		}
+
+		// Fallback to csc.exe
+		wstring processPath;
+		if (!GetExpectedProcessPath(clientExeName, processPath))
+		{
+			throw FatalError(GetResourceString(IDS_CreateClientProcessFailed));
+		}
+		return RunCsc(processPath, argsList);
     }
     catch (FatalError &e)
     {

@@ -173,27 +173,30 @@ wstring ReadStringFromPipe(IPipe& pipe)
 	return string;
 }
 
-CompletedResponse ReadCompletedResponse(IPipe& pipe)
+bool ReadCompletedResponse(_In_ IPipe& pipe, _Out_ CompletedResponse& response)
 {
     int exitCode; 
     if (!pipe.Read(&exitCode, sizeof(exitCode)))
     {
-        FailFormatted(IDS_PipeReadFailed);
+		LogFormatted(IDS_PipeReadFailed);
+		return false;
     }
 	bool utf8output;
 	if (!pipe.Read(&utf8output, sizeof(utf8output)))
 	{
-        FailFormatted(IDS_PipeReadFailed);
+        LogFormatted(IDS_PipeReadFailed);
+		return false;
 	}
     auto output = ReadStringFromPipe(pipe);
     auto errorOutput = ReadStringFromPipe(pipe);
 
-    return CompletedResponse(exitCode, utf8output, move(output), move(errorOutput));
+    response = CompletedResponse(exitCode, utf8output, move(output), move(errorOutput));
+	return true;
 }
 
 // Reads a response from the pipe. If an unexpected response is
 // received, throws a FatalError exception.
-CompletedResponse ReadResponse(IPipe& pipe)
+bool ReadResponse(_In_ IPipe& pipe, _Out_ CompletedResponse& response)
 {
     Log(IDS_ReadingResponse);
 
@@ -202,13 +205,15 @@ CompletedResponse ReadResponse(IPipe& pipe)
 
     if (!pipe.Read(&sizeInBytes, sizeof(sizeInBytes)))
     {
-        FailFormatted(IDS_PipeReadFailed);
+        LogFormatted(IDS_PipeReadFailed);
+		return true;
     }
     LogFormatted(IDS_ResponseSize, sizeInBytes);
 
     if (!pipe.Read(&responseType, sizeof(responseType)))
     {
-        FailFormatted(IDS_PipeReadFailed);
+        LogFormatted(IDS_PipeReadFailed);
+		return true;
     }
     LogFormatted(IDS_ResponseType, responseType);
 
@@ -223,5 +228,5 @@ CompletedResponse ReadResponse(IPipe& pipe)
         FailWithGetLastError(IDS_UnknownResponse);
         break;
     }
-    return ReadCompletedResponse(pipe);
+    return ReadCompletedResponse(pipe, response);
 }

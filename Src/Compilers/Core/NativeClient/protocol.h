@@ -142,4 +142,4 @@ public:
 	CompletedResponse& operator=(CompletedResponse&& other);
 };
 
-CompletedResponse ReadResponse(IPipe&);
+bool ReadResponse(IPipe&, CompletedResponse&);

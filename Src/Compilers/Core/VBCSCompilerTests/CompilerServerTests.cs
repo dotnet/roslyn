@@ -84,15 +84,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         // The native client executables can't be loaded via Assembly.Load, so we just use the
         // compiler server resolved path
         private static string clientExecutableBasePath = Path.GetDirectoryName(CompilerServerExecutableSrc);
-        private static string CSharpCompilerSrcPath = Path.Combine(clientExecutableBasePath, CSharpClientExeName);
-        private static string BasicCompilerSrcPath = Path.Combine(clientExecutableBasePath, BasicClientExeName);
+        private static string CSharpCompilerClientSrcPath = Path.Combine(clientExecutableBasePath, CSharpClientExeName);
+        private static string BasicCompilerClientSrcPath = Path.Combine(clientExecutableBasePath, BasicClientExeName);
 
         private static string[] AllCompilerFiles =
         {
+            CSharpCompilerExecutableSrc,
+            BasicCompilerExecutableSrc,
             CompilerServerExecutableSrc,
             MicrosoftCodeAnalysisDllSrc,
-            CSharpCompilerSrcPath,
-            BasicCompilerSrcPath,
+            CSharpCompilerClientSrcPath,
+            BasicCompilerClientSrcPath,
             SystemCollectionsImmutableDllSrc,
             ResolveAssemblyPath("System.Reflection.Metadata.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.Desktop.dll"),
@@ -279,12 +281,94 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         #endregion
 
         [Fact]
+        public void FallbackToCsc()
+        {
+            var files = new Dictionary<string, string> { { "hello.cs",
+@"using System;
+using System.Diagnostics;
+class Hello 
+{
+    static void Main()
+    { 
+        var obj = new Process();
+        Console.WriteLine(""Hello, world.""); 
+    }
+}"}};
+            // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
+            File.Delete(CompilerServerExecutable);
+            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs", tempDirectory, files);
+            VerifyResultAndOutput(result, tempDirectory, "Hello, world.\r\n");
+        }
+
+        [Fact]
+        public void FallbackToVbc()
+        {
+            var files = new Dictionary<string, string> { { "hello.vb",
+@"Imports System.Diagnostics
+
+Module Module1
+    Sub Main()
+        Dim p As New Process()
+        Console.WriteLine(""Hello from VB"")
+    End Sub
+End Module"}};
+            // Delete VBCSCompiler.exe so vbc2 is forced to fall back to vbc.exe
+            File.Delete(CompilerServerExecutable);
+            var result = RunCommandLineCompiler(BasicCompilerClientExecutable, "/nologo hello.vb", tempDirectory, files);
+            VerifyResultAndOutput(result, tempDirectory, "Hello from VB\r\n");
+        }
+
+        [Fact]
+        public void TestAssemblyLoadFailureCs()
+        {
+            var files = new Dictionary<string, string> { { "hello.cs",
+@"using System;
+using System.Diagnostics;
+class Hello 
+{
+    static void Main()
+    { 
+        var obj = new Process();
+        Console.WriteLine(""Hello, world.""); 
+    }
+}"}};
+            // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
+            File.Delete(CompilerServerExecutable);
+            // Delete CodeAnalysis so we get a FileNotFoundException
+            File.Delete(Path.Combine(compilerDirectory, "Microsoft.CodeAnalysis.dll"));
+            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs", tempDirectory, files);
+            Assert.NotEqual(0, result.ExitCode);
+            Assert.True(result.ContainsErrors);
+            Assert.True(result.Errors.TrimStart().StartsWith("Unhandled Exception: System.IO.FileNotFoundException"));
+        }
+
+        [Fact]
+        public void TestAssemblyLoadFailureVb()
+        {
+            var files = new Dictionary<string, string> { { "hello.vb",
+@"Imports System.Diagnostics
+
+Module Module1
+    Sub Main()
+        Dim p As New Process()
+        Console.WriteLine(""Hello from VB"")
+    End Sub
+End Module"}};
+            // Delete VBCSCompiler.exe so vbc2 is forced to fall back to vbc.exe
+            File.Delete(CompilerServerExecutable);
+            // Delete CodeAnalysis so we get a FileNotFoundException
+            File.Delete(Path.Combine(compilerDirectory, "Microsoft.CodeAnalysis.dll"));
+            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.vb", tempDirectory, files);
+            Assert.NotEqual(0, result.ExitCode);
+            Assert.True(result.ContainsErrors);
+            Assert.True(result.Errors.TrimStart().StartsWith("Unhandled Exception: System.IO.FileNotFoundException"));
+        }
+
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldCS()
         {
-            Dictionary<string, string> files =
-                                   new Dictionary<string, string> {
-                                           { "hello.cs",
+            var files = new Dictionary<string, string> { { "hello.cs",
 @"using System;
 using System.Diagnostics;
 class Hello 
