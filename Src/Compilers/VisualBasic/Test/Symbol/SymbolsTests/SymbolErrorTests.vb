@@ -19610,7 +19610,7 @@ BC42021: Operator without an 'As' clause; type of Object assumed.
         End Sub
 
         <WorkItem(528714, "DevDiv"), WorkItem(1070286, "DevDiv")>
-        <Fact(Skip:="1070286")>
+        <Fact()>
         Public Sub BC42000WRN_MustShadowOnMultipleInheritance2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="MustShadowOnMultipleInheritance2">
@@ -19628,7 +19628,7 @@ BC42021: Operator without an 'As' clause; type of Object assumed.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC40003: sub 'foo' shadows an overloadable member declared in the base interface 'I2'.  If you want to overload the base method, this method must be declared 'Overloads'.
+BC40003: sub 'foo' shadows an overloadable member declared in the base interface 'I1'.  If you want to overload the base method, this method must be declared 'Overloads'.
                 Sub foo()
                     ~~~
                  ]]></errors>
@@ -23519,6 +23519,103 @@ BC40003: operator 'op_Addition' shadows an overloadable member declared in the b
 
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
 
+        End Sub
+
+        <Fact, WorkItem(1068209, "DevDiv")>
+        Public Sub Bug1068209_01()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Interface I1
+    ReadOnly Property P1 As Integer
+    Sub get_P2()
+
+    Event E1 As System.Action
+    Sub remove_E2()
+End Interface
+
+Interface I3
+    Inherits I1
+    Overloads Sub get_P1()
+    Overloads Property P2 As Integer
+
+    Overloads Sub add_E1()
+    Event E2 As System.Action
+End Interface
+        ]]></file>
+    </compilation>)
+            Dim expectedErrors1 = <errors><![CDATA[
+BC40014: sub 'get_P1' conflicts with a member implicitly declared for property 'P1' in the base interface 'I1' and should be declared 'Shadows'.
+    Overloads Sub get_P1()
+                  ~~~~~~
+BC40012: property 'P2' implicitly declares 'get_P2', which conflicts with a member in the base interface 'I1', and so the property should be declared 'Shadows'.
+    Overloads Property P2 As Integer
+                       ~~
+BC40014: sub 'add_E1' conflicts with a member implicitly declared for event 'E1' in the base interface 'I1' and should be declared 'Shadows'.
+    Overloads Sub add_E1()
+                  ~~~~~~
+BC40012: event 'E2' implicitly declares 'remove_E2', which conflicts with a member in the base interface 'I1', and so the event should be declared 'Shadows'.
+    Event E2 As System.Action
+          ~~
+                 ]]></errors>
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact, WorkItem(1068209, "DevDiv")>
+        Public Sub Bug1068209_02()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class I1
+    ReadOnly Property P1 As Integer
+        Get
+            return Nothing
+        End Get
+    End Property
+
+    Sub get_P2()
+    End Sub
+
+    Event E1 As System.Action
+
+    Sub remove_E2()
+    End Sub
+End Class
+
+Class I3
+    Inherits I1
+
+    Overloads Sub get_P1()
+    End Sub
+
+    Overloads ReadOnly Property P2 As Integer
+        Get
+            return Nothing
+        End Get
+    End Property
+
+    Overloads Sub add_E1()
+    End Sub
+
+    Event E2 As System.Action
+End Class
+        ]]></file>
+    </compilation>)
+            Dim expectedErrors1 = <errors><![CDATA[
+BC40014: sub 'get_P1' conflicts with a member implicitly declared for property 'P1' in the base class 'I1' and should be declared 'Shadows'.
+    Overloads Sub get_P1()
+                  ~~~~~~
+BC40012: property 'P2' implicitly declares 'get_P2', which conflicts with a member in the base class 'I1', and so the property should be declared 'Shadows'.
+    Overloads ReadOnly Property P2 As Integer
+                                ~~
+BC40014: sub 'add_E1' conflicts with a member implicitly declared for event 'E1' in the base class 'I1' and should be declared 'Shadows'.
+    Overloads Sub add_E1()
+                  ~~~~~~
+BC40012: event 'E2' implicitly declares 'remove_E2', which conflicts with a member in the base class 'I1', and so the event should be declared 'Shadows'.
+    Event E2 As System.Action
+          ~~
+                 ]]></errors>
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
     End Class

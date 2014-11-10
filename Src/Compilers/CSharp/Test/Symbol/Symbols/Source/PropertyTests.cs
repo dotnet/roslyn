@@ -2737,5 +2737,50 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "P").WithArguments("automatically implemented properties", "3"));
         }
 
+        [WorkItem(1073332, "DevDiv")]
+        [Fact]
+        public void Bug1073332_01()
+        {
+            var text = @"
+class Test
+{
+    static int[] property { get; } = { 1, 2, 3 };
+
+    static void Main(string[] args)
+    {
+        foreach (var x in property)
+        {
+            System.Console.Write(x);
+        }
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput: "123").VerifyDiagnostics();
+        }
+
+        [WorkItem(1073332, "DevDiv")]
+        [Fact]
+        public void Bug1073332_02()
+        {
+            var text = @"
+unsafe class Test
+{
+    int[] property { get; } = stackalloc int[256];
+
+    static void Main(string[] args)
+    {
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (4,31): error CS1525: Invalid expression term 'stackalloc'
+    //     int[] property { get; } = stackalloc int[256];
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 31),
+    // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+    // unsafe class Test
+    Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test").WithLocation(2, 14)
+                );
+        }
+
     }
 }

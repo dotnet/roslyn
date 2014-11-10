@@ -3322,7 +3322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
                 var equals = this.EatToken(SyntaxKind.EqualsToken);
-                var value = this.ParseExpression();
+                var value = this.ParseVariableInitializer(allowStackAlloc:false);
                 initializer = syntaxFactory.EqualsValueClause(equals, value);
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureAutoPropertyInitializer);
             }

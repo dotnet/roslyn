@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If container.IsInterfaceType() Then
-                For Each currentBaseInterface In container.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+                For Each currentBaseInterface In container.AllInterfacesNoUseSiteDiagnostics
                     CheckShadowingInBaseType(container, member, memberIsOverloads, currentBaseInterface, diagnostics, warnForHiddenMember)
                 Next
             Else
@@ -339,9 +339,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If warnForHiddenMember Then
                 For Each hiddenMember In baseType.GetMembers(member.Name)
                     If AccessCheck.IsSymbolAccessible(hiddenMember, container, Nothing, useSiteDiagnostics:=Nothing) AndAlso
-                       (Not memberIsOverloads OrElse hiddenMember.Kind <> member.Kind OrElse hiddenMember.IsWithEventsProperty OrElse
-                            (member.Kind = SymbolKind.Method AndAlso
-                             DirectCast(member, MethodSymbol).IsUserDefinedOperator() <> DirectCast(hiddenMember, MethodSymbol).IsUserDefinedOperator())) AndAlso
+                       (Not memberIsOverloads OrElse
+                        hiddenMember.Kind <> member.Kind OrElse
+                        hiddenMember.IsWithEventsProperty OrElse
+                        (member.Kind = SymbolKind.Method AndAlso DirectCast(member, MethodSymbol).IsUserDefinedOperator() <> DirectCast(hiddenMember, MethodSymbol).IsUserDefinedOperator()) OrElse
+                        member.IsAccessor() <> hiddenMember.IsAccessor) AndAlso
                        Not (member.IsAccessor() AndAlso hiddenMember.IsAccessor) Then
 
                         'special case for classes of different arity . Do not warn in such case

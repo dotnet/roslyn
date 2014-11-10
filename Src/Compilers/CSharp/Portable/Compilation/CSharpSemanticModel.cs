@@ -3135,7 +3135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (typeOfThis == ErrorTypeSymbol.UnknownResultType)
+                        if ((object)typeOfThis == ErrorTypeSymbol.UnknownResultType)
                         {
                             // in an instance member, but binder considered this/base unreferencable
                             thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, containingType);
