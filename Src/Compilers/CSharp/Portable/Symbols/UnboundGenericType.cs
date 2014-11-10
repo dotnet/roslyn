@@ -16,14 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!type.IsGenericType)
             {
-                return type;
+                // This exception is part of the public contract of NamedTypeSymbol.ConstructUnboundGenericType
+                throw new InvalidOperationException();
             }
 
             var original = type.OriginalDefinition;
             int n = original.Arity;
-            var constructedFrom = ((object)original.ContainingType == null) ?
+            NamedTypeSymbol originalContainingType = original.ContainingType;
+
+            var constructedFrom = ((object)originalContainingType == null) ?
                 original :
-                original.AsMember(original.ContainingType.AsUnboundGenericType());
+                original.AsMember(originalContainingType.IsGenericType ? originalContainingType.AsUnboundGenericType() : originalContainingType);
             if (n == 0)
             {
                 return constructedFrom;

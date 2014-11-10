@@ -1477,7 +1477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :
                         WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor;
 
-                    var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, stateMachineType.ConstructUnboundGenericType());
+                    var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
 
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
                 }

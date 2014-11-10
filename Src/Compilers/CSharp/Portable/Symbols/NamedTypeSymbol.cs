@@ -692,6 +692,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OriginalDefinition.AsUnboundGenericType();
         }
 
+        internal NamedTypeSymbol GetUnboundGenericTypeOrSelf()
+        {
+            if (!this.IsGenericType)
+            {
+                return this;
+            }
+
+            return this.ConstructUnboundGenericType();
+        }
+
         internal static readonly Func<TypeSymbol, bool> TypeSymbolIsNullFunction = type => (object)type == null;
 
         internal static readonly Func<TypeSymbol, bool> TypeSymbolIsErrorType = type => (object)type != null && type.IsErrorType();
