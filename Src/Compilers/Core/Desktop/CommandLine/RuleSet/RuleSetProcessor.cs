@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
@@ -117,9 +118,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A rule set object with data from the given XML node</returns>
         private static RuleSet ReadRuleSet(XmlNode ruleSetNode, string filePath)
         {
-            var specificOptions = new Dictionary<string, ReportDiagnostic>();
+            var specificOptions = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>();
             var generalOption = ReportDiagnostic.Default;
-            var includes = new List<RuleSetInclude>();
+            var includes = ImmutableArray.CreateBuilder<RuleSetInclude>();
 
             // Loop through each rules or include node in this rule set
             foreach (XmlNode childNode in ruleSetNode.ChildNodes)
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new RuleSet(filePath, generalOption, specificOptions, includes);
+            return new RuleSet(filePath, generalOption, specificOptions.ToImmutable(), includes.ToImmutable());
         }
 
         /// <summary>

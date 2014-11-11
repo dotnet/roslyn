@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -22,10 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.Diagnostics = ImmutableArray.Create(diagnostic);
         }
 
-        internal CodeFix(CodeAction action, IEnumerable<Diagnostic> diagnostics)
+        internal CodeFix(CodeAction action, ImmutableArray<Diagnostic> diagnostics)
         {
+            Debug.Assert(!diagnostics.IsDefault);
             this.Action = action;
-            this.Diagnostics = diagnostics.ToImmutableArray();
+            this.Diagnostics = diagnostics;
         }
     }
 }

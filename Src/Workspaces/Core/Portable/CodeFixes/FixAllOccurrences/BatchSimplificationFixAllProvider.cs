@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected BatchSimplificationFixAllProvider() { }
 
-        public override async Task AddDocumentFixesAsync(Document document, IEnumerable<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+        public override async Task AddDocumentFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
         {
             var changedDocument = await AddSimplifierAnnotationsAsync(document, diagnostics, fixAllContext).ConfigureAwait(false);
             var title = GetFixAllTitle(fixAllContext);
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return root.FindNode(diagnostic.Location.SourceSpan, findInsideTrivia: true);
         }
 
-        private async Task<Document> AddSimplifierAnnotationsAsync(Document document, IEnumerable<Diagnostic> diagnostics, FixAllContext fixAllContext)
+        private async Task<Document> AddSimplifierAnnotationsAsync(Document document, ImmutableArray<Diagnostic> diagnostics, FixAllContext fixAllContext)
         {
             var cancellationToken = fixAllContext.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

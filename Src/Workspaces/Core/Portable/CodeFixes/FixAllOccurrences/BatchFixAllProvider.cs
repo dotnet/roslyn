@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,16 +80,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public async virtual Task AddDocumentFixesAsync(Document document, IEnumerable<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+        public async virtual Task AddDocumentFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
         {
+            Debug.Assert(!diagnostics.IsDefault);
             var cancellationToken = fixAllContext.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var diagnosticsArray = diagnostics.ToImmutableArray();
-            var fixerTasks = new Task[diagnosticsArray.Length];
+            var fixerTasks = new Task[diagnostics.Length];
 
-            for (var i = 0; i < diagnosticsArray.Length; i++)
+            for (var i = 0; i < diagnostics.Length; i++)
             {
-                var diagnostic = diagnosticsArray[i];
+                var diagnostic = diagnostics[i];
                 fixerTasks[i] = Task.Run(async () =>
                 {
                     var fixes = new List<CodeAction>();

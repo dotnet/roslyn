@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         private readonly Document document;
         private readonly TextSpan span;
-        private readonly IEnumerable<Diagnostic> diagnostics;
+        private readonly ImmutableArray<Diagnostic> diagnostics;
         private readonly CancellationToken cancellationToken;
 
         /// <summary>
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Diagnostics to fix.
         /// NOTE: All the diagnostics in this collection have the same span <see ref="CodeFixContext.Span"/>.
         /// </summary>
-        public IEnumerable<Diagnostic> Diagnostics { get { return this.diagnostics; } }
+        public ImmutableArray<Diagnostic> Diagnostics { get { return this.diagnostics; } }
 
-        private readonly Action<CodeAction, IEnumerable<Diagnostic>> registerFix;
+        private readonly Action<CodeAction, ImmutableArray<Diagnostic>> registerFix;
 
         /// <summary>
         /// CancellationToken.
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public CodeFixContext(
             Document document,
             TextSpan span,
-            IEnumerable<Diagnostic> diagnostics,
-            Action<CodeAction, IEnumerable<Diagnostic>> registerFix,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
             CancellationToken cancellationToken)
             : this(document, span, diagnostics, registerFix, cancellationToken, verifyArguments: true)
         {            
@@ -78,17 +78,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public CodeFixContext(
             Document document,
             Diagnostic diagnostic,
-            Action<CodeAction, IEnumerable<Diagnostic>> registerFix,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
             CancellationToken cancellationToken)
-            : this(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), registerFix, cancellationToken, verifyArguments: true)
+            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerFix, cancellationToken, verifyArguments: true)
         {
         }
 
         internal CodeFixContext(
             Document document,
             TextSpan span,
-            IEnumerable<Diagnostic> diagnostics,
-            Action<CodeAction, IEnumerable<Diagnostic>> registerFix,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
             CancellationToken cancellationToken,
             bool verifyArguments)
         {
@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         internal CodeFixContext(
             Document document,
             Diagnostic diagnostic,
-            Action<CodeAction, IEnumerable<Diagnostic>> registerFix,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
             CancellationToken cancellationToken,
             bool verifyArguments)
-            : this(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), registerFix, cancellationToken, verifyArguments)
+            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerFix, cancellationToken, verifyArguments)
         {
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the fix.</param>
         /// <param name="diagnostics">The subset of <see cref="Diagnostics"/> being addressed / fixed by the <paramref name="action"/>.</param>
-        public void RegisterFix(CodeAction action, IEnumerable<Diagnostic> diagnostics)
+        public void RegisterFix(CodeAction action, ImmutableArray<Diagnostic> diagnostics)
         {
             if (action == null)
             {
@@ -166,14 +166,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.registerFix(action, diagnostics.ToImmutableArray());
         }
 
-        private static void VerifyDiagnosticsArgument(IEnumerable<Diagnostic> diagnostics, TextSpan span)
+        private static void VerifyDiagnosticsArgument(ImmutableArray<Diagnostic> diagnostics, TextSpan span)
         {
-            if (diagnostics == null)
+            if (diagnostics.IsDefault)
             {
-                throw new ArgumentNullException(nameof(diagnostics));
+                throw new ArgumentException(nameof(diagnostics));
             }
 
-            if (diagnostics.IsEmpty())
+            if (diagnostics.Length == 0)
             {
                 throw new ArgumentException(WorkspacesResources.DiagnosticsCannotBeEmpty, nameof(diagnostics));
             }

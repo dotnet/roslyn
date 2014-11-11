@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a RuleSet.
         /// </summary>
-        public RuleSet(string filePath, ReportDiagnostic generalOption, IDictionary<string, ReportDiagnostic> specificOptions, IEnumerable<RuleSetInclude> includes)
+        public RuleSet(string filePath, ReportDiagnostic generalOption, ImmutableDictionary<string, ReportDiagnostic> specificOptions, ImmutableArray<RuleSetInclude> includes)
         {
             this.filePath = filePath;
             this.generalDiagnosticOption = generalOption;
-            this.specificDiagnosticOptions = specificOptions == null ? ImmutableDictionary<string, ReportDiagnostic>.Empty : specificOptions.ToImmutableDictionary();
-            this.includes = includes == null ? ImmutableArray<RuleSetInclude>.Empty : includes.ToImmutableArray();
+            this.specificDiagnosticOptions = specificOptions == null ? ImmutableDictionary<string, ReportDiagnostic>.Empty : specificOptions;
+            this.includes = includes.IsDefault ? ImmutableArray<RuleSetInclude>.Empty : includes;
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new RuleSet(filePath, effectiveGeneralOption, effectiveSpecificOptions.ToImmutableDictionary(), null);
+            return new RuleSet(filePath, effectiveGeneralOption, effectiveSpecificOptions.ToImmutableDictionary(), ImmutableArray<RuleSetInclude>.Empty);
         }
 
         /// <summary>

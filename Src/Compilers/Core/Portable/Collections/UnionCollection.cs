@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                 return coll1;
             }
 
-            return new UnionCollection<T>(new ICollection<T>[] { coll1, coll2 });
+            return new UnionCollection<T>(ImmutableArray.Create(coll1, coll2));
         }
 
         public static ICollection<T> Create<TOrig>(ImmutableArray<TOrig> collections, Func<TOrig, ICollection<T>> selector)
@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis
                     return selector(collections[0]);
 
                 default:
-                    return new UnionCollection<T>(collections.Select(selector));
+                    return new UnionCollection<T>(ImmutableArray.CreateRange(collections, selector));
             }
         }
 
-        private UnionCollection(IEnumerable<ICollection<T>> collections)
+        private UnionCollection(ImmutableArray<ICollection<T>> collections)
         {
-            Debug.Assert(collections != null);
-            this.collections = collections.ToImmutableArray();
+            Debug.Assert(!collections.IsDefault);
+            this.collections = collections;
         }
 
         public void Add(T item)
