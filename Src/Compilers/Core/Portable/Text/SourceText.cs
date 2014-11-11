@@ -580,46 +580,35 @@ namespace Microsoft.CodeAnalysis.Text
             var position = 0;
             var index = 0;
             var arrayBuilder = ArrayBuilder<int>.GetInstance();
-            var lineNumber = 0;
 
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
             while (index < length)
             {
-                char c = this[index];
-                int lineBreakLength;
+                char c = this[index++];
 
-                // common case - ASCII & not a line break
-                if (c > '\r' & c <= 127)
+                // Common case - ASCII & not a line break
+                // if (c > '\r' && c <= 127)
+                // if (c >= ('\r'+1) && c <= 127)
+                const uint bias = '\r' + 1;
+                if (unchecked(c - bias) <= (127 - bias))
                 {
-                    index++;
                     continue;
                 }
-                else if (c == '\r' && index + 1 < length && this[index + 1] == '\n')
-                {
-                    lineBreakLength = 2;
-                }
-                else if (c == '\n')
-                {
-                    lineBreakLength = 1;
-                }
-                else
-                {
-                    lineBreakLength = TextUtilities.GetLengthOfLineBreak(this, index);
-                }
 
-                if (0 == lineBreakLength)
+                // Assumes that the only 2-char line break sequence is CR+LF
+                if (c == '\r' && index < length && this[index] == '\n')
                 {
                     index++;
                 }
-                else
+                else if (!TextUtilities.IsAnyLineBreakCharacter(c))
                 {
-                    arrayBuilder.Add(position);
-                    index += lineBreakLength;
-                    position = index;
-                    lineNumber++;
+                    continue;
                 }
+
+                arrayBuilder.Add(position);
+                position = index;
             }
 
             // Create a start for the final line.  

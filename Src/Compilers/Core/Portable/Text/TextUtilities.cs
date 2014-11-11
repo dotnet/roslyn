@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.Text
             var c = text[index];
 
             // common case - ASCII & not a line break
-            if (c > '\r' & c <= 127)
+            // if (c > '\r' && c <= 127)
+            // if (c >= ('\r'+1) && c <= 127)
+            const uint bias = '\r' + 1;
+            if (unchecked(c - bias) <= (127 - bias))
             {
                 return 0;
             }
