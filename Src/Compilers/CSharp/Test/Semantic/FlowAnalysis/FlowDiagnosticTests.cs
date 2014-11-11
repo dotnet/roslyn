@@ -708,7 +708,16 @@ public struct S
         Ev = null;
         Ev += d;
     }
-}";
+}
+
+class Foo
+{
+    static void M() {
+        S s1;
+        S s2 = s1;
+    }
+}
+";
             CreateCompilationWithMscorlib(program).VerifyDiagnostics(
                 // (4,20): warning CS0414: The field 'S.Ev' is assigned but its value is never used
                 //     public event D Ev;
