@@ -15,21 +15,18 @@
           DependsOnTargets="RestorePackages">
     <MSBuild BuildInParallel="true"
              Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
-             Properties="RestorePackages=false"
              Targets="Build"/>
   </Target>
 
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
              Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
-             Properties="RestorePackages=false"
              Targets="Clean"/>
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
-             Properties="RestorePackages=false"
              Targets="Rebuild"/>
   </Target>
 
