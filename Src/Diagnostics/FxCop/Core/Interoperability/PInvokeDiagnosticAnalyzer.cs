@@ -50,28 +50,28 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                 (context) =>
                 {
                     var dllImportType = context.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.DllImportAttribute");
-            if (dllImportType == null)
-            {
+                    if (dllImportType == null)
+                    {
                         return;
-            }
+                    }
 
                     var marshalAsType = context.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.MarshalAsAttribute");
-            if (marshalAsType == null)
-            {
+                    if (marshalAsType == null)
+                    {
                         return;
-            }
+                    }
 
                     var stringBuilderType = context.Compilation.GetTypeByMetadataName("System.Text.StringBuilder");
-            if (stringBuilderType == null)
-            {
+                    if (stringBuilderType == null)
+                    {
                         return;
-            }
+                    }
 
                     var unmanagedType = context.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.UnmanagedType");
-            if (unmanagedType == null)
-            {
+                    if (unmanagedType == null)
+                    {
                         return;
-            }
+                    }
 
                     context.RegisterSymbolAction(new Analyzer(dllImportType, marshalAsType, stringBuilderType, unmanagedType).AnalyzeSymbol, SymbolKind.Method);
                 });

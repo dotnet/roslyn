@@ -46,21 +46,21 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             analysisContext.RegisterSymbolAction(
                 (context) =>
             {
-                    switch (context.Symbol.Kind)
-            {
-                case SymbolKind.NamedType:
-                            AnalyzeNamedTypeSymbol((INamedTypeSymbol)context.Symbol, context.ReportDiagnostic);
-                    break;
+                switch (context.Symbol.Kind)
+                {
+                    case SymbolKind.NamedType:
+                        AnalyzeNamedTypeSymbol((INamedTypeSymbol)context.Symbol, context.ReportDiagnostic);
+                        break;
 
-                case SymbolKind.Method:
-                            AnalyzeMethodSymbol((IMethodSymbol)context.Symbol, context.ReportDiagnostic);
-                    break;
-            }
-                },
+                    case SymbolKind.Method:
+                        AnalyzeMethodSymbol((IMethodSymbol)context.Symbol, context.ReportDiagnostic);
+                        break;
+                }
+            },
                 SymbolKind.Method,
                 SymbolKind.NamedType);
         }
-        
+
         private static void AnalyzeNamedTypeSymbol(INamedTypeSymbol symbol, Action<Diagnostic> addDiagnostic)
         {
             foreach (var parameter in symbol.TypeParameters)
