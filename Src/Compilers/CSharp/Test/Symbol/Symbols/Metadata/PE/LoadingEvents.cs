@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -448,6 +448,145 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                     Assert.Equal(expected[(int)mod1, (int)mod2], GetVirtualnessModifiers(@event));
                 }
             }
+        }
+
+        [Fact]
+        [WorkItem(1055825)]
+        public void AssociatedField()
+        {
+            var source = @"
+public class C
+{
+    public event System.Action E;
+}
+";
+            var reference = CreateCompilationWithMscorlib(source).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib("", new[] { reference }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var @event = type.GetMember<PEEventSymbol>("E");
+            Assert.True(@event.HasAssociatedField);
+
+            var field = @event.AssociatedField;
+            Assert.NotNull(field);
+
+            Assert.Equal(@event, field.AssociatedSymbol);
+        }
+
+        [Fact]
+        [WorkItem(1055825)]
+        public void AssociatedField_MultipleFields()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .field private int32 E
+  .field private class [mscorlib]System.Action E
+
+  .method public hidebysig specialname instance void 
+          add_E(class [mscorlib]System.Action 'value') cil managed
+  {
+    ldnull
+    throw
+  }
+
+  .method public hidebysig specialname instance void 
+          remove_E(class [mscorlib]System.Action 'value') cil managed
+  {
+    ldnull
+    throw
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+
+  .event [mscorlib]System.Action E
+  {
+    .addon instance void C::add_E(class [mscorlib]System.Action)
+    .removeon instance void C::remove_E(class [mscorlib]System.Action)
+  } // end of event C::E
+} // end of class C
+";
+            var ilRef = CompileIL(ilSource);
+            var comp = CreateCompilationWithMscorlib("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+
+            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var @event = type.GetMembers().OfType<PEEventSymbol>().Single();
+            Assert.True(@event.HasAssociatedField);
+
+            var field = @event.AssociatedField;
+            Assert.NotNull(field);
+
+            Assert.Equal(@event, field.AssociatedSymbol);
+            Assert.Equal(@event.Type, field.Type);
+        }
+
+        [Fact]
+        [WorkItem(1055825)]
+        public void AssociatedField_DuplicateEvents()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .field private class [mscorlib]System.Action E
+
+  .method public hidebysig specialname instance void 
+          add_E(class [mscorlib]System.Action 'value') cil managed
+  {
+    ldnull
+    throw
+  }
+
+  .method public hidebysig specialname instance void 
+          remove_E(class [mscorlib]System.Action 'value') cil managed
+  {
+    ldnull
+    throw
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+
+  .event [mscorlib]System.Action E
+  {
+    .addon instance void C::add_E(class [mscorlib]System.Action)
+    .removeon instance void C::remove_E(class [mscorlib]System.Action)
+  } // end of event C::E
+
+  .event [mscorlib]System.Action E
+  {
+    .addon instance void C::add_E(class [mscorlib]System.Action)
+    .removeon instance void C::remove_E(class [mscorlib]System.Action)
+  } // end of event C::E
+} // end of class C
+";
+            var ilRef = CompileIL(ilSource);
+            var comp = CreateCompilationWithMscorlib("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+
+            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var events = type.GetMembers().OfType<PEEventSymbol>();
+            Assert.Equal(2, events.Count());
+            AssertEx.All(events, e => e.HasAssociatedField);
+
+            var field = events.First().AssociatedField;
+            Assert.NotNull(field);
+            AssertEx.All(events, e => e.AssociatedField == field);
+
+            Assert.Contains(field.AssociatedSymbol, events);
         }
 
         [Flags]

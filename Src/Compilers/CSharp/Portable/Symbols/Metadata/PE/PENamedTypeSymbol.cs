@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -1072,8 +1073,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else
                 {
-                    this.CreateFields(members);
-                    int fieldCount = members.Count;
+                    ArrayBuilder<PEFieldSymbol> fieldMembers = ArrayBuilder<PEFieldSymbol>.GetInstance();
+                    ArrayBuilder<Symbol> nonFieldMembers = ArrayBuilder<Symbol>.GetInstance();
+
+                    MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols = this.CreateFields(fieldMembers);
 
                     // A method may be referenced as an accessor by one or more properties. And,
                     // any of those properties may be "bogus" if one of the property accessors
@@ -1086,15 +1089,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     // Create a dictionary of method symbols indexed by metadata handle
                     // (to allow efficient lookup when matching property accessors).
-                    Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol = this.CreateMethods(members);
+                    PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol = this.CreateMethods(nonFieldMembers);
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
                         bool haveParameterlessConstructor = false;
-                        for (int i = fieldCount; i < members.Count; i++)
+                        foreach (MethodSymbol method in nonFieldMembers)
                         {
-                            var method = (MethodSymbol)members[i];
-
                             if (method.IsParameterlessConstructor())
                             {
                                 haveParameterlessConstructor = true;
@@ -1106,12 +1107,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         // does not appear in metadata (11.3.8)
                         if (!haveParameterlessConstructor)
                         {
-                            members.Insert(fieldCount, new SynthesizedInstanceConstructor(this));
+                            nonFieldMembers.Insert(0, new SynthesizedInstanceConstructor(this));
                         }
                     }
 
-                    this.CreateProperties(methodHandleToSymbol, members);
-                    this.CreateEvents(methodHandleToSymbol, members);
+                    this.CreateProperties(methodHandleToSymbol, nonFieldMembers);
+                    this.CreateEvents(privateFieldNameToSymbols, methodHandleToSymbol, nonFieldMembers);
+
+                    foreach (PEFieldSymbol field in fieldMembers)
+                    {
+                        if ((object)field.AssociatedSymbol == null)
+                        {
+                            members.Add(field);
+                        }
+                        else
+                        {
+                            // As for source symbols, our public API presents the fiction that all
+                            // operations are performed on the event, rather than on the backing field.  
+                            // The backing field is not accessible through the API.  As an additional 
+                            // bonus, lookup is easier when the names don't collide.
+                            Debug.Assert(field.AssociatedSymbol.Kind == SymbolKind.Event);
+                        }
+                    }
+
+                    members.AddRange(nonFieldMembers);
+
+                    nonFieldMembers.Free();
+                    fieldMembers.Free();
+
+                    methodHandleToSymbol.Free();
                 }
 
                 // Now add types to the end.
@@ -1593,8 +1617,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private void CreateFields(ArrayBuilder<Symbol> members)
+        private MultiDictionary<string, PEFieldSymbol> CreateFields(ArrayBuilder<PEFieldSymbol> fieldMembers)
         {
+            var privateFieldNameToSymbols = new MultiDictionary<string, PEFieldSymbol>();
+
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
@@ -1632,18 +1658,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     catch (BadImageFormatException)
                     { }
 
-                    members.Add(new PEFieldSymbol(moduleSymbol, this, fieldRid));
+                    var symbol = new PEFieldSymbol(moduleSymbol, this, fieldRid);
+                    fieldMembers.Add(symbol);
+
+                    // Only private fields are potentially backing fields for field-like events.
+                    if (symbol.DeclaredAccessibility == Accessibility.Private)
+                    {
+                        var name = symbol.Name;
+                        if (name.Length > 0)
+                        {
+                            privateFieldNameToSymbols.Add(name, symbol);
+                        }
+                    }
                 }
             }
             catch (BadImageFormatException)
             { }
+
+            return privateFieldNameToSymbols;
         }
 
-        private Dictionary<MethodDefinitionHandle, PEMethodSymbol> CreateMethods(ArrayBuilder<Symbol> members)
+        private PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> CreateMethods(ArrayBuilder<Symbol> members)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
-            var map = new Dictionary<MethodDefinitionHandle, PEMethodSymbol>();
+            var map = PooledDictionary<MethodDefinitionHandle, PEMethodSymbol>.GetInstance();
 
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
@@ -1695,7 +1734,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             { }
         }
 
-        private void CreateEvents(Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members)
+        private void CreateEvents(
+            MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols, 
+            Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, 
+            ArrayBuilder<Symbol> members)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
@@ -1716,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         // Create the symbol unless both accessors are missing.
                         if (((object)addMethod != null) || ((object)removeMethod != null))
                         {
-                            members.Add(new PEEventSymbol(moduleSymbol, this, eventRid, addMethod, removeMethod));
+                            members.Add(new PEEventSymbol(moduleSymbol, this, eventRid, addMethod, removeMethod, privateFieldNameToSymbols));
                         }
                     }
                     catch (BadImageFormatException)

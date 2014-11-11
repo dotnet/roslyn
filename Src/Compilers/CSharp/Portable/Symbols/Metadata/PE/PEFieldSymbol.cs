@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private TypeSymbol lazyType;
         private int lazyFixedSize;
         private NamedTypeSymbol lazyFixedImplementationType;
+        private PEEventSymbol associatedEventOpt;
 
         internal PEFieldSymbol(
             PEModuleSymbol moduleSymbol,
@@ -180,6 +181,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        /// <summary>
+        /// Mark this field as the backing field of a field-like event.
+        /// The caller will also ensure that it is excluded from the member list of
+        /// the containing type (as it would be in source).
+        /// </summary>
+        internal void SetAssociatedEvent(PEEventSymbol eventSymbol)
+        {
+            Debug.Assert((object)eventSymbol != null);
+            Debug.Assert(eventSymbol.ContainingType == this.containingType);
+
+            // This should always be true in valid metadata - there should only
+            // be one event with a given name in a given type.
+            if ((object)this.associatedEventOpt == null)
+            {
+                // No locking required since this method will only be called by the thread that created
+                // the field symbol (and will be called before the field symbol is added to the containing 
+                // type members and available to other threads).
+                this.associatedEventOpt = eventSymbol;
+            }
+        }
+
         private void EnsureSignatureIsLoaded()
         {
             if ((object)lazyType == null)
@@ -280,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return null;
+                return this.associatedEventOpt;
             }
         }
 

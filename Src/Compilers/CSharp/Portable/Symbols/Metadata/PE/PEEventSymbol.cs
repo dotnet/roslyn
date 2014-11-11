@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
-using Roslyn.Utilities;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -25,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly TypeSymbol eventType;
         private readonly PEMethodSymbol addMethod;
         private readonly PEMethodSymbol removeMethod;
+        private readonly PEFieldSymbol associatedFieldOpt;
         private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
         private Tuple<CultureInfo, string> lazyDocComment;
         private DiagnosticInfo lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PENamedTypeSymbol containingType,
             EventDefinitionHandle handle,
             PEMethodSymbol addMethod,
-            PEMethodSymbol removeMethod)
+            PEMethodSymbol removeMethod,
+            MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols)
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -92,7 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.
-            bool callMethodsDirectly = IsWindowsRuntimeEvent
+            bool isWindowsRuntimeEvent = IsWindowsRuntimeEvent;
+            bool callMethodsDirectly = isWindowsRuntimeEvent
                 ? !DoModifiersMatch(this.addMethod, this.removeMethod)
                 : !DoSignaturesMatch(moduleSymbol, this.eventType, this.addMethod, this.removeMethod);
 
@@ -104,6 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 this.addMethod.SetAssociatedEvent(this, MethodKind.EventAdd);
                 this.removeMethod.SetAssociatedEvent(this, MethodKind.EventRemove);
+
+                PEFieldSymbol associatedField = GetAssociatedField(privateFieldNameToSymbols, isWindowsRuntimeEvent);
+                if ((object)associatedField != null)
+                {
+                    this.associatedFieldOpt = associatedField;
+                    associatedField.SetAssociatedEvent(this);
+                }
             }
 
             if ((mdFlags & EventAttributes.SpecialName) != 0)
@@ -115,6 +124,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 flags |= Flags.IsRuntimeSpecialName;
             }
+        }
+
+        /// <summary>
+        /// Look for a field with the same name and an appropriate type (i.e. the same type, except in WinRT).
+        /// If one is found, the caller will assume that this event was originally field-like and associate
+        /// the two symbols.
+        /// </summary>
+        /// <remarks>
+        /// Perf impact: If we find a field with the same name, we will eagerly evaluate its type.
+        /// </remarks>
+        private PEFieldSymbol GetAssociatedField(MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols, bool isWindowsRuntimeEvent)
+        {
+            // NOTE: Neither the name nor the accessibility of a PEFieldSymbol is lazy.
+            foreach (PEFieldSymbol candidateAssociatedField in privateFieldNameToSymbols[this.name])
+            {
+                Debug.Assert(candidateAssociatedField.DeclaredAccessibility == Accessibility.Private);
+
+                // Unfortunately, this will cause us to realize the type of the field, which would
+                // otherwise have been lazy.
+                TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.Type;
+
+                if (isWindowsRuntimeEvent)
+                {
+                    NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
+                    if (eventRegistrationTokenTable_T == candidateAssociatedFieldType.OriginalDefinition &&
+                        this.eventType == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArguments[0])
+                    {
+                        return candidateAssociatedField;
+                    }
+                }
+                else
+                {
+                    if (candidateAssociatedFieldType == this.eventType)
+                    {
+                        return candidateAssociatedField;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public override bool IsWindowsRuntimeEvent
@@ -136,6 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     addMethod.ParameterCount == 1 &&
                     removeMethod.ParameterCount == 1 &&
                     removeMethod.Parameters[0].Type == token;
+            }
+        }
+
+        internal override FieldSymbol AssociatedField
+        {
+            get
+            {
+                return this.associatedFieldOpt;
             }
         }
 

@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private NamedTypeSymbol lazySystemTypeSymbol;
         private NamedTypeSymbol lazyEventRegistrationTokenSymbol;
+        private NamedTypeSymbol lazyEventRegistrationTokenTableSymbol;
 
         /// <summary>
         /// The same value as ConcurrentDictionary.DEFAULT_CAPACITY
@@ -497,6 +498,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     Debug.Assert((object)lazyEventRegistrationTokenSymbol != null);
                 }
                 return lazyEventRegistrationTokenSymbol;
+            }
+        }
+
+
+        internal NamedTypeSymbol EventRegistrationTokenTable_T
+        {
+            get
+            {
+                if ((object)lazyEventRegistrationTokenTableSymbol == null)
+                {
+                    Interlocked.CompareExchange(ref lazyEventRegistrationTokenTableSymbol,
+                                                GetTypeSymbolForWellKnownType(
+                                                    WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T
+                                                    ),
+                                                null);
+                    Debug.Assert((object)lazyEventRegistrationTokenTableSymbol != null);
+                }
+                return lazyEventRegistrationTokenTableSymbol;
             }
         }
 

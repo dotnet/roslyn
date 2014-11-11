@@ -1,22 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-
+using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -3437,6 +3429,59 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             Assert.True(staticEvent.AddMethod.IsStatic);
             Assert.False(staticEvent.RemoveMethod.IsStatic);
             Assert.True(staticEvent.MustCallMethodsDirectly);
+        }
+
+        [Fact]
+        [WorkItem(1055825)]
+        public void AssociatedField()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .field private class [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1<class [mscorlib]System.Action> E
+
+  .method public hidebysig specialname instance valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 
+          add_E(class [mscorlib]System.Action 'value') cil managed
+  {
+    ldnull
+    throw
+  }
+
+  .method public hidebysig specialname instance void 
+          remove_E(valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 'value') cil managed
+  {
+    ldnull
+    throw
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+
+  .event [mscorlib]System.Action E
+  {
+    .addon instance valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken C::add_E(class [mscorlib]System.Action)
+    .removeon instance void C::remove_E(valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+  } // end of event C::E
+} // end of class C
+";
+            var ilRef = CompileIL(ilSource);
+            var comp = CreateCompilation("", WinRtRefs.Concat(new[] { ilRef }), TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+
+            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var @event = type.GetMember<PEEventSymbol>("E");
+            Assert.True(@event.HasAssociatedField);
+
+            var field = @event.AssociatedField;
+            Assert.NotNull(field);
+
+            Assert.Equal(@event, field.AssociatedSymbol);
         }
 
         private static void VerifyWinRTEventShape(EventSymbol @event, CSharpCompilation compilation)
