@@ -51,7 +51,9 @@ namespace Roslyn.Utilities
         /// </remarks>
         internal delegate T Factory();
 
-        // storage for the pool objects.
+        // Storage for the pool objects. The first item is stored in a dedicated field because we
+        // expect to be able to satisfy most requests from it.
+        private T firstItem;
         private readonly Element[] items;
 
         // factory is stored for the lifetime of the pool. We will call this only when pool needs to
@@ -110,8 +112,9 @@ namespace Roslyn.Utilities
 
         internal ObjectPool(Factory factory, int size)
         {
+            Debug.Assert(size >= 1);
             this.factory = factory;
-            this.items = new Element[size];
+            this.items = new Element[size - 1];
         }
 
         private T CreateInstance()
@@ -130,26 +133,15 @@ namespace Roslyn.Utilities
         /// </remarks>
         internal T Allocate()
         {
-            var items = this.items;
-            T inst;
-
-            for (int i = 0; i < items.Length; i++)
+            // PERF: Examine the first element. If that fails, AllocateSlow will look at the remaining elements.
+            // Note that the initial read is optimistically not synchronized. That is intentional. 
+            // We will interlock only when we have a candidate. in a worst case we may miss some
+            // recently returned objects. Not a big deal.
+            T inst = firstItem;
+            if (inst == null || inst != Interlocked.CompareExchange(ref firstItem, null, inst))
             {
-                // Note that the read is optimistically not synchronized. That is intentional. 
-                // We will interlock only when we have a candidate. in a worst case we may miss some
-                // recently returned objects. Not a big deal.
-                inst = items[i].Value;
-                if (inst != null)
-                {
-                    if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
-                    {
-                        goto gotInstance;
-                    }
-                }
+                inst = AllocateSlow();
             }
-
-            inst = CreateInstance();
-        gotInstance:
 
 #if DETECT_LEAKS
             var tracker = new LeakTracker();
@@ -160,8 +152,30 @@ namespace Roslyn.Utilities
             tracker.Trace = frame;
 #endif
 #endif
-
             return inst;
+        }
+
+        private T AllocateSlow()
+        {
+            var items = this.items;
+            T inst;
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                // Note that the initial read is optimistically not synchronized. That is intentional. 
+                // We will interlock only when we have a candidate. in a worst case we may miss some
+                // recently returned objects. Not a big deal.
+                inst = items[i].Value;
+                if (inst != null)
+                {
+                    if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
+                    {
+                        return inst;
+                    }
+                }
+            }
+
+            return CreateInstance();
         }
 
         /// <summary>
@@ -177,6 +191,21 @@ namespace Roslyn.Utilities
             Validate(obj);
             ForgetTrackedObject(obj);
 
+            if (firstItem == null)
+            {
+                // Intentionally not using interlocked here. 
+                // In a worst case scenario two objects may be stored into same slot.
+                // It is very unlikely to happen and will only mean that one of the objects will get collected.
+                firstItem = obj;
+            }
+            else
+            {
+                FreeSlow(obj);
+            }
+        }
+
+        private void FreeSlow(T obj)
+        {
             var items = this.items;
             for (int i = 0; i < items.Length; i++)
             {
