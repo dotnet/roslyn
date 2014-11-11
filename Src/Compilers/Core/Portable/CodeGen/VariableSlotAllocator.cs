@@ -20,13 +20,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags);
 
-        public abstract string GetPreviousHoistedLocal(
+        public abstract string PreviousStateMachineTypeName { get; }
+
+        /// <summary>
+        /// Returns an index of a slot that stores specified hoisted local variable in the previous generation,
+        /// or -1 if there is no such slot.
+        /// </summary>
+        public abstract int GetPreviousHoistedLocalSlotIndex(
             SyntaxNode currentDeclarator,
             Cci.ITypeReference currentType,
             SynthesizedLocalKind synthesizedKind,
             LocalDebugId currentId);
-
-        public abstract string PreviousStateMachineTypeName { get; }
 
         /// <summary>
         /// Number of slots reserved for hoisted local variables.
@@ -38,6 +42,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public abstract int PreviousHoistedLocalSlotCount { get; }
 
         /// <summary>
+        /// Returns an index of a slot that stores an awaiter of a specified type in the previous generation,
+        /// or -1 if there is no such slot.
+        /// </summary>
+        public abstract int GetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType);
+
+        /// <summary>
         /// Number of slots reserved for awaiters.
         /// </summary>
         /// <remarks>
@@ -45,7 +55,5 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Still, new awaiters are assigned slots starting with <see cref="PreviousAwaiterSlotCount"/>.
         /// </remarks>
         public abstract int PreviousAwaiterSlotCount { get; }
-
-        public abstract string GetPreviousAwaiter(Cci.ITypeReference currentType);
     }
 }

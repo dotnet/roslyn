@@ -109,14 +109,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return null; }
         }
 
-        public LocalDebugId Id
+        public LocalSlotDebugInfo SlotInfo
         {
-            get { return LocalDebugId.None; }
-        }
-
-        public SynthesizedLocalKind Kind
-        {
-            get { return SynthesizedLocalKind.UserDefined; }
+            get { return new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, LocalDebugId.None); }
         }
     }
 }

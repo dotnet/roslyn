@@ -93,6 +93,8 @@
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
     <Compile Include="Collections\OrderedSet.cs" />
     <Compile Include="Emit\DebugInformationFormat.cs" />
+    <Compile Include="Emit\EditAndContinue\AddedOrChangedMethodInfo.cs" />
+    <Compile Include="Emit\EditAndContinue\EncHoistedLocalInfo.cs" />
     <Compile Include="Emit\EditAndContinue\EncHoistedLocalMetadata.cs" />
     <Compile Include="Emit\EmitOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AsyncQueue.TaskCompletionSourceWithCancellation.cs" />

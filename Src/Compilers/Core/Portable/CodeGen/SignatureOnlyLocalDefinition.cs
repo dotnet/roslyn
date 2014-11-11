@@ -93,14 +93,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return this.signature; }
         }
 
-        public LocalDebugId Id
+        public LocalSlotDebugInfo SlotInfo
         {
-            get { return LocalDebugId.None; }
-        }
-
-        public SynthesizedLocalKind Kind
-        {
-            get { return SynthesizedLocalKind.EmitterTemp; }
+            get { return new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None); }
         }
     }
 }

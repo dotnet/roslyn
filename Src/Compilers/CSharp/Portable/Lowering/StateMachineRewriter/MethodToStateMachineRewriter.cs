@@ -521,23 +521,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
                         // However, it may happen that the type changes, in which case we need to allocate a new slot.
-                        string fieldName = null;
+                        int slotIndex = -1;
                         if (slotAllocatorOpt != null)
                         {
-                            fieldName = slotAllocatorOpt.GetPreviousHoistedLocal(awaitSyntaxOpt, (Cci.ITypeReference)fieldType, kind, id);
+                            slotIndex = slotAllocatorOpt.GetPreviousHoistedLocalSlotIndex(awaitSyntaxOpt, (Cci.ITypeReference)fieldType, kind, id);
                         }
 
-                        int slotIndex;
-                        if (fieldName == null)
+                        if (slotIndex == -1)
                         {
                             slotIndex = nextFreeHoistedLocalSlot++;
-                            fieldName = GeneratedNames.MakeHoistedLocalFieldName(kind, slotIndex);
-                        }
-                        else
-                        {
-                            GeneratedNames.TryParseSlotIndex(fieldName, out slotIndex);
                         }
 
+                        string fieldName = GeneratedNames.MakeHoistedLocalFieldName(kind, slotIndex);
                         hoistedField = F.StateMachineField(expr.Type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex);
                     }
                     else

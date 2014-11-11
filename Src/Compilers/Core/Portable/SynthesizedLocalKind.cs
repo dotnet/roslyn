@@ -172,9 +172,17 @@ namespace Microsoft.CodeAnalysis
         XmlInExpressionLambda = 32,
 
         /// <summary>
-        /// All values have to be less than or equal to <see cref="MaxValidValue"/> (<see cref="EditAndContinueMethodDebugInformation"/>)
+        /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 
+        /// (<see cref="EditAndContinueMethodDebugInformation"/>)
         /// </summary>
-        MaxValidValue = 0x7f - 2,
+        MaxValidValueForLocalVariableSerializedToDebugInformation = 0x7f - 2,
+
+        /// <summary>
+        /// An awaiter in async method. 
+        /// Never actually created as a local variable, immediately lifted to a state machine field.
+        /// Not serialized to <see cref="EditAndContinueMethodDebugInformation"/>.
+        /// </summary>
+        AwaiterField = 0x100,
     }
 
     internal static class SynthesizedLocalKindExtensions

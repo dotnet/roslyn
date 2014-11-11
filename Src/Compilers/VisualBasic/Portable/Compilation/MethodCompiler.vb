@@ -1419,6 +1419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       stateMachineTypeNameOpt:=Nothing,
                                       stateMachineHoistedLocalScopes:=Nothing,
                                       stateMachineHoistedLocalSlots:=Nothing, ' TODO
+                                      stateMachineAwaiterSlots:=Nothing, ' TODO
                                       asyncMethodDebugInfo:=asyncDebugInfo)
             Finally
                 ' Free resources used by the basic blocks in the builder.

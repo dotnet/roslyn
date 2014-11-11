@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -52,7 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 outputKind: compilation.Options.OutputKind,
                 serializationProperties: serializationProperties,
                 manifestResources: manifestResources,
-                assemblySymbolMapper: null,
                 previousGeneration: baseline,
                 edits: edits);
 
@@ -142,97 +142,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
-            var map = new CSharpSymbolMatcher(
-                moduleBeingBuilt.GetAnonymousTypeMap(),
-                ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
-                new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag()),
-                compilation.SourceAssembly,
-                new EmitContext((Cci.IModule)moduleBeingBuilt, null, new DiagnosticBag()));
+            var currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers();
 
-            // Map all definitions to this compilation.
-            var typesAdded = MapDefinitions(map, previousGeneration.TypesAdded);
-            var eventsAdded = MapDefinitions(map, previousGeneration.EventsAdded);
-            var fieldsAdded = MapDefinitions(map, previousGeneration.FieldsAdded);
-            var methodsAdded = MapDefinitions(map, previousGeneration.MethodsAdded);
-            var propertiesAdded = MapDefinitions(map, previousGeneration.PropertiesAdded);
+            // Mapping from previous compilation to the current.
+            var matcher = new CSharpSymbolMatcher(
+                anonymousTypeMap: moduleBeingBuilt.GetAnonymousTypeMap(),
+                sourceAssembly: ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
+                sourceContext: new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag()),
+                otherAssembly: compilation.SourceAssembly,
+                otherContext: new EmitContext(moduleBeingBuilt, null, new DiagnosticBag()),
+                otherSynthesizedMembersOpt: currentSynthesizedMembers);
 
-            // Map anonymous types to this compilation.
-            var anonymousTypeMap = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
-            foreach (var pair in previousGeneration.AnonymousTypeMap)
-            {
-                var key = pair.Key;
-                var value = pair.Value;
-                var type = (Cci.ITypeDefinition)map.MapDefinition(value.Type);
-                Debug.Assert(type != null);
-                anonymousTypeMap.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
-            }
-
-            // Map locals (specifically, local types) to this compilation.
-            var locals = new Dictionary<uint, ImmutableArray<EncLocalInfo>>();
-            foreach (var pair in previousGeneration.LocalsForMethodsAddedOrChanged)
-            {
-                locals.Add(pair.Key, pair.Value.SelectAsArray((l, m) => MapLocalInfo(m, l), map));
-            }
-
-            return previousGeneration.With(
+            return matcher.MapBaselineToCompilation(
+                previousGeneration,
                 compilation,
                 moduleBeingBuilt,
-                previousGeneration.Ordinal,
-                previousGeneration.EncId,
-                typesAdded,
-                eventsAdded,
-                fieldsAdded,
-                methodsAdded,
-                propertiesAdded,
-                eventMapAdded: previousGeneration.EventMapAdded,
-                propertyMapAdded: previousGeneration.PropertyMapAdded,
-                methodImplsAdded: previousGeneration.MethodImplsAdded,
-                tableEntriesAdded: previousGeneration.TableEntriesAdded,
-                blobStreamLengthAdded: previousGeneration.BlobStreamLengthAdded,
-                stringStreamLengthAdded: previousGeneration.StringStreamLengthAdded,
-                userStringStreamLengthAdded: previousGeneration.UserStringStreamLengthAdded,
-                guidStreamLengthAdded: previousGeneration.GuidStreamLengthAdded,
-                anonymousTypeMap: anonymousTypeMap,
-                localsForMethodsAddedOrChanged: locals,
-                debugInformationProvider: previousGeneration.DebugInformationProvider);
-        }
-
-        private static IReadOnlyDictionary<K, V> MapDefinitions<K, V>(
-            CSharpSymbolMatcher map,
-            IReadOnlyDictionary<K, V> items)
-            where K : Cci.IDefinition
-        {
-            var result = new Dictionary<K, V>();
-            foreach (var pair in items)
-            {
-                var key = (K)map.MapDefinition(pair.Key);
-                // Result may be null if the definition was deleted, or if the definition
-                // was synthesized (e.g.: an iterator type) and the method that generated
-                // the synthesized definition was unchanged and not recompiled.
-                if (key != null)
-                {
-                    result.Add(key, pair.Value);
-                }
-            }
-            return result;
-        }
-
-        private static EncLocalInfo MapLocalInfo(
-            CSharpSymbolMatcher map,
-            EncLocalInfo localInfo)
-        {
-            Debug.Assert(!localInfo.IsDefault);
-            if (localInfo.Type == null)
-            {
-                Debug.Assert(localInfo.Signature != null);
-                return localInfo;
-            }
-            else
-            {
-                var type = map.MapReference(localInfo.Type);
-                Debug.Assert(type != null);
-                return new EncLocalInfo(localInfo.Id, type, localInfo.Constraints, localInfo.Kind, localInfo.Signature);
-            }
+                currentSynthesizedMembers);
         }
     }
 }

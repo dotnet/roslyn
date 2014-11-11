@@ -144,7 +144,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
             {
-                var kind = localSlot.SynthesizedKind;
+                SynthesizedLocalKind kind = localSlot.SynthesizedKind;
+                Debug.Assert(kind <= SynthesizedLocalKind.MaxValidValueForLocalVariableSerializedToDebugInformation);
+
                 bool hasOrdinal = localSlot.Id.Ordinal > 0;
 
                 if (!kind.IsLongLived())

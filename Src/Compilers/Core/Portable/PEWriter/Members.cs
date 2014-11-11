@@ -309,12 +309,7 @@ namespace Microsoft.Cci
         /// Local id, or <see cref="LocalDebugId.None"/> if this is a local constant, short-lived temp variable, 
         /// or we are not emitting local variable ids (realese builds).
         /// </summary>
-        LocalDebugId Id { get; }
-
-        /// <summary>
-        /// Local variable kind.
-        /// </summary>
-        SynthesizedLocalKind Kind { get; }
+        LocalSlotDebugInfo SlotInfo { get; }
     }
 
     /// <summary>
@@ -470,16 +465,22 @@ namespace Microsoft.Cci
         ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes { get; }
 
         /// <summary>
-        /// Returns debug information for slots of local variables hoisted to state machine fields, 
-        /// or null if this method isn't the kickoff method of a state machine.
-        /// </summary>
-        ImmutableArray<LocalSlotDebugInfo> StateMachineHoistedLocalSlots { get; }
-
-        /// <summary>
-        /// If the body was written as an iterator, returns the name of the (nested)
-        /// type that implements the iterator's state machine.
+        /// The name of the state machine generated for the method, 
+        /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
         string StateMachineTypeName { get; }
+      
+        /// <summary>
+        /// Returns information relevant to EnC on slots of local variables hoisted to state machine fields, 
+        /// or null if the method isn't the kickoff method of a state machine.
+        /// </summary>
+        ImmutableArray<EncHoistedLocalInfo> StateMachineHoistedLocalSlots { get; }
+
+        /// <summary>
+        /// Returns types of awaiter slots allocated on the state machine,
+        /// or null if the method isn't the kickoff method of a state machine.
+        /// </summary>
+        ImmutableArray<ITypeReference> StateMachineAwaiterSlots { get; }
     }
 
     /// <summary>

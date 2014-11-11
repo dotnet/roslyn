@@ -160,6 +160,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex)
+        {
+            var result = new StateMachineFieldSymbol(CurrentClass, type, name, synthesizedKind, slotIndex, isPublic: false);
+            AddField(CurrentClass, result);
+            return result;
+        }
+
         public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex)
         {
             var result = new StateMachineFieldSymbol(CurrentClass, type, name, slotDebugInfo, slotIndex, isPublic: false);

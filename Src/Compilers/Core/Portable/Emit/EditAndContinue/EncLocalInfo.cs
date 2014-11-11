@@ -10,36 +10,33 @@ namespace Microsoft.CodeAnalysis.Emit
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct EncLocalInfo : IEquatable<EncLocalInfo>
     {
-        public readonly LocalDebugId Id;
+        public readonly LocalSlotDebugInfo SlotInfo;
         public readonly Cci.ITypeReference Type;
         public readonly LocalSlotConstraints Constraints;
-        public readonly SynthesizedLocalKind Kind;
         public readonly byte[] Signature;
-        public readonly bool isInvalid;
+        public readonly bool isUnused;
 
         public EncLocalInfo(byte[] signature)
         {
             Debug.Assert(signature != null);
             Debug.Assert(signature.Length > 0);
 
-            this.Id = LocalDebugId.None;
+            this.SlotInfo = new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None);
             this.Type = null;
             this.Constraints = default(LocalSlotConstraints);
-            this.Kind = SynthesizedLocalKind.EmitterTemp;
             this.Signature = signature;
-            this.isInvalid = true;
+            this.isUnused = true;
         }
 
-        public EncLocalInfo(LocalDebugId id, Cci.ITypeReference type, LocalSlotConstraints constraints, SynthesizedLocalKind synthesizedKind, byte[] signature)
+        public EncLocalInfo(LocalSlotDebugInfo slotInfo, Cci.ITypeReference type, LocalSlotConstraints constraints, byte[] signature)
         {
             Debug.Assert(type != null);
 
-            this.Id = id;
+            this.SlotInfo = slotInfo;
             this.Type = type;
             this.Constraints = constraints;
-            this.Kind = synthesizedKind;
             this.Signature = signature;
-            this.isInvalid = false;
+            this.isUnused = false;
         }
 
         public bool IsDefault
@@ -47,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return this.Type == null && this.Signature == null; }
         }
 
-        public bool IsInvalid
+        public bool IsUnused
         {
-            get { return isInvalid; }
+            get { return isUnused; }
         }
 
         public bool Equals(EncLocalInfo other)
@@ -57,11 +54,10 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(this.Type != null);
             Debug.Assert(other.Type != null);
 
-            return this.Id.Equals(other.Id) &&
-                   this.Kind == other.Kind &&
+            return this.SlotInfo.Equals(other.SlotInfo) &&
                    this.Type.Equals(other.Type) &&
                    this.Constraints == other.Constraints &&
-                   this.isInvalid == other.isInvalid;
+                   this.isUnused == other.isUnused;
         }
 
         public override bool Equals(object obj)
@@ -73,10 +69,10 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             Debug.Assert(this.Type != null);
 
-            return Hash.Combine(this.Id.GetHashCode(),
+            return Hash.Combine(this.SlotInfo.GetHashCode(),
                    Hash.Combine(this.Type.GetHashCode(),
                    Hash.Combine((int)this.Constraints,
-                   Hash.Combine(isInvalid, (int)this.Kind))));
+                   Hash.Combine(isUnused, 0))));
         }
 
         private string GetDebuggerDisplay()
@@ -86,12 +82,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 return "[default]";
             }
 
-            if (this.isInvalid)
+            if (this.isUnused)
             {
                 return "[invalid]";
             }
 
-            return string.Format("[Id={0}.{1}, Type={3}, Constraints={4}, SynthesizedKind={5}]", this.Id.SyntaxOffset, this.Id.Ordinal, this.Type, this.Constraints, this.Kind);
+            return string.Format("[Id={0}, SynthesizedKind={1}, Type={2}, Constraints={3}, Sig={4}]", 
+                this.SlotInfo.Id, 
+                this.SlotInfo.SynthesizedKind, 
+                this.Type, 
+                this.Constraints,
+                (this.Signature != null) ? BitConverter.ToString(this.Signature) : "null");
         }
     }
 }

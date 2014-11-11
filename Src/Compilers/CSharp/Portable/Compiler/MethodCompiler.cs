@@ -1243,12 +1243,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes();
                 }
 
-                var stateMachineHoistedLocalSlots = default(ImmutableArray<LocalSlotDebugInfo>);
+                var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);
+                var stateMachineAwaiterSlots = default(ImmutableArray<Cci.ITypeReference>);
                 if (optimizations == OptimizationLevel.Debug && stateMachineTypeOpt != null)
                 {
                     Debug.Assert(method.IsAsync || method.IsIterator);
-
-                    stateMachineHoistedLocalSlots = GetStateMachineSlotDebugInfo(moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt));
+                    GetStateMachineSlotDebugInfo(moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), out stateMachineHoistedLocalSlots, out stateMachineAwaiterSlots);
                 }
 
                 return new MethodBody(
@@ -1263,9 +1263,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.HasDynamicLocal,
                     namespaceScopes,
                     Cci.NamespaceScopeEncoding.InPlace,
-                    (stateMachineTypeOpt != null) ? stateMachineTypeOpt.Name : null,
+                    stateMachineTypeOpt?.Name,
                     stateMachineHoistedLocalScopes,
                     stateMachineHoistedLocalSlots,
+                    stateMachineAwaiterSlots,
                     asyncDebugInfo);
             }
             finally
@@ -1280,28 +1281,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<LocalSlotDebugInfo> GetStateMachineSlotDebugInfo(IEnumerable<Cci.IFieldDefinition> fieldDefs)
+        private static void GetStateMachineSlotDebugInfo(
+            IEnumerable<Cci.IFieldDefinition> fieldDefs, 
+            out ImmutableArray<EncHoistedLocalInfo> hoistedVariableSlots,
+            out ImmutableArray<Cci.ITypeReference> awaiterSlots)
         {
-            var slots = ArrayBuilder<LocalSlotDebugInfo>.GetInstance();
+            var hoistedVariables = ArrayBuilder<EncHoistedLocalInfo>.GetInstance();
+            var awaiters = ArrayBuilder<Cci.ITypeReference>.GetInstance();
+
             foreach (StateMachineFieldSymbol field in fieldDefs)
             {
-                int index = field.HoistedLocalSlotIndex;
-                if (index < 0)
-                {
-                    continue;
-                }
+                int index = field.SlotIndex;
 
-                while (index >= slots.Count)
+                if (field.SlotDebugInfo.SynthesizedKind == SynthesizedLocalKind.AwaiterField)
                 {
-                    // Empty slots may be present if variables were deleted during EnC.
-                    slots.Add(new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None));
-                }
+                    Debug.Assert(index >= 0);
 
-                Debug.Assert(!field.SlotDebugInfo.Id.IsNone);
-                slots[index] = field.SlotDebugInfo;
+                    while (index >= awaiters.Count)
+                    {
+                        awaiters.Add(null);
+                    }
+
+                    awaiters[index] = (Cci.ITypeReference)field.Type;
+                }
+                else if (!field.SlotDebugInfo.Id.IsNone)
+                {
+                    Debug.Assert(index >= 0 && field.SlotDebugInfo.SynthesizedKind.IsLongLived());
+
+                    while (index >= hoistedVariables.Count)
+                    {
+                        // Empty slots may be present if variables were deleted during EnC.
+                        hoistedVariables.Add(new EncHoistedLocalInfo());
+                    }
+
+                    hoistedVariables[index] = new EncHoistedLocalInfo(field.SlotDebugInfo, (Cci.ITypeReference)field.Type);
+                }
             }
 
-            return slots.ToImmutableAndFree();
+            hoistedVariableSlots = hoistedVariables.ToImmutableAndFree();
+            awaiterSlots = awaiters.ToImmutableAndFree();
         }
 
         // NOTE: can return null if the method has no body.

@@ -94,14 +94,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to find the previous awaiter field.
             if (!awaiterFields.TryGetValue(awaiterType, out result))
             {
-                string fieldName = slotAllocatorOpt?.GetPreviousAwaiter((Cci.ITypeReference)awaiterType);
-
-                if (fieldName == null)
+                int slotIndex = -1;
+                if (slotAllocatorOpt != null)
                 {
-                    fieldName = GeneratedNames.AsyncAwaiterFieldName(nextAwaiterId++);
+                    slotIndex = slotAllocatorOpt.GetPreviousAwaiterSlotIndex((Cci.ITypeReference)awaiterType);
                 }
 
-                result = F.StateMachineField(awaiterType, fieldName);
+                if (slotIndex == -1)
+                {
+                    slotIndex = nextAwaiterId++;
+                }
+
+                string fieldName = GeneratedNames.AsyncAwaiterFieldName(slotIndex);
+                result = F.StateMachineField(awaiterType, fieldName, SynthesizedLocalKind.AwaiterField, slotIndex);
                 awaiterFields.Add(awaiterType, result);
             }
 

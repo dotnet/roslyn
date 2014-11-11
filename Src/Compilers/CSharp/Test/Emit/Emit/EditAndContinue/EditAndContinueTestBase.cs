@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -69,25 +70,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var locals0 = GetAllLocals(method0);
             return s =>
+            {
+                var s1 = s;
+                Assert.Equal(s1.SyntaxTree, tree1);
+                foreach (var s0 in locals0)
                 {
-                    var s1 = s;
-                    Assert.Equal(s1.SyntaxTree, tree1);
-                    foreach (var s0 in locals0)
+                    if (!SyntaxFactory.AreEquivalent(s0, s1))
                     {
-                        if (!SyntaxFactory.AreEquivalent(s0, s1))
-                        {
-                            continue;
-                        }
-                        // Make sure the containing statements are the same.
-                        var p0 = GetNearestStatement(s0);
-                        var p1 = GetNearestStatement(s1);
-                        if (SyntaxFactory.AreEquivalent(p0, p1))
-                        {
-                            return s0;
-                        }
+                        continue;
                     }
-                    return null;
-                };
+                    // Make sure the containing statements are the same.
+                    var p0 = GetNearestStatement(s0);
+                    var p1 = GetNearestStatement(s1);
+                    if (SyntaxFactory.AreEquivalent(p0, p1))
+                    {
+                        return s0;
+                    }
+                }
+                return null;
+            };
         }
 
         internal static string GetLocalName(SyntaxNode node)

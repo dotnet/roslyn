@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -15,14 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly TypeSymbol type;
 
-        // -1 if the field doesn't represent a long-lived local
-        internal readonly int HoistedLocalSlotIndex;
+        // -1 if the field doesn't represent a long-lived local or an awaiter.
+        internal readonly int SlotIndex;
 
         internal readonly LocalSlotDebugInfo SlotDebugInfo;
 
         // Some fields need to be public since they are initialized directly by the kickoff method.
         public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, bool isPublic)
             : this(stateMachineType, type, name, new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, LocalDebugId.None), slotIndex: -1, isPublic: isPublic)
+        {
+        }
+
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex, bool isPublic)
+            : this(stateMachineType, type, name, new LocalSlotDebugInfo(synthesizedKind, LocalDebugId.None), slotIndex, isPublic: isPublic)
         {
         }
 
@@ -33,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));
 
             this.type = type;
-            this.HoistedLocalSlotIndex = slotIndex;
+            this.SlotIndex = slotIndex;
             this.SlotDebugInfo = slotDebugInfo;
         }
 

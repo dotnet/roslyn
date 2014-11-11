@@ -42,7 +42,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If previousGeneration.Ordinal > 0 Then
                 Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
                 Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
-                matchToPrevious = New VisualBasicSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext)
+
+                matchToPrevious = New VisualBasicSymbolMatcher(
+                    previousGeneration.AnonymousTypeMap,
+                    sourceAssembly:=sourceAssembly,
+                    sourceContext:=context,
+                    otherAssembly:=previousAssembly,
+                    otherContext:=previousContext,
+                    otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
             End If
 
             Me.m_PreviousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
@@ -126,35 +133,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New AnonymousTypeKey(parameterNames.ToImmutableAndFree(), isDelegate:=True)
         End Function
 
-        Private Shared Function EnsureInitialized(
-                                                 previousGeneration As EmitBaseline,
-                                                 metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As EmitBaseline
+        Private Shared Function EnsureInitialized(previousGeneration As EmitBaseline,
+                                                  metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As EmitBaseline
             If previousGeneration.AnonymousTypeMap IsNot Nothing Then
                 Return previousGeneration
             End If
 
             Dim anonymousTypeMap = GetAnonymousTypeMap(previousGeneration.MetadataReader, metadataDecoder)
-            Return previousGeneration.With(
-                previousGeneration.Compilation,
-                previousGeneration.PEModuleBuilder,
-                previousGeneration.Ordinal,
-                previousGeneration.EncId,
-                previousGeneration.TypesAdded,
-                previousGeneration.EventsAdded,
-                previousGeneration.FieldsAdded,
-                previousGeneration.MethodsAdded,
-                previousGeneration.PropertiesAdded,
-                eventMapAdded:=previousGeneration.EventMapAdded,
-                propertyMapAdded:=previousGeneration.PropertyMapAdded,
-                methodImplsAdded:=previousGeneration.MethodImplsAdded,
-                tableEntriesAdded:=previousGeneration.TableEntriesAdded,
-                blobStreamLengthAdded:=previousGeneration.BlobStreamLengthAdded,
-                stringStreamLengthAdded:=previousGeneration.StringStreamLengthAdded,
-                userStringStreamLengthAdded:=previousGeneration.UserStringStreamLengthAdded,
-                guidStreamLengthAdded:=previousGeneration.GuidStreamLengthAdded,
-                anonymousTypeMap:=anonymousTypeMap,
-                localsForMethodsAddedOrChanged:=previousGeneration.LocalsForMethodsAddedOrChanged,
-                debugInformationProvider:=previousGeneration.DebugInformationProvider)
+            Return previousGeneration.WithAnonymousTypeMap(anonymousTypeMap)
         End Function
 
         Friend ReadOnly Property PreviousGeneration As EmitBaseline

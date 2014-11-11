@@ -157,7 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var fieldType = typeMap.SubstituteType(local.Type);
 
                         LocalDebugId id;
-                        string fieldName = null;
                         int slotIndex = -1;
 
                         if (isDebugBuild)
@@ -174,12 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (mapToPreviousFields)
                             {
                                 // map local id to the previous id, if available:
-                                fieldName = slotAllocatorOpt.GetPreviousHoistedLocal(declaratorSyntax, (Cci.ITypeReference)fieldType, synthesizedKind, id);
-
-                                if (fieldName != null)
-                                {
-                                    GeneratedNames.TryParseSlotIndex(fieldName, out slotIndex);
-                                }
+                                slotIndex = slotAllocatorOpt.GetPreviousHoistedLocalSlotIndex(declaratorSyntax, (Cci.ITypeReference)fieldType, synthesizedKind, id);
                             }
                         }
                         else
@@ -187,12 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             id = LocalDebugId.None;
                         }
 
-                        if (fieldName == null)
+                        if (slotIndex == -1)
                         {
                             slotIndex = nextFreeHoistedLocalSlot++;
-                            fieldName = GeneratedNames.MakeHoistedLocalFieldName(synthesizedKind, slotIndex, local.Name);
                         }
                         
+                        string fieldName = GeneratedNames.MakeHoistedLocalFieldName(synthesizedKind, slotIndex, local.Name);
                         field = F.StateMachineField(fieldType, fieldName, new LocalSlotDebugInfo(synthesizedKind, id), slotIndex);
                     }
 

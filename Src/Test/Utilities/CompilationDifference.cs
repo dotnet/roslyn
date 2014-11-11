@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public readonly ImmutableArray<byte> MetadataDelta;
         public readonly ImmutableArray<byte> ILDelta;
-        public readonly EmitBaseline NextGeneration;
         public readonly Stream PdbDelta;
         public readonly CompilationTestData TestData;
         public readonly EmitDifferenceResult EmitResult;
@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ImmutableArray<byte> metadata, 
             ImmutableArray<byte> il, 
             Stream pdbStream, 
-            EmitBaseline nextGeneration,
             CompilationTestData testData,
             EmitDifferenceResult result,
             ImmutableArray<MethodDefinitionHandle> methodHandles)
@@ -39,10 +38,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.MetadataDelta = metadata;
             this.ILDelta = il;
             this.PdbDelta = pdbStream;
-            this.NextGeneration = nextGeneration;
             this.TestData = testData;
             this.EmitResult = result;
             this.UpdatedMethods = methodHandles;
+        }
+
+        public EmitBaseline NextGeneration
+        {
+            get
+            {
+                return EmitResult.Baseline;
+            }
         }
 
         public PinnedMetadata GetMetadata()
@@ -114,6 +120,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case SignatureTypeCode.Object: return "[object]";
                 default: return null;
             }
+        }
+
+        public void VerifySynthesizedMembers(params string[] expectedSynthesizedTypesAndMemberCounts)
+        {
+            var actual = EmitResult.Baseline.SynthesizedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
+            AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
         }
     }
 }

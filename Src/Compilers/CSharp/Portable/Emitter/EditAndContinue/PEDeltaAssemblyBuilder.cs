@@ -25,10 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             OutputKind outputKind,
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
-            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             EmitBaseline previousGeneration,
             IEnumerable<SemanticEdit> edits)
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper: null, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
             var context = new EmitContext(this, null, new DiagnosticBag());
             var module = previousGeneration.OriginalMetadata;
@@ -45,7 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
                 var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
-                matchToPrevious = new CSharpSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext);
+
+                matchToPrevious = new CSharpSymbolMatcher(
+                    previousGeneration.AnonymousTypeMap, 
+                    sourceAssembly: sourceAssembly,
+                    sourceContext: context, 
+                    otherAssembly: previousAssembly, 
+                    otherContext: previousContext,
+                    otherSynthesizedMembersOpt: previousGeneration.SynthesizedMembers);
             }
 
             this.previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
@@ -53,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.changes = new SymbolChanges(this.previousDefinitions, edits);
         }
 
-        private static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMap(
+        private static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMapFromMetadata(
             MetadataReader reader,
             Symbols.Metadata.PE.MetadataDecoder metadataDecoder)
         {
@@ -116,28 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
-            var anonymousTypeMap = GetAnonymousTypeMap(previousGeneration.MetadataReader, metadataDecoder);
-            return previousGeneration.With(
-                previousGeneration.Compilation,
-                previousGeneration.PEModuleBuilder,
-                previousGeneration.Ordinal,
-                previousGeneration.EncId,
-                previousGeneration.TypesAdded,
-                previousGeneration.EventsAdded,
-                previousGeneration.FieldsAdded,
-                previousGeneration.MethodsAdded,
-                previousGeneration.PropertiesAdded,
-                eventMapAdded: previousGeneration.EventMapAdded,
-                propertyMapAdded: previousGeneration.PropertyMapAdded,
-                methodImplsAdded: previousGeneration.MethodImplsAdded,
-                tableEntriesAdded: previousGeneration.TableEntriesAdded,
-                blobStreamLengthAdded: previousGeneration.BlobStreamLengthAdded,
-                stringStreamLengthAdded: previousGeneration.StringStreamLengthAdded,
-                userStringStreamLengthAdded: previousGeneration.UserStringStreamLengthAdded,
-                guidStreamLengthAdded: previousGeneration.GuidStreamLengthAdded,
-                anonymousTypeMap: anonymousTypeMap,
-                localsForMethodsAddedOrChanged: previousGeneration.LocalsForMethodsAddedOrChanged,
-                debugInformationProvider: previousGeneration.DebugInformationProvider);
+            var anonymousTypeMap = GetAnonymousTypeMapFromMetadata(previousGeneration.MetadataReader, metadataDecoder);
+            return previousGeneration.WithAnonymousTypeMap(anonymousTypeMap);
         }
 
         internal EmitBaseline PreviousGeneration

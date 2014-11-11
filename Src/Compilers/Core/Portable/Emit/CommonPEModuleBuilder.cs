@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Compilation CommonCompilation { get; }
         internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
         internal abstract void CompilationFinished();
+        internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
     }
 
     /// <summary>
@@ -358,6 +359,41 @@ namespace Microsoft.CodeAnalysis.Emit
             public ConcurrentQueue<Cci.IMethodDefinition> Methods;
             public ConcurrentQueue<Cci.IPropertyDefinition> Properties;
             public ConcurrentQueue<Cci.IFieldDefinition> Fields;
+
+            public IEnumerable<Cci.ITypeDefinitionMember> GetAllMembers()
+            {
+                if (Fields != null)
+                {
+                    foreach (var field in Fields)
+                    {
+                        yield return field;
+                    }
+                }
+
+                if (Methods != null)
+                {
+                    foreach (var method in Methods)
+                    {
+                        yield return method;
+                    }
+                }
+
+                if (Properties != null)
+                {
+                    foreach (var property in Properties)
+                    {
+                        yield return property;
+                    }
+                }
+
+                if (NestedTypes != null)
+                {
+                    foreach (var type in NestedTypes)
+                    {
+                        yield return type;
+                    }
+                }
+            }
         }
 
         private readonly ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions> synthesizedDefs =
@@ -506,6 +542,29 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return null;
+        }
+
+        internal override ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>();
+
+            foreach (var entry in synthesizedDefs)
+            {
+                builder.Add(entry.Key, ImmutableArray.CreateRange(entry.Value.GetAllMembers()));
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public ImmutableArray<Cci.ITypeDefinitionMember> GetSynthesizedMembers(Cci.ITypeDefinition container)
+        {
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions((TNamedTypeSymbol)container, addIfNotFound: false);
+            if (defs == null)
+            {
+                return ImmutableArray<Cci.ITypeDefinitionMember>.Empty;
+            }
+
+            return ImmutableArray.CreateRange(defs.GetAllMembers());
         }
 
         #endregion

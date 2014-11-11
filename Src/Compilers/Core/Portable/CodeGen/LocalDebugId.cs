@@ -76,5 +76,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             return obj is LocalDebugId && Equals((LocalDebugId)obj);
         }
+
+        public override string ToString()
+        {
+            return SyntaxOffset + ":" + Ordinal;
+        }
     }
 }

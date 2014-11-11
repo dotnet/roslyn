@@ -107,7 +107,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     mdStream.ToImmutable(),
                     ilStream.ToImmutable(),
                     pdbStream,
-                    result.Baseline,
                     testData,
                     result,
                     updatedMethods.ToImmutableArray());

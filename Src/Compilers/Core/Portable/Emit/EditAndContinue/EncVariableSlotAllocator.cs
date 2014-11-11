@@ -24,23 +24,23 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<EncLocalInfo, int> previousLocalSlots;
         private readonly ImmutableArray<EncLocalInfo> previousLocals;
 
-        // state machine:
-        private readonly string previousStateMachineTypeNameOpt;
+        // previous state machine:
+        private readonly string stateMachineTypeNameOpt;
         private readonly int hoistedLocalSlotCount;
-        private readonly IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalSlotsOpt;
+        private readonly IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt;
         private readonly int awaiterCount;
-        private readonly IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMapOpt;
+        private readonly IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt;
 
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousMethod,
             ImmutableArray<EncLocalInfo> previousLocals,
-            string previousStateMachineTypeNameOpt,
+            string stateMachineTypeNameOpt,
             int hoistedLocalSlotCount,
-            IReadOnlyDictionary<EncLocalInfo, string> previousHoistedLocalSlotsOpt,
+            IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt,
             int awaiterCount,
-            IReadOnlyDictionary<Cci.ITypeReference, string> awaiterMapOpt)
+            IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt)
         {
             Debug.Assert(symbolMap != null);
             Debug.Assert(previousMethod != null);
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Emit
             this.syntaxMapOpt = syntaxMapOpt;
             this.previousLocals = previousLocals;
             this.previousMethod = previousMethod;
-            this.previousHoistedLocalSlotsOpt = previousHoistedLocalSlotsOpt;
+            this.hoistedLocalSlotsOpt = hoistedLocalSlotsOpt;
             this.hoistedLocalSlotCount = hoistedLocalSlotCount;
-            this.previousStateMachineTypeNameOpt = previousStateMachineTypeNameOpt;
+            this.stateMachineTypeNameOpt = stateMachineTypeNameOpt;
             this.awaiterCount = awaiterCount;
             this.awaiterMapOpt = awaiterMapOpt;
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var localInfo = previousLocals[slot];
                 Debug.Assert(!localInfo.IsDefault);
-                if (localInfo.IsInvalid)
+                if (localInfo.IsUnused)
                 {
                     // Unrecognized or deleted local.
                     continue;
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // TODO (bug #781309): Should report a warning if the type of the local has changed
             // and the previous value will be dropped.
-            var localKey = new EncLocalInfo(previousId, previousType, constraints, kind, signature: null);
+            var localKey = new EncLocalInfo(new LocalSlotDebugInfo(kind, previousId), previousType, constraints, signature: null);
 
             int slot;
             if (!previousLocalSlots.TryGetValue(localKey, out slot))
@@ -154,39 +154,38 @@ namespace Microsoft.CodeAnalysis.Emit
                 dynamicTransformFlags);
         }
 
-        public override string GetPreviousHoistedLocal(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId)
+        public override string PreviousStateMachineTypeName
         {
-            Debug.Assert(previousHoistedLocalSlotsOpt != null);
+            get { return stateMachineTypeNameOpt; }
+        }
+
+        public override int GetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId)
+        {
+            Debug.Assert(hoistedLocalSlotsOpt != null);
 
             LocalDebugId previousId;
             if (!TryGetPreviousLocalId(currentDeclarator, currentId, out previousId))
             {
-                return null;
+                return -1;
             }
 
             var previousType = symbolMap.MapReference(currentType);
             if (previousType == null)
             {
-                return null;
+                return -1;
             }
 
             // TODO (bug #781309): Should report a warning if the type of the local has changed
             // and the previous value will be dropped.
-            var localKey = new EncLocalInfo(previousId, previousType, LocalSlotConstraints.None, synthesizedKind, signature: null);
+            var localKey = new EncHoistedLocalInfo(new LocalSlotDebugInfo(synthesizedKind, previousId), previousType);
 
-            string fieldName;
-            if (!previousHoistedLocalSlotsOpt.TryGetValue(localKey, out fieldName))
+            int slotIndex;
+            if (!hoistedLocalSlotsOpt.TryGetValue(localKey, out slotIndex))
             {
-                return null;
+                return -1;
             }
 
-            return fieldName;
-        }
-
-
-        public override string PreviousStateMachineTypeName
-        {
-            get { return previousStateMachineTypeNameOpt; }
+            return slotIndex;
         }
 
         public override int PreviousHoistedLocalSlotCount
@@ -194,17 +193,17 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return hoistedLocalSlotCount; }
         }
 
-        public override int PreviousAwaiterSlotCount
-        {
-            get { return awaiterCount; }
-        }
-
-        public override string GetPreviousAwaiter(Cci.ITypeReference currentType)
+        public override int GetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType)
         {
             Debug.Assert(awaiterMapOpt != null);
 
-            string name;
-            return awaiterMapOpt.TryGetValue(symbolMap.MapReference(currentType), out name) ? name : null;
+            int slotIndex;
+            return awaiterMapOpt.TryGetValue(symbolMap.MapReference(currentType), out slotIndex) ? slotIndex : -1;
+        }
+
+        public override int PreviousAwaiterSlotCount
+        {
+            get { return awaiterCount; }
         }
     }
 }

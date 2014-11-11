@@ -201,14 +201,19 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     get { return default(ImmutableArray<Cci.StateMachineHoistedLocalScope>); }
                 }
 
-                ImmutableArray<LocalSlotDebugInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
-                {
-                    get { return default(ImmutableArray<LocalSlotDebugInfo>); }
-                }
-
                 string Cci.IMethodBody.StateMachineTypeName
                 {
                     get { return null; }
+                }
+
+                ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
+                {
+                    get { return default(ImmutableArray<EncHoistedLocalInfo>); }
+                }
+
+                ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots
+                {
+                    get { return default(ImmutableArray<Cci.ITypeReference>); }
                 }
             }
 

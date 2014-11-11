@@ -69,7 +69,9 @@ class B
                     compilation1.SourceAssembly,
                     default(EmitContext),
                     compilation0.SourceAssembly,
-                    default(EmitContext));
+                    default(EmitContext),
+                    null);
+
                 var tasks = new Task[10];
                 for (int j = 0; j < tasks.Length; j++)
                 {
@@ -113,7 +115,8 @@ class B
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
-                default(EmitContext));
+                default(EmitContext),
+                null);
             var members = compilation1.GetMember<NamedTypeSymbol>("A.B").GetMembers("M");
             Assert.Equal(members.Length, 2);
             foreach (var member in members)
@@ -144,7 +147,8 @@ class C
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
-                default(EmitContext));
+                default(EmitContext),
+                null);
             var member = compilation1.GetMember<MethodSymbol>("C.M");
             var other = matcher.MapDefinition((Cci.IMethodDefinition)member);
             Assert.NotNull(other);
@@ -177,7 +181,8 @@ class C
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
-                default(EmitContext));
+                default(EmitContext),
+                null);
             var other = (MethodSymbol)matcher.MapDefinition((Cci.IMethodDefinition)member1);
             Assert.NotNull(other);
             Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).CustomModifiers.Length, 1);

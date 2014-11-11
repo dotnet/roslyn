@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             builder.OpenIteratorScope();
             foreach (var field in scope.Fields)
             {
-                builder.DefineUserDefinedStateMachineHoistedLocal(field.HoistedLocalSlotIndex);
+                builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
             }
 
             EmitStatement(scope.Statement);

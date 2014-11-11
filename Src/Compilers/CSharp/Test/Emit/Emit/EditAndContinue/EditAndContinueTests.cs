@@ -3700,10 +3700,10 @@ class C
   // Code size       17 (0x11)
   .maxstack  1
   .locals init ([unchanged] V_0,
-  [unchanged] V_1,
-  E V_2, //z
-  A V_3, //x
-  A V_4) //y
+                [unchanged] V_1,
+                E V_2, //z
+                A V_3, //x
+                A V_4) //y
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.3
@@ -3728,10 +3728,10 @@ class C
   // Code size       17 (0x11)
   .maxstack  1
   .locals init ([unchanged] V_0,
-  [unchanged] V_1,
-  E V_2, //z
-  A V_3, //x
-  A V_4) //y
+                [unchanged] V_1,
+                E V_2, //z
+                A V_3, //x
+                A V_4) //y
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.3
@@ -3756,11 +3756,11 @@ class C
   // Code size       18 (0x12)
   .maxstack  1
   .locals init ([unchanged] V_0,
-  [unchanged] V_1,
-  [unchanged] V_2,
-  A V_3, //x
-  A V_4, //y
-  A V_5) //z
+                [unchanged] V_1,
+                [unchanged] V_2,
+                A V_3, //x
+                A V_4, //y
+                A V_5) //z
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.3

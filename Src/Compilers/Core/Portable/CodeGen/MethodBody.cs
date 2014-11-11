@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<Cci.NamespaceScope> namespaceScopes;
         private readonly string stateMachineTypeNameOpt;
         private readonly ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes;
-        private readonly ImmutableArray<LocalSlotDebugInfo> stateMachineHoistedLocalSlots;
+        private readonly ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots;
+        private readonly ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots;
         private readonly Cci.NamespaceScopeEncoding namespaceScopeEncoding;
         private readonly bool hasDynamicLocalVariables;
 
@@ -42,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.NamespaceScopeEncoding namespaceScopeEncoding,
             string stateMachineTypeNameOpt,
             ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
-            ImmutableArray<LocalSlotDebugInfo> stateMachineHoistedLocalSlots,
+            ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
+            ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots,
             Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo)
         {
             Debug.Assert(!locals.IsDefault);
@@ -64,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.stateMachineTypeNameOpt = stateMachineTypeNameOpt;
             this.stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
             this.stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
+            this.stateMachineAwaiterSlots = stateMachineAwaiterSlots;
         }
 
         void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
@@ -169,11 +173,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        ImmutableArray<LocalSlotDebugInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
+        ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
         {
             get
             {
                 return this.stateMachineHoistedLocalSlots;
+            }
+        }
+
+        ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots
+        {
+            get
+            {
+                return stateMachineAwaiterSlots;
             }
         }
 

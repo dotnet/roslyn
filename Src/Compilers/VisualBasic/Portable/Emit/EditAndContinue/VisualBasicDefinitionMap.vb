@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -16,11 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     ''' one assembly has changed between the two compilations.
     ''' </summary>
     Friend NotInheritable Class VisualBasicDefinitionMap
-        Inherits DefinitionMap
+        Inherits DefinitionMap(Of VisualBasicSymbolMatcher)
 
         Private ReadOnly metadataDecoder As MetadataDecoder
-        Private ReadOnly mapToMetadata As VisualBasicSymbolMatcher
-        Private ReadOnly mapToPrevious As VisualBasicSymbolMatcher
 
         Public Sub New([module] As PEModule,
                        edits As IEnumerable(Of SemanticEdit),
@@ -28,14 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        mapToMetadata As VisualBasicSymbolMatcher,
                        mapToPrevious As VisualBasicSymbolMatcher)
 
-            MyBase.New([module], edits)
+            MyBase.New([module], edits, mapToMetadata, mapToPrevious)
 
             Debug.Assert(metadataDecoder IsNot Nothing)
-            Debug.Assert(mapToMetadata IsNot Nothing)
-
             Me.metadataDecoder = metadataDecoder
-            Me.mapToMetadata = mapToMetadata
-            Me.mapToPrevious = If(mapToPrevious, mapToMetadata)
         End Sub
 
         Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
@@ -115,75 +110,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Friend Overrides Function DefinitionExists(def As Cci.IDefinition) As Boolean
-            Dim previous = Me.mapToPrevious.MapDefinition(def)
-            Return previous IsNot Nothing
+        Protected Overrides Function TryGetStateMachineType(methodHandle As Handle) As ITypeSymbol
+            Dim typeName As String = Nothing
+            If metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
+               metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
+
+                Return metadataDecoder.GetTypeSymbolForSerializedType(typeName)
+            End If
+
+            Return Nothing
         End Function
 
-        Friend Overrides Function TryCreateVariableSlotAllocator(baseline As EmitBaseline, method As IMethodSymbol) As VariableSlotAllocator
-            Dim handle As MethodDefinitionHandle = Nothing
-            If Not Me.TryGetMethodHandle(baseline, CType(method, Cci.IMethodDefinition), handle) Then
-                ' Unrecognized method. Must have been added in the current compilation.
+        Protected Overrides Sub GetStateMachineFieldMapFromMetadata(stateMachineType As ITypeSymbol,
+                                                                    localSlotDebugInfo As ImmutableArray(Of LocalSlotDebugInfo),
+                                                                    <Out> ByRef hoistedLocalMap As IReadOnlyDictionary(Of EncHoistedLocalInfo, Integer),
+                                                                    <Out> ByRef awaiterMap As IReadOnlyDictionary(Of ITypeReference, Integer),
+                                                                    <Out> ByRef awaiterSlotCount As Integer)
+            ' TODO:
+            hoistedLocalMap = New Dictionary(Of EncHoistedLocalInfo, Integer)()
+            awaiterMap = New Dictionary(Of ITypeReference, Integer)
+            awaiterSlotCount = 0
+        End Sub
+
+        Protected Overrides Function TryGetLocalSlotMapFromMetadata(handle As MethodDefinitionHandle, debugInfo As EditAndContinueMethodDebugInformation) As ImmutableArray(Of EncLocalInfo)
+            Dim slotMetadata As ImmutableArray(Of MetadataDecoder.LocalInfo) = Nothing
+            If Not metadataDecoder.TryGetLocals(handle, slotMetadata) Then
                 Return Nothing
             End If
 
-            Dim methodEntry As MethodDefinitionEntry = Nothing
-            If Not Me.methodMap.TryGetValue(method, methodEntry) Then
-                ' Not part of changeset. No need to preserve locals.
-                Return Nothing
-            End If
-
-            If Not methodEntry.PreserveLocalVariables Then
-                ' We should always "preserve locals" of iterator And async methods since the state machine 
-                ' might be active without MoveNext method being on stack. We don't enforce this requirement here,
-                ' since a method may be incorrectly marked by Iterator/AsyncStateMachine attribute by the user, 
-                ' in which case we can't reliably figure out that it's an error in semantic edit set. 
-
-                Return Nothing
-            End If
-
-            Dim symbolMap As VisualBasicSymbolMatcher
-            Dim previousLocals As ImmutableArray(Of EncLocalInfo) = Nothing
-            Dim previousHoistedLocalMap As IReadOnlyDictionary(Of EncLocalInfo, String) = Nothing
-            Dim awaiterMap As IReadOnlyDictionary(Of Cci.ITypeReference, String) = Nothing
-            Dim hoistedLocalSlotCount As Integer = 0
-            Dim awaiterSlotCount As Integer = 0
-            Dim previousStateMachineTypeNameOpt As String = Nothing
-
-            Dim methodIndex As UInteger = CUInt(MetadataTokens.GetRowNumber(handle))
-
-            ' Check if method has changed previously. If so, we already have a map.
-            If baseline.LocalsForMethodsAddedOrChanged.TryGetValue(methodIndex, previousLocals) Then
-                symbolMap = Me.mapToPrevious
-            Else
-                ' Method has not changed since initial generation. Generate a map
-                ' using the local names provided with the initial metadata.
-                Dim slotMetadata As ImmutableArray(Of MetadataDecoder.LocalInfo) = Nothing
-
-                If Not metadataDecoder.TryGetLocals(handle, slotMetadata) Then
-                    ' TODO: Report error that metadata Is Not supported.
-                    Return Nothing
-                End If
-
-                Dim debugInfo = baseline.DebugInformationProvider(handle)
-
-                previousLocals = CreateLocalSlotMap(debugInfo, slotMetadata)
-                Debug.Assert(previousLocals.Length = slotMetadata.Length)
-
-                symbolMap = Me.mapToMetadata
-            End If
-
-            ' TODO
-            Return New EncVariableSlotAllocator(
-                symbolMap,
-                methodEntry.SyntaxMap,
-                methodEntry.PreviousMethod,
-                previousLocals,
-                previousStateMachineTypeNameOpt,
-                hoistedLocalSlotCount,
-                previousHoistedLocalMap,
-                awaiterSlotCount,
-                awaiterMap)
+            Dim result = CreateLocalSlotMap(debugInfo, slotMetadata)
+            Debug.Assert(result.Length = slotMetadata.Length)
+            Return result
         End Function
 
         ''' <summary>
@@ -191,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' declaration to local slot. The names are indexed by slot And the
         ''' assumption Is that declarations are in the same order as slots.
         ''' </summary>
-        Public Shared Function CreateLocalSlotMap(
+        Private Shared Function CreateLocalSlotMap(
             methodEncInfo As EditAndContinueMethodDebugInformation,
             slotMetadata As ImmutableArray(Of MetadataDecoder.LocalInfo)) As ImmutableArray(Of EncLocalInfo)
 
@@ -215,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         ' We do Not emit custom modifiers on locals so ignore the
                         ' previous version of the local if it had custom modifiers.
                         If metadata.CustomModifiers.IsDefaultOrEmpty Then
-                            Dim local = New EncLocalInfo(slot.Id, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, slot.SynthesizedKind, metadata.SignatureOpt)
+                            Dim local = New EncLocalInfo(slot, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
                             map.Add(local, slotIndex)
                         End If
                     End If

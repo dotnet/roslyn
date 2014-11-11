@@ -101,7 +101,9 @@ namespace Microsoft.Cci
 
                 // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
                 // so we use its EnC method debug info to store information about locals hoisted to the state machine.
-                var encDebugInfo = encSlotInfo.IsDefault ? GetEncDebugInfoForLocals(methodBody.LocalVariables) : new EditAndContinueMethodDebugInformation(encSlotInfo);
+                var encDebugInfo = encSlotInfo.IsDefault ? 
+                    GetEncDebugInfoForLocals(methodBody.LocalVariables) :
+                    GetEncDebugInfoForLocals(encSlotInfo);
 
                 encDebugInfo.SerializeCustomDebugInformation(customDebugInfo);
             }
@@ -113,13 +115,22 @@ namespace Microsoft.Cci
 
         public static EditAndContinueMethodDebugInformation GetEncDebugInfoForLocals(ImmutableArray<ILocalDefinition> locals)
         {
-            if (!locals.Any(localDef => !localDef.Id.IsNone))
+            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
             {
                 return default(EditAndContinueMethodDebugInformation);
             }
 
-            return new EditAndContinueMethodDebugInformation(
-                locals.SelectAsArray(localDef => new LocalSlotDebugInfo(localDef.Kind, localDef.Id.IsNone ? new LocalDebugId(0) : localDef.Id)));
+            return new EditAndContinueMethodDebugInformation(locals.SelectAsArray(variable => variable.SlotInfo));
+        }
+
+        public static EditAndContinueMethodDebugInformation GetEncDebugInfoForLocals(ImmutableArray<EncHoistedLocalInfo> locals)
+        {
+            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            {
+                return default(EditAndContinueMethodDebugInformation);
+            }
+
+            return new EditAndContinueMethodDebugInformation(locals.SelectAsArray(variable => variable.SlotInfo));
         }
 
         private static void SerializeIteratorClassMetadata(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)

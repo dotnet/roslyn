@@ -16,20 +16,6 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class DeltaMetadataWriter : MetadataWriter
     {
-        private struct MethodLocals
-        {
-            // Locals for the method, indexed by slot.
-            internal readonly ImmutableArray<ILocalDefinition> Definitions;
-            // Local signatures (serialized by PeWriter) corresponding to definitions above.
-            internal readonly ImmutableArray<byte[]> Signatures;
-
-            internal MethodLocals(ImmutableArray<ILocalDefinition> definitions, ImmutableArray<byte[]> signatures)
-            {
-                this.Definitions = definitions;
-                this.Signatures = signatures;
-            }
-        }
-
         private readonly EmitBaseline previousGeneration;
         private readonly Guid encId;
         private readonly DefinitionMap definitionMap;
@@ -54,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly HeapOrReferenceIndex<ITypeReference> typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> typeSpecIndex;
         private readonly HeapOrReferenceIndex<uint> standAloneSignatureIndex;
-        private readonly Dictionary<IMethodDefinition, MethodLocals> localMap;
+        private readonly Dictionary<IMethodDefinition, AddedOrChangedMethodInfo> addedOrChangedMethods;
 
         private uint unalignedStringStreamLength;
 
@@ -101,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this), lastRowId: (uint)sizes[(int)TableIndex.TypeSpec]);
             this.standAloneSignatureIndex = new HeapOrReferenceIndex<uint>(this, lastRowId: (uint)sizes[(int)TableIndex.StandAloneSig]);
 
-            this.localMap = new Dictionary<IMethodDefinition, MethodLocals>();
+            this.addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>();
         }
 
         private ImmutableArray<int> GetDeltaTableSizes(ImmutableArray<int> rowCounts)
@@ -136,14 +122,11 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(this.unalignedStringStreamLength > 0); // OnSerializedMetadataTables should have been called.
 
             var moduleBuilder = (CommonPEModuleBuilder)this.module;
-            var locals = new Dictionary<uint, ImmutableArray<EncLocalInfo>>();
-            foreach (var pair in this.localMap)
+
+            var addedOrChangedMethodsByIndex = new Dictionary<uint, AddedOrChangedMethodInfo>();
+            foreach (var pair in this.addedOrChangedMethods)
             {
-                var methodDef = pair.Key;
-                var methodLocals = pair.Value;
-                var methodIndex = this.GetMethodDefIndex(methodDef);
-                var localOffsetsAndKinds = this.definitionMap.GetLocalInfo(methodDef, methodLocals.Definitions, methodLocals.Signatures);
-                locals.Add(methodIndex, localOffsetsAndKinds);
+                addedOrChangedMethodsByIndex.Add(this.GetMethodDefIndex(pair.Key), pair.Value);
             }
 
             var previousTableSizes = this.previousGeneration.TableEntriesAdded;
@@ -154,6 +137,10 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 tableSizes[i] = previousTableSizes[i] + deltaTableSizes[i];
             }
+
+            // If the previos generation is 0 (metadata) get the synthesized members from the current compilation's builder,
+            // otherwise members from the current compilation have already been merged into the baseline.
+            var synthesizedMembers = (baseline.Ordinal == 0) ? moduleBuilder.GetSynthesizedMembers() : baseline.SynthesizedMembers;
 
             return baseline.With(
                 compilation,
@@ -178,7 +165,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 // Guid stream is always aligned (the size if a multiple of 16 = sizeof(Guid))
                 guidStreamLengthAdded: (int)this.guidWriter.BaseStream.Length + this.previousGeneration.GuidStreamLengthAdded,
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
-                localsForMethodsAddedOrChanged: AddRange(locals, this.previousGeneration.LocalsForMethodsAddedOrChanged, replace: true),
+                synthesizedMembers: synthesizedMembers,
+                addedOrChangedMethods: AddRange(addedOrChangedMethodsByIndex, this.previousGeneration.AddedOrChangedMethods, replace: true),
                 debugInformationProvider: baseline.DebugInformationProvider);
         }
 
@@ -188,20 +176,24 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return b;
             }
+
             if (b.Count == 0)
             {
                 return a;
             }
+
             var result = new Dictionary<K, V>();
             foreach (var pair in a)
             {
                 result.Add(pair.Key, pair.Value);
             }
+
             foreach (var pair in b)
             {
                 Debug.Assert(replace || !a.ContainsKey(pair.Key));
                 result[pair.Key] = pair.Value;
             }
+
             return result;
         }
 
@@ -607,7 +599,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             uint result = 0;
             var localVariables = body.LocalVariables;
-            var signatures = ArrayBuilder<byte[]>.GetInstance();
+            var encInfos = ArrayBuilder<EncLocalInfo>.GetInstance();
 
             if (localVariables.Length > 0)
             {
@@ -634,7 +626,8 @@ namespace Microsoft.CodeAnalysis.Emit
                     {
                         writer.WriteBytes(signature);
                     }
-                    signatures.Add(signature);
+
+                    encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
 
                 uint blobIndex = this.GetBlobIndex(writer.BaseStream);
@@ -647,11 +640,27 @@ namespace Microsoft.CodeAnalysis.Emit
             var method = body.MethodDefinition;
             if (!method.IsImplicitlyDeclared)
             {
-                this.localMap[method] = new MethodLocals(body.LocalVariables, signatures.ToImmutable());
+                var info = new AddedOrChangedMethodInfo(
+                    encInfos.ToImmutable(), 
+                    body.StateMachineTypeName,
+                    body.StateMachineHoistedLocalSlots,
+                    body.StateMachineAwaiterSlots);
+
+                this.addedOrChangedMethods.Add(method, info);
             }
 
-            signatures.Free();
+            encInfos.Free();
             return result;
+        }
+
+        private static EncLocalInfo CreateEncLocalInfo(ILocalDefinition localDef, byte[] signature)
+        {
+            if (localDef.SlotInfo.Id.IsNone)
+            {
+                return new EncLocalInfo(signature);
+            }
+
+            return new EncLocalInfo(localDef.SlotInfo, localDef.Type, localDef.Constraints, signature);
         }
 
         protected override void OnBeforeHeapsAligned()

@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         //Says if the local variable is Dynamic
         private readonly bool isDynamic;
 
-        private readonly SynthesizedLocalKind synthesizedKind;
-        private readonly LocalDebugId id;
+        private readonly LocalSlotDebugInfo slotInfo;
 
         /// <see cref="Cci.ILocalDefinition.PdbAttributes"/>.
         private readonly uint pdbAttributes;
@@ -73,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.nameOpt = nameOpt;
             this.type = type;
             this.slot = slot;
-            this.synthesizedKind = synthesizedKind;
-            this.id = id;
+            this.slotInfo = new LocalSlotDebugInfo(synthesizedKind, id);
             this.pdbAttributes = pdbAttributes;
             this.dynamicTransformFlags = dynamicTransformFlags;
             this.constraints = constraints;
@@ -178,14 +176,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return null; }
         }
 
-        public SynthesizedLocalKind Kind
+        public LocalSlotDebugInfo SlotInfo
         {
-            get { return synthesizedKind; }
-        }
-
-        public LocalDebugId Id
-        {
-            get { return id; }
+            get { return slotInfo; }
         }
     }
 }
