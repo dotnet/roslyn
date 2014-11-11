@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
                 this.TextContainer = textContainer;
                 this.onChangedHandler = onChangedHandler;
 
-                // use weak event so TextContainer cannot accidently keep workspace alive.
+                // use weak event so TextContainer cannot accidentally keep workspace alive.
                 this.weakOnTextChanged = WeakEventHandler<TextChangeEventArgs>.Create(this, (target, sender, args) => target.OnTextChanged(sender, args));
             }
 
