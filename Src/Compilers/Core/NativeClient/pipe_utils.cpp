@@ -16,11 +16,13 @@ bool RealPipe::Write(_In_ LPCVOID data, unsigned toWrite)
     BOOL success = WriteFile(this->pipeHandle, data, toWrite, &written, nullptr);
     if (!success)
     {
-        FailWithGetLastError(IDS_WriteFileOnPipeFailed);
+        LogWin32Error(IDS_WriteFileOnPipeFailed);
+		return false;
     }
     else if (written != toWrite)
     {
-        FailFormatted(IDS_WriteFileOnPipeIncomplete, toWrite, written);
+        LogFormatted(IDS_WriteFileOnPipeIncomplete, toWrite, written);
+		return false;
     }
     return true;
 }
@@ -35,11 +37,13 @@ bool RealPipe::Read(_Out_ LPVOID data, unsigned toRead)
     BOOL success = ReadFile(this->pipeHandle, data, toRead, &read, nullptr);
     if (!success)
     {
-        FailWithGetLastError(IDS_ReadFileOnPipeFailed);
+        LogWin32Error(IDS_ReadFileOnPipeFailed);
+		return false;
     }
     else if (read != toRead)
     {
-        FailFormatted(IDS_ReadFileOnPipeIncomplete, toRead, read);
+        LogFormatted(IDS_ReadFileOnPipeIncomplete, toRead, read);
+		return false;
     }
     return true;
 }
