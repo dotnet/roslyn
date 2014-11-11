@@ -513,7 +513,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
             VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
                 outputKind:=OutputKind.WindowsApplication,
                 parseOptions:=New VisualBasicParseOptions(
-                    languageVersion:=LanguageVersion.Experimental,
+                    languageVersion:=LanguageVersion.VisualBasic14,
                     documentationMode:=DocumentationMode.Diagnose,
                     preprocessorSymbols:={KeyValuePair.Create(Of String, Object)("s", 1), KeyValuePair.Create(Of String, Object)("t", 2)}))))
         End Sub

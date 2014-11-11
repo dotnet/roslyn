@@ -5395,8 +5395,7 @@ class Program
         System.Console.WriteLine(args?.Length);
     }
 }";
-            var parseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.Experimental);
-
+            var parseOptions = new CSharpParseOptions();
             AssertFormat(expected, code, parseOptions: parseOptions);
         }
 

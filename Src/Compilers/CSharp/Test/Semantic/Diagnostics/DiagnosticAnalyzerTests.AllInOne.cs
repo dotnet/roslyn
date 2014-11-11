@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyAnalyzerDiagnostics(new[] { analyzer });
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
@@ -85,7 +85,7 @@ public class C
         [Fact]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
-            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular);
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer => 
                 compilation.GetCSharpAnalyzerDiagnostics(new[] { analyzer }, null, CodeAnalysis.DiagnosticExtensions.AlwaysCatchAnalyzerExceptions), typeof(AnalyzerDriver).Name);
         }
@@ -99,7 +99,7 @@ public class C
                 new Dictionary<string, string> { { "optionName", "optionValue" } }.ToImmutableDictionary()
             );
 
-            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular);
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
             compilation.GetCSharpAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(ParseOptions),
                 "DocumentationMode",
+                "Features",
                 "Kind",
                 "PreprocessorSymbolNames");
         }

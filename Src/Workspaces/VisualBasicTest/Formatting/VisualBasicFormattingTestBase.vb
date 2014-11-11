@@ -91,7 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
 
             Dim parseOptions = New VisualBasicParseOptions()
             If (experimental) Then
-                parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.Experimental)
+                ' There are no experimental features at this time.
+                ' parseOptions = parseOptions.WithExperimentalFeatures
             End If
 
             AssertFormat(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation, parseOptions)

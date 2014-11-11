@@ -57,23 +57,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </list> 
         /// </remarks> 
         CSharp6 = 6,
-
-        /// <summary>
-        /// C# language version 6.0 + experimental features. 
-        /// </summary>
-        Experimental = int.MaxValue,
     }
 
     internal static partial class LanguageVersionExtensions
     {
         internal static bool IsValid(this LanguageVersion value)
         {
-            return (value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp6) || value == LanguageVersion.Experimental;
+            return value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp6;
         }
 
         internal static object Localize(this LanguageVersion value)
         {
-            return (value == LanguageVersion.Experimental) ? (object)MessageID.IDS_VersionExperimental.Localize() : (int)value;
+            return (int)value;
         }
 
         internal static ErrorCode GetErrorCode(this LanguageVersion version)

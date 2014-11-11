@@ -238,6 +238,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithDocumentationMode(documentationMode)
         End Function
 
+        Protected Overrides Function CommonWithFeatures(features As IEnumerable(Of KeyValuePair(Of String, String))) As ParseOptions
+            Return WithFeatures(features)
+        End Function
+
+        ''' <summary>
+        ''' Enable some experimental language features for testing.
+        ''' </summary>
+        Public Shadows Function WithFeatures(features As IEnumerable(Of KeyValuePair(Of String, String))) As VisualBasicParseOptions
+            ' there are currently no parse options for experimental features
+            If features Is Nothing Then
+                Throw New ArgumentException(NameOf (features))
+            End If
+
+            If features.Any() Then
+                Throw New ArgumentException("Experimental features are not supported", NameOf (features))
+            End If
+
+            Return Me
+        End Function
+
+        Public Overrides ReadOnly Property Features As IReadOnlyDictionary(Of String, String)
+            Get
+                ' There are no experimental features at this time.
+                Return New Dictionary(Of String, String)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Determines whether the current object is equal to another object of the same type.
         ''' </summary>

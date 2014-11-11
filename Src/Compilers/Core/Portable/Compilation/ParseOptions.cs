@@ -52,6 +52,24 @@ namespace Microsoft.CodeAnalysis
         protected abstract ParseOptions CommonWithDocumentationMode(DocumentationMode documentationMode);
 
         /// <summary>
+        /// Enable some experimental language features for testing.
+        /// </summary>
+        public ParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
+        {
+            return CommonWithFeatures(features);
+        }
+
+        protected abstract ParseOptions CommonWithFeatures(IEnumerable<KeyValuePair<string, string>> features);
+
+        /// <summary>
+        /// Returns the experimental features.
+        /// </summary>
+        public abstract IReadOnlyDictionary<string, string> Features
+        {
+            get;
+        }
+
+        /// <summary>
         /// Names of defined preprocessor symbols.
         /// </summary>
         public abstract IEnumerable<string> PreprocessorSymbolNames { get; }
@@ -68,6 +86,7 @@ namespace Microsoft.CodeAnalysis
             return
                 this.Kind == other.Kind &&
                 this.DocumentationMode == other.DocumentationMode &&
+                this.Features.SequenceEqual(other.Features) &&
                 (this.PreprocessorSymbolNames == null ? other.PreprocessorSymbolNames == null : this.PreprocessorSymbolNames.SequenceEqual(other.PreprocessorSymbolNames, StringComparer.Ordinal));
         }
 
@@ -78,7 +97,20 @@ namespace Microsoft.CodeAnalysis
             return
                 Hash.Combine((int)this.Kind,
                 Hash.Combine((int)this.DocumentationMode,
-                Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0)));
+                Hash.Combine(HashFeatures(this.Features),
+                Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0))));
+        }
+
+        private int HashFeatures(IReadOnlyDictionary<string, string> features)
+        {
+            int value = 0;
+            foreach (var kv in features)
+            {
+                value = Hash.Combine(kv.Key.GetHashCode(),
+                        Hash.Combine(kv.Value.GetHashCode(), value));
+            }
+
+            return value;
         }
 
         public static bool operator ==(ParseOptions left, ParseOptions right)

@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CSharpParseOptions),
+                "Features",
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols");
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void Serializability()
         {
             VerifySerializability(new CSharpSerializableParseOptions(new CSharpParseOptions(
-                languageVersion: LanguageVersion.Experimental,
+                languageVersion: LanguageVersion.CSharp6,
                 documentationMode: DocumentationMode.None,
                 kind: SourceCodeKind.Interactive,
                 preprocessorSymbols: new[] { "A", "B" })));

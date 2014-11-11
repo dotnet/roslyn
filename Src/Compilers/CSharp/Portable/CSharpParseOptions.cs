@@ -163,6 +163,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithDocumentationMode(documentationMode);
         }
 
+        protected override ParseOptions CommonWithFeatures(IEnumerable<KeyValuePair<string, string>> features)
+        {
+            return WithFeatures(features);
+        }
+
+        /// <summary>
+        /// Enable some experimental language features for testing.
+        /// </summary>
+        public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
+        {
+            if (features == null)
+            {
+                throw new ArgumentNullException(nameof(features));
+            }
+
+            // there are currently no parse options for experimental features
+            if (System.Linq.Enumerable.Any(features))
+            {
+                throw new ArgumentException("Experimental features are not supported", nameof(features));
+            }
+
+            return this;
+        }
+
+        public override IReadOnlyDictionary<string, string> Features
+        {
+            get
+            {
+                // there are currently no parse options for experimental features
+                return new Dictionary<string, string>();
+            }
+        }
+
         public override bool Equals(object obj)
         {
             return this.Equals(obj as CSharpParseOptions);

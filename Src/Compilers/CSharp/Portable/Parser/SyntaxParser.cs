@@ -1043,11 +1043,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
                 return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
             }
-            
-            if (requiredVersion == LanguageVersion.Experimental)
-            {
-                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName);
-            }
 
             return this.AddError(node, availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
         }

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionBodiedMethod = MessageBase + 12691,
         IDS_FeatureExpressionBodiedProperty = MessageBase + 12692,
         IDS_FeatureExpressionBodiedIndexer = MessageBase + 12693,
-        IDS_VersionExperimental = MessageBase + 12694,
+        // IDS_VersionExperimental = MessageBase + 12694,
         IDS_FeatureNameof = MessageBase + 12695,
         IDS_FeatureDictionaryInitializer = MessageBase + 12696,
         IDS_FeatureStructParameterlessConstructors = MessageBase + 12697,

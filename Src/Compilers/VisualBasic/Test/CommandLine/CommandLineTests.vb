@@ -983,14 +983,6 @@ a.vb
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:Experimental", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.Experimental, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:experimental", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.Experimental, parsedArgs.ParseOptions.LanguageVersion)
-
             ' default: "current version"
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()

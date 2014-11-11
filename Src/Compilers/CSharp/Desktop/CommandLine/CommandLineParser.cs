@@ -1520,14 +1520,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case "default":
                     version = defaultVersion;
                     return true;
-
-                case "experimental":
-                    version = LanguageVersion.Experimental;
-                    return true;
-
+                    
                 default:
                     int versionNumber;
-                    if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) && ((LanguageVersion)versionNumber).IsValid() && versionNumber != (int)LanguageVersion.Experimental)
+                    if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) && ((LanguageVersion)versionNumber).IsValid())
                     {
                         version = (LanguageVersion)versionNumber;
                         return true;

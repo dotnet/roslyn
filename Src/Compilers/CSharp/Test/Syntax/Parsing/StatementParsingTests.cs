@@ -2346,15 +2346,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 base.VisitToken(token);
             }
         }
-
-        [Fact]
-        public void DeclarationExpressions_01()
-        {
-            var text = "int x";
-            var statement = this.ParseStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Experimental));
-            Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
-            Assert.Equal(text, statement.ToString());
-        }
     }
 }

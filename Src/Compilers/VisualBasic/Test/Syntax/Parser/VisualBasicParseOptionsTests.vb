@@ -229,6 +229,7 @@ Public Class VisualBasicParseOptionsTests
     Public Sub TestFieldsForEqualsAndGetHashCode()
         ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 (GetType(VisualBasicParseOptions)),
+                "Features",
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols")
@@ -237,7 +238,7 @@ Public Class VisualBasicParseOptionsTests
     <Fact>
     Public Sub Serializability()
         VerifySerializability(New VisualBasicSerializableParseOptions(New VisualBasicParseOptions(
-                    languageVersion:=LanguageVersion.Experimental,
+                    languageVersion:=LanguageVersion.VisualBasic14,
                     documentationMode:=DocumentationMode.Diagnose)))
     End Sub
 End Class

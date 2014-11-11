@@ -1054,11 +1054,7 @@ d.cs
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:default", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
-
-            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:experimental", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(LanguageVersion.Experimental, parsedArgs.ParseOptions.LanguageVersion);
-
+            
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:iso-1", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.CSharp1, parsedArgs.ParseOptions.LanguageVersion);

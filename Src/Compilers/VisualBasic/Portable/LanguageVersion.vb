@@ -12,7 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic11 = 11
         VisualBasic12 = 12
         VisualBasic14 = 14
-        Experimental = Integer.MaxValue
     End Enum
 
     Friend Module LanguageVersionEnumBounds
@@ -24,8 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LanguageVersion.VisualBasic10,
                     LanguageVersion.VisualBasic11,
                     LanguageVersion.VisualBasic12,
-                    LanguageVersion.VisualBasic14,
-                    LanguageVersion.Experimental
+                    LanguageVersion.VisualBasic14
 
                     Return True
             End Select

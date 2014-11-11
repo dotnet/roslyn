@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private ExpressionSyntax ParseExpressionExperimental(string text)
         {
-            return SyntaxFactory.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Experimental));
+            var experimentalFeatures = new SmallDictionary<string, string>(); // no experimental features to enable
+            return SyntaxFactory.ParseExpression(text, options: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
         }
 
         [Fact]

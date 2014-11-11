@@ -8,10 +8,11 @@ Public Class TestOptions
 
     Public Shared ReadOnly ReleaseDll As New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release)
     Public Shared ReadOnly ReleaseExe As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release)
+
+    Private Shared ReadOnly Features As New Dictionary(Of String, String) ' No experimental features to enable at this time
     Public Shared ReadOnly ExperimentalReleaseExe As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
                                                                                        optimizationLevel:=OptimizationLevel.Release,
-                                                                                       parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Regular,
-                                                                                                                                 languageVersion:=LanguageVersion.Experimental))
+                                                                                       parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Regular).WithFeatures(Features))
 
     Public Shared ReadOnly DebugDll As New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Debug)
     Public Shared ReadOnly DebugExe As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Debug)
