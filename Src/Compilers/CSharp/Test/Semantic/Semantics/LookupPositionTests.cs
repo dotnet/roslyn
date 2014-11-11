@@ -401,25 +401,25 @@ public abstract `class C`<T`> : NS.I
 
             string[] delegate_d1_members = new string[]{
                 "System.IAsyncResult C<T>.D1.BeginInvoke(System.AsyncCallback callback, System.Object @object)",
-                "void C<T>.D1.EndInvoke(System.IAsyncResult result)",
+                "void C<T>.D1.EndInvoke(System.IAsyncResult __result)",
                 "void C<T>.D1.Invoke()"
             }.Concat(CommonDelegateTypeMembers).ToArray();
 
             string[] delegate_d2_members = new string[]{
                 "System.IAsyncResult C<T>.D2.BeginInvoke(System.Int32 t, System.AsyncCallback callback, System.Object @object)",
-                "void C<T>.D2.EndInvoke(System.IAsyncResult result)",
+                "void C<T>.D2.EndInvoke(System.IAsyncResult __result)",
                 "void C<T>.D2.Invoke(System.Int32 t)"
             }.Concat(CommonDelegateTypeMembers).ToArray();
 
             string[] delegate_d3_members = new string[]{
                 "System.IAsyncResult C<T>.D3<U>.BeginInvoke(System.AsyncCallback callback, System.Object @object)",
-                "void C<T>.D3<U>.EndInvoke(System.IAsyncResult result)",
+                "void C<T>.D3<U>.EndInvoke(System.IAsyncResult __result)",
                 "void C<T>.D3<U>.Invoke()"
             }.Concat(CommonDelegateTypeMembers).ToArray();
 
             string[] delegate_d4_members = new string[]{
                 "System.IAsyncResult C<T>.D4<V>.BeginInvoke(V t, System.AsyncCallback callback, System.Object @object)",
-                "void C<T>.D4<V>.EndInvoke(System.IAsyncResult result)",
+                "void C<T>.D4<V>.EndInvoke(System.IAsyncResult __result)",
                 "void C<T>.D4<V>.Invoke(V t)"
             }.Concat(CommonDelegateTypeMembers).ToArray();
 

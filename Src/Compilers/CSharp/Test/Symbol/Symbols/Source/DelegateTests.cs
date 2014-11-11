@@ -350,7 +350,7 @@ delegate int D(int x, ref int y, out int z);
             Assert.Equal(3, endInvokeParameters.Length);
             Assert.Equal("y", endInvokeParameters[0].Name);
             Assert.Equal("z", endInvokeParameters[1].Name);
-            Assert.Equal("result", endInvokeParameters[2].Name);
+            Assert.Equal("__result", endInvokeParameters[2].Name);
         }
 
         [WorkItem(541179, "DevDiv")]
