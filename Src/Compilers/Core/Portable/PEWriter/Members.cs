@@ -307,7 +307,7 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// Local id, or <see cref="LocalDebugId.None"/> if this is a local constant, short-lived temp variable, 
-        /// or we are not emitting local variable ids (realese builds).
+        /// or we are not emitting local variable ids (release builds).
         /// </summary>
         LocalSlotDebugInfo SlotInfo { get; }
     }

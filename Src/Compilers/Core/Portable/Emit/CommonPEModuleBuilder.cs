@@ -360,13 +360,15 @@ namespace Microsoft.CodeAnalysis.Emit
             public ConcurrentQueue<Cci.IPropertyDefinition> Properties;
             public ConcurrentQueue<Cci.IFieldDefinition> Fields;
 
-            public IEnumerable<Cci.ITypeDefinitionMember> GetAllMembers()
+            public ImmutableArray<Cci.ITypeDefinitionMember> GetAllMembers()
             {
+                var builder = ArrayBuilder<Cci.ITypeDefinitionMember>.GetInstance();
+
                 if (Fields != null)
                 {
                     foreach (var field in Fields)
                     {
-                        yield return field;
+                        builder.Add(field);
                     }
                 }
 
@@ -374,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     foreach (var method in Methods)
                     {
-                        yield return method;
+                        builder.Add(method);
                     }
                 }
 
@@ -382,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     foreach (var property in Properties)
                     {
-                        yield return property;
+                        builder.Add(property);
                     }
                 }
 
@@ -390,9 +392,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     foreach (var type in NestedTypes)
                     {
-                        yield return type;
+                        builder.Add(type);
                     }
                 }
+
+                return builder.ToImmutableAndFree();
             }
         }
 
@@ -550,7 +554,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var entry in synthesizedDefs)
             {
-                builder.Add(entry.Key, ImmutableArray.CreateRange(entry.Value.GetAllMembers()));
+                builder.Add(entry.Key, entry.Value.GetAllMembers());
             }
 
             return builder.ToImmutable();
@@ -564,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return ImmutableArray<Cci.ITypeDefinitionMember>.Empty;
             }
 
-            return ImmutableArray.CreateRange(defs.GetAllMembers());
+            return defs.GetAllMembers();
         }
 
         #endregion

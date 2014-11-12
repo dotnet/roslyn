@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.Emit
                         var mappedMemberDef = (Cci.ITypeDefinitionMember)MapDefinition(memberDef);
                         if (mappedMemberDef != null)
                         {
-                            // If the matcher found a type in the current compilation corresponding to typeDef,
-                            // the type def has to be contained in newMembers.
+                            // If the matcher found a member in the current compilation corresponding to memberDef,
+                            // the member def has to be contained in newMembers.
                             Debug.Assert(newMembers[mappedTypeDef].Contains(mappedMemberDef));
                         }
                         else
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         }
                     }
 
-                    // the type migth already be present, in which case we update its list of members:
+                    // the type must already be present, update its list of members:
                     synthesizedMembersBuilder[mappedTypeDef] = memberBuilder.ToImmutableAndFree();
                 }
                 else

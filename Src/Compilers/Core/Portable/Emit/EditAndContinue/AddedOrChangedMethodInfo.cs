@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public AddedOrChangedMethodInfo MapTypes(SymbolMatcher map)
         {
-            var mappedLocals = this.Locals.SelectAsArray(MapLocalInfo, map);
+            var mappedLocals = ImmutableArray.CreateRange(this.Locals, MapLocalInfo, map);
             var mappedHoistedLocalSlots = StateMachineHoistedLocalSlotsOpt.IsDefault ? StateMachineHoistedLocalSlotsOpt : ImmutableArray.CreateRange(StateMachineHoistedLocalSlotsOpt, MapHoistedLocalSlot, map);
             var mappedAwaiterSlots = StateMachineAwaiterSlotsOpt.IsDefault ? StateMachineAwaiterSlotsOpt : ImmutableArray.CreateRange(StateMachineAwaiterSlotsOpt, map.MapReference);
 

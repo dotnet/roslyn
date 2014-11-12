@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 tableSizes[i] = previousTableSizes[i] + deltaTableSizes[i];
             }
 
-            // If the previos generation is 0 (metadata) get the synthesized members from the current compilation's builder,
+            // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
             var synthesizedMembers = (baseline.Ordinal == 0) ? moduleBuilder.GetSynthesizedMembers() : baseline.SynthesizedMembers;
 

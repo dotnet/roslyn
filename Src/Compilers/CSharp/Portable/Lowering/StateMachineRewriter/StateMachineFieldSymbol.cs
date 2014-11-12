@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
