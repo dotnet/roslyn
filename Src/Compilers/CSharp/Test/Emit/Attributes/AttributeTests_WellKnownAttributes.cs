@@ -837,7 +837,7 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
                             case "BeginInvoke.b":
                             case "BeginInvoke.callback":
                             case "BeginInvoke.object":
-                            case "EndInvoke.result":
+                            case "EndInvoke.__result":
                                 expectedFlags = 0;
                                 break;
 
@@ -1673,7 +1673,7 @@ public delegate void D([Optional, DecimalConstantAttribute(hi: 3, sign: 2, mid: 
                 Signature("D", "EndInvoke",
                     ".method public hidebysig newslot virtual instance System.Void EndInvoke(" +
                     "[System.Runtime.CompilerServices.DecimalConstantAttribute(1, 2, 3, 4, 5)] [opt] System.Decimal& a = -5534023223830852403.7, " +
-                    "System.IAsyncResult result) " +
+                    "System.IAsyncResult __result) " +
                     "runtime managed"),
 
                 Signature("D", "Invoke",
@@ -1812,7 +1812,7 @@ public delegate int F([Out]int a, [In]int b, [In, Out]ref int c, [In]ref int d, 
                         case "callback":
                         case "object":
                         case "method":
-                        case "result":
+                        case "__result":
                             expectedFlags = 0;
                             break;
 

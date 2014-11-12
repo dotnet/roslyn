@@ -1244,7 +1244,7 @@ class C
                     { "EndInvoke:p1", marshalAsBstr },
                     { "EndInvoke:p2", marshalAsBstr },
                     { "EndInvoke:p3", marshalAsBstr },
-                    { "EndInvoke:result", null },
+                    { "EndInvoke:__result", null },
                 },
                 isField: false);
         }

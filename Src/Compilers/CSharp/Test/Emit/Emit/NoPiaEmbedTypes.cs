@@ -1386,7 +1386,7 @@ class UsePia4
                     Assert.Equal(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot, end.Flags);
                     Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)end.ImplementationAttributes);
                     Assert.Equal(CallingConvention.Default | CallingConvention.HasThis, end.CallingConvention);
-                    Assert.Equal("void Test11.EndInvoke(System.IAsyncResult result)", end.ToTestDisplayString());
+                    Assert.Equal("void Test11.EndInvoke(System.IAsyncResult __result)", end.ToTestDisplayString());
 
                     var invoke = (PEMethodSymbol)test11.GetMembers("Invoke").Single();
 
