@@ -5537,63 +5537,6 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string"));
         }
 
-        [WorkItem(544571, "DevDiv")]
-        [Fact]
-        public void TestResolveOverloads()
-        {
-            var source = @"
-using System;
-class Program
-{
-    static void M()
-    {
-    }
-    static void M(long l)
-    {
-    }
-    static void M(short s)
-    {
-    }
-    static void M(int i)
-    {
-    }
-    static void Main()
-    {
-        // Perform overload resolution here.
-    }
-}";
-            var tree = Parse(source);
-            var compilation = CSharpCompilation.Create("MyCompilation",
-                syntaxTrees: new[] { tree }, references: new[] { MscorlibRef });
-            var model = compilation.GetSemanticModel(tree);
-
-            // Get MethodSymbols for all MethodDeclarationSyntax nodes with name 'M'.
-            var methodSymbols = tree.GetCompilationUnitRoot()
-                .DescendantNodes().OfType<MethodDeclarationSyntax>()
-                .Where(m => m.Identifier.ToString() == "M")
-                .Select(m => (MethodSymbol)model.GetDeclaredSymbol(m));
-
-            // Perform overload resolution at the position identified by the comment '// Perform ...' above.
-            var position = source.IndexOf("//");
-            OverloadResolutionResult<MethodSymbol> overloadResults = ((CSharpSemanticModel)model).ResolveOverloads(
-                position,                                              // Position to determine scope and accessibility.
-                ImmutableArray.CreateRange<MethodSymbol>(methodSymbols), // Candidate MethodSymbols.
-                ImmutableArray.Create<TypeSymbol>(),                       // Type Arguments (if any).
-                ImmutableArray.Create<ArgumentSyntax>(              // Arguments.
-                    SyntaxFactory.Argument(
-                        SyntaxFactory.LiteralExpression(                      // OR Syntax.ParseExpression("100")
-                            SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal("100", 100)))));
-            Assert.True(overloadResults.Succeeded);
-
-            var results = string.Join("\r\n", overloadResults.Results
-                .Select(result => string.Format("{0}: {1}{2}",
-                    result.Resolution, result.Member, result.IsValid ? " [Selected Candidate]" : string.Empty)));
-
-            Assert.Equal(@"Worse: Program.M(long)
-Worse: Program.M(short)
-ApplicableInNormalForm: Program.M(int) [Selected Candidate]", results);
-        }
-
         [Fact]
         public void TypeInferenceFailures()
         {

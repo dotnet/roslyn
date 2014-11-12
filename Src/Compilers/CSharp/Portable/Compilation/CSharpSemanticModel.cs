@@ -2729,62 +2729,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public abstract IRangeVariableSymbol GetDeclaredSymbol(QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
-
-        /// <summary>
-        /// Resolves the set of provided arguments against set of provided methods to determine the
-        /// appropriate overload. The arguments are bound as if they were at 'position' within this
-        /// binding. An OverloadResolutionResult is returned that gives the result of the compiler's
-        /// overload resolution analysis.
-        /// </summary>
-        /// <param name="position">A character position used to identify a declaration scope and
-        /// accessibility. This character position must be within the FullSpan of the Root syntax
-        /// node in this SemanticModel. This position is used when binding the arguments.
-        /// </param>
-        /// <param name="members">The set of methods to resolve overloads among.</param>
-        /// <param name="arguments">The list of arguments, in order, to use when resolving the
-        /// overloads. The arguments are interpreted as if they occurred within the declaration
-        /// scope that encloses "position".</param>
-        /// <param name="typeArguments">If present, the type argument provided. If not provided,
-        /// type inference is done.</param>
-        /// <remarks>
-        /// This can be used to resolve constructors as well as methods.
-        /// </remarks>
-        internal OverloadResolutionResult<TSymbol> ResolveOverloads<TSymbol>(
-            int position,
-            ImmutableArray<TSymbol> members,
-            ImmutableArray<TypeSymbol> typeArguments,
-            ImmutableArray<ArgumentSyntax> arguments) where TSymbol : Symbol
-        {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_ResolveOverloads, message: this.SyntaxTree.FilePath))
-            {
-                CheckForNullArgument(members, "members");
-                CheckForNullArgument(typeArguments, "typeArguments");
-                CheckForNullArgument(arguments, "arguments");
-
-                position = CheckAndAdjustPosition(position);
-                var binder = this.GetEnclosingBinder(position);
-
-                var overloadResolutionResult = new OverloadResolutionResult<TSymbol>();
-
-                // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
-                // If so, we must ignore the 'ref' on the parameter while determining the applicability of argument for the given method call.
-                // TODO: public ResolveOverloads API must pass in the below flag indicating whether we are resolving overloads on an instance of a COM imported type.
-                bool allowRefOmittedArguments = false;
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                binder.ResolveOverloads(members, typeArguments, arguments, overloadResolutionResult, ref useSiteDiagnostics, allowRefOmittedArguments);
-                return overloadResolutionResult;
-            }
-        }
-
-        private static void CheckForNullArgument<T>(ImmutableArray<T> argument, string parameterName)
-        {
-            if (argument.IsDefault)
-            {
-                throw new ArgumentNullException(parameterName);
-            }
-        }
-
         // Get the symbols and possible method or property group associated with a bound node, as
         // they should be exposed through GetSemanticInfo.
         // NB: It is not safe to pass a null binderOpt during speculative binding.

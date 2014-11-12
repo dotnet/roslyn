@@ -2090,39 +2090,6 @@ _Default:
         End Function
 
         ''' <summary>
-        ''' Resolves the set of provided arguments against set of provided methods or properties to determine the
-        ''' appropriate overload.  The arguments are bound as if they were at 'position' within this
-        ''' binding.  An OverloadResolutionResult is returned that gives the result of the compiler's
-        ''' overload resolution analysis.
-        ''' </summary>
-        ''' <param name="position">A character position used to identify a declaration scope and
-        ''' accessibility. This character position must be within the FullSpan of the Root syntax
-        ''' node in this SemanticModel. This position is used when binding the arguments.
-        ''' </param>
-        ''' <param name="members">The set of methods or properties to resolve overloads among.</param>
-        ''' <param name="arguments">The list of arguments, in order, to use when resolving the
-        ''' overloads. The arguments are interpreted as if they occurred within the declaration
-        ''' scope that encloses "position".</param>
-        ''' <param name="typeArguments">If present, the type argument provided. If not provided,
-        ''' type inference is done. May not be provided if TMember is PropertySymbol</param>
-        ''' <typeparam name="TMember">Must be MethodSymbol to resolve overloads on methods, or
-        ''' PropertySymbol to resolve overloads on properties.</typeparam>
-        ''' <remarks>
-        ''' This can be used to resolve constructors as well as methods.
-        ''' </remarks>
-        Friend Function ResolveOverloads(Of TMember As Symbol)(
-                 position As Integer,
-                 members As ImmutableArray(Of TMember),
-                 typeArguments As ImmutableArray(Of TypeSymbol),
-                 arguments As ImmutableArray(Of ArgumentSyntax)) As OverloadResolutionResult(Of TMember)
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_ResolveOverloads, message:=Me.SyntaxTree.FilePath)
-                CheckPosition(position)
-                Dim binder = GetEnclosingBinder(position)
-                Return binder.ResolveOverloadedMembers(members, typeArguments, arguments)
-            End Using
-        End Function
-
-        ''' <summary>
         ''' Analyze control-flow within a part of a method body.
         ''' </summary>
         ''' <param name="firstStatement">The first statement to be included in the analysis.</param>
