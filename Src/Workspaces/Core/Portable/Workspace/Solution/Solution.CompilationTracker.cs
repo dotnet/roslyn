@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis
             /// compilation is not available, it is built. If a skeletal assembly reference is
             /// needed and does not exist, it is also built.
             /// </summary>
-            internal async Task<MetadataReference> GetMetadataReferenceAsync(
+            public async Task<MetadataReference> GetMetadataReferenceAsync(
                 Solution solution,
                 ProjectState fromProject,
                 ProjectReference projectReference,
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis
             /// compilation. Actual compilation references are preferred over skeletal assembly
             /// references.  Could potentially return null if nothing can be provided.
             /// </summary>
-            internal MetadataReference GetPartialMetadataReference(Solution solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
+            public MetadataReference GetPartialMetadataReference(Solution solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
 
@@ -739,6 +739,39 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            /// <summary>
+            /// check whether the compilation contains any declaration symbol from syntax trees with given name
+            /// </summary>
+            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+            {
+                var state = this.ReadState();
+                if (state.DeclarationOnlyCompilation == null)
+                {
+                    return null;
+                }
+
+                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
+                return state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
+            }
+
+            /// <summary>
+            /// get all syntax trees that contain declaration node with the given name
+            /// </summary>
+            public IEnumerable<SyntaxTree> GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+            {
+                var state = this.ReadState();
+                if (state.DeclarationOnlyCompilation == null)
+                {
+                    return null;
+                }
+
+                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
+
+                // use cloned compilation since this will cause symbols to be created.
+                var clone = state.DeclarationOnlyCompilation.Clone();
+                return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
+            }
+
             #region Versions
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
@@ -746,7 +779,7 @@ namespace Microsoft.CodeAnalysis
             private AsyncLazy<VersionStamp> lazyDependentVersion;
             private AsyncLazy<VersionStamp> lazyDependentSemanticVersion;
 
-            internal async Task<VersionStamp> GetDependentVersionAsync(Solution solution, CancellationToken cancellationToken)
+            public async Task<VersionStamp> GetDependentVersionAsync(Solution solution, CancellationToken cancellationToken)
             {
                 if (this.lazyDependentVersion == null)
                 {
@@ -778,7 +811,7 @@ namespace Microsoft.CodeAnalysis
                 return version;
             }
 
-            internal async Task<VersionStamp> GetDependentSemanticVersionAsync(Solution solution, CancellationToken cancellationToken)
+            public async Task<VersionStamp> GetDependentSemanticVersionAsync(Solution solution, CancellationToken cancellationToken)
             {
                 if (this.lazyDependentSemanticVersion == null)
                 {

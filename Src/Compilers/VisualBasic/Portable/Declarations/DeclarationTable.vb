@@ -1,15 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -84,14 +77,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' we already had a 'latest' item.  This means we're hearing about a change to a
                 ' different tree.  Realize the old latest item, add it to the 'older' collection
                 ' and don't reuse the cache.
-                Return New DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration), lazyRootDeclaration, Cache:=Nothing)
+                Return New DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration), lazyRootDeclaration, cache:=Nothing)
             End If
         End Function
 
         Public Function RemoveRootDeclaration(lazyRootDeclaration As DeclarationTableEntry) As DeclarationTable
             ' We can only reuse the cache if we're removing the decl that was just added.
             If _latestLazyRootDeclaration Is lazyRootDeclaration Then
-                Return New DeclarationTable(_allOlderRootDeclarations, latestLazyRootDeclaration:=Nothing, Cache:=Me._cache)
+                Return New DeclarationTable(_allOlderRootDeclarations, latestLazyRootDeclaration:=Nothing, cache:=Me._cache)
             Else
                 ' We're removing a different tree than the latest one added.  We need to realize the
                 ' passed in root and remove that from our 'older' list.  We also can't reuse the
@@ -99,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 '
                 ' Note: we can keep around the 'latestLazyRootDeclaration'.  There's no need to
                 ' realize it if we don't have to.
-                Return New DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration), _latestLazyRootDeclaration, Cache:=Nothing)
+                Return New DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration), _latestLazyRootDeclaration, cache:=Nothing)
             End If
         End Function
 
@@ -272,5 +265,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _referenceDirectiveDiagnostics.Value
             End Get
         End Property
+
+        Public Function ContainsName(predicate As Func(Of String, Boolean), filter As SymbolFilter, cancellationToken As CancellationToken) As Boolean
+
+            Dim includeNamespace = (filter And SymbolFilter.Namespace) = SymbolFilter.Namespace
+            Dim includeType = (filter And SymbolFilter.Type) = SymbolFilter.Type
+            Dim includeMember = (filter And SymbolFilter.Member) = SymbolFilter.Member
+
+            Dim stack = New Stack(Of MergedNamespaceOrTypeDeclaration)()
+            stack.Push(Me.MergedRoot)
+
+            While stack.Count > 0
+                cancellationToken.ThrowIfCancellationRequested()
+
+                Dim current = stack.Pop()
+                If current Is Nothing Then
+                    Continue While
+                End If
+
+                If current.Kind = DeclarationKind.Namespace Then
+                    If includeNamespace AndAlso predicate(current.Name) Then
+                        Return True
+                    End If
+                Else
+                    If includeType AndAlso predicate(current.Name) Then
+                        Return True
+                    End If
+
+                    If includeMember Then
+                        Dim mergedType = DirectCast(current, MergedTypeDeclaration)
+                        For Each name In mergedType.MemberNames
+                            If predicate(name) Then
+                                Return True
+                            End If
+                        Next
+                    End If
+                End If
+
+                For Each child In current.Children.OfType(Of MergedNamespaceOrTypeDeclaration)()
+                    If includeMember OrElse includeType Then
+                        stack.Push(child)
+                        Continue For
+                    End If
+
+                    If child.Kind = DeclarationKind.Namespace Then
+                        stack.Push(child)
+                    End If
+                Next
+            End While
+
+            Return False
+        End Function
     End Class
 End Namespace

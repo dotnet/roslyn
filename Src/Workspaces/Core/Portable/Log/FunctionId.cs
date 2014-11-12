@@ -286,5 +286,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SolutionExplorer_AnalyzerItemSource_GetItems,
         SolutionExplorer_DiagnosticItemSource_GetItems,
         WorkCoordinator_ActivieFileEnqueue,
+        SymbolFinder_FindDeclarationsAsync,
+        SymbolFinder_Project_AddDeclarationsAsync,
+        SymbolFinder_Assembly_AddDeclarationsAsync,
+        SymbolFinder_Solution_Name_FindSourceDeclarationsAsync,
+        SymbolFinder_Project_Name_FindSourceDeclarationsAsync,
+        SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync,
+        SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync,
     }
 }

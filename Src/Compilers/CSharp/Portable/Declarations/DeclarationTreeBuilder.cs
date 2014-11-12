@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -426,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
 
-            var set = PooledHashSet<string>.GetInstance();           
+            var set = PooledHashSet<string>.GetInstance();
 
             foreach (var member in members)
             {

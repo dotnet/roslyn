@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal ModulePropertiesForSerialization ConstructModuleSerializationProperties(
             EmitOptions emitOptions,
-            string targetRuntimeVersion, 
+            string targetRuntimeVersion,
             Guid moduleVersionId = default(Guid))
         {
             CompilationOptions compilationOptions = this.Options;
@@ -1560,7 +1560,7 @@ namespace Microsoft.CodeAnalysis
                         // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
                         // If the underlying stream isn't readable and seekable, we need to use a temp stream.
                         string deterministicString = this.Feature("deterministic");
-                        bool deterministic =  deterministicString != null && deterministicString != "false";
+                        bool deterministic = deterministicString != null && deterministicString != "false";
                         var writeToTempStream = deterministic && !(outputStream.CanRead && outputStream.CanSeek);
                         var streamToWrite = writeToTempStream ? new MemoryStream() : outputStream;
 
@@ -1798,6 +1798,20 @@ namespace Microsoft.CodeAnalysis
             if (source == null || destination == null) return this.AssemblyName;
             return string.Format("{0}: {1} {2} -> {3} {4}", this.AssemblyName, source.TypeKind.ToString(), source.Name, destination.TypeKind.ToString(), destination.Name);
         }
+
+        #endregion
+
+        #region Declaration Name Queries
+
+        /// <summary>
+        /// Return true if there is a source declaration symbol name that meets given predicate.
+        /// </summary>
+        public abstract bool ContainsSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Return source declaration symbols whose name meets given predicate.
+        /// </summary>
+        public abstract IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
         #endregion
     }

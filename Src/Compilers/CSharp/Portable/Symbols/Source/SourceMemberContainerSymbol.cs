@@ -584,6 +584,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal MergedTypeDeclaration MergedDeclaration
+        {
+            get
+            {
+                return this.declaration;
+            }
+        }
+
         internal sealed override bool IsInterface
         {
             get

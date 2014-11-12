@@ -2900,6 +2900,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return loc1.SourceSpan.Start - loc2.SourceSpan.Start;
         }
 
+        /// <summary>
+        /// Return true if there is a source declaration symbol name that meets given predicate.
+        /// </summary>
+        public override bool ContainsSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            if (filter == SymbolFilter.None)
+            {
+                throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
+            }
+
+            return this.declarationTable.ContainsName(predicate, filter, cancellationToken);
+        }
+
+        /// <summary>
+        /// Return source declaration symbols whose name meets given predicate.
+        /// </summary>
+        public override IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            if (filter == SymbolFilter.None)
+            {
+                throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
+            }
+
+            return new SymbolSearcher(this).GetSymbolsWithName(predicate, filter, cancellationToken);
+        }
+
         #endregion
 
         internal void MakeMemberMissing(WellKnownMember member)
@@ -2962,6 +2998,176 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var sustainedLowLatency = GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
+            }
+        }
+
+        private class SymbolSearcher
+        {
+            private readonly Dictionary<Declaration, NamespaceOrTypeSymbol> cache;
+            private readonly CSharpCompilation compilation;
+
+            public SymbolSearcher(CSharpCompilation compilation)
+            {
+                this.cache = new Dictionary<Declaration, NamespaceOrTypeSymbol>();
+                this.compilation = compilation;
+            }
+
+            public IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+            {
+                var result = new HashSet<ISymbol>();
+                var spine = new List<MergedNamespaceOrTypeDeclaration>();
+
+                AppendSymbolsWithName(spine, this.compilation.declarationTable.MergedRoot, predicate, filter, result, cancellationToken);
+
+                return result;
+            }
+
+            private void AppendSymbolsWithName(
+                List<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
+                Func<string, bool> predicate, SymbolFilter filter, HashSet<ISymbol> set, CancellationToken cancellationToken)
+            {
+                var includeNamespace = (filter & SymbolFilter.Namespace) == SymbolFilter.Namespace;
+                var includeType = (filter & SymbolFilter.Type) == SymbolFilter.Type;
+                var includeMember = (filter & SymbolFilter.Member) == SymbolFilter.Member;
+
+                if (current.Kind == DeclarationKind.Namespace)
+                {
+                    if (includeNamespace && predicate(current.Name))
+                    {
+                        var container = GetSpineSymbol(spine);
+                        set.Add(GetSymbol(container, current));
+                    }
+                }
+                else
+                {
+                    if (includeType && predicate(current.Name))
+                    {
+                        var container = GetSpineSymbol(spine);
+                        set.Add(GetSymbol(container, current));
+                    }
+
+                    if (includeMember)
+                    {
+                        AppendMemberSymbolsWithName(spine, current, predicate, set, cancellationToken);
+                    }
+                }
+
+                spine.Add(current);
+
+                foreach (var child in current.Children.OfType<MergedNamespaceOrTypeDeclaration>())
+                {
+                    if (includeMember || includeType)
+                    {
+                        AppendSymbolsWithName(spine, child, predicate, filter, set, cancellationToken);
+                        continue;
+                    }
+
+                    if (child.Kind == DeclarationKind.Namespace)
+                    {
+                        AppendSymbolsWithName(spine, child, predicate, filter, set, cancellationToken);
+                    }
+                }
+
+                // pop last one
+                spine.RemoveAt(spine.Count - 1);
+            }
+
+            private void AppendMemberSymbolsWithName(
+                List<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
+                Func<string, bool> predicate, HashSet<ISymbol> set, CancellationToken cancellationToken)
+            {
+                spine.Add(current);
+
+                NamespaceOrTypeSymbol container = null;
+                var mergedType = (MergedTypeDeclaration)current;
+                foreach (var name in mergedType.MemberNames)
+                {
+                    if (predicate(name))
+                    {
+                        container = container ?? GetSpineSymbol(spine);
+                        set.UnionWith(container.GetMembers(name));
+                    }
+                }
+
+                spine.RemoveAt(spine.Count - 1);
+            }
+
+            private NamespaceOrTypeSymbol GetSpineSymbol(List<MergedNamespaceOrTypeDeclaration> spine)
+            {
+                if (spine.Count == 0)
+                {
+                    return null;
+                }
+
+                var symbol = GetCachedSymbol(spine[spine.Count - 1]);
+                if (symbol != null)
+                {
+                    return symbol;
+                }
+
+                var current = this.compilation.GlobalNamespace as NamespaceOrTypeSymbol;
+                for (var i = 1; i < spine.Count; i++)
+                {
+                    current = GetSymbol(current, spine[i]);
+                }
+
+                return current;
+            }
+
+            private NamespaceOrTypeSymbol GetCachedSymbol(MergedNamespaceOrTypeDeclaration declaration)
+            {
+                NamespaceOrTypeSymbol symbol;
+                if (this.cache.TryGetValue(declaration, out symbol))
+                {
+                    return symbol;
+                }
+
+                return null;
+            }
+
+            private NamespaceOrTypeSymbol GetSymbol(NamespaceOrTypeSymbol container, MergedNamespaceOrTypeDeclaration declaration)
+            {
+                if (container == null)
+                {
+                    return this.compilation.GlobalNamespace;
+                }
+
+                if (declaration.Kind == DeclarationKind.Namespace)
+                {
+                    AddCache(container.GetMembers(declaration.Name).OfType<NamespaceOrTypeSymbol>());
+                }
+                else
+                {
+                    AddCache(container.GetTypeMembers(declaration.Name));
+                }
+
+                return GetCachedSymbol(declaration);
+            }
+
+            private void AddCache(IEnumerable<NamespaceOrTypeSymbol> symbols)
+            {
+                foreach (var symbol in symbols)
+                {
+                    var mergedNamespace = symbol as MergedNamespaceSymbol;
+                    if (mergedNamespace != null)
+                    {
+                        this.cache[mergedNamespace.ConstituentNamespaces.OfType<SourceNamespaceSymbol>().First().MergedDeclaration] = symbol;
+                        continue;
+                    }
+
+                    var sourceNamespace = symbol as SourceNamespaceSymbol;
+                    if (sourceNamespace != null)
+                    {
+                        this.cache[sourceNamespace.MergedDeclaration] = sourceNamespace;
+                        continue;
+                    }
+
+                    var sourceType = symbol as SourceMemberContainerTypeSymbol;
+                    if (sourceType != null)
+                    {
+                        this.cache[sourceType.MergedDeclaration] = sourceType;
+                    }
+                }
             }
         }
     }

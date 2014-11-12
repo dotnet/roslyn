@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -270,6 +272,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return referenceDirectiveDiagnostics.Value;
             }
+        }
+
+        public bool ContainsName(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var includeNamespace = (filter & SymbolFilter.Namespace) == SymbolFilter.Namespace;
+            var includeType = (filter & SymbolFilter.Type) == SymbolFilter.Type;
+            var includeMember = (filter & SymbolFilter.Member) == SymbolFilter.Member;
+
+            var stack = new Stack<MergedNamespaceOrTypeDeclaration>();
+            stack.Push(this.MergedRoot);
+
+            while (stack.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var current = stack.Pop();
+                if (current == null)
+                {
+                    continue;
+                }
+
+                if (current.Kind == DeclarationKind.Namespace)
+                {
+                    if (includeNamespace && predicate(current.Name))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (includeType && predicate(current.Name))
+                    {
+                        return true;
+                    }
+
+                    if (includeMember)
+                    {
+                        var mergedType = (MergedTypeDeclaration)current;
+                        foreach (var name in mergedType.MemberNames)
+                        {
+                            if (predicate(name))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                foreach (var child in current.Children.OfType<MergedNamespaceOrTypeDeclaration>())
+                {
+                    if (includeMember || includeType)
+                    {
+                        stack.Push(child);
+                        continue;
+                    }
+
+                    if (child.Kind == DeclarationKind.Namespace)
+                    {
+                        stack.Push(child);
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

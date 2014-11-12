@@ -92,6 +92,7 @@
     <Compile Include="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
     <Compile Include="Collections\OrderedSet.cs" />
+    <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="Emit\DebugInformationFormat.cs" />
     <Compile Include="Emit\EditAndContinue\AddedOrChangedMethodInfo.cs" />
     <Compile Include="Emit\EditAndContinue\EncHoistedLocalInfo.cs" />

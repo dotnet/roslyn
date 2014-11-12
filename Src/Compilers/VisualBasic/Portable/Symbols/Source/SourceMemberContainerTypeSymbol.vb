@@ -1282,7 +1282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Syntax"
 
-        Protected ReadOnly Property TypeDeclaration As MergedTypeDeclaration
+        Friend ReadOnly Property TypeDeclaration As MergedTypeDeclaration
             Get
                 Return m_declaration
             End Get

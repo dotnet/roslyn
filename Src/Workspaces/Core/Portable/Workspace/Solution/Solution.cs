@@ -2040,6 +2040,49 @@ namespace Microsoft.CodeAnalysis
             return new SolutionChanges(this, oldSolution);
         }
 
+        internal async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
+            if (result.HasValue)
+            {
+                return result.Value;
+            }
+
+            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
+            return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
+        }
+
+        internal async Task<IEnumerable<Document>> GetDocumentsWithName(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            // this will be used to find documents that contain declaration information in IDE cache such as DeclarationSyntaxTreeInfo for "NavigateTo"
+            var trees = GetCompilationTracker(id).GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
+            if (trees != null)
+            {
+                return ConvertTreesToDocuments(id, trees);
+            }
+
+            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
+            return ConvertTreesToDocuments(
+                id, compilation.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree)));
+        }
+
+        private IEnumerable<Document> ConvertTreesToDocuments(ProjectId id, IEnumerable<SyntaxTree> trees)
+        {
+            foreach (var tree in trees)
+            {
+                var document = GetDocument(tree, id);
+                if (document == null)
+                {
+                    // ignore trees that are not known to solution such as VB synthesized trees made by compilation.
+                    continue;
+                }
+
+                yield return document;
+            }
+        }
+
         /// <summary>
         /// Gets an ProjectDependencyGraph that details the dependencies between projects for this solution.
         /// </summary>

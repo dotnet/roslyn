@@ -108,7 +108,7 @@ namespace A.B {
                     {
                         var result = comp.Emit(output, outputPdb, null);
                         Assert.True(result.Success);
-                        result = comp.Emit(output,  outputPdb);
+                        result = comp.Emit(output, outputPdb);
                         Assert.True(result.Success);
                         result = comp.Emit(peStream: output, xmlDocumentationStream: null);
                         Assert.True(result.Success);
@@ -269,11 +269,11 @@ namespace A.B {
                 options: TestOptions.ReleaseDll,
                 syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree("public class C {}") },
                 references: new MetadataReference[] { MscorlibRef });
-            
+
             var mtref = refcomp.EmitToImageReference(aliases: ImmutableArray.Create("a", "Alias(*#$@^%*&)"));
 
             // not use exported type
-            var comp = CSharpCompilation.Create("APP", 
+            var comp = CSharpCompilation.Create("APP",
                 options: TestOptions.ReleaseDll,
                 syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     @"class D {}"
@@ -450,8 +450,8 @@ class D
             // Get valid binding
             var bind = comp.GetSemanticModel(syntaxTree: t1);
             Assert.Equal(t1, bind.SyntaxTree);
-            Assert.Equal("C#", bind.Language);       
-            
+            Assert.Equal("C#", bind.Language);
+
             // Remove syntaxtree without error
             comp = comp.RemoveSyntaxTrees(t1);
             Assert.InRange(comp.GetDiagnostics().Count(), 0, int.MaxValue);
@@ -555,7 +555,7 @@ class D
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a2",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                     @"
 public class C2 { 
 public static void M() {
@@ -569,7 +569,7 @@ public static void M() {
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule2.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -584,7 +584,7 @@ var a = new C2();
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference(), netModule2.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -610,7 +610,7 @@ var a = new C2();
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a2",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                     @"
 public class C2 { 
 public static void M() {
@@ -624,7 +624,7 @@ public static void M() {
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a3",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                     @"
 public class C2a { 
 public static void M() {
@@ -638,7 +638,7 @@ public static void M() {
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule2.EmitToImageReference(), netModule3.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -658,7 +658,7 @@ var a = new C2();
             var netModule1 = CreateCompilationWithMscorlib(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
-                sources: new string[] { 
+                sources: new string[] {
                     @"
 using System;
 using System.Runtime.InteropServices;
@@ -674,7 +674,7 @@ public class C2 {
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -699,7 +699,7 @@ var a = new C2();
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                     @"
 public class C2 { 
 public static void M() {
@@ -713,7 +713,7 @@ public static void M() {
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference(), netModule2.EmitToImageReference() },
-                sources: new string[] { 
+                sources: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -1393,7 +1393,7 @@ public class TestClass
 
                 var tree2 = compilation.SyntaxTrees[1]; //tree for empty file
                 var model2 = compilation.GetSemanticModel(tree2);
-                
+
                 model2.GetDiagnostics().Verify(); // None, since the file is empty.
                 compilation.GetDiagnostics().Verify(
                     // (8,2): error CS1614: 'MyAttribute' is ambiguous between 'MyAttribute2Attribute' and 'MyAttributeAttribute'; use either '@MyAttribute' or 'MyAttributeAttribute'
@@ -1534,7 +1534,7 @@ public class TestClass
 
             var tb = Parse(@"
 class C { }", options: TestOptions.Script);
-            
+
             var tc = Parse(@"
 #r ""bar""  // error: #r in regular code
 class D { }");
@@ -1564,7 +1564,7 @@ class C { }", options: TestOptions.Script);
             Assert.True(ar.ReferenceManagerEquals(arc));
 
             // remove:
-            
+
             var ar2 = arc.RemoveSyntaxTrees(tc);
             Assert.True(arc.ReferenceManagerEquals(ar2));
 
@@ -1600,7 +1600,7 @@ class C { }", options: TestOptions.Script);
             var as1 = ars.ReplaceSyntaxTree(tr, ts);
             Assert.False(ars.ReferenceManagerEquals(as1));
         }
-        
+
         private sealed class EvolvingTestReference : PortableExecutableReference
         {
             private readonly IEnumerator<Metadata> metadataSequence;
@@ -1688,7 +1688,7 @@ class C { }", options: TestOptions.Script);
             };
 
             var compilation = CreateCompilation(
-                new[] { Parse("") }, 
+                new[] { Parse("") },
                 references,
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
@@ -1710,7 +1710,7 @@ class C { }", options: TestOptions.Script);
 
             compilation = CreateCompilation(
                 new[] { Parse("") },
-                references, 
+                references,
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(comparer));
 
             compilation.VerifyDiagnostics();
@@ -1740,7 +1740,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
                 TestReferences.NetFx.silverlight_v5_0_5_0.System,
                 mdRef
             };
-            
+
             // Source references the type in the dll
             string src1 = @"class A { public static void Main(string[] args) { C.Foo(); } }";
 
@@ -1780,11 +1780,11 @@ public class C { public static FrameworkName Foo() { return null; }}";
         [Fact]
         [WorkItem(797640, "DevDiv")]
         public void GetMetadataReferenceAPITest()
-        {         
+        {
             var comp = CSharpCompilation.Create("Compilation");
             var metadata = TestReferences.NetFx.v4_0_30319.mscorlib;
             comp = comp.AddReferences(metadata);
-            var assemblySmb = comp.GetReferencedAssemblySymbol(metadata);           
+            var assemblySmb = comp.GetReferencedAssemblySymbol(metadata);
             var reference = comp.GetMetadataReference(assemblySmb);
             Assert.NotNull(reference);
 
@@ -1858,7 +1858,8 @@ public class C { public static FrameworkName Foo() { return null; }}";
             var assemblyName = GetUniqueName();
             var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             CSharp.CSharpCompilation.Create(assemblyName, new[] { tree1, tree2 }, new[] { MscorlibRef }, compilationOptions);
-            Assert.Throws(typeof(ArgumentException), () => {
+            Assert.Throws(typeof(ArgumentException), () =>
+            {
                 CSharp.CSharpCompilation.Create(assemblyName, new[] { tree1, tree3 }, new[] { MscorlibRef }, compilationOptions);
             });
         }

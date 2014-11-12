@@ -9396,6 +9396,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SearchCriteria is expected..
+        /// </summary>
+        internal static string NoNoneSearchCriteria {
+            get {
+                return ResourceManager.GetString("NoNoneSearchCriteria", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not a C# symbol..
         /// </summary>
         internal static string NotACSharpSymbol {

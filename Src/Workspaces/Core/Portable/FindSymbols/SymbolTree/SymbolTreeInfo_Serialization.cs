@@ -2,110 +2,56 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Versions;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo : IObjectWritable
     {
-        private const string ProjectSymbolTreeInfoPersistenceName = "<ProjectSymbolTreeInfoPersistence>";
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
         private const string SerializationFormat = "1";
 
         /// <summary>
-        /// this is for a project in a solution
-        /// </summary>
-        private static async Task<ValueTuple<bool, SymbolTreeInfo>> LoadOrCreateAsync(Project project, CancellationToken cancellationToken)
-        {
-            if (await project.IsForkedProjectWithSemanticChangesAsync(cancellationToken).ConfigureAwait(false))
-            {
-                return ValueTuple.Create(false, await CreateAsync(project, cancellationToken).ConfigureAwait(false));
-            }
-
-            var persistentStorageService = project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            var projectVersion = await project.GetVersionAsync(cancellationToken).ConfigureAwait(false);
-            var semanticVersion = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            // attempt to load from persisted state
-            SymbolTreeInfo info;
-            var succeeded = false;
-            using (var storage = persistentStorageService.GetStorage(project.Solution))
-            {
-                using (var stream = await storage.ReadStreamAsync(project, ProjectSymbolTreeInfoPersistenceName, cancellationToken).ConfigureAwait(false))
-                {
-                    if (stream != null)
-                    {
-                        using (var reader = new ObjectReader(stream))
-                        {
-                            info = ReadFrom(reader);
-                            if (info != null && project.CanReusePersistedSemanticVersion(projectVersion, semanticVersion, info.version))
-                            {
-                                return ValueTuple.Create(true, info);
-                            }
-                        }
-                    }
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // compute it if we couldn't load it from cache
-                info = await CreateAsync(project, cancellationToken).ConfigureAwait(false);
-                if (info != null)
-                {
-                    using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                    {
-                        info.WriteTo(writer);
-                        stream.Position = 0;
-
-                        succeeded = await storage.WriteStreamAsync(project, ProjectSymbolTreeInfoPersistenceName, stream, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
-
-            return ValueTuple.Create(succeeded, info);
-        }
-
-        /// <summary>
         /// this is for a metadata reference in a solution
         /// </summary>
-#if PORTABLE
+#if !PORTABLE
         private static Task<SymbolTreeInfo> LoadOrCreateAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
         {
             return Task.FromResult(Create(VersionStamp.Default, assembly, cancellationToken));
 #else
         private static async Task<SymbolTreeInfo> LoadOrCreateAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
         {
-            // if assembly is not from a file, just create one on the fly
-            if (filePath == null || !File.Exists(filePath) || !FilePathUtilities.PartOfFrameworkOrReferencePaths(filePath))
+            var service = solution.Workspace.Services.GetService<IAssemblySerializationInfoService>();
+            if (service == null)
             {
                 return Create(VersionStamp.Default, assembly, cancellationToken);
             }
 
-            // if solution is not from a disk, just create one.
-            if (solution.FilePath == null || !File.Exists(solution.FilePath))
+            // check whether the assembly that belong to a solution is something we can serialize
+            if (!service.Serializable(solution, filePath))
             {
                 return Create(VersionStamp.Default, assembly, cancellationToken);
             }
 
-            // okay, see whether we can get one from persistence service.
-            var relativePath = FilePathUtilities.GetRelativePath(solution.FilePath, filePath);
-            var version = VersionStamp.Create(File.GetLastWriteTimeUtc(filePath));
+            string prefix;
+            VersionStamp version;
+            if (!service.TryGetSerializationPrefixAndVersion(solution, filePath, out prefix, out version))
+            {
+                return Create(VersionStamp.Default, assembly, cancellationToken);
+            }
 
             var persistentStorageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
+            // okay, see whether we can get one from persistence service.
             // attempt to load from persisted state. metadata reference is solution wise information
             SymbolTreeInfo info;
             using (var storage = persistentStorageService.GetStorage(solution))
             {
-                var key = PrefixMetadataSymbolTreeInfo + relativePath;
+                var key = PrefixMetadataSymbolTreeInfo + prefix;
                 using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
                 {
                     if (stream != null)
@@ -146,14 +92,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // TODO delete this method soon.
             return Task.FromResult(Create(VersionStamp.Default, assembly, cancellationToken));
-        }
-
-        private static async Task<SymbolTreeInfo> CreateAsync(Project project, CancellationToken cancellationToken)
-        {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            return Create(version, compilation.Assembly, cancellationToken);
         }
 
         public void WriteTo(ObjectWriter writer)

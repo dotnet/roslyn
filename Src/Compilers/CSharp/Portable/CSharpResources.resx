@@ -3767,10 +3767,10 @@
   </data>
   <data name="IDS_CSCHelp" xml:space="preserve">
     <value>
-      <![CDATA[                        Visual C# Compiler Options
+                              Visual C# Compiler Options
 
                         - OUTPUT FILES -
- /out:<file>                   Specify output file name (default: base name of 
+ /out:&lt;file&gt;                   Specify output file name (default: base name of 
                                file with main class or first file)
  /target:exe                   Build a console executable (default) (Short 
                                form: /t:exe)
@@ -3783,37 +3783,37 @@
                                /t:appcontainerexe)
  /target:winmdobj              Build a Windows Runtime intermediate file that 
                                is consumed by WinMDExp (Short form: /t:winmdobj)
- /doc:<file>                   XML Documentation file to generate
- /platform:<string>            Limit which platforms this code can run on: x86,
+ /doc:&lt;file&gt;                   XML Documentation file to generate
+ /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
                                Itanium, x64, arm, anycpu32bitpreferred, or 
                                anycpu. The default is anycpu.
 
                         - INPUT FILES -
- /recurse:<wildcard>           Include all files in the current directory and 
+ /recurse:&lt;wildcard&gt;           Include all files in the current directory and 
                                subdirectories according to the wildcard 
                                specifications
- /reference:<alias>=<file>     Reference metadata from the specified assembly 
+ /reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly 
                                file using the given alias (Short form: /r)
- /reference:<file list>        Reference metadata from the specified assembly 
+ /reference:&lt;file list&gt;        Reference metadata from the specified assembly 
                                files (Short form: /r)
- /addmodule:<file list>        Link the specified modules into this assembly
- /link:<file list>             Embed metadata from the specified interop 
+ /addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+ /link:&lt;file list&gt;             Embed metadata from the specified interop 
                                assembly files (Short form: /l)
- /analyzer:<file list>         Run the analyzers from this assembly
+ /analyzer:&lt;file list&gt;         Run the analyzers from this assembly
                                (Short form: /a)
- /additionalfile:<file list>   Additional files that don't directly affect code
+ /additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
                                generation but may be used by analyzers for producing
                                errors or warnings.
 
                         - RESOURCES -
- /win32res:<file>              Specify a Win32 resource file (.res)
- /win32icon:<file>             Use this icon for the output
- /win32manifest:<file>         Specify a Win32 manifest file (.xml)
+ /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+ /win32icon:&lt;file&gt;             Use this icon for the output
+ /win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
  /nowin32manifest              Do not include the default Win32 manifest
- /resource:<resinfo>           Embed the specified resource (Short form: /res)
- /linkresource:<resinfo>       Link the specified resource to this assembly 
+ /resource:&lt;resinfo&gt;           Embed the specified resource (Short form: /res)
+ /linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly 
                                (Short form: /linkres) Where the resinfo format 
-                               is <file>[,<string name>[,public|private]]
+                               is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
@@ -3824,71 +3824,70 @@
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
- /warnaserror[+|-]:<warn list> Report specific warnings as errors
- /warn:<n>                     Set warning level (0-4) (Short form: /w)
- /nowarn:<warn list>           Disable specific warning messages
- /ruleset:<file>               Specify a ruleset file that disables specific
+ /warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+ /warn:&lt;n&gt;                     Set warning level (0-4) (Short form: /w)
+ /nowarn:&lt;warn list&gt;           Disable specific warning messages
+ /ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                                diagnostics.
- /option:<name>=<value>        Specify an option that can be passed to analyzers.
+ /option:&lt;name&gt;=&lt;value&gt;        Specify an option that can be passed to analyzers.
 
                         - LANGUAGE -
  /checked[+|-]                 Generate overflow checks
  /unsafe[+|-]                  Allow 'unsafe' code
- /define:<symbol list>         Define conditional compilation symbol(s) (Short 
+ /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short 
                                form: /d)
- /langversion:<string>         Specify language version mode: ISO-1, ISO-2, 3, 
+ /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3, 
                                4, 5, 6, or Default
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 
                                portion of the strong name key
- /keyfile:<file>               Specify a strong name key file
- /keycontainer:<string>        Specify a strong name key container
+ /keyfile:&lt;file&gt;               Specify a strong name key file
+ /keycontainer:&lt;string&gt;        Specify a strong name key container
  /highentropyva[+|-]           Enable high-entropy ASLR
 
                         - MISCELLANEOUS -
- @<file>                       Read response file for more options
+ @&lt;file&gt;                       Read response file for more options
  /help                         Display this usage message (Short form: /?)
  /nologo                       Suppress compiler copyright message
  /noconfig                     Do not auto include CSC.RSP file
  /parallel[+|-]                Concurrent build. 
 
                         - ADVANCED -
- /baseaddress:<address>        Base address for the library to be built
- /bugreport:<file>             Create a 'Bug Report' file
- /checksumalgorithm:<alg>      Specify algorithm for calculating source file 
+ /baseaddress:&lt;address&gt;        Base address for the library to be built
+ /bugreport:&lt;file&gt;             Create a 'Bug Report' file
+ /checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file 
                                checksum stored in PDB. Supported values are:
                                SHA1 (default) or SHA256.
- /codepage:<n>                 Specify the codepage to use when opening source 
+ /codepage:&lt;n&gt;                 Specify the codepage to use when opening source 
                                files
  /utf8output                   Output compiler messages in UTF-8 encoding
- /main:<type>                  Specify the type that contains the entry point 
+ /main:&lt;type&gt;                  Specify the type that contains the entry point 
                                (ignore all other possible entry points) (Short 
                                form: /m)
  /fullpaths                    Compiler generates fully qualified paths
- /filealign:<n>                Specify the alignment used for output file 
+ /filealign:&lt;n&gt;                Specify the alignment used for output file 
                                sections
- /pdb:<file>                   Specify debug information file name (default: 
+ /pdb:&lt;file&gt;                   Specify debug information file name (default: 
                                output file name with .pdb extension)
  /errorendlocation             Output line and column of the end location of 
                                each error
  /preferreduilang              Specify the preferred output language name.
  /nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
- /subsystemversion:<string>    Specify subsystem version of this assembly
- /lib:<file list>              Specify additional directories to search in for 
+ /subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+ /lib:&lt;file list&gt;              Specify additional directories to search in for 
                                references
- /errorreport:<string>         Specify how to handle internal compiler errors: 
+ /errorreport:&lt;string&gt;         Specify how to handle internal compiler errors: 
                                prompt, send, queue, or none. The default is 
                                queue.
- /appconfig:<file>             Specify an application configuration file 
+ /appconfig:&lt;file&gt;             Specify an application configuration file 
                                containing assembly binding settings
- /moduleassemblyname:<string>  Name of the assembly which this module will be 
+ /moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be 
                                a part of
- /modulename:<string>          Specify the name of the source module
-]]></value>
-    <comment>Visual C# Compiler Options</comment> 
+ /modulename:&lt;string&gt;          Specify the name of the source module
+</value>
+    <comment>Visual C# Compiler Options</comment>
   </data>
-  
   <data name="ERR_ComImportWithInitializers" xml:space="preserve">
     <value>'{0}': a class with the ComImport attribute cannot specify field initializers.</value>
   </data>
@@ -3987,5 +3986,8 @@
   </data>
   <data name="ERR_NameofMethodGroupWithTypeParameters" xml:space="preserve">
     <value>Type parameters are not allowed on a method group as an argument to 'nameof'.</value>
+  </data>
+  <data name="NoNoneSearchCriteria" xml:space="preserve">
+    <value>SearchCriteria is expected.</value>
   </data>
 </root>

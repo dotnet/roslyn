@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     var cts = new CancellationTokenSource();
                     cts.Cancel();
                     var project = GetProject(WorkspaceKind.SingleClass);
-                    var declarations = SymbolFinder.FindDeclarationsAsync(project, "Test", true, cts.Token).Result;
+                    var declarations = SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token).Result;
                 }
                 catch (AggregateException ex)
                 {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     var cts = new CancellationTokenSource();
                     var project = GetProject(WorkspaceKind.SingleClass);
                     cts.Cancel();
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, cts.Token).Result;
+                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token).Result;
                 }
                 catch (AggregateException ex)
                 {
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     var cts = new CancellationTokenSource();
                     var solution = GetSolution(WorkspaceKind.SingleClass);
                     cts.Cancel();
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, cts.Token).Result;
+                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, SymbolFilter.All, cts.Token).Result;
                 }
                 catch (AggregateException ex)
                 {
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     var cts = new CancellationTokenSource();
                     var project = GetProject(WorkspaceKind.SingleClass);
                     cts.Cancel();
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), cts.Token).Result;
+                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, cts.Token).Result;
                 }
                 catch (AggregateException ex)
                 {
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     var cts = new CancellationTokenSource();
                     var solution = GetSolution(WorkspaceKind.SingleClass);
                     cts.Cancel();
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), cts.Token).Result;
+                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), SymbolFilter.All, cts.Token).Result;
                 }
                 catch (AggregateException ex)
                 {

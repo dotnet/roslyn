@@ -1,10 +1,7 @@
 ' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ImmutableArrayExtensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -486,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.GlobalName
                         ValidateNamespaceGlobalSyntax(DirectCast(node, GlobalNameSyntax), diagnostics)
                     Case SyntaxKind.CompilationUnit
-                        ' nothing to validate
+                    ' nothing to validate
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
@@ -654,5 +651,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return fullDeclName
             End If
         End Function
+
+        Public ReadOnly Property MergedDeclaration As MergedNamespaceDeclaration
+            Get
+                Return m_declaration
+            End Get
+        End Property
     End Class
 End Namespace

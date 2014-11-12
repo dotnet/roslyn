@@ -2601,7 +2601,177 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetEntryPoint(cancellationToken)
         End Function
 
+        ''' <summary>
+        ''' Return true if there Is a source declaration symbol name that meets given predicate.
+        ''' </summary>
+        Public Overrides Function ContainsSymbolsWithName(predicate As Func(Of String, Boolean), Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+            If predicate Is Nothing Then
+                Throw New ArgumentNullException(NameOf (predicate))
+            End If
+
+            If filter = SymbolFilter.None Then
+                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf (filter))
+            End If
+
+            Return Me.Declarations.ContainsName(predicate, filter, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Return source declaration symbols whose name meets given predicate.
+        ''' </summary>
+        Public Overrides Function GetSymbolsWithName(predicate As Func(Of String, Boolean), Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
+            If predicate Is Nothing Then
+                Throw New ArgumentNullException(NameOf (predicate))
+            End If
+
+            If filter = SymbolFilter.None Then
+                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf (filter))
+            End If
+
+            Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
+        End Function
 #End Region
 
+        Private Class SymbolSearcher
+
+            Private ReadOnly cache As Dictionary(Of Declaration, NamespaceOrTypeSymbol)
+            Private ReadOnly compilation As VisualBasicCompilation
+
+            Public Sub New(compilation As VisualBasicCompilation)
+                Me.cache = New Dictionary(Of Declaration, NamespaceOrTypeSymbol)()
+                Me.compilation = compilation
+            End Sub
+
+            Public Function GetSymbolsWithName(predicate As Func(Of String, Boolean), filter As SymbolFilter, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+                Dim result = New HashSet(Of ISymbol)()
+                Dim spine = New List(Of MergedNamespaceOrTypeDeclaration)()
+
+                AppendSymbolsWithName(spine, Me.compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken)
+
+                Return result
+            End Function
+
+            Private Sub AppendSymbolsWithName(
+                spine As List(Of MergedNamespaceOrTypeDeclaration), current As MergedNamespaceOrTypeDeclaration, predicate As Func(Of String, Boolean), filter As SymbolFilter, [set] As HashSet(Of ISymbol), cancellationToken As CancellationToken)
+
+                Dim includeNamespace = (filter And SymbolFilter.Namespace) = SymbolFilter.Namespace
+                Dim includeType = (filter And SymbolFilter.Type) = SymbolFilter.Type
+                Dim includeMember = (filter And SymbolFilter.Member) = SymbolFilter.Member
+
+                If current.Kind = DeclarationKind.Namespace Then
+                    If includeNamespace AndAlso predicate(current.Name) Then
+                        Dim container = GetSpineSymbol(spine)
+                        [set].Add(GetSymbol(container, current))
+                    End If
+                Else
+                    If includeType AndAlso predicate(current.Name) Then
+                        Dim container = GetSpineSymbol(spine)
+                        [set].Add(GetSymbol(container, current))
+                    End If
+
+                    If includeMember Then
+                        AppendMemberSymbolsWithName(spine, current, predicate, [set], cancellationToken)
+                    End If
+                End If
+
+                spine.Add(current)
+                For Each child In current.Children.OfType(Of MergedNamespaceOrTypeDeclaration)()
+                    If includeMember OrElse includeType Then
+                        AppendSymbolsWithName(spine, child, predicate, filter, [set], cancellationToken)
+                        Continue For
+                    End If
+
+                    If child.Kind = DeclarationKind.Namespace Then
+                        AppendSymbolsWithName(spine, child, predicate, filter, [set], cancellationToken)
+                    End If
+                Next
+
+                spine.RemoveAt(spine.Count - 1)
+            End Sub
+
+            Private Sub AppendMemberSymbolsWithName(
+                spine As List(Of MergedNamespaceOrTypeDeclaration), current As MergedNamespaceOrTypeDeclaration, predicate As Func(Of String, Boolean), [set] As HashSet(Of ISymbol), cancellationToken As CancellationToken)
+
+                spine.Add(current)
+
+                Dim container As NamespaceOrTypeSymbol = Nothing
+                Dim mergedType = DirectCast(current, MergedTypeDeclaration)
+                For Each name In mergedType.MemberNames
+                    If predicate(name) Then
+                        container = If(container, GetSpineSymbol(spine))
+                        [set].UnionWith(container.GetMembers(name))
+                    End If
+                Next
+
+                spine.RemoveAt(spine.Count - 1)
+            End Sub
+
+            Private Function GetSpineSymbol(spine As List(Of MergedNamespaceOrTypeDeclaration)) As NamespaceOrTypeSymbol
+                If spine.Count = 0 Then
+                    Return Nothing
+                End If
+
+                Dim symbol = GetCachedSymbol(spine(spine.Count - 1))
+                If symbol IsNot Nothing Then
+                    Return symbol
+                End If
+
+                Dim current = TryCast(Me.compilation.GlobalNamespace, NamespaceOrTypeSymbol)
+                For i = 1 To spine.Count - 1
+                    current = GetSymbol(current, spine(i))
+                Next
+
+                Return current
+            End Function
+
+            Private Function GetCachedSymbol(declaration As MergedNamespaceOrTypeDeclaration) As NamespaceOrTypeSymbol
+                Dim symbol As NamespaceOrTypeSymbol = Nothing
+                If Me.cache.TryGetValue(declaration, symbol) Then
+                    Return symbol
+                End If
+
+                Return Nothing
+            End Function
+
+            Private Function GetSymbol(container As NamespaceOrTypeSymbol, declaration As MergedNamespaceOrTypeDeclaration) As NamespaceOrTypeSymbol
+                If container Is Nothing Then
+                    Return Me.compilation.GlobalNamespace
+                End If
+
+                Dim symbol = GetCachedSymbol(declaration)
+                If symbol IsNot Nothing Then
+                    Return symbol
+                End If
+
+                If declaration.Kind = DeclarationKind.Namespace Then
+                    AddCache(container.GetMembers(declaration.Name).OfType(Of NamespaceOrTypeSymbol)())
+                Else
+                    AddCache(container.GetTypeMembers(declaration.Name))
+                End If
+
+                Return GetCachedSymbol(declaration)
+            End Function
+
+            Private Sub AddCache(symbols As IEnumerable(Of NamespaceOrTypeSymbol))
+                For Each symbol In symbols
+                    Dim mergedNamespace = TryCast(symbol, MergedNamespaceSymbol)
+                    If mergedNamespace IsNot Nothing Then
+                        Me.cache(mergedNamespace.ConstituentNamespaces.OfType(Of SourceNamespaceSymbol).First().MergedDeclaration) = symbol
+                        Continue For
+                    End If
+
+                    Dim sourceNamespace = TryCast(symbol, SourceNamespaceSymbol)
+                    If sourceNamespace IsNot Nothing Then
+                        Me.cache(sourceNamespace.MergedDeclaration) = sourceNamespace
+                        Continue For
+                    End If
+
+                    Dim sourceType = TryCast(symbol, SourceMemberContainerTypeSymbol)
+                    If sourceType IsNot Nothing Then
+                        Me.cache(sourceType.TypeDeclaration) = sourceType
+                    End If
+                Next
+            End Sub
+        End Class
     End Class
 End Namespace

@@ -2,13 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -19,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+            Project project, string name, bool ignoreCase, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (project == null)
             {
@@ -36,17 +33,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindDeclarationsAsyncImpl(project, name, ignoreCase, cancellationToken);
+            using (Logger.LogBlock(FunctionId.SymbolFinder_FindDeclarationsAsync, cancellationToken))
+            {
+                return FindDeclarationsAsyncImpl(project, name, ignoreCase, filter, cancellationToken);
+            }
         }
 
-        private static async Task<IEnumerable<ISymbol>> FindDeclarationsAsyncImpl(Project project, string name, bool ignoreCase, CancellationToken cancellationToken)
+        private static async Task<IEnumerable<ISymbol>> FindDeclarationsAsyncImpl(
+            Project project, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var list = new List<ISymbol>();
 
             // get declarations from the compilation's assembly
-            await AddDeclarationsAsync(project, compilation.Assembly, name, ignoreCase, list, cancellationToken).ConfigureAwait(false);
+            await AddDeclarationsAsync(project, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
 
             // get declarations from directly referenced projects and metadata
             foreach (var mr in compilation.References)
@@ -57,11 +58,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
                     if (assemblyProject != null)
                     {
-                        await AddDeclarationsAsync(assemblyProject, assembly, name, ignoreCase, list, cancellationToken).ConfigureAwait(false);
+                        await AddDeclarationsAsync(assemblyProject, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(mr), name, ignoreCase, list, cancellationToken).ConfigureAwait(false);
+                        await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(mr), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var assembly = compilation.GetAssemblyOrModuleSymbol(mr) as IAssemblySymbol;
                 if (assembly != null)
                 {
-                    await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(mr), name, ignoreCase, list, cancellationToken).ConfigureAwait(false);
+                    await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(mr), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -109,22 +110,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static async Task AddDeclarationsAsync(Project project, IAssemblySymbol assembly, string name, bool ignoreCase, List<ISymbol> list, CancellationToken cancellationToken)
+        private static async Task AddDeclarationsAsync(Project project, string name, bool ignoreCase, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
-            var info = await SymbolTreeInfo.GetInfoForProjectAsync(project, cancellationToken).ConfigureAwait(false);
-            if (info != null && info.HasSymbols(name, ignoreCase))
+            Func<string, bool> predicate = n => ignoreCase ? CaseInsensitiveComparison.Comparer.Equals(name, n) : StringComparer.Ordinal.Equals(name, n);
+
+            using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
+            using (var set = SharedPools.Default<HashSet<ISymbol>>().GetPooledObject())
             {
-                list.AddRange(info.Find(assembly, name, ignoreCase, cancellationToken));
+                if (!await project.ContainsSymbolsWithNameAsync(predicate, filter, cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                list.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(predicate, filter, cancellationToken), filter));
             }
         }
 
         private static async Task AddDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, string filePath, string name, bool ignoreCase, List<ISymbol> list, CancellationToken cancellationToken)
+            Solution solution, IAssemblySymbol assembly, string filePath, string name, bool ignoreCase, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
-            var info = await SymbolTreeInfo.GetInfoForAssemblyAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
-            if (info.HasSymbols(name, ignoreCase))
+            using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
-                list.AddRange(info.Find(assembly, name, ignoreCase, cancellationToken));
+                var info = await SymbolTreeInfo.GetInfoForAssemblyAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
+                if (info.HasSymbols(name, ignoreCase))
+                {
+                    list.AddRange(FilterByCriteria(info.Find(assembly, name, ignoreCase, cancellationToken), filter));
+                }
             }
         }
 
@@ -132,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Find the symbols for declarations made in source with the specified name.
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
-            Solution solution, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+            Solution solution, string name, bool ignoreCase, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (solution == null)
             {
@@ -149,17 +162,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindSourceDeclarationsAsyncImpl(solution, name, ignoreCase, cancellationToken);
+            using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Name_FindSourceDeclarationsAsync, cancellationToken))
+            {
+                return FindSourceDeclarationsAsyncImpl(solution, name, ignoreCase, filter, cancellationToken);
+            }
         }
 
         private static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsyncImpl(
-            Solution solution, string name, bool ignoreCase, CancellationToken cancellationToken)
+            Solution solution, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
         {
             var result = new List<ISymbol>();
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId);
-                var symbols = await FindSourceDeclarationsAsyncImpl(project, name, ignoreCase, cancellationToken).ConfigureAwait(false);
+                var symbols = await FindSourceDeclarationsAsyncImpl(project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
                 result.AddRange(symbols);
             }
 
@@ -170,7 +186,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Find the symbols for declarations made in source with the specified name.
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
-            Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+            Project project, string name, bool ignoreCase, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (project == null)
             {
@@ -187,30 +203,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindSourceDeclarationsAsyncImpl(project, name, ignoreCase, cancellationToken);
+            using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Name_FindSourceDeclarationsAsync, cancellationToken))
+            {
+                return FindSourceDeclarationsAsyncImpl(project, name, ignoreCase, filter, cancellationToken);
+            }
         }
 
         private static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsyncImpl(
-            Project project, string name, bool ignoreCase, CancellationToken cancellationToken)
+            Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            var info = await SymbolTreeInfo.GetInfoForProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            var list = new List<ISymbol>();
 
-            if (info != null && info.HasSymbols(name, ignoreCase))
-            {
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                return info.Find(compilation.Assembly, name, ignoreCase, cancellationToken);
-            }
-            else
-            {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
-            }
+            await AddDeclarationsAsync(project, name, ignoreCase, filter, list, cancellationToken).ConfigureAwait(false);
+            return list;
         }
 
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
-            Solution solution, Func<string, bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
+            Solution solution, Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (solution == null)
             {
@@ -222,22 +234,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException("predicate");
             }
 
-            var result = new List<ISymbol>();
-            foreach (var projectId in solution.ProjectIds)
+            using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
-                var project = solution.GetProject(projectId);
-                var symbols = await FindSourceDeclarationsAsync(project, predicate, cancellationToken).ConfigureAwait(false);
-                result.AddRange(symbols);
-            }
+                var result = new List<ISymbol>();
+                foreach (var projectId in solution.ProjectIds)
+                {
+                    var project = solution.GetProject(projectId);
+                    var symbols = await FindSourceDeclarationsAsync(project, predicate, filter, cancellationToken).ConfigureAwait(false);
+                    result.AddRange(symbols);
+                }
 
-            return result;
+                return result;
+            }
         }
 
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
-            Project project, Func<string, bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
+            Project project, Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (project == null)
             {
@@ -249,16 +264,68 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException("predicate");
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var info = await SymbolTreeInfo.GetInfoForProjectAsync(project, cancellationToken).ConfigureAwait(false);
-            if (info != null && info.HasSymbols(predicate, cancellationToken))
+            using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
+                var result = new List<ISymbol>();
+                if (!await project.ContainsSymbolsWithNameAsync(predicate, filter, cancellationToken).ConfigureAwait(false))
+                {
+                    return result;
+                }
+
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                return info.Search(compilation.Assembly, predicate, cancellationToken);
+
+                result.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(predicate, filter, cancellationToken), filter));
+                return result;
+            }
+        }
+
+        private static IEnumerable<ISymbol> FilterByCriteria(IEnumerable<ISymbol> symbols, SymbolFilter criteria)
+        {
+            foreach (var symbol in symbols)
+            {
+                if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+                {
+                    continue;
+                }
+
+                if (MeetCriteria(symbol, criteria))
+                {
+                    yield return symbol;
+                }
+            }
+        }
+
+        private static bool MeetCriteria(ISymbol symbol, SymbolFilter filter)
+        {
+            if (IsOn(filter, SymbolFilter.Namespace) && symbol.Kind == SymbolKind.Namespace)
+            {
+                return true;
             }
 
-            return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            if (IsOn(filter, SymbolFilter.Type) && symbol is ITypeSymbol)
+            {
+                return true;
+            }
+
+            if (IsOn(filter, SymbolFilter.Member) && IsNonTypeMember(symbol))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsNonTypeMember(ISymbol symbol)
+        {
+            return symbol.Kind == SymbolKind.Method ||
+                   symbol.Kind == SymbolKind.Property ||
+                   symbol.Kind == SymbolKind.Event ||
+                   symbol.Kind == SymbolKind.Field;
+        }
+
+        private static bool IsOn(SymbolFilter filter, SymbolFilter flag)
+        {
+            return (filter & flag) == flag;
         }
     }
 }

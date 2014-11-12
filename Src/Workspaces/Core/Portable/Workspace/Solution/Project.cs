@@ -349,6 +349,16 @@ namespace Microsoft.CodeAnalysis
             return this.projectState.GetAdditionalDocumentState(documentId);
         }
 
+        internal Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return this.solution.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken);
+        }
+
+        internal Task<IEnumerable<Document>> GetDocumentsWithName(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return this.solution.GetDocumentsWithName(Id, predicate, filter, cancellationToken);
+        }
+
         private static readonly Func<DocumentId, Project, Document> createDocumentFunction = CreateDocument;
         private static Document CreateDocument(DocumentId documentId, Project project)
         {

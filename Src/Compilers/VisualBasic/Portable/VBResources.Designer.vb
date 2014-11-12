@@ -11677,6 +11677,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to SearchCriteria is expected..
+        '''</summary>
+        Friend ReadOnly Property NoNoneSearchCriteria() As String
+            Get
+                Return ResourceManager.GetString("NoNoneSearchCriteria", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Not a VB symbol..
         '''</summary>
         Friend ReadOnly Property NotAVbSymbol() As String
