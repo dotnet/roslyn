@@ -15,8 +15,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, string name, bool ignoreCase, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindDeclarationsAsync(project, name, ignoreCase, SymbolFilter.All, cancellationToken);
+        }
+
+        /// <summary>
+        /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
+        /// </summary>
+        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (project == null)
             {
@@ -144,8 +151,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the symbols for declarations made in source with the specified name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
-            Solution solution, string name, bool ignoreCase, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindSourceDeclarationsAsync(solution, name, ignoreCase, SymbolFilter.All, cancellationToken);
+        }
+
+        /// <summary>
+        /// Find the symbols for declarations made in source with the specified name.
+        /// </summary>
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (solution == null)
             {
@@ -185,8 +199,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the symbols for declarations made in source with the specified name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
-            Project project, string name, bool ignoreCase, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindSourceDeclarationsAsync(project, name, ignoreCase, SymbolFilter.All, cancellationToken);
+        }
+
+        /// <summary>
+        /// Find the symbols for declarations made in source with the specified name.
+        /// </summary>
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (project == null)
             {
@@ -221,8 +242,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
-            Solution solution, Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, Func<string, bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindSourceDeclarationsAsync(solution, predicate, SymbolFilter.All, cancellationToken);
+        }
+
+        /// <summary>
+        /// Find the symbols for declarations made in source with a matching name.
+        /// </summary>
+        public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (solution == null)
             {
@@ -251,8 +279,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
-            Project project, Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.All, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindSourceDeclarationsAsync(project, predicate, SymbolFilter.All, cancellationToken);
+        }
+
+        /// <summary>
+        /// Find the symbols for declarations made in source with a matching name.
+        /// </summary>
+        public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (project == null)
             {
