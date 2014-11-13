@@ -622,7 +622,13 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal bool IsNestedTypeDefOrThrow(TypeDefinitionHandle typeDef)
         {
-            return IsNested(MetadataReader.GetTypeDefinition(typeDef).Attributes);
+            return IsNestedTypeDefOrThrow(MetadataReader, typeDef);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static bool IsNestedTypeDefOrThrow(MetadataReader metadataReader, TypeDefinitionHandle typeDef)
+        {
+            return IsNested(metadataReader.GetTypeDefinition(typeDef).Attributes);
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
@@ -1695,11 +1701,16 @@ namespace Microsoft.CodeAnalysis
 
         private AttributeInfo FindTargetAttribute(Handle hasAttribute, AttributeDescription description)
         {
+            return FindTargetAttribute(MetadataReader, hasAttribute, description);
+        }
+
+        internal static AttributeInfo FindTargetAttribute(MetadataReader metadataReader, Handle hasAttribute, AttributeDescription description)
+        {
             try
             {
-                foreach (var attributeHandle in MetadataReader.GetCustomAttributes(hasAttribute))
+                foreach (var attributeHandle in metadataReader.GetCustomAttributes(hasAttribute))
                 {
-                    int signatureIndex = GetTargetAttributeSignatureIndex(attributeHandle, description);
+                    int signatureIndex = GetTargetAttributeSignatureIndex(metadataReader, attributeHandle, description);
                     if (signatureIndex != -1)
                     {
                         // We found a match
@@ -1888,6 +1899,27 @@ namespace Microsoft.CodeAnalysis
             out Handle ctor,
             bool ignoreCase = false)
         {
+            return IsTargetAttribute(MetadataReader, customAttribute, namespaceName, typeName, out ctor, ignoreCase);
+        }
+
+        /// <summary>
+        /// Determines if a custom attribute matches a namespace and name.
+        /// </summary>
+        /// <param name="metadataReader">The metadata reader.</param>
+        /// <param name="customAttribute">Handle of the custom attribute.</param>
+        /// <param name="namespaceName">The custom attribute's namespace in metadata format (case sensitive)</param>
+        /// <param name="typeName">The custom attribute's type name in metadata format (case sensitive)</param>
+        /// <param name="ctor">Constructor of the custom attribute.</param>
+        /// <param name="ignoreCase">Should case be ignored for name comparison?</param>
+        /// <returns>true if match is found</returns>
+        private static bool IsTargetAttribute(
+            MetadataReader metadataReader,
+            CustomAttributeHandle customAttribute,
+            string namespaceName,
+            string typeName,
+            out Handle ctor,
+            bool ignoreCase)
+        {
             Debug.Assert(namespaceName != null);
             Debug.Assert(typeName != null);
 
@@ -1895,20 +1927,20 @@ namespace Microsoft.CodeAnalysis
             Handle ctorTypeNamespace;
             StringHandle ctorTypeName;
 
-            if (!GetTypeAndConstructor(customAttribute, out ctorType, out ctor))
+            if (!GetTypeAndConstructor(metadataReader, customAttribute, out ctorType, out ctor))
             {
                 return false;
             }
 
-            if (!GetAttributeNamespaceAndName(ctorType, out ctorTypeNamespace, out ctorTypeName))
+            if (!GetAttributeNamespaceAndName(metadataReader, ctorType, out ctorTypeNamespace, out ctorTypeName))
             {
                 return false;
             }
 
             try
             {
-                return StringEquals(ctorTypeName, typeName, ignoreCase)
-                    && StringEquals(ctorTypeNamespace, namespaceName, ignoreCase);
+                return StringEquals(metadataReader, ctorTypeName, typeName, ignoreCase)
+                    && StringEquals(metadataReader, ctorTypeNamespace, namespaceName, ignoreCase);
             }
             catch (BadImageFormatException)
             {
@@ -2022,11 +2054,31 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         internal int GetTargetAttributeSignatureIndex(CustomAttributeHandle customAttribute, AttributeDescription description)
         {
+            return GetTargetAttributeSignatureIndex(MetadataReader, customAttribute, description);
+        }
+
+        /// <summary>
+        /// Determine if custom attribute matches the target attribute.
+        /// </summary>
+        /// <param name="metadataReader">
+        /// The metadata reader.
+        /// </param>
+        /// <param name="customAttribute">
+        /// Handle of the custom attribute.
+        /// </param>
+        /// <param name="description">The attribute to match.</param>
+        /// <returns>
+        /// An index of the target constructor signature in
+        /// signatures array, -1 if
+        /// this is not the target attribute.
+        /// </returns>
+        private static int GetTargetAttributeSignatureIndex(MetadataReader metadataReader, CustomAttributeHandle customAttribute, AttributeDescription description)
+        {
             const int No = -1;
             Handle ctor;
 
             // Check namespace and type name and get signature if a match is found
-            if (!IsTargetAttribute(customAttribute, description.Namespace, description.Name, out ctor, description.MatchIgnoringCase))
+            if (!IsTargetAttribute(metadataReader, customAttribute, description.Namespace, description.Name, out ctor, description.MatchIgnoringCase))
             {
                 return No;
             }
@@ -2034,7 +2086,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 // Check signatures
-                BlobReader sig = GetMemoryReaderOrThrow(GetMethodSignatureOrThrow(ctor));
+                BlobReader sig = metadataReader.GetBlobReader(GetMethodSignatureOrThrow(metadataReader, ctor));
 
                 for (int i = 0; i < description.Signatures.Length; i++)
                 {
@@ -2072,19 +2124,19 @@ namespace Microsoft.CodeAnalysis
                                         {
                                             TypeDefinitionHandle typeHandle = (TypeDefinitionHandle)token;
 
-                                            if (IsNestedTypeDefOrThrow(typeHandle))
+                                            if (IsNestedTypeDefOrThrow(metadataReader, typeHandle))
                                             {
                                                 // At the moment, none of the well-known attributes take nested types.
                                                 break; // Signature doesn't match.
                                             }
 
-                                            TypeDefinition typeDef = MetadataReader.GetTypeDefinition(typeHandle);
+                                            TypeDefinition typeDef = metadataReader.GetTypeDefinition(typeHandle);
                                             name = typeDef.Name;
                                             ns = typeDef.Namespace;
                                         }
                                         else if (tokenType == HandleKind.TypeReference)
                                         {
-                                            TypeReference typeRef = MetadataReader.GetTypeReference((TypeReferenceHandle)token);
+                                            TypeReference typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)token);
 
                                             if (typeRef.ResolutionScope.Kind == HandleKind.TypeReference)
                                             {
@@ -2102,7 +2154,8 @@ namespace Microsoft.CodeAnalysis
 
                                         AttributeDescription.TypeHandleTargetInfo targetInfo = AttributeDescription.TypeHandleTargets[targetSignature[j + 1]];
 
-                                        if (StringEquals(ns, targetInfo.Namespace, ignoreCase: false) && StringEquals(name, targetInfo.Name, ignoreCase: false))
+                                        if (StringEquals(metadataReader, ns, targetInfo.Namespace, ignoreCase: false) && 
+                                            StringEquals(metadataReader, name, targetInfo.Name, ignoreCase: false))
                                         {
                                             j++;
                                             continue;
@@ -2136,7 +2189,6 @@ namespace Microsoft.CodeAnalysis
             return No;
         }
 
-
         /// <summary>
         /// Given a token for a constructor, return the token for the constructor's type and the blob containing the
         /// constructor's signature.
@@ -2147,19 +2199,33 @@ namespace Microsoft.CodeAnalysis
             out Handle ctorType,
             out Handle attributeCtor)
         {
+            return GetTypeAndConstructor(MetadataReader, customAttribute, out ctorType, out attributeCtor);
+        }
+
+        /// <summary>
+        /// Given a token for a constructor, return the token for the constructor's type and the blob containing the
+        /// constructor's signature.
+        /// </summary>
+        /// <returns>True if the function successfully returns the type and signature.</returns>
+        private static bool GetTypeAndConstructor(
+            MetadataReader metadataReader,
+            CustomAttributeHandle customAttribute,
+            out Handle ctorType,
+            out Handle attributeCtor)
+        {
             try
             {
                 ctorType = default(Handle);
 
-                attributeCtor = MetadataReader.GetCustomAttribute(customAttribute).Constructor;
+                attributeCtor = metadataReader.GetCustomAttribute(customAttribute).Constructor;
 
                 if (attributeCtor.Kind == HandleKind.MemberReference)
                 {
-                    MemberReference memberRef = MetadataReader.GetMemberReference((MemberReferenceHandle)attributeCtor);
+                    MemberReference memberRef = metadataReader.GetMemberReference((MemberReferenceHandle)attributeCtor);
 
                     StringHandle ctorName = memberRef.Name;
 
-                    if (!MetadataReader.StringComparer.Equals(ctorName, WellKnownMemberNames.InstanceConstructorName))
+                    if (!metadataReader.StringComparer.Equals(ctorName, WellKnownMemberNames.InstanceConstructorName))
                     {
                         // Not a constructor.
                         return false;
@@ -2169,9 +2235,9 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (attributeCtor.Kind == HandleKind.MethodDefinition)
                 {
-                    var methodDef = MetadataReader.GetMethodDefinition((MethodDefinitionHandle)attributeCtor);
+                    var methodDef = metadataReader.GetMethodDefinition((MethodDefinitionHandle)attributeCtor);
 
-                    if (!MetadataReader.StringComparer.Equals(methodDef.Name, WellKnownMemberNames.InstanceConstructorName))
+                    if (!metadataReader.StringComparer.Equals(methodDef.Name, WellKnownMemberNames.InstanceConstructorName))
                     {
                         // Not a constructor.
                         return false;
@@ -2203,6 +2269,16 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if the function successfully returns the name and namespace.</returns>
         internal bool GetAttributeNamespaceAndName(Handle typeDefOrRef, out Handle namespaceHandle, out StringHandle nameHandle)
         {
+            return GetAttributeNamespaceAndName(MetadataReader, typeDefOrRef, out namespaceHandle, out nameHandle);
+        }
+
+        /// <summary>
+        /// Given a token for a type, return the type's name and namespace.  Only works for top level types. 
+        /// namespaceHandle will be NamespaceDefinitionHandle for defs and StringHandle for refs. 
+        /// </summary>
+        /// <returns>True if the function successfully returns the name and namespace.</returns>
+        private static bool GetAttributeNamespaceAndName(MetadataReader metadataReader, Handle typeDefOrRef, out Handle namespaceHandle, out StringHandle nameHandle)
+        {
             nameHandle = default(StringHandle);
             namespaceHandle = default(Handle);
 
@@ -2210,7 +2286,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (typeDefOrRef.Kind == HandleKind.TypeReference)
                 {
-                    TypeReference typeRefRow = MetadataReader.GetTypeReference((TypeReferenceHandle)typeDefOrRef);
+                    TypeReference typeRefRow = metadataReader.GetTypeReference((TypeReferenceHandle)typeDefOrRef);
                     HandleKind handleType = typeRefRow.ResolutionScope.Kind;
 
                     if (handleType == HandleKind.TypeReference || handleType == HandleKind.TypeDefinition)
@@ -2224,7 +2300,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (typeDefOrRef.Kind == HandleKind.TypeDefinition)
                 {
-                    var def = MetadataReader.GetTypeDefinition((TypeDefinitionHandle)typeDefOrRef);
+                    var def = metadataReader.GetTypeDefinition((TypeDefinitionHandle)typeDefOrRef);
 
                     if (IsNested(def.Attributes))
                     {
@@ -2367,19 +2443,31 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal BlobHandle GetMethodSignatureOrThrow(MethodDefinitionHandle methodDef)
         {
-            return MetadataReader.GetMethodDefinition(methodDef).Signature;
+            return GetMethodSignatureOrThrow(MetadataReader, methodDef);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static BlobHandle GetMethodSignatureOrThrow(MetadataReader metadataReader, MethodDefinitionHandle methodDef)
+        {
+            return metadataReader.GetMethodDefinition(methodDef).Signature;
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal BlobHandle GetMethodSignatureOrThrow(Handle methodDefOrRef)
         {
+            return GetMethodSignatureOrThrow(MetadataReader, methodDefOrRef);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static BlobHandle GetMethodSignatureOrThrow(MetadataReader metadataReader, Handle methodDefOrRef)
+        {
             switch (methodDefOrRef.Kind)
             {
                 case HandleKind.MethodDefinition:
-                    return GetMethodSignatureOrThrow((MethodDefinitionHandle)methodDefOrRef);
+                    return GetMethodSignatureOrThrow(metadataReader, (MethodDefinitionHandle)methodDefOrRef);
 
                 case HandleKind.MemberReference:
-                    return GetSignatureOrThrow((MemberReferenceHandle)methodDefOrRef);
+                    return GetSignatureOrThrow(metadataReader, (MemberReferenceHandle)methodDefOrRef);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(methodDefOrRef.Kind);
@@ -2479,13 +2567,25 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         public string GetMemberRefNameOrThrow(MemberReferenceHandle memberRef)
         {
-            return MetadataReader.GetString(MetadataReader.GetMemberReference(memberRef).Name);
+            return GetMemberRefNameOrThrow(MetadataReader, memberRef);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static string GetMemberRefNameOrThrow(MetadataReader metadataReader, MemberReferenceHandle memberRef)
+        {
+            return metadataReader.GetString(metadataReader.GetMemberReference(memberRef).Name);
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal BlobHandle GetSignatureOrThrow(MemberReferenceHandle memberRef)
         {
-            return MetadataReader.GetMemberReference(memberRef).Signature;
+            return GetSignatureOrThrow(MetadataReader, memberRef);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static BlobHandle GetSignatureOrThrow(MetadataReader metadataReader, MemberReferenceHandle memberRef)
+        {
+            return metadataReader.GetMemberReference(memberRef).Signature;
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
@@ -2929,39 +3029,39 @@ namespace Microsoft.CodeAnalysis
             return peReaderOpt.GetMethodBody(method.RelativeVirtualAddress);
         }
 
-        private bool StringEquals(Handle nameHandle, string name, bool ignoreCase)
+        private static bool StringEquals(MetadataReader metadataReader, Handle nameHandle, string name, bool ignoreCase)
         {
             switch (nameHandle.Kind)
             {
                 case HandleKind.NamespaceDefinition:
-                    return StringEquals((NamespaceDefinitionHandle)nameHandle, name, ignoreCase);
+                    return StringEquals(metadataReader, (NamespaceDefinitionHandle)nameHandle, name, ignoreCase);
                 case HandleKind.String:
-                    return StringEquals((StringHandle)nameHandle, name, ignoreCase);
+                    return StringEquals(metadataReader, (StringHandle)nameHandle, name, ignoreCase);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(nameHandle.Kind);
             }
         }
 
         // TODO: remove, API should be provided by MetadataReader
-        private bool StringEquals(StringHandle nameHandle, string name, bool ignoreCase)
+        private static bool StringEquals(MetadataReader metadataReader, StringHandle nameHandle, string name, bool ignoreCase)
         {
             if (ignoreCase)
             {
-                return string.Equals(MetadataReader.GetString(nameHandle), name, StringComparison.OrdinalIgnoreCase);
+                return string.Equals(metadataReader.GetString(nameHandle), name, StringComparison.OrdinalIgnoreCase);
             }
 
-            return MetadataReader.StringComparer.Equals(nameHandle, name);
+            return metadataReader.StringComparer.Equals(nameHandle, name);
         }
 
         // TODO: remove, API should be provided by MetadataReader
-        private bool StringEquals(NamespaceDefinitionHandle nameHandle, string name, bool ignoreCase)
+        private static bool StringEquals(MetadataReader metadataReader, NamespaceDefinitionHandle nameHandle, string name, bool ignoreCase)
         {
             if (ignoreCase)
             {
-                return string.Equals(MetadataReader.GetString(nameHandle), name, StringComparison.OrdinalIgnoreCase);
+                return string.Equals(metadataReader.GetString(nameHandle), name, StringComparison.OrdinalIgnoreCase);
             }
 
-            return MetadataReader.StringComparer.Equals(nameHandle, name);
+            return metadataReader.StringComparer.Equals(nameHandle, name);
         }
 
         // Provides a UTF8 decoder to the MetadataReader that reuses strings from the string table
