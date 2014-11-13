@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     position--;
 
-                    if (comparer.Equals(nodes[startingPosition].Name, name))
+                    if (comparer.Equals(nodes[position].Name, name))
                     {
                         yield return position;
                     }
