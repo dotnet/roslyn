@@ -1742,6 +1742,17 @@ ProduceBoundNode:
         )
             Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance(bestSymbols.Length)
             Dim notMostSpecificMessage = ErrorFactory.ErrorInfo(ERRID.ERR_NotMostSpecificOverload)
+            Dim withContainingTypeInDiagnostics As Boolean = False
+
+            If Not bestSymbols(0).IsReducedExtensionMethod Then
+                Dim container As NamedTypeSymbol = bestSymbols(0).ContainingType
+
+                For i As Integer = 1 To bestSymbols.Length - 1 Step 1
+                    If bestSymbols(i).ContainingType <> container Then
+                        withContainingTypeInDiagnostics = True
+                    End If
+                Next
+            End If
 
             For i As Integer = 0 To bestSymbols.Length - 1 Step 1
 
@@ -1760,12 +1771,16 @@ ProduceBoundNode:
                 If isDelegateContext Then
                     If bestSymbolIsExtension Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate2, bestSymbol, bestSymbol.ContainingType))
+                    ElseIf withContainingTypeInDiagnostics
+                        diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate1, CustomSymbolDisplayFormatter.WithContainingType(bestSymbol)))
                     Else
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate1, bestSymbol))
                     End If
                 Else
                     If bestSymbolIsExtension Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3, bestSymbol, bestSymbol.ContainingType, notMostSpecificMessage))
+                    ElseIf withContainingTypeInDiagnostics
+                        diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, CustomSymbolDisplayFormatter.WithContainingType(bestSymbol), notMostSpecificMessage))
                     Else
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, bestSymbol, notMostSpecificMessage))
                     End If

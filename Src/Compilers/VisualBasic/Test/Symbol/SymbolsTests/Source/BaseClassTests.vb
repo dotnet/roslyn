@@ -1875,8 +1875,8 @@ End Module
 
             Dim expectedErrors = <errors>
 BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    'Function Foo() As String': Not most specific.
-    'Function Foo() As Integer': Not most specific.
+    'Function IA(Of String).Foo() As String': Not most specific.
+    'Function IA(Of Integer).Foo() As Integer': Not most specific.
         Dim s As Integer = x.Foo()
                              ~~~
                                  </errors>

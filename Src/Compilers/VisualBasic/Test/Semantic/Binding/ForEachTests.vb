@@ -2188,8 +2188,8 @@ End Class
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Current' is most specific for these arguments:
-    'ReadOnly Property Current As Integer': Not most specific.
-    'ReadOnly Property Current As String': Not most specific.
+    'Property System.Collections.Generic.IEnumerator(Of Integer).Current As Integer': Not most specific.
+    'Property System.Collections.Generic.IEnumerator(Of String).Current As String': Not most specific.
         For Each o In p
                       ~
 </expected>)
@@ -2223,8 +2223,8 @@ End Class
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Current' is most specific for these arguments:
-    'ReadOnly Property Current As Integer': Not most specific.
-    'ReadOnly Property Current As String': Not most specific.
+    'Property System.Collections.Generic.IEnumerator(Of Integer).Current As Integer': Not most specific.
+    'Property System.Collections.Generic.IEnumerator(Of String).Current As String': Not most specific.
         For Each o In p
                       ~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.

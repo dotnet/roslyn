@@ -1484,8 +1484,8 @@ End Class
 </compilation>)
             compilation.AssertTheseDiagnostics(<expected>
 BC30521: Overload resolution failed because no accessible 'M1' is most specific for these arguments:
-    'Sub M1()': Not most specific.
-    'Sub M1()': Not most specific.
+    'Sub IB.M1()': Not most specific.
+    'Sub IA.M1()': Not most specific.
         arg.M1()
             ~~
                                                </expected>)

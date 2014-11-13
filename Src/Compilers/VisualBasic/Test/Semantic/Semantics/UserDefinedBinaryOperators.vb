@@ -567,13 +567,13 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'And' is most specific for these arguments:
-    'Public Shared Operator And(x As Module1.B3, y As Module1.B2) As Module1.B3': Not most specific.
-    'Public Shared Operator And(x As Module1.B3, y As Module1.B2) As Module1.B2': Not most specific.
+    'Public Shared Operator Module1.B3.And(x As Module1.B3, y As Module1.B2) As Module1.B3': Not most specific.
+    'Public Shared Operator Module1.B2.And(x As Module1.B3, y As Module1.B2) As Module1.B2': Not most specific.
         x = New B3() AndAlso New B2() 'BIND1:"New B3() AndAlso New B2()"
             ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30521: Overload resolution failed because no accessible 'Or' is most specific for these arguments:
-    'Public Shared Operator Or(x As Module1.B3, y As Module1.B2) As Module1.B3': Not most specific.
-    'Public Shared Operator Or(x As Module1.B3, y As Module1.B2) As Module1.B2': Not most specific.
+    'Public Shared Operator Module1.B3.Or(x As Module1.B3, y As Module1.B2) As Module1.B3': Not most specific.
+    'Public Shared Operator Module1.B2.Or(x As Module1.B3, y As Module1.B2) As Module1.B2': Not most specific.
         x = New B3() OrElse New B2() 'BIND2:"New B3() OrElse New B2()"
             ~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -1535,13 +1535,13 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible '+' is most specific for these arguments:
-    'Public Shared Operator +(x As Module1.S6, y As Module1.S7) As Module1.S7': Not most specific.
-    'Public Shared Operator +(x As Module1.S6, y As Module1.S7) As Module1.S6': Not most specific.
+    'Public Shared Operator Module1.S6.+(x As Module1.S6, y As Module1.S7) As Module1.S7': Not most specific.
+    'Public Shared Operator Module1.S7.+(x As Module1.S6, y As Module1.S7) As Module1.S6': Not most specific.
         Dim r1 = New S6() + New S7()
                  ~~~~~~~~~~~~~~~~~~~
 BC30521: Overload resolution failed because no accessible '+' is most specific for these arguments:
-    'Public Shared Operator +(x As Module1.S6, y As Module1.S7) As Module1.S7': Not most specific.
-    'Public Shared Operator +(x As Module1.S6, y As Module1.S7) As Module1.S6': Not most specific.
+    'Public Shared Operator Module1.S6.+(x As Module1.S6, y As Module1.S7) As Module1.S7': Not most specific.
+    'Public Shared Operator Module1.S7.+(x As Module1.S6, y As Module1.S7) As Module1.S6': Not most specific.
         Dim r2 = x2 + y2
                  ~~~~~~~
 </expected>)

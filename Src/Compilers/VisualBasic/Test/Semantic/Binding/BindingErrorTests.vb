@@ -8297,8 +8297,8 @@ BC42353: Function '&lt;anonymous method>' doesn't return a value on all code pat
     </compilation>)
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
-    'Public Overloads Sub Foo(y1 As Module1.C1(Of Integer, Integer))': Not most specific.
-    'Public Sub Foo(t1 As Module1.S1)': Not most specific.]]>.Value.Replace(vbLf, vbCrLf))
+    'Public Overloads Sub Module1.C1(Of Module1.S1, Module1.C1(Of Integer, Integer)).Foo(y1 As Module1.C1(Of Integer, Integer))': Not most specific.
+    'Public Sub Module1.C0(Of Module1.S1).Foo(t1 As Module1.S1)': Not most specific.]]>.Value.Replace(vbLf, vbCrLf))
                     )
 
         End Sub
@@ -10338,8 +10338,8 @@ BC30676: 'E' is not an event of 'C1'.
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC30521: Overload resolution failed because no accessible 'fun' is most specific for these arguments:
-    'Sub fun(i As Integer)': Not most specific.
-    'Sub fun(i As Integer)': Not most specific.
+    'Sub AB.fun(i As Integer)': Not most specific.
+    'Sub AC.fun(i As Integer)': Not most specific.
                 d.fun(2)
                   ~~~
     </expected>)

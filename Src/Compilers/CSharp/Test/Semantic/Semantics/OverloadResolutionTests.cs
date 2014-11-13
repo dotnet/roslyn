@@ -7031,5 +7031,57 @@ class C
 1");
         }
 
+        [Fact]
+        [WorkItem(1079899, "DevDiv")]
+        [WorkItem(364, "CodePlex")]
+        public void TestBug1079899()
+        {
+            string source =
+@"
+namespace A.B
+{
+    static class X
+    {
+        public static int Test(this int o)
+        {
+            return 1;
+        }
+    }
+}
+namespace A.C
+{
+    static class X
+    {
+        public static int Test(this int o)
+        {
+            return 2;
+        }
+    }
+}
+namespace C
+{
+    using A.B;
+    using A.C.X;
+    class M
+    {
+        public static int Main()
+        {
+            if (1.Test() != 1)
+                return 1;
+            return 0;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+    // (31,19): error CS0121: The call is ambiguous between the following methods or properties: 'X.Test(int)' and 'X.Test(int)'
+    //             if (1.Test() != 1)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("A.B.X.Test(int)", "A.C.X.Test(int)").WithLocation(30, 19)
+                );
+
+            Assert.Equal("(30,19): error CS0121: The call is ambiguous between the following methods or properties: 'A.B.X.Test(int)' and 'A.C.X.Test(int)'", DiagnosticFormatter.Instance.Format(comp.GetDiagnostics()[0], System.Globalization.CultureInfo.InvariantCulture));
+        }
+
     }
 }
