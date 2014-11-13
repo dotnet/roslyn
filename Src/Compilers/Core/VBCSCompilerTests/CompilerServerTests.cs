@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             {
                 if (msbuildDirectory == null)
                 {
-                    var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false);
+                    var key = Registry.LocalMachine.OpenSubKey(@"Wow6432Node\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false) ??
+                        Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false);
 
                     if (key != null)
                     {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         private static string MSBuildExecutable { get; } = Path.Combine(MSBuildDirectory, "MSBuild.exe");
 
-        private static readonly string workingDirectory = Environment.CurrentDirectory;
+        private static readonly string workingDirectory = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
         private static string ResolveAssemblyPath(string exeName)
         {
             var path = Path.Combine(workingDirectory, exeName);
@@ -79,7 +80,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         private static string CSharpCompilerExecutableSrc = ResolveAssemblyPath("csc.exe");
         private static string BasicCompilerExecutableSrc = ResolveAssemblyPath("vbc.exe");
         private static string MicrosoftCodeAnalysisDllSrc = ResolveAssemblyPath("Microsoft.CodeAnalysis.dll");
-        private static string SystemCollectionsImmutableDllSrc = ResolveAssemblyPath("System.Collections.Immutable.dll");
+
+        private static string SystemCollectionsImmutableDllSrc = typeof(System.Collections.Immutable.ImmutableArray).Assembly.Location;
+        private static string SystemReflectionMetadataDllSrc = typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location;
 
         // The native client executables can't be loaded via Assembly.Load, so we just use the
         // compiler server resolved path
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             CSharpCompilerSrcPath,
             BasicCompilerSrcPath,
             SystemCollectionsImmutableDllSrc,
-            ResolveAssemblyPath("System.Reflection.Metadata.dll"),
+            SystemReflectionMetadataDllSrc,
             ResolveAssemblyPath("Microsoft.CodeAnalysis.Desktop.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.CSharp.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.CSharp.Desktop.dll"),
