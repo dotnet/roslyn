@@ -275,5 +275,14 @@ namespace Roslyn.Diagnostics.Analyzers {
                 return ResourceManager.GetString("UseSiteDiagnosticsCheckerMessage", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Do not call ToImmutableArray on ImmutableArray
+        /// </summary>
+        internal static string DoNotCallToImmutableArrayMessage {
+            get {
+                return ResourceManager.GetString("DoNotCallToImmutableArrayMessage", resourceCulture);
+            }
+        }
     }
 }

@@ -94,6 +94,7 @@
     <Compile Include="ApiDesign\CancellationTokenMustBeLastTests.cs" />
     <Compile Include="Performance\EmptyArrayDiagnosticAnalyzerTests.cs" />
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzerTests.cs" />
+    <Compile Include="Reliability\ImmutableCollectionAnalyzerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

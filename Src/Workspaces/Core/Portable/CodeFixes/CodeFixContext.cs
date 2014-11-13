@@ -149,6 +149,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the fix.</param>
         /// <param name="diagnostics">The subset of <see cref="Diagnostics"/> being addressed / fixed by the <paramref name="action"/>.</param>
+        public void RegisterFix(CodeAction action, IEnumerable<Diagnostic> diagnostics)
+        {
+            if (diagnostics == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostics));
+            }
+
+            RegisterFix(action, diagnostics.ToImmutableArray());
+        }
+
+        /// <summary>
+        /// Add supplied <paramref name="action"/> to the list of fixes that will be offered to the user.
+        /// </summary>
+        /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the fix.</param>
+        /// <param name="diagnostics">The subset of <see cref="Diagnostics"/> being addressed / fixed by the <paramref name="action"/>.</param>
         public void RegisterFix(CodeAction action, ImmutableArray<Diagnostic> diagnostics)
         {
             if (action == null)
@@ -163,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // - Check that supplied diagnostics form subset of diagnostics originally
             //   passed to the provider via CodeFixContext.Diagnostics.
 
-            this.registerFix(action, diagnostics.ToImmutableArray());
+            this.registerFix(action, diagnostics);
         }
 
         private static void VerifyDiagnosticsArgument(ImmutableArray<Diagnostic> diagnostics, TextSpan span)

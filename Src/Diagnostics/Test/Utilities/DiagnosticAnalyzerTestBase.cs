@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromAssembly(typeof(Enumerable).Assembly);
         private static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromAssembly(typeof(CSharpCompilation).Assembly);
         private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromAssembly(typeof(Compilation).Assembly);
+        private static readonly MetadataReference ImmutableCollectionsReference = MetadataReference.CreateFromAssembly(typeof(ImmutableArray<int>).Assembly);
 
         internal static string DefaultFilePathPrefix = "Test";
         internal static string CSharpDefaultFileExt = "cs";
@@ -230,7 +232,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddMetadataReference(projectId, SystemCoreReference)
                 .AddMetadataReference(projectId, CSharpSymbolsReference)
                 .AddMetadataReference(projectId, CodeAnalysisReference)
-                .AddMetadataReference(projectId, TestBase.SystemRef);
+                .AddMetadataReference(projectId, TestBase.SystemRef)
+                .AddMetadataReference(projectId, ImmutableCollectionsReference);
 
             int count = 0;
             foreach (var source in sources)

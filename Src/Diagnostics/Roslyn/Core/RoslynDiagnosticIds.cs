@@ -16,5 +16,6 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string MissingSharedAttributeRuleId = "RS0010";
         public const string DoNotUseVerbatimCrefs = "RS0010";
         public const string CancellationTokenMustBeLast = "RS0011";
+        public const string DoNotCallToImmutableArray = "RS0012";
     }
 }

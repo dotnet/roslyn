@@ -189,4 +189,7 @@
   <data name="CancellationTokenMustBeLastMessage" xml:space="preserve">
     <value>Method '{0}' should take CancellationToken as the last parameter</value>
   </data>
+  <data name="DoNotCallToImmutableArrayMessage" xml:space="preserve">
+    <value>Do not call ToImmutableArray on an ImmutableArray&lt;T&gt; value.</value>
+  </data>
 </root>
