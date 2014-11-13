@@ -953,12 +953,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (useTab)
             {
                 var preceedingTabs = initialColumn / tabSize;
+                var preceedingSpace = initialColumn % tabSize;
 
                 var column = initialColumn + space;
                 var numberOfTabs = column / tabSize;
                 var numberOfSpaces = column % tabSize;
-
-                return new string('\t', numberOfTabs - preceedingTabs) + new string(' ', numberOfSpaces);
+                var numberOfTabsToIntroduce = numberOfTabs - preceedingTabs;
+                return new string('\t', numberOfTabsToIntroduce) + new string(' ', numberOfTabsToIntroduce == 0 ? numberOfSpaces - preceedingSpace : numberOfSpaces);
             }
 
             if (space >= 0 && space < 20)
