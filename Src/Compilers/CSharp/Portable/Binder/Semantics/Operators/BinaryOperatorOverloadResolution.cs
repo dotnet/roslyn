@@ -258,8 +258,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumAddition, nullableUnderlying, nullableEnum, nullableEnum));
                     break;
                 case BinaryOperatorKind.Subtraction:
+
+                    // Note, BinaryOperatorOverloadResolution depends on the sequence of the following three methods in the set.
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumSubtraction, enumType, enumType, underlying));
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType));
+
+                    // Due to a bug, the native compiler allows "underlying - enum", so Roslyn does as well.
+                    // (In the native compiler codebase look at GetEnumBinOpSigs; the last call to method
+                    // "ValidForEnumAndUnderlyingType" is wrong; it should be a call to "ValidForUnderlyingTypeAndEnum".
+                    // The net result of the bug is that everything that is supposed to work is fine, and we accidentally
+                    // allow underlying - enum because enum - underlying is valid.)
+                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumSubtraction, underlying, enumType, enumType));
+
+                    // Note, BinaryOperatorOverloadResolution depends on the sequence of the following three methods in the set.
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying));
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum));
 
@@ -268,8 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // "ValidForEnumAndUnderlyingType" is wrong; it should be a call to "ValidForUnderlyingTypeAndEnum".
                     // The net result of the bug is that everything that is supposed to work is fine, and we accidentally
                     // allow underlying - enum because enum - underlying is valid.)
-
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumSubtraction, underlying, enumType, enumType));
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum));
                     break;
                 case BinaryOperatorKind.Equal:
@@ -801,8 +810,67 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            // UNDONE: This is a naive quadratic algorithm; there is a linear algorithm that works. Consider using it.
             var candidates = result.Results;
+
+            // SPEC VIOLATION: Native compiler has a tricky way of resolving an ambiguity between
+            //                 [U operator-(E x, E y)] and [E operator-(E x, U y)] operators.
+            //
+            //                 Relevant code is in [bool ExpressionBinder::GetEnumBinOpSigs(BinOpFullSig * prgbofs, int * pcbofs, BinOpArgInfo & info)]
+            for (int i = 0; i < candidates.Count; ++i)
+            {
+                var op1 = candidates[i].Signature;
+
+                BinaryOperatorKind kind1 = op1.Kind.Operator() | op1.Kind.OperandTypes();
+
+                if (kind1 == BinaryOperatorKind.EnumSubtraction)
+                {
+                    // Enum subtraction methods come in groups of three, starting with EnumSubtraction
+                    var op2 = candidates[i + 1].Signature;
+                    BinaryOperatorKind kind2 = op2.Kind.Operator() | op2.Kind.OperandTypes();
+                    var op3 = candidates[i + 2].Signature;
+                    BinaryOperatorKind kind3 = op3.Kind.Operator() | op3.Kind.OperandTypes();
+
+                    if (kind2 != BinaryOperatorKind.EnumAndUnderlyingSubtraction || op1.LeftType != op2.LeftType ||
+                        kind3 != BinaryOperatorKind.UnderlyingAndEnumSubtraction || op1.RightType != op3.RightType)
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
+                    // Only one among the three is applicable according to the native compiler behavior
+                    bool applicable1 = (candidates[i].Kind == OperatorAnalysisResultKind.Applicable);
+                    bool applicable2 = (candidates[i + 1].Kind == OperatorAnalysisResultKind.Applicable);
+                    bool applicable3 = (candidates[i + 2].Kind == OperatorAnalysisResultKind.Applicable);
+
+                    if (applicable1)
+                    {
+                        if (applicable2 || applicable3)
+                        {
+                            if (applicable2 && (object)right.Type != null && right.Type.StrippedType() == op1.RightType.StrippedType().EnumUnderlyingType())
+                            {
+                                applicable1 = applicable3 = false;
+                            }
+                            else
+                            {
+                                applicable2 = applicable3 = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(!applicable1);
+                        Debug.Assert(!applicable2 || !applicable3);
+                    }
+
+                    MakeInapplicableIfNeedTo(candidates, i, applicable1);
+                    MakeInapplicableIfNeedTo(candidates, i + 1, applicable2);
+                    MakeInapplicableIfNeedTo(candidates, i + 2, applicable3);
+
+                    // Skip candidates we already looked at
+                    i += 2;
+                }
+            }
+
+            // UNDONE: This is a naive quadratic algorithm; there is a linear algorithm that works. Consider using it.
             for (int i = 0; i < candidates.Count; ++i)
             {
                 if (candidates[i].Kind != OperatorAnalysisResultKind.Applicable)
@@ -831,6 +899,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         candidates[i] = candidates[i].Worse();
                     }
                 }
+            }
+        }
+
+        private static void MakeInapplicableIfNeedTo(ArrayBuilder<BinaryOperatorAnalysisResult> candidates, int i, bool applicable)
+        {
+            if (!applicable && candidates[i].Kind == OperatorAnalysisResultKind.Applicable)
+            {
+                candidates[i] = candidates[i].Inapplicable();
             }
         }
 
