@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// this is for a metadata reference in a solution
         /// </summary>
-#if !PORTABLE
-        private static Task<SymbolTreeInfo> LoadOrCreateAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(Create(VersionStamp.Default, assembly, cancellationToken));
-#else
         private static async Task<SymbolTreeInfo> LoadOrCreateAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
         {
             var service = solution.Workspace.Services.GetService<IAssemblySerializationInfoService>();
@@ -85,13 +80,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return info;
-#endif
-        }
-
-        private static Task<SymbolTreeInfo> CreateAsync(IAssemblySymbol assembly, CancellationToken cancellationToken)
-        {
-            // TODO delete this method soon.
-            return Task.FromResult(Create(VersionStamp.Default, assembly, cancellationToken));
         }
 
         public void WriteTo(ObjectWriter writer)
