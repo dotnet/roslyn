@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Recommendations
@@ -265,8 +264,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Debug.Assert(Not excludeInstance OrElse Not useBaseReferenceAccessibility)
 
             If context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken) Then
-                Dim type = DirectCast(container, INamedTypeSymbol)
-                If type.ConstructedFrom.SpecialType = SpecialType.System_Nullable_T Then
+                Dim type = TryCast(container, INamedTypeSymbol)
+                If type?.ConstructedFrom.SpecialType = SpecialType.System_Nullable_T Then
                     container = type.GetTypeArguments().First()
                 End If
             End If

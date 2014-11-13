@@ -83,9 +83,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             '
             ' 1) new With { .a = 1, .b = .a     <-- .a refers to the anonymous type
             ' 2) With obj : .m                  <-- .m refers to the obj type
-            ' 3) new T() With { .a = 1, .b = .a <-- 'a refers to the T type.
+            ' 3) new T() With { .a = 1, .b = .a <-- 'a refers to the T type
+            ' 4) With obj : ?.m                 <-- .m refers to the obj type
 
             Dim current As SyntaxNode = memberAccessExpression
+
             While current IsNot Nothing
                 If TypeOf current Is AnonymousObjectCreationExpressionSyntax Then
                     Return DirectCast(current, ExpressionSyntax)
@@ -97,11 +99,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ElseIf TypeOf current Is ObjectMemberInitializerSyntax AndAlso
                        TypeOf current.Parent Is ObjectCreationExpressionSyntax Then
                     Return DirectCast(current.Parent, ExpressionSyntax)
-                ElseIf current.IsKind(SyntaxKind.InvocationExpression) AndAlso
-                       current.IsParentKind(SyntaxKind.ConditionalAccessExpression) Then
-                    Return DirectCast(current.Parent, ConditionalAccessExpressionSyntax).Expression
                 ElseIf current.IsKind(SyntaxKind.ConditionalAccessExpression) Then
-                    Return DirectCast(current, ConditionalAccessExpressionSyntax).Expression
+                    Dim conditionalAccess = DirectCast(current, ConditionalAccessExpressionSyntax)
+
+                    If conditionalAccess.Expression IsNot Nothing Then
+                        Return conditionalAccess.Expression
+                    End If
                 End If
 
                 current = current.Parent
