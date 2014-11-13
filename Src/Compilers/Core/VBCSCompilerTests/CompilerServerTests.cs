@@ -318,7 +318,8 @@ End Module"}};
             VerifyResultAndOutput(result, tempDirectory, "Hello from VB\r\n");
         }
 
-        [Fact]
+        [WorkItem(1081437)]
+        [Fact(Skip = "Bug 1081437")]
         public void TestAssemblyLoadFailureCs()
         {
             var files = new Dictionary<string, string> { { "hello.cs",
@@ -342,7 +343,8 @@ class Hello
             Assert.True(result.Errors.TrimStart().StartsWith("Unhandled Exception: System.IO.FileNotFoundException"));
         }
 
-        [Fact]
+        [WorkItem(1081437)]
+        [Fact(Skip = "Bug 1081437")]
         public void TestAssemblyLoadFailureVb()
         {
             var files = new Dictionary<string, string> { { "hello.vb",
