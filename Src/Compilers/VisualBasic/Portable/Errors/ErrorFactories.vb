@@ -98,7 +98,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(VisualBasic.MessageProvider.Instance, 0, arguments)
         End Sub
 
-        Public Overrides Function GetMessage(Optional culture As CultureInfo = Nothing) As String
+        Public Overrides Function GetMessage(Optional formatProvider As IFormatProvider = Nothing) As String
+            Dim culture = TryCast(formatProvider, CultureInfo)
             If culture Is Nothing Then
                 culture = CultureInfo.InvariantCulture
             End If

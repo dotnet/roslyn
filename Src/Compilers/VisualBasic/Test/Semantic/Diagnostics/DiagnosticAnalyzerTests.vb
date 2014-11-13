@@ -88,9 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property Description As String
+            Public Overrides ReadOnly Property Descriptor As DiagnosticDescriptor
                 Get
-                    Return String.Empty
+                    ' TODO: Add support for Descriptor
+                    Return Nothing
                 End Get
             End Property
 
@@ -144,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function GetMessage(Optional culture As CultureInfo = Nothing) As String
+            Public Overrides Function GetMessage(Optional formatProvider As IFormatProvider = Nothing) As String
                 Return String.Format(m_message, m_arguments)
             End Function
 

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 analysisContext.RegisterCompilationEndAction(
                     (context) =>
                         {
-                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, Location.None, Id));
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, Location.None, messageArgs: Id));
                         }
                     );
             }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         {
                             if (context.Symbol.Name.StartsWith(this.errorSymbolPrefix))
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Symbol.Locations.First(), context.Symbol.Name));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
                             }
                         },
                     SymbolKind.Event,
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 analysisContext.RegisterSymbolAction(
                     (context) =>
                         {
-                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Symbol.Locations.First(), context.Symbol.Name));
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
                         },
                     SymbolKind.NamedType);
             }
@@ -145,13 +145,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     analysisContext.RegisterCodeBlockEndAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.OwningSymbol.Locations.First(), context.OwningSymbol.Name + ":end"));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.OwningSymbol.Locations.First(), messageArgs: context.OwningSymbol.Name + ":end"));
                             });
 
                     analysisContext.RegisterSyntaxNodeAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Node.GetLocation(), context.Node.ToFullString()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Node.GetLocation(), messageArgs: context.Node.ToFullString()));
                             },
                         CSharp.SyntaxKind.InvocationExpression);
                 }
@@ -164,13 +164,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     analysisContext.RegisterCodeBlockEndAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.OwningSymbol.Locations.First(), context.OwningSymbol.Name + ":end"));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.OwningSymbol.Locations.First(), messageArgs: context.OwningSymbol.Name + ":end"));
                             });
 
                     analysisContext.RegisterSyntaxNodeAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Node.GetLocation(), context.Node.ToFullString()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Node.GetLocation(), messageArgs: context.Node.ToFullString()));
                             },
                         VisualBasic.SyntaxKind.InvocationExpression);
                 }
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                             foreach (var comment in comments)
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, comment.GetLocation(), comment.ToFullString()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, comment.GetLocation(), messageArgs: comment.ToFullString()));
                             }
                         });
             }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                             {
                                 if (nodeOrToken.IsToken && this.spans.Any(s => s.OverlapsWith(nodeOrToken.FullSpan)))
                                 {
-                                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, nodeOrToken.GetLocation(), nodeOrToken.ToFullString()));
+                                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, nodeOrToken.GetLocation(), messageArgs: nodeOrToken.ToString()));
                                 }
                             }
                         });

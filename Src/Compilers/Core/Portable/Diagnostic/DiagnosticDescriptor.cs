@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,12 +21,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A short localizable title describing the diagnostic.
         /// </summary>
-        public string Title { get; private set; }
+        public LocalizableString Title { get; private set; }
 
         /// <summary>
         /// An optional longer localizable description for the diagnostic.
         /// </summary>
-        public string Description { get; private set; }
+        public LocalizableString Description { get; private set; }
 
         /// <summary>
         /// An optional hyperlink that provides more detailed information regarding the diagnostic.
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// A localizable format message string, which can be passed as the first argument to <see cref="String.Format(string, object[])"/> when creating the diagnostic message with this descriptor.
         /// </summary>
         /// <returns></returns>
-        public string MessageFormat { get; private set; }
+        public LocalizableString MessageFormat { get; private set; }
 
         /// <summary>
         /// The category of the diagnostic (like Design, Naming etc.)
@@ -69,14 +72,59 @@ namespace Microsoft.CodeAnalysis
         /// <param name="description">An optional longer localizable description of the diagnostic.</param>
         /// <param name="helpLink">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
-        public DiagnosticDescriptor(string id, string title, string messageFormat,
-            string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault,
-            string description = null, string helpLink = null,
+        /// <remarks>Example descriptor for rule CA1001:
+        ///     internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
+        ///         new LocalizableResourceString(nameof(FxCopRulesResources.TypesThatOwnDisposableFieldsShouldBeDisposable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
+        ///         new LocalizableResourceString(nameof(FxCopRulesResources.TypeOwnsDisposableFieldButIsNotDisposable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
+        ///         FxCopDiagnosticCategory.Design,
+        ///         DiagnosticSeverity.Warning,
+        ///         isEnabledByDefault: true,
+        ///         helpLink: "http://msdn.microsoft.com/library/ms182172.aspx",
+        ///         customTags: DiagnosticCustomTags.Microsoft);
+        /// </remarks>
+        public DiagnosticDescriptor(
+            string id,
+            LocalizableString title,
+            LocalizableString messageFormat,
+            string category, 
+            DiagnosticSeverity defaultSeverity, 
+            bool isEnabledByDefault,
+            LocalizableString description = null, 
+            string helpLink = null,
             params string[] customTags)
+            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLink, customTags.AsImmutableOrEmpty())
+        {
+        }
+
+        internal DiagnosticDescriptor(
+            string id,
+            LocalizableString title,
+            LocalizableString messageFormat,
+            string category,
+            DiagnosticSeverity defaultSeverity,
+            bool isEnabledByDefault,
+            LocalizableString description,
+            string helpLink,
+            ImmutableArray<string> customTags)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, "id");
+                throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, nameof(id));
+            }
+
+            if (messageFormat == null)
+            {
+                throw new ArgumentNullException(nameof(messageFormat));
+            }
+
+            if (category == null)
+            {
+                throw new ArgumentNullException(nameof(category));
+            }
+
+            if (title == null)
+            {
+                throw new ArgumentNullException(nameof(title));
             }
 
             this.Id = id;
@@ -88,6 +136,32 @@ namespace Microsoft.CodeAnalysis
             this.Description = description ?? string.Empty;
             this.HelpLink = helpLink ?? string.Empty;
             this.CustomTags = customTags.AsImmutableOrEmpty();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as DiagnosticDescriptor;
+            return other != null &&
+                this.Category == other.Category &&
+                this.DefaultSeverity == other.DefaultSeverity &&
+                this.Description == other.Description &&
+                this.HelpLink == other.HelpLink &&
+                this.Id == other.Id &&
+                this.IsEnabledByDefault == other.IsEnabledByDefault &&
+                this.MessageFormat == other.MessageFormat &&
+                this.Title == other.Title;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(this.Category.GetHashCode(),
+                Hash.Combine(this.DefaultSeverity.GetHashCode(),
+                Hash.Combine(this.Description.GetHashCode(),
+                Hash.Combine(this.HelpLink.GetHashCode(),
+                Hash.Combine(this.Id.GetHashCode(),
+                Hash.Combine(this.IsEnabledByDefault.GetHashCode(),
+                Hash.Combine(this.MessageFormat.GetHashCode(),
+                    this.Title.GetHashCode())))))));
         }
     }
 }

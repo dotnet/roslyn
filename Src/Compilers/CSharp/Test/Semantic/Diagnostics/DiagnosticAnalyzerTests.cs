@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override string Category { get { return kind; } }
 
-            public override string Description { get { return string.Empty; } }
+            public override DiagnosticDescriptor Descriptor { get { return null; } }
 
             public override string HelpLink { get { return string.Empty; } }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 return (d1 == null) == (d2 == null) && (d1 == null || d1.SequenceEqual(d2));
             }
 
-            public override string GetMessage(CultureInfo culture = null)
+            public override string GetMessage(IFormatProvider formatProvider = null)
             {
                 return string.Format(message, arguments);
             }
@@ -400,12 +400,12 @@ public class C { }";
                 .VerifyDiagnostics()
                 .VerifyCSharpAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null,
                     // Symbol diagnostics
-                    Diagnostic("XX0001", "C").WithWarningAsError(true),
+                    Diagnostic("XX0001", "C").WithArguments("NamedType").WithWarningAsError(true),
                     // Syntax diagnostics
-                    Diagnostic("XX0001", "using System;").WithWarningAsError(true), // using directive
-                    Diagnostic("XX0001", "Obsolete").WithWarningAsError(true), // attribute syntax
+                    Diagnostic("XX0001", "using System;").WithArguments("UsingDirective").WithWarningAsError(true), // using directive
+                    Diagnostic("XX0001", "Obsolete").WithArguments("Attribute").WithWarningAsError(true), // attribute syntax
                     Diagnostic("XX0001", @"[Obsolete]
-public class C { }").WithWarningAsError(true)); // class declaration
+public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true)); // class declaration
 
         }
 

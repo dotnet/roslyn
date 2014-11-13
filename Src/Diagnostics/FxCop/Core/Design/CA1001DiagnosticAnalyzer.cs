@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string IDisposable = "System.IDisposable";
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         FxCopRulesResources.TypesThatOwnDisposableFieldsShouldBeDisposable,
-                                                                         FxCopRulesResources.TypeOwnsDisposableFieldButIsNotDisposable,
+                                                                         new LocalizableResourceString(nameof(FxCopRulesResources.TypesThatOwnDisposableFieldsShouldBeDisposable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
+                                                                         new LocalizableResourceString(nameof(FxCopRulesResources.TypeOwnsDisposableFieldButIsNotDisposable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,

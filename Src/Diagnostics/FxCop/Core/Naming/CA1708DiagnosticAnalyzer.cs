@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
         internal const string Parameter = "Parameters of";
 
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopRulesResources.IdentifiersShouldDifferByMoreThanCase,
-                                                                                      FxCopRulesResources.IdentifierNamesShouldDifferMoreThanCase,
+                                                                                      new LocalizableResourceString(nameof(FxCopRulesResources.IdentifiersShouldDifferByMoreThanCase), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
+                                                                                      new LocalizableResourceString(nameof(FxCopRulesResources.IdentifierNamesShouldDifferMoreThanCase), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: false,
-                                                                                      description: FxCopRulesResources.IdentifiersShouldDifferByMoreThanCaseDescription,
+                                                                                      description: new LocalizableResourceString(nameof(FxCopRulesResources.IdentifiersShouldDifferByMoreThanCaseDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
                                                                                       helpLink: "http://msdn.microsoft.com/library/ms182242.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 

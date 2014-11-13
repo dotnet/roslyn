@@ -16,23 +16,20 @@ namespace Microsoft.CodeAnalysis
     {
         internal sealed class SimpleDiagnostic : Diagnostic
         {
-            private readonly string id;
-            private readonly string category;
-            private readonly string message;
-            private readonly string description;
-            private readonly string helpLink;
-            private readonly DiagnosticSeverity defaultSeverity;
+            private readonly DiagnosticDescriptor descriptor;
             private readonly DiagnosticSeverity severity;
-            private readonly bool isEnabledByDefault;
             private readonly int warningLevel;
             private readonly Location location;
             private readonly IReadOnlyList<Location> additionalLocations;
-            private readonly IReadOnlyList<string> customTags;
+            private readonly object[] messageArgs;
 
-            internal SimpleDiagnostic(string id, string category, string message, string description, string helpLink,
-                                      DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity,
-                                      bool isEnabledByDefault, int warningLevel, Location location,
-                                      IEnumerable<Location> additionalLocations, IEnumerable<string> customTags)
+            private SimpleDiagnostic(
+                DiagnosticDescriptor descriptor,
+                DiagnosticSeverity severity, 
+                int warningLevel, 
+                Location location,
+                IEnumerable<Location> additionalLocations,
+                object[] messageArgs)
             {
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
                     (warningLevel != 0 && severity == DiagnosticSeverity.Error))
@@ -40,43 +37,69 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException("warningLevel");
                 }
 
-                this.id = id;
-                this.category = category;
-                this.message = message;
-                this.description = description;
-                this.helpLink = helpLink;
+                this.descriptor = descriptor;
                 this.severity = severity;
-                this.defaultSeverity = defaultSeverity;
-                this.isEnabledByDefault = isEnabledByDefault;
                 this.warningLevel = warningLevel;
                 this.location = location;
                 this.additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
-                this.customTags = customTags == null ? SpecializedCollections.EmptyReadOnlyList<string>() : customTags.ToImmutableArray();
+                this.messageArgs = messageArgs ?? SpecializedCollections.EmptyArray<object>();
+            }
+
+            internal static SimpleDiagnostic Create(
+                DiagnosticDescriptor descriptor,
+                DiagnosticSeverity severity,
+                int warningLevel,
+                Location location,
+                IEnumerable<Location> additionalLocations,
+                object[] messageArgs)
+            {
+                return new SimpleDiagnostic(descriptor, severity, warningLevel, location, additionalLocations, messageArgs);
+            }
+
+            internal static SimpleDiagnostic Create(string id, LocalizableString title, string category, LocalizableString message, LocalizableString description, string helpLink,
+                                      DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity,
+                                      bool isEnabledByDefault, int warningLevel, Location location,
+                                      IEnumerable<Location> additionalLocations, IEnumerable<string> customTags)
+            {
+                var descriptor = new DiagnosticDescriptor(id, title, message,
+                     category, defaultSeverity, isEnabledByDefault, description, helpLink, customTags.ToImmutableArrayOrEmpty());
+                return new SimpleDiagnostic(descriptor, severity, warningLevel, location, additionalLocations, messageArgs: null);
+            }
+
+            public override DiagnosticDescriptor Descriptor
+            {
+                get { return this.descriptor; }
             }
 
             public override string Id
             {
-                get { return this.id; }
+                get { return this.descriptor.Id; }
             }
 
             public override string Category
             {
-                get { return this.category; }
+                get { return this.descriptor.Category; }
             }
 
-            public override string GetMessage(CultureInfo culture = null)
+            public override string GetMessage(IFormatProvider formatProvider = null)
             {
-                return this.message;
+                if (this.messageArgs.Length == 0)
+                {
+                    return this.descriptor.MessageFormat.ToString(formatProvider);
+                }
+
+                var localizedMessageFormat = this.descriptor.MessageFormat.ToString(formatProvider);
+                return string.Format(formatProvider, localizedMessageFormat, this.messageArgs);
             }
 
-            public override string Description
+            internal override IReadOnlyList<object> Arguments
             {
-                get { return this.description; }
+                get { return this.messageArgs; }
             }
 
             public override string HelpLink
             {
-                get { return this.helpLink; }
+                get { return this.descriptor.HelpLink; }
             }
 
             public override DiagnosticSeverity Severity
@@ -86,7 +109,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool IsEnabledByDefault
             {
-                get { return isEnabledByDefault; }
+                get { return this.descriptor.IsEnabledByDefault; }
             }
 
             public override int WarningLevel
@@ -96,7 +119,7 @@ namespace Microsoft.CodeAnalysis
 
             public override DiagnosticSeverity DefaultSeverity
             {
-                get { return this.defaultSeverity; }
+                get { return this.descriptor.DefaultSeverity; }
             }
 
             public override Location Location
@@ -111,15 +134,15 @@ namespace Microsoft.CodeAnalysis
 
             public override IReadOnlyList<string> CustomTags
             {
-                get { return this.customTags; }
+                get { return (IReadOnlyList<string>)this.descriptor.CustomTags; }
             }
 
             public override bool Equals(Diagnostic obj)
             {
                 var other = obj as SimpleDiagnostic;
                 return other != null
-                    && this.id == other.id
-                    && this.message == other.message
+                    && this.descriptor == other.descriptor
+                    && this.messageArgs.SequenceEqual(other.messageArgs, (a, b) => a == b)
                     && this.location == other.location
                     && this.severity == other.severity
                     && this.warningLevel == other.warningLevel;
@@ -132,8 +155,8 @@ namespace Microsoft.CodeAnalysis
 
             public override int GetHashCode()
             {
-                return Hash.Combine(this.id,
-                        Hash.Combine(this.message.GetHashCode(),
+                return Hash.Combine(this.descriptor,
+                        Hash.Combine(this.messageArgs.GetHashCode(),
                          Hash.Combine(this.location.GetHashCode(),
                           Hash.Combine(this.severity.GetHashCode(), this.warningLevel)
                         )));
@@ -148,7 +171,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != this.location)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, this.severity, this.defaultSeverity, this.isEnabledByDefault, this.warningLevel, location, this.additionalLocations, this.customTags);
+                    return new SimpleDiagnostic(this.descriptor, this.severity, this.warningLevel, location, this.additionalLocations, this.messageArgs);
                 }
 
                 return this;
@@ -159,7 +182,7 @@ namespace Microsoft.CodeAnalysis
                 if (this.Severity != severity)
                 {
                     var warningLevel = GetDefaultWarningLevel(severity);
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.description, this.helpLink, severity, this.defaultSeverity, this.isEnabledByDefault, warningLevel, this.location, this.additionalLocations, this.customTags);
+                    return new SimpleDiagnostic(this.descriptor, severity, warningLevel, location, this.additionalLocations, this.messageArgs);
                 }
 
                 return this;

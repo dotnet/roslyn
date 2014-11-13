@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -46,6 +47,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public override DiagnosticDescriptor Descriptor
+        {
+            get
+            {
+                // TODO: Currently, compiler diagnostics have no descriptor. We need to add support for this.
+                return null;
+            }
+        }
+
         public override string Id
         {
             get { return this.Info.MessageIdentifier; }
@@ -54,12 +64,6 @@ namespace Microsoft.CodeAnalysis
         public override string Category
         {
             get { return CompilerDiagnosticCategory; }
-        }
-
-        // TODO: Currently, compiler diagnostics have no description and help link. We need to add support for this.
-        public override string Description
-        {
-            get { return string.Empty; }
         }
 
         public override string HelpLink
@@ -93,9 +97,9 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.WarningLevel; }
         }
 
-        public override string GetMessage(System.Globalization.CultureInfo culture = null)
+        public override string GetMessage(IFormatProvider formatProvider = null)
         {
-            return this.Info.GetMessage(culture);
+            return this.Info.GetMessage(formatProvider);
         }
 
         internal override IReadOnlyList<object> Arguments

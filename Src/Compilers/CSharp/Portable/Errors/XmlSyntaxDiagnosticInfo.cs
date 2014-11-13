@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        public override string GetMessage(CultureInfo culture = null)
+        public override string GetMessage(IFormatProvider formatProvider = null)
         {
+            var culture = formatProvider as CultureInfo;
             if (culture == null)
             {
                 culture = CultureInfo.InvariantCulture;

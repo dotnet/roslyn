@@ -249,8 +249,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the text of the message in the given language.
         /// </summary>
-        public virtual string GetMessage(CultureInfo culture = null)
+        public virtual string GetMessage(IFormatProvider formatProvider = null)
         {
+            var culture = formatProvider as CultureInfo;
             if (culture == null)
             {
                 culture = CultureInfo.InvariantCulture;
@@ -268,7 +269,7 @@ namespace Microsoft.CodeAnalysis
                 return message;
             }
 
-            return String.Format(culture, message, GetArgumentsToUse(culture));
+            return String.Format(formatProvider, message, GetArgumentsToUse(culture));
         }
 
         private object[] GetArgumentsToUse(CultureInfo culture)
