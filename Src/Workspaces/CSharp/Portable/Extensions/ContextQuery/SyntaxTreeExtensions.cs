@@ -2075,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt, CancellationToken cancellationToken)
+        public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);

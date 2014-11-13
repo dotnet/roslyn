@@ -448,6 +448,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         <Extension()>
+        Public Function IsNameOfContext(syntaxTree As SyntaxTree, position As Integer, token As SyntaxToken, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+            ' first do quick exit check
+            If syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken) OrElse
+               syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
+               syntaxTree.IsEntirelyWithinComment(position, cancellationToken) OrElse
+               syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) Then
+
+                Return False
+            End If
+
+            Contract.Requires(token = syntaxTree.GetTargetToken(position, cancellationToken))
+
+            If token.IsChildToken(Of NameOfExpressionSyntax)(Function(importAliasClause) importAliasClause.OpenParenToken) Then
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
         Friend Function IsSingleLineStatementContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
             Return IsSingleLineStatementContext(syntaxTree, position, targetToken, cancellationToken)

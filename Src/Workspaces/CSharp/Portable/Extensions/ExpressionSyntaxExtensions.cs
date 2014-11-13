@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -369,11 +370,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     switch (expression.Parent.CSharpKind())
                     {
-                        case SyntaxKind.PostIncrementExpression:
-                        case SyntaxKind.PreIncrementExpression:
-                        case SyntaxKind.PostDecrementExpression:
-                        case SyntaxKind.PreDecrementExpression:
-                            return true;
+                    case SyntaxKind.PostIncrementExpression:
+                    case SyntaxKind.PreIncrementExpression:
+                    case SyntaxKind.PostDecrementExpression:
+                    case SyntaxKind.PreDecrementExpression:
+                        return true;
                     }
 
                     if (expression.IsLeftSideOfAnyAssignExpression())
@@ -393,20 +394,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsInsideNameOf(this ExpressionSyntax expression)
         {
-            return false; // TODO: not sure what the desired semantics of this method are
+            return expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
         }
 
         private static bool CanReplace(ISymbol symbol)
         {
             switch (symbol.Kind)
             {
-                case SymbolKind.Field:
-                case SymbolKind.Local:
-                case SymbolKind.Method:
-                case SymbolKind.Parameter:
-                case SymbolKind.Property:
-                case SymbolKind.RangeVariable:
-                    return true;
+            case SymbolKind.Field:
+            case SymbolKind.Local:
+            case SymbolKind.Method:
+            case SymbolKind.Parameter:
+            case SymbolKind.Property:
+            case SymbolKind.RangeVariable:
+                return true;
             }
 
             return false;
@@ -1361,33 +1362,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxToken identifier;
                 switch (name.CSharpKind())
                 {
-                    case SyntaxKind.AliasQualifiedName:
-                        var simpleName = ((AliasQualifiedNameSyntax)name).Name
-                            .WithLeadingTrivia(name.GetLeadingTrivia());
+                case SyntaxKind.AliasQualifiedName:
+                    var simpleName = ((AliasQualifiedNameSyntax)name).Name
+                        .WithLeadingTrivia(name.GetLeadingTrivia());
 
-                        simpleName = simpleName.ReplaceToken(simpleName.Identifier,
-                            ((AliasQualifiedNameSyntax)name).Name.Identifier.CopyAnnotationsTo(
-                                simpleName.Identifier.WithLeadingTrivia(
-                                    ((AliasQualifiedNameSyntax)name).Alias.Identifier.LeadingTrivia)));
+                    simpleName = simpleName.ReplaceToken(simpleName.Identifier,
+                        ((AliasQualifiedNameSyntax)name).Name.Identifier.CopyAnnotationsTo(
+                            simpleName.Identifier.WithLeadingTrivia(
+                                ((AliasQualifiedNameSyntax)name).Alias.Identifier.LeadingTrivia)));
 
-                        replacementNode = simpleName;
+                    replacementNode = simpleName;
 
-                        issueSpan = ((AliasQualifiedNameSyntax)name).Alias.Span;
+                    issueSpan = ((AliasQualifiedNameSyntax)name).Alias.Span;
 
-                        break;
+                    break;
 
-                    case SyntaxKind.QualifiedName:
-                        replacementNode = ((QualifiedNameSyntax)name).Right.WithLeadingTrivia(name.GetLeadingTrivia());
-                        issueSpan = ((QualifiedNameSyntax)name).Left.Span;
+                case SyntaxKind.QualifiedName:
+                    replacementNode = ((QualifiedNameSyntax)name).Right.WithLeadingTrivia(name.GetLeadingTrivia());
+                    issueSpan = ((QualifiedNameSyntax)name).Left.Span;
 
-                        break;
+                    break;
 
-                    case SyntaxKind.IdentifierName:
-                        identifier = ((IdentifierNameSyntax)name).Identifier;
+                case SyntaxKind.IdentifierName:
+                    identifier = ((IdentifierNameSyntax)name).Identifier;
 
-                        // we can try to remove the Attribute suffix if this is the attribute name
-                        TryReduceAttributeSuffix(name, identifier, semanticModel, out replacementNode, out issueSpan, cancellationToken);
-                        break;
+                    // we can try to remove the Attribute suffix if this is the attribute name
+                    TryReduceAttributeSuffix(name, identifier, semanticModel, out replacementNode, out issueSpan, cancellationToken);
+                    break;
                 }
             }
 
@@ -1481,18 +1482,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 switch (parent.CSharpKind())
                 {
-                    case SyntaxKind.IdentifierName:
-                    case SyntaxKind.QualifiedName:
-                        node = parent;
-                        parent = parent.Parent;
-                        break;
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.QualifiedName:
+                    node = parent;
+                    parent = parent.Parent;
+                    break;
 
-                    case SyntaxKind.NamespaceDeclaration:
-                        var namespaceDeclaration = (NamespaceDeclarationSyntax)parent;
-                        return object.Equals(namespaceDeclaration.Name, node);
+                case SyntaxKind.NamespaceDeclaration:
+                    var namespaceDeclaration = (NamespaceDeclarationSyntax)parent;
+                    return object.Equals(namespaceDeclaration.Name, node);
 
-                    default:
-                        return false;
+                default:
+                    return false;
                 }
             }
 
@@ -1511,45 +1512,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             switch (expression.CSharpKind())
             {
-                case SyntaxKind.SimpleMemberAccessExpression:
+            case SyntaxKind.SimpleMemberAccessExpression:
+                {
+                    var memberAccess = (MemberAccessExpressionSyntax)expression;
+                    ExpressionSyntax newLeft;
+
+                    if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
                     {
-                        var memberAccess = (MemberAccessExpressionSyntax)expression;
-                        ExpressionSyntax newLeft;
-
-                        if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
-                        {
-                            return false;
-                        }
-
-                        if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, optionSet, out newLeft, out issueSpan))
-                        {
-                            // replacement node might not be in it's simplest form, so add simplify annotation to it.
-                            replacementNode = memberAccess.Update(newLeft, memberAccess.OperatorToken, memberAccess.Name)
-                                .WithAdditionalAnnotations(Simplifier.Annotation);
-
-                            // Ensure that replacement doesn't change semantics.
-                            return !ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel);
-                        }
-
                         return false;
                     }
 
-                case SyntaxKind.QualifiedName:
+                    if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, optionSet, out newLeft, out issueSpan))
                     {
-                        var qualifiedName = (QualifiedNameSyntax)expression;
-                        ExpressionSyntax newLeft;
-                        if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, optionSet, out newLeft, out issueSpan))
-                        {
-                            // replacement node might not be in it's simplest form, so add simplify annotation to it.
-                            replacementNode = qualifiedName.Update((NameSyntax)newLeft, qualifiedName.DotToken, qualifiedName.Right)
-                                .WithAdditionalAnnotations(Simplifier.Annotation);
+                        // replacement node might not be in it's simplest form, so add simplify annotation to it.
+                        replacementNode = memberAccess.Update(newLeft, memberAccess.OperatorToken, memberAccess.Name)
+                            .WithAdditionalAnnotations(Simplifier.Annotation);
 
-                            // Ensure that replacement doesn't change semantics.
-                            return !ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel);
-                        }
-
-                        return false;
+                        // Ensure that replacement doesn't change semantics.
+                        return !ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel);
                     }
+
+                    return false;
+                }
+
+            case SyntaxKind.QualifiedName:
+                {
+                    var qualifiedName = (QualifiedNameSyntax)expression;
+                    ExpressionSyntax newLeft;
+                    if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, optionSet, out newLeft, out issueSpan))
+                    {
+                        // replacement node might not be in it's simplest form, so add simplify annotation to it.
+                        replacementNode = qualifiedName.Update((NameSyntax)newLeft, qualifiedName.DotToken, qualifiedName.Right)
+                            .WithAdditionalAnnotations(Simplifier.Annotation);
+
+                        // Ensure that replacement doesn't change semantics.
+                        return !ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel);
+                    }
+
+                    return false;
+                }
             }
 
             return false;
@@ -2113,28 +2114,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 switch (declSpace.CSharpKind())
                 {
-                    // These are declaration-space-defining syntaxes, by the spec:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ConstructorDeclaration:
-                    case SyntaxKind.Block:
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.AnonymousMethodExpression:
-                    case SyntaxKind.SwitchStatement:
-                    case SyntaxKind.ForEachKeyword:
-                    case SyntaxKind.ForStatement:
-                    case SyntaxKind.UsingStatement:
+                // These are declaration-space-defining syntaxes, by the spec:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.Block:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.ForEachKeyword:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.UsingStatement:
 
-                    // SPEC VIOLATION: We also want to stop walking out if, say, we are in a field
-                    // initializer. Technically according to the wording of the spec it should be
-                    // legal to use a simple name inconsistently inside a field initializer because
-                    // it does not define a local variable declaration space. In practice of course
-                    // we want to check for that. (As the native compiler does as well.)
+                // SPEC VIOLATION: We also want to stop walking out if, say, we are in a field
+                // initializer. Technically according to the wording of the spec it should be
+                // legal to use a simple name inconsistently inside a field initializer because
+                // it does not define a local variable declaration space. In practice of course
+                // we want to check for that. (As the native compiler does as well.)
 
-                    case SyntaxKind.FieldDeclaration:
-                        return declSpace;
+                case SyntaxKind.FieldDeclaration:
+                    return declSpace;
                 }
             }
 
@@ -2150,40 +2151,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (specialType)
             {
-                case SpecialType.System_Boolean:
-                    return SyntaxKind.BoolKeyword;
-                case SpecialType.System_Byte:
-                    return SyntaxKind.ByteKeyword;
-                case SpecialType.System_SByte:
-                    return SyntaxKind.SByteKeyword;
-                case SpecialType.System_Int32:
-                    return SyntaxKind.IntKeyword;
-                case SpecialType.System_UInt32:
-                    return SyntaxKind.UIntKeyword;
-                case SpecialType.System_Int16:
-                    return SyntaxKind.ShortKeyword;
-                case SpecialType.System_UInt16:
-                    return SyntaxKind.UShortKeyword;
-                case SpecialType.System_Int64:
-                    return SyntaxKind.LongKeyword;
-                case SpecialType.System_UInt64:
-                    return SyntaxKind.ULongKeyword;
-                case SpecialType.System_Single:
-                    return SyntaxKind.FloatKeyword;
-                case SpecialType.System_Double:
-                    return SyntaxKind.DoubleKeyword;
-                case SpecialType.System_Decimal:
-                    return SyntaxKind.DecimalKeyword;
-                case SpecialType.System_String:
-                    return SyntaxKind.StringKeyword;
-                case SpecialType.System_Char:
-                    return SyntaxKind.CharKeyword;
-                case SpecialType.System_Object:
-                    return SyntaxKind.ObjectKeyword;
-                case SpecialType.System_Void:
-                    return SyntaxKind.VoidKeyword;
-                default:
-                    return SyntaxKind.None;
+            case SpecialType.System_Boolean:
+                return SyntaxKind.BoolKeyword;
+            case SpecialType.System_Byte:
+                return SyntaxKind.ByteKeyword;
+            case SpecialType.System_SByte:
+                return SyntaxKind.SByteKeyword;
+            case SpecialType.System_Int32:
+                return SyntaxKind.IntKeyword;
+            case SpecialType.System_UInt32:
+                return SyntaxKind.UIntKeyword;
+            case SpecialType.System_Int16:
+                return SyntaxKind.ShortKeyword;
+            case SpecialType.System_UInt16:
+                return SyntaxKind.UShortKeyword;
+            case SpecialType.System_Int64:
+                return SyntaxKind.LongKeyword;
+            case SpecialType.System_UInt64:
+                return SyntaxKind.ULongKeyword;
+            case SpecialType.System_Single:
+                return SyntaxKind.FloatKeyword;
+            case SpecialType.System_Double:
+                return SyntaxKind.DoubleKeyword;
+            case SpecialType.System_Decimal:
+                return SyntaxKind.DecimalKeyword;
+            case SpecialType.System_String:
+                return SyntaxKind.StringKeyword;
+            case SpecialType.System_Char:
+                return SyntaxKind.CharKeyword;
+            case SpecialType.System_Object:
+                return SyntaxKind.ObjectKeyword;
+            case SpecialType.System_Void:
+                return SyntaxKind.VoidKeyword;
+            default:
+                return SyntaxKind.None;
             }
         }
 
@@ -2214,136 +2215,136 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (expression.CSharpKind())
             {
-                case SyntaxKind.SimpleMemberAccessExpression:
-                case SyntaxKind.InvocationExpression:
-                case SyntaxKind.ElementAccessExpression:
-                case SyntaxKind.PostIncrementExpression:
-                case SyntaxKind.PostDecrementExpression:
-                case SyntaxKind.ObjectCreationExpression:
-                case SyntaxKind.TypeOfExpression:
-                case SyntaxKind.DefaultExpression:
-                case SyntaxKind.CheckedExpression:
-                case SyntaxKind.UncheckedExpression:
-                case SyntaxKind.AnonymousMethodExpression:
-                    // From C# spec, 7.3.1:
-                    // Primary: x.y  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
+            case SyntaxKind.SimpleMemberAccessExpression:
+            case SyntaxKind.InvocationExpression:
+            case SyntaxKind.ElementAccessExpression:
+            case SyntaxKind.PostIncrementExpression:
+            case SyntaxKind.PostDecrementExpression:
+            case SyntaxKind.ObjectCreationExpression:
+            case SyntaxKind.TypeOfExpression:
+            case SyntaxKind.DefaultExpression:
+            case SyntaxKind.CheckedExpression:
+            case SyntaxKind.UncheckedExpression:
+            case SyntaxKind.AnonymousMethodExpression:
+                // From C# spec, 7.3.1:
+                // Primary: x.y  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
 
-                    return OperatorPrecedence.Primary;
+                return OperatorPrecedence.Primary;
 
-                case SyntaxKind.UnaryPlusExpression:
-                case SyntaxKind.UnaryMinusExpression:
-                case SyntaxKind.LogicalNotExpression:
-                case SyntaxKind.BitwiseNotExpression:
-                case SyntaxKind.PreIncrementExpression:
-                case SyntaxKind.PreDecrementExpression:
-                case SyntaxKind.CastExpression:
-                    // From C# spec, 7.3.1:
-                    // Unary: +  -  !  ~  ++x  --x  (T)x
+            case SyntaxKind.UnaryPlusExpression:
+            case SyntaxKind.UnaryMinusExpression:
+            case SyntaxKind.LogicalNotExpression:
+            case SyntaxKind.BitwiseNotExpression:
+            case SyntaxKind.PreIncrementExpression:
+            case SyntaxKind.PreDecrementExpression:
+            case SyntaxKind.CastExpression:
+                // From C# spec, 7.3.1:
+                // Unary: +  -  !  ~  ++x  --x  (T)x
 
-                    return OperatorPrecedence.Unary;
+                return OperatorPrecedence.Unary;
 
-                case SyntaxKind.MultiplyExpression:
-                case SyntaxKind.DivideExpression:
-                case SyntaxKind.ModuloExpression:
-                    // From C# spec, 7.3.1:
-                    // Multiplicative: *  /  %
+            case SyntaxKind.MultiplyExpression:
+            case SyntaxKind.DivideExpression:
+            case SyntaxKind.ModuloExpression:
+                // From C# spec, 7.3.1:
+                // Multiplicative: *  /  %
 
-                    return OperatorPrecedence.Multiplicative;
+                return OperatorPrecedence.Multiplicative;
 
-                case SyntaxKind.AddExpression:
-                case SyntaxKind.SubtractExpression:
-                    // From C# spec, 7.3.1:
-                    // Additive: +  -
+            case SyntaxKind.AddExpression:
+            case SyntaxKind.SubtractExpression:
+                // From C# spec, 7.3.1:
+                // Additive: +  -
 
-                    return OperatorPrecedence.Additive;
+                return OperatorPrecedence.Additive;
 
-                case SyntaxKind.LeftShiftExpression:
-                case SyntaxKind.RightShiftExpression:
-                    // From C# spec, 7.3.1:
-                    // Shift: <<  >>
+            case SyntaxKind.LeftShiftExpression:
+            case SyntaxKind.RightShiftExpression:
+                // From C# spec, 7.3.1:
+                // Shift: <<  >>
 
-                    return OperatorPrecedence.Shift;
+                return OperatorPrecedence.Shift;
 
-                case SyntaxKind.LessThanExpression:
-                case SyntaxKind.GreaterThanExpression:
-                case SyntaxKind.LessThanOrEqualExpression:
-                case SyntaxKind.GreaterThanOrEqualExpression:
-                case SyntaxKind.IsExpression:
-                case SyntaxKind.AsExpression:
-                    // From C# spec, 7.3.1:
-                    // Relational and type testing: <  >  <=  >=  is  as
+            case SyntaxKind.LessThanExpression:
+            case SyntaxKind.GreaterThanExpression:
+            case SyntaxKind.LessThanOrEqualExpression:
+            case SyntaxKind.GreaterThanOrEqualExpression:
+            case SyntaxKind.IsExpression:
+            case SyntaxKind.AsExpression:
+                // From C# spec, 7.3.1:
+                // Relational and type testing: <  >  <=  >=  is  as
 
-                    return OperatorPrecedence.RelationalAndTypeTesting;
+                return OperatorPrecedence.RelationalAndTypeTesting;
 
-                case SyntaxKind.EqualsExpression:
-                case SyntaxKind.NotEqualsExpression:
-                    // From C# spec, 7.3.1:
-                    // Equality: ==  !=
+            case SyntaxKind.EqualsExpression:
+            case SyntaxKind.NotEqualsExpression:
+                // From C# spec, 7.3.1:
+                // Equality: ==  !=
 
-                    return OperatorPrecedence.Equality;
+                return OperatorPrecedence.Equality;
 
-                case SyntaxKind.BitwiseAndExpression:
-                    // From C# spec, 7.3.1:
-                    // Logical AND: &
+            case SyntaxKind.BitwiseAndExpression:
+                // From C# spec, 7.3.1:
+                // Logical AND: &
 
-                    return OperatorPrecedence.LogicalAnd;
+                return OperatorPrecedence.LogicalAnd;
 
-                case SyntaxKind.ExclusiveOrExpression:
-                    // From C# spec, 7.3.1:
-                    // Logical XOR: ^
+            case SyntaxKind.ExclusiveOrExpression:
+                // From C# spec, 7.3.1:
+                // Logical XOR: ^
 
-                    return OperatorPrecedence.LogicalXor;
+                return OperatorPrecedence.LogicalXor;
 
-                case SyntaxKind.BitwiseOrExpression:
-                    // From C# spec, 7.3.1:
-                    // Logical OR: |
+            case SyntaxKind.BitwiseOrExpression:
+                // From C# spec, 7.3.1:
+                // Logical OR: |
 
-                    return OperatorPrecedence.LogicalOr;
+                return OperatorPrecedence.LogicalOr;
 
-                case SyntaxKind.LogicalAndExpression:
-                    // From C# spec, 7.3.1:
-                    // Conditional AND: &&
+            case SyntaxKind.LogicalAndExpression:
+                // From C# spec, 7.3.1:
+                // Conditional AND: &&
 
-                    return OperatorPrecedence.ConditionalAnd;
+                return OperatorPrecedence.ConditionalAnd;
 
-                case SyntaxKind.LogicalOrExpression:
-                    // From C# spec, 7.3.1:
-                    // Conditional AND: ||
+            case SyntaxKind.LogicalOrExpression:
+                // From C# spec, 7.3.1:
+                // Conditional AND: ||
 
-                    return OperatorPrecedence.ConditionalOr;
+                return OperatorPrecedence.ConditionalOr;
 
-                case SyntaxKind.CoalesceExpression:
-                    // From C# spec, 7.3.1:
-                    // Null coalescing: ??
+            case SyntaxKind.CoalesceExpression:
+                // From C# spec, 7.3.1:
+                // Null coalescing: ??
 
-                    return OperatorPrecedence.NullCoalescing;
+                return OperatorPrecedence.NullCoalescing;
 
-                case SyntaxKind.ConditionalExpression:
-                    // From C# spec, 7.3.1:
-                    // Conditional: ?:
+            case SyntaxKind.ConditionalExpression:
+                // From C# spec, 7.3.1:
+                // Conditional: ?:
 
-                    return OperatorPrecedence.Conditional;
+                return OperatorPrecedence.Conditional;
 
-                case SyntaxKind.SimpleAssignmentExpression:
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.SubtractAssignmentExpression:
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.RightShiftAssignmentExpression:
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    // From C# spec, 7.3.1:
-                    // Conditional: ?:
+            case SyntaxKind.SimpleAssignmentExpression:
+            case SyntaxKind.MultiplyAssignmentExpression:
+            case SyntaxKind.DivideAssignmentExpression:
+            case SyntaxKind.ModuloAssignmentExpression:
+            case SyntaxKind.AddAssignmentExpression:
+            case SyntaxKind.SubtractAssignmentExpression:
+            case SyntaxKind.LeftShiftAssignmentExpression:
+            case SyntaxKind.RightShiftAssignmentExpression:
+            case SyntaxKind.AndAssignmentExpression:
+            case SyntaxKind.ExclusiveOrAssignmentExpression:
+            case SyntaxKind.OrAssignmentExpression:
+            case SyntaxKind.SimpleLambdaExpression:
+            case SyntaxKind.ParenthesizedLambdaExpression:
+                // From C# spec, 7.3.1:
+                // Conditional: ?:
 
-                    return OperatorPrecedence.AssignmentAndLambdaExpression;
+                return OperatorPrecedence.AssignmentAndLambdaExpression;
 
-                default:
-                    return OperatorPrecedence.None;
+            default:
+                return OperatorPrecedence.None;
             }
         }
     }

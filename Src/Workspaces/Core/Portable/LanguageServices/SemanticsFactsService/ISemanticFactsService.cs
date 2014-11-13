@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// True if a write is performed to the given expression.  Note: reads may also be performed

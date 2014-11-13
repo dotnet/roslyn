@@ -245,5 +245,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsAssignableTo(fromSymbol As ITypeSymbol, toSymbol As ITypeSymbol, compilation As Compilation) As Boolean Implements ISemanticFactsService.IsAssignableTo
             Return fromSymbol IsNot Nothing AndAlso toSymbol IsNot Nothing AndAlso DirectCast(compilation, VisualBasicCompilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening
         End Function
+
+        Public Function IsNameOfContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNameOfContext
+            Dim token = semanticModel.SyntaxTree.GetTargetToken(position, cancellationToken)
+            Return semanticModel.SyntaxTree.IsNameOfContext(position, token, cancellationToken)
+        End Function
     End Class
 End Namespace

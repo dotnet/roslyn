@@ -262,5 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 toSymbol != null &&
                 ((CSharpCompilation)compilation).ClassifyConversion(fromSymbol, toSymbol).IsImplicit;
         }
+
+        public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            return semanticModel.SyntaxTree.IsNameOfContext(position, semanticModel, cancellationToken);
+        }
     }
 }
