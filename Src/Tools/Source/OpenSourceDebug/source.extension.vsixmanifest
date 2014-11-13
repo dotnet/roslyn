@@ -31,5 +31,6 @@
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="|Workspaces|"                          AssemblyName="Microsoft.CodeAnalysis.Workspaces,                 Version=0.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" d:Source="Project" d:ProjectName="Workspaces" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="|SyntaxVisualizerDgmlHelper|"          AssemblyName="Roslyn.SyntaxVisualizer.DgmlHelper,                Version=0.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" d:Source="Project" d:ProjectName="SyntaxVisualizerDgmlHelper" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="|SyntaxVisualizerControl|"             AssemblyName="Roslyn.SyntaxVisualizer.Control,                   Version=0.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" d:Source="Project" d:ProjectName="SyntaxVisualizerControl" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="File" Path="enableopensource.pkgundef" />
   </Assets>
 </PackageManifest>
