@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 // Check if the Expression can be replaced by Predefined Type keyword
-                if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet))
+                if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet, semanticModel))
                 {
                     var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
                     if (symbol != null && symbol.IsKind(SymbolKind.NamedType))
@@ -768,22 +768,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return crefAttribute != null;
         }
 
-        private static bool InsideNameOfExpression(ExpressionSyntax expr)
+        private static bool InsideNameOfExpression(ExpressionSyntax expr, SemanticModel semanticModel)
         {
-            return false; // TODO: not sure what the desired semantics of this method are.
+            var nameOfInvocationExpr = expr.FirstAncestorOrSelf<InvocationExpressionSyntax>(
+                invocationExpr =>
+                {
+                    var expression = invocationExpr.Expression as IdentifierNameSyntax;
+                    return (expression != null) && (expression.Identifier.Text == "nameof") &&
+                        semanticModel.GetConstantValue(invocationExpr).HasValue &&
+                        (semanticModel.GetTypeInfo(invocationExpr).Type.SpecialType == SpecialType.System_String);
+                });
+
+            return nameOfInvocationExpr != null;
         }
 
-        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet)
+        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet, SemanticModel semanticModel)
         {
             return (name.Parent != null) && !(name.Parent is MemberAccessExpressionSyntax) &&
-                   !InsideCrefReference(name) && !InsideNameOfExpression(name) &&
+                   !InsideCrefReference(name) && !InsideNameOfExpression(name, semanticModel) &&
                    optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp);
         }
 
-        private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax memberAccess, OptionSet optionSet)
+        private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax memberAccess, OptionSet optionSet, SemanticModel semanticModel)
         {
             return (((memberAccess.Parent != null) && (memberAccess.Parent is MemberAccessExpressionSyntax)) || InsideCrefReference(memberAccess)) &&
-                   !InsideNameOfExpression(memberAccess) &&
+                   !InsideNameOfExpression(memberAccess, semanticModel) &&
                    optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp);
         }
 
@@ -1280,8 +1289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return true;
                         }
 
-                        if (PreferPredefinedTypeKeywordInDeclarations(name, optionSet) ||
-                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet))
+                        if (PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel) ||
+                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel))
                         {
                             var type = semanticModel.GetTypeInfo(name).Type;
                             if (type != null)

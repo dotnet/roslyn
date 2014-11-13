@@ -1052,14 +1052,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return crefAttribute IsNot Nothing
         End Function
 
+        Private Function InsideNameOfExpression(expr As ExpressionSyntax) As Boolean
+            Dim nameOfExpression = expr.FirstAncestorOrSelf(Of NameOfExpressionSyntax)()
+            Return nameOfExpression IsNot Nothing
+        End Function
+
         Private Function PreferPredefinedTypeKeywordInMemberAccess(memberAccess As ExpressionSyntax, optionSet As OptionSet) As Boolean
             Return (((memberAccess.Parent IsNot Nothing) AndAlso (TypeOf memberAccess.Parent Is MemberAccessExpressionSyntax)) OrElse
                     (InsideCrefReference(memberAccess) AndAlso Not memberAccess.IsLeftSideOfQualifiedName)) AndAlso ' Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs (i.e. Sytem.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't support simplifying types names like System.Int32.MaxValue to Integer.MaxValue.
+                   (Not InsideNameOfExpression(memberAccess)) AndAlso
                    optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic)
         End Function
 
         Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
             Return (name.Parent IsNot Nothing) AndAlso (TypeOf name.Parent IsNot MemberAccessExpressionSyntax) AndAlso (Not InsideCrefReference(name)) AndAlso
+                   (Not InsideNameOfExpression(name)) AndAlso
                    optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic)
         End Function
 
