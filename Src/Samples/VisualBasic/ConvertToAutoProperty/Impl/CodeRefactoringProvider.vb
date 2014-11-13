@@ -117,7 +117,7 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
         Dim oldRoot = DirectCast(Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False), SyntaxNode)
         Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-        Dim referenceRewriter = New ReferenceRewriter(propertyName, backingField, semanticModel)
+        Dim referenceRewriter = New referenceRewriter(propertyName, backingField, semanticModel)
         Dim newRoot = referenceRewriter.Visit(oldRoot)
 
         Return document.WithSyntaxRoot(newRoot)

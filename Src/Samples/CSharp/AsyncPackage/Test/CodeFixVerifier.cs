@@ -79,7 +79,7 @@ namespace TestTemplate
             var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
             var compilerDiagnostics = GetCompilerDiagnostics(document);
             var attempts = analyzerDiagnostics.Length;
-
+            
             for (int i = 0; i < attempts; ++i)
             {
                 var actions = new List<CodeAction>();
