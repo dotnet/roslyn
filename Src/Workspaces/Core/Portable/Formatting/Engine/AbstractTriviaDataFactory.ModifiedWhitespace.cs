@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 ChainedFormattingRules formattingRules,
                 Action<int, TriviaData> formattingResultApplier,
                 CancellationToken cancellationToken,
-                int tokenPairIndex)
+                int tokenPairIndex = TokenPairIndexNotNeeded)
             {
                 formattingResultApplier(tokenPairIndex, new FormattedWhitespace(this.OptionSet, this.LineBreaks, this.Spaces, this.Language));
             }

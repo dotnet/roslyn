@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 moduleBeingBuilt,
                 win32Resources: null,
                 xmlDocStream: null,
-                cancellationToken: cancellationToken,
                 generateDebugInfo: true,
                 diagnostics: diagnostics,
-                filterOpt: changes.RequiresCompilation))
+                filterOpt: changes.RequiresCompilation,
+                cancellationToken: cancellationToken))
             {
                 // Map the definitions from the previous compilation to the current compilation.
                 // This must be done after compiling above since synthesized definitions

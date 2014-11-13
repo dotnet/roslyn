@@ -551,8 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Force all types that were declared in this tree to generate errors. We may also generate declaration
             ' errors for other parts of partials; that's OK and those errors will be retained, but won't be in the
             ' diagnostic bag for this particular file.
-            VisitAllSourceTypesAndNamespaces(cancellationToken,
-                                             Sub(typeOrNamespace As NamespaceOrTypeSymbol)
+            VisitAllSourceTypesAndNamespaces(Sub(typeOrNamespace As NamespaceOrTypeSymbol)
                                                  If Not typeOrNamespace.IsDefinedInSourceTree(tree, filterSpanWithinTree) Then
                                                      Return
                                                  End If
@@ -564,7 +563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                      Dim sourceType = DirectCast(typeOrNamespace, NamedTypeSymbol)
                                                      sourceType.GenerateDeclarationErrors(cancellationToken)
                                                  End If
-                                             End Sub, tasks)
+                                             End Sub,
+                tasks, cancellationToken)
 
             If tasks IsNot Nothing Then
                 Dim curTask As Task = Nothing
@@ -625,8 +625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim tasks As ConcurrentStack(Of Task) = If(ContainingSourceAssembly.DeclaringCompilation.Options.ConcurrentBuild,
                                                        New ConcurrentStack(Of Task)(), Nothing)
 
-            VisitAllSourceTypesAndNamespaces(cancellationToken,
-                                             Sub(typeOrNamespace As NamespaceOrTypeSymbol)
+            VisitAllSourceTypesAndNamespaces(Sub(typeOrNamespace As NamespaceOrTypeSymbol)
                                                  If typeOrNamespace.IsNamespace Then
                                                      DirectCast(typeOrNamespace, SourceNamespaceSymbol).GenerateDeclarationErrors(cancellationToken)
                                                  Else
@@ -634,7 +633,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                      Dim sourceType = DirectCast(typeOrNamespace, NamedTypeSymbol)
                                                      sourceType.GenerateDeclarationErrors(cancellationToken)
                                                  End If
-                                             End Sub, tasks)
+                                             End Sub,
+                tasks, cancellationToken)
 
             If tasks IsNot Nothing Then
                 Dim curTask As Task = Nothing
@@ -665,12 +665,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ' Visit all of the source types within this source module.
-        Private Sub VisitAllSourceTypesAndNamespaces(cancellationToken As CancellationToken, visitor As Action(Of NamespaceOrTypeSymbol), tasks As ConcurrentStack(Of Task))
-            VisitTypesAndNamespacesWithin(cancellationToken, Me.GlobalNamespace, visitor, tasks)
+        Private Sub VisitAllSourceTypesAndNamespaces(visitor As Action(Of NamespaceOrTypeSymbol), tasks As ConcurrentStack(Of Task), cancellationToken As CancellationToken)
+            VisitTypesAndNamespacesWithin(Me.GlobalNamespace, visitor, tasks, cancellationToken)
         End Sub
 
-        ' Visit all source types and namespaces within this source namespace or type, inclusve of this source namespace or type
-        Private Sub VisitTypesAndNamespacesWithin(cancellationToken As CancellationToken, ns As NamespaceOrTypeSymbol, visitor As Action(Of NamespaceOrTypeSymbol), tasks As ConcurrentStack(Of Task))
+        ' Visit all source types and namespaces within this source namespace or type, inclusive of this source namespace or type
+        Private Sub VisitTypesAndNamespacesWithin(ns As NamespaceOrTypeSymbol, visitor As Action(Of NamespaceOrTypeSymbol), tasks As ConcurrentStack(Of Task), cancellationToken As CancellationToken)
             Dim stack = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance
             Try
                 stack.Push(ns)

@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis
                 using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 using (var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject())
                 {
-                    this.TopologicalSort(this.projectIds, cancellationToken, seenProjects.Object, resultList.Object);
+                    this.TopologicalSort(this.projectIds, seenProjects.Object, resultList.Object, cancellationToken);
                     this.lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
                 }
             }
@@ -279,9 +279,9 @@ namespace Microsoft.CodeAnalysis
 
         private void TopologicalSort(
             IEnumerable<ProjectId> projectIds,
-            CancellationToken cancellationToken,
             HashSet<ProjectId> seenProjects,
-            List<ProjectId> resultList)
+            List<ProjectId> resultList,
+            CancellationToken cancellationToken)
         {
             foreach (var projectId in projectIds)
             {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis
                     ImmutableHashSet<ProjectId> projectReferenceIds;
                     if (this.referencesMap.TryGetValue(projectId, out projectReferenceIds))
                     {
-                        TopologicalSort(projectReferenceIds, cancellationToken, seenProjects, resultList);
+                        TopologicalSort(projectReferenceIds, seenProjects, resultList, cancellationToken);
                     }
 
                     resultList.Add(projectId);
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis
                         using (var topologicallySeenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                         using (var sortedProjects = SharedPools.Default<List<ProjectId>>().GetPooledObject())
                         {
-                            this.TopologicalSort(dependencySet.Object, cancellationToken, topologicallySeenProjects.Object, sortedProjects.Object);
+                            this.TopologicalSort(dependencySet.Object, topologicallySeenProjects.Object, sortedProjects.Object, cancellationToken);
                             results.Add(sortedProjects.Object.ToImmutableArrayOrEmpty());
                         }
                     }

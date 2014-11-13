@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis
             return declaringSyntax;
         }
 
-        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, IEnumerable<SyntaxNode> executableCodeBlocks)
+        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode> executableCodeBlocks, CancellationToken cancellationToken)
         {
             var declaredSymbol = getSymbol ? GetDeclaredSymbolCore(node, cancellationToken) : null;
             var codeBlocks = executableCodeBlocks == null ?
@@ -845,10 +845,10 @@ namespace Microsoft.CodeAnalysis
 
         internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
         {
-            return GetDeclarationInfo(node, getSymbol, cancellationToken, (IEnumerable<SyntaxNode>)null);
+            return GetDeclarationInfo(node, getSymbol, (IEnumerable<SyntaxNode>)null, cancellationToken);
         }
 
-        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, SyntaxNode executableCodeBlock)
+        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, SyntaxNode executableCodeBlock, CancellationToken cancellationToken)
         {
             var declaredSymbol = getSymbol ? GetDeclaredSymbolCore(node, cancellationToken) : null;
             var codeBlock = executableCodeBlock == null ? ImmutableArray<SyntaxNode>.Empty : ImmutableArray.Create(executableCodeBlock);
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis
 
         internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, params SyntaxNode[] executableCodeBlocks)
         {
-            return GetDeclarationInfo(node, getSymbol, cancellationToken, executableCodeBlocks.AsEnumerable());
+            return GetDeclarationInfo(node, getSymbol, executableCodeBlocks.AsEnumerable(), cancellationToken);
         }
     }
 }

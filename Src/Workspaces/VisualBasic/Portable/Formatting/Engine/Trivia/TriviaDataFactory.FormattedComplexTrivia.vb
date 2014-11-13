@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                         formattingRules As ChainedFormattingRules,
                                         formattingResultApplier As Action(Of Integer, TriviaData),
                                         cancellationToken As CancellationToken,
-                                        Optional tokenPairIndex As Integer = -2147483648)
+                                        Optional tokenPairIndex As Integer = TokenPairIndexNotNeeded)
                 Throw New NotImplementedException()
             End Sub
 

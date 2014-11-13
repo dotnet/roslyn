@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
             CancellationToken cancellationToken)
-            : this(document, span, diagnostics, registerFix, cancellationToken, verifyArguments: true)
+            : this(document, span, diagnostics, registerFix, verifyArguments: true, cancellationToken: cancellationToken)
         {            
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Diagnostic diagnostic,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
             CancellationToken cancellationToken)
-            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerFix, cancellationToken, verifyArguments: true)
+            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerFix, verifyArguments: true, cancellationToken: cancellationToken)
         {
         }
 
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
-            CancellationToken cancellationToken,
-            bool verifyArguments)
+            bool verifyArguments,
+            CancellationToken cancellationToken)
         {
             if (verifyArguments)
             {
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             Diagnostic diagnostic,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
-            CancellationToken cancellationToken,
-            bool verifyArguments)
-            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerFix, cancellationToken, verifyArguments)
+            bool verifyArguments,
+            CancellationToken cancellationToken)
+            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerFix, verifyArguments, cancellationToken)
         {
         }
 

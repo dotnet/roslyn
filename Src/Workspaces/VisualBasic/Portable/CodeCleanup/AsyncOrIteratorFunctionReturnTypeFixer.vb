@@ -11,10 +11,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
         Private Const _system_Collections_IEnumerable_Name As String = "System.Collections.IEnumerable"
 
         Public Function RewriteMethodStatement(func As MethodStatementSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As MethodStatementSyntax
-            Return RewriteMethodStatement(func, semanticModel, cancellationToken, oldFunc:=func)
+            Return RewriteMethodStatement(func, semanticModel, oldFunc:=func, cancellationToken:=cancellationToken)
         End Function
 
-        Public Function RewriteMethodStatement(func As MethodStatementSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken, oldFunc As MethodStatementSyntax) As MethodStatementSyntax
+        Public Function RewriteMethodStatement(func As MethodStatementSyntax, semanticModel As SemanticModel, oldFunc As MethodStatementSyntax, cancellationToken As CancellationToken) As MethodStatementSyntax
             If func.Keyword.VBKind = SyntaxKind.FunctionKeyword Then
 
                 Dim modifiers = func.Modifiers
@@ -33,10 +33,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
         End Function
 
         Public Function RewriteLambdaHeader(lambdaHeader As LambdaHeaderSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As LambdaHeaderSyntax
-            Return RewriteLambdaHeader(lambdaHeader, semanticModel, cancellationToken, oldLambdaHeader:=lambdaHeader)
+            Return RewriteLambdaHeader(lambdaHeader, semanticModel, oldLambdaHeader:=lambdaHeader, cancellationToken:=cancellationToken)
         End Function
 
-        Public Function RewriteLambdaHeader(lambdaHeader As LambdaHeaderSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken, oldLambdaHeader As LambdaHeaderSyntax) As LambdaHeaderSyntax
+        Public Function RewriteLambdaHeader(lambdaHeader As LambdaHeaderSyntax, semanticModel As SemanticModel, oldLambdaHeader As LambdaHeaderSyntax, cancellationToken As CancellationToken) As LambdaHeaderSyntax
             If lambdaHeader.Keyword.VBKind = SyntaxKind.FunctionKeyword AndAlso
                lambdaHeader.AsClause IsNot Nothing AndAlso
                lambdaHeader.ParameterList IsNot Nothing Then

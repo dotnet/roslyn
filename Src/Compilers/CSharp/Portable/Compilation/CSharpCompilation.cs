@@ -1989,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (stage == CompilationStage.Compile || stage > CompilationStage.Compile && includeEarlierStages)
                 {
                     var methodBodyDiagnostics = DiagnosticBag.GetInstance();
-                    GetDiagnosticsForAllMethodBodies(cancellationToken, methodBodyDiagnostics);
+                    GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, cancellationToken);
                     builder.AddRangeAndFree(methodBodyDiagnostics);
                 }
 
@@ -2003,7 +2003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Do the steps in compilation to get the method body diagnostics, but don't actually generate
         // IL or emit an assembly.
-        private void GetDiagnosticsForAllMethodBodies(CancellationToken cancellationToken, DiagnosticBag diagnostics)
+        private void GetDiagnosticsForAllMethodBodies(DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
@@ -2274,28 +2274,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            CancellationToken cancellationToken,
             CompilationTestData testData,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
         {
             return this.CreateModuleBuilder(
                 emitOptions,
                 manifestResources,
                 assemblySymbolMapper,
-                cancellationToken,
                 testData,
                 diagnostics,
-                ImmutableArray<NamedTypeSymbol>.Empty);
+                ImmutableArray<NamedTypeSymbol>.Empty,
+                cancellationToken);
         }
 
         internal CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
-            ImmutableArray<NamedTypeSymbol> additionalTypes)
+            ImmutableArray<NamedTypeSymbol> additionalTypes,
+            CancellationToken cancellationToken)
         {
             // Do not waste a slot in the submission chain for submissions that contain no executable code
             // (they may only contain #r directives, usings, etc.)
@@ -2355,10 +2355,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            CancellationToken cancellationToken,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filterOpt)
+            Predicate<ISymbol> filterOpt,
+            CancellationToken cancellationToken)
         {
             // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)

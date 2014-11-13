@@ -32,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _includedFileCache As DocumentationCommentIncludeCache
 
             Private Sub New(assemblyName As String, compilation As VisualBasicCompilation, writer As TextWriter,
-                            processIncludes As Boolean, isForSingleSymbol As Boolean, diagnostics As DiagnosticBag,
-                            filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?,
-                            cancellationToken As CancellationToken, preferredCulture As CultureInfo)
+                processIncludes As Boolean, isForSingleSymbol As Boolean, diagnostics As DiagnosticBag,
+                filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?,
+                preferredCulture As CultureInfo, cancellationToken As CancellationToken)
 
                 Me._assemblyName = assemblyName
                 Me._compilation = compilation
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Using writer
                         ' TODO: get preferred culture from compilation(?)
                         Dim compiler As New DocumentationCommentCompiler(If(assemblyName, compilation.SourceAssembly.Name), compilation, writer, True, False,
-                                                                         diagnostics, filterTree, filterSpanWithinTree, cancellationToken, preferredCulture:=Nothing)
+                            diagnostics, filterTree, filterSpanWithinTree, preferredCulture:=Nothing, cancellationToken:=cancellationToken)
 
                         compiler.Visit(compilation.SourceAssembly.GlobalNamespace)
                         Debug.Assert(compiler._writer.IndentDepth = 0)
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim discardedDiagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
 
                 Dim compiler = New DocumentationCommentCompiler(Nothing, compilation, writer, processIncludes,
-                                                                True, discardedDiagnostics, Nothing, Nothing, cancellationToken, preferredCulture)
+                    True, discardedDiagnostics, Nothing, Nothing, preferredCulture, cancellationToken)
                 compiler.Visit(symbol)
                 Debug.Assert(compiler._writer.IndentDepth = 0)
 

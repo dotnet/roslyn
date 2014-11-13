@@ -1247,28 +1247,28 @@ namespace Microsoft.CodeAnalysis
             EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            CancellationToken cancellationToken,
             CompilationTestData testData,
-            DiagnosticBag diagnostics);
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken);
 
         // TODO: private protected
         internal abstract bool CompileImpl(
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            CancellationToken cancellationToken,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filterOpt);
+            Predicate<ISymbol> filterOpt,
+            CancellationToken cancellationToken);
 
         internal bool Compile(
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            CancellationToken cancellationToken,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filterOpt)
+            Predicate<ISymbol> filterOpt,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -1276,10 +1276,10 @@ namespace Microsoft.CodeAnalysis
                     moduleBuilder,
                     win32Resources,
                     xmlDocStream,
-                    cancellationToken,
                     generateDebugInfo,
                     diagnostics,
-                    filterOpt);
+                    filterOpt,
+                    cancellationToken);
             }
             finally
             {
@@ -1299,9 +1299,9 @@ namespace Microsoft.CodeAnalysis
                         emitOptions: EmitOptions.Default,
                         manifestResources: null,
                         assemblySymbolMapper: null,
-                        cancellationToken: cancellationToken,
                         testData: null,
-                        diagnostics: discardedDiagnostics);
+                        diagnostics: discardedDiagnostics,
+                        cancellationToken: cancellationToken);
 
                     if (moduleBeingBuilt != null)
                     {
@@ -1309,10 +1309,10 @@ namespace Microsoft.CodeAnalysis
                             moduleBeingBuilt,
                             win32Resources: null,
                             xmlDocStream: null,
-                            cancellationToken: cancellationToken,
                             generateDebugInfo: false,
                             diagnostics: discardedDiagnostics,
-                            filterOpt: null);
+                            filterOpt: null,
+                            cancellationToken: cancellationToken);
                     }
 
                     discardedDiagnostics.Free();
@@ -1469,9 +1469,9 @@ namespace Microsoft.CodeAnalysis
                     options,
                     manifestResources,
                     null,
-                    cancellationToken,
                     testData,
-                    diagnostics);
+                    diagnostics,
+                    cancellationToken);
 
                 if (moduleBeingBuilt == null)
                 {
@@ -1482,10 +1482,10 @@ namespace Microsoft.CodeAnalysis
                     moduleBeingBuilt,
                     win32Resources,
                     xmlDocumentationStream,
-                    cancellationToken,
                     generateDebugInfo: pdbStream != null,
                     diagnostics: diagnostics,
-                    filterOpt: null))
+                    filterOpt: null,
+                    cancellationToken: cancellationToken))
                 {
                     return ToEmitResultAndFree(diagnostics, success: false);
                 }

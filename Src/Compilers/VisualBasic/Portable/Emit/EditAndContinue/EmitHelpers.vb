@@ -62,10 +62,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    win32Resources:=Nothing,
                                    xmlDocStream:=Nothing,
-                                   cancellationToken:=cancellationToken,
                                    generateDebugInfo:=True,
                                    diagnostics:=diagnostics,
-                                   filterOpt:=AddressOf changes.RequiresCompilation) Then
+                                   filterOpt:=AddressOf changes.RequiresCompilation,
+                                   cancellationToken:=cancellationToken) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.
                 ' This must be done after compiling above since synthesized definitions

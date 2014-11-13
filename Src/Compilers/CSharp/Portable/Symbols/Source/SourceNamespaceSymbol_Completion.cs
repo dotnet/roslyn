@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 Parallel.For(0, members.Length, po, i =>
                                 {
                                     var member = members[i];
-                                    ForceCompleteMemberByLocation(locationOpt, cancellationToken, member);
+                                    ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
                                 });
 
                                 foreach (var member in members)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 foreach (var member in members)
                                 {
-                                    ForceCompleteMemberByLocation(locationOpt, cancellationToken, member);
+                                    ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
                                     allCompleted = allCompleted && member.HasComplete(CompletionPart.All);
                                 }
                             }

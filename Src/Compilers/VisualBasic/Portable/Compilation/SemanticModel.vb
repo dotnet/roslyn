@@ -3527,12 +3527,12 @@ _Default:
                     Return
                 Case SyntaxKind.EnumMemberDeclaration
                     Dim t = CType(node, EnumMemberDeclarationSyntax)
-                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.Initializer))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, t.Initializer, cancellationToken))
                     Return
                 Case SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement
                     Dim t = CType(node, DelegateStatementSyntax)
                     Dim paramInitializers As IEnumerable(Of SyntaxNode) = GetParameterInitializers(t.ParameterList)
-                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, paramInitializers))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, paramInitializers, cancellationToken))
                     Return
                 Case SyntaxKind.EventBlock
                     Dim t = CType(node, EventBlockSyntax)
@@ -3540,18 +3540,18 @@ _Default:
                         ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
                     Dim eventInitializers = GetParameterInitializers(t.EventStatement.ParameterList)
-                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, eventInitializers))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, eventInitializers, cancellationToken))
                     Return
                 Case SyntaxKind.EventStatement
                     Dim t = CType(node, EventStatementSyntax)
                     Dim paramInitializers = GetParameterInitializers(t.ParameterList)
-                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, paramInitializers))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, paramInitializers, cancellationToken))
                     Return
                 Case SyntaxKind.FieldDeclaration
                     Dim t = CType(node, FieldDeclarationSyntax)
                     For Each decl In t.Declarators
                         For Each identifier In decl.Names
-                            builder.Add(GetDeclarationInfo(identifier, getSymbol, cancellationToken, decl.Initializer))
+                            builder.Add(GetDeclarationInfo(identifier, getSymbol, decl.Initializer, cancellationToken))
                         Next
                     Next
                     Return
@@ -3562,13 +3562,13 @@ _Default:
                     Next
                     Dim propertyInitializers = GetParameterInitializers(t.PropertyStatement.ParameterList)
                     Dim codeBlocks = propertyInitializers.Concat(t.PropertyStatement.Initializer)
-                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, codeBlocks, cancellationToken))
                     Return
                 Case SyntaxKind.PropertyStatement
                     Dim t = CType(node, PropertyStatementSyntax)
                     Dim propertyInitializers = GetParameterInitializers(t.ParameterList)
                     Dim codeBlocks = propertyInitializers.Concat(t.Initializer)
-                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, codeBlocks, cancellationToken))
                     Return
                 Case SyntaxKind.GetAccessorBlock,
                      SyntaxKind.SetAccessorBlock,
@@ -3582,12 +3582,12 @@ _Default:
                     Dim t = CType(node, MethodBlockBaseSyntax)
                     Dim paramInitializers = GetParameterInitializers(t.Begin.ParameterList)
                     Dim codeBlocks = paramInitializers.Concat(t.Statements).Concat(t.End)
-                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, codeBlocks, cancellationToken))
                     Return
                 Case SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement
                     Dim t = CType(node, MethodBaseSyntax)
                     Dim paramInitializers = GetParameterInitializers(t.ParameterList)
-                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, paramInitializers))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, paramInitializers, cancellationToken))
                     Return
                 Case SyntaxKind.CompilationUnit
                     Dim t = CType(node, CompilationUnitSyntax)

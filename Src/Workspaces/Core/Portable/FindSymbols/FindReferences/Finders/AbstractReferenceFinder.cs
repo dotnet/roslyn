@@ -594,15 +594,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
             }
 
-            return await FindReferencesThroughAliasSymbolsAsync(symbol, document, aliasSymbols, cancellationToken, findParentNode).ConfigureAwait(false);
+            return await FindReferencesThroughAliasSymbolsAsync(symbol, document, aliasSymbols, findParentNode, cancellationToken).ConfigureAwait(false);
         }
 
         protected static async Task<IEnumerable<ReferenceLocation>> FindAliasReferencesAsync(
             IEnumerable<ReferenceLocation> nonAliasReferences,
             ISymbol symbol,
             Document document,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch)
+            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch,
+            CancellationToken cancellationToken)
         {
             var aliasSymbols = await GetAliasSymbolsAsync(document, nonAliasReferences, cancellationToken).ConfigureAwait(false);
             if (aliasSymbols == null)
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
             }
 
-            return await FindReferencesThroughAliasSymbolsAsync(symbol, document, aliasSymbols, cancellationToken, symbolsMatch).ConfigureAwait(false);
+            return await FindReferencesThroughAliasSymbolsAsync(symbol, document, aliasSymbols, symbolsMatch, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<IEnumerable<IAliasSymbol>> GetAliasSymbolsAsync(
@@ -640,8 +640,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol,
             Document document,
             IEnumerable<IAliasSymbol> aliasSymbols,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode)
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(aliasSymbols);
 
@@ -669,8 +669,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol,
             Document document,
             IEnumerable<IAliasSymbol> aliasSymbols,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch)
+            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(aliasSymbols);
 

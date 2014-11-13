@@ -51,7 +51,7 @@ namespace AsyncPackage
                     // Register a code action that will invoke the fix.
                     context.RegisterFix(
                         new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart",
-                                                         c => ChangetoAwaitAsync(context.Document, invocation, c, name)),
+                                                         c => ChangetoAwaitAsync(context.Document, invocation, name, c)),
                         diagnostic);
                     return;
                 }
@@ -73,7 +73,7 @@ namespace AsyncPackage
                     // Register a code action that will invoke the fix.
                     context.RegisterFix(
                         new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart",
-                                                         c => ChangetoAwaitAsync(context.Document, invocation, c, name)),
+                                                         c => ChangetoAwaitAsync(context.Document, invocation, name, c)),
                         diagnostic);
                     return;
                 }
@@ -85,7 +85,7 @@ namespace AsyncPackage
                     // Register a code action that will invoke the fix.
                     context.RegisterFix(
                         new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
-                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)),
+                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, name, c)),
                         diagnostic);
                     return;
                 }
@@ -97,7 +97,7 @@ namespace AsyncPackage
                     // Register a code action that will invoke the fix.
                     context.RegisterFix(
                         new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
-                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)),
+                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, name, c)),
                         diagnostic);
                     return;
                 }
@@ -109,14 +109,14 @@ namespace AsyncPackage
                     // Register a code action that will invoke the fix.
                     context.RegisterFix(
                         new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
-                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, c, name)),
+                                                                 c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, name, c)),
                         diagnostic);
                     return;
                 }
             }
         }
 
-        private async Task<Document> ToDelayWhenAnyWhenAllAsync(Document document, InvocationExpressionSyntax invocation, CancellationToken c, string name)
+        private async Task<Document> ToDelayWhenAnyWhenAllAsync(Document document, InvocationExpressionSyntax invocation, string name, CancellationToken cancellationToken)
         {
             var simpleExpression = SyntaxFactory.ParseName("");
             if (name.Equals("WaitAny"))
@@ -137,7 +137,7 @@ namespace AsyncPackage
 
             var newExpression = SyntaxFactory.PrefixUnaryExpression(SyntaxKind.AwaitExpression, expression.WithLeadingTrivia(SyntaxFactory.Space)).WithTrailingTrivia(invocation.GetTrailingTrivia()).WithLeadingTrivia(invocation.GetLeadingTrivia());
 
-            var oldroot = await document.GetSyntaxRootAsync(c).ConfigureAwait(false);
+            var oldroot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newroot = oldroot.ReplaceNode(oldExpression, newExpression);
 
             var newDocument = document.WithSyntaxRoot(newroot);
@@ -145,7 +145,7 @@ namespace AsyncPackage
             return newDocument;
         }
 
-        private async Task<Document> ChangetoAwaitAsync(Document document, InvocationExpressionSyntax invocation, CancellationToken cancellationTkn, string name)
+        private async Task<Document> ChangetoAwaitAsync(Document document, InvocationExpressionSyntax invocation, string name, CancellationToken cancellationToken)
         {
             SyntaxNode oldExpression = invocation;
             SyntaxNode newExpression = null;
@@ -167,7 +167,7 @@ namespace AsyncPackage
                     invocation).WithAdditionalAnnotations(Formatter.Annotation);
             }
 
-            var oldroot = await document.GetSyntaxRootAsync(cancellationTkn).ConfigureAwait(false);
+            var oldroot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newroot = oldroot.ReplaceNode(oldExpression, newExpression);
 
             var newDocument = document.WithSyntaxRoot(newroot);

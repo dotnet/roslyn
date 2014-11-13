@@ -202,11 +202,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         cancellationToken.ThrowIfCancellationRequested();
                         
                         // Catch Exception from executing the action
-                        ExecuteAndCatchIfThrows(a.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                        ExecuteAndCatchIfThrows(a.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                         {
                             var context = new SyntaxTreeAnalysisContext(tree, analyzerOptions, addDiagnostic, cancellationToken);
                             a.Action(context);
-                        });
+                        }, cancellationToken);
                     });
 
                     syntaxAnalyzers.Add(runningAsynchronously);
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in this.compilationAnalysisScope.SymbolActions)
             {
                 // Catch exceptions from analyzer.Kinds.
-                ExecuteAndCatchIfThrows(analyzer.Analyzer, addDiagnostic, continueOnAnalyzerException, CancellationToken.None, () =>
+                ExecuteAndCatchIfThrows(analyzer.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                 {
                     var kinds = analyzer.Kinds;
                     foreach (var k in kinds.Distinct())
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         analyzersByKind[(int)k].Add(analyzer);
                     }
-                });
+                }, CancellationToken.None);
             }
 
             return analyzersByKind.Select(a => a.ToImmutableAndFree()).ToImmutableArray();
@@ -362,12 +362,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     tasks.Add(Task.Run(() =>
                     {
                         // Catch Exception from analyzing the symbol
-                        ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                        ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             var symbolContext = new SymbolAnalysisContext(symbol, compilation, this.analyzerOptions, addDiagnosticForSymbol, cancellationToken);
                             da.Action(symbolContext);
-                        });
+                        }, cancellationToken);
                     }));
                 }
             }
@@ -398,12 +398,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     tasks.Add(Task.Run(() =>
                     {
                         // Catch Exception from da.Action
-                        ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                        ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             var semanticModelContext = new SemanticModelAnalysisContext(semanticModel, this.analyzerOptions, addDiagnostic, cancellationToken);
                             da.Action(semanticModelContext);
-                        });
+                        }, cancellationToken);
                     }));
                 }
 
@@ -424,12 +424,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 tasks.Add(Task.Run(() =>
                 {
                     // Catch Exception from da.Action
-                    ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                    ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         var compilationContext = new CompilationEndAnalysisContext(compilation, this.analyzerOptions, addDiagnostic, cancellationToken);
                         da.Action(compilationContext);
-                    });
+                    }, cancellationToken);
                 }));
             }
 
@@ -526,11 +526,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!isAnalyzerSuppressed(analyzer, compilationOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken))
                 {
-                    ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                    ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                     {
                         // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
                         analyzer.Initialize(new AnalysisContext(new AnalyzerSessionStartAnalysisScope(analyzer, sessionScope)));
-                    });
+                    }, cancellationToken);
                 }
             }
 
@@ -707,11 +707,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             
             HostSessionStartAnalysisScope sessionScope = new HostSessionStartAnalysisScope();
 
-            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () =>
             {
                 // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
                 analyzer.Initialize(new AnalysisContext(new AnalyzerSessionStartAnalysisScope(analyzer, sessionScope)));
-            });
+            }, cancellationToken);
 
             return sessionScope.GetAnalyzerActions(analyzer);
         }
@@ -744,10 +744,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (startAction.Analyzer == analyzer)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                    ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                     {
                         startAction.Action(new CompilationStartAnalysisContext(new AnalyzerCompilationStartAnalysisScope(analyzer, compilationScope), compilation, analyzerOptions, cancellationToken));
-                    });
+                    }, cancellationToken);
                 }
             }
 
@@ -778,11 +778,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var endAction in actions.CompilationEndActions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                ExecuteAndCatchIfThrows(endAction.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                ExecuteAndCatchIfThrows(endAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                 {
                     var context = new CompilationEndAnalysisContext(compilation, analyzerOptions, addDiagnostic, cancellationToken);
                     endAction.Action(context);
-                });
+                }, cancellationToken);
             }
         }
 
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var symbolContext = new SymbolAnalysisContext(symbol, compilation, analyzerOptions, addDiagnostic, cancellationToken);
 
                         // Catch Exception from action.
-                        ExecuteAndCatchIfThrows(symbolAction.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () => action(symbolContext));
+                        ExecuteAndCatchIfThrows(symbolAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () => action(symbolContext), cancellationToken);
                     }
                 }
             }
@@ -849,11 +849,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 
                 // Catch Exception from action.
-                ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                 {
                     var context = new SemanticModelAnalysisContext(semanticModel, analyzerOptions, addDiagnostic, cancellationToken);
                     semanticModelAction.Action(context);
-                });
+                }, cancellationToken);
             }
         }
 
@@ -881,11 +881,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 
                 // Catch Exception from action.
-                ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                 {
                     var context = new SyntaxTreeAnalysisContext(syntaxTree, analyzerOptions, addDiagnostic, cancellationToken);
                     syntaxTreeAction.Action(context);
-                });
+                }, cancellationToken);
             }
         }
 
@@ -896,10 +896,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (CompilationStartAnalyzerAction startAction in session.CompilationStartActions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                ExecuteAndCatchIfThrows(startAction.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                ExecuteAndCatchIfThrows(startAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                 {
                     startAction.Action(new CompilationStartAnalysisContext(new AnalyzerCompilationStartAnalysisScope(startAction.Analyzer, compilationScope), compilation, analyzerOptions, cancellationToken));
-                });
+                }, cancellationToken);
             }
 
             return compilationScope;
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
             // Catch Exception from analyzer.SupportedDiagnostics
-            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
+            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; }, cancellationToken);
 
             var diagnosticOptions = options.SpecificDiagnosticOptions;
 
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        protected static void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action<Diagnostic> addDiagnostic, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken, Action analyze)
+        protected static void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action<Diagnostic> addDiagnostic, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, Action analyze, CancellationToken cancellationToken)
         {
             try
             {
@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, semanticModel, analyzerOptions, addDiagnostic, cancellationToken);
             
             // Catch Exception from action.
-            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () => syntaxNodeAction(syntaxNodeContext));
+            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () => syntaxNodeAction(syntaxNodeContext), cancellationToken);
         }
 
         /// <summary>
@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var da in codeBlockStartActions)
             {
                 // Catch Exception from the start action.
-                ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () =>
+                ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
                 {
                     HostCodeBlockStartAnalysisScope<TLanguageKindEnum> codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>();
                     AnalyzerCodeBlockStartAnalysisScope<TLanguageKindEnum> analyzerBlockScope = new AnalyzerCodeBlockStartAnalysisScope<TLanguageKindEnum>(da.Analyzer, codeBlockScope);
@@ -1353,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     da.Action(blockStartContext);
                     endedActions.AddAll(codeBlockScope.CodeBlockEndActions);
                     executableNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
-                });
+                }, cancellationToken);
             }
 
             // Execute stateful executable node analyzers, if any.
@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var a in endedActions)
             {
                 // Catch Exception from a.OnCodeBlockEnded
-                ExecuteAndCatchIfThrows(a.Analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken, () => a.Action(new CodeBlockEndAnalysisContext(declaredNode, declaredSymbol, semanticModel, analyzerOptions, addDiagnostic, cancellationToken)));
+                ExecuteAndCatchIfThrows(a.Analyzer, addDiagnostic, continueOnAnalyzerException, () => a.Action(new CodeBlockEndAnalysisContext(declaredNode, declaredSymbol, semanticModel, analyzerOptions, addDiagnostic, cancellationToken)), cancellationToken);
             }
 
             endedActions.Free();

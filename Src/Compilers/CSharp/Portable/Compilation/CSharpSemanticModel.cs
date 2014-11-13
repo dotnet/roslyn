@@ -4561,7 +4561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumMemberDeclaration:
                     {
                         var t = (EnumMemberDeclarationSyntax)node;
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.EqualsValue));
+                        builder.Add(GetDeclarationInfo(node, getSymbol, t.EqualsValue, cancellationToken));
                         return;
                     }
 
@@ -4586,7 +4586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var t = (BaseFieldDeclarationSyntax)node;
                         foreach (var decl in t.Declaration.Variables)
                         {
-                            builder.Add(GetDeclarationInfo(decl, getSymbol, cancellationToken, decl.Initializer));
+                            builder.Add(GetDeclarationInfo(decl, getSymbol, decl.Initializer, cancellationToken));
                         }
 
                         return;
@@ -4621,7 +4621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             codeBlocks = codeBlocks.Concat(t.ExpressionBody);
                         }
 
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks));
+                        builder.Add(GetDeclarationInfo(node, getSymbol, codeBlocks, cancellationToken));
                         return;
                     }
 
@@ -4631,7 +4631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GetAccessorDeclaration:
                     {
                         var t = (AccessorDeclarationSyntax)node;
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.Body));
+                        builder.Add(GetDeclarationInfo(node, getSymbol, t.Body, cancellationToken));
                         return;
                     }
 
@@ -4657,7 +4657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             codeBlocks = codeBlocks.Concat(expressionBody);
                         }
 
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks));
+                        builder.Add(GetDeclarationInfo(node, getSymbol, codeBlocks, cancellationToken));
                         return;
                     }
 

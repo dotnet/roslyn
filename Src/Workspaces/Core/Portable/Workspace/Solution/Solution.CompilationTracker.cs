@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis
             public CompilationTracker Fork(
                 ProjectState newProject,
                 CompilationTranslationAction translate = null,
-                CancellationToken cancellationToken = default(CancellationToken),
-                bool clone = false)
+                bool clone = false,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 var state = this.ReadState();
 

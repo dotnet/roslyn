@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 ChainedFormattingRules formattingRules,
                 Action<int, TriviaData> formattingResultApplier,
                 CancellationToken cancellationToken,
-                int tokenPairIndex)
+                int tokenPairIndex = TokenPairIndexNotNeeded)
             {
                 Contract.ThrowIfFalse(this.SecondTokenIsFirstTokenOnLine);
 

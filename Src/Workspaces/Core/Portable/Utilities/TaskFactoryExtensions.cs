@@ -4,9 +4,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
+    [SuppressMessage("ApiDesign", "RS0011", Justification = "Matching TPL Signatures")]
     internal static partial class TaskFactoryExtensions
     {
         public static Task SafeStartNew(this TaskFactory factory, Action action, CancellationToken cancellationToken, TaskScheduler scheduler)

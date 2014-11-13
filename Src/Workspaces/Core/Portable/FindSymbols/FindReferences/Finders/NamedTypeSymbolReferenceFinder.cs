@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, cancellationToken).ConfigureAwait(false);
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, namedType, document, cancellationToken, symbolsMatch).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, namedType, document, symbolsMatch, cancellationToken).ConfigureAwait(false);
             return nonAliasReferences.Concat(aliasReferences);
         }
 

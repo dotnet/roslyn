@@ -183,4 +183,10 @@
   <data name="UseProperCrefTagsMessage" xml:space="preserve">
     <value>cref tag has prefix '{0}', which should be removed unless the type or member cannot be accessed.</value>
   </data>
+  <data name="CancellationTokenMustBeLastDescription" xml:space="preserve">
+    <value>CancellationToken parameters must come last</value>
+  </data>
+  <data name="CancellationTokenMustBeLastMessage" xml:space="preserve">
+    <value>Method '{0}' should take CancellationToken as the last parameter</value>
+  </data>
 </root>

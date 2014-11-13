@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 // Reduce all the nodesAndTokensToReduce using the given reducers/rewriters and
                 // store the reduced nodes and/or tokens in the reduced nodes/tokens maps.
                 // Note that this method doesn't update the original syntax tree.
-                this.Reduce(document, root, nodesAndTokensToReduce, reducers, optionSet, cancellationToken, semanticModel, reducedNodesMap, reducedTokensMap);
+                this.Reduce(document, root, nodesAndTokensToReduce, reducers, optionSet, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken);
 
                 if (reducedNodesMap.Any() || reducedTokensMap.Any())
                 {
@@ -133,10 +133,10 @@ namespace Microsoft.CodeAnalysis.Simplification
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
             IEnumerable<AbstractReducer> reducers,
             OptionSet optionSet,
-            CancellationToken cancellationToken,
             SemanticModel semanticModel,
             ConcurrentDictionary<SyntaxNode, SyntaxNode> reducedNodesMap,
-            ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap)
+            ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(nodesAndTokensToReduce.Any());
 

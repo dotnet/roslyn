@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                         formattingRules As ChainedFormattingRules,
                                         formattingResultApplier As Action(Of Integer, TriviaData),
                                         cancellationToken As CancellationToken,
-                                        tokenPairIndex As Integer)
+                                        Optional tokenPairIndex As Integer = TokenPairIndexNotNeeded)
                 If Me.ContainsChanges Then
                     formattingResultApplier(tokenPairIndex, Me)
                 End If

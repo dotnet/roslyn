@@ -1,4 +1,6 @@
-﻿namespace Roslyn.Diagnostics.Analyzers
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+namespace Roslyn.Diagnostics.Analyzers
 {
     internal static class RoslynDiagnosticIds
     {
@@ -13,5 +15,6 @@
         public const string OverrideObjectEquals = "RS0009";
         public const string MissingSharedAttributeRuleId = "RS0010";
         public const string DoNotUseVerbatimCrefs = "RS0010";
+        public const string CancellationTokenMustBeLast = "RS0011";
     }
 }

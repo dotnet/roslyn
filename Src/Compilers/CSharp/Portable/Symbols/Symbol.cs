@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static void ForceCompleteMemberByLocation(SourceLocation locationOpt, CancellationToken cancellationToken, Symbol member)
+        internal static void ForceCompleteMemberByLocation(SourceLocation locationOpt, Symbol member, CancellationToken cancellationToken)
         {
             if (locationOpt == null || member.IsDefinedInSourceTree(locationOpt.SourceTree, locationOpt.SourceSpan, cancellationToken))
             {

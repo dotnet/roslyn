@@ -66,6 +66,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiDesign\CancellationTokenMustBeLastAnalyzer.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="CodeFixProviderBase.cs" />
     <Compile Include="Documentation\DoNotUseVerbatimCrefsAnalyzer.cs" />
     <Compile Include="DocumentChangedAction.cs" />

@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
             this.latestTask = SpecializedTasks.EmptyTask;
         }
 
-        private TTask ScheduleTaskWorker<TTask>(CancellationToken cancellationToken, Func<int, TTask> taskCreator)
+        private TTask ScheduleTaskWorker<TTask>(Func<int, TTask> taskCreator, CancellationToken cancellationToken)
             where TTask : Task
         {
             lock (gate)
@@ -47,30 +47,30 @@ namespace Roslyn.Utilities
 
         public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ScheduleTaskWorker<Task>(cancellationToken,
-                delay => this.latestTask.ContinueWithAfterDelay(
-                    taskAction, cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler));
+            return ScheduleTaskWorker<Task>(delay => this.latestTask.ContinueWithAfterDelay(
+    taskAction, cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler),
+                cancellationToken);
         }
 
         public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ScheduleTaskWorker<Task<T>>(cancellationToken,
-                delay => this.latestTask.ContinueWithAfterDelay(
-                    t => taskFunc(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler));
+            return ScheduleTaskWorker<Task<T>>(delay => this.latestTask.ContinueWithAfterDelay(
+    t => taskFunc(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler),
+                cancellationToken);
         }
 
         public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ScheduleTaskWorker<Task>(cancellationToken,
-                delay => this.latestTask.ContinueWithAfterDelayFromAsync(
-                    t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler));
+            return ScheduleTaskWorker<Task>(delay => this.latestTask.ContinueWithAfterDelayFromAsync(
+    t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler),
+                cancellationToken);
         }
 
         public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ScheduleTaskWorker<Task<T>>(cancellationToken,
-                delay => this.latestTask.ContinueWithAfterDelayFromAsync(
-                    t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler));
+            return ScheduleTaskWorker<Task<T>>(delay => this.latestTask.ContinueWithAfterDelayFromAsync(
+    t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler),
+                cancellationToken);
         }
 
         public Task LastScheduledTask

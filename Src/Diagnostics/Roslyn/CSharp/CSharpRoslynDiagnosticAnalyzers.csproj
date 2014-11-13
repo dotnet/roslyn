@@ -66,11 +66,12 @@
     </Reference>
     <Reference Include="System.Core" />
   </ItemGroup>
-  <ItemGroup></ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiDesign\CancellationTokenMustBeLastCodeFixProvider.cs" />
     <Compile Include="Documentation\CSharpDoNotUseVerbatimCrefsAnalyzer.cs" />
     <Compile Include="Performance\CSharpCodeActionCreateAnalyzer.cs" />
     <Compile Include="Performance\CSharpEmptyArrayDiagnosticAnalyzer.cs" />

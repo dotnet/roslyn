@@ -17,7 +17,7 @@
     <AssemblyName>Roslyn.Diagnostics.Analyzers.UnitTests</AssemblyName>
     <StyleCopEnabled>true</StyleCopEnabled>
     <NonShipping>true</NonShipping>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -91,6 +91,7 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiDesign\CancellationTokenMustBeLastTests.cs" />
     <Compile Include="Performance\EmptyArrayDiagnosticAnalyzerTests.cs" />
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzerTests.cs" />
   </ItemGroup>

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 ChainedFormattingRules formattingRules,
                 Action<int, TriviaData> formattingResultApplier,
                 CancellationToken cancellationToken,
-                int tokenPairIndex)
+                int tokenPairIndex = TokenPairIndexNotNeeded)
             {
                 // nothing changed, nothing to format
             }

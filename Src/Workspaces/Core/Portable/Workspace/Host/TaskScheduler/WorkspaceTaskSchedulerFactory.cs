@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             private TTask ScheduleTaskWorker<TTask>(
-                string taskName, CancellationToken cancellationToken, Func<TTask> taskCreator)
+                string taskName, Func<TTask> taskCreator, CancellationToken cancellationToken)
                 where TTask : Task
             {
                 taskName = taskName ?? GetType().Name + ".ScheduleTask";
@@ -71,33 +71,33 @@ namespace Microsoft.CodeAnalysis.Host
             public Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken)
             {
                 return ScheduleTaskWorker<Task>(
-                    taskName, cancellationToken,
-                    () => Task.Factory.SafeStartNew(
-                        taskAction, cancellationToken, this.taskScheduler));
+                    taskName, () => Task.Factory.SafeStartNew(
+    taskAction, cancellationToken, this.taskScheduler),
+                    cancellationToken);
             }
 
             public Task<T> ScheduleTask<T>(Func<T> taskFunc, string taskName, CancellationToken cancellationToken)
             {
                 return ScheduleTaskWorker<Task<T>>(
-                    taskName, cancellationToken,
-                    () => Task.Factory.SafeStartNew(
-                        taskFunc, cancellationToken, this.taskScheduler));
+                    taskName, () => Task.Factory.SafeStartNew(
+    taskFunc, cancellationToken, this.taskScheduler),
+                    cancellationToken);
             }
 
             public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
             {
                 return ScheduleTaskWorker<Task>(
-                    taskName, cancellationToken,
-                    () => Task.Factory.SafeStartNewFromAsync(
-                        taskFunc, cancellationToken, this.taskScheduler));
+                    taskName, () => Task.Factory.SafeStartNewFromAsync(
+    taskFunc, cancellationToken, this.taskScheduler),
+                    cancellationToken);
             }
 
             public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
             {
                 return ScheduleTaskWorker<Task<T>>(
-                    taskName, cancellationToken,
-                    () => Task.Factory.SafeStartNewFromAsync(
-                        taskFunc, cancellationToken, this.taskScheduler));
+                    taskName, () => Task.Factory.SafeStartNewFromAsync(
+    taskFunc, cancellationToken, this.taskScheduler),
+                    cancellationToken);
             }
         }
     }

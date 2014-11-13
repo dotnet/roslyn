@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution originalSolution,
             ISymbol renameSymbol,
             bool replacementTextValid,
-            CancellationToken cancellationToken,
             RenamedSpansTracker renameSpansTracker,
             OptionSet optionSet,
-            AnnotationTable<RenameAnnotation> renameAnnotations)
+            AnnotationTable<RenameAnnotation> renameAnnotations,
+            CancellationToken cancellationToken)
         {
             this.RenamedSymbolDeclarationAnnotation = renamedSymbolDeclarationAnnotation;
             this.Document = document;

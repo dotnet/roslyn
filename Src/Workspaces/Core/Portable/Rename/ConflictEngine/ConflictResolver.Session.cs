@@ -652,10 +652,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         originalSolution,
                         renameLocationSet.Symbol,
                         replacementTextValid,
-                        cancellationToken,
                         renameSpansTracker,
                         optionSet,
-                        this.renameAnnotations);
+                        this.renameAnnotations,
+                        cancellationToken);
 
                     var renameRewriterLanguageService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
                     var newRoot = renameRewriterLanguageService.AnnotateAndRename(parameters);

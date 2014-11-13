@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitMethodStatement(node As MethodStatementSyntax) As SyntaxNode
                 Dim rewrittenMethod = DirectCast(AddParameterListTransform(node, MyBase.VisitMethodStatement(node), Function(n) Not n.Identifier.IsMissing), MethodStatementSyntax)
-                Return AsyncOrIteratorFunctionReturnTypeFixer.RewriteMethodStatement(rewrittenMethod, Me.SemanticModel, Me._cancellationToken, node)
+                Return AsyncOrIteratorFunctionReturnTypeFixer.RewriteMethodStatement(rewrittenMethod, Me.SemanticModel, node, Me._cancellationToken)
             End Function
 
             Public Overrides Function VisitSubNewStatement(node As SubNewStatementSyntax) As SyntaxNode
@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitLambdaHeader(node As LambdaHeaderSyntax) As SyntaxNode
                 Dim rewrittenLambdaHeader = DirectCast(MyBase.VisitLambdaHeader(node), LambdaHeaderSyntax)
-                rewrittenLambdaHeader = AsyncOrIteratorFunctionReturnTypeFixer.RewriteLambdaHeader(rewrittenLambdaHeader, Me.SemanticModel, Me._cancellationToken, node)
+                rewrittenLambdaHeader = AsyncOrIteratorFunctionReturnTypeFixer.RewriteLambdaHeader(rewrittenLambdaHeader, Me.SemanticModel, node, Me._cancellationToken)
                 Return AddParameterListTransform(node, rewrittenLambdaHeader, Function(n) True)
             End Function
 

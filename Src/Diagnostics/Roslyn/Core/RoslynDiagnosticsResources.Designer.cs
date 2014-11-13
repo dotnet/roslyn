@@ -61,6 +61,24 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CancellationToken parameters must come last.
+        /// </summary>
+        internal static string CancellationTokenMustBeLastDescription {
+            get {
+                return ResourceManager.GetString("CancellationTokenMustBeLastDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method &apos;{0}&apos; should take CancellationToken as the last parameter.
+        /// </summary>
+        internal static string CancellationTokenMustBeLastMessage {
+            get {
+                return ResourceManager.GetString("CancellationTokenMustBeLastMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not directly await a Task.
         /// </summary>
         internal static string DirectlyAwaitingTaskDescription {

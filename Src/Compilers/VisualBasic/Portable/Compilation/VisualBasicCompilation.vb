@@ -2103,28 +2103,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             emitOptions As EmitOptions,
             manifestResources As IEnumerable(Of ResourceDescription),
             assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
-            cancellationToken As CancellationToken,
             testData As CompilationTestData,
-            diagnostics As DiagnosticBag) As CommonPEModuleBuilder
+            diagnostics As DiagnosticBag,
+            cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Return CreateModuleBuilder(
                 emitOptions,
                 manifestResources,
                 assemblySymbolMapper,
-                cancellationToken,
                 testData,
                 diagnostics,
-                ImmutableArray(Of NamedTypeSymbol).Empty)
+                ImmutableArray(Of NamedTypeSymbol).Empty,
+                cancellationToken)
         End Function
 
         Friend Overloads Function CreateModuleBuilder(
             emitOptions As EmitOptions,
             manifestResources As IEnumerable(Of ResourceDescription),
             assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
-            cancellationToken As CancellationToken,
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
-            additionalTypes As ImmutableArray(Of NamedTypeSymbol)) As CommonPEModuleBuilder
+            additionalTypes As ImmutableArray(Of NamedTypeSymbol),
+            cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Debug.Assert(diagnostics.IsEmptyWithoutResolution) ' True, but not required.
 
@@ -2176,10 +2176,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             moduleBuilder As CommonPEModuleBuilder,
             win32Resources As Stream,
             xmlDocStream As Stream,
-            cancellationToken As CancellationToken,
             generateDebugInfo As Boolean,
             diagnostics As DiagnosticBag,
-            filterOpt As Predicate(Of ISymbol)) As Boolean
+            filterOpt As Predicate(Of ISymbol),
+            cancellationToken As CancellationToken) As Boolean
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
             ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
