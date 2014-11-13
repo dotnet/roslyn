@@ -7131,7 +7131,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact(Skip:="1081464"), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
