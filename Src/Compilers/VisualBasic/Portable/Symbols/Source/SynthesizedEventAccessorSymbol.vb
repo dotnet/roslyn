@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
@@ -262,6 +263,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''     tmp2 = (DelegateType)Delegate.Combine(tmp1, value); //Remove for -=
         '''     tmp0 = Interlocked.CompareExchange&lt; DelegateType&gt; (ref _event, tmp2, tmp1);
         ''' } while ((object)tmp0 != (object)tmp1);
+        ''' 
+        ''' Note, if System.Threading.Interlocked.CompareExchange&lt;T&gt; Is Not available,
+        ''' we emit the following code And mark the method Synchronized (unless it Is a struct).
+        ''' 
+        ''' _event = (DelegateType)Delegate.Combine(_event, value); //Remove for -=
+        ''' 
         ''' </summary>
         Private Shared Function ConstructFieldLikeEventAccessorBody_Regular(eventSymbol As SourceEventSymbol,
                                                                    isAddMethod As Boolean,
@@ -278,31 +285,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim accessor As MethodSymbol = If(isAddMethod, eventSymbol.AddMethod, eventSymbol.RemoveMethod)
             Dim meParameter As ParameterSymbol = accessor.MeParameter
             Dim boolType As TypeSymbol = compilation.GetSpecialType(SpecialType.System_Boolean)
-            Dim updateMethod As MethodSymbol = DirectCast(compilation.Assembly.GetSpecialTypeMember(If(isAddMethod, SpecialMember.System_Delegate__Combine, SpecialMember.System_Delegate__Remove)), MethodSymbol)
-            Dim compareExchangeMethod As MethodSymbol = GetConstructedCompareExchangeMethod(delegateType, compilation, accessor.Locations(0), diagnostics)
 
-            If compareExchangeMethod Is Nothing Then
-                Return New BoundBlock(syntax,
-                                      Nothing,
-                                      ImmutableArray(Of LocalSymbol).Empty,
-                                      ImmutableArray.Create(Of BoundStatement)(New BoundReturnStatement(syntax,
-                                                                                                          Nothing,
-                                                                                                          Nothing,
-                                                                                                          Nothing).MakeCompilerGenerated)
-                                                                                                   ).MakeCompilerGenerated
+            Dim updateMethodId As SpecialMember = If(isAddMethod, SpecialMember.System_Delegate__Combine, SpecialMember.System_Delegate__Remove)
+
+            Dim useSiteError As DiagnosticInfo = Nothing
+            Dim updateMethod As MethodSymbol = DirectCast(Binder.GetSpecialTypeMember(compilation.Assembly, updateMethodId, useSiteError), MethodSymbol)
+
+            If useSiteError IsNot Nothing Then
+                diagnostics.Add(useSiteError, syntax.GetLocation())
             End If
 
-            Dim loopLabel As GeneratedLabelSymbol = New GeneratedLabelSymbol("LOOP")
-            Const numTemps As Integer = 3
-            Dim tmps As LocalSymbol() = New LocalSymbol(numTemps - 1) {}
-            Dim boundTmps As BoundLocal() = New BoundLocal(numTemps - 1) {}
+            Dim [return] As BoundStatement = New BoundReturnStatement(syntax,
+                                                                      Nothing,
+                                                                      Nothing,
+                                                                      Nothing).MakeCompilerGenerated
 
-            Dim i As Integer = 0
-            While i < tmps.Length
-                tmps(i) = New SynthesizedLocal(accessor, delegateType, SynthesizedLocalKind.LoweringTemp)
-                boundTmps(i) = New BoundLocal(syntax, tmps(i), delegateType)
-                i = i + 1
-            End While
+            If updateMethod Is Nothing Then
+                Return New BoundBlock(syntax,
+                                  Nothing,
+                                  ImmutableArray(Of LocalSymbol).Empty,
+                                  ImmutableArray.Create(Of BoundStatement)([return])
+                                  ).MakeCompilerGenerated
+            End If
+
+            useSiteError = Nothing
+            Dim compareExchangeMethod As MethodSymbol = DirectCast(Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Threading_Interlocked__CompareExchange_T, useSiteError), MethodSymbol)
 
             Dim fieldReceiver As BoundMeReference = If(eventSymbol.IsShared,
                                                        Nothing,
@@ -320,6 +327,63 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                       parameterSymbol,
                                                                       isLValue:=False,
                                                                       type:=parameterSymbol.Type).MakeCompilerGenerated
+
+            Dim delegateUpdate As BoundExpression
+
+            If compareExchangeMethod Is Nothing Then
+
+                ' (DelegateType)Delegate.Combine(_event, value)
+                Debug.Assert(Conversions.ClassifyDirectCastConversion(fieldSymbol.Type, updateMethod.Parameters(0).Type, Nothing) = ConversionKind.WideningReference)
+                Debug.Assert(Conversions.ClassifyDirectCastConversion(boundParameter.Type, updateMethod.Parameters(1).Type, Nothing) = ConversionKind.WideningReference)
+                delegateUpdate = New BoundDirectCast(syntax,
+                                                     New BoundCall(syntax,
+                                                                   updateMethod,
+                                                                   Nothing,
+                                                                   Nothing,
+                                                                   ImmutableArray.Create(Of BoundExpression)(
+                                                                       New BoundDirectCast(syntax, boundBackingField.MakeRValue(), ConversionKind.WideningReference, updateMethod.Parameters(0).Type),
+                                                                       New BoundDirectCast(syntax, boundParameter, ConversionKind.WideningReference, updateMethod.Parameters(1).Type)),
+                                                                   Nothing,
+                                                                   updateMethod.ReturnType),
+                                                               ConversionKind.NarrowingReference,
+                                                               delegateType,
+                                                               delegateType.IsErrorType).MakeCompilerGenerated
+
+                ' _event = (DelegateType)Delegate.Combine(_event, value);
+                Dim eventUpdate As BoundStatement = New BoundExpressionStatement(syntax,
+                                                                            New BoundAssignmentOperator(syntax,
+                                                                                                        boundBackingField,
+                                                                                                        delegateUpdate,
+                                                                                                        True,
+                                                                                                        delegateType).MakeCompilerGenerated
+                                                                                                    ).MakeCompilerGenerated
+
+                Return New BoundBlock(syntax,
+                                  Nothing,
+                                  ImmutableArray(Of LocalSymbol).Empty,
+                                  ImmutableArray.Create(Of BoundStatement)(
+                                      eventUpdate,
+                                      [return])
+                                  ).MakeCompilerGenerated
+            End If
+
+            If useSiteError IsNot Nothing Then
+                diagnostics.Add(useSiteError, syntax.GetLocation())
+            End If
+
+            compareExchangeMethod = compareExchangeMethod.Construct(ImmutableArray.Create(Of TypeSymbol)(delegateType))
+
+            Dim loopLabel As GeneratedLabelSymbol = New GeneratedLabelSymbol("LOOP")
+            Const numTemps As Integer = 3
+            Dim tmps As LocalSymbol() = New LocalSymbol(numTemps - 1) {}
+            Dim boundTmps As BoundLocal() = New BoundLocal(numTemps - 1) {}
+
+            Dim i As Integer = 0
+            While i < tmps.Length
+                tmps(i) = New SynthesizedLocal(accessor, delegateType, SynthesizedLocalKind.LoweringTemp)
+                boundTmps(i) = New BoundLocal(syntax, tmps(i), delegateType)
+                i = i + 1
+            End While
 
             ' tmp0 = _event;
             Dim tmp0Init As BoundStatement = New BoundExpressionStatement(syntax,
@@ -345,19 +409,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' (DelegateType)Delegate.Combine(tmp1, value)
             Debug.Assert(Conversions.ClassifyDirectCastConversion(boundTmps(1).Type, updateMethod.Parameters(0).Type, Nothing) = ConversionKind.WideningReference)
             Debug.Assert(Conversions.ClassifyDirectCastConversion(boundParameter.Type, updateMethod.Parameters(1).Type, Nothing) = ConversionKind.WideningReference)
-            Dim delegateUpdate As BoundExpression = New BoundDirectCast(syntax,
-                                                                        New BoundCall(syntax,
-                                                                                      updateMethod,
-                                                                                      Nothing,
-                                                                                      Nothing,
-                                                                                      ImmutableArray.Create(Of BoundExpression)(
-                                                                                          New BoundDirectCast(syntax, boundTmps(1).MakeRValue(), ConversionKind.WideningReference, updateMethod.Parameters(0).Type),
-                                                                                          New BoundDirectCast(syntax, boundParameter, ConversionKind.WideningReference, updateMethod.Parameters(1).Type)),
-                                                                                      Nothing,
-                                                                                      updateMethod.ReturnType),
-                                                                                  ConversionKind.NarrowingReference,
-                                                                                  delegateType,
-                                                                                  delegateType.IsErrorType).MakeCompilerGenerated
+            delegateUpdate = New BoundDirectCast(syntax,
+                                                 New BoundCall(syntax,
+                                                               updateMethod,
+                                                               Nothing,
+                                                               Nothing,
+                                                               ImmutableArray.Create(Of BoundExpression)(
+                                                                   New BoundDirectCast(syntax, boundTmps(1).MakeRValue(), ConversionKind.WideningReference, updateMethod.Parameters(0).Type),
+                                                                   New BoundDirectCast(syntax, boundParameter, ConversionKind.WideningReference, updateMethod.Parameters(1).Type)),
+                                                               Nothing,
+                                                               updateMethod.ReturnType),
+                                                           ConversionKind.NarrowingReference,
+                                                           delegateType,
+                                                           delegateType.IsErrorType).MakeCompilerGenerated
 
             ' tmp2 = (DelegateType)Delegate.Combine(tmp1, value);
             Dim tmp2Update As BoundStatement = New BoundExpressionStatement(syntax,
@@ -400,11 +464,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                      False,
                                                                      loopLabel).MakeCompilerGenerated
 
-            Dim [return] As BoundStatement = New BoundReturnStatement(syntax,
-                                                                      Nothing,
-                                                                      Nothing,
-                                                                      Nothing).MakeCompilerGenerated
-
             Return New BoundBlock(syntax,
                                   Nothing,
                                   tmps.AsImmutable(),
@@ -417,22 +476,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                       loopEnd,
                                       [return])
                                   ).MakeCompilerGenerated
-        End Function
-
-        ''' <summary>
-        ''' Get the MethodSymbol for System.Threading.Interlocked.CompareExchange&lt; T&gt;  for a given T.
-        ''' </summary>
-        Private Shared Function GetConstructedCompareExchangeMethod(typeArg As TypeSymbol, compilation As VisualBasicCompilation, errorLocation As Location, diagnostics As DiagnosticBag) As MethodSymbol
-            Dim compareExchangeDefinition As MethodSymbol = DirectCast(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T), MethodSymbol)
-            If compareExchangeDefinition Is Nothing Then
-                Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Threading_Interlocked__CompareExchange_T)
-                Dim containingType As WellKnownType = CType(memberDescriptor.DeclaringTypeId, WellKnownType)
-
-                diagnostics.Add(ERRID.ERR_RuntimeMemberNotFound2, errorLocation, memberDescriptor.Name, containingType.GetMetadataName())
-                Return Nothing
-            End If
-
-            Return compareExchangeDefinition.Construct(ImmutableArray.Create(Of TypeSymbol)(typeArg))
         End Function
 
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
@@ -468,6 +511,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Friend Overrides ReadOnly Property ImplementationAttributes As MethodImplAttributes
+            Get
+                Dim result = MyBase.ImplementationAttributes
+
+                If Not IsMustOverride AndAlso Not SourceEvent.IsWindowsRuntimeEvent AndAlso Not ContainingType.IsStructureType() AndAlso
+                   DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T) Is Nothing Then
+                    ' Under these conditions, this method needs to be synchronized.
+                    result = result Or MethodImplAttributes.Synchronized
+                End If
+
+                Return result
+            End Get
+        End Property
     End Class
 
     Friend NotInheritable Class SynthesizedAddAccessorSymbol

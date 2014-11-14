@@ -285,12 +285,12 @@ Delegate Sub E1()
 BC30002: Type 'System.IAsyncResult' is not defined.
 Delegate Sub E1()
 ~~~~~~~~~~~~~~~~~
-BC31097: Member 'CompareExchange' cannot be found in class 'System.Threading.Interlocked'. This condition is usually the result of a mismatched 'Microsoft.VisualBasic.dll'.
+BC35000: Requested operation is not available because the runtime library function 'System.Delegate.Combine' is not defined.
   public event e as E1
-               ~
-BC31097: Member 'CompareExchange' cannot be found in class 'System.Threading.Interlocked'. This condition is usually the result of a mismatched 'Microsoft.VisualBasic.dll'.
+  ~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Delegate.Remove' is not defined.
   public event e as E1
-               ~
+  ~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
         End Sub

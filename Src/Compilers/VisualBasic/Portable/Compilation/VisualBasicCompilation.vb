@@ -111,6 +111,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private m_lazyClsComplianceDiagnostics As ImmutableArray(Of Diagnostic)
 
         ''' <summary>
+        ''' Used for test purposes only to emulate missing members.
+        ''' </summary>
+        Private m_lazyMakeMemberMissingMap As SmallDictionary(Of Integer, Boolean)
+
+        ''' <summary>
         ''' A SyntaxTree and the associated RootSingleNamespaceDeclaration for an embedded
         ''' syntax tree in the Compilation. Unlike the entries in m_rootNamespaces, the
         ''' SyntaxTree here is lazy since the tree cannot be evaluated until the references
@@ -1768,6 +1773,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function GetSpecialTypeMember(memberId As SpecialMember) As Symbol
             Return Assembly.GetSpecialTypeMember(memberId)
+        End Function
+
+        Friend Sub MakeMemberMissing(member As WellKnownMember)
+            MakeMemberMissing(CInt(member))
+        End Sub
+
+        Friend Sub MakeMemberMissing(member As SpecialMember)
+            MakeMemberMissing(-CInt(member) - 1)
+        End Sub
+
+        Friend Function IsMemberMissing(member As WellKnownMember) As Boolean
+            Return IsMemberMissing(CInt(member))
+        End Function
+
+        Friend Function IsMemberMissing(member As SpecialMember) As Boolean
+            Return IsMemberMissing(-CInt(member) - 1)
+        End Function
+
+        Private Sub MakeMemberMissing(member As Integer)
+            If m_lazyMakeMemberMissingMap Is Nothing Then
+                m_lazyMakeMemberMissingMap = New SmallDictionary(Of Integer, Boolean)()
+            End If
+
+            m_lazyMakeMemberMissingMap(member) = True
+        End Sub
+
+        Private Function IsMemberMissing(member As Integer) As Boolean
+            If m_lazyMakeMemberMissingMap IsNot Nothing Then
+                Return m_lazyMakeMemberMissingMap.ContainsKey(member)
+            End If
+
+            Return False
         End Function
 
         ''' <summary>

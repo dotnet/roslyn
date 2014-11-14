@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -85,6 +86,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override object MethodChecksLockObject
         {
             get { return methodChecksLockObject; }
+        }
+
+        internal override MethodImplAttributes ImplementationAttributes
+        {
+            get
+            {
+                MethodImplAttributes result = base.ImplementationAttributes;
+
+                if (!IsAbstract && !AssociatedEvent.IsWindowsRuntimeEvent && !ContainingType.IsStructType() &&
+                    (object)DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T) == null)
+                {
+                    // Under these conditions, this method needs to be synchronized.
+                    result |= MethodImplAttributes.Synchronized;
+                }
+
+                return result;
+            }
         }
     }
 }

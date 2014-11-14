@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -209,11 +211,13 @@ class C
             var addMethod = @event.AddMethod;
             Assert.Equal(MethodKind.EventAdd, addMethod.MethodKind);
             Assert.Equal("void C.E.add", addMethod.ToTestDisplayString());
+            Assert.True((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
             addMethod.CheckAccessorShape(@event);
 
             var removeMethod = @event.RemoveMethod;
             Assert.Equal(MethodKind.EventRemove, removeMethod.MethodKind);
             Assert.Equal("void C.E.remove", removeMethod.ToTestDisplayString());
+            Assert.True((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
             removeMethod.CheckAccessorShape(@event);
 
             // Whether or not the event was field-like in source, it will look custom when loaded from metadata.
@@ -617,6 +621,204 @@ D Raise
         }
 
         #endregion Execution
+
+        [Fact]
+        public void MissingCompareExchange_01()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Boolean { }
+    public abstract class Delegate { }
+    public abstract class MulticastDelegate : Delegate { }
+    public struct IntPtr { private IntPtr m_value; IntPtr Use(IntPtr b) { m_value = b; return m_value; } }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"
+
+public delegate void E1();
+
+class C
+{
+    public event E1 e;
+
+    public static void Main()
+    {
+        var v = new C();
+        v.e += Main;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (7,21): warning CS0067: The event 'C.e' is never used
+                //     public event E1 e;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e")
+            );
+
+            compilation2.Emit(new System.IO.MemoryStream()).Diagnostics.Verify(
+    // (7,21): error CS0656: Missing compiler required member 'System.Delegate.Combine'
+    //     public event E1 e;
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Delegate", "Combine").WithLocation(7, 21),
+    // (7,21): error CS0656: Missing compiler required member 'System.Delegate.Remove'
+    //     public event E1 e;
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Delegate", "Remove").WithLocation(7, 21),
+    // (7,21): warning CS0067: The event 'C.e' is never used
+    //     public event E1 e;
+    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e").WithLocation(7, 21)
+                );
+        }
+
+        [Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")]
+        public void MissingCompareExchange_02()
+        {
+            var source =
+@"
+
+public delegate void E1();
+
+class C
+{
+    public event E1 e;
+
+    public static void Main()
+    {
+        var v = new C();
+        System.Console.Write(v.e == null);
+        v.e += Main;
+        System.Console.Write(v.e == null);
+        v.e -= Main;
+        System.Console.Write(v.e == null);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
+
+            var verifier = CompileAndVerify(compilation, 
+                                            expectedOutput: "TrueFalseTrue", 
+                                            symbolValidator: module =>
+                                                                {
+                                                                    var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                                                                    var @event = @class.GetMember<EventSymbol>("e");
+
+                                                                    var addMethod = @event.AddMethod;
+                                                                    Assert.False((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+
+                                                                    var removeMethod = @event.RemoveMethod;
+                                                                    Assert.False((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+                                                                }).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.e.add", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""E1 C.e""
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""System.Delegate System.Delegate.Combine(System.Delegate, System.Delegate)""
+  IL_000d:  castclass  ""E1""
+  IL_0012:  stfld      ""E1 C.e""
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("C.e.remove", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""E1 C.e""
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""System.Delegate System.Delegate.Remove(System.Delegate, System.Delegate)""
+  IL_000d:  castclass  ""E1""
+  IL_0012:  stfld      ""E1 C.e""
+  IL_0017:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")]
+        public void MissingCompareExchange_03()
+        {
+            var source =
+@"
+
+public delegate void E1();
+
+struct C
+{
+    public event E1 e;
+
+    public static void Main()
+    {
+        var v = new C();
+        System.Console.Write(v.e == null);
+        v.e += Main;
+        System.Console.Write(v.e == null);
+        v.e -= Main;
+        System.Console.Write(v.e == null);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
+
+            var verifier = CompileAndVerify(compilation,
+                                            expectedOutput: "TrueFalseTrue",
+                                            symbolValidator: module =>
+                                            {
+                                                var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                                                var @event = @class.GetMember<EventSymbol>("e");
+
+                                                var addMethod = @event.AddMethod;
+                                                Assert.True((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+
+                                                var removeMethod = @event.RemoveMethod;
+                                                Assert.True((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+                                            }).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.e.add", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""E1 C.e""
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""System.Delegate System.Delegate.Combine(System.Delegate, System.Delegate)""
+  IL_000d:  castclass  ""E1""
+  IL_0012:  stfld      ""E1 C.e""
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("C.e.remove", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""E1 C.e""
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""System.Delegate System.Delegate.Remove(System.Delegate, System.Delegate)""
+  IL_000d:  castclass  ""E1""
+  IL_0012:  stfld      ""E1 C.e""
+  IL_0017:  ret
+}
+");
+        }
 
     }
 }

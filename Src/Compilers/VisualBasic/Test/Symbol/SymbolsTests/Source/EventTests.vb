@@ -1405,5 +1405,363 @@ End Class
 
             Assert.Equal("X", classMembers(0))
         End Sub
+
+        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        Public Sub MissingCompareExchange_01()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C
+    Event X As System.EventHandler
+End Class
+    ]]></file>
+</compilation>)
+
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T)
+            compilation.MakeMemberMissing(SpecialMember.System_Delegate__Combine)
+            compilation.MakeMemberMissing(SpecialMember.System_Delegate__Remove)
+
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Delegate.Combine' is not defined.
+    Event X As System.EventHandler
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Delegate.Remove' is not defined.
+    Event X As System.EventHandler
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        Public Sub MissingCompareExchange_02()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+public delegate sub E1()
+
+class C
+    public event e As E1
+
+    public shared sub Main()
+        Dim v = new C()
+        System.Console.Write(v.eEvent Is Nothing) 
+        Addhandler v.e, AddressOf Main
+        System.Console.Write(v.eEvent Is Nothing) 
+        Removehandler v.e, AddressOf Main
+        System.Console.Write(v.eEvent Is Nothing) 
+    End Sub
+End Class
+    ]]></file>
+</compilation>, options:=TestOptions.DebugExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="TrueFalseTrue",
+                                            symbolValidator:=Sub(m As ModuleSymbol)
+                                                                 Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+                                                                 Dim e = c.GetMember(Of EventSymbol)("e")
+
+                                                                 Dim addMethod = e.AddMethod
+                                                                 Assert.True((addMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+
+                                                                 Dim removeMethod = e.RemoveMethod
+                                                                 Assert.True((removeMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                             End Sub).VerifyDiagnostics()
+
+            verifier.VerifyIL("C.add_e",
+            <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (E1 V_0,
+                E1 V_1,
+                E1 V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C.eEvent As E1"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  ldarg.1
+  IL_000b:  call       "Function System.Delegate.Combine(System.Delegate, System.Delegate) As System.Delegate"
+  IL_0010:  castclass  "E1"
+  IL_0015:  stloc.2
+  IL_0016:  ldarg.0
+  IL_0017:  ldflda     "C.eEvent As E1"
+  IL_001c:  ldloc.2
+  IL_001d:  ldloc.1
+  IL_001e:  call       "Function System.Threading.Interlocked.CompareExchange(Of E1)(ByRef E1, E1, E1) As E1"
+  IL_0023:  stloc.0
+  IL_0024:  ldloc.0
+  IL_0025:  ldloc.1
+  IL_0026:  bne.un.s   IL_0007
+  IL_0028:  ret
+}
+]]>)
+
+            verifier.VerifyIL("C.remove_e",
+            <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (E1 V_0,
+                E1 V_1,
+                E1 V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C.eEvent As E1"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  ldarg.1
+  IL_000b:  call       "Function System.Delegate.Remove(System.Delegate, System.Delegate) As System.Delegate"
+  IL_0010:  castclass  "E1"
+  IL_0015:  stloc.2
+  IL_0016:  ldarg.0
+  IL_0017:  ldflda     "C.eEvent As E1"
+  IL_001c:  ldloc.2
+  IL_001d:  ldloc.1
+  IL_001e:  call       "Function System.Threading.Interlocked.CompareExchange(Of E1)(ByRef E1, E1, E1) As E1"
+  IL_0023:  stloc.0
+  IL_0024:  ldloc.0
+  IL_0025:  ldloc.1
+  IL_0026:  bne.un.s   IL_0007
+  IL_0028:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        Public Sub MissingCompareExchange_03()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+public delegate sub E1()
+
+Structure C
+    public event e As E1
+
+    public shared sub Main()
+        Dim v = new C()
+        System.Console.Write(v.eEvent Is Nothing) 
+        Addhandler v.e, AddressOf Main
+        System.Console.Write(v.eEvent Is Nothing) 
+        Removehandler v.e, AddressOf Main
+        System.Console.Write(v.eEvent Is Nothing) 
+    End Sub
+End Structure
+    ]]></file>
+</compilation>, options:=TestOptions.DebugExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="TrueFalseTrue",
+                                            symbolValidator:=Sub(m As ModuleSymbol)
+                                                                 Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+                                                                 Dim e = c.GetMember(Of EventSymbol)("e")
+
+                                                                 Dim addMethod = e.AddMethod
+                                                                 Assert.True((addMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+
+                                                                 Dim removeMethod = e.RemoveMethod
+                                                                 Assert.True((removeMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                             End Sub).VerifyDiagnostics()
+
+            verifier.VerifyIL("C.add_e",
+            <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (E1 V_0,
+                E1 V_1,
+                E1 V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C.eEvent As E1"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  ldarg.1
+  IL_000b:  call       "Function System.Delegate.Combine(System.Delegate, System.Delegate) As System.Delegate"
+  IL_0010:  castclass  "E1"
+  IL_0015:  stloc.2
+  IL_0016:  ldarg.0
+  IL_0017:  ldflda     "C.eEvent As E1"
+  IL_001c:  ldloc.2
+  IL_001d:  ldloc.1
+  IL_001e:  call       "Function System.Threading.Interlocked.CompareExchange(Of E1)(ByRef E1, E1, E1) As E1"
+  IL_0023:  stloc.0
+  IL_0024:  ldloc.0
+  IL_0025:  ldloc.1
+  IL_0026:  bne.un.s   IL_0007
+  IL_0028:  ret
+}
+]]>)
+
+            verifier.VerifyIL("C.remove_e",
+            <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (E1 V_0,
+                E1 V_1,
+                E1 V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C.eEvent As E1"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  ldarg.1
+  IL_000b:  call       "Function System.Delegate.Remove(System.Delegate, System.Delegate) As System.Delegate"
+  IL_0010:  castclass  "E1"
+  IL_0015:  stloc.2
+  IL_0016:  ldarg.0
+  IL_0017:  ldflda     "C.eEvent As E1"
+  IL_001c:  ldloc.2
+  IL_001d:  ldloc.1
+  IL_001e:  call       "Function System.Threading.Interlocked.CompareExchange(Of E1)(ByRef E1, E1, E1) As E1"
+  IL_0023:  stloc.0
+  IL_0024:  ldloc.0
+  IL_0025:  ldloc.1
+  IL_0026:  bne.un.s   IL_0007
+  IL_0028:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        Public Sub MissingCompareExchange_04()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+public delegate sub E1()
+
+class C
+    public event e As E1
+
+    public shared sub Main()
+        Dim v = new C()
+        System.Console.Write(v.eEvent Is Nothing) 
+        Addhandler v.e, AddressOf Main
+        System.Console.Write(v.eEvent Is Nothing) 
+        Removehandler v.e, AddressOf Main
+        System.Console.Write(v.eEvent Is Nothing) 
+    End Sub
+End Class
+    ]]></file>
+</compilation>, options:=TestOptions.DebugExe)
+
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="TrueFalseTrue",
+                                            symbolValidator:=Sub(m As ModuleSymbol)
+                                                                 Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+                                                                 Dim e = c.GetMember(Of EventSymbol)("e")
+
+                                                                 Dim addMethod = e.AddMethod
+                                                                 Assert.False((addMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+
+                                                                 Dim removeMethod = e.RemoveMethod
+                                                                 Assert.False((removeMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                             End Sub).VerifyDiagnostics()
+
+            verifier.VerifyIL("C.add_e",
+            <![CDATA[
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "C.eEvent As E1"
+  IL_0007:  ldarg.1
+  IL_0008:  call       "Function System.Delegate.Combine(System.Delegate, System.Delegate) As System.Delegate"
+  IL_000d:  castclass  "E1"
+  IL_0012:  stfld      "C.eEvent As E1"
+  IL_0017:  ret
+}
+]]>)
+
+            verifier.VerifyIL("C.remove_e",
+            <![CDATA[
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "C.eEvent As E1"
+  IL_0007:  ldarg.1
+  IL_0008:  call       "Function System.Delegate.Remove(System.Delegate, System.Delegate) As System.Delegate"
+  IL_000d:  castclass  "E1"
+  IL_0012:  stfld      "C.eEvent As E1"
+  IL_0017:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        Public Sub MissingCompareExchange_05()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+public delegate sub E1()
+
+Structure C
+    public event e As E1
+
+    public shared sub Main()
+        Dim v = new C()
+        System.Console.Write(v.eEvent Is Nothing) 
+        Addhandler v.e, AddressOf Main
+        System.Console.Write(v.eEvent Is Nothing) 
+        Removehandler v.e, AddressOf Main
+        System.Console.Write(v.eEvent Is Nothing) 
+    End Sub
+End Structure
+    ]]></file>
+</compilation>, options:=TestOptions.DebugExe)
+
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="TrueFalseTrue",
+                                            symbolValidator:=Sub(m As ModuleSymbol)
+                                                                 Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+                                                                 Dim e = c.GetMember(Of EventSymbol)("e")
+
+                                                                 Dim addMethod = e.AddMethod
+                                                                 Assert.True((addMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+
+                                                                 Dim removeMethod = e.RemoveMethod
+                                                                 Assert.True((removeMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                             End Sub).VerifyDiagnostics()
+
+            verifier.VerifyIL("C.add_e",
+            <![CDATA[
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "C.eEvent As E1"
+  IL_0007:  ldarg.1
+  IL_0008:  call       "Function System.Delegate.Combine(System.Delegate, System.Delegate) As System.Delegate"
+  IL_000d:  castclass  "E1"
+  IL_0012:  stfld      "C.eEvent As E1"
+  IL_0017:  ret
+}
+]]>)
+
+            verifier.VerifyIL("C.remove_e",
+            <![CDATA[
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "C.eEvent As E1"
+  IL_0007:  ldarg.1
+  IL_0008:  call       "Function System.Delegate.Remove(System.Delegate, System.Delegate) As System.Delegate"
+  IL_000d:  castclass  "E1"
+  IL_0012:  stfld      "C.eEvent As E1"
+  IL_0017:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace

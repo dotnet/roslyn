@@ -316,59 +316,6 @@ namespace System.Collections
           );
         }
 
-        [Fact]
-        public void MissingCompareExchange()
-        {
-            var source1 =
-@"namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class ValueType { }
-    public struct Boolean { }
-    public abstract class Delegate { }
-    public abstract class MulticastDelegate : Delegate { }
-    public struct IntPtr { private IntPtr m_value; IntPtr Use(IntPtr b) { m_value = b; return m_value; } }
-}
-";
-
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
-            var source2 =
-@"
-
-public delegate void E1();
-
-class C
-{
-    public event E1 e;
-
-    public static void Main()
-    {
-        var v = new C();
-        v.e += Main;
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
-            compilation2.VerifyDiagnostics(
-                // (7,21): warning CS0067: The event 'C.e' is never used
-                //     public event E1 e;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e")
-            );
-
-            compilation2.Emit(new System.IO.MemoryStream()).Diagnostics.Verify(
-                // (12,28): error CS0656: Missing compiler required member 'System.Threading.Interlocked.CompareExchange'
-                //     public static event E1 e;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Threading.Interlocked", "CompareExchange"),
-                // (12,28): error CS0656: Missing compiler required member 'System.Threading.Interlocked.CompareExchange'
-                //     public static event E1 e;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Threading.Interlocked", "CompareExchange"),
-                // (12,28): warning CS0067: The event 'C.e' is never used
-                //     public static event E1 e;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e"));
-        }
-
         [WorkItem(631443, "DevDiv")]
         [Fact]
         public void CoreLibrary4()

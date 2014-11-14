@@ -138,6 +138,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides Function GetSpecialTypeMember(member As SpecialMember) As Symbol
+            If m_Compilation.IsMemberMissing(member) Then
+                Return Nothing
+            End If
+
+            Return MyBase.GetSpecialTypeMember(member)
+        End Function
+
         Public Overrides ReadOnly Property Name As String
             Get
                 Return m_AssemblySimpleName
@@ -741,7 +749,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property AssemblyHashAlgorithm As AssemblyHashAlgorithm
             Get
-                Return If(AssemblyAlgorithmIdAttributeSetting, AssemblyHashAlgorithm.SHA1)
+                Return If(AssemblyAlgorithmIdAttributeSetting, AssemblyHashAlgorithm.Sha1)
             End Get
         End Property
 

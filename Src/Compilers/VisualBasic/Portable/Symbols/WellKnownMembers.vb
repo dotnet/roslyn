@@ -244,6 +244,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetWellKnownTypeMember(member As WellKnownMember) As Symbol
             Debug.Assert(member >= 0 AndAlso member < WellKnownMember.Count)
 
+            ' Test hook If a member Is marked missing, Then Return null.
+            If IsMemberMissing(member) Then
+                Return Nothing
+            End If
+
             If m_LazyWellKnownTypeMembers Is Nothing OrElse m_LazyWellKnownTypeMembers(member) Is ErrorTypeSymbol.UnknownResultType Then
                 If (m_LazyWellKnownTypeMembers Is Nothing) Then
                     Dim wellKnownTypeMembers = New Symbol(WellKnownMember.Count - 1) {}

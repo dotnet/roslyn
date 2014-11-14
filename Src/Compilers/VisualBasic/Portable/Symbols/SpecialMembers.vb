@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Lookup member declaration in predefined CorLib type used by this Assembly.
         ''' </summary>
-        Friend Function GetSpecialTypeMember(member As SpecialMember) As Symbol
+        Friend Overridable Function GetSpecialTypeMember(member As SpecialMember) As Symbol
             Debug.Assert(member >= 0 AndAlso member < SpecialMember.Count)
 
             Return CorLibrary.GetDeclaredSpecialTypeMember(member)

@@ -328,6 +328,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     tmp2 = (DelegateType)Delegate.Combine(tmp1, value); //Remove for -=
         ///     tmp0 = Interlocked.CompareExchange&lt;DelegateType&gt;(ref _event, tmp2, tmp1);
         /// } while ((object)tmp0 != (object)tmp1);
+        /// 
+        /// Note, if System.Threading.Interlocked.CompareExchange&lt;T&gt; is not available,
+        /// we emit the following code and mark the method Synchronized (unless it is a struct).
+        /// 
+        /// _event = (DelegateType)Delegate.Combine(_event, value); //Remove for -=
+        /// 
         /// </summary>
         internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
@@ -338,32 +344,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol thisParameter = accessor.ThisParameter;
 
             TypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            MethodSymbol updateMethod = (MethodSymbol)compilation.GetSpecialTypeMember(isAddMethod ? SpecialMember.System_Delegate__Combine : SpecialMember.System_Delegate__Remove);
-            MethodSymbol compareExchangeMethod = GetConstructedCompareExchangeMethod(delegateType, compilation, accessor.Locations[0], diagnostics);
 
-            if ((object)compareExchangeMethod == null)
+            SpecialMember updateMethodId = isAddMethod ? SpecialMember.System_Delegate__Combine : SpecialMember.System_Delegate__Remove;
+            MethodSymbol updateMethod = (MethodSymbol)compilation.GetSpecialTypeMember(updateMethodId);
+
+            BoundStatement @return = new BoundReturnStatement(syntax,
+                expressionOpt: null)
+            { WasCompilerGenerated = true };
+
+            if (updateMethod == null)
             {
+                MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(updateMethodId);
+                SpecialType containingType = (SpecialType)memberDescriptor.DeclaringTypeId;
+                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember,
+                                                                      ((SpecialType)memberDescriptor.DeclaringTypeId).GetMetadataName(), 
+                                                                      memberDescriptor.Name), 
+                                                                      syntax.Location));
+
                 return new BoundBlock(syntax,
                     locals: ImmutableArray<LocalSymbol>.Empty,
-                    statements: ImmutableArray.Create<BoundStatement>(
-                        new BoundReturnStatement(syntax,
-                            expressionOpt: null)
-                { WasCompilerGenerated = true }))
+                    statements: ImmutableArray.Create<BoundStatement>(@return))
                 { WasCompilerGenerated = true };
             }
 
-            GeneratedLabelSymbol loopLabel = new GeneratedLabelSymbol("loop");
-
-            const int numTemps = 3;
-
-            LocalSymbol[] tmps = new LocalSymbol[numTemps];
-            BoundLocal[] boundTmps = new BoundLocal[numTemps];
-
-            for (int i = 0; i < numTemps; i++)
-            {
-                tmps[i] = new SynthesizedLocal(accessor, delegateType, SynthesizedLocalKind.LoweringTemp);
-                boundTmps[i] = new BoundLocal(syntax, tmps[i], null, delegateType);
-            }
+            Binder.ReportUseSiteDiagnostics(updateMethod, diagnostics, syntax);
 
             BoundThisReference fieldReceiver = eventSymbol.IsStatic ?
                 null :
@@ -378,6 +382,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundParameter boundParameter = new BoundParameter(syntax,
                 parameterSymbol: accessor.Parameters[0])
             { WasCompilerGenerated = true };
+
+            BoundExpression delegateUpdate;
+
+            MethodSymbol compareExchangeMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
+
+            if ((object)compareExchangeMethod == null)
+            {
+                // (DelegateType)Delegate.Combine(_event, value)
+                delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
+                    operand: BoundCall.Synthesized(syntax,
+                        receiverOpt: null,
+                        method: updateMethod,
+                        arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundParameter)),
+                    kind: ConversionKind.ExplicitReference,
+                    type: delegateType);
+
+                // _event = (DelegateType)Delegate.Combine(_event, value);
+                BoundStatement eventUpdate = new BoundExpressionStatement(syntax,
+                    expression: new BoundAssignmentOperator(syntax,
+                        left: boundBackingField,
+                        right: delegateUpdate,
+                        type: delegateType)
+                    { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true };
+
+                return new BoundBlock(syntax,
+                    locals: ImmutableArray<LocalSymbol>.Empty,
+                    statements: ImmutableArray.Create<BoundStatement>(
+                        eventUpdate,
+                        @return))
+                { WasCompilerGenerated = true };
+            }
+
+            compareExchangeMethod = compareExchangeMethod.Construct(ImmutableArray.Create<TypeSymbol>(delegateType));
+
+            Binder.ReportUseSiteDiagnostics(compareExchangeMethod, diagnostics, syntax);
+
+            GeneratedLabelSymbol loopLabel = new GeneratedLabelSymbol("loop");
+
+            const int numTemps = 3;
+
+            LocalSymbol[] tmps = new LocalSymbol[numTemps];
+            BoundLocal[] boundTmps = new BoundLocal[numTemps];
+
+            for (int i = 0; i < numTemps; i++)
+            {
+                tmps[i] = new SynthesizedLocal(accessor, delegateType, SynthesizedLocalKind.LoweringTemp);
+                boundTmps[i] = new BoundLocal(syntax, tmps[i], null, delegateType);
+            }
 
             // tmp0 = _event;
             BoundStatement tmp0Init = new BoundExpressionStatement(syntax,
@@ -403,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
 
             // (DelegateType)Delegate.Combine(tmp1, value)
-            BoundExpression delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
+            delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
                 operand: BoundCall.Synthesized(syntax,
                     receiverOpt: null,
                     method: updateMethod,
@@ -453,10 +506,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 label: loopLabel)
             { WasCompilerGenerated = true };
 
-            BoundStatement @return = new BoundReturnStatement(syntax,
-                expressionOpt: null)
-            { WasCompilerGenerated = true };
-
             return new BoundBlock(syntax,
                 locals: tmps.AsImmutable(),
                 statements: ImmutableArray.Create<BoundStatement>(
@@ -469,24 +518,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @return))
             { WasCompilerGenerated = true };
 
-        }
-
-        /// <summary>
-        /// Get the MethodSymbol for System.Threading.Interlocked.CompareExchange&lt;T&gt; for a given T.
-        /// </summary>
-        private static MethodSymbol GetConstructedCompareExchangeMethod(TypeSymbol typeArg, CSharpCompilation compilation, Location errorLocation, DiagnosticBag diagnostics)
-        {
-            MethodSymbol compareExchangeDefinition = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
-
-            if ((object)compareExchangeDefinition == null)
-            {
-                MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
-                WellKnownType containingType = (WellKnownType)memberDescriptor.DeclaringTypeId;
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, errorLocation, containingType.GetMetadataName(), memberDescriptor.Name);
-                return null;
-            }
-
-            return compareExchangeDefinition.Construct(ImmutableArray.Create<TypeSymbol>(typeArg));
         }
 
         internal static BoundBlock ConstructDestructorBody(CSharpSyntaxNode syntax, MethodSymbol method, BoundBlock block)
