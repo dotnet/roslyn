@@ -885,6 +885,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region GetMemberGroup
 
+        /// <summary>
+        /// Gets a list of method or indexed property symbols for a syntax node.
+        /// </summary>
+        /// <param name="expression">The syntax node to get semantic information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public ImmutableArray<ISymbol> GetMemberGroup(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetMemberGroup, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
@@ -897,6 +902,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets a list of method or indexed property symbols for a syntax node.
+        /// </summary>
+        /// <param name="attribute">The syntax node to get semantic information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public ImmutableArray<ISymbol> GetMemberGroup(AttributeSyntax attribute, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetMemberGroup, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
@@ -909,6 +919,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets a list of method or indexed property symbols for a syntax node.
+        /// </summary>
+        /// <param name="initializer">The syntax node to get semantic information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public ImmutableArray<ISymbol> GetMemberGroup(ConstructorInitializerSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetMemberGroup, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))

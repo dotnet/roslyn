@@ -135,6 +135,12 @@ namespace Microsoft.CodeAnalysis
             return semanticModel.GetDeclaredSymbolForNode(declaration, cancellationToken);
         }
 
+        /// <summary>
+        /// Gets a list of method or indexed property symbols for a syntax node.
+        /// </summary>
+        /// <param name="semanticModel"></param>
+        /// <param name="node">The syntax node to get semantic information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public static ImmutableArray<ISymbol> GetMemberGroup(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
             return semanticModel.GetMemberGroup(node, cancellationToken);
