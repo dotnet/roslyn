@@ -7200,6 +7200,54 @@ class Target<T>
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
         }
 
+        [Fact, WorkItem(1020038, "DevDiv")]
+        public void Bug1020038()
+        {
+            var source1 = @"
+public class CTest
+{}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "Bug1020038");
+
+            var source2 = @"
+class CAttr : System.Attribute
+{
+    public CAttr(System.Type x){}
+}
+
+[CAttr(typeof(CTest))]
+class Test
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1)});
+
+            CompileAndVerify(compilation2, emitOptions: TestEmitters.RefEmitBug, symbolValidator: (m) =>
+                                                                   {
+                                                                       Assert.Equal(2, m.ReferencedAssemblies.Length);
+                                                                       Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
+                                                                   });
+
+            var source3 = @"
+class CAttr : System.Attribute
+{
+    public CAttr(System.Type x){}
+}
+
+[CAttr(typeof(System.Func<System.Action<CTest>>))]
+class Test
+{}
+";
+
+            var compilation3 = CreateCompilationWithMscorlib(source3, new[] { new CSharpCompilationReference(compilation1) });
+
+            CompileAndVerify(compilation3, emitOptions: TestEmitters.RefEmitBug, symbolValidator: (m) =>
+            {
+                Assert.Equal(2, m.ReferencedAssemblies.Length);
+                Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
+            });
+        }
         #endregion
     }
 }

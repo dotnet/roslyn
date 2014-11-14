@@ -4212,5 +4212,66 @@ End Class
             Assert.Equal("Z", program.GetAttributes()(0).AttributeClass.ToTestDisplayString())
         End Sub
 
+        <Fact, WorkItem(1020038, "DevDiv")>
+        Public Sub Bug1020038()
+            Dim source1 =
+<compilation name="Bug1020038">
+    <file name="a.vb"><![CDATA[
+Public Class CTest
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim validator = Sub(m As ModuleSymbol)
+                                Assert.Equal(2, m.ReferencedAssemblies.Length)
+                                Assert.Equal("Bug1020038", m.ReferencedAssemblies(1).Name)
+                            End Sub
+
+            Dim compilation1 = CreateCompilationWithMscorlib(source1)
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class CAttr 
+    Inherits System.Attribute
+
+    Sub New(x as System.Type)
+    End Sub
+End Class
+
+<CAttr(GetType(CTest))>
+Class Test
+End Class
+]]>
+    </file>
+</compilation>
+
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
+            CompileAndVerify(compilation2, symbolValidator:=validator)
+
+            Dim source3 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class CAttr 
+    Inherits System.Attribute
+
+    Sub New(x as System.Type)
+    End Sub
+End Class
+
+<CAttr(GetType(System.Func(Of System.Action(Of CTest))))>
+Class Test
+End Class
+]]>
+    </file>
+</compilation>
+
+
+            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(source3, {New VisualBasicCompilationReference(compilation1)})
+            CompileAndVerify(compilation3, symbolValidator:=validator)
+        End Sub
+
     End Class
 End Namespace
